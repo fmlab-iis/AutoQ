@@ -147,11 +147,6 @@ public:   // Public methods
 		return bwdMap_.find(t2);
 	}
 
-    bool contains(const Type1& t1) const
-    {
-        return this->find(t1) != this->end();
-    }
-
 	const Type2& at(const Type1& t1) const
 	{
 		const_iterator it = this->find(t1);
