@@ -37,35 +37,41 @@ std::string TimbukSerializer::Serialize(const TreeAutomata& desc)
 
 	result += "\n";
 	result += "States ";
-	for_each(desc.states.cbegin(), desc.states.cend(),
-		[&result](const std::string& sStr){ result += sStr + " ";});
+    for (unsigned i=0; i<desc.stateNameToId.size(); i++) {
+        result += desc.stateNameToId.TranslateBwd(i) + " ";
+    }
+	// for_each(desc.states.cbegin(), desc.states.cend(),
+	// 	[&result](const std::string& sStr){ result += sStr + " ";});
 
 	result += "\n";
 	result += "Final States ";
-	for_each(desc.finalStates.cbegin(), desc.finalStates.cend(),
-		[&result](const std::string& fsStr){ result += fsStr + " ";});
+    for (unsigned i : desc.finalStates) {
+        result += desc.stateNameToId.TranslateBwd(i) + " ";
+    }
+	// for_each(desc.finalStates.cbegin(), desc.finalStates.cend(),
+	// 	[&result](const std::string& fsStr){ result += fsStr + " ";});
 
 	result += "\n";
 	result += "Transitions\n";
 	for (auto itTran = desc.transitions.cbegin();
 		itTran != desc.transitions.cend(); ++itTran)
 	{
-		result += itTran->second;
-		if (!(itTran->first.empty()))
+		result += itTran->first.first;
+		if (!(itTran->first.second.empty()))
 		{
 			result += "(";
-			result += itTran->first[0];
-			for (size_t i = 1; i < itTran->first.size(); ++i)
+			result += desc.stateNameToId.TranslateBwd(itTran->first.second[0]);
+			for (size_t i = 1; i < itTran->first.second.size(); ++i)
 			{
 				result += ", ";
-				result += itTran->first[i];
+				result += desc.stateNameToId.TranslateBwd(itTran->first.second[i]);
 			}
 
 			result += ")";
 		}
 
 		result += " -> ";
-		result += itTran->third;
+		result += desc.stateNameToId.TranslateBwd(itTran->second);
 
 		result += "\n";
 	}

@@ -189,7 +189,11 @@ static TreeAutomata parse_timbuk(const std::string& str)
 				{
 					std::string state = read_word(str);
 					auto state_num = parse_colonned_token(state);
-					result.states.insert(state_num.first);
+					// result.states.insert(state_num.first);
+                    /****************************************************************************************/
+                    assert(result.stateNameToId.FindFwd(state_num.first) == result.stateNameToId.end());
+                    result.stateNameToId.insert(std::make_pair(state_num.first, result.stateNameToId.size()));
+                    /****************************************************************************************/
 				}
 			}
 			else if ("Final" == first_word)
@@ -212,7 +216,10 @@ static TreeAutomata parse_timbuk(const std::string& str)
 				{
 					std::string state = read_word(str);
 					auto state_num = parse_colonned_token(state);
-					result.finalStates.insert(state_num.first);
+					// result.finalStates.insert(state_num.first);
+                    /****************************************************************************/
+                    result.finalStates.insert(result.stateNameToId.TranslateFwd(state_num.first));
+                    /****************************************************************************/
 				}
 			}
 			else
@@ -252,7 +259,10 @@ static TreeAutomata parse_timbuk(const std::string& str)
 					throw std::runtime_error(invalid_trans_str);
 				}
 
-				result.transitions.insert(TreeAutomata::Transition({}, lhs, rhs));
+				// result.transitions.insert(TreeAutomata::Transition({}, lhs, rhs));
+                /*******************************************************************************************************************/
+                result.transitions[std::make_pair(lhs, std::vector<TreeAutomata::State>())] = result.stateNameToId.TranslateFwd(rhs);
+                /*******************************************************************************************************************/
 			}
 			else
 			{	// contains a tuple of states
@@ -273,7 +283,10 @@ static TreeAutomata parse_timbuk(const std::string& str)
 				std::string str_state_tuple = lhs.substr(parens_begin_pos + 1,
 					parens_end_pos - parens_begin_pos - 1);
 
-				std::vector<std::string> state_tuple = split_delim(str_state_tuple, ',');
+				/********************************************/
+                std::vector<TreeAutomata::State> state_vector;
+                /********************************************/
+                std::vector<std::string> state_tuple = split_delim(str_state_tuple, ',');
 				for (std::string& state : state_tuple)
 				{
 					state = trim(state);
@@ -282,6 +295,11 @@ static TreeAutomata parse_timbuk(const std::string& str)
 					{
 						throw std::runtime_error(invalid_trans_str);
 					}
+
+                    /*******************************************************************/
+                    if (state.length() > 0)
+                        state_vector.push_back(result.stateNameToId.TranslateFwd(state));
+                    /*******************************************************************/
 				}
 
 				if ((state_tuple.size() == 1) && state_tuple[0] == "")
@@ -289,7 +307,10 @@ static TreeAutomata parse_timbuk(const std::string& str)
 					state_tuple = { };
 				}
 
-				result.transitions.insert(TreeAutomata::Transition(state_tuple, lab, rhs));
+				// result.transitions.insert(TreeAutomata::Transition(state_tuple, lab, rhs));
+                /*********************************************************************************************/
+                result.transitions[std::make_pair(lab, state_vector)] = result.stateNameToId.TranslateFwd(rhs);
+                /*********************************************************************************************/
 			}
 		}
 	}
