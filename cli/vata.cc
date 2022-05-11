@@ -11,12 +11,15 @@ using VATA::Util::TreeAutomata;
 using VATA::Util::ReadFile;
 
 int main(int argc, char **argv) {
-    assert(argc == 2);
+    assert(argc == 3);
 
     TimbukParser parser;
-    TreeAutomata aut = parser.ParseString(ReadFile(argv[1]));
+    TreeAutomata aut = parser.ParseString(ReadFile(argv[2]));
 
-    // aut.minimize();
+    if (strcmp(argv[1], "load") == 0) {}
+    else if (strcmp(argv[1], "red") == 0) {
+        aut.minimize();
+    }
 
     TimbukSerializer serializer;
     std::cout << serializer.Serialize(aut);

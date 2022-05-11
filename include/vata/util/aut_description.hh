@@ -29,20 +29,20 @@ namespace VATA
 struct VATA::Util::TreeAutomata
 {
 public:   // data types
-    typedef std::string SymbolName;
-	typedef std::pair<SymbolName, unsigned> Symbol; // 2nd element: arity
+    typedef string SymbolName;
+	typedef pair<SymbolName, int> Symbol; // 2nd element: arity
 
-    typedef unsigned State;
-	typedef std::vector<State> StateVector;
-    typedef TwoWayDict<std::string, State> StateNameToIdMap;
+    typedef int State;
+	typedef vector<State> StateVector;
+    typedef TwoWayDict<string, State> StateNameToIdMap;
 
-    typedef std::set<Symbol> SymbolSet;
-	typedef std::set<State> StateSet;
-	typedef std::map<std::pair<SymbolName, StateVector>, State> TransitionMap;
+    typedef set<Symbol> SymbolSet;
+	typedef set<State> StateSet;
+	typedef map<pair<SymbolName, StateVector>, State> TransitionMap;
 
 public:   // data members
 
-	std::string name;
+	string name;
     SymbolSet symbols;
 	StateSet finalStates;
     StateNameToIdMap stateNameToId;
@@ -79,16 +79,16 @@ public:   // methods
 			(name == rhs.name) &&
 			(symbols == rhs.symbols) &&
 			(finalStates == rhs.finalStates) &&
-            // (stateNameToId == rhs.stateNameToId) &&
+            (stateNameToId.size() == rhs.stateNameToId.size()) &&
 			(transitions == rhs.transitions);
 	}
 
-	std::string ToString() const
+	string ToString() const
 	{
-		std::string result;
+		string result;
 		result += "name: " + name + "\n";
 		result += "symbols: " + Convert::ToString(symbols) + "\n";
-		// result += "states: " + Convert::ToString(states) + "\n";
+		result += "number of states: " + Convert::ToString(stateNameToId.size()) + "\n";
 		result += "final states: " + Convert::ToString(finalStates) + "\n";
 		result += "transitions: \n";
 		for (auto trans : transitions)
@@ -99,70 +99,138 @@ public:   // methods
 		return result;
 	}
 
+private:
+    bool is_same_partition(const vector<int> &state_to_partition_id, State a, State b) {
+        assert (state_to_partition_id[a] == state_to_partition_id[b]);
+        for (auto f : symbols) { // for all functions
+            if (f.second < 1) continue; // no test if arity == 0
+            StateVector sv(f.second, 0); // declare the input states
+            bool overflow;
+            do {
+                for (int i=0; i<f.second; i++) {
+                    sv[i] = a;
+                    int resultA, resultB;
+                    try {
+                        resultA = state_to_partition_id[transitions.at(make_pair(f.first, sv))];
+                    } catch (...) { // must use .at in order to trigger exceptions if out of bound
+                        resultA = -1;
+                    }
+                    sv[i] = b;
+                    try {
+                        resultB = state_to_partition_id[transitions.at(make_pair(f.first, sv))];
+                    } catch (...) { // must use .at in order to trigger exceptions if out of bound
+                        resultB = -1;
+                    }
+                    if (resultA != resultB) return false;
+                    if (i+1 < f.second)
+                        swap(sv[i], sv[i+1]);
+                }
+                for (int i=0; i<f.second-1; i++) {
+                    swap(sv[i], sv[i+1]);
+                }
+                
+                overflow = (f.second == 1);
+                if (!overflow) { // f.second > 1
+                    sv[1]++;
+                    for (int i=1; i<f.second; i++) {
+                        if (sv[i] == static_cast<int>(stateNameToId.size())) {
+                            if (i == f.second - 1) {
+                                overflow = true;
+                                break;
+                            } else {
+                                sv[i] = 0;
+                                sv[i+1]++;
+                            }
+                        } else break;
+                    }
+                }
+            } while (!overflow);
+        }
+        return true;
+    }
+public:
+
     void minimize() {
-        // int num_of_partition = 2;
-        // std::map<string, int> partition;
-        // for (auto s : states) partition[s] = 0;
-        // for (auto s : finalStates) partition[s] = 1;
+        /*******************************************************************/
+        // Part 1: Partition states according to final states.
+        vector<StateVector> partition;
+        partition.push_back({}); // non-final states
+        partition.push_back({}); // final states
+        for (unsigned i=0; i<stateNameToId.size(); i++) {
+            if (finalStates.find(i) == finalStates.end()) // non-final state
+                partition[0].push_back(i);
+            else
+                partition[1].push_back(i);
+        }
+        /*******************************************************************/
 
-        // std::vector<TreeAutomata::Transition> vec_transitions(transitions.begin(), transitions.end());
-        // bool changed = true;
-        // while (changed) {
-        //     changed = false;
-        //     symbols.
-        //     // for (int i=0; i<static_cast<int>(vec_transitions.size()); i++)
-        //     //     for (int j=i+1; j<static_cast<int>(vec_transitions.size()); j++) {
-        //     //         if (vec_transitions[i].first.size() == vec_transitions[j].first.size()) {
-        //     //             for (int k=0; k<static_cast<int>(vec_transitions[i].first.size()); k++) {
-        //     //                 bool others_are_the_same = true;
-        //     //                 for (int z=0; z<static_cast<int>(vec_transitions[i].first.size()); z++) {
-        //     //                     if (z!=k && vec_transitions[i].first[z]!=vec_transitions[j].first[z])
-        //     //                         others_are_the_same = false;
-        //     //                 }
-        //     //                 if (others_are_the_same &&
-        //     //                     vec_transitions[i].first[k] != vec_transitions[j].first[k] &&
-        //     //                     partition[vec_transitions[i].first[k]] == partition[vec_transitions[j].first[k]] &&
-        //     //                     partition[vec_transitions[i].third] != partition[vec_transitions[j].third]) {
-        //     //                     partition[vec_transitions[i].first[k]] = num_of_partition; // j also OK
-        //     //                     num_of_partition++;
-        //     //                     changed = true;
-        //     //                 }
-        //     //             }
-        //     //         }
-        //     //     }
-        // }
-        // // for (auto s : states) std::cout << partition[s] << "\n";
+        /*******************************************************************/
+        // Part 2: Main loop of partition refinement.
+        vector<int> state_to_partition_id;
+        bool changed;
+        do {
+            changed = false;
+            vector<StateVector> new_partition; // 有 .clear 的效果。
+            state_to_partition_id = vector<int>(stateNameToId.size(), 0); // 有 .clear 的效果。
+            for (unsigned i=0; i<partition.size(); i++) {
+                for (auto s : partition[i])
+                    state_to_partition_id[s] = i;
+            }
+            for (auto cell : partition) { // original cell
+                map<State, StateVector> refined; // 有 .clear 的效果。
+                for (auto s : cell) { // state
+                    bool different_from_others = true;
+                    for (auto &small_cell : refined) { // check if s belongs to some refined cell
+                        if (is_same_partition(state_to_partition_id, s, small_cell.first)) { // compare with "key" (head)
+                            small_cell.second.push_back(s);
+                            different_from_others = false;
+                            break;
+                        }
+                    }
+                    if (different_from_others)
+                        refined[s] = StateVector(1, s);
+                }
+                /*************************************************
+                 * set the "changed" flag to true if the partition
+                 * changed in this cell. */
+                if (refined.size() != 1)
+                    changed = true;
+                else {
+                    for (const auto &small_cell : refined) // only one cell!
+                        if (small_cell.second != cell) // the order should be the same
+                            changed = true;
+                }
+                /************************************************/
+                // push the refined partition in this cell finally
+                for (const auto &small_cell : refined)
+                    new_partition.push_back(small_cell.second);
+            }
+            partition = new_partition;
+        } while (changed);
+        /*******************************************************************/
 
-        // std::map<int, string> mymap;
-        // for (auto s : states) {
-        //     if (mymap.find(partition[s]) == mymap.end())
-        //         mymap[partition[s]] = s;
-        // }
+        /*******************************************************************/
+        // Part 3: Automata reconstruction based on the refined partition.
+        StateSet finalStates_new;
+        StateNameToIdMap stateNameToId_new;
+        TransitionMap transitions_new;
 
-        // std::set<std::string>::iterator it = states.begin();
-        // while (it != states.end()) {
-        //     std::set<std::string>::iterator current = it++;
-        //     if (mymap[partition[*current]] != *current)
-        //         states.erase(*current);
-        // }
+        for (auto s : finalStates)
+            finalStates_new.insert(state_to_partition_id[s]);
+        finalStates = finalStates_new;
 
-        // std::set<std::string>::iterator it2 = finalStates.begin();
-        // while (it2 != finalStates.end()) {
-        //     std::set<std::string>::iterator current = it2++;
-        //     if (mymap[partition[*current]] != *current)
-        //         finalStates.erase(*current);
-        // }
+        for (unsigned i=0; i<partition.size(); i++)
+            stateNameToId_new.insert(make_pair(stateNameToId.TranslateBwd(partition[i][0]), i));
+        stateNameToId = stateNameToId_new;
 
-        // TreeAutomata::TransitionSet newSet;
-        // for (auto t : vec_transitions) {
-        //     TreeAutomata::StateVector st;
-        //     for (auto s : t.first) {
-        //         st.push_back(mymap[partition[s]]);
-        //     }
-        //     newSet.insert(TreeAutomata::Transition(st, t.second, mymap[partition[t.third]]));
-        // }
-
-        // transitions = newSet;
+        for (auto t : transitions) {
+            StateVector args = t.first.second;
+            for (unsigned i=0; i<args.size(); i++)
+                args[i] = state_to_partition_id[args[i]];
+            transitions_new.insert(make_pair(make_pair(t.first.first, args), state_to_partition_id[t.second]));
+        }
+        transitions = transitions_new;
+        /*******************************************************************/
     }
 };
 
