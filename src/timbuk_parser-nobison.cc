@@ -261,7 +261,7 @@ static TreeAutomata parse_timbuk(const std::string& str)
 
 				// result.transitions.insert(TreeAutomata::Transition({}, lhs, rhs));
                 /*******************************************************************************************************************/
-                result.transitions[std::make_pair(lhs, std::vector<TreeAutomata::State>())] = result.stateNameToId.TranslateFwd(rhs);
+                result.transitions[lhs][std::vector<TreeAutomata::State>()].insert(result.stateNameToId.TranslateFwd(rhs));
                 /*******************************************************************************************************************/
 			}
 			else
@@ -309,7 +309,7 @@ static TreeAutomata parse_timbuk(const std::string& str)
 
 				// result.transitions.insert(TreeAutomata::Transition(state_tuple, lab, rhs));
                 /*********************************************************************************************/
-                result.transitions[std::make_pair(lab, state_vector)] = result.stateNameToId.TranslateFwd(rhs);
+                result.transitions[lab][state_vector].insert(result.stateNameToId.TranslateFwd(rhs));
                 /*********************************************************************************************/
 			}
 		}

@@ -38,7 +38,7 @@ public:   // data types
 
     typedef set<Symbol> SymbolSet;
 	typedef set<State> StateSet;
-	typedef map<pair<SymbolName, StateVector>, State> TransitionMap;
+	typedef map<pair<SymbolName, StateVector>, StateSet> TransitionMap;
 
 public:   // data members
 
@@ -111,13 +111,15 @@ private:
                     sv[i] = a;
                     int resultA, resultB;
                     try {
-                        resultA = state_to_partition_id[transitions.at(make_pair(f.first, sv))];
+                        assert(transitions.at(make_pair(f.first, sv)).size() == 1);
+                        resultA = state_to_partition_id[*(transitions.at(make_pair(f.first, sv)).begin())];
                     } catch (...) { // must use .at in order to trigger exceptions if out of bound
                         resultA = -1;
                     }
                     sv[i] = b;
                     try {
-                        resultB = state_to_partition_id[transitions.at(make_pair(f.first, sv))];
+                        assert(transitions.at(make_pair(f.first, sv)).size() == 1);
+                        resultB = state_to_partition_id[*(transitions.at(make_pair(f.first, sv)).begin())];
                     } catch (...) { // must use .at in order to trigger exceptions if out of bound
                         resultB = -1;
                     }
@@ -227,7 +229,8 @@ public:
             StateVector args = t.first.second;
             for (unsigned i=0; i<args.size(); i++)
                 args[i] = state_to_partition_id[args[i]];
-            transitions_new.insert(make_pair(make_pair(t.first.first, args), state_to_partition_id[t.second]));
+            assert(t.second.size() == 1);
+            transitions_new.insert(make_pair(make_pair(t.first.first, args), StateSet({state_to_partition_id[*(t.second.begin())]})));
         }
         transitions = transitions_new;
         /*******************************************************************/
