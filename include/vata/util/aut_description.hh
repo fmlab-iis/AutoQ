@@ -12,6 +12,7 @@
 #define _VATA_AUT_DESCRIPTION_HH_
 
 // VATA headers
+#include <algorithm>
 #include <vata/vata.hh>
 #include <vata/util/triple.hh>
 #include <vata/util/two_way_dict.hh>
@@ -151,6 +152,114 @@ private:
         return true;
     }
 public:
+    void determinize() {
+        TwoWayDict<StateSet, int> composite_set_id;
+        TransitionMap transitions_new;
+
+        /*******************************************************************/
+        // Part 1: Generate composite sets from 0-arity symbols.
+        for (const auto &f : symbols) {
+            if (f.second == 0) {
+                const StateSet &ss = transitions.at(f.first).at({});
+                try {
+                    int x = composite_set_id.TranslateFwd(ss);
+                    transitions_new[f.first][StateVector({})] = StateSet({x});
+                } catch (...) {
+                    int x = composite_set_id.size();
+                    transitions_new[f.first][StateVector({})] = StateSet({x});
+                    composite_set_id.insert(make_pair(ss, x));
+                }
+            }
+        }
+        /*******************************************************************/
+
+        /*******************************************************************/
+        // Part 2: Generate composite sets from (>= 1)-arity symbols.
+        int old_composite_set_size, current_composite_set_size = 0;
+        while (current_composite_set_size != static_cast<int>(composite_set_id.size())) {
+            old_composite_set_size = current_composite_set_size;
+            current_composite_set_size = composite_set_id.size();
+            for (const auto &f : symbols) {
+                if (f.second >= 1) {
+                    StateVector sv(f.second, 0); // enumerate all possible combinations of composite states
+                    bool overflow = false;
+                    do {
+                        StateSet collected_RHS;
+                        bool need_process = false;
+                        for (int i=0; i<static_cast<int>(sv.size()); i++) {
+                            if (sv[i] >= old_composite_set_size) {
+                                need_process = true;
+                                break;
+                            }
+                        }
+                        if (need_process) {
+                            for (const auto &in_out : transitions[f.first]) { // if this transition's input states are all contained
+                                const auto &input = in_out.first;             // in the current combination of composite states, then
+                                assert(static_cast<int>(input.size()) == f.second);             // collect the states of RHS of this transition.
+                                bool valid = true;
+                                for (int i=0; i<f.second; i++) {
+                                    if (composite_set_id.TranslateBwd(sv[i]).find(input[i]) == composite_set_id.TranslateBwd(sv[i]).end()) {
+                                        valid = false;
+                                        break;
+                                    }
+                                }
+                                if (valid) {
+                                    collected_RHS.insert(in_out.second.begin(), in_out.second.end());
+                                }
+                            }
+                            if (!collected_RHS.empty()) {
+                                if (composite_set_id.find(collected_RHS) == composite_set_id.end()) {
+                                    composite_set_id.insert(make_pair(collected_RHS, composite_set_id.size()));
+                                }
+                                transitions_new[f.first][sv] = StateSet({composite_set_id.TranslateFwd(collected_RHS)});
+                            }
+                        }
+                        sv[0]++;
+                        for (int i=0; i<f.second; i++) {
+                            if (sv[i] == current_composite_set_size) {
+                                if (i == f.second - 1) {
+                                    overflow = true;
+                                    break;
+                                } else {
+                                    sv[i] = 0;
+                                    sv[i+1]++;
+                                }
+                            } else break;
+                        }
+                    } while (!overflow);
+                }
+            }
+        }
+        /*******************************************************************/
+
+        /*******************************************************************/
+        // Part 3: Automata reconstruction based on the refined partition.
+        StateSet finalStates_new;
+        StateNameToIdMap stateNameToId_new;
+
+        for (const auto &cs_id : composite_set_id) {
+            StateSet temp; // should be empty
+            const StateSet &cs = cs_id.first;
+            set_intersection(cs.begin(), cs.end(), finalStates.begin(), finalStates.end(), inserter(temp, temp.begin()));
+            if (!temp.empty()) {
+                finalStates_new.insert(cs_id.second);
+            }
+        }
+        finalStates = finalStates_new;
+
+        for (const auto &cs_id : composite_set_id) {
+            string str;
+            for (const auto &state : cs_id.first)
+                str += stateNameToId.TranslateBwd(state) + "_";
+            assert(!str.empty());
+            str.pop_back();
+            stateNameToId_new.insert(make_pair(str, cs_id.second));
+        }
+        stateNameToId = stateNameToId_new;
+
+        transitions = transitions_new;
+        /*******************************************************************/
+    }
 
     void minimize() {
         /*******************************************************************/
@@ -231,7 +340,7 @@ public:
                 for (unsigned i=0; i<args.size(); i++)
                     args[i] = state_to_partition_id[args[i]];
                 assert(t2.second.size() == 1);
-                transitions_new[t.first].insert(make_pair(args, StateSet({state_to_partition_id[*(t2.second.begin())]})));
+                transitions_new[t.first][args] = StateSet({state_to_partition_id[*(t2.second.begin())]});
             }
         }
         transitions = transitions_new;

@@ -15,6 +15,7 @@ int main(int argc, char **argv) {
 
     TimbukParser parser;
     TreeAutomata aut = parser.ParseString(ReadFile(argv[2]));
+    aut.determinize();
 
     if (strcmp(argv[1], "load") == 0) {}
     else if (strcmp(argv[1], "red") == 0) {
