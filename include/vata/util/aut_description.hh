@@ -19,6 +19,15 @@
 
 using namespace std;
 
+template <class T>
+int findIndex(const vector<T> &arr, T item) {
+    for (int i = 0; i < static_cast<int>(arr.size()); ++i) {
+        if (arr[i] == item)
+            return i;
+    }
+    __throw_out_of_range("findIndex");
+}
+
 namespace VATA
 {
 	namespace Util
@@ -153,7 +162,7 @@ private:
     }
 public:
     void determinize() {
-        TwoWayDict<StateSet, int> composite_set_id;
+        vector<StateSet> composite_set_id;
         TransitionMap transitions_new;
 
         /*******************************************************************/
@@ -162,12 +171,12 @@ public:
             if (f.second == 0) {
                 const StateSet &ss = transitions.at(f.first).at({});
                 try {
-                    int x = composite_set_id.TranslateFwd(ss);
+                    int x = findIndex(composite_set_id, ss);
                     transitions_new[f.first][StateVector({})] = StateSet({x});
                 } catch (...) {
                     int x = composite_set_id.size();
                     transitions_new[f.first][StateVector({})] = StateSet({x});
-                    composite_set_id.insert(make_pair(ss, x));
+                    composite_set_id.push_back(ss);
                 }
             }
         }
@@ -198,7 +207,7 @@ public:
                                 assert(static_cast<int>(input.size()) == f.second);             // collect the states of RHS of this transition.
                                 bool valid = true;
                                 for (int i=0; i<f.second; i++) {
-                                    if (composite_set_id.TranslateBwd(sv[i]).find(input[i]) == composite_set_id.TranslateBwd(sv[i]).end()) {
+                                    if (composite_set_id[sv[i]].find(input[i]) == composite_set_id[sv[i]].end()) {
                                         valid = false;
                                         break;
                                     }
@@ -208,10 +217,14 @@ public:
                                 }
                             }
                             if (!collected_RHS.empty()) {
-                                if (composite_set_id.find(collected_RHS) == composite_set_id.end()) {
-                                    composite_set_id.insert(make_pair(collected_RHS, composite_set_id.size()));
+                                try {
+                                    int x = findIndex(composite_set_id, collected_RHS); // may throw out_of_bound exception
+                                    transitions_new[f.first][sv] = StateSet({x});
+                                } catch (...) {
+                                    int x = composite_set_id.size();
+                                    transitions_new[f.first][sv] = StateSet({x});
+                                    composite_set_id.push_back(collected_RHS);
                                 }
-                                transitions_new[f.first][sv] = StateSet({composite_set_id.TranslateFwd(collected_RHS)});
                             }
                         }
                         sv[0]++;
@@ -237,23 +250,23 @@ public:
         StateSet finalStates_new;
         StateNameToIdMap stateNameToId_new;
 
-        for (const auto &cs_id : composite_set_id) {
+        for (unsigned i=0; i<composite_set_id.size(); i++) {
             StateSet temp; // should be empty
-            const StateSet &cs = cs_id.first;
+            const StateSet &cs = composite_set_id[i];
             set_intersection(cs.begin(), cs.end(), finalStates.begin(), finalStates.end(), inserter(temp, temp.begin()));
             if (!temp.empty()) {
-                finalStates_new.insert(cs_id.second);
+                finalStates_new.insert(i);
             }
         }
         finalStates = finalStates_new;
 
-        for (const auto &cs_id : composite_set_id) {
+        for (unsigned i=0; i<composite_set_id.size(); i++) {
             string str;
-            for (const auto &state : cs_id.first)
+            for (const auto &state : composite_set_id[i])
                 str += stateNameToId.TranslateBwd(state) + "_";
             assert(!str.empty());
             str.pop_back();
-            stateNameToId_new.insert(make_pair(str, cs_id.second));
+            stateNameToId_new.insert(make_pair(str, i));
         }
         stateNameToId = stateNameToId_new;
 
