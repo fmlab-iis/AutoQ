@@ -38,7 +38,7 @@ public:   // data types
 
     typedef set<Symbol> SymbolSet;
 	typedef set<State> StateSet;
-	typedef map<pair<SymbolName, StateVector>, StateSet> TransitionMap;
+	typedef map<SymbolName, map<StateVector, StateSet>> TransitionMap;
 
 public:   // data members
 
@@ -91,7 +91,7 @@ public:   // methods
 		result += "number of states: " + Convert::ToString(stateNameToId.size()) + "\n";
 		result += "final states: " + Convert::ToString(finalStates) + "\n";
 		result += "transitions: \n";
-		for (auto trans : transitions)
+		for (const auto &trans : transitions)
 		{
 			result += Convert::ToString(trans) + "\n";
 		}
@@ -102,7 +102,7 @@ public:   // methods
 private:
     bool is_same_partition(const vector<int> &state_to_partition_id, State a, State b) {
         assert (state_to_partition_id[a] == state_to_partition_id[b]);
-        for (auto f : symbols) { // for all functions
+        for (const auto &f : symbols) { // for all functions
             if (f.second < 1) continue; // no test if arity == 0
             StateVector sv(f.second, 0); // declare the input states
             bool overflow;
@@ -111,15 +111,15 @@ private:
                     sv[i] = a;
                     int resultA, resultB;
                     try {
-                        assert(transitions.at(make_pair(f.first, sv)).size() == 1);
-                        resultA = state_to_partition_id[*(transitions.at(make_pair(f.first, sv)).begin())];
+                        assert(transitions.at(f.first).at(sv).size() == 1);
+                        resultA = state_to_partition_id[*(transitions.at(f.first).at(sv).begin())];
                     } catch (...) { // must use .at in order to trigger exceptions if out of bound
                         resultA = -1;
                     }
                     sv[i] = b;
                     try {
-                        assert(transitions.at(make_pair(f.first, sv)).size() == 1);
-                        resultB = state_to_partition_id[*(transitions.at(make_pair(f.first, sv)).begin())];
+                        assert(transitions.at(f.first).at(sv).size() == 1);
+                        resultB = state_to_partition_id[*(transitions.at(f.first).at(sv).begin())];
                     } catch (...) { // must use .at in order to trigger exceptions if out of bound
                         resultB = -1;
                     }
@@ -175,12 +175,12 @@ public:
             vector<StateVector> new_partition; // 有 .clear 的效果。
             state_to_partition_id = vector<int>(stateNameToId.size(), 0); // 有 .clear 的效果。
             for (unsigned i=0; i<partition.size(); i++) {
-                for (auto s : partition[i])
+                for (const auto &s : partition[i])
                     state_to_partition_id[s] = i;
             }
-            for (auto cell : partition) { // original cell
+            for (const auto &cell : partition) { // original cell
                 map<State, StateVector> refined; // 有 .clear 的效果。
-                for (auto s : cell) { // state
+                for (const auto &s : cell) { // state
                     bool different_from_others = true;
                     for (auto &small_cell : refined) { // check if s belongs to some refined cell
                         if (is_same_partition(state_to_partition_id, s, small_cell.first)) { // compare with "key" (head)
@@ -217,7 +217,7 @@ public:
         StateNameToIdMap stateNameToId_new;
         TransitionMap transitions_new;
 
-        for (auto s : finalStates)
+        for (const auto &s : finalStates)
             finalStates_new.insert(state_to_partition_id[s]);
         finalStates = finalStates_new;
 
@@ -225,12 +225,14 @@ public:
             stateNameToId_new.insert(make_pair(stateNameToId.TranslateBwd(partition[i][0]), i));
         stateNameToId = stateNameToId_new;
 
-        for (auto t : transitions) {
-            StateVector args = t.first.second;
-            for (unsigned i=0; i<args.size(); i++)
-                args[i] = state_to_partition_id[args[i]];
-            assert(t.second.size() == 1);
-            transitions_new.insert(make_pair(make_pair(t.first.first, args), StateSet({state_to_partition_id[*(t.second.begin())]})));
+        for (const auto &t : transitions) {
+            for (const auto &t2 : t.second) {
+                StateVector args = t2.first;
+                for (unsigned i=0; i<args.size(); i++)
+                    args[i] = state_to_partition_id[args[i]];
+                assert(t2.second.size() == 1);
+                transitions_new[t.first].insert(make_pair(args, StateSet({state_to_partition_id[*(t2.second.begin())]})));
+            }
         }
         transitions = transitions_new;
         /*******************************************************************/
