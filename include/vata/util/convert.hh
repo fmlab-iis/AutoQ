@@ -191,19 +191,19 @@ public:
 		// the output stream for the string
 		std::ostringstream oss;
 
-		oss << "(";		// opening tag
+		oss << "[";		// opening tag
 		for (auto it = vec.cbegin(); it != vec.cend(); ++it)
 		{	// for each element of the vector
 			if (it != vec.cbegin())
 			{	// if we are not at the first element
-				oss << ", ";
+				oss << ",";
 			}
 
 			// the string of the element
 			oss << ToString(*it);
 		}
 
-		oss << ")";		// closing tag
+		oss << "]";		// closing tag
 
 		// return the string
 		return oss.str();

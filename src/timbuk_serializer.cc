@@ -12,6 +12,7 @@
 #include <vata/vata.hh>
 #include <vata/serialization/timbuk_serializer.hh>
 
+using VATA::Util::Convert;
 using VATA::Serialization::TimbukSerializer;
 
 // Standard library headers
@@ -28,7 +29,7 @@ std::string TimbukSerializer::Serialize(const TreeAutomata& desc)
 	for (auto itSymb = desc.symbols.cbegin();
 		itSymb != desc.symbols.cend(); ++itSymb)
 	{
-		result += itSymb->first + ":" +
+		result += VATA::Util::Convert::ToString(itSymb->first) + ":" +
 			VATA::Util::Convert::ToString(itSymb->second) + " ";
 	}
 
@@ -57,7 +58,7 @@ std::string TimbukSerializer::Serialize(const TreeAutomata& desc)
     for (const auto &t : desc.transitions) {
         for (const auto &t2 : t.second) {
             for (const auto &finalSet : t2.second) {
-                result += t.first;
+                result += Convert::ToString(t.first);
                 if (!(t2.first.empty())) {
                     result += "(";
                     result += desc.stateNameToId.TranslateBwd(t2.first[0]);

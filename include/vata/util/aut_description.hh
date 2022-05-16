@@ -39,7 +39,7 @@ namespace VATA
 struct VATA::Util::TreeAutomata
 {
 public:   // data types
-    typedef string SymbolName;
+    typedef vector<int> SymbolName;
 	typedef pair<SymbolName, int> Symbol; // 2nd element: arity
 
     typedef int State;
@@ -295,7 +295,7 @@ public:
         do {
             changed = false;
             vector<StateVector> new_partition; // 有 .clear 的效果。
-            state_to_partition_id = vector<int>(stateNameToId.size(), 0); // 有 .clear 的效果。
+            state_to_partition_id = vector<int>(stateNameToId.size()); // 有 .clear 的效果。
             for (unsigned i=0; i<partition.size(); i++) {
                 for (const auto &s : partition[i])
                     state_to_partition_id[s] = i;

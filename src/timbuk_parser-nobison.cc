@@ -117,6 +117,22 @@ static std::pair<std::string, int> parse_colonned_token(std::string str)
 /**
  * @brief  Parse a string with Timbuk definition of an automaton
  */
+vector<int> symbol_converter(const std::string& str)
+{
+    vector<int> temp;
+    if (str[0] == '[') {
+        for (int i=1; i<static_cast<int>(str.length()); i++) {
+            size_t j = str.find(',', i);
+            if (j == std::string::npos) j = str.length()-1;
+            temp.push_back(atoi(str.substr(i, j-i).c_str()));
+            i = j;
+        }
+    } else {
+        temp.push_back(atoi(str.c_str()));
+    }
+    assert(temp.size() == 1 || temp.size() == 5);
+    return temp;
+}
 static TreeAutomata parse_timbuk(const std::string& str)
 {
 	TreeAutomata result;
@@ -171,7 +187,8 @@ static TreeAutomata parse_timbuk(const std::string& str)
 				{
 					std::string label = read_word(str);
 					auto label_num = parse_colonned_token(label);
-					TreeAutomata::Symbol symb(label_num.first, label_num.second);
+                    auto temp = symbol_converter(label_num.first);
+					TreeAutomata::Symbol symb(temp, label_num.second);
 
 					result.symbols.insert(symb);
 				}
@@ -261,7 +278,8 @@ static TreeAutomata parse_timbuk(const std::string& str)
 
 				// result.transitions.insert(TreeAutomata::Transition({}, lhs, rhs));
                 /*******************************************************************************************************************/
-                result.transitions[lhs][std::vector<TreeAutomata::State>()].insert(result.stateNameToId.TranslateFwd(rhs));
+                auto temp = symbol_converter(lhs);
+                result.transitions[temp][std::vector<TreeAutomata::State>()].insert(result.stateNameToId.TranslateFwd(rhs));
                 /*******************************************************************************************************************/
 			}
 			else
@@ -309,7 +327,8 @@ static TreeAutomata parse_timbuk(const std::string& str)
 
 				// result.transitions.insert(TreeAutomata::Transition(state_tuple, lab, rhs));
                 /*********************************************************************************************/
-                result.transitions[lab][state_vector].insert(result.stateNameToId.TranslateFwd(rhs));
+                auto temp = symbol_converter(lab);
+                result.transitions[temp][state_vector].insert(result.stateNameToId.TranslateFwd(rhs));
                 /*********************************************************************************************/
 			}
 		}
