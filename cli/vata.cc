@@ -17,6 +17,9 @@ int main(int argc, char **argv) {
     TreeAutomata aut = parser.ParseString(ReadFile(argv[2]));
     aut.determinize();
 
+    // aut.integer_multiplication(0);
+    // aut.omega_multiplication();
+
     if (strcmp(argv[1], "load") == 0) {}
     else if (strcmp(argv[1], "red") == 0) {
         aut.minimize();

@@ -359,6 +359,110 @@ public:
         transitions = transitions_new;
         /*******************************************************************/
     }
+
+    void integer_multiplication(int m) {
+        SymbolSet symbols_new;
+        for (const auto &sys : symbols) {
+            if (sys.first.size() == 5) {
+                assert(sys.second == 0);
+                SymbolName temp;
+                for (unsigned i=0; i<sys.first.size()-1; i++) { // exclude "k"
+                    temp.push_back(sys.first[i] * m);
+                }
+                temp.push_back(sys.first[sys.first.size()-1]);
+                symbols_new.insert(Symbol(temp, 0));
+            } else {
+                assert(sys.first.size() == 1);
+                symbols_new.insert(sys);
+            }
+        }
+        symbols = symbols_new;
+
+        TransitionMap transitions_new;
+        for (const auto &t_old : transitions) {
+            if (t_old.first.size() == 5) {
+                SymbolName temp;
+                for (unsigned i=0; i<t_old.first.size()-1; i++) { // exclude "k"
+                    temp.push_back(t_old.first[i] * m);
+                }
+                temp.push_back(t_old.first[t_old.first.size()-1]);
+                try {
+                    auto &in_out = transitions_new.at(temp);
+                    for (const auto &kv : t_old.second) {
+                        try {
+                            StateSet &ss = in_out.at(kv.first);
+                            StateSet dest;
+                            set_union(ss.begin(), ss.end(), kv.second.begin(), kv.second.end(), inserter(dest, dest.begin()));
+                            ss = dest;
+                        } catch (...) {
+                            in_out[kv.first] = kv.second;
+                        }
+                    }
+                } catch (...) {
+                    transitions_new[temp] = t_old.second;
+                }
+            } else {
+                assert(t_old.first.size() == 1);
+                transitions_new.insert(t_old);
+            }
+        }
+        transitions = transitions_new;
+
+        this->determinize();
+    }
+
+    void omega_multiplication() {
+        SymbolSet symbols_new;
+        for (const auto &sys : symbols) {
+            if (sys.first.size() == 5) {
+                assert(sys.second == 0);
+                SymbolName temp;
+                temp.push_back(-sys.first[3]);
+                for (unsigned i=0; i<sys.first.size()-2; i++) { // exclude "k"
+                    temp.push_back(sys.first[i]);
+                }
+                temp.push_back(sys.first[sys.first.size()-1]);
+                symbols_new.insert(Symbol(temp, 0));
+            } else {
+                assert(sys.first.size() == 1);
+                symbols_new.insert(sys);
+            }
+        }
+        symbols = symbols_new;
+
+        TransitionMap transitions_new;
+        for (const auto &t_old : transitions) {
+            if (t_old.first.size() == 5) {
+                SymbolName temp;
+                temp.push_back(-t_old.first[3]);
+                for (unsigned i=0; i<t_old.first.size()-2; i++) { // exclude "k"
+                    temp.push_back(t_old.first[i]);
+                }
+                temp.push_back(t_old.first[t_old.first.size()-1]);
+                try {
+                    auto &in_out = transitions_new.at(temp);
+                    for (const auto &kv : t_old.second) {
+                        try {
+                            StateSet &ss = in_out.at(kv.first);
+                            StateSet dest;
+                            set_union(ss.begin(), ss.end(), kv.second.begin(), kv.second.end(), inserter(dest, dest.begin()));
+                            ss = dest;
+                        } catch (...) {
+                            in_out[kv.first] = kv.second;
+                        }
+                    }
+                } catch (...) {
+                    transitions_new[temp] = t_old.second;
+                }
+            } else {
+                assert(t_old.first.size() == 1);
+                transitions_new.insert(t_old);
+            }
+        }
+        transitions = transitions_new;
+
+        this->determinize();
+    }
 };
 
 #endif
