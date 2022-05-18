@@ -274,6 +274,7 @@ public:
         /*******************************************************************/
     }
 
+    // should be determinized first!
     void minimize() {
         /*******************************************************************/
         // Part 1: Partition states according to final states.
@@ -408,7 +409,8 @@ public:
         }
         transitions = transitions_new;
 
-        this->determinize();
+        determinize();
+        minimize();
     }
 
     void omega_multiplication() {
@@ -461,7 +463,69 @@ public:
         }
         transitions = transitions_new;
 
-        this->determinize();
+        determinize();
+        minimize();
+    }
+
+    void branch_restriction(int k, bool positive_has_value=true) {
+        int num_of_states = stateNameToId.size();
+        StateNameToIdMap stateNameToId_copy = stateNameToId;
+        for (const auto &var : stateNameToId_copy) {
+            stateNameToId.insert(make_pair(var.first + "_copy", var.second + num_of_states));
+        }
+        
+        // Assume five-tuple leaves exist.
+        symbols.insert(Symbol({0,0,0,0,0}, 0));
+        
+        TransitionMap transitions_copy = transitions;
+        for (const auto &t : transitions_copy) {
+            if (t.first.size() == 1) { // x_i
+                auto &in_outs_dest = transitions.at(t.first);
+                for (const auto &in_out : t.second) {
+                    StateVector in;
+                    assert(in_out.first.size() == 2);
+                    for (unsigned i=0; i<in_out.first.size(); i++)
+                        in.push_back(in_out.first[i] + num_of_states);
+                    StateSet out;
+                    for (const auto &n : in_out.second)
+                        out.insert(n + num_of_states);
+                    in_outs_dest.insert(make_pair(in, out));
+                }
+            } else { // (a,b,c,d,k)
+                assert(t.first.size() == 5);
+                for (const auto &in_out : t.second) {
+                    assert(in_out.first.empty());
+                    for (const auto &n : in_out.second)
+                        transitions[{0,0,0,0,0}][{}].insert(n + num_of_states);
+                }
+            }
+        }
+
+        vector<StateVector> to_be_removed;
+        map<StateVector, StateSet> to_be_inserted;
+        auto &mss = transitions.at({k});
+        for (auto &in_out : mss) {
+            assert(in_out.first.size() == 2);
+            if (in_out.first.at(0) < num_of_states && in_out.first.at(1) < num_of_states) {
+                to_be_removed.push_back(in_out.first);
+                StateVector in;
+                if (positive_has_value) {
+                    in.push_back(in_out.first.at(0) + num_of_states);
+                    in.push_back(in_out.first.at(1));
+                } else {
+                    in.push_back(in_out.first.at(0));
+                    in.push_back(in_out.first.at(1) + num_of_states);
+                }
+                to_be_inserted.insert(make_pair(in, in_out.second));
+            }
+        }
+        for (const auto &sv : to_be_removed)
+            mss.erase(sv);
+        for (const auto &e : to_be_inserted)
+            mss.insert(e);
+        
+        determinize();
+        minimize();
     }
 };
 

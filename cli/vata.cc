@@ -19,6 +19,7 @@ int main(int argc, char **argv) {
 
     // aut.integer_multiplication(0);
     // aut.omega_multiplication();
+    // aut.branch_restriction(2);
 
     if (strcmp(argv[1], "load") == 0) {}
     else if (strcmp(argv[1], "red") == 0) {
