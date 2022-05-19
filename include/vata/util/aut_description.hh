@@ -40,20 +40,19 @@ struct VATA::Util::TreeAutomata
 {
 public:   // data types
     typedef vector<int> SymbolName;
-	typedef pair<SymbolName, int> Symbol; // 2nd element: arity
+    typedef map<SymbolName, int> SymbolMap; // 2nd element: arity
 
     typedef int State;
 	typedef vector<State> StateVector;
     typedef TwoWayDict<string, State> StateNameToIdMap;
 
-    typedef set<Symbol> SymbolSet;
 	typedef set<State> StateSet;
 	typedef map<SymbolName, map<StateVector, StateSet>> TransitionMap;
 
 public:   // data members
 
 	string name;
-    SymbolSet symbols;
+    SymbolMap symbols;
 	StateSet finalStates;
     StateNameToIdMap stateNameToId;
 	TransitionMap transitions;
@@ -362,7 +361,7 @@ public:
     }
 
     void integer_multiplication(int m) {
-        SymbolSet symbols_new;
+        SymbolMap symbols_new;
         for (const auto &sys : symbols) {
             if (sys.first.size() == 5) {
                 assert(sys.second == 0);
@@ -371,9 +370,9 @@ public:
                     temp.push_back(sys.first[i] * m);
                 }
                 temp.push_back(sys.first[sys.first.size()-1]);
-                symbols_new.insert(Symbol(temp, 0));
+                symbols_new[temp] = 0;
             } else {
-                assert(sys.first.size() == 1);
+                assert(sys.first.size() <= 2);
                 symbols_new.insert(sys);
             }
         }
@@ -403,7 +402,7 @@ public:
                     transitions_new[temp] = t_old.second;
                 }
             } else {
-                assert(t_old.first.size() == 1);
+                assert(t_old.first.size() <= 2);
                 transitions_new.insert(t_old);
             }
         }
@@ -414,7 +413,7 @@ public:
     }
 
     void omega_multiplication() {
-        SymbolSet symbols_new;
+        SymbolMap symbols_new;
         for (const auto &sys : symbols) {
             if (sys.first.size() == 5) {
                 assert(sys.second == 0);
@@ -424,9 +423,9 @@ public:
                     temp.push_back(sys.first[i]);
                 }
                 temp.push_back(sys.first[sys.first.size()-1]);
-                symbols_new.insert(Symbol(temp, 0));
+                symbols_new[temp] = 0;
             } else {
-                assert(sys.first.size() == 1);
+                assert(sys.first.size() <= 2);
                 symbols_new.insert(sys);
             }
         }
@@ -457,7 +456,7 @@ public:
                     transitions_new[temp] = t_old.second;
                 }
             } else {
-                assert(t_old.first.size() == 1);
+                assert(t_old.first.size() <= 2);
                 transitions_new.insert(t_old);
             }
         }
@@ -475,11 +474,11 @@ public:
         }
         
         // Assume five-tuple leaves exist.
-        symbols.insert(Symbol({0,0,0,0,0}, 0));
+        symbols[{0,0,0,0,0}] = 0;
         
         TransitionMap transitions_copy = transitions;
         for (const auto &t : transitions_copy) {
-            if (t.first.size() == 1) { // x_i
+            if (t.first.size() <= 2) { // x_i + determinized number
                 auto &in_outs_dest = transitions.at(t.first);
                 for (const auto &in_out : t.second) {
                     StateVector in;
@@ -503,29 +502,55 @@ public:
 
         vector<StateVector> to_be_removed;
         map<StateVector, StateSet> to_be_inserted;
-        auto &mss = transitions.at({k});
-        for (auto &in_out : mss) {
-            assert(in_out.first.size() == 2);
-            if (in_out.first.at(0) < num_of_states && in_out.first.at(1) < num_of_states) {
-                to_be_removed.push_back(in_out.first);
-                StateVector in;
-                if (positive_has_value) {
-                    in.push_back(in_out.first.at(0) + num_of_states);
-                    in.push_back(in_out.first.at(1));
-                } else {
-                    in.push_back(in_out.first.at(0));
-                    in.push_back(in_out.first.at(1) + num_of_states);
+        for (auto &kv : transitions) {
+            if (kv.first.size() <= 2 && kv.first[0] == k) {
+                auto &mss = kv.second;
+                for (auto &in_out : mss) {
+                    assert(in_out.first.size() == 2);
+                    if (in_out.first.at(0) < num_of_states && in_out.first.at(1) < num_of_states) {
+                        to_be_removed.push_back(in_out.first);
+                        StateVector in;
+                        if (positive_has_value) {
+                            in.push_back(in_out.first.at(0) + num_of_states);
+                            in.push_back(in_out.first.at(1));
+                        } else {
+                            in.push_back(in_out.first.at(0));
+                            in.push_back(in_out.first.at(1) + num_of_states);
+                        }
+                        to_be_inserted.insert(make_pair(in, in_out.second));
+                    }
                 }
-                to_be_inserted.insert(make_pair(in, in_out.second));
+                for (const auto &sv : to_be_removed)
+                    mss.erase(sv);
+                for (const auto &e : to_be_inserted)
+                    mss.insert(e);
             }
         }
-        for (const auto &sv : to_be_removed)
-            mss.erase(sv);
-        for (const auto &e : to_be_inserted)
-            mss.insert(e);
         
         determinize();
         minimize();
+    }
+
+    void semi_determinize() {
+        TransitionMap transitions_copy = transitions;
+        for (const auto &t : transitions_copy) {
+            if (t.first.size() == 1) { // x_i not determinized yet
+                int arity = symbols.at(t.first);
+                transitions.erase(t.first); // modify
+                symbols.erase(t.first);     // modify
+                int counter = 0;
+                StateVector sv;
+                sv.push_back(t.first[0]);
+                for (const auto &in_out : t.second) {
+                    sv.push_back(counter++);
+                    map<StateVector, StateSet> value;
+                    value.insert(in_out);
+                    transitions.insert(make_pair(sv, value)); // modify
+                    symbols[sv] = arity;                      // modify
+                    sv.pop_back();
+                }
+            }
+        }
     }
 };
 

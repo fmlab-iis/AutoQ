@@ -188,9 +188,8 @@ static TreeAutomata parse_timbuk(const std::string& str)
 					std::string label = read_word(str);
 					auto label_num = parse_colonned_token(label);
                     auto temp = symbol_converter(label_num.first);
-					TreeAutomata::Symbol symb(temp, label_num.second);
 
-					result.symbols.insert(symb);
+					result.symbols[temp] = label_num.second;
 				}
 			}
 			else if ("States" == first_word)

@@ -16,6 +16,7 @@ int main(int argc, char **argv) {
     TimbukParser parser;
     TreeAutomata aut = parser.ParseString(ReadFile(argv[2]));
     aut.determinize();
+    aut.semi_determinize();
 
     // aut.integer_multiplication(0);
     // aut.omega_multiplication();
