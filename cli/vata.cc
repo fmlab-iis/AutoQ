@@ -18,9 +18,17 @@ int main(int argc, char **argv) {
     aut.determinize();
     aut.semi_determinize();
 
-    // aut.integer_multiplication(0);
-    // aut.omega_multiplication();
-    // aut.branch_restriction(2);
+    TreeAutomata aut2 = aut;    
+    aut.branch_restriction(1, false);
+    aut2.branch_restriction(1);
+    aut = aut - aut2;
+
+    aut2 = aut;
+    aut.branch_restriction(1, false);
+    aut2.branch_restriction(1);
+
+    aut = aut - aut2;
+    aut.semi_undeterminize();
 
     if (strcmp(argv[1], "load") == 0) {}
     else if (strcmp(argv[1], "red") == 0) {

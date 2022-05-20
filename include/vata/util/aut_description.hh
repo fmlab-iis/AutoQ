@@ -36,6 +36,17 @@ namespace VATA
 	}
 }
 
+struct CompareSymbolName {
+    bool operator()(const vector<int> &lhs, const vector<int> &rhs) {
+        if (lhs.size() < rhs.size())
+            return true;
+        else if (lhs.size() > rhs.size())
+            return false;
+        else
+            return lhs < rhs;
+    }
+};
+
 struct VATA::Util::TreeAutomata
 {
 public:   // data types
@@ -47,7 +58,7 @@ public:   // data types
     typedef TwoWayDict<string, State> StateNameToIdMap;
 
 	typedef set<State> StateSet;
-	typedef map<SymbolName, map<StateVector, StateSet>> TransitionMap;
+	typedef map<SymbolName, map<StateVector, StateSet>, CompareSymbolName> TransitionMap;
 
 public:   // data members
 
@@ -470,12 +481,9 @@ public:
         int num_of_states = stateNameToId.size();
         StateNameToIdMap stateNameToId_copy = stateNameToId;
         for (const auto &var : stateNameToId_copy) {
-            stateNameToId.insert(make_pair(var.first + "_copy", var.second + num_of_states));
+            stateNameToId.insert(make_pair(var.first + "_add" + to_string(num_of_states), var.second + num_of_states));
         }
-        
-        // Assume five-tuple leaves exist.
-        symbols[{0,0,0,0,0}] = 0;
-        
+
         TransitionMap transitions_copy = transitions;
         for (const auto &t : transitions_copy) {
             if (t.first.size() <= 2) { // x_i + determinized number
@@ -494,8 +502,10 @@ public:
                 assert(t.first.size() == 5);
                 for (const auto &in_out : t.second) {
                     assert(in_out.first.empty());
-                    for (const auto &n : in_out.second)
-                        transitions[{0,0,0,0,0}][{}].insert(n + num_of_states);
+                    for (const auto &n : in_out.second) { // Note we do not change k.
+                        symbols[{0,0,0,0, t.first[4]}] = 0;
+                        transitions[{0,0,0,0, t.first[4]}][{}].insert(n + num_of_states);
+                    }
                 }
             }
         }
@@ -551,6 +561,91 @@ public:
                 }
             }
         }
+    }
+
+    void semi_undeterminize() {
+        TransitionMap transitions_copy = transitions;
+        for (const auto &t : transitions_copy) {
+            if (t.first.size() == 2) { // pick all determinized x_i's
+                int arity = symbols.at(t.first);
+                transitions.erase(t.first); // modify
+                symbols.erase(t.first);     // modify
+                for (const auto &in_out : t.second) {
+                    for (const auto &v : in_out.second)
+                        transitions[{t.first[0]}][in_out.first].insert(v); // modify
+                    symbols[{t.first[0]}] = arity; // modify
+                }
+            }
+        }
+    }
+
+    TreeAutomata binary_operation(const TreeAutomata &o, bool add) {
+        TreeAutomata result;
+        result.name = name;
+
+        for (const auto &s1 : stateNameToId)
+            for (const auto &s2 : o.stateNameToId) {
+                result.stateNameToId.insert(make_pair(s1.first + "_" + s2.first, s1.second * o.stateNameToId.size() + s2.second));
+            }
+        
+        for (const auto &fs1 : finalStates)
+            for (const auto &fs2 : o.finalStates) {
+                result.finalStates.insert(fs1 * o.stateNameToId.size() + fs2);
+            }
+
+        // We assume here transitions are ordered by symbols.
+        // x_i are placed in the beginning, and leaves are placed in the end.
+        // This traversal method is due to efficiency.
+        auto it = transitions.begin();
+        auto it2 = o.transitions.begin();
+        for (; it != transitions.end(); it++, it2++) {
+            if (it->first.size() == 5) break;
+            assert(it->first == it2->first); // both sources contain the same x_i^k
+            // assert(it->second.size() == 1); // both sources contain the unique I/O
+            // assert(it2->second.size() == 1); // i.e., map<StateVector, StateSet> is singleton.
+            map<StateVector, StateSet> m;
+            for (auto itt = it->second.begin(); itt != it->second.end(); itt++)
+                for (auto itt2 = it2->second.begin(); itt2 != it2->second.end(); itt2++) {
+                    StateVector sv;
+                    StateSet ss;
+                    sv.push_back(itt->first[0] * o.stateNameToId.size() + itt2->first[0]);
+                    sv.push_back(itt->first[1] * o.stateNameToId.size() + itt2->first[1]);
+                    ss.insert((*(itt->second.begin())) * o.stateNameToId.size() + (*(itt2->second.begin())));
+                    m.insert(make_pair(sv, ss));
+                }
+            result.transitions.insert(make_pair(it->first, m));
+            assert(m.begin()->first.size() == 2);
+            result.symbols[it->first] = m.begin()->first.size();
+        }
+        for (; it != transitions.end(); it++) {
+            assert(it->first.size() == 5);
+            for (auto it2t = it2; it2t != o.transitions.end(); it2t++) { // it2 as the new begin point.
+                assert(it2t->first.size() == 5);
+                assert(it->first[4] == it2t->first[4]); // Two k's must be the same.
+                StateVector in;
+                for (int i=0; i<4; i++) { // We do not change k here.
+                    if (add)
+                        in.push_back(it->first[i] + it2t->first[i]);
+                    else
+                        in.push_back(it->first[i] - it2t->first[i]);
+                }
+                in.push_back(it->first[4]); // remember to push k
+                result.transitions[in][{}].insert((*(it->second.begin()->second.begin())) * o.stateNameToId.size() + (*(it2t->second.begin()->second.begin())));
+                result.symbols[in] = 0;
+            }
+        }
+
+        result.determinize();
+        result.minimize();
+        return result;
+    }
+
+    TreeAutomata operator+(const TreeAutomata &o) {
+        return binary_operation(o, true);
+    }
+
+    TreeAutomata operator-(const TreeAutomata &o) {
+        return binary_operation(o, false);
     }
 };
 
