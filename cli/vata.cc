@@ -18,17 +18,17 @@ int main(int argc, char **argv) {
     aut.determinize();
     aut.semi_determinize();
 
-    TreeAutomata aut2 = aut;    
-    aut.branch_restriction(1, false);
-    aut2.branch_restriction(1);
-    aut = aut - aut2;
-
-    aut2 = aut;
-    aut.branch_restriction(1, false);
-    aut2.branch_restriction(1);
-
-    aut = aut - aut2;
+    for (int i=0; i<8; i++) {
+        TreeAutomata aut2 = aut;
+        aut.branch_restriction(1, false);
+        aut2.branch_restriction(1);
+        aut2.omega_multiplication();
+        // aut2.omega_multiplication();
+        aut = aut + aut2;
+    }
     aut.semi_undeterminize();
+    // aut.determinize();
+    // aut.minimize();
 
     if (strcmp(argv[1], "load") == 0) {}
     else if (strcmp(argv[1], "red") == 0) {

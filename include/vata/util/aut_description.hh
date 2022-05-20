@@ -55,7 +55,6 @@ public:   // data types
 
     typedef int State;
 	typedef vector<State> StateVector;
-    typedef TwoWayDict<string, State> StateNameToIdMap;
 
 	typedef set<State> StateSet;
 	typedef map<SymbolName, map<StateVector, StateSet>, CompareSymbolName> TransitionMap;
@@ -65,7 +64,7 @@ public:   // data members
 	string name;
     SymbolMap symbols;
 	StateSet finalStates;
-    StateNameToIdMap stateNameToId;
+    int stateNum;
 	TransitionMap transitions;
 
 public:   // methods
@@ -74,7 +73,7 @@ public:   // methods
 		name(),
 		symbols(),
 		finalStates(),
-        stateNameToId(),
+        stateNum(),
 		transitions()
 	{ }
 
@@ -99,7 +98,7 @@ public:   // methods
 			(name == rhs.name) &&
 			(symbols == rhs.symbols) &&
 			(finalStates == rhs.finalStates) &&
-            (stateNameToId.size() == rhs.stateNameToId.size()) &&
+            (stateNum == rhs.stateNum) &&
 			(transitions == rhs.transitions);
 	}
 
@@ -108,7 +107,7 @@ public:   // methods
 		string result;
 		result += "name: " + name + "\n";
 		result += "symbols: " + Convert::ToString(symbols) + "\n";
-		result += "number of states: " + Convert::ToString(stateNameToId.size()) + "\n";
+		result += "number of states: " + Convert::ToString(stateNum) + "\n";
 		result += "final states: " + Convert::ToString(finalStates) + "\n";
 		result += "transitions: \n";
 		for (const auto &trans : transitions)
@@ -155,7 +154,7 @@ private:
                 if (!overflow) { // f.second > 1
                     sv[1]++;
                     for (int i=1; i<f.second; i++) {
-                        if (sv[i] == static_cast<int>(stateNameToId.size())) {
+                        if (sv[i] == stateNum) {
                             if (i == f.second - 1) {
                                 overflow = true;
                                 break;
@@ -258,8 +257,6 @@ public:
         /*******************************************************************/
         // Part 3: Automata reconstruction based on the refined partition.
         StateSet finalStates_new;
-        StateNameToIdMap stateNameToId_new;
-
         for (unsigned i=0; i<composite_set_id.size(); i++) {
             StateSet temp; // should be empty
             const StateSet &cs = composite_set_id[i];
@@ -269,17 +266,7 @@ public:
             }
         }
         finalStates = finalStates_new;
-
-        for (unsigned i=0; i<composite_set_id.size(); i++) {
-            string str;
-            for (const auto &state : composite_set_id[i])
-                str += stateNameToId.TranslateBwd(state) + "_";
-            assert(!str.empty());
-            str.pop_back();
-            stateNameToId_new.insert(make_pair(str, i));
-        }
-        stateNameToId = stateNameToId_new;
-
+        stateNum = composite_set_id.size();
         transitions = transitions_new;
         /*******************************************************************/
     }
@@ -291,7 +278,7 @@ public:
         vector<StateVector> partition;
         partition.push_back({}); // non-final states
         partition.push_back({}); // final states
-        for (unsigned i=0; i<stateNameToId.size(); i++) {
+        for (int i=0; i<stateNum; i++) { // TODO: can be optimized
             if (finalStates.find(i) == finalStates.end()) // non-final state
                 partition[0].push_back(i);
             else
@@ -306,7 +293,7 @@ public:
         do {
             changed = false;
             vector<StateVector> new_partition; // 有 .clear 的效果。
-            state_to_partition_id = vector<int>(stateNameToId.size()); // 有 .clear 的效果。
+            state_to_partition_id = vector<int>(stateNum); // 有 .clear 的效果。
             for (unsigned i=0; i<partition.size(); i++) {
                 for (const auto &s : partition[i])
                     state_to_partition_id[s] = i;
@@ -315,9 +302,9 @@ public:
                 map<State, StateVector> refined; // 有 .clear 的效果。
                 for (const auto &s : cell) { // state
                     bool different_from_others = true;
-                    for (auto &small_cell : refined) { // check if s belongs to some refined cell
-                        if (is_same_partition(state_to_partition_id, s, small_cell.first)) { // compare with "key" (head)
-                            small_cell.second.push_back(s);
+                    for (auto &new_cell : refined) { // check if s belongs to some refined cell
+                        if (is_same_partition(state_to_partition_id, s, new_cell.first)) { // compare with "key" (head)
+                            new_cell.second.push_back(s);
                             different_from_others = false;
                             break;
                         }
@@ -331,14 +318,14 @@ public:
                 if (refined.size() != 1)
                     changed = true;
                 else {
-                    for (const auto &small_cell : refined) // only one cell!
-                        if (small_cell.second != cell) // the order should be the same
+                    for (const auto &new_cell : refined) // only one cell!
+                        if (new_cell.second != cell) // the order should be the same
                             changed = true;
                 }
                 /************************************************/
                 // push the refined partition in this cell finally
-                for (const auto &small_cell : refined)
-                    new_partition.push_back(small_cell.second);
+                for (const auto &new_cell : refined)
+                    new_partition.push_back(new_cell.second);
             }
             partition = new_partition;
         } while (changed);
@@ -346,18 +333,14 @@ public:
 
         /*******************************************************************/
         // Part 3: Automata reconstruction based on the refined partition.
-        StateSet finalStates_new;
-        StateNameToIdMap stateNameToId_new;
-        TransitionMap transitions_new;
+        stateNum = partition.size();
 
+        StateSet finalStates_new;
         for (const auto &s : finalStates)
             finalStates_new.insert(state_to_partition_id[s]);
         finalStates = finalStates_new;
 
-        for (unsigned i=0; i<partition.size(); i++)
-            stateNameToId_new.insert(make_pair(stateNameToId.TranslateBwd(partition[i][0]), i));
-        stateNameToId = stateNameToId_new;
-
+        TransitionMap transitions_new;
         for (const auto &t : transitions) {
             for (const auto &t2 : t.second) {
                 StateVector args = t2.first;
@@ -369,6 +352,118 @@ public:
         }
         transitions = transitions_new;
         /*******************************************************************/
+
+        remove_useless(); // used in minimize() only.
+    }
+
+    // should be determinized first!
+    void remove_useless() {
+        bool changed;
+        vector<bool> traversed(stateNum, false);
+        TransitionMap transitions_remaining = transitions;
+        TransitionMap transitions_mother;
+        
+        /*******************
+         * Part 1: Bottom-Up
+         *******************/
+        do {
+            changed = false;
+            transitions_mother = transitions_remaining;
+            for (const auto &t : transitions_mother) {
+                for (const auto &in_out : t.second) {
+                    bool input_traversed = in_out.first.empty();
+                    if (!input_traversed) {
+                        input_traversed = true;
+                        for (const auto &s : in_out.first)
+                            input_traversed &= traversed[s];
+                    }
+                    if (input_traversed) {
+                        assert(in_out.second.size() == 1);
+                        traversed[*(in_out.second.begin())] = true;
+                        transitions_remaining.at(t.first).erase(in_out.first);
+                        if (transitions_remaining.at(t.first).empty())
+                            transitions_remaining.erase(t.first);
+                        changed = true;
+                    }
+                }
+            }
+        } while(changed);
+        for (const auto &t : transitions_remaining) {
+            for (const auto &in_out : t.second) {
+                transitions.at(t.first).erase(in_out.first);
+                if (transitions.at(t.first).empty())
+                    transitions.erase(t.first);
+            }
+        }
+
+        /******************
+         * Part 2: Top-Down
+         ******************/
+        traversed = vector<bool>(stateNum, false);
+        for (const auto &s : finalStates)
+            traversed[s] = true;
+        transitions_remaining = transitions;
+        do {
+            changed = false;
+            transitions_mother = transitions_remaining;
+            for (const auto &t : transitions_mother) {
+                for (const auto &in_out : t.second) {
+                    assert(in_out.second.size() == 1);
+                    if (traversed[*(in_out.second.begin())]) {
+                        for (const auto &v : in_out.first)
+                            traversed[v] = true;
+                        transitions_remaining.at(t.first).erase(in_out.first);
+                        if (transitions_remaining.at(t.first).empty())
+                            transitions_remaining.erase(t.first);
+                        changed = true;
+                    }
+                }
+            }
+        } while(changed);
+        for (const auto &t : transitions_remaining) {
+            for (const auto &in_out : t.second) {
+                transitions.at(t.first).erase(in_out.first);
+                if (transitions.at(t.first).empty())
+                    transitions.erase(t.first);
+            }
+        }
+
+        /*********************
+         * Part 3: Renumbering
+         *********************/
+        symbols.clear();
+        TransitionMap transitions_new;
+        map<int, int> stateOldToNew;
+        for (const auto &t : transitions) {
+            for (const auto &in_out : t.second) {
+                StateVector sv;
+                for (const auto &v : in_out.first) {
+                    try {
+                        sv.push_back(stateOldToNew.at(v));
+                    } catch (...) {
+                        stateOldToNew[v] = stateOldToNew.size();
+                        sv.push_back(stateOldToNew.size()-1); //stateOldToNew.at(v));
+                    }
+                }
+                int dest;
+                assert(in_out.second.size() == 1);
+                try {
+                    dest = stateOldToNew.at(*(in_out.second.begin()));
+                } catch (...) {
+                    stateOldToNew[*(in_out.second.begin())] = stateOldToNew.size();
+                    dest = stateOldToNew.size() - 1;
+                }
+                transitions_new[t.first].insert(make_pair(sv, StateSet({dest})));
+                symbols[t.first] = sv.size(); // simultaneous with transitions_new!
+            }
+        }
+        transitions = transitions_new;
+        StateSet finalStates_new;
+        for (const auto &s : finalStates) {
+            finalStates_new.insert(stateOldToNew[s]);
+        }
+        finalStates = finalStates_new;
+        stateNum = stateOldToNew.size();
     }
 
     void integer_multiplication(int m) {
@@ -478,11 +573,8 @@ public:
     }
 
     void branch_restriction(int k, bool positive_has_value=true) {
-        int num_of_states = stateNameToId.size();
-        StateNameToIdMap stateNameToId_copy = stateNameToId;
-        for (const auto &var : stateNameToId_copy) {
-            stateNameToId.insert(make_pair(var.first + "_add" + to_string(num_of_states), var.second + num_of_states));
-        }
+        int num_of_states = stateNum;
+        stateNum *= 2;
 
         TransitionMap transitions_copy = transitions;
         for (const auto &t : transitions_copy) {
@@ -582,15 +674,11 @@ public:
     TreeAutomata binary_operation(const TreeAutomata &o, bool add) {
         TreeAutomata result;
         result.name = name;
-
-        for (const auto &s1 : stateNameToId)
-            for (const auto &s2 : o.stateNameToId) {
-                result.stateNameToId.insert(make_pair(s1.first + "_" + s2.first, s1.second * o.stateNameToId.size() + s2.second));
-            }
+        result.stateNum *= o.stateNum;
         
         for (const auto &fs1 : finalStates)
             for (const auto &fs2 : o.finalStates) {
-                result.finalStates.insert(fs1 * o.stateNameToId.size() + fs2);
+                result.finalStates.insert(fs1 * o.stateNum + fs2);
             }
 
         // We assume here transitions are ordered by symbols.
@@ -608,9 +696,9 @@ public:
                 for (auto itt2 = it2->second.begin(); itt2 != it2->second.end(); itt2++) {
                     StateVector sv;
                     StateSet ss;
-                    sv.push_back(itt->first[0] * o.stateNameToId.size() + itt2->first[0]);
-                    sv.push_back(itt->first[1] * o.stateNameToId.size() + itt2->first[1]);
-                    ss.insert((*(itt->second.begin())) * o.stateNameToId.size() + (*(itt2->second.begin())));
+                    sv.push_back(itt->first[0] * o.stateNum + itt2->first[0]);
+                    sv.push_back(itt->first[1] * o.stateNum + itt2->first[1]);
+                    ss.insert((*(itt->second.begin())) * o.stateNum + (*(itt2->second.begin())));
                     m.insert(make_pair(sv, ss));
                 }
             result.transitions.insert(make_pair(it->first, m));
@@ -630,7 +718,7 @@ public:
                         in.push_back(it->first[i] - it2t->first[i]);
                 }
                 in.push_back(it->first[4]); // remember to push k
-                result.transitions[in][{}].insert((*(it->second.begin()->second.begin())) * o.stateNameToId.size() + (*(it2t->second.begin()->second.begin())));
+                result.transitions[in][{}].insert((*(it->second.begin()->second.begin())) * o.stateNum + (*(it2t->second.begin()->second.begin())));
                 result.symbols[in] = 0;
             }
         }
