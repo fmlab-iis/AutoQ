@@ -58,6 +58,8 @@ add_library(libvata STATIC
 	util.cc
 	# sym_var_asgn.cc
 	# symbolic_tree_aut_base_core.cc
+    util/aut_operation.cc
+    util/gate_operation.cc
 )
 
 set_target_properties(libvata PROPERTIES
