@@ -622,3 +622,51 @@ VATA::Util::TreeAutomata VATA::Util::TreeAutomata::binary_operation(const TreeAu
     return result;
 }
 
+VATA::Util::TreeAutomata VATA::Util::TreeAutomata::uniform(int n) {
+    TreeAutomata aut;
+    aut.name = "Uniform";
+    int pow_of_two = 1;
+    int state_counter = 0;
+    for (int level=1; level<=n; level++) {
+        for (int i=0; i<pow_of_two; i++) {
+            if (level < n)
+                aut.transitions[{level}][{state_counter*2+1, state_counter*2+2}] = {state_counter};
+            else
+                aut.transitions[{level}][{pow_of_two*2-1, pow_of_two*2-1}].insert(state_counter);
+            aut.symbols[{level}] = 2;
+            state_counter++;
+        }
+        pow_of_two *= 2;
+    }
+    aut.transitions[{1,0,0,0,n}][{}] = {pow_of_two-1};
+    aut.symbols[{1,0,0,0,n}] = 0;
+	aut.finalStates.insert(0);
+    aut.stateNum = pow_of_two;
+
+    // aut.determinize();
+    // aut.minimize();
+    return aut;
+}
+
+VATA::Util::TreeAutomata VATA::Util::TreeAutomata::classical(int n) {
+    TreeAutomata aut;
+    aut.name = "Classical";
+
+    for (int level=1; level<=n; level++) {
+        if (level >= 2)
+            aut.transitions[{level}][{2*level - 1, 2*level - 1}] = {2*level - 3};
+        aut.transitions[{level}][{2*level - 1, 2*level}] = {2*level - 2};
+        aut.transitions[{level}][{2*level, 2*level - 1}] = {2*level - 2};
+        aut.symbols[{level}] = 2;
+    }
+    aut.transitions[{1,0,0,0,0}][{}] = {2*n};
+    aut.symbols[{1,0,0,0,0}] = 0;
+    aut.transitions[{0,0,0,0,0}][{}] = {2*n - 1};
+    aut.symbols[{0,0,0,0,0}] = 0;
+	aut.finalStates.insert(0);
+    aut.stateNum = 2*n + 1;
+
+    // aut.determinize();
+    // aut.minimize();
+    return aut;
+}

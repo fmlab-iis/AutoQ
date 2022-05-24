@@ -129,6 +129,9 @@ public:
     void S(int t);
     void T(int t);
     void CZ(int c, int t);
+
+    static TreeAutomata uniform(int n);
+    static TreeAutomata classical(int n);
 };
 
 #endif

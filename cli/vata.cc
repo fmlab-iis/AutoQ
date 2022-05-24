@@ -8,22 +8,35 @@ using namespace std;
 using VATA::Parsing::TimbukParser;
 using VATA::Serialization::TimbukSerializer;
 using VATA::Util::TreeAutomata;
+using VATA::Util::ShellCmd;
 using VATA::Util::ReadFile;
 
 int main(int argc, char **argv) {
-    assert(argc == 2);
+    
+    /* Initialize aut. */
+    TreeAutomata aut;
+    if (argc == 2) {
+        TimbukParser parser;
+        aut = parser.ParseString(ReadFile(argv[1]));
+        aut.determinize();
+        aut.minimize();
+    } else {
+        // aut = TreeAutomata::uniform(5);
+        // aut = TreeAutomata::classical(5);
+    }
+    
+    /* Perform any operation here. */
+    aut.Z(1);
+    aut.Z(1);
 
-    TimbukParser parser;
-    TreeAutomata aut = parser.ParseString(ReadFile(argv[2]));
-    aut.determinize();
-    aut.minimize();
-
-    // if (strcmp(argv[1], "load") == 0) {}
-    // else if (strcmp(argv[1], "red") == 0) {
-    //     aut.minimize();
-    // }
-
+    /* Output this automata. */
     TimbukSerializer serializer;
-    std::cout << serializer.Serialize(aut);
+    cout << serializer.Serialize(aut);
+
+    /* Compare the two automata. */
+    // string include1, include2;
+    // ShellCmd(path_to_VATA + " incl /tmp/automata1.txt /tmp/automata2.txt", include1);
+    // ShellCmd(path_to_VATA + " incl /tmp/automata2.txt /tmp/automata1.txt", include2);
+    // assert(include1=="1\n" && include1=="2\n");
     return 0;
 }

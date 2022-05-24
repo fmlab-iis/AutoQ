@@ -35,6 +35,26 @@ std::string VATA::Util::ReadFile(const std::string& fileName)
 	return str;
 }
 
+bool VATA::Util::ShellCmd(const std::string &cmd, std::string &result) {
+    char buffer[512];
+    result = "";
+
+    // Open pipe to file
+    FILE* pipe = popen(cmd.c_str(), "r");
+    if (!pipe) {
+        return false;
+    }
+
+    // read till end of process:
+    while (!feof(pipe)) {
+        // use buffer to read and add to result
+        if (fgets(buffer, sizeof(buffer), pipe) != NULL)
+            result += buffer;
+    }
+
+    pclose(pipe);
+    return true;
+}
 
 // VATA::AutBase::StateDict VATA::Util::CreateProductStringToStateMap(
 // 	const VATA::AutBase::StateDict& lhsCont,
