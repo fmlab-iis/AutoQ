@@ -13,3 +13,5 @@ tags
 doc/*
 # Python cache
 python_interface/__pycache__
+
+.vscode/*
