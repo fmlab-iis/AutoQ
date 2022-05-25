@@ -11,12 +11,13 @@ int findIndex(const vector<T> &arr, T item) {
 
 bool VATA::Util::TreeAutomata::is_same_partition(const vector<int> &state_to_partition_id, State a, State b) {
     assert (state_to_partition_id[a] == state_to_partition_id[b]);
-    for (const auto &f : symbols) { // for all functions
-        if (f.second < 1) continue; // no test if arity == 0
-        StateVector sv(f.second, 0); // declare the input states
+    for (const auto &f : transitions) { // for all functions
+        int arity = f.second.begin()->first.size();
+        if (arity < 1) continue; // no test if arity == 0
+        StateVector sv(arity, 0); // declare the input states
         bool overflow;
         do {
-            for (int i=0; i<f.second; i++) {
+            for (int i=0; i<arity; i++) {
                 sv[i] = a;
                 int resultA, resultB;
                 try {
@@ -33,19 +34,19 @@ bool VATA::Util::TreeAutomata::is_same_partition(const vector<int> &state_to_par
                     resultB = -1;
                 }
                 if (resultA != resultB) return false;
-                if (i+1 < f.second)
+                if (i+1 < arity)
                     swap(sv[i], sv[i+1]);
             }
-            for (int i=0; i<f.second-1; i++) {
+            for (int i=0; i<arity-1; i++) {
                 swap(sv[i], sv[i+1]);
             }
             
-            overflow = (f.second == 1);
-            if (!overflow) { // f.second > 1
+            overflow = (arity == 1);
+            if (!overflow) { // arity > 1
                 sv[1]++;
-                for (int i=1; i<f.second; i++) {
+                for (int i=1; i<arity; i++) {
                     if (sv[i] == stateNum) {
-                        if (i == f.second - 1) {
+                        if (i == arity - 1) {
                             overflow = true;
                             break;
                         } else {
@@ -66,8 +67,9 @@ void VATA::Util::TreeAutomata::determinize() {
 
     /*******************************************************************/
     // Part 1: Generate composite sets from 0-arity symbols.
-    for (const auto &f : symbols) {
-        if (f.second == 0) {
+    for (const auto &f : transitions) {
+        int arity = f.second.begin()->first.size();
+        if (arity == 0) {
             const StateSet &ss = transitions.at(f.first).at({});
             try {
                 int x = findIndex(composite_set_id, ss);
@@ -87,9 +89,10 @@ void VATA::Util::TreeAutomata::determinize() {
     while (current_composite_set_size != static_cast<int>(composite_set_id.size())) {
         old_composite_set_size = current_composite_set_size;
         current_composite_set_size = composite_set_id.size();
-        for (const auto &f : symbols) {
-            if (f.second >= 1) {
-                StateVector sv(f.second, 0); // enumerate all possible combinations of composite states
+        for (const auto &f : transitions) {
+            int arity = f.second.begin()->first.size();
+            if (arity >= 1) {
+                StateVector sv(arity, 0); // enumerate all possible combinations of composite states
                 bool overflow = false;
                 do {
                     StateSet collected_RHS;
@@ -103,9 +106,9 @@ void VATA::Util::TreeAutomata::determinize() {
                     if (need_process) {
                         for (const auto &in_out : transitions[f.first]) { // if this transition's input states are all contained
                             const auto &input = in_out.first;             // in the current combination of composite states, then
-                            assert(static_cast<int>(input.size()) == f.second);             // collect the states of RHS of this transition.
+                            assert(static_cast<int>(input.size()) == arity);             // collect the states of RHS of this transition.
                             bool valid = true;
-                            for (int i=0; i<f.second; i++) {
+                            for (int i=0; i<arity; i++) {
                                 if (composite_set_id[sv[i]].find(input[i]) == composite_set_id[sv[i]].end()) {
                                     valid = false;
                                     break;
@@ -127,9 +130,9 @@ void VATA::Util::TreeAutomata::determinize() {
                         }
                     }
                     sv[0]++;
-                    for (int i=0; i<f.second; i++) {
+                    for (int i=0; i<arity; i++) {
                         if (sv[i] == current_composite_set_size) {
-                            if (i == f.second - 1) {
+                            if (i == arity - 1) {
                                 overflow = true;
                                 break;
                             } else {
@@ -319,7 +322,6 @@ void VATA::Util::TreeAutomata::remove_useless() { // only for already determiniz
     /*********************
      * Part 3: Renumbering
      *********************/
-    symbols.clear();
     TransitionMap transitions_new;
     map<int, int> stateOldToNew;
     for (const auto &t : transitions) {
@@ -342,7 +344,6 @@ void VATA::Util::TreeAutomata::remove_useless() { // only for already determiniz
                 dest = stateOldToNew.size() - 1;
             }
             transitions_new[t.first].insert(make_pair(sv, StateSet({dest})));
-            symbols[t.first] = sv.size(); // simultaneous with transitions_new!
         }
     }
     transitions = transitions_new;
@@ -355,27 +356,10 @@ void VATA::Util::TreeAutomata::remove_useless() { // only for already determiniz
 }
 
 void VATA::Util::TreeAutomata::integer_multiplication(int m) {
-    SymbolMap symbols_new;
-    for (const auto &sys : symbols) {
-        if (sys.first.size() == 5) {
-            assert(sys.second == 0);
-            SymbolName temp;
-            for (unsigned i=0; i<sys.first.size()-1; i++) { // exclude "k"
-                temp.push_back(sys.first[i] * m);
-            }
-            temp.push_back(sys.first[sys.first.size()-1]);
-            symbols_new[temp] = 0;
-        } else {
-            assert(sys.first.size() <= 2);
-            symbols_new.insert(sys);
-        }
-    }
-    symbols = symbols_new;
-
     TransitionMap transitions_new;
     for (const auto &t_old : transitions) {
         if (t_old.first.size() == 5) {
-            SymbolName temp;
+            Symbol temp;
             for (unsigned i=0; i<t_old.first.size()-1; i++) { // exclude "k"
                 temp.push_back(t_old.first[i] * m);
             }
@@ -407,28 +391,10 @@ void VATA::Util::TreeAutomata::integer_multiplication(int m) {
 }
 
 void VATA::Util::TreeAutomata::omega_multiplication() {
-    SymbolMap symbols_new;
-    for (const auto &sys : symbols) {
-        if (sys.first.size() == 5) {
-            assert(sys.second == 0);
-            SymbolName temp;
-            temp.push_back(-sys.first[3]);
-            for (unsigned i=0; i<sys.first.size()-2; i++) { // exclude "k"
-                temp.push_back(sys.first[i]);
-            }
-            temp.push_back(sys.first[sys.first.size()-1]);
-            symbols_new[temp] = 0;
-        } else {
-            assert(sys.first.size() <= 2);
-            symbols_new.insert(sys);
-        }
-    }
-    symbols = symbols_new;
-
     TransitionMap transitions_new;
     for (const auto &t_old : transitions) {
         if (t_old.first.size() == 5) {
-            SymbolName temp;
+            Symbol temp;
             temp.push_back(-t_old.first[3]);
             for (unsigned i=0; i<t_old.first.size()-2; i++) { // exclude "k"
                 temp.push_back(t_old.first[i]);
@@ -483,7 +449,6 @@ void VATA::Util::TreeAutomata::branch_restriction(int k, bool positive_has_value
             for (const auto &in_out : t.second) {
                 assert(in_out.first.empty());
                 for (const auto &n : in_out.second) { // Note we do not change k.
-                    symbols[{0,0,0,0, t.first[4]}] = 0;
                     transitions[{0,0,0,0, t.first[4]}][{}].insert(n + num_of_states);
                 }
             }
@@ -525,9 +490,7 @@ void VATA::Util::TreeAutomata::semi_determinize() {
     TransitionMap transitions_copy = transitions;
     for (const auto &t : transitions_copy) {
         if (t.first.size() == 1) { // x_i not determinized yet
-            int arity = symbols.at(t.first);
             transitions.erase(t.first); // modify
-            symbols.erase(t.first);     // modify
             int counter = 0;
             StateVector sv;
             sv.push_back(t.first[0]);
@@ -536,7 +499,6 @@ void VATA::Util::TreeAutomata::semi_determinize() {
                 map<StateVector, StateSet> value;
                 value.insert(in_out);
                 transitions.insert(make_pair(sv, value)); // modify
-                symbols[sv] = arity;                      // modify
                 sv.pop_back();
             }
         }
@@ -550,13 +512,10 @@ void VATA::Util::TreeAutomata::semi_undeterminize() {
     TransitionMap transitions_copy = transitions;
     for (const auto &t : transitions_copy) {
         if (t.first.size() == 2) { // pick all determinized x_i's
-            int arity = symbols.at(t.first);
             transitions.erase(t.first); // modify
-            symbols.erase(t.first);     // modify
             for (const auto &in_out : t.second) {
                 for (const auto &v : in_out.second)
                     transitions[{t.first[0]}][in_out.first].insert(v); // modify
-                symbols[{t.first[0]}] = arity; // modify
             }
         }
     }
@@ -597,7 +556,6 @@ VATA::Util::TreeAutomata VATA::Util::TreeAutomata::binary_operation(const TreeAu
             }
         result.transitions.insert(make_pair(it->first, m));
         assert(m.begin()->first.size() == 2);
-        result.symbols[it->first] = m.begin()->first.size();
     }
     for (; it != transitions.end(); it++) {
         assert(it->first.size() == 5);
@@ -613,7 +571,6 @@ VATA::Util::TreeAutomata VATA::Util::TreeAutomata::binary_operation(const TreeAu
             }
             in.push_back(it->first[4]); // remember to push k
             result.transitions[in][{}].insert((*(it->second.begin()->second.begin())) * o.stateNum + (*(it2t->second.begin()->second.begin())));
-            result.symbols[in] = 0;
         }
     }
 
@@ -633,13 +590,11 @@ VATA::Util::TreeAutomata VATA::Util::TreeAutomata::uniform(int n) {
                 aut.transitions[{level}][{state_counter*2+1, state_counter*2+2}] = {state_counter};
             else
                 aut.transitions[{level}][{pow_of_two*2-1, pow_of_two*2-1}].insert(state_counter);
-            aut.symbols[{level}] = 2;
             state_counter++;
         }
         pow_of_two *= 2;
     }
     aut.transitions[{1,0,0,0,n}][{}] = {pow_of_two-1};
-    aut.symbols[{1,0,0,0,n}] = 0;
 	aut.finalStates.insert(0);
     aut.stateNum = pow_of_two;
 
@@ -657,12 +612,9 @@ VATA::Util::TreeAutomata VATA::Util::TreeAutomata::classical(int n) {
             aut.transitions[{level}][{2*level - 1, 2*level - 1}] = {2*level - 3};
         aut.transitions[{level}][{2*level - 1, 2*level}] = {2*level - 2};
         aut.transitions[{level}][{2*level, 2*level - 1}] = {2*level - 2};
-        aut.symbols[{level}] = 2;
     }
     aut.transitions[{1,0,0,0,0}][{}] = {2*n};
-    aut.symbols[{1,0,0,0,0}] = 0;
     aut.transitions[{0,0,0,0,0}][{}] = {2*n - 1};
-    aut.symbols[{0,0,0,0,0}] = 0;
 	aut.finalStates.insert(0);
     aut.stateNum = 2*n + 1;
 

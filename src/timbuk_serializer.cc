@@ -26,11 +26,11 @@ std::string TimbukSerializer::Serialize(const TreeAutomata& desc)
 	std::string result;
 
 	result += "Ops ";
-	for (auto itSymb = desc.symbols.cbegin();
-		itSymb != desc.symbols.cend(); ++itSymb)
+	for (auto itSymb = desc.transitions.cbegin();
+		itSymb != desc.transitions.cend(); ++itSymb)
 	{
 		result += VATA::Util::Convert::ToString(itSymb->first) + ":" +
-			VATA::Util::Convert::ToString(itSymb->second) + " ";
+			VATA::Util::Convert::ToString(itSymb->second.begin()->first.size()) + " ";
 	}
 
 	result += "\n";

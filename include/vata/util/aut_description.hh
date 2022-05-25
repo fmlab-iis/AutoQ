@@ -41,20 +41,16 @@ struct CompareSymbolName {
 struct VATA::Util::TreeAutomata
 {
 public:   // data types
-    typedef vector<int> SymbolName;
-    typedef map<SymbolName, int> SymbolMap; // 2nd element: arity
-
     typedef int State;
 	typedef vector<State> StateVector;
-
 	typedef set<State> StateSet;
-	typedef map<SymbolName, map<StateVector, StateSet>, CompareSymbolName> TransitionMap;
+
+	typedef vector<int> Symbol;
+    typedef map<Symbol, map<StateVector, StateSet>, CompareSymbolName> TransitionMap;
 
 public:   // data members
-
 	string name;
-    SymbolMap symbols;
-	StateSet finalStates;
+    StateSet finalStates;
     int stateNum;
 	TransitionMap transitions;
 
@@ -62,7 +58,6 @@ public:   // methods
 
 	TreeAutomata() :
 		name(),
-		symbols(),
 		finalStates(),
         stateNum(),
 		transitions()
@@ -87,7 +82,6 @@ public:   // methods
 	{
 		return
 			(name == rhs.name) &&
-			(symbols == rhs.symbols) &&
 			(finalStates == rhs.finalStates) &&
             (stateNum == rhs.stateNum) &&
 			(transitions == rhs.transitions);
@@ -97,7 +91,6 @@ public:   // methods
 	{
 		string result;
 		result += "name: " + name + "\n";
-		result += "symbols: " + Convert::ToString(symbols) + "\n";
 		result += "number of states: " + Convert::ToString(stateNum) + "\n";
 		result += "final states: " + Convert::ToString(finalStates) + "\n";
 		result += "transitions: \n";
