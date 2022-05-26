@@ -338,6 +338,11 @@ static TreeAutomata parse_timbuk(const std::string& str)
 		throw std::runtime_error(std::string(__FUNCTION__) + ": Transitions not specified");
 	}
 
+    for (const auto &kv : result.transitions) {
+        if (kv.first.size() < 5)
+            result.qubitNum = max(result.qubitNum, kv.first[0]);
+    }
+
 	return result;
 }
 

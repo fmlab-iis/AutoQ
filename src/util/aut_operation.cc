@@ -442,43 +442,36 @@ void VATA::Util::TreeAutomata::branch_restriction(int k, bool positive_has_value
                 StateSet out;
                 for (const auto &n : in_out.second)
                     out.insert(n + num_of_states);
-                in_outs_dest.insert(make_pair(in, out));
+                in_outs_dest.insert(make_pair(in, out)); // duplicate this internal transition
             }
         } else { // (a,b,c,d,k)
             assert(t.first.size() == 5);
             for (const auto &in_out : t.second) {
                 assert(in_out.first.empty());
                 for (const auto &n : in_out.second) { // Note we do not change k.
-                    transitions[{0,0,0,0, t.first[4]}][{}].insert(n + num_of_states);
+                    transitions[{0,0,0,0, t.first[4]}][{}].insert(n + num_of_states); // duplicate this leaf transition
                 }
             }
         }
     }
 
-    vector<StateVector> to_be_removed;
-    map<StateVector, StateSet> to_be_inserted;
-    for (auto &kv : transitions) {
-        if (kv.first.size() <= 2 && kv.first[0] == k) {
-            auto &mss = kv.second;
-            for (auto &in_out : mss) {
+    transitions_copy = transitions;
+    for (const auto &t : transitions_copy) {
+        if (t.first.size() <= 2 && t.first[0] == k) { // x_i + determinized number
+            auto &in_outs_dest = transitions.at(t.first);
+            for (const auto &in_out : t.second) {
                 assert(in_out.first.size() == 2);
-                if (in_out.first.at(0) < num_of_states && in_out.first.at(1) < num_of_states) {
-                    to_be_removed.push_back(in_out.first);
-                    StateVector in;
+                StateVector sv = in_out.first;
+                if (in_out.first[0] < num_of_states && in_out.first[1] < num_of_states) {
                     if (positive_has_value) {
-                        in.push_back(in_out.first.at(0) + num_of_states);
-                        in.push_back(in_out.first.at(1));
+                        sv[0] = in_out.first[0] + num_of_states;
                     } else {
-                        in.push_back(in_out.first.at(0));
-                        in.push_back(in_out.first.at(1) + num_of_states);
+                        sv[1] = in_out.first[1] + num_of_states;
                     }
-                    to_be_inserted.insert(make_pair(in, in_out.second));
+                    in_outs_dest.erase(in_out.first);
+                    in_outs_dest.insert(make_pair(sv, in_out.second));
                 }
             }
-            for (const auto &sv : to_be_removed)
-                mss.erase(sv);
-            for (const auto &e : to_be_inserted)
-                mss.insert(e);
         }
     }
     
@@ -582,6 +575,7 @@ VATA::Util::TreeAutomata VATA::Util::TreeAutomata::binary_operation(const TreeAu
 VATA::Util::TreeAutomata VATA::Util::TreeAutomata::uniform(int n) {
     TreeAutomata aut;
     aut.name = "Uniform";
+    aut.qubitNum = n;
     int pow_of_two = 1;
     int state_counter = 0;
     for (int level=1; level<=n; level++) {
@@ -606,6 +600,7 @@ VATA::Util::TreeAutomata VATA::Util::TreeAutomata::uniform(int n) {
 VATA::Util::TreeAutomata VATA::Util::TreeAutomata::classical(int n) {
     TreeAutomata aut;
     aut.name = "Classical";
+    aut.qubitNum = n;
 
     for (int level=1; level<=n; level++) {
         if (level >= 2)

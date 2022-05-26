@@ -28,7 +28,7 @@ namespace VATA
 }
 
 struct CompareSymbolName {
-    bool operator()(const vector<int> &lhs, const vector<int> &rhs) {
+    bool operator()(const vector<int> &lhs, const vector<int> &rhs) const {
         if (lhs.size() < rhs.size())
             return true;
         else if (lhs.size() > rhs.size())
@@ -51,7 +51,7 @@ public:   // data types
 public:   // data members
 	string name;
     StateSet finalStates;
-    int stateNum;
+    int stateNum, qubitNum;
 	TransitionMap transitions;
 
 public:   // methods
@@ -60,6 +60,7 @@ public:   // methods
 		name(),
 		finalStates(),
         stateNum(),
+        qubitNum(),
 		transitions()
 	{ }
 
@@ -84,6 +85,7 @@ public:   // methods
 			(name == rhs.name) &&
 			(finalStates == rhs.finalStates) &&
             (stateNum == rhs.stateNum) &&
+            (qubitNum == rhs.qubitNum) &&
 			(transitions == rhs.transitions);
 	}
 
@@ -106,6 +108,8 @@ private:
     void remove_useless();
     bool is_same_partition(const vector<int> &state_to_partition_id, State a, State b);
     TreeAutomata binary_operation(const TreeAutomata &o, bool add);
+    void swap_forward(const int k);
+    void swap_backward(const int k);
 
 public:
     void determinize();
@@ -115,14 +119,17 @@ public:
     void branch_restriction(int k, bool positive_has_value=true);
     void semi_determinize();
     void semi_undeterminize();
+    void value_restriction(int k, bool branch);
     TreeAutomata operator+(const TreeAutomata &o) { return binary_operation(o, true); }
     TreeAutomata operator-(const TreeAutomata &o) { return binary_operation(o, false); }
 
+    void X(int t);
     void Z(int t);
     void S(int t);
     void T(int t);
     void CZ(int c, int t);
 
+    /* Produce an automaton instance. */
     static TreeAutomata uniform(int n);
     static TreeAutomata classical(int n);
 };
