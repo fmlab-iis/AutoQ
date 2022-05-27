@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8.2)
+cmake_minimum_required(VERSION 3.0.0)
 
 
 # 3rd party modules
@@ -56,6 +56,9 @@ if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
 	message("-- Assuming the GNU compiler family")
 	set(COMPILER_FAMILY "gcc")
 elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
+	message("-- Assuming the Clang compiler family")
+	set(COMPILER_FAMILY "clang")
+elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "AppleClang")
 	message("-- Assuming the Clang compiler family")
 	set(COMPILER_FAMILY "clang")
 else()
