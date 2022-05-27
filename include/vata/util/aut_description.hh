@@ -110,16 +110,18 @@ private:
     TreeAutomata binary_operation(const TreeAutomata &o, bool add);
     void swap_forward(const int k);
     void swap_backward(const int k);
+    void fraction_simplication();
 
 public:
     void determinize();
     void minimize();
     void integer_multiplication(int m);
     void omega_multiplication();
+    void divide_by_the_square_root_of_two();
     void branch_restriction(int k, bool positive_has_value=true);
+    void value_restriction(int k, bool branch);
     void semi_determinize();
     void semi_undeterminize();
-    void value_restriction(int k, bool branch);
     TreeAutomata operator+(const TreeAutomata &o) { return binary_operation(o, true); }
     TreeAutomata operator-(const TreeAutomata &o) { return binary_operation(o, false); }
     void print();
@@ -127,6 +129,7 @@ public:
     void X(int t);
     void Y(int t);
     void Z(int t);
+    void H(int t);
     void S(int t);
     void T(int t);
     void CZ(int c, int t);

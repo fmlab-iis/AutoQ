@@ -21,7 +21,7 @@ int main(int argc, char **argv) {
         aut = parser.ParseString(ReadFile(argv[1]));
     } else {
         // aut = TreeAutomata::uniform(5);
-        aut = TreeAutomata::classical(4);
+        aut = TreeAutomata::classical(3);
     }
     // aut.determinize();
     // aut.minimize();
@@ -32,7 +32,7 @@ int main(int argc, char **argv) {
     file1.close();
 
     /* Perform any operation here. */
-    aut.Y(4);
+    aut.H(3);
     // aut.determinize();
     // aut.minimize();
     ofstream file2("/tmp/automata2.txt");
@@ -45,7 +45,7 @@ int main(int argc, char **argv) {
     assert(!(include1=="1\n" && include2=="1\n"));
     // return 0;
 
-    aut.Y(4);
+    aut.H(3);
     // aut.determinize();
     // aut.minimize();
     /* Output this automata. */

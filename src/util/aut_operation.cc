@@ -426,6 +426,24 @@ void VATA::Util::TreeAutomata::omega_multiplication() {
     minimize();
 }
 
+void VATA::Util::TreeAutomata::divide_by_the_square_root_of_two() {
+    vector<StateVector> to_be_removed;
+    TransitionMap to_be_inserted;
+    for (const auto &t : transitions) {
+        if (t.first.size() == 5) {
+            to_be_removed.push_back(t.first);
+            StateVector sv = t.first;
+            sv[4]++;
+            to_be_inserted[sv] = t.second;
+        }
+    }
+    for (const auto &t : to_be_removed)
+        transitions.erase(t);
+    for (const auto &t : to_be_inserted)
+        transitions.insert(t);
+    fraction_simplication();
+}
+
 void VATA::Util::TreeAutomata::branch_restriction(int k, bool positive_has_value) {
     int num_of_states = stateNum;
     stateNum *= 2;
@@ -780,6 +798,44 @@ void VATA::Util::TreeAutomata::value_restriction(int k, bool branch) {
     determinize();
     minimize();
     swap_backward(k);
+}
+
+void VATA::Util::TreeAutomata::fraction_simplication() {
+    vector<StateVector> to_be_removed;
+    TransitionMap to_be_inserted;
+    for (const auto &t : transitions) {
+        if (t.first.size() == 5) {
+            to_be_removed.push_back(t.first);
+            StateVector sv = t.first;
+            int gcd = t.first[0];
+            for (int i=1; i<4; i++)
+                gcd = __gcd(gcd, t.first[i]);
+            if (gcd > 0) {
+                for (int i=0; i<4; i++)
+                    sv[i] /= gcd;
+                while (sv[4] >= 2 && gcd > 0 && (gcd&1) == 0) { // Notice the parentheses enclosing gcd&1 are very important! HAHA
+                    gcd /= 2;
+                    sv[4] -= 2;
+                }
+                for (int i=0; i<4; i++)
+                    sv[i] *= gcd;
+            } else {
+                sv[4] = 0;
+            }
+            for (const auto &in_out : t.second) {
+                for (const auto &s : in_out.second) {
+                    to_be_inserted[sv][in_out.first].insert(s);
+                }
+            }
+        }
+    }
+
+    for (const auto &t : to_be_removed) {
+        transitions.erase(t);
+    }
+    for (const auto &t : to_be_inserted) {
+        transitions.insert(t);
+    }
 }
 
 void VATA::Util::TreeAutomata::print() {
