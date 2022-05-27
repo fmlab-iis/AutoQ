@@ -22,6 +22,68 @@
 const string &path_to_VATA = "/home/alan23273850/libvata/build/cli/vata";
 int size = 5; // the number of qubits.
 
+BOOST_AUTO_TEST_CASE(X_gate_twice_to_identity)
+{
+    int n = size/2 + 1;
+    VATA::Serialization::TimbukSerializer serializer;
+    for (const auto &before : {VATA::Util::TreeAutomata::uniform(n), VATA::Util::TreeAutomata::classical(n)}) {
+        ofstream file1("/tmp/automata1.txt");
+        file1 << serializer.Serialize(before);
+        file1.close();
+
+        for (auto t : {1, n/2+1, n}) {
+            VATA::Util::TreeAutomata after = before;
+            for (int i=0; i<2; i++) {
+                after.X(t);
+
+                ofstream file2("/tmp/automata2.txt");
+                file2 << serializer.Serialize(after);
+                file2.close();
+
+                string include1, include2;
+                VATA::Util::ShellCmd(path_to_VATA + " incl /tmp/automata1.txt /tmp/automata2.txt", include1);
+                VATA::Util::ShellCmd(path_to_VATA + " incl /tmp/automata2.txt /tmp/automata1.txt", include2);
+
+                if (i < 2-1) {}
+                    // BOOST_REQUIRE_MESSAGE(!(include1=="1\n" && include2=="1\n"), "");
+                else
+                    BOOST_REQUIRE_MESSAGE(include1=="1\n" && include2=="1\n", "");
+            }
+        }
+    }
+}
+
+BOOST_AUTO_TEST_CASE(Y_gate_twice_to_identity)
+{
+    int n = size/2 + 1;
+    VATA::Serialization::TimbukSerializer serializer;
+    for (const auto &before : {VATA::Util::TreeAutomata::uniform(n), VATA::Util::TreeAutomata::classical(n)}) {
+        ofstream file1("/tmp/automata1.txt");
+        file1 << serializer.Serialize(before);
+        file1.close();
+
+        for (auto t : {1, n/2+1, n}) {
+            VATA::Util::TreeAutomata after = before;
+            for (int i=0; i<2; i++) {
+                after.Y(t);
+
+                ofstream file2("/tmp/automata2.txt");
+                file2 << serializer.Serialize(after);
+                file2.close();
+
+                string include1, include2;
+                VATA::Util::ShellCmd(path_to_VATA + " incl /tmp/automata1.txt /tmp/automata2.txt", include1);
+                VATA::Util::ShellCmd(path_to_VATA + " incl /tmp/automata2.txt /tmp/automata1.txt", include2);
+
+                if (i < 2-1)
+                    BOOST_REQUIRE_MESSAGE(!(include1=="1\n" && include2=="1\n"), "");
+                else
+                    BOOST_REQUIRE_MESSAGE(include1=="1\n" && include2=="1\n", "");
+            }
+        }
+    }
+}
+
 BOOST_AUTO_TEST_CASE(Z_gate_twice_to_identity)
 {
     VATA::Serialization::TimbukSerializer serializer;

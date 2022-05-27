@@ -520,6 +520,7 @@ void VATA::Util::TreeAutomata::semi_undeterminize() {
 VATA::Util::TreeAutomata VATA::Util::TreeAutomata::binary_operation(const TreeAutomata &o, bool add) {
     TreeAutomata result;
     result.name = name;
+    result.qubitNum = qubitNum;
     result.stateNum *= o.stateNum;
     
     for (const auto &fs1 : finalStates)
@@ -531,10 +532,13 @@ VATA::Util::TreeAutomata VATA::Util::TreeAutomata::binary_operation(const TreeAu
     // x_i are placed in the beginning, and leaves are placed in the end.
     // This traversal method is due to efficiency.
     auto it = transitions.begin();
-    auto it2 = o.transitions.begin();
-    for (; it != transitions.end(); it++, it2++) {
+    for (; it != transitions.end(); it++) {
         if (it->first.size() == 5) break;
-        assert(it->first == it2->first); // both sources contain the same x_i^k
+        auto it2 = o.transitions.begin();
+        // assert(it->first == it2->first); // both sources contain the same x_i^k
+        while (it2 != o.transitions.end() && it->first != it2->first)
+            it2++;
+        if (it2 == o.transitions.end()) continue;
         // assert(it->second.size() == 1); // both sources contain the unique I/O
         // assert(it2->second.size() == 1); // i.e., map<StateVector, StateSet> is singleton.
         map<StateVector, StateSet> m;
@@ -550,6 +554,9 @@ VATA::Util::TreeAutomata VATA::Util::TreeAutomata::binary_operation(const TreeAu
         result.transitions.insert(make_pair(it->first, m));
         assert(m.begin()->first.size() == 2);
     }
+    auto it2 = o.transitions.begin();
+    while (it2 != o.transitions.end() && it2->first.size() != 5)
+        it2++;
     for (; it != transitions.end(); it++) {
         assert(it->first.size() == 5);
         for (auto it2t = it2; it2t != o.transitions.end(); it2t++) { // it2 as the new begin point.
@@ -616,4 +623,218 @@ VATA::Util::TreeAutomata VATA::Util::TreeAutomata::classical(int n) {
     // aut.determinize();
     // aut.minimize();
     return aut;
+}
+
+void VATA::Util::TreeAutomata::swap_forward(const int k) {
+    for (int next_k=k+1; next_k<=qubitNum; next_k++) {
+        map<State, vector<pair<Symbol, StateVector>>> svsv;
+        for (const auto &t : transitions) {
+            if (t.first.size() < 5 && t.first[0] == next_k) {
+                assert(t.first.size() <= 2);
+                assert(t.second.size() == 1);
+                assert(t.second.begin()->second.size() == 1);
+                // try {
+                //     ssv.at(*(t.second.begin()->second.begin()));
+                //     assert(false);
+                // } catch (...) {
+                    svsv[*(t.second.begin()->second.begin())].push_back(make_pair(t.first, t.second.begin()->first));
+                // }
+            }
+        }
+        vector<Symbol> to_be_removed2;
+        TransitionMap to_be_removed, to_be_inserted;
+        for (const auto &t : transitions) {
+            if (t.first.size() < 5 && t.first[0] == k) {
+                for (const auto &in_out : t.second) {
+                    assert(in_out.first.size() == 2);
+                    assert(in_out.second.size() == 1);
+                    for (const auto &ssv1 : svsv[in_out.first[0]]) {
+                        for (const auto &ssv2 : svsv[in_out.first[1]]) {
+                            to_be_removed[ssv1.first][ssv1.second].insert(in_out.first[0]);
+                            to_be_removed[ssv2.first][ssv2.second].insert(in_out.first[1]);
+                            to_be_inserted[t.first][{ssv1.second[0], ssv2.second[0]}].insert(stateNum++);
+                            to_be_inserted[t.first][{ssv1.second[1], ssv2.second[1]}].insert(stateNum++);
+                            to_be_inserted[{next_k, ssv1.first[1], ssv2.first[1]}][{stateNum-2, stateNum-1}].insert((*in_out.second.begin()));
+                        }
+                    }
+                }
+                to_be_removed2.push_back(t.first);
+            }
+        }
+        for (const auto &v : to_be_removed2)
+            transitions.erase(v);
+        for (const auto &t : to_be_removed) {
+            for (const auto &in_out : t.second) {
+                transitions[t.first][in_out.first].erase(*in_out.second.begin());
+                if (transitions[t.first][in_out.first].empty())
+                    transitions[t.first].erase(in_out.first);
+                if (transitions[t.first].empty())
+                    transitions.erase(t.first);
+            }
+        }
+        for (const auto &t : to_be_inserted) {
+            for (const auto &in_out : t.second) {
+                for (const auto &s : in_out.second) {
+                    transitions[t.first][in_out.first].insert(s);
+                }
+            }
+        }
+        determinize();
+        minimize();
+    }
+}
+
+void VATA::Util::TreeAutomata::swap_backward(const int k) {
+    for (int next_k=qubitNum; next_k>k; next_k--) {
+        map<State, vector<pair<Symbol, StateVector>>> svsv;
+        for (const auto &t : transitions) {
+            auto &symbol = t.first;
+            auto &in_outs = t.second;
+            if (symbol.size() < 5 && symbol[0] == k) {
+                assert(symbol.size() == 2);
+                // print();
+                // assert(t.second.size() == 1);
+                for (const auto &in_out : in_outs) {
+                    assert(in_out.second.size() == 1);
+                    // try {
+                    //     svsv.at(*(in_out.second.begin()));
+                    //     assert(false);
+                    // } catch (...) {
+                        svsv[*(in_out.second.begin())].push_back(make_pair(symbol, in_out.first));
+                    // }
+                }
+            }
+        }
+        vector<Symbol> to_be_removed2;
+        TransitionMap to_be_removed, to_be_inserted;
+        for (const auto &t : transitions) {
+            if (t.first.size() < 5 && t.first[0] == next_k) {
+                assert(t.first.size() == 3);
+                for (const auto &in_out : t.second) {
+                    assert(in_out.first.size() == 2);
+                    assert(in_out.second.size() == 1);
+                    for (const auto &ssv1 : svsv[in_out.first[0]]) {
+                        for (const auto &ssv2 : svsv[in_out.first[1]]) {
+                            if (ssv1.first == ssv2.first) {
+                                // assert(svsv[in_out.first[0]].first == svsv[in_out.first[1]].first);
+                                to_be_removed[ssv1.first][ssv1.second].insert(in_out.first[0]);
+                                to_be_removed[ssv2.first][ssv2.second].insert(in_out.first[1]);
+                                to_be_inserted[{t.first[0], t.first[1]}][{ssv1.second[0], ssv2.second[0]}].insert(stateNum++);
+                                to_be_inserted[{t.first[0], t.first[2]}][{ssv1.second[1], ssv2.second[1]}].insert(stateNum++);
+                                assert(k == ssv1.first[0]);
+                                to_be_inserted[ssv1.first][{stateNum-2, stateNum-1}].insert((*in_out.second.begin()));
+                            }
+                        }
+                    }
+                }
+                to_be_removed2.push_back(t.first);
+            }
+        }
+        for (const auto &v : to_be_removed2)
+            transitions.erase(v);
+        for (const auto &t : to_be_removed) {
+            for (const auto &in_out : t.second) {
+                transitions[t.first][in_out.first].erase(*in_out.second.begin());
+                if (transitions[t.first][in_out.first].empty())
+                    transitions[t.first].erase(in_out.first);
+                if (transitions[t.first].empty())
+                    transitions.erase(t.first);
+            }
+        }
+        for (const auto &t : to_be_inserted) {
+            for (const auto &in_out : t.second) {
+                for (const auto &s : in_out.second) {
+                    transitions[t.first][in_out.first].insert(s);
+                }
+            }
+        }
+        determinize();
+        minimize();
+    }
+}
+
+void VATA::Util::TreeAutomata::value_restriction(int k, bool branch) {
+    swap_forward(k);
+    TransitionMap to_be_inserted;
+    vector<Symbol> to_be_removed;
+    for (const auto &t : transitions) {
+        if (t.first.size() < 5 && t.first[0] == k) {
+            to_be_removed.push_back(t.first);
+            for (const auto &in_out : t.second) {
+                assert(in_out.first.size() == 2);
+                for (const auto &s : in_out.second) {
+                    if (branch)
+                        to_be_inserted[t.first][{in_out.first[1], in_out.first[1]}].insert(s);
+                    else
+                        to_be_inserted[t.first][{in_out.first[0], in_out.first[0]}].insert(s);
+                }
+            }
+        }
+    }
+    for (const auto &t : to_be_removed) {
+        transitions.erase(t);
+    }
+    for (const auto &t : to_be_inserted) {
+        transitions[t.first] = t.second;
+    }
+    determinize();
+    minimize();
+    swap_backward(k);
+}
+
+void VATA::Util::TreeAutomata::print() {
+    std::string result;
+
+	result += "Ops ";
+	for (auto itSymb = transitions.cbegin();
+		itSymb != transitions.cend(); ++itSymb)
+	{
+		result += VATA::Util::Convert::ToString(itSymb->first) + ":" +
+			VATA::Util::Convert::ToString(itSymb->second.begin()->first.size()) + " ";
+	}
+
+	result += "\n";
+	result += "Automaton " + (name.empty()? "anonymous" : name);
+
+	result += "\n";
+	result += "States ";
+    for (int i=0; i<stateNum; i++) {
+        result += std::to_string(i) + " ";
+        // result += stateNum.TranslateBwd(i) + " ";
+    }
+	// for_each(states.cbegin(), states.cend(),
+	// 	[&result](const std::string& sStr){ result += sStr + " ";});
+
+	result += "\n";
+	result += "Final States ";
+    for (unsigned i : finalStates) {
+        result += std::to_string(i) + " ";
+        // result += stateNum.TranslateBwd(i) + " ";
+    }
+	// for_each(finalStates.cbegin(), finalStates.cend(),
+	// 	[&result](const std::string& fsStr){ result += fsStr + " ";});
+
+	result += "\n";
+	result += "Transitions\n";
+
+    for (const auto &t : transitions) {
+        for (const auto &t2 : t.second) {
+            for (const auto &finalSet : t2.second) {
+                result += Convert::ToString(t.first);
+                if (!(t2.first.empty())) {
+                    result += "(";
+                    result += std::to_string(t2.first[0]); //stateNum.TranslateBwd(t2.first[0]);
+                    for (size_t i = 1; i < t2.first.size(); ++i) {
+                        result += ", ";
+                        result += std::to_string(t2.first[i]); //stateNum.TranslateBwd(t2.first[i]);
+                    }
+                    result += ")";
+                }
+                result += " -> ";
+                result += std::to_string(finalSet); //stateNum.TranslateBwd(finalSet);
+                result += "\n";
+            }
+        }
+    }
+    std::cout << result << "\n";
 }

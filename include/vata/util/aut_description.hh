@@ -122,8 +122,10 @@ public:
     void value_restriction(int k, bool branch);
     TreeAutomata operator+(const TreeAutomata &o) { return binary_operation(o, true); }
     TreeAutomata operator-(const TreeAutomata &o) { return binary_operation(o, false); }
+    void print();
 
     void X(int t);
+    void Y(int t);
     void Z(int t);
     void S(int t);
     void T(int t);

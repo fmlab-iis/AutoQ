@@ -1,3 +1,4 @@
+#include <fstream>
 #include <iostream>
 #include <vata/parsing/timbuk_parser.hh>
 #include <vata/serialization/timbuk_serializer.hh>
@@ -18,25 +19,45 @@ int main(int argc, char **argv) {
     if (argc == 2) {
         TimbukParser parser;
         aut = parser.ParseString(ReadFile(argv[1]));
-        aut.determinize();
-        aut.minimize();
     } else {
         // aut = TreeAutomata::uniform(5);
-        // aut = TreeAutomata::classical(5);
+        aut = TreeAutomata::classical(4);
     }
-    
-    /* Perform any operation here. */
-    aut.Z(1);
-    aut.Z(1);
+    // aut.determinize();
+    // aut.minimize();
 
-    /* Output this automata. */
     TimbukSerializer serializer;
-    cout << serializer.Serialize(aut);
+    ofstream file1("/tmp/automata1.txt");
+    file1 << serializer.Serialize(aut);
+    file1.close();
+
+    /* Perform any operation here. */
+    aut.Y(4);
+    // aut.determinize();
+    // aut.minimize();
+    ofstream file2("/tmp/automata2.txt");
+    file2 << serializer.Serialize(aut);
+    file2.close();
+
+    string include1, include2;
+    ShellCmd("/home/alan23273850/libvata/build/cli/vata incl /tmp/automata1.txt /tmp/automata2.txt", include1);
+    ShellCmd("/home/alan23273850/libvata/build/cli/vata incl /tmp/automata2.txt /tmp/automata1.txt", include2);
+    assert(!(include1=="1\n" && include2=="1\n"));
+    // return 0;
+
+    aut.Y(4);
+    // aut.determinize();
+    // aut.minimize();
+    /* Output this automata. */
+    // cout << serializer.Serialize(aut);
+    ofstream file3("/tmp/automata2.txt");
+    file3 << serializer.Serialize(aut);
+    file3.close();
 
     /* Compare the two automata. */
-    // string include1, include2;
-    // ShellCmd(path_to_VATA + " incl /tmp/automata1.txt /tmp/automata2.txt", include1);
-    // ShellCmd(path_to_VATA + " incl /tmp/automata2.txt /tmp/automata1.txt", include2);
-    // assert(include1=="1\n" && include1=="2\n");
+    ShellCmd("/home/alan23273850/libvata/build/cli/vata incl /tmp/automata1.txt /tmp/automata2.txt", include1);
+    ShellCmd("/home/alan23273850/libvata/build/cli/vata incl /tmp/automata2.txt /tmp/automata1.txt", include2);
+    std::cout << include1 << include2;
+    assert(include1=="1\n" && include2=="1\n");
     return 0;
 }
