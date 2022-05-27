@@ -807,9 +807,9 @@ void VATA::Util::TreeAutomata::fraction_simplication() {
         if (t.first.size() == 5) {
             to_be_removed.push_back(t.first);
             StateVector sv = t.first;
-            int gcd = t.first[0];
+            int gcd = abs(t.first[0]);
             for (int i=1; i<4; i++)
-                gcd = __gcd(gcd, t.first[i]);
+                gcd = __gcd(gcd, abs(t.first[i]));
             if (gcd > 0) {
                 for (int i=0; i<4; i++)
                     sv[i] /= gcd;
