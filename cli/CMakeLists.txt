@@ -6,7 +6,7 @@ set(CMAKE_COLOR_MAKEFILE ON)
 project(vata)
 
 set(vata_compiler_add_flags_list
-  -std=c++0x
+  -std=c++17
   -pedantic-errors
 #  -DOPT_AC
   -DCACHE_AC
@@ -21,7 +21,7 @@ set(vata_compiler_add_flags_list
   -Woverloaded-virtual
   -Wold-style-cast
   -fdiagnostics-show-option
-  -march=native
+  # -march=native
 )
 
 foreach(param ${vata_compiler_add_flags_list})

@@ -4,7 +4,7 @@ cmake_minimum_required(VERSION 2.8.2)
 project(unit_tests)
 
 set(compiler_flags_list
-  -std=c++0x
+  -std=c++17
   -pedantic-errors
   -Wextra
   -Wall
@@ -14,7 +14,7 @@ set(compiler_flags_list
   -Woverloaded-virtual
   -Wold-style-cast
   -fdiagnostics-show-option
-  -march=native
+  # -march=native
 )
 
 set(compiler_flags "")

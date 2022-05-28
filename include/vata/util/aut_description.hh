@@ -17,8 +17,6 @@
 #include <vata/util/triple.hh>
 #include <vata/util/two_way_dict.hh>
 
-using namespace std;
-
 namespace VATA
 {
 	namespace Util
@@ -28,7 +26,7 @@ namespace VATA
 }
 
 struct CompareSymbolName {
-    bool operator()(const vector<int> &lhs, const vector<int> &rhs) const {
+    bool operator()(const std::vector<int> &lhs, const std::vector<int> &rhs) const {
         if (lhs.size() < rhs.size())
             return true;
         else if (lhs.size() > rhs.size())
@@ -42,14 +40,14 @@ struct VATA::Util::TreeAutomata
 {
 public:   // data types
     typedef int State;
-	typedef vector<State> StateVector;
-	typedef set<State> StateSet;
+	typedef std::vector<State> StateVector;
+	typedef std::set<State> StateSet;
 
-	typedef vector<int> Symbol;
-    typedef map<Symbol, map<StateVector, StateSet>, CompareSymbolName> TransitionMap;
+	typedef std::vector<int> Symbol;
+    typedef std::map<Symbol, std::map<StateVector, StateSet>, CompareSymbolName> TransitionMap;
 
 public:   // data members
-	string name;
+		std::string name;
     StateSet finalStates;
     int stateNum, qubitNum;
 	TransitionMap transitions;
@@ -89,9 +87,9 @@ public:   // methods
 			(transitions == rhs.transitions);
 	}
 
-	string ToString() const
+	std::string ToString() const
 	{
-		string result;
+		std::string result;
 		result += "name: " + name + "\n";
 		result += "number of states: " + Convert::ToString(stateNum) + "\n";
 		result += "final states: " + Convert::ToString(finalStates) + "\n";
@@ -106,7 +104,7 @@ public:   // methods
 
 private:
     void remove_useless();
-    bool is_same_partition(const vector<int> &state_to_partition_id, State a, State b);
+    bool is_same_partition(const std::vector<int> &state_to_partition_id, State a, State b);
     TreeAutomata binary_operation(const TreeAutomata &o, bool add);
     void swap_forward(const int k);
     void swap_backward(const int k);

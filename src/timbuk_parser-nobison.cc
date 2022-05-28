@@ -31,11 +31,11 @@ static std::string trim(const std::string& str)
 
 	// trim from start
 	result.erase(result.begin(), std::find_if(result.begin(), result.end(),
-		std::not1(std::ptr_fun<int, int>(std::isspace))));
+		[](int ch) {return !std::isspace(ch);}));
 
 	// trim from end
 	result.erase(std::find_if(result.rbegin(), result.rend(),
-		std::not1(std::ptr_fun<int, int>(std::isspace))).base(), result.end());
+		[](int ch) {return !std::isspace(ch);}).base(), result.end());
 
 	return result;
 }
@@ -73,7 +73,7 @@ static std::vector<std::string> split_delim(
 static std::string read_word(std::string& str)
 {
 	std::string::iterator end(std::find_if(str.begin(), str.end(),
-		std::ptr_fun<int, int>(std::isspace)));
+		[](int ch) { return std::isspace(ch);}));
 	std::string result(str.begin(), end);
 
 	str.erase(str.begin(), end);
@@ -87,7 +87,7 @@ static std::string read_word(std::string& str)
  */
 static bool contains_whitespace(const std::string& str)
 {
-	return str.end() != std::find_if(str.begin(), str.end(), std::ptr_fun<int, int>(std::isspace));
+	return str.end() != std::find_if(str.begin(), str.end(), [](int ch) { return std::isspace(ch);});
 }
 
 
@@ -117,9 +117,9 @@ static std::pair<std::string, int> parse_colonned_token(std::string str)
 /**
  * @brief  Parse a string with Timbuk definition of an automaton
  */
-vector<int> symbol_converter(const std::string& str)
+std::vector<int> symbol_converter(const std::string& str)
 {
-    vector<int> temp;
+	std::vector<int> temp;
     if (str[0] == '[') {
         for (int i=1; i<static_cast<int>(str.length()); i++) {
             size_t j = str.find(',', i);
@@ -340,7 +340,7 @@ static TreeAutomata parse_timbuk(const std::string& str)
 
     for (const auto &kv : result.transitions) {
         if (kv.first.size() < 5)
-            result.qubitNum = max(result.qubitNum, kv.first[0]);
+            result.qubitNum = std::max(result.qubitNum, kv.first[0]);
     }
 
 	return result;

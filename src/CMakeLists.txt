@@ -15,8 +15,8 @@ set(vata_cxx_compiler_flags
   -Wall
   -Wfloat-equal
   -fdiagnostics-show-option
-  -march=native
-  -std=c++11
+  # -march=native
+  -std=c++17
   -Wctor-dtor-privacy
   -Weffc++
   -fPIC
