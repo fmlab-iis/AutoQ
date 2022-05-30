@@ -299,3 +299,26 @@ BOOST_AUTO_TEST_CASE(Toffoli_gate_twice_to_identity)
         } while (std::next_permutation(v, v+3));
     }
 }
+
+BOOST_AUTO_TEST_CASE(Fredkin_gate_twice_to_identity)
+{
+    VATA::Serialization::TimbukSerializer serializer;
+    for (const auto &before : {VATA::Util::TreeAutomata::uniform(3),
+                               VATA::Util::TreeAutomata::classical(3),
+                               VATA::Util::TreeAutomata::random(3)}) {
+        int v[] = {1,2,3};
+        do {
+            VATA::Util::TreeAutomata after = before;
+            int loop = 2;
+            for (int i=0; i<loop; i++) {
+                after.Fredkin(v[0], v[1], v[2]);
+
+                if (i < loop-1) {
+                    BOOST_REQUIRE_MESSAGE(!check_equal_aut(before, after), "");
+                } else {
+                    BOOST_REQUIRE_MESSAGE(check_equal_aut(before, after), "");
+                }
+            }
+        } while (std::next_permutation(v, v+3));
+    }
+}

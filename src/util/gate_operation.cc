@@ -184,3 +184,34 @@ void VATA::Util::TreeAutomata::Toffoli(int c, int c2, int t) {
     determinize();
     minimize();
 }
+
+void VATA::Util::TreeAutomata::Fredkin(int c, int t, int t2) {
+    assert(c != t && t != t2 && t2 != c);
+    this->semi_determinize();
+    TreeAutomata aut1 = *this;
+    aut1.branch_restriction(c, false);
+    TreeAutomata aut2 = *this;
+    aut2.branch_restriction(c, true);
+    TreeAutomata aut3 = aut2;
+    aut2.branch_restriction(t, true);
+    aut2.branch_restriction(t2, true);
+    aut3.branch_restriction(t, false);
+    aut3.branch_restriction(t2, false);
+    TreeAutomata aut4 = *this;
+    aut4.value_restriction(c, true);
+    TreeAutomata aut5 = aut4;
+    aut4.value_restriction(t, false);
+    aut4.value_restriction(t2, true);
+    aut4.branch_restriction(t2, false);
+    aut4.branch_restriction(t, true);
+    aut4.branch_restriction(c, true);
+    aut5.value_restriction(t, true);
+    aut5.value_restriction(t2, false);
+    aut5.branch_restriction(t2, true);
+    aut5.branch_restriction(t, false);
+    aut5.branch_restriction(c, true);
+    *this = aut1 + aut2 - aut3 + aut4 + aut5;
+    this->semi_undeterminize();
+    determinize();
+    minimize();
+}
