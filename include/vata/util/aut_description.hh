@@ -134,6 +134,7 @@ public:
     void Ry(int t);
     void CNOT(int c, int t);
     void CZ(int c, int t);
+    void Toffoli(int c, int c2, int t);
 
     /* Produce an automaton instance. */
     static TreeAutomata uniform(int n);

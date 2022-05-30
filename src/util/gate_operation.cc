@@ -157,3 +157,30 @@ void VATA::Util::TreeAutomata::CZ(int c, int t) {
     determinize();
     minimize();
 }
+
+void VATA::Util::TreeAutomata::Toffoli(int c, int c2, int t) {
+    assert(c != c2 && c2 != t && t != c);
+    this->semi_determinize();
+    TreeAutomata aut1 = *this;
+    aut1.branch_restriction(c, false);
+    TreeAutomata aut2 = *this;
+    aut2.branch_restriction(c2, false);
+    TreeAutomata aut3 = aut2;
+    aut3.branch_restriction(c, false);
+    TreeAutomata aut4 = *this;
+    aut4.value_restriction(c, true);
+    aut4.value_restriction(c2, true);
+    TreeAutomata aut5 = aut4;
+    aut4.value_restriction(t, false);
+    aut4.branch_restriction(t, true);
+    aut4.branch_restriction(c2, true);
+    aut4.branch_restriction(c, true);
+    aut5.value_restriction(t, true);
+    aut5.branch_restriction(t, false);
+    aut5.branch_restriction(c2, true);
+    aut5.branch_restriction(c, true);
+    *this = aut1 + aut2 - aut3 + aut4 + aut5;
+    this->semi_undeterminize();
+    determinize();
+    minimize();
+}
