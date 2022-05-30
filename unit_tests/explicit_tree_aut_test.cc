@@ -72,15 +72,15 @@ BOOST_AUTO_TEST_CASE(X_gate_twice_to_identity)
 {
     int n = size/2 + 1;
     VATA::Serialization::TimbukSerializer serializer;
-    for (const auto &before : {VATA::Util::TreeAutomata::uniform(n), VATA::Util::TreeAutomata::classical(n)}) {
+    for (const auto &before : {VATA::Util::TreeAutomata::random(n)}) {
         int loop = 2;
         for (auto t : {1, n/2+1, n}) {
             VATA::Util::TreeAutomata after = before;
             for (int i=0; i<loop; i++) {
                 after.X(t);
 
-                if (i < loop-1) {}
-                    // BOOST_REQUIRE_MESSAGE(!(include1=="1\n" && include2=="1\n"), "");
+                if (i < loop-1)
+                    BOOST_REQUIRE_MESSAGE(!check_equal_aut(before, after), "");
                 else {
                     BOOST_REQUIRE_MESSAGE(check_equal_aut(before, after), "");
 				}
@@ -227,6 +227,25 @@ BOOST_AUTO_TEST_CASE(Ry_gate_eighth_to_identity)
                 else {
                     BOOST_REQUIRE_MESSAGE(check_equal_aut(before, after), "");
 				}
+            }
+        }
+    }
+}
+
+BOOST_AUTO_TEST_CASE(CNOT_gate_twice_to_identity)
+{
+    int n = size/2 + 1;
+    VATA::Serialization::TimbukSerializer serializer;
+    for (const auto &before : {VATA::Util::TreeAutomata::random(n)}) {
+        VATA::Util::TreeAutomata after = before;
+        int loop = 2;
+        for (int i=0; i<loop; i++) {
+            after.CNOT(n*2/3, n/3);
+
+            if (i < loop-1) {
+                BOOST_REQUIRE_MESSAGE(!check_equal_aut(before, after), "");
+            } else {
+                BOOST_REQUIRE_MESSAGE(check_equal_aut(before, after), "");
             }
         }
     }

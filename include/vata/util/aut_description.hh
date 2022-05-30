@@ -132,11 +132,13 @@ public:
     void T(int t);
     void Rx(int t);
     void Ry(int t);
+    void CNOT(int c, int t);
     void CZ(int c, int t);
 
     /* Produce an automaton instance. */
     static TreeAutomata uniform(int n);
     static TreeAutomata classical(int n);
+    static TreeAutomata random(int n);
 };
 
 #endif

@@ -120,6 +120,26 @@ void VATA::Util::TreeAutomata::Ry(int t) {
     minimize();
 }
 
+void VATA::Util::TreeAutomata::CNOT(int c, int t) {
+    assert(c != t);
+    this->semi_determinize();
+    TreeAutomata aut1 = *this;
+    aut1.branch_restriction(c, false);
+    TreeAutomata aut2 = *this;
+    aut2.value_restriction(c, true);
+    TreeAutomata aut3 = aut2;
+    aut2.value_restriction(t, false);
+    aut2.branch_restriction(t, true);
+    aut2.branch_restriction(c, true);
+    aut3.value_restriction(t, true);
+    aut3.branch_restriction(t, false);
+    aut3.branch_restriction(c, true);
+    *this = aut1 + aut2 + aut3;
+    this->semi_undeterminize();
+    determinize();
+    minimize();
+}
+
 void VATA::Util::TreeAutomata::CZ(int c, int t) {
     assert(c != t);
     this->semi_determinize();

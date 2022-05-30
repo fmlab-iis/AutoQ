@@ -677,20 +677,49 @@ VATA::Util::TreeAutomata VATA::Util::TreeAutomata::classical(int n) {
     return aut;
 }
 
+VATA::Util::TreeAutomata VATA::Util::TreeAutomata::random(int n) {
+    TreeAutomata aut;
+    aut.name = "Random";
+    aut.qubitNum = n;
+    int pow_of_two = 1;
+    int state_counter = 0;
+    for (int level=1; level<=n; level++) {
+        for (int i=0; i<pow_of_two; i++) {
+            aut.transitions[{level}][{state_counter*2+1, state_counter*2+2}] = {state_counter};
+            state_counter++;
+        }
+        pow_of_two *= 2;
+    }
+    for (int i=state_counter; i<=state_counter*2; i++) {
+        aut.transitions[{rand()%5, rand()%5, rand()%5, rand()%5, 0}][{}].insert(i);
+    }
+	aut.finalStates.insert(0);
+    aut.stateNum = state_counter*2 + 1;
+
+    // aut.determinize();
+    // aut.minimize();
+    return aut;
+}
+
 void VATA::Util::TreeAutomata::swap_forward(const int k) {
     for (int next_k=k+1; next_k<=qubitNum; next_k++) {
 				std::map<State, std::vector<std::pair<Symbol, StateVector>>> svsv;
         for (const auto &t : transitions) {
-            if (t.first.size() < 5 && t.first[0] == next_k) {
-                assert(t.first.size() <= 2);
-                assert(t.second.size() == 1);
-                assert(t.second.begin()->second.size() == 1);
-                // try {
-                //     ssv.at(*(t.second.begin()->second.begin()));
-                //     assert(false);
-                // } catch (...) {
-                    svsv[*(t.second.begin()->second.begin())].push_back(make_pair(t.first, t.second.begin()->first));
-                // }
+            auto &symbol = t.first;
+            auto &in_outs = t.second;
+            if (symbol.size() < 5 && symbol[0] == next_k) {
+                assert(symbol.size() <= 2);
+                for (const auto &in_out : in_outs) {
+                    assert(in_out.second.size() == 1);
+                    // assert(t.second.size() == 1);
+                    // assert(t.second.begin()->second.size() == 1);
+                    // try {
+                    //     ssv.at(*(t.second.begin()->second.begin()));
+                    //     assert(false);
+                    // } catch (...) {
+                    svsv[*(in_out.second.begin())].push_back(make_pair(symbol, in_out.first));
+                    // }
+                }
             }
         }
 				std::vector<Symbol> to_be_removed2;
