@@ -20,8 +20,8 @@ int main(int argc, char **argv) {
         TimbukParser parser;
         aut = parser.ParseString(ReadFile(argv[1]));
     } else {
-        // aut = TreeAutomata::uniform(5);
-        aut = TreeAutomata::classical(3);
+        aut = TreeAutomata::uniform(1);
+        // aut = TreeAutomata::classical(1);
     }
     // aut.determinize();
     // aut.minimize();
@@ -32,7 +32,7 @@ int main(int argc, char **argv) {
     file1.close();
 
     /* Perform any operation here. */
-    aut.H(3);
+    aut.Rx(1);
     // aut.determinize();
     // aut.minimize();
     ofstream file2("/tmp/automata2.txt");
@@ -45,7 +45,13 @@ int main(int argc, char **argv) {
     assert(!(include1=="1\n" && include2=="1\n"));
     // return 0;
 
-    aut.H(3);
+    aut.Rx(1);
+    aut.Rx(1);
+    aut.Rx(1);
+    aut.Rx(1);
+    aut.Rx(1);
+    aut.Rx(1);
+    aut.Rx(1);
     // aut.determinize();
     // aut.minimize();
     /* Output this automata. */

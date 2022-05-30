@@ -85,6 +85,41 @@ void VATA::Util::TreeAutomata::T(int t) {
     minimize();
 }
 
+void VATA::Util::TreeAutomata::Rx(int t) {
+    this->semi_determinize();
+    TreeAutomata aut1 = *this;
+    TreeAutomata aut2 = *this;
+    aut2.value_restriction(t, false);
+    aut2.branch_restriction(t, true);
+    TreeAutomata aut3 = *this;
+    aut3.value_restriction(t, true);
+    aut3.branch_restriction(t, false);
+    aut2 = aut2 + aut3;
+    aut2.omega_multiplication();
+    aut2.omega_multiplication();
+    *this = aut1 - aut2;
+    divide_by_the_square_root_of_two();
+    this->semi_undeterminize();
+    determinize();
+    minimize();
+}
+
+void VATA::Util::TreeAutomata::Ry(int t) {
+    this->semi_determinize();
+    TreeAutomata aut1 = *this;
+    aut1.value_restriction(t, false);
+    TreeAutomata aut2 = *this;
+    aut2.value_restriction(t, true);
+    TreeAutomata aut3 = aut2;
+    aut2.branch_restriction(t, true);
+    aut3.branch_restriction(t, false);
+    *this = aut1 + aut2 - aut3;
+    divide_by_the_square_root_of_two();
+    this->semi_undeterminize();
+    determinize();
+    minimize();
+}
+
 void VATA::Util::TreeAutomata::CZ(int c, int t) {
     assert(c != t);
     this->semi_determinize();

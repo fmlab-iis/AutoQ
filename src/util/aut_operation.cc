@@ -581,15 +581,47 @@ VATA::Util::TreeAutomata VATA::Util::TreeAutomata::binary_operation(const TreeAu
         assert(it->first.size() == 5);
         for (auto it2t = it2; it2t != o.transitions.end(); it2t++) { // it2 as the new begin point.
             assert(it2t->first.size() == 5);
-            assert(it->first[4] == it2t->first[4]); // Two k's must be the same.
             StateVector in;
-            for (int i=0; i<4; i++) { // We do not change k here.
-                if (add)
-                    in.push_back(it->first[i] + it2t->first[i]);
-                else
-                    in.push_back(it->first[i] - it2t->first[i]);
+            if (it->first[4] <= it2t->first[4]) {
+                int k_diff = it2t->first[4] - it->first[4];
+                assert(k_diff % 2 == 0);
+                int pow = 1;
+                while (k_diff > 0) {
+                    pow *= 2;
+                    k_diff -= 2;
+                }
+                for (int i=0; i<4; i++) {
+                    if (add)
+                        in.push_back(it->first[i] * pow + it2t->first[i]);
+                    else
+                        in.push_back(it->first[i] * pow - it2t->first[i]);
+                }
+                in.push_back(it2t->first[4]); // remember to push k
+            } else {
+                int k_diff = it->first[4] - it2t->first[4];
+                assert(k_diff % 2 == 0);
+                int pow = 1;
+                while (k_diff > 0) {
+                    pow *= 2;
+                    k_diff -= 2;
+                }
+                for (int i=0; i<4; i++) {
+                    if (add)
+                        in.push_back(it->first[i] + it2t->first[i] * pow);
+                    else
+                        in.push_back(it->first[i] - it2t->first[i] * pow);
+                }
+                in.push_back(it->first[4]); // remember to push k
             }
-            in.push_back(it->first[4]); // remember to push k
+            // assert(it->first[4] == it2t->first[4]); // Two k's must be the same.
+            // StateVector in;
+            // for (int i=0; i<4; i++) { // We do not change k here.
+            //     if (add)
+            //         in.push_back(it->first[i] + it2t->first[i]);
+            //     else
+            //         in.push_back(it->first[i] - it2t->first[i]);
+            // }
+            // in.push_back(it->first[4]); // remember to push k
             result.transitions[in][{}].insert((*(it->second.begin()->second.begin())) * o.stateNum + (*(it2t->second.begin()->second.begin())));
         }
     }

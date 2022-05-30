@@ -130,6 +130,8 @@ public:
     void H(int t);
     void S(int t);
     void T(int t);
+    void Rx(int t);
+    void Ry(int t);
     void CZ(int c, int t);
 
     /* Produce an automaton instance. */
