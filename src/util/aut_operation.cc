@@ -631,6 +631,35 @@ VATA::Util::TreeAutomata VATA::Util::TreeAutomata::binary_operation(const TreeAu
     return result;
 }
 
+VATA::Util::TreeAutomata VATA::Util::TreeAutomata::Union(const TreeAutomata &o) {
+    TreeAutomata result, o2;
+    result = *this;
+    result.name = "Union";
+    assert(result.qubitNum == o.qubitNum);
+    result.stateNum += o.stateNum;
+
+    for (const auto &t : o.transitions) {
+        auto &container = result.transitions[t.first];
+        for (const auto &in_outs : t.second) {
+            auto in = in_outs.first;
+            for (unsigned i=0; i<in.size(); i++) {
+                in[i] += this->stateNum;
+            }
+            auto &container_out = container[in];
+            const auto &outs = in_outs.second;
+            for (const auto &s : outs) {
+                container_out.insert(s + this->stateNum);
+            }
+        }
+    }
+    for (const auto &s : o.finalStates)
+	    result.finalStates.insert(s + this->stateNum);
+
+    result.determinize();
+    result.minimize();
+    return result;
+}
+
 VATA::Util::TreeAutomata VATA::Util::TreeAutomata::uniform(int n) {
     TreeAutomata aut;
     aut.name = "Uniform";
@@ -698,6 +727,32 @@ VATA::Util::TreeAutomata VATA::Util::TreeAutomata::random(int n) {
 
     // aut.determinize();
     // aut.minimize();
+    return aut;
+}
+
+VATA::Util::TreeAutomata VATA::Util::TreeAutomata::zero(int n) {
+    TreeAutomata aut;
+    aut.name = "Zero";
+    aut.qubitNum = n;
+    aut.qubitNum = n;
+    int pow_of_two = 1;
+    int state_counter = 0;
+    for (int level=1; level<=n; level++) {
+        for (int i=0; i<pow_of_two; i++) {
+            aut.transitions[{level}][{state_counter*2+1, state_counter*2+2}] = {state_counter};
+            state_counter++;
+        }
+        pow_of_two *= 2;
+    }
+    aut.transitions[{1,0,0,0,0}][{}].insert(state_counter);
+    for (int i=state_counter+1; i<=state_counter*2; i++) {
+        aut.transitions[{0,0,0,0,0}][{}].insert(i);
+    }
+	aut.finalStates.insert(0);
+    aut.stateNum = state_counter*2 + 1;
+
+    aut.determinize();
+    aut.minimize();
     return aut;
 }
 
@@ -955,5 +1010,5 @@ void VATA::Util::TreeAutomata::print() {
             }
         }
     }
-    std::cout << result << "\n";
+    std::cout << result; // << "\n";
 }

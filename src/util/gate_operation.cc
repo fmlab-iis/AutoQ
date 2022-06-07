@@ -42,17 +42,66 @@ void VATA::Util::TreeAutomata::Z(int t) {
     minimize();
 }
 
+#include <chrono>
+#include <iomanip>
 void VATA::Util::TreeAutomata::H(int t) {
     this->semi_determinize();
-    TreeAutomata aut1 = *this;
-    aut1.value_restriction(t, false);
-    TreeAutomata aut2 = *this;
-    aut2.value_restriction(t, true);
-    TreeAutomata aut3 = aut2;
-    aut2.branch_restriction(t, false);
-    aut3.branch_restriction(t, true);
-    *this = aut1 + aut2 - aut3;
-    divide_by_the_square_root_of_two();
+    if (name == "TARGET") {
+        TreeAutomata aut1 = *this;
+        auto start = std::chrono::steady_clock::now();
+        aut1.value_restriction(t, false);
+        auto end = std::chrono::steady_clock::now();
+        aut1.print();
+        std::cout << "V.R.1 - Elapsed time: " << std::setw(5)
+        << std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count() / 1000000
+        << " ms\n\n";
+
+        TreeAutomata aut2 = *this;
+        start = std::chrono::steady_clock::now();
+        aut2.value_restriction(t, true);
+        end = std::chrono::steady_clock::now();
+        aut2.print();
+        std::cout << "V.R.2 - Elapsed time: " << std::setw(5)
+        << std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count() / 1000000
+        << " ms\n\n";
+
+        TreeAutomata aut3 = aut2;
+        start = std::chrono::steady_clock::now();
+        aut2.branch_restriction(t, false);
+        end = std::chrono::steady_clock::now();
+        aut2.print();
+        std::cout << "B.R.1 - Elapsed time: " << std::setw(5)
+        << std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count() / 1000000
+        << " ms\n\n";
+
+        start = std::chrono::steady_clock::now();
+        aut3.branch_restriction(t, true);
+        end = std::chrono::steady_clock::now();
+        aut3.print();
+        std::cout << "B.R.2 - Elapsed time: " << std::setw(5)
+        << std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count() / 1000000
+        << " ms\n\n";
+
+        start = std::chrono::steady_clock::now();
+        *this = aut1 + aut2 - aut3;
+        end = std::chrono::steady_clock::now();
+        print();
+        std::cout << "plus and minus - Elapsed time: " << std::setw(5)
+        << std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count() / 1000000
+        << " ms\n\n";
+
+        divide_by_the_square_root_of_two();
+    } else {
+        TreeAutomata aut1 = *this;
+        aut1.value_restriction(t, false);
+        TreeAutomata aut2 = *this;
+        aut2.value_restriction(t, true);
+        TreeAutomata aut3 = aut2;
+        aut2.branch_restriction(t, false);
+        aut3.branch_restriction(t, true);
+        *this = aut1 + aut2 - aut3;
+        divide_by_the_square_root_of_two();
+    }
     this->semi_undeterminize();
     determinize();
     minimize();

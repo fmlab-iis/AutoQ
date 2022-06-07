@@ -122,6 +122,7 @@ public:
     void semi_undeterminize();
     TreeAutomata operator+(const TreeAutomata &o) { return binary_operation(o, true); }
     TreeAutomata operator-(const TreeAutomata &o) { return binary_operation(o, false); }
+    TreeAutomata Union(const TreeAutomata &o); // U is in uppercase since "union" is a reserved keyword.
     void print();
 
     void X(int t);
@@ -141,6 +142,7 @@ public:
     static TreeAutomata uniform(int n);
     static TreeAutomata classical(int n);
     static TreeAutomata random(int n);
+    static TreeAutomata zero(int n);
 };
 
 #endif
