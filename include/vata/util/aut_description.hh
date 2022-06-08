@@ -108,9 +108,9 @@ private:
     TreeAutomata binary_operation(const TreeAutomata &o, bool add);
     void swap_forward(const int k);
     void swap_backward(const int k);
-    void fraction_simplication();
 
 public:
+    void fraction_simplication();
     void determinize();
     void minimize();
     void integer_multiplication(int m);

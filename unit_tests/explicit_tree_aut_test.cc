@@ -53,14 +53,16 @@ bool check_equal(const std::string& lhsPath, const std::string& rhsPath)
 	return check_inclusion(lhsPath, rhsPath) && check_inclusion(rhsPath, lhsPath);
 }
 
-bool check_equal_aut(const VATA::Util::TreeAutomata& lhs, const VATA::Util::TreeAutomata& rhs)
+bool check_equal_aut(VATA::Util::TreeAutomata lhs, VATA::Util::TreeAutomata rhs)
 {
 	VATA::Serialization::TimbukSerializer serializer;
 	std::ofstream fileLhs("/tmp/automata1.txt");
+    lhs.fraction_simplication();
 	fileLhs << serializer.Serialize(lhs);
 	fileLhs.close();
 
 	std::ofstream fileRhs("/tmp/automata2.txt");
+    rhs.fraction_simplication();
 	fileRhs << serializer.Serialize(rhs);
 	fileRhs.close();
 
