@@ -167,85 +167,85 @@ void VATA::Util::TreeAutomata::determinize() {
 }
 
 void VATA::Util::TreeAutomata::minimize() { // only for already determinized automata!
-    /*******************************************************************/
-    // Part 1: Partition states according to final states.
-		std::vector<StateVector> partition;
-    partition.push_back({}); // non-final states
-    partition.push_back({}); // final states
-    for (int i=0; i<stateNum; i++) { // TODO: can be optimized
-        if (finalStates.find(i) == finalStates.end()) // non-final state
-            partition[0].push_back(i);
-        else
-            partition[1].push_back(i);
-    }
-    /*******************************************************************/
+    // /*******************************************************************/
+    // // Part 1: Partition states according to final states.
+	// 	std::vector<StateVector> partition;
+    // partition.push_back({}); // non-final states
+    // partition.push_back({}); // final states
+    // for (int i=0; i<stateNum; i++) { // TODO: can be optimized
+    //     if (finalStates.find(i) == finalStates.end()) // non-final state
+    //         partition[0].push_back(i);
+    //     else
+    //         partition[1].push_back(i);
+    // }
+    // /*******************************************************************/
 
-    /*******************************************************************/
-    // Part 2: Main loop of partition refinement.
-		std::vector<int> state_to_partition_id;
-    bool changed;
-    do {
-        changed = false;
-				std::vector<StateVector> new_partition; // 有 .clear 的效果。
-        state_to_partition_id = std::vector<int>(stateNum); // 有 .clear 的效果。
-        for (unsigned i=0; i<partition.size(); i++) {
-            for (const auto &s : partition[i])
-                state_to_partition_id[s] = i;
-        }
-        for (const auto &cell : partition) { // original cell
-					std::map<State, StateVector> refined; // 有 .clear 的效果。
-            for (const auto &s : cell) { // state
-                bool different_from_others = true;
-                for (auto &new_cell : refined) { // check if s belongs to some refined cell
-                    if (is_same_partition(state_to_partition_id, s, new_cell.first)) { // compare with "key" (head)
-                        new_cell.second.push_back(s);
-                        different_from_others = false;
-                        break;
-                    }
-                }
-                if (different_from_others)
-                    refined[s] = StateVector(1, s);
-            }
-            /*************************************************
-             * set the "changed" flag to true if the partition
-             * changed in this cell. */
-            if (refined.size() != 1)
-                changed = true;
-            else {
-                for (const auto &new_cell : refined) // only one cell!
-                    if (new_cell.second != cell) // the order should be the same
-                        changed = true;
-            }
-            /************************************************/
-            // push the refined partition in this cell finally
-            for (const auto &new_cell : refined)
-                new_partition.push_back(new_cell.second);
-        }
-        partition = new_partition;
-    } while (changed);
-    /*******************************************************************/
+    // /*******************************************************************/
+    // // Part 2: Main loop of partition refinement.
+	// 	std::vector<int> state_to_partition_id;
+    // bool changed;
+    // do {
+    //     changed = false;
+	// 			std::vector<StateVector> new_partition; // 有 .clear 的效果。
+    //     state_to_partition_id = std::vector<int>(stateNum); // 有 .clear 的效果。
+    //     for (unsigned i=0; i<partition.size(); i++) {
+    //         for (const auto &s : partition[i])
+    //             state_to_partition_id[s] = i;
+    //     }
+    //     for (const auto &cell : partition) { // original cell
+	// 				std::map<State, StateVector> refined; // 有 .clear 的效果。
+    //         for (const auto &s : cell) { // state
+    //             bool different_from_others = true;
+    //             for (auto &new_cell : refined) { // check if s belongs to some refined cell
+    //                 if (is_same_partition(state_to_partition_id, s, new_cell.first)) { // compare with "key" (head)
+    //                     new_cell.second.push_back(s);
+    //                     different_from_others = false;
+    //                     break;
+    //                 }
+    //             }
+    //             if (different_from_others)
+    //                 refined[s] = StateVector(1, s);
+    //         }
+    //         /*************************************************
+    //          * set the "changed" flag to true if the partition
+    //          * changed in this cell. */
+    //         if (refined.size() != 1)
+    //             changed = true;
+    //         else {
+    //             for (const auto &new_cell : refined) // only one cell!
+    //                 if (new_cell.second != cell) // the order should be the same
+    //                     changed = true;
+    //         }
+    //         /************************************************/
+    //         // push the refined partition in this cell finally
+    //         for (const auto &new_cell : refined)
+    //             new_partition.push_back(new_cell.second);
+    //     }
+    //     partition = new_partition;
+    // } while (changed);
+    // /*******************************************************************/
 
-    /*******************************************************************/
-    // Part 3: Automata reconstruction based on the refined partition.
-    stateNum = partition.size();
+    // /*******************************************************************/
+    // // Part 3: Automata reconstruction based on the refined partition.
+    // stateNum = partition.size();
 
-    StateSet finalStates_new;
-    for (const auto &s : finalStates)
-        finalStates_new.insert(state_to_partition_id[s]);
-    finalStates = finalStates_new;
+    // StateSet finalStates_new;
+    // for (const auto &s : finalStates)
+    //     finalStates_new.insert(state_to_partition_id[s]);
+    // finalStates = finalStates_new;
 
-    TransitionMap transitions_new;
-    for (const auto &t : transitions) {
-        for (const auto &t2 : t.second) {
-            StateVector args = t2.first;
-            for (unsigned i=0; i<args.size(); i++)
-                args[i] = state_to_partition_id[args[i]];
-            assert(t2.second.size() == 1);
-            transitions_new[t.first][args] = StateSet({state_to_partition_id[*(t2.second.begin())]});
-        }
-    }
-    transitions = transitions_new;
-    /*******************************************************************/
+    // TransitionMap transitions_new;
+    // for (const auto &t : transitions) {
+    //     for (const auto &t2 : t.second) {
+    //         StateVector args = t2.first;
+    //         for (unsigned i=0; i<args.size(); i++)
+    //             args[i] = state_to_partition_id[args[i]];
+    //         assert(t2.second.size() == 1);
+    //         transitions_new[t.first][args] = StateSet({state_to_partition_id[*(t2.second.begin())]});
+    //     }
+    // }
+    // transitions = transitions_new;
+    // /*******************************************************************/
 
     remove_useless(); // used in minimize() only.
 }
@@ -443,7 +443,7 @@ void VATA::Util::TreeAutomata::divide_by_the_square_root_of_two() {
         transitions.erase(t);
     for (const auto &t : to_be_inserted)
         transitions.insert(t);
-    fraction_simplication();
+    // fraction_simplication();
 }
 
 void VATA::Util::TreeAutomata::branch_restriction(int k, bool positive_has_value) {

@@ -16,56 +16,67 @@ using VATA::Util::ShellCmd;
 using VATA::Util::ReadFile;
 
 int main(int argc, char **argv) {    
+    bool print = true;
+    int n = 6;
+
     /* Initialize aut. */
-    int n = 3;
     TreeAutomata aut = TreeAutomata::zero(n+1);
     for (int i=1; i<=n+1; i++) {
         auto start = chrono::steady_clock::now();
         aut.H(i);
         auto end = chrono::steady_clock::now();
-        aut.print();
-        std::cout << "H" << i << " Elapsed time: " << std::setw(5)
-        << chrono::duration_cast<chrono::nanoseconds>(end - start).count() / 1000000
-        << " ms\n\n";
+        if (print) {
+            aut.print();
+            std::cout << "H" << i << " Elapsed time: " << std::setw(5)
+            << chrono::duration_cast<chrono::nanoseconds>(end - start).count() / 1000000
+            << " ms\n\n";
+        }
     }
     auto start = chrono::steady_clock::now();
     aut.Z(n+1);
     auto end = chrono::steady_clock::now();
-    aut.print();
-    std::cout << "Z Elapsed time: " << std::setw(5)
-    << chrono::duration_cast<chrono::nanoseconds>(end - start).count() / 1000000
-    << " ms\n\n";
+    if (print) {
+        aut.print();
+        std::cout << "Z Elapsed time: " << std::setw(5)
+        << chrono::duration_cast<chrono::nanoseconds>(end - start).count() / 1000000
+        << " ms\n\n";
+    }
     for (int i=1; i<=n; i++) {
         TreeAutomata aut2 = aut;
         auto start = chrono::steady_clock::now();
         aut2.CNOT(i, n+1);
         auto end = chrono::steady_clock::now();
-        aut.print();
-        std::cout << "CNOT" << i << " Elapsed time: " << std::setw(5)
-        << chrono::duration_cast<chrono::nanoseconds>(end - start).count() / 1000000
-        << " ms\n\n";
-
+        if (print) {
+            aut.print();
+            std::cout << "CNOT" << i << " Elapsed time: " << std::setw(5)
+            << chrono::duration_cast<chrono::nanoseconds>(end - start).count() / 1000000
+            << " ms\n\n";
+        }
         start = chrono::steady_clock::now();
         aut = aut.Union(aut2);
         end = chrono::steady_clock::now();
-        aut.print();
-        std::cout << "Union" << i << " Elapsed time: " << std::setw(5)
-        << chrono::duration_cast<chrono::nanoseconds>(end - start).count() / 1000000
-        << " ms\n\n";
+        if (print) {
+            aut.print();
+            std::cout << "Union" << i << " Elapsed time: " << std::setw(5)
+            << chrono::duration_cast<chrono::nanoseconds>(end - start).count() / 1000000
+            << " ms\n\n";
+        }
     }
     for (int i=1; i<=n; i++) {
         auto start = chrono::steady_clock::now();
-        if (i == 1)
-            aut.name = "TARGET";
-        else
-            aut.name = "****";
         aut.H(i);
         auto end = chrono::steady_clock::now();
-        aut.print();
-        std::cout << "H" << i <<" Elapsed time: " << std::setw(5)
-        << chrono::duration_cast<chrono::nanoseconds>(end - start).count() / 1000000
-        << " ms\n\n";
+        if (print) {
+            aut.print();
+            std::cout << "H" << i <<" Elapsed time: " << std::setw(5)
+            << chrono::duration_cast<chrono::nanoseconds>(end - start).count() / 1000000
+            << " ms\n\n";
+        }
     }
+    // auto end = chrono::steady_clock::now();
+    // std::cout << "(" << n << ") Elapsed time: " << std::setw(10)
+    // << chrono::duration_cast<chrono::nanoseconds>(end - start).count() / 1000000
+    // << " ms\n";
     // if (argc == 2) {
     //     TimbukParser parser;
     //     aut = parser.ParseString(ReadFile(argv[1]));
