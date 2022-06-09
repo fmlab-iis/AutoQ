@@ -736,28 +736,38 @@ VATA::Util::TreeAutomata VATA::Util::TreeAutomata::random(int n) {
 }
 
 VATA::Util::TreeAutomata VATA::Util::TreeAutomata::zero(int n) {
+    /* Example of n = 6:
+        Final States 0 
+        Transitions
+        [1](2, 1) -> 0
+        [2](3, 3) -> 1
+        [2](4, 3) -> 2
+        [3](5, 5) -> 3
+        [3](6, 5) -> 4
+        [4](7, 7) -> 5
+        [4](8, 7) -> 6
+        [5](9, 9) -> 7
+        [5](10, 9) -> 8
+        [6](11, 11) -> 9
+        [6](12, 11) -> 10
+        [0,0,0,0,0] -> 11
+        [1,0,0,0,0] -> 12
+    */
     TreeAutomata aut;
     aut.name = "Zero";
     aut.qubitNum = n;
-    aut.qubitNum = n;
-    int pow_of_two = 1;
-    int state_counter = 0;
-    for (int level=1; level<=n; level++) {
-        for (int i=0; i<pow_of_two; i++) {
-            aut.transitions[{level}][{state_counter*2+1, state_counter*2+2}] = {state_counter};
-            state_counter++;
-        }
-        pow_of_two *= 2;
+    aut.finalStates.insert(0);
+    aut.transitions[{1}][{2,1}] = {0};
+    for (int level=2; level<=n; level++) {
+        aut.transitions[{level}][{level*2-1, level*2-1}] = {level*2-3};
+        aut.transitions[{level}][{level*2, level*2-1}] = {level*2-2};
     }
-    aut.transitions[{1,0,0,0,0}][{}].insert(state_counter);
-    for (int i=state_counter+1; i<=state_counter*2; i++) {
-        aut.transitions[{0,0,0,0,0}][{}].insert(i);
-    }
-	aut.finalStates.insert(0);
-    aut.stateNum = state_counter*2 + 1;
+    aut.transitions[{0,0,0,0,0}][{}].insert(n*2-1);
+    aut.transitions[{1,0,0,0,0}][{}].insert(n*2);
+    aut.stateNum = n*2 + 1;
 
-    aut.determinize();
-    aut.minimize();
+    // aut.determinize();
+    // aut.minimize();
     return aut;
 }
 
