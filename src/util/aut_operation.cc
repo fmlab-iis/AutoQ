@@ -64,106 +64,106 @@ bool VATA::Util::TreeAutomata::is_same_partition(const std::vector<int> &state_t
 }
 
 void VATA::Util::TreeAutomata::determinize() {
-	std::vector<StateSet> composite_set_id;
-    TransitionMap transitions_new;
+	// std::vector<StateSet> composite_set_id;
+    // TransitionMap transitions_new;
 
-    /*******************************************************************/
-    // Part 1: Generate composite sets from 0-arity symbols.
-    for (const auto &f : transitions) {
-        int arity = f.second.begin()->first.size();
-        if (arity == 0) {
-            const StateSet &ss = transitions.at(f.first).at({});
-            try {
-                int x = findIndex(composite_set_id, ss);
-                transitions_new[f.first][StateVector({})] = StateSet({x});
-            } catch (...) {
-                int x = composite_set_id.size();
-                transitions_new[f.first][StateVector({})] = StateSet({x});
-                composite_set_id.push_back(ss);
-            }
-        }
-    }
-    /*******************************************************************/
+    // /*******************************************************************/
+    // // Part 1: Generate composite sets from 0-arity symbols.
+    // for (const auto &f : transitions) {
+    //     int arity = f.second.begin()->first.size();
+    //     if (arity == 0) {
+    //         const StateSet &ss = transitions.at(f.first).at({});
+    //         try {
+    //             int x = findIndex(composite_set_id, ss);
+    //             transitions_new[f.first][StateVector({})] = StateSet({x});
+    //         } catch (...) {
+    //             int x = composite_set_id.size();
+    //             transitions_new[f.first][StateVector({})] = StateSet({x});
+    //             composite_set_id.push_back(ss);
+    //         }
+    //     }
+    // }
+    // /*******************************************************************/
 
-    /*******************************************************************/
-    // Part 2: Generate composite sets from (>= 1)-arity symbols.
-    int old_composite_set_size, current_composite_set_size = 0;
-    while (current_composite_set_size != static_cast<int>(composite_set_id.size())) {
-        old_composite_set_size = current_composite_set_size;
-        current_composite_set_size = composite_set_id.size();
-        for (const auto &f : transitions) {
-            int arity = f.second.begin()->first.size();
-            if (arity >= 1) {
-                StateVector sv(arity, 0); // enumerate all possible combinations of composite states
-                bool overflow = false;
-                do {
-                    StateSet collected_RHS;
-                    bool need_process = false;
-                    for (int i=0; i<static_cast<int>(sv.size()); i++) {
-                        if (sv[i] >= old_composite_set_size) {
-                            need_process = true;
-                            break;
-                        }
-                    }
-                    if (need_process) {
-                        for (const auto &in_out : transitions[f.first]) { // if this transition's input states are all contained
-                            const auto &input = in_out.first;             // in the current combination of composite states, then
-                            assert(static_cast<int>(input.size()) == arity);             // collect the states of RHS of this transition.
-                            bool valid = true;
-                            for (int i=0; i<arity; i++) {
-                                if (composite_set_id[sv[i]].find(input[i]) == composite_set_id[sv[i]].end()) {
-                                    valid = false;
-                                    break;
-                                }
-                            }
-                            if (valid) {
-                                collected_RHS.insert(in_out.second.begin(), in_out.second.end());
-                            }
-                        }
-                        if (!collected_RHS.empty()) {
-                            try {
-                                int x = findIndex(composite_set_id, collected_RHS); // may throw out_of_bound exception
-                                transitions_new[f.first][sv] = StateSet({x});
-                            } catch (...) {
-                                int x = composite_set_id.size();
-                                transitions_new[f.first][sv] = StateSet({x});
-                                composite_set_id.push_back(collected_RHS);
-                            }
-                        }
-                    }
-                    sv[0]++;
-                    for (int i=0; i<arity; i++) {
-                        if (sv[i] == current_composite_set_size) {
-                            if (i == arity - 1) {
-                                overflow = true;
-                                break;
-                            } else {
-                                sv[i] = 0;
-                                sv[i+1]++;
-                            }
-                        } else break;
-                    }
-                } while (!overflow);
-            }
-        }
-    }
-    /*******************************************************************/
+    // /*******************************************************************/
+    // // Part 2: Generate composite sets from (>= 1)-arity symbols.
+    // int old_composite_set_size, current_composite_set_size = 0;
+    // while (current_composite_set_size != static_cast<int>(composite_set_id.size())) {
+    //     old_composite_set_size = current_composite_set_size;
+    //     current_composite_set_size = composite_set_id.size();
+    //     for (const auto &f : transitions) {
+    //         int arity = f.second.begin()->first.size();
+    //         if (arity >= 1) {
+    //             StateVector sv(arity, 0); // enumerate all possible combinations of composite states
+    //             bool overflow = false;
+    //             do {
+    //                 StateSet collected_RHS;
+    //                 bool need_process = false;
+    //                 for (int i=0; i<static_cast<int>(sv.size()); i++) {
+    //                     if (sv[i] >= old_composite_set_size) {
+    //                         need_process = true;
+    //                         break;
+    //                     }
+    //                 }
+    //                 if (need_process) {
+    //                     for (const auto &in_out : transitions[f.first]) { // if this transition's input states are all contained
+    //                         const auto &input = in_out.first;             // in the current combination of composite states, then
+    //                         assert(static_cast<int>(input.size()) == arity);             // collect the states of RHS of this transition.
+    //                         bool valid = true;
+    //                         for (int i=0; i<arity; i++) {
+    //                             if (composite_set_id[sv[i]].find(input[i]) == composite_set_id[sv[i]].end()) {
+    //                                 valid = false;
+    //                                 break;
+    //                             }
+    //                         }
+    //                         if (valid) {
+    //                             collected_RHS.insert(in_out.second.begin(), in_out.second.end());
+    //                         }
+    //                     }
+    //                     if (!collected_RHS.empty()) {
+    //                         try {
+    //                             int x = findIndex(composite_set_id, collected_RHS); // may throw out_of_bound exception
+    //                             transitions_new[f.first][sv] = StateSet({x});
+    //                         } catch (...) {
+    //                             int x = composite_set_id.size();
+    //                             transitions_new[f.first][sv] = StateSet({x});
+    //                             composite_set_id.push_back(collected_RHS);
+    //                         }
+    //                     }
+    //                 }
+    //                 sv[0]++;
+    //                 for (int i=0; i<arity; i++) {
+    //                     if (sv[i] == current_composite_set_size) {
+    //                         if (i == arity - 1) {
+    //                             overflow = true;
+    //                             break;
+    //                         } else {
+    //                             sv[i] = 0;
+    //                             sv[i+1]++;
+    //                         }
+    //                     } else break;
+    //                 }
+    //             } while (!overflow);
+    //         }
+    //     }
+    // }
+    // /*******************************************************************/
 
-    /*******************************************************************/
-    // Part 3: Automata reconstruction based on the refined partition.
-    StateSet finalStates_new;
-    for (unsigned i=0; i<composite_set_id.size(); i++) {
-        StateSet temp; // should be empty
-        const StateSet &cs = composite_set_id[i];
-        set_intersection(cs.begin(), cs.end(), finalStates.begin(), finalStates.end(), inserter(temp, temp.begin()));
-        if (!temp.empty()) {
-            finalStates_new.insert(i);
-        }
-    }
-    finalStates = finalStates_new;
-    stateNum = composite_set_id.size();
-    transitions = transitions_new;
-    /*******************************************************************/
+    // /*******************************************************************/
+    // // Part 3: Automata reconstruction based on the refined partition.
+    // StateSet finalStates_new;
+    // for (unsigned i=0; i<composite_set_id.size(); i++) {
+    //     StateSet temp; // should be empty
+    //     const StateSet &cs = composite_set_id[i];
+    //     set_intersection(cs.begin(), cs.end(), finalStates.begin(), finalStates.end(), inserter(temp, temp.begin()));
+    //     if (!temp.empty()) {
+    //         finalStates_new.insert(i);
+    //     }
+    // }
+    // finalStates = finalStates_new;
+    // stateNum = composite_set_id.size();
+    // transitions = transitions_new;
+    // /*******************************************************************/
 }
 
 void VATA::Util::TreeAutomata::minimize() { // only for already determinized automata!
@@ -265,16 +265,19 @@ void VATA::Util::TreeAutomata::remove_useless() { // only for already determiniz
         for (const auto &t : transitions_mother) {
             const auto &symbol = t.first;
             for (const auto &in_out : t.second) {
-                bool input_traversed = in_out.first.empty();
+                const auto &in = in_out.first;
+                const auto &outs = in_out.second;
+                bool input_traversed = in.empty();
                 if (!input_traversed) {
                     input_traversed = true;
-                    for (const auto &s : in_out.first)
+                    for (const auto &s : in)
                         input_traversed &= traversed[s];
                 }
                 if (input_traversed) {
-                    assert(in_out.second.size() == 1);
-                    traversed[*(in_out.second.begin())] = true;
-                    transitions_remaining.at(symbol).erase(in_out.first);
+                    // assert(outs.size() == 1);
+                    for (const auto &s : outs)
+                        traversed[s/**(outs.begin())*/] = true;
+                    transitions_remaining.at(symbol).erase(in);
                     changed = true;
                 }
             }
@@ -303,13 +306,19 @@ void VATA::Util::TreeAutomata::remove_useless() { // only for already determiniz
         for (const auto &t : transitions_mother) {
             const auto &symbol = t.first;
             for (const auto &in_out : t.second) {
-                assert(in_out.second.size() == 1);
-                if (traversed[*(in_out.second.begin())]) {
-                    for (const auto &v : in_out.first)
-                        traversed[v] = true;
-                    transitions_remaining.at(symbol).erase(in_out.first);
-                    changed = true;
+                const auto &in = in_out.first;
+                const auto &outs = in_out.second;
+                // assert(outs.size() == 1);
+                for (const auto &s : outs) {
+                    if (traversed[s /**(outs.begin())*/]) {
+                        for (const auto &v : in)
+                            traversed[v] = true;
+                        transitions_remaining.at(symbol).at(in).erase(s);
+                        changed = true;
+                    }
                 }
+                if (transitions_remaining.at(symbol).at(in).empty())
+                    transitions_remaining.at(symbol).erase(in);
             }
             if (transitions_remaining.at(symbol).empty())
                 transitions_remaining.erase(symbol);
@@ -317,8 +326,12 @@ void VATA::Util::TreeAutomata::remove_useless() { // only for already determiniz
     } while(changed);
     for (const auto &t : transitions_remaining) {
         const auto &symbol = t.first;
-        for (const auto &in_out : t.second)
-            transitions.at(symbol).erase(in_out.first);
+        for (const auto &in_out : t.second) {
+            for (const auto &s : in_out.second)
+                transitions.at(symbol).at(in_out.first).erase(s);
+            if (transitions.at(symbol).at(in_out.first).empty())
+                transitions.at(symbol).erase(in_out.first);
+        }
         if (transitions.at(symbol).empty())
             transitions.erase(symbol);
     }
@@ -330,6 +343,7 @@ void VATA::Util::TreeAutomata::remove_useless() { // only for already determiniz
 		std::map<int, int> stateOldToNew;
     for (const auto &t : transitions) {
         for (const auto &in_out : t.second) {
+            const auto &outs = in_out.second;
             StateVector sv;
             for (const auto &v : in_out.first) {
                 try {
@@ -339,15 +353,18 @@ void VATA::Util::TreeAutomata::remove_useless() { // only for already determiniz
                     sv.push_back(stateOldToNew.size()-1); //stateOldToNew.at(v));
                 }
             }
-            int dest;
-            assert(in_out.second.size() == 1);
-            try {
-                dest = stateOldToNew.at(*(in_out.second.begin()));
-            } catch (...) {
-                stateOldToNew[*(in_out.second.begin())] = stateOldToNew.size();
-                dest = stateOldToNew.size() - 1;
+            // assert(outs.size() == 1);
+            for (const auto &s : outs) {
+                int dest;
+                try {
+                    dest = stateOldToNew.at(s /**(outs.begin())*/);
+                } catch (...) {
+                    stateOldToNew[s /**(outs.begin())*/] = stateOldToNew.size();
+                    dest = stateOldToNew.size() - 1;
+                }
+                transitions_new[t.first][sv].insert(dest);
+                // transitions_new[t.first].insert(make_pair(sv, StateSet({dest})));
             }
-            transitions_new[t.first].insert(make_pair(sv, StateSet({dest})));
         }
     }
     transitions = transitions_new;
@@ -573,7 +590,11 @@ VATA::Util::TreeAutomata VATA::Util::TreeAutomata::binary_operation(const TreeAu
                 StateSet ss;
                 sv.push_back(itt->first[0] * o.stateNum + itt2->first[0]);
                 sv.push_back(itt->first[1] * o.stateNum + itt2->first[1]);
-                ss.insert((*(itt->second.begin())) * o.stateNum + (*(itt2->second.begin())));
+                for (const auto &s1 : itt->second) {
+                    for (const auto &s2 : itt2->second) {
+                        ss.insert(s1 * o.stateNum + s2);
+                    }
+                }
                 m.insert(make_pair(sv, ss));
             }
         result.transitions.insert(make_pair(it->first, m));
@@ -627,7 +648,10 @@ VATA::Util::TreeAutomata VATA::Util::TreeAutomata::binary_operation(const TreeAu
             //         in.push_back(it->first[i] - it2t->first[i]);
             // }
             // in.push_back(it->first[4]); // remember to push k
-            result.transitions[in][{}].insert((*(it->second.begin()->second.begin())) * o.stateNum + (*(it2t->second.begin()->second.begin())));
+            for (const auto &s1 : it->second.begin()->second)
+                for (const auto &s2 : it2t->second.begin()->second)
+                    result.transitions[in][{}].insert(s1 * o.stateNum + s2);
+                    // result.transitions[in][{}].insert((*(it->second.begin()->second.begin())) * o.stateNum + (*(it2t->second.begin()->second.begin())));
         }
     }
 
@@ -780,14 +804,15 @@ void VATA::Util::TreeAutomata::swap_forward(const int k) {
             if (symbol.size() < 5 && symbol[0] == next_k) {
                 assert(symbol.size() <= 2);
                 for (const auto &in_out : in_outs) {
-                    assert(in_out.second.size() == 1);
+                    // assert(in_out.second.size() == 1);
                     // assert(t.second.size() == 1);
                     // assert(t.second.begin()->second.size() == 1);
                     // try {
                     //     ssv.at(*(t.second.begin()->second.begin()));
                     //     assert(false);
                     // } catch (...) {
-                    svsv[*(in_out.second.begin())].push_back(make_pair(symbol, in_out.first));
+                    for (const auto &s : in_out.second)
+                        svsv[s /**(in_out.second.begin())*/].push_back(make_pair(symbol, in_out.first));
                     // }
                 }
             }
@@ -798,14 +823,15 @@ void VATA::Util::TreeAutomata::swap_forward(const int k) {
             if (t.first.size() < 5 && t.first[0] == k) {
                 for (const auto &in_out : t.second) {
                     assert(in_out.first.size() == 2);
-                    assert(in_out.second.size() == 1);
+                    // assert(in_out.second.size() == 1);
                     for (const auto &ssv1 : svsv[in_out.first[0]]) {
                         for (const auto &ssv2 : svsv[in_out.first[1]]) {
                             to_be_removed[ssv1.first][ssv1.second].insert(in_out.first[0]);
                             to_be_removed[ssv2.first][ssv2.second].insert(in_out.first[1]);
                             to_be_inserted[t.first][{ssv1.second[0], ssv2.second[0]}].insert(stateNum++);
                             to_be_inserted[t.first][{ssv1.second[1], ssv2.second[1]}].insert(stateNum++);
-                            to_be_inserted[{next_k, ssv1.first[1], ssv2.first[1]}][{stateNum-2, stateNum-1}].insert((*in_out.second.begin()));
+                            for (const auto &s : in_out.second)
+                                to_be_inserted[{next_k, ssv1.first[1], ssv2.first[1]}][{stateNum-2, stateNum-1}].insert(s); //(*in_out.second.begin()));
                         }
                     }
                 }
@@ -816,7 +842,8 @@ void VATA::Util::TreeAutomata::swap_forward(const int k) {
             transitions.erase(v);
         for (const auto &t : to_be_removed) {
             for (const auto &in_out : t.second) {
-                transitions[t.first][in_out.first].erase(*in_out.second.begin());
+                for (const auto &s : in_out.second)
+                    transitions[t.first][in_out.first].erase(s); //*in_out.second.begin());
                 if (transitions[t.first][in_out.first].empty())
                     transitions[t.first].erase(in_out.first);
                 if (transitions[t.first].empty())
@@ -846,12 +873,13 @@ void VATA::Util::TreeAutomata::swap_backward(const int k) {
                 // print();
                 // assert(t.second.size() == 1);
                 for (const auto &in_out : in_outs) {
-                    assert(in_out.second.size() == 1);
+                    // assert(in_out.second.size() == 1);
                     // try {
                     //     svsv.at(*(in_out.second.begin()));
                     //     assert(false);
                     // } catch (...) {
-                        svsv[*(in_out.second.begin())].push_back(make_pair(symbol, in_out.first));
+                    for (const auto &s : in_out.second)
+                        svsv[s /**(in_out.second.begin())*/].push_back(make_pair(symbol, in_out.first));
                     // }
                 }
             }
@@ -863,7 +891,7 @@ void VATA::Util::TreeAutomata::swap_backward(const int k) {
                 assert(t.first.size() == 3);
                 for (const auto &in_out : t.second) {
                     assert(in_out.first.size() == 2);
-                    assert(in_out.second.size() == 1);
+                    // assert(in_out.second.size() == 1);
                     for (const auto &ssv1 : svsv[in_out.first[0]]) {
                         for (const auto &ssv2 : svsv[in_out.first[1]]) {
                             if (ssv1.first == ssv2.first) {
@@ -873,7 +901,8 @@ void VATA::Util::TreeAutomata::swap_backward(const int k) {
                                 to_be_inserted[{t.first[0], t.first[1]}][{ssv1.second[0], ssv2.second[0]}].insert(stateNum++);
                                 to_be_inserted[{t.first[0], t.first[2]}][{ssv1.second[1], ssv2.second[1]}].insert(stateNum++);
                                 assert(k == ssv1.first[0]);
-                                to_be_inserted[ssv1.first][{stateNum-2, stateNum-1}].insert((*in_out.second.begin()));
+                                for (const auto &s : in_out.second)
+                                    to_be_inserted[ssv1.first][{stateNum-2, stateNum-1}].insert(s); //(*in_out.second.begin()));
                             }
                         }
                     }
@@ -885,7 +914,8 @@ void VATA::Util::TreeAutomata::swap_backward(const int k) {
             transitions.erase(v);
         for (const auto &t : to_be_removed) {
             for (const auto &in_out : t.second) {
-                transitions[t.first][in_out.first].erase(*in_out.second.begin());
+                for (const auto &s : in_out.second)
+                    transitions[t.first][in_out.first].erase(s); //*in_out.second.begin());
                 if (transitions[t.first][in_out.first].empty())
                     transitions[t.first].erase(in_out.first);
                 if (transitions[t.first].empty())
