@@ -263,6 +263,7 @@ void VATA::Util::TreeAutomata::remove_useless() { // only for already determiniz
         changed = false;
         transitions_mother = transitions_remaining;
         for (const auto &t : transitions_mother) {
+            const auto &symbol = t.first;
             for (const auto &in_out : t.second) {
                 bool input_traversed = in_out.first.empty();
                 if (!input_traversed) {
@@ -273,20 +274,20 @@ void VATA::Util::TreeAutomata::remove_useless() { // only for already determiniz
                 if (input_traversed) {
                     assert(in_out.second.size() == 1);
                     traversed[*(in_out.second.begin())] = true;
-                    transitions_remaining.at(t.first).erase(in_out.first);
-                    if (transitions_remaining.at(t.first).empty())
-                        transitions_remaining.erase(t.first);
+                    transitions_remaining.at(symbol).erase(in_out.first);
                     changed = true;
                 }
             }
+            if (transitions_remaining.at(symbol).empty())
+                transitions_remaining.erase(symbol);
         }
     } while(changed);
     for (const auto &t : transitions_remaining) {
-        for (const auto &in_out : t.second) {
-            transitions.at(t.first).erase(in_out.first);
-            if (transitions.at(t.first).empty())
-                transitions.erase(t.first);
-        }
+        const auto &symbol = t.first;
+        for (const auto &in_out : t.second)
+            transitions.at(symbol).erase(in_out.first);
+        if (transitions.at(symbol).empty())
+            transitions.erase(symbol);
     }
 
     /******************
@@ -300,25 +301,26 @@ void VATA::Util::TreeAutomata::remove_useless() { // only for already determiniz
         changed = false;
         transitions_mother = transitions_remaining;
         for (const auto &t : transitions_mother) {
+            const auto &symbol = t.first;
             for (const auto &in_out : t.second) {
                 assert(in_out.second.size() == 1);
                 if (traversed[*(in_out.second.begin())]) {
                     for (const auto &v : in_out.first)
                         traversed[v] = true;
-                    transitions_remaining.at(t.first).erase(in_out.first);
-                    if (transitions_remaining.at(t.first).empty())
-                        transitions_remaining.erase(t.first);
+                    transitions_remaining.at(symbol).erase(in_out.first);
                     changed = true;
                 }
             }
+            if (transitions_remaining.at(symbol).empty())
+                transitions_remaining.erase(symbol);
         }
     } while(changed);
     for (const auto &t : transitions_remaining) {
-        for (const auto &in_out : t.second) {
-            transitions.at(t.first).erase(in_out.first);
-            if (transitions.at(t.first).empty())
-                transitions.erase(t.first);
-        }
+        const auto &symbol = t.first;
+        for (const auto &in_out : t.second)
+            transitions.at(symbol).erase(in_out.first);
+        if (transitions.at(symbol).empty())
+            transitions.erase(symbol);
     }
 
     /*********************
@@ -351,7 +353,10 @@ void VATA::Util::TreeAutomata::remove_useless() { // only for already determiniz
     transitions = transitions_new;
     StateSet finalStates_new;
     for (const auto &s : finalStates) {
-        finalStates_new.insert(stateOldToNew[s]);
+        try {
+            finalStates_new.insert(stateOldToNew.at(s));
+        } catch (...) {
+        }
     }
     finalStates = finalStates_new;
     stateNum = stateOldToNew.size();
