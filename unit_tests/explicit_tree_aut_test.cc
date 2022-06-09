@@ -324,3 +324,43 @@ BOOST_AUTO_TEST_CASE(Fredkin_gate_twice_to_identity)
         } while (std::next_permutation(v, v+3));
     }
 }
+
+BOOST_AUTO_TEST_CASE(Bernstein_Vazirani)
+{
+    int n = 4; // 5 is also OK!
+    VATA::Serialization::TimbukSerializer serializer;
+    auto aut = VATA::Util::TreeAutomata::zero(n+1);
+
+    for (int i=1; i<=n+1; i++) {
+        aut.H(i);
+    }
+    aut.Z(n+1);
+    for (int i=1; i<=n; i++) {
+        auto aut2 = aut;
+        aut2.CNOT(i, n+1);
+        aut = aut.Union(aut2);
+    }
+    for (int i=1; i<=n; i++) {
+        aut.H(i);
+    }
+
+    VATA::Util::TreeAutomata ans;
+    ans.name = "Bernstein-Vazirani";
+    ans.qubitNum = n+1;
+    assert(ans.qubitNum >= 2);
+    ans.finalStates.insert(0);
+    for (int level=1; level<ans.qubitNum; level++) { /* Note that < does not include ans.qubitNum! */
+        if (level >= 2)
+            ans.transitions[{level}][{2*level - 1, 2*level - 1}] = {2*level - 3};
+        ans.transitions[{level}][{2*level - 1, 2*level}] = {2*level - 2};
+        ans.transitions[{level}][{2*level, 2*level - 1}] = {2*level - 2};
+    }
+    ans.stateNum = 2*(ans.qubitNum-1) + 1;
+    ans.transitions[{0,0,0,0,1}][{}] = {ans.stateNum++};
+    ans.transitions[{1,0,0,0,1}][{}] = {ans.stateNum++};
+    ans.transitions[{-1,0,0,0,1}][{}] = {ans.stateNum++};
+    ans.transitions[{ans.qubitNum}][{ans.stateNum - 3, ans.stateNum - 3}] = {2*(ans.qubitNum-1) - 1};
+    ans.transitions[{ans.qubitNum}][{ans.stateNum - 2, ans.stateNum - 1}] = {2*(ans.qubitNum-1)};
+
+    BOOST_REQUIRE_MESSAGE(check_equal_aut(aut, ans), "");
+}
