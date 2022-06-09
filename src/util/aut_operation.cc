@@ -541,7 +541,7 @@ VATA::Util::TreeAutomata VATA::Util::TreeAutomata::binary_operation(const TreeAu
     TreeAutomata result;
     result.name = name;
     result.qubitNum = qubitNum;
-    result.stateNum *= o.stateNum;
+    result.stateNum = stateNum * o.stateNum;
 
     for (const auto &fs1 : finalStates)
         for (const auto &fs2 : o.finalStates) {
