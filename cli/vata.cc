@@ -15,7 +15,7 @@ using VATA::Util::TreeAutomata;
 using VATA::Util::ShellCmd;
 using VATA::Util::ReadFile;
 
-int main(int argc, char **argv) {    
+int main(int argc, char **argv) {
     bool print = true;
     int n = 6;
 

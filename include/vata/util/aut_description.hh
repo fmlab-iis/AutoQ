@@ -125,6 +125,9 @@ public:
     TreeAutomata Union(const TreeAutomata &o); // U is in uppercase since "union" is a reserved keyword.
     void print();
 
+    /// simulation-based reduction
+    void sim_reduce();
+
     void X(int t);
     void Y(int t);
     void Z(int t);
