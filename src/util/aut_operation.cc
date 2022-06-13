@@ -261,6 +261,7 @@ void VATA::Util::TreeAutomata::minimize() { // only for already determinized aut
     // transitions = transitions_new;
     // /*******************************************************************/
 
+    this->sim_reduce();
     remove_useless(); // used in minimize() only.
 }
 
@@ -1137,6 +1138,25 @@ namespace {
     return result;
   }
 
+  size_t count_aut_states(const VATA::Util::TreeAutomata& aut)
+  {
+    std::set<State> states;
+    for (const auto& state : aut.finalStates) {
+      states.insert(state);
+    }
+
+    for (const auto& symMap : aut.transitions) {
+      for (const auto& vecSet : symMap.second) {
+        states.insert(vecSet.second.begin(), vecSet.second.end());
+        for (const auto& child : vecSet.first) {
+          states.insert(child);
+        }
+      }
+    }
+
+    return states.size();
+  }
+
   DiscontBinaryRelOnStates compute_down_sim(const VATA::Util::TreeAutomata& aut)
   {
     StateToIndexMap translMap;
@@ -1144,8 +1164,9 @@ namespace {
     StateToIndexTranslWeak transl(translMap,
         [&stateCnt](const State&) {return stateCnt++;});
 
-    ExplicitLTS lts = translate_to_lts_downward(aut, aut.stateNum, transl);
-    BinaryRelation ltsSim = lts.computeSimulation(aut.stateNum);
+    size_t num_states = count_aut_states(aut);
+    ExplicitLTS lts = translate_to_lts_downward(aut, num_states, transl);
+    BinaryRelation ltsSim = lts.computeSimulation(num_states);
     return DiscontBinaryRelOnStates(ltsSim, translMap);
   }
 
@@ -1191,7 +1212,6 @@ namespace {
 
 void VATA::Util::TreeAutomata::sim_reduce()
 {
-
   DiscontBinaryRelOnStates sim = compute_down_sim(*this);
 
   // TODO: this is probably not optimal, we could probably get the mapping of
