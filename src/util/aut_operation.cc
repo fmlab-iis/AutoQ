@@ -443,19 +443,21 @@ void VATA::Util::TreeAutomata::omega_multiplication() {
                 temp.push_back(t_old.first[i]);
             }
             temp.push_back(t_old.first[t_old.first.size()-1]);
-            try {
-                auto &in_out = transitions_new.at(temp);
-                for (const auto &kv : t_old.second) {
-                    try {
-                        StateSet &ss = in_out.at(kv.first);
+            auto it = transitions_new.find(temp);   // has the symbol been used?
+            if (transitions_new.end() != it) { // found it!
+                auto &in_out = it->second;
+                for (const auto &kv : t_old.second) { // go over all states in the set of parents
+                    auto jt = in_out.find(kv.first);    // try to find the tuple
+                    if (in_out.end() != jt) { // found it!
+                        StateSet &ss = jt->second;
                         StateSet dest;
                         set_union(ss.begin(), ss.end(), kv.second.begin(), kv.second.end(), inserter(dest, dest.begin()));
                         ss = dest;
-                    } catch (...) {
+                    } else {
                         in_out[kv.first] = kv.second;
                     }
                 }
-            } catch (...) {
+            } else { // didn't find it
                 transitions_new[temp] = t_old.second;
             }
         } else {
