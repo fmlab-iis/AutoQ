@@ -360,24 +360,24 @@ void VATA::Util::TreeAutomata::remove_useless() { // only for already determiniz
         for (const auto &in_out : t.second) {
             const auto &outs = in_out.second;
             StateVector sv;
-            for (const auto &v : in_out.first) {
-                try {
-                    sv.push_back(stateOldToNew.at(v));
-                } catch (...) {
-                    stateOldToNew[v] = stateOldToNew.size();
-                    sv.push_back(stateOldToNew.size()-1); //stateOldToNew.at(v));
+            for (const auto &v : in_out.first) { // we construct the new tuple
+                State newState = stateOldToNew.size();
+                auto itBoolPair = stateOldToNew.insert({v, newState});
+                if (!itBoolPair.second) { // if insertion didn't happened
+                    const auto& it = itBoolPair.first;
+                    newState = it->second;
                 }
+                sv.push_back(newState);
             }
             // assert(outs.size() == 1);
             for (const auto &s : outs) {
-                int dest;
-                try {
-                    dest = stateOldToNew.at(s /**(outs.begin())*/);
-                } catch (...) {
-                    stateOldToNew[s /**(outs.begin())*/] = stateOldToNew.size();
-                    dest = stateOldToNew.size() - 1;
+                State newState = stateOldToNew.size();
+                auto itBoolPair = stateOldToNew.insert({s, newState});
+                if (!itBoolPair.second) { // if insertion didn't happened
+                    const auto& it = itBoolPair.first;
+                    newState = it->second;
                 }
-                transitions_new[t.first][sv].insert(dest);
+                transitions_new[t.first][sv].insert(newState);
                 // transitions_new[t.first].insert(make_pair(sv, StateSet({dest})));
             }
         }
@@ -385,10 +385,14 @@ void VATA::Util::TreeAutomata::remove_useless() { // only for already determiniz
     transitions = transitions_new;
     StateSet finalStates_new;
     for (const auto &s : finalStates) {
-        try {
-            finalStates_new.insert(stateOldToNew.at(s));
-        } catch (...) {
+        State newState = stateOldToNew.size();
+        auto itBoolPair = stateOldToNew.insert({s, newState});
+        if (!itBoolPair.second) { // if insertion didn't happened
+            const auto& it = itBoolPair.first;
+            newState = it->second;
         }
+
+        finalStates_new.insert(newState);
     }
     finalStates = finalStates_new;
     stateNum = stateOldToNew.size();
