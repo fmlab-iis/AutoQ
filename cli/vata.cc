@@ -16,6 +16,17 @@ using VATA::Util::ShellCmd;
 using VATA::Util::ReadFile;
 
 int main(int argc, char **argv) {
+    /* bug production */
+    int size = 2;
+    for (const auto &before : {VATA::Util::TreeAutomata::classical(size)}) {
+        VATA::Util::TreeAutomata after = before;
+        int loop = 2;
+        for (int i=0; i<loop; i++) {
+            after.CZ(size*2/3, size/3);
+        }
+    }
+    return 0;
+
     bool print = true;
     int n = 6;
 
