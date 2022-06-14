@@ -1,6 +1,10 @@
 #include <vata/util/aut_description.hh>
+#include <vata/util/util.hh>
+#include <vata/serialization/timbuk_serializer.hh>
+
 #include "simulation/explicit_lts.hh"
 
+#include <fstream>
 #include <numeric>
 
 using namespace VATA;
@@ -1056,6 +1060,55 @@ namespace
 
     return accum;
   }
+
+  std::string gpath_to_VATA = "";
+
+  /** returns the path to VATA executable */
+  const std::string& get_vata_path()
+  {
+    // is it cached?
+    if (!gpath_to_VATA.empty()) return gpath_to_VATA;
+
+    // not cached, get it from ENV
+    const char* path = std::getenv("VATA_PATH");
+    if (nullptr == path) {
+      throw std::runtime_error("Cannot find environment variable VATA_PATH");
+    }
+
+    gpath_to_VATA = path;
+    return gpath_to_VATA;
+  }
+
+
+  /** checks inclusion of two TAs */
+  bool check_inclusion(const std::string& lhsPath, const std::string& rhsPath)
+  {
+    std::string aux;
+    VATA::Util::ShellCmd(get_vata_path() + " incl " + lhsPath + " " + rhsPath, aux);
+    return (aux == "1\n");
+  }
+
+  /** checks language equivalence of two TAs */
+  bool check_equal(const std::string& lhsPath, const std::string& rhsPath)
+  {
+    return check_inclusion(lhsPath, rhsPath) && check_inclusion(rhsPath, lhsPath);
+  }
+
+  bool check_equal_aut(
+      const VATA::Util::TreeAutomata& lhs,
+      const VATA::Util::TreeAutomata& rhs)
+  {
+    VATA::Serialization::TimbukSerializer serializer;
+    std::ofstream fileLhs("/tmp/automata1.txt");
+    fileLhs << serializer.Serialize(lhs);
+    fileLhs.close();
+
+    std::ofstream fileRhs("/tmp/automata2.txt");
+    fileRhs << serializer.Serialize(rhs);
+    fileRhs.close();
+
+    return check_equal("/tmp/automata1.txt", "/tmp/automata2.txt");
+  }
 } // anonymous namespace
 
 namespace std
@@ -1204,7 +1257,11 @@ namespace {
           newSet.insert(index[parent]);
         }
 
-        newMap.insert({newTuple, newSet});
+        auto itBoolPair = newMap.insert({newTuple, newSet});
+        if (!itBoolPair.second) { // there is already something
+            StateSet& ss = itBoolPair.first->second;
+            ss.insert(newSet.begin(), newSet.end());
+        }
       }
 
       newTrans.insert({symbol, newMap});
@@ -1228,7 +1285,15 @@ void VATA::Util::TreeAutomata::sim_reduce()
   StateToStateMap collapseMap;
   sim.GetQuotientProjection(collapseMap);
 
+  // TreeAutomata old = *this;
   reindex_aut_states(*this, collapseMap);
+
+  // if (!check_equal_aut(*this, old)) {
+  //   VATA_DEBUG("wrong simulation result!");
+  //   VATA_DEBUG("old: " + old.ToString());
+  //   VATA_DEBUG("new: " + this->ToString());
+  //   VATA_DEBUG("simulation: " + sim.ToString());
+  // }
 }
 
 void VATA::Util::TreeAutomata::print() {
