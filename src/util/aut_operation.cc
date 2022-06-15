@@ -265,8 +265,8 @@ void VATA::Util::TreeAutomata::minimize() { // only for already determinized aut
     // transitions = transitions_new;
     // /*******************************************************************/
 
-    this->sim_reduce();
     remove_useless(); // used in minimize() only.
+    this->sim_reduce();
 }
 
 void VATA::Util::TreeAutomata::remove_useless() { // only for already determinized automata!
@@ -389,14 +389,12 @@ void VATA::Util::TreeAutomata::remove_useless() { // only for already determiniz
     transitions = transitions_new;
     StateSet finalStates_new;
     for (const auto &s : finalStates) {
-        State newState = stateOldToNew.size();
-        auto itBoolPair = stateOldToNew.insert({s, newState});
-        if (!itBoolPair.second) { // if insertion didn't happened
-            const auto& it = itBoolPair.first;
-            newState = it->second;
+        auto it = stateOldToNew.find(s);
+        if (it != stateOldToNew.end()) {
+            finalStates_new.insert(it->second);
         }
-
-        finalStates_new.insert(newState);
+        // We do not add the untouched final states here, since
+        // it could degrade the performance if sim_reduce() is disabled.
     }
     finalStates = finalStates_new;
     stateNum = stateOldToNew.size();
