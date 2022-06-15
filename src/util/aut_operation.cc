@@ -820,6 +820,47 @@ VATA::Util::TreeAutomata VATA::Util::TreeAutomata::zero(int n) {
     return aut;
 }
 
+VATA::Util::TreeAutomata VATA::Util::TreeAutomata::classical_zero_one_zero(int n) {
+    TreeAutomata aut;
+    assert(n >= 2);
+    aut.name = "Classical_Zero_One_Zero";
+    aut.qubitNum = n + (n+1) + (n>=3) * (n-1);
+
+    for (int level=1; level<=n; level++) {
+        if (level >= 2)
+            aut.transitions[{level}][{2*level - 1, 2*level - 1}] = {2*level - 3};
+        aut.transitions[{level}][{2*level - 1, 2*level}] = {2*level - 2};
+        aut.transitions[{level}][{2*level, 2*level - 1}] = {2*level - 2};
+    }
+    // aut.transitions[{1,0,0,0,0}][{}] = {2*n};
+    // aut.transitions[{0,0,0,0,0}][{}] = {2*n - 1};
+    for (int level=1; level<=n; level++) {
+        aut.transitions[{n + level}][{2*n + 2*level-1, 2*n + 2*level-1}] = {2*n + 2*level-3};
+        aut.transitions[{n + level}][{2*n + 2*level, 2*n + 2*level-1}] = {2*n + 2*level-2};
+    }
+    aut.transitions[{n + (n+1)}][{2*n + 2*(n+1)-1, 2*n + 2*(n+1)-1}] = {2*n + 2*(n+1)-3};
+    aut.transitions[{n + (n+1)}][{2*n + 2*(n+1)-1, 2*n + 2*(n+1)}] = {2*n + 2*(n+1)-2};
+    if (n >= 3) {
+        for (int level=n+2; level<=2*n; level++) {
+            aut.transitions[{n + level}][{2*n + 2*level-1, 2*n + 2*level-1}] = {2*n + 2*level-3};
+            aut.transitions[{n + level}][{2*n + 2*level, 2*n + 2*level-1}] = {2*n + 2*level-2};
+        }
+        aut.transitions[{1,0,0,0,0}][{}] = {6*n};
+        aut.transitions[{0,0,0,0,0}][{}] = {6*n - 1};
+        aut.stateNum = 6*n + 1;
+    } else {
+        assert(n == 2);
+        aut.transitions[{1,0,0,0,0}][{}] = {4*n + 2};
+        aut.transitions[{0,0,0,0,0}][{}] = {4*n + 1};
+        aut.stateNum = 4*n + 3;
+    }
+	aut.finalStates.insert(0);
+
+    // aut.determinize();
+    // aut.minimize();
+    return aut;
+}
+
 void VATA::Util::TreeAutomata::swap_forward(const int k) {
     for (int next_k=k+1; next_k<=qubitNum; next_k++) {
         std::map<State, std::vector<std::pair<Symbol, StateVector>>> svsv;
@@ -1064,51 +1105,51 @@ namespace
   std::string gpath_to_VATA = "";
 
   /** returns the path to VATA executable */
-  const std::string& get_vata_path()
-  {
-    // is it cached?
-    if (!gpath_to_VATA.empty()) return gpath_to_VATA;
+//   const std::string& get_vata_path()
+//   {
+//     // is it cached?
+//     if (!gpath_to_VATA.empty()) return gpath_to_VATA;
 
-    // not cached, get it from ENV
-    const char* path = std::getenv("VATA_PATH");
-    if (nullptr == path) {
-      throw std::runtime_error("Cannot find environment variable VATA_PATH");
-    }
+//     // not cached, get it from ENV
+//     const char* path = std::getenv("VATA_PATH");
+//     if (nullptr == path) {
+//       throw std::runtime_error("Cannot find environment variable VATA_PATH");
+//     }
 
-    gpath_to_VATA = path;
-    return gpath_to_VATA;
-  }
+//     gpath_to_VATA = path;
+//     return gpath_to_VATA;
+//   }
 
 
   /** checks inclusion of two TAs */
-  bool check_inclusion(const std::string& lhsPath, const std::string& rhsPath)
-  {
-    std::string aux;
-    VATA::Util::ShellCmd(get_vata_path() + " incl " + lhsPath + " " + rhsPath, aux);
-    return (aux == "1\n");
-  }
+//   bool check_inclusion(const std::string& lhsPath, const std::string& rhsPath)
+//   {
+//     std::string aux;
+//     VATA::Util::ShellCmd(get_vata_path() + " incl " + lhsPath + " " + rhsPath, aux);
+//     return (aux == "1\n");
+//   }
 
   /** checks language equivalence of two TAs */
-  bool check_equal(const std::string& lhsPath, const std::string& rhsPath)
-  {
-    return check_inclusion(lhsPath, rhsPath) && check_inclusion(rhsPath, lhsPath);
-  }
+//   bool check_equal(const std::string& lhsPath, const std::string& rhsPath)
+//   {
+//     return check_inclusion(lhsPath, rhsPath) && check_inclusion(rhsPath, lhsPath);
+//   }
 
-  bool check_equal_aut(
-      const VATA::Util::TreeAutomata& lhs,
-      const VATA::Util::TreeAutomata& rhs)
-  {
-    VATA::Serialization::TimbukSerializer serializer;
-    std::ofstream fileLhs("/tmp/automata1.txt");
-    fileLhs << serializer.Serialize(lhs);
-    fileLhs.close();
+//   bool check_equal_aut(
+//       const VATA::Util::TreeAutomata& lhs,
+//       const VATA::Util::TreeAutomata& rhs)
+//   {
+//     VATA::Serialization::TimbukSerializer serializer;
+//     std::ofstream fileLhs("/tmp/automata1.txt");
+//     fileLhs << serializer.Serialize(lhs);
+//     fileLhs.close();
 
-    std::ofstream fileRhs("/tmp/automata2.txt");
-    fileRhs << serializer.Serialize(rhs);
-    fileRhs.close();
+//     std::ofstream fileRhs("/tmp/automata2.txt");
+//     fileRhs << serializer.Serialize(rhs);
+//     fileRhs.close();
 
-    return check_equal("/tmp/automata1.txt", "/tmp/automata2.txt");
-  }
+//     return check_equal("/tmp/automata1.txt", "/tmp/automata2.txt");
+//   }
 } // anonymous namespace
 
 namespace std

@@ -9,6 +9,7 @@
  *****************************************************************************/
 
 // VATA headers
+#include <cmath>
 #include <fstream>
 #include <vata/vata.hh>
 #include <vata/util/util.hh>
@@ -363,4 +364,146 @@ BOOST_AUTO_TEST_CASE(Bernstein_Vazirani)
     ans.transitions[{ans.qubitNum}][{ans.stateNum - 2, ans.stateNum - 1}] = {2*(ans.qubitNum-1)};
 
     BOOST_REQUIRE_MESSAGE(check_equal_aut(aut, ans), "");
+}
+
+void dfs(const std::map<VATA::Util::TreeAutomata::State, VATA::Util::TreeAutomata::StateVector> &edge,
+         const std::map<VATA::Util::TreeAutomata::State, VATA::Util::TreeAutomata::Symbol> &leaf,
+         const VATA::Util::TreeAutomata::StateVector &layer,
+         std::vector<float> &prob) {
+    for (const VATA::Util::TreeAutomata::State &s : layer) {
+        const auto &new_layer = edge.at(s);
+        if (!new_layer.empty()) {
+            dfs(edge, leaf, new_layer, prob);
+        } else {
+            const auto &symbol = leaf.at(s);
+            assert(symbol.size() == 5);
+            prob.push_back((pow(symbol[0], 2) + pow(symbol[1], 2) + pow(symbol[2], 2) + pow(symbol[3], 2)
+                          + pow(2, 0.5) * (symbol[0] * (symbol[1] - symbol[3]) + symbol[2] * (symbol[1] + symbol[3]))) / pow(2, symbol[4]));
+                // pow(symbol[0] / pow(2, symbol[4]/2.0), 2));
+        }
+    }
+}
+
+// Ref: https://demonstrations.wolfram.com/QuantumCircuitImplementingGroversSearchAlgorithm
+// Ref: https://quantumcomputing.stackexchange.com/questions/2177/how-can-i-implement-an-n-bit-toffoli-gate
+BOOST_AUTO_TEST_CASE(Grover_Search)
+{
+    int n = 3;
+    assert(n >= 2);
+    auto aut = VATA::Util::TreeAutomata::classical_zero_one_zero(n);
+
+    /********************************/
+    for (int i=1; i<=n; i++) aut.X(i);
+    for (int i=n+1; i<=2*n+1; i++) aut.H(i);
+    /**************************************/
+
+    for (int iter=1; iter <= M_PI / (4 * asin(1 / pow(2, n/2.0))); iter++) {
+        /****************************************/
+        for (int i=1; i<=n; i++) aut.CNOT(i, n+i);
+        /* multi-controlled NOT gate */
+        if (n >= 3) {
+            aut.Toffoli(n+1, n+2, 2*n+2);
+            for (int i=3; i<=n; i++)
+                aut.Toffoli(n+i, 2*n+i-1, 2*n+i);
+            aut.CNOT(3*n, 2*n+1);
+            for (int i=n; i>=3; i--)
+                aut.Toffoli(n+i, 2*n+i-1, 2*n+i);
+            aut.Toffoli(n+1, n+2, 2*n+2);
+        } else {
+            assert(n == 2);
+            aut.Toffoli(3, 4, 5);
+        }
+        /*****************************/
+        for (int i=1; i<=n; i++) aut.CNOT(i, n+i);
+        /****************************************/
+
+        /************************************/
+        for (int i=n+1; i<=2*n; i++) aut.H(i);
+        for (int i=n+1; i<=2*n; i++) aut.X(i);
+        /* multi-controlled Z gate */
+        if (n >= 3) {
+            aut.Toffoli(n+1, n+2, 2*n+1);
+            for (int i=3; i<n; i++) // Note that < does not include n!
+                aut.Toffoli(n+i, 2*n+i-2, 2*n+i-1);
+            aut.CZ(3*n-2, 2*n);
+            for (int i=n-1; i>=3; i--)
+                aut.Toffoli(n+i, 2*n+i-2, 2*n+i-1);
+            aut.Toffoli(n+1, n+2, 2*n+1);
+        } else {
+            assert(n == 2);
+            aut.CZ(3, 4);
+        }
+        /***************************/
+        for (int i=n+1; i<=2*n; i++) aut.X(i);
+        for (int i=n+1; i<=2*n; i++) aut.H(i);
+        /************************************/
+    }
+
+    /********************************/
+    for (int i=1; i<=n; i++) aut.X(i);
+    /********************************/
+
+    /******************************** Answer Validation *********************************/
+    std::map<VATA::Util::TreeAutomata::State, VATA::Util::TreeAutomata::StateVector> edge;
+    std::map<VATA::Util::TreeAutomata::State, VATA::Util::TreeAutomata::Symbol> leaf;
+    std::vector<VATA::Util::TreeAutomata::StateVector> first_layers;
+    for (const auto &t : aut.transitions) {
+        for (const auto &in_out : t.second) {
+            const auto &in = in_out.first;
+            for (const auto &s : in_out.second) {
+                if (in.empty()) { // is leaf transition
+                    assert(t.first.size() == 5);
+                    leaf[s] = t.first;
+                }
+                if (t.first.size() == 1 && t.first[0] == 1) {
+                    first_layers.push_back(in);
+                } else {
+                    assert(edge[s].empty());
+                    edge[s] = in;
+                }
+            }
+        }
+    }
+    std::vector<bool> ans_found(n);
+    for (const auto &fl : first_layers) {
+        std::vector<float> prob;
+        dfs(edge, leaf, fl, prob);
+        std::cout << VATA::Util::Convert::ToString(prob) << "\n";
+        unsigned ans = -1, two_2n = 1;
+        for (int j=0; j<2*n - (n==2); j++)
+            two_2n *= 2; // 2 ^ (2n)
+        for (unsigned i=0; i<prob.size(); i++) {
+            if (prob[i] > 0) { /* in fact check != (make the compiler not complain) */
+                ans = i / two_2n;
+                break;
+            }
+        }
+        assert(0 <= ans && ans < n);
+        std::vector<float> nonzero;
+        for (unsigned i=0; i<prob.size(); i++) {
+            if (i / two_2n != ans) {
+                BOOST_REQUIRE_MESSAGE(prob[i] <= 0, ""); /* in fact check = (make the compiler not complain) */
+            } else {
+                int two_n_minus_1 = 1;
+                if (n >= 3) {
+                    for (int j=0; j<n-1; j++)
+                        two_n_minus_1 *= 2; // 2 ^ (n-1)
+                }
+                if (i % two_n_minus_1 == 0) {
+                    nonzero.push_back(prob[i]);
+                } else {
+                    BOOST_REQUIRE_MESSAGE(prob[i] <= 0, ""); /* in fact check = (make the compiler not complain) */
+                }
+            }
+        }
+        for (unsigned i=0; i<nonzero.size(); i+=2) {
+            BOOST_REQUIRE_MESSAGE(nonzero[i] >= nonzero[i+1] && nonzero[i] <= nonzero[i+1], ""); /* in fact check = (make the compiler not complain) */
+            BOOST_REQUIRE_MESSAGE(nonzero[i] <= nonzero[ans*2], "");
+        }
+        BOOST_REQUIRE_MESSAGE(!ans_found[ans], "");
+        ans_found[ans] = true;
+    }
+    for (int i=0; i<n; i++)
+        BOOST_REQUIRE_MESSAGE(ans_found[i], "");
+    /************************************************************************************/
 }
