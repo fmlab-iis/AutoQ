@@ -1,6 +1,24 @@
 #include <vata/util/aut_description.hh>
+#include <vata/util/util.hh>
+#include <vata/serialization/timbuk_serializer.hh>
 
+#include "simulation/explicit_lts.hh"
+
+#include <fstream>
 #include <numeric>
+
+using namespace VATA;
+using namespace VATA::Util;
+
+using State                   = TreeAutomata::State;
+using StateSet                = TreeAutomata::StateSet;
+using StateVector             = TreeAutomata::StateVector;
+using Symbol                  = TreeAutomata::Symbol;
+using TransitionMap           = TreeAutomata::TransitionMap;
+
+using DiscontBinaryRelOnStates= DiscontBinaryRelation<State>;
+using StateToIndexMap         = std::unordered_map<State, size_t>;
+using StateToIndexTranslWeak  = Util::TranslatorWeak<StateToIndexMap>;
 
 template <class T>
 int findIndex(const std::vector<T> &arr, T item) {
@@ -8,7 +26,7 @@ int findIndex(const std::vector<T> &arr, T item) {
         if (arr[i] == item)
             return i;
     }
-		std::__throw_out_of_range("findIndex");
+    std::__throw_out_of_range("findIndex");
 }
 
 bool VATA::Util::TreeAutomata::is_same_partition(const std::vector<int> &state_to_partition_id, State a, State b) {
@@ -40,7 +58,7 @@ bool VATA::Util::TreeAutomata::is_same_partition(const std::vector<int> &state_t
                     std::swap(sv[i], sv[i+1]);
             }
             for (int i=0; i<arity-1; i++) {
-							std::swap(sv[i], sv[i+1]);
+              std::swap(sv[i], sv[i+1]);
             }
 
             overflow = (arity == 1);
@@ -64,7 +82,7 @@ bool VATA::Util::TreeAutomata::is_same_partition(const std::vector<int> &state_t
 }
 
 void VATA::Util::TreeAutomata::determinize() {
-	// std::vector<StateSet> composite_set_id;
+  // std::vector<StateSet> composite_set_id;
     // TransitionMap transitions_new;
 
     // /*******************************************************************/
@@ -169,7 +187,7 @@ void VATA::Util::TreeAutomata::determinize() {
 void VATA::Util::TreeAutomata::minimize() { // only for already determinized automata!
     // /*******************************************************************/
     // // Part 1: Partition states according to final states.
-	// 	std::vector<StateVector> partition;
+  //  std::vector<StateVector> partition;
     // partition.push_back({}); // non-final states
     // partition.push_back({}); // final states
     // for (int i=0; i<stateNum; i++) { // TODO: can be optimized
@@ -182,18 +200,18 @@ void VATA::Util::TreeAutomata::minimize() { // only for already determinized aut
 
     // /*******************************************************************/
     // // Part 2: Main loop of partition refinement.
-	// 	std::vector<int> state_to_partition_id;
+  //  std::vector<int> state_to_partition_id;
     // bool changed;
     // do {
     //     changed = false;
-	// 			std::vector<StateVector> new_partition; // 有 .clear 的效果。
+  //      std::vector<StateVector> new_partition; // 有 .clear 的效果。
     //     state_to_partition_id = std::vector<int>(stateNum); // 有 .clear 的效果。
     //     for (unsigned i=0; i<partition.size(); i++) {
     //         for (const auto &s : partition[i])
     //             state_to_partition_id[s] = i;
     //     }
     //     for (const auto &cell : partition) { // original cell
-	// 				std::map<State, StateVector> refined; // 有 .clear 的效果。
+  //        std::map<State, StateVector> refined; // 有 .clear 的效果。
     //         for (const auto &s : cell) { // state
     //             bool different_from_others = true;
     //             for (auto &new_cell : refined) { // check if s belongs to some refined cell
@@ -247,12 +265,13 @@ void VATA::Util::TreeAutomata::minimize() { // only for already determinized aut
     // transitions = transitions_new;
     // /*******************************************************************/
 
+    this->sim_reduce();
     remove_useless(); // used in minimize() only.
 }
 
 void VATA::Util::TreeAutomata::remove_useless() { // only for already determinized automata!
     bool changed;
-		std::vector<bool> traversed(stateNum, false);
+    std::vector<bool> traversed(stateNum, false);
     TransitionMap transitions_remaining = transitions;
     TransitionMap transitions_mother;
 
@@ -340,29 +359,29 @@ void VATA::Util::TreeAutomata::remove_useless() { // only for already determiniz
      * Part 3: Renumbering
      *********************/
     TransitionMap transitions_new;
-		std::map<int, int> stateOldToNew;
+    std::map<int, int> stateOldToNew;
     for (const auto &t : transitions) {
         for (const auto &in_out : t.second) {
             const auto &outs = in_out.second;
             StateVector sv;
-            for (const auto &v : in_out.first) {
-                try {
-                    sv.push_back(stateOldToNew.at(v));
-                } catch (...) {
-                    stateOldToNew[v] = stateOldToNew.size();
-                    sv.push_back(stateOldToNew.size()-1); //stateOldToNew.at(v));
+            for (const auto &v : in_out.first) { // we construct the new tuple
+                State newState = stateOldToNew.size();
+                auto itBoolPair = stateOldToNew.insert({v, newState});
+                if (!itBoolPair.second) { // if insertion didn't happened
+                    const auto& it = itBoolPair.first;
+                    newState = it->second;
                 }
+                sv.push_back(newState);
             }
             // assert(outs.size() == 1);
             for (const auto &s : outs) {
-                int dest;
-                try {
-                    dest = stateOldToNew.at(s /**(outs.begin())*/);
-                } catch (...) {
-                    stateOldToNew[s /**(outs.begin())*/] = stateOldToNew.size();
-                    dest = stateOldToNew.size() - 1;
+                State newState = stateOldToNew.size();
+                auto itBoolPair = stateOldToNew.insert({s, newState});
+                if (!itBoolPair.second) { // if insertion didn't happened
+                    const auto& it = itBoolPair.first;
+                    newState = it->second;
                 }
-                transitions_new[t.first][sv].insert(dest);
+                transitions_new[t.first][sv].insert(newState);
                 // transitions_new[t.first].insert(make_pair(sv, StateSet({dest})));
             }
         }
@@ -370,10 +389,14 @@ void VATA::Util::TreeAutomata::remove_useless() { // only for already determiniz
     transitions = transitions_new;
     StateSet finalStates_new;
     for (const auto &s : finalStates) {
-        try {
-            finalStates_new.insert(stateOldToNew.at(s));
-        } catch (...) {
+        State newState = stateOldToNew.size();
+        auto itBoolPair = stateOldToNew.insert({s, newState});
+        if (!itBoolPair.second) { // if insertion didn't happened
+            const auto& it = itBoolPair.first;
+            newState = it->second;
         }
+
+        finalStates_new.insert(newState);
     }
     finalStates = finalStates_new;
     stateNum = stateOldToNew.size();
@@ -424,19 +447,21 @@ void VATA::Util::TreeAutomata::omega_multiplication() {
                 temp.push_back(t_old.first[i]);
             }
             temp.push_back(t_old.first[t_old.first.size()-1]);
-            try {
-                auto &in_out = transitions_new.at(temp);
-                for (const auto &kv : t_old.second) {
-                    try {
-                        StateSet &ss = in_out.at(kv.first);
+            auto it = transitions_new.find(temp);   // has the symbol been used?
+            if (transitions_new.end() != it) { // found it!
+                auto &in_out = it->second;
+                for (const auto &kv : t_old.second) { // go over all states in the set of parents
+                    auto jt = in_out.find(kv.first);    // try to find the tuple
+                    if (in_out.end() != jt) { // found it!
+                        StateSet &ss = jt->second;
                         StateSet dest;
                         set_union(ss.begin(), ss.end(), kv.second.begin(), kv.second.end(), inserter(dest, dest.begin()));
                         ss = dest;
-                    } catch (...) {
+                    } else {
                         in_out[kv.first] = kv.second;
                     }
                 }
-            } catch (...) {
+            } else { // didn't find it
                 transitions_new[temp] = t_old.second;
             }
         } else {
@@ -451,7 +476,7 @@ void VATA::Util::TreeAutomata::omega_multiplication() {
 }
 
 void VATA::Util::TreeAutomata::divide_by_the_square_root_of_two() {
-		std::vector<StateVector> to_be_removed;
+    std::vector<StateVector> to_be_removed;
     TransitionMap to_be_inserted;
     for (const auto &t : transitions) {
         if (t.first.size() == 5) {
@@ -531,7 +556,7 @@ void VATA::Util::TreeAutomata::semi_determinize() {
             sv.push_back(t.first[0]);
             for (const auto &in_out : t.second) {
                 sv.push_back(counter++);
-								std::map<StateVector, StateSet> value;
+                std::map<StateVector, StateSet> value;
                 value.insert(in_out);
                 transitions.insert(std::make_pair(sv, value)); // modify
                 sv.pop_back();
@@ -583,7 +608,7 @@ VATA::Util::TreeAutomata VATA::Util::TreeAutomata::binary_operation(const TreeAu
         if (it2 == o.transitions.end()) continue;
         // assert(it->second.size() == 1); // both sources contain the unique I/O
         // assert(it2->second.size() == 1); // i.e., map<StateVector, StateSet> is singleton.
-				std::map<StateVector, StateSet> m;
+        std::map<StateVector, StateSet> m;
         for (auto itt = it->second.begin(); itt != it->second.end(); itt++)
             for (auto itt2 = it2->second.begin(); itt2 != it2->second.end(); itt2++) {
                 StateVector sv;
@@ -682,7 +707,7 @@ VATA::Util::TreeAutomata VATA::Util::TreeAutomata::Union(const TreeAutomata &o) 
         }
     }
     for (const auto &s : o.finalStates)
-	    result.finalStates.insert(s + this->stateNum);
+      result.finalStates.insert(s + this->stateNum);
 
     result.determinize();
     result.minimize();
@@ -706,7 +731,7 @@ VATA::Util::TreeAutomata VATA::Util::TreeAutomata::uniform(int n) {
         pow_of_two *= 2;
     }
     aut.transitions[{1,0,0,0,n}][{}] = {pow_of_two-1};
-	aut.finalStates.insert(0);
+  aut.finalStates.insert(0);
     aut.stateNum = pow_of_two;
 
     // aut.determinize();
@@ -727,7 +752,7 @@ VATA::Util::TreeAutomata VATA::Util::TreeAutomata::classical(int n) {
     }
     aut.transitions[{1,0,0,0,0}][{}] = {2*n};
     aut.transitions[{0,0,0,0,0}][{}] = {2*n - 1};
-	aut.finalStates.insert(0);
+  aut.finalStates.insert(0);
     aut.stateNum = 2*n + 1;
 
     // aut.determinize();
@@ -751,7 +776,7 @@ VATA::Util::TreeAutomata VATA::Util::TreeAutomata::random(int n) {
     for (int i=state_counter; i<=state_counter*2; i++) {
         aut.transitions[{rand()%5, rand()%5, rand()%5, rand()%5, 0}][{}].insert(i);
     }
-	aut.finalStates.insert(0);
+  aut.finalStates.insert(0);
     aut.stateNum = state_counter*2 + 1;
 
     // aut.determinize();
@@ -761,7 +786,7 @@ VATA::Util::TreeAutomata VATA::Util::TreeAutomata::random(int n) {
 
 VATA::Util::TreeAutomata VATA::Util::TreeAutomata::zero(int n) {
     /* Example of n = 6:
-        Final States 0 
+        Final States 0
         Transitions
         [1](2, 1) -> 0
         [2](3, 3) -> 1
@@ -797,7 +822,7 @@ VATA::Util::TreeAutomata VATA::Util::TreeAutomata::zero(int n) {
 
 void VATA::Util::TreeAutomata::swap_forward(const int k) {
     for (int next_k=k+1; next_k<=qubitNum; next_k++) {
-				std::map<State, std::vector<std::pair<Symbol, StateVector>>> svsv;
+        std::map<State, std::vector<std::pair<Symbol, StateVector>>> svsv;
         for (const auto &t : transitions) {
             auto &symbol = t.first;
             auto &in_outs = t.second;
@@ -817,7 +842,7 @@ void VATA::Util::TreeAutomata::swap_forward(const int k) {
                 }
             }
         }
-				std::vector<Symbol> to_be_removed2;
+        std::vector<Symbol> to_be_removed2;
         TransitionMap to_be_removed, to_be_inserted;
         for (const auto &t : transitions) {
             if (t.first.size() < 5 && t.first[0] == k) {
@@ -864,7 +889,7 @@ void VATA::Util::TreeAutomata::swap_forward(const int k) {
 
 void VATA::Util::TreeAutomata::swap_backward(const int k) {
     for (int next_k=qubitNum; next_k>k; next_k--) {
-			std::map<State, std::vector<std::pair<Symbol, StateVector>>> svsv;
+      std::map<State, std::vector<std::pair<Symbol, StateVector>>> svsv;
         for (const auto &t : transitions) {
             auto &symbol = t.first;
             auto &in_outs = t.second;
@@ -884,7 +909,7 @@ void VATA::Util::TreeAutomata::swap_backward(const int k) {
                 }
             }
         }
-				std::vector<Symbol> to_be_removed2;
+        std::vector<Symbol> to_be_removed2;
         TransitionMap to_be_removed, to_be_inserted;
         for (const auto &t : transitions) {
             if (t.first.size() < 5 && t.first[0] == next_k) {
@@ -937,7 +962,7 @@ void VATA::Util::TreeAutomata::swap_backward(const int k) {
 void VATA::Util::TreeAutomata::value_restriction(int k, bool branch) {
     swap_forward(k);
     TransitionMap to_be_inserted;
-		std::vector<Symbol> to_be_removed;
+    std::vector<Symbol> to_be_removed;
     for (const auto &t : transitions) {
         if (t.first.size() < 5 && t.first[0] == k) {
             to_be_removed.push_back(t.first);
@@ -964,7 +989,7 @@ void VATA::Util::TreeAutomata::value_restriction(int k, bool branch) {
 }
 
 void VATA::Util::TreeAutomata::fraction_simplication() {
-	std::vector<StateVector> to_be_removed;
+  std::vector<StateVector> to_be_removed;
     TransitionMap to_be_inserted;
     for (const auto &t : transitions) {
         if (t.first.size() == 5) {
@@ -1001,40 +1026,310 @@ void VATA::Util::TreeAutomata::fraction_simplication() {
     }
 }
 
+namespace
+{ // anonymous namespace
+  /**
+   * @brief  Combine two hash values
+   *
+   * Values taken from
+   * http://www.boost.org/doc/libs/1_64_0/boost/functional/hash/hash.hpp
+   *
+   * TODO: fix to be more suitable for 64b
+   */
+  template <class T>
+  inline size_t hash_combine(size_t lhs, const T& rhs)
+  {
+    size_t rhs_hash = std::hash<T>{}(rhs);
+    lhs ^= rhs_hash + 0x9e3779b9 + (lhs<<6) + (lhs>>2);
+    return lhs;
+  }
+
+  /**
+   * @brief  Hashes a range
+   *
+   * Inspired by
+   * http://www.boost.org/doc/libs/1_64_0/boost/functional/hash/hash.hpp
+   */
+  template <typename It>
+  size_t hash_range(It first, It last)
+  {
+    size_t accum = 0;
+    for (; first != last; ++first) {
+      accum = hash_combine(accum, *first);
+    }
+
+    return accum;
+  }
+
+  std::string gpath_to_VATA = "";
+
+  /** returns the path to VATA executable */
+  const std::string& get_vata_path()
+  {
+    // is it cached?
+    if (!gpath_to_VATA.empty()) return gpath_to_VATA;
+
+    // not cached, get it from ENV
+    const char* path = std::getenv("VATA_PATH");
+    if (nullptr == path) {
+      throw std::runtime_error("Cannot find environment variable VATA_PATH");
+    }
+
+    gpath_to_VATA = path;
+    return gpath_to_VATA;
+  }
+
+
+  /** checks inclusion of two TAs */
+  bool check_inclusion(const std::string& lhsPath, const std::string& rhsPath)
+  {
+    std::string aux;
+    VATA::Util::ShellCmd(get_vata_path() + " incl " + lhsPath + " " + rhsPath, aux);
+    return (aux == "1\n");
+  }
+
+  /** checks language equivalence of two TAs */
+  bool check_equal(const std::string& lhsPath, const std::string& rhsPath)
+  {
+    return check_inclusion(lhsPath, rhsPath) && check_inclusion(rhsPath, lhsPath);
+  }
+
+  bool check_equal_aut(
+      const VATA::Util::TreeAutomata& lhs,
+      const VATA::Util::TreeAutomata& rhs)
+  {
+    VATA::Serialization::TimbukSerializer serializer;
+    std::ofstream fileLhs("/tmp/automata1.txt");
+    fileLhs << serializer.Serialize(lhs);
+    fileLhs.close();
+
+    std::ofstream fileRhs("/tmp/automata2.txt");
+    fileRhs << serializer.Serialize(rhs);
+    fileRhs.close();
+
+    return check_equal("/tmp/automata1.txt", "/tmp/automata2.txt");
+  }
+} // anonymous namespace
+
+namespace std
+{
+  /**
+   * @brief  A hasher for vectors
+   */
+  template <class A>
+  struct hash<std::vector<A>>
+  {
+    inline size_t operator()(const std::vector<A>& cont) const
+    {
+      return hash_range(cont.begin(), cont.end());
+    }
+  };
+} // namespace std
+
+namespace {
+
+  template <class Index>
+  ExplicitLTS translate_to_lts_downward(
+    const TreeAutomata& aut,
+    size_t              numStates,
+    Index&              stateIndex)
+  {
+    std::unordered_map<Symbol, size_t> symbolMap;
+    std::unordered_map<const StateVector*, size_t> lhsMap;
+
+    size_t symbolCnt = 0;
+    Util::TranslatorWeak2<std::unordered_map<Symbol, size_t>>
+      symbolTranslator(symbolMap, [&symbolCnt](const Symbol&){ return symbolCnt++; });
+
+    size_t lhsCnt = numStates;
+    Util::TranslatorWeak2<std::unordered_map<const StateVector*, size_t>>
+      lhsTranslator(lhsMap, [&lhsCnt](const StateVector*){ return lhsCnt++; });
+
+    ExplicitLTS result(numStates);
+
+    // start with getting translation for final states
+    for (const State& finState : aut.finalStates) {
+      stateIndex[finState];
+    }
+
+    // Iterate through all transitions and adds them to the LTS.
+    for (const auto& symMap : aut.transitions) {
+      const auto& symbolName = symbolTranslator(symMap.first);
+
+      for (const auto& vecSet : symMap.second) {
+        const auto& tuple = vecSet.first;
+
+        for (const auto& parent : vecSet.second) {
+          const auto& parentName = stateIndex[parent];
+
+          size_t dest;
+          if (1 == tuple.size())
+          { // a(p) -> q ... inline lhs of size 1 >:-)
+            dest = stateIndex[tuple.front()];
+            assert(dest < numStates);
+          } else
+          { // a(p,r) -> q
+            dest = lhsTranslator(&tuple);
+          }
+
+          result.addTransition(parentName, symbolName, dest);
+        }
+      }
+    }
+
+    for (auto& tupleIndexPair : lhsMap)
+    {	// for n-ary transition (n > 1), decompose the hyperedge into n ordinary
+      // edges
+      assert(tupleIndexPair.first);
+
+      size_t i = 0;
+      for (auto& state : *tupleIndexPair.first) {
+        size_t dest = stateIndex[state];
+        assert(dest < numStates);
+
+        result.addTransition(tupleIndexPair.second, symbolMap.size() + i, dest);
+        ++i;
+      }
+    }
+
+    result.init();
+
+    return result;
+  }
+
+  size_t count_aut_states(const VATA::Util::TreeAutomata& aut)
+  {
+    std::set<State> states;
+    for (const auto& state : aut.finalStates) {
+      states.insert(state);
+    }
+
+    for (const auto& symMap : aut.transitions) {
+      for (const auto& vecSet : symMap.second) {
+        states.insert(vecSet.second.begin(), vecSet.second.end());
+        for (const auto& child : vecSet.first) {
+          states.insert(child);
+        }
+      }
+    }
+
+    return states.size();
+  }
+
+  DiscontBinaryRelOnStates compute_down_sim(const VATA::Util::TreeAutomata& aut)
+  {
+    StateToIndexMap translMap;
+    size_t stateCnt = 0;
+    StateToIndexTranslWeak transl(translMap,
+        [&stateCnt](const State&) {return stateCnt++;});
+
+    size_t num_states = count_aut_states(aut);
+    ExplicitLTS lts = translate_to_lts_downward(aut, num_states, transl);
+    BinaryRelation ltsSim = lts.computeSimulation(num_states);
+    return DiscontBinaryRelOnStates(ltsSim, translMap);
+  }
+
+  template <class Index>
+  void reindex_aut_states(TreeAutomata& aut, Index& index)
+  {
+    StateSet newFinal;
+    TransitionMap newTrans;
+
+    for (const State& state : aut.finalStates) {
+      newFinal.insert(index.at(state));
+    }
+
+    // Iterate through all transitions and add reindex everything
+    for (const auto& symMap : aut.transitions) {
+      const auto& symbol = symMap.first;
+
+      std::map<StateVector, StateSet> newMap;
+
+      for (const auto& vecSet : symMap.second) {
+        const auto& tuple = vecSet.first;
+        StateVector newTuple;
+        for (const auto& child : tuple) {
+          newTuple.push_back(index[child]);
+        }
+
+        StateSet newSet;
+        for (const auto& parent : vecSet.second) {
+          newSet.insert(index[parent]);
+        }
+
+        auto itBoolPair = newMap.insert({newTuple, newSet});
+        if (!itBoolPair.second) { // there is already something
+            StateSet& ss = itBoolPair.first->second;
+            ss.insert(newSet.begin(), newSet.end());
+        }
+      }
+
+      newTrans.insert({symbol, newMap});
+    }
+
+    aut.finalStates = newFinal;
+    aut.transitions = newTrans;
+  }
+
+} // anonymous namespace
+
+void VATA::Util::TreeAutomata::sim_reduce()
+{
+  DiscontBinaryRelOnStates sim = compute_down_sim(*this);
+
+  // TODO: this is probably not optimal, we could probably get the mapping of
+  // states for collapsing in a faster way
+  sim.RestrictToSymmetric();       // sim is now an equivalence relation
+
+  using StateToStateMap = std::unordered_map<State, State>;
+  StateToStateMap collapseMap;
+  sim.GetQuotientProjection(collapseMap);
+
+  // TreeAutomata old = *this;
+  reindex_aut_states(*this, collapseMap);
+
+  // if (!check_equal_aut(*this, old)) {
+  //   VATA_DEBUG("wrong simulation result!");
+  //   VATA_DEBUG("old: " + old.ToString());
+  //   VATA_DEBUG("new: " + this->ToString());
+  //   VATA_DEBUG("simulation: " + sim.ToString());
+  // }
+}
+
 void VATA::Util::TreeAutomata::print() {
     std::string result;
 
-	result += "Ops ";
-	for (auto itSymb = transitions.cbegin();
-		itSymb != transitions.cend(); ++itSymb)
-	{
-		result += VATA::Util::Convert::ToString(itSymb->first) + ":" +
-			VATA::Util::Convert::ToString(itSymb->second.begin()->first.size()) + " ";
-	}
+  result += "Ops ";
+  for (auto itSymb = transitions.cbegin();
+    itSymb != transitions.cend(); ++itSymb)
+  {
+    result += VATA::Util::Convert::ToString(itSymb->first) + ":" +
+      VATA::Util::Convert::ToString(itSymb->second.begin()->first.size()) + " ";
+  }
 
-	result += "\n";
-	result += "Automaton " + (name.empty()? "anonymous" : name);
+  result += "\n";
+  result += "Automaton " + (name.empty()? "anonymous" : name);
 
-	result += "\n";
-	result += "States ";
+  result += "\n";
+  result += "States ";
     for (int i=0; i<stateNum; i++) {
         result += std::to_string(i) + " ";
         // result += stateNum.TranslateBwd(i) + " ";
     }
-	// for_each(states.cbegin(), states.cend(),
-	// 	[&result](const std::string& sStr){ result += sStr + " ";});
+  // for_each(states.cbegin(), states.cend(),
+  //  [&result](const std::string& sStr){ result += sStr + " ";});
 
-	result += "\n";
-	result += "Final States ";
+  result += "\n";
+  result += "Final States ";
     for (unsigned i : finalStates) {
         result += std::to_string(i) + " ";
         // result += stateNum.TranslateBwd(i) + " ";
     }
-	// for_each(finalStates.cbegin(), finalStates.cend(),
-	// 	[&result](const std::string& fsStr){ result += fsStr + " ";});
+  // for_each(finalStates.cbegin(), finalStates.cend(),
+  //  [&result](const std::string& fsStr){ result += fsStr + " ";});
 
-	result += "\n";
-	result += "Transitions\n";
+  result += "\n";
+  result += "Transitions\n";
 
     for (const auto &t : transitions) {
         for (const auto &t2 : t.second) {

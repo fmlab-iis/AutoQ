@@ -15,7 +15,7 @@ using VATA::Util::TreeAutomata;
 using VATA::Util::ShellCmd;
 using VATA::Util::ReadFile;
 
-int main(int argc, char **argv) {    
+int main(int argc, char **argv) {
     /* bug production */
     int size = 2;
     for (const auto &before : {VATA::Util::TreeAutomata::classical(size)}) {
@@ -26,8 +26,7 @@ int main(int argc, char **argv) {
         }
     }
     return 0;
-    ////////////////////////////////////////////////////////////////////////
-    
+
     bool print = true;
     int n = 6;
 

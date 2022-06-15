@@ -109,13 +109,14 @@ public:   // Public methods
 	 * @brief  Copy constructor
 	 */
 	TwoWayDict(const TwoWayDict&) = default;
+	TwoWayDict& operator=(const TwoWayDict&) = default;
 
 	const Type2& TranslateFwd(const Type1& t1) const
 	{
 		ConstIteratorFwd itFwd;
 		if ((itFwd = fwdMap_.find(t1)) == this->EndFwd())
 		{	// in case the value that should be stored there is not
-			throw std::out_of_range(__func__);
+			throw std::out_of_range(__func__ + std::string(": cannot translate " + Convert::ToString(t1)));
 		}
 
 		return itFwd->second;
@@ -126,7 +127,7 @@ public:   // Public methods
 		ConstIteratorBwd itBwd;
 		if ((itBwd = bwdMap_.find(t2)) == EndBwd())
 		{	// in case the value that should be stored there is not
-			throw std::out_of_range(__func__);
+			throw std::out_of_range(__func__ + std::string(": cannot translate " + Convert::ToString(t2)));
 		}
 
 		return itBwd->second;

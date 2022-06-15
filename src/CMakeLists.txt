@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8.2)
+cmake_minimum_required(VERSION 3.0.0)
 
 set(CMAKE_COLOR_MAKEFILE ON)
 #set(CMAKE_VERBOSE_MAKEFILE ON)
@@ -15,7 +15,6 @@ set(vata_cxx_compiler_flags
   -Wall
   -Wfloat-equal
   -fdiagnostics-show-option
-  # -march=native
   -std=c++17
   -Wctor-dtor-privacy
   -Weffc++
@@ -58,8 +57,9 @@ add_library(libvata STATIC
 	util.cc
 	# sym_var_asgn.cc
 	# symbolic_tree_aut_base_core.cc
-    util/aut_operation.cc
-    util/gate_operation.cc
+	util/simulation/explicit_lts_sim.cc
+	util/aut_operation.cc
+	util/gate_operation.cc
 )
 
 set_target_properties(libvata PROPERTIES
