@@ -81,195 +81,12 @@ bool VATA::Util::TreeAutomata::is_same_partition(const std::vector<int> &state_t
     return true;
 }
 
-void VATA::Util::TreeAutomata::determinize() {
-  // std::vector<StateSet> composite_set_id;
-    // TransitionMap transitions_new;
-
-    // /*******************************************************************/
-    // // Part 1: Generate composite sets from 0-arity symbols.
-    // for (const auto &f : transitions) {
-    //     int arity = f.second.begin()->first.size();
-    //     if (arity == 0) {
-    //         const StateSet &ss = transitions.at(f.first).at({});
-    //         try {
-    //             int x = findIndex(composite_set_id, ss);
-    //             transitions_new[f.first][StateVector({})] = StateSet({x});
-    //         } catch (...) {
-    //             int x = composite_set_id.size();
-    //             transitions_new[f.first][StateVector({})] = StateSet({x});
-    //             composite_set_id.push_back(ss);
-    //         }
-    //     }
-    // }
-    // /*******************************************************************/
-
-    // /*******************************************************************/
-    // // Part 2: Generate composite sets from (>= 1)-arity symbols.
-    // int old_composite_set_size, current_composite_set_size = 0;
-    // while (current_composite_set_size != static_cast<int>(composite_set_id.size())) {
-    //     old_composite_set_size = current_composite_set_size;
-    //     current_composite_set_size = composite_set_id.size();
-    //     for (const auto &f : transitions) {
-    //         int arity = f.second.begin()->first.size();
-    //         if (arity >= 1) {
-    //             StateVector sv(arity, 0); // enumerate all possible combinations of composite states
-    //             bool overflow = false;
-    //             do {
-    //                 StateSet collected_RHS;
-    //                 bool need_process = false;
-    //                 for (int i=0; i<static_cast<int>(sv.size()); i++) {
-    //                     if (sv[i] >= old_composite_set_size) {
-    //                         need_process = true;
-    //                         break;
-    //                     }
-    //                 }
-    //                 if (need_process) {
-    //                     for (const auto &in_out : transitions[f.first]) { // if this transition's input states are all contained
-    //                         const auto &input = in_out.first;             // in the current combination of composite states, then
-    //                         assert(static_cast<int>(input.size()) == arity);             // collect the states of RHS of this transition.
-    //                         bool valid = true;
-    //                         for (int i=0; i<arity; i++) {
-    //                             if (composite_set_id[sv[i]].find(input[i]) == composite_set_id[sv[i]].end()) {
-    //                                 valid = false;
-    //                                 break;
-    //                             }
-    //                         }
-    //                         if (valid) {
-    //                             collected_RHS.insert(in_out.second.begin(), in_out.second.end());
-    //                         }
-    //                     }
-    //                     if (!collected_RHS.empty()) {
-    //                         try {
-    //                             int x = findIndex(composite_set_id, collected_RHS); // may throw out_of_bound exception
-    //                             transitions_new[f.first][sv] = StateSet({x});
-    //                         } catch (...) {
-    //                             int x = composite_set_id.size();
-    //                             transitions_new[f.first][sv] = StateSet({x});
-    //                             composite_set_id.push_back(collected_RHS);
-    //                         }
-    //                     }
-    //                 }
-    //                 sv[0]++;
-    //                 for (int i=0; i<arity; i++) {
-    //                     if (sv[i] == current_composite_set_size) {
-    //                         if (i == arity - 1) {
-    //                             overflow = true;
-    //                             break;
-    //                         } else {
-    //                             sv[i] = 0;
-    //                             sv[i+1]++;
-    //                         }
-    //                     } else break;
-    //                 }
-    //             } while (!overflow);
-    //         }
-    //     }
-    // }
-    // /*******************************************************************/
-
-    // /*******************************************************************/
-    // // Part 3: Automata reconstruction based on the refined partition.
-    // StateSet finalStates_new;
-    // for (unsigned i=0; i<composite_set_id.size(); i++) {
-    //     StateSet temp; // should be empty
-    //     const StateSet &cs = composite_set_id[i];
-    //     set_intersection(cs.begin(), cs.end(), finalStates.begin(), finalStates.end(), inserter(temp, temp.begin()));
-    //     if (!temp.empty()) {
-    //         finalStates_new.insert(i);
-    //     }
-    // }
-    // finalStates = finalStates_new;
-    // stateNum = composite_set_id.size();
-    // transitions = transitions_new;
-    // /*******************************************************************/
-}
-
-void VATA::Util::TreeAutomata::minimize() { // only for already determinized automata!
-    // /*******************************************************************/
-    // // Part 1: Partition states according to final states.
-  //  std::vector<StateVector> partition;
-    // partition.push_back({}); // non-final states
-    // partition.push_back({}); // final states
-    // for (int i=0; i<stateNum; i++) { // TODO: can be optimized
-    //     if (finalStates.find(i) == finalStates.end()) // non-final state
-    //         partition[0].push_back(i);
-    //     else
-    //         partition[1].push_back(i);
-    // }
-    // /*******************************************************************/
-
-    // /*******************************************************************/
-    // // Part 2: Main loop of partition refinement.
-  //  std::vector<int> state_to_partition_id;
-    // bool changed;
-    // do {
-    //     changed = false;
-  //      std::vector<StateVector> new_partition; // 有 .clear 的效果。
-    //     state_to_partition_id = std::vector<int>(stateNum); // 有 .clear 的效果。
-    //     for (unsigned i=0; i<partition.size(); i++) {
-    //         for (const auto &s : partition[i])
-    //             state_to_partition_id[s] = i;
-    //     }
-    //     for (const auto &cell : partition) { // original cell
-  //        std::map<State, StateVector> refined; // 有 .clear 的效果。
-    //         for (const auto &s : cell) { // state
-    //             bool different_from_others = true;
-    //             for (auto &new_cell : refined) { // check if s belongs to some refined cell
-    //                 if (is_same_partition(state_to_partition_id, s, new_cell.first)) { // compare with "key" (head)
-    //                     new_cell.second.push_back(s);
-    //                     different_from_others = false;
-    //                     break;
-    //                 }
-    //             }
-    //             if (different_from_others)
-    //                 refined[s] = StateVector(1, s);
-    //         }
-    //         /*************************************************
-    //          * set the "changed" flag to true if the partition
-    //          * changed in this cell. */
-    //         if (refined.size() != 1)
-    //             changed = true;
-    //         else {
-    //             for (const auto &new_cell : refined) // only one cell!
-    //                 if (new_cell.second != cell) // the order should be the same
-    //                     changed = true;
-    //         }
-    //         /************************************************/
-    //         // push the refined partition in this cell finally
-    //         for (const auto &new_cell : refined)
-    //             new_partition.push_back(new_cell.second);
-    //     }
-    //     partition = new_partition;
-    // } while (changed);
-    // /*******************************************************************/
-
-    // /*******************************************************************/
-    // // Part 3: Automata reconstruction based on the refined partition.
-    // stateNum = partition.size();
-
-    // StateSet finalStates_new;
-    // for (const auto &s : finalStates)
-    //     finalStates_new.insert(state_to_partition_id[s]);
-    // finalStates = finalStates_new;
-
-    // TransitionMap transitions_new;
-    // for (const auto &t : transitions) {
-    //     for (const auto &t2 : t.second) {
-    //         StateVector args = t2.first;
-    //         for (unsigned i=0; i<args.size(); i++)
-    //             args[i] = state_to_partition_id[args[i]];
-    //         assert(t2.second.size() == 1);
-    //         transitions_new[t.first][args] = StateSet({state_to_partition_id[*(t2.second.begin())]});
-    //     }
-    // }
-    // transitions = transitions_new;
-    // /*******************************************************************/
-
-    remove_useless(); // used in minimize() only.
+void VATA::Util::TreeAutomata::minimize() {
+    remove_useless();
     this->sim_reduce();
 }
 
-void VATA::Util::TreeAutomata::remove_useless() { // only for already determinized automata!
+void VATA::Util::TreeAutomata::remove_useless() {
     bool changed;
     std::vector<bool> traversed(stateNum, false);
     TransitionMap transitions_remaining = transitions;
@@ -430,8 +247,6 @@ void VATA::Util::TreeAutomata::integer_multiplication(int m) {
         }
     }
     transitions = transitions_new;
-
-    determinize();
     minimize();
 }
 
@@ -468,8 +283,6 @@ void VATA::Util::TreeAutomata::omega_multiplication() {
         }
     }
     transitions = transitions_new;
-
-    determinize();
     minimize();
 }
 
@@ -539,8 +352,6 @@ void VATA::Util::TreeAutomata::branch_restriction(int k, bool positive_has_value
             }
         }
     }
-
-    determinize();
     minimize();
 }
 
@@ -561,8 +372,6 @@ void VATA::Util::TreeAutomata::semi_determinize() {
             }
         }
     }
-
-    determinize();
     minimize();
 }
 
@@ -577,8 +386,6 @@ void VATA::Util::TreeAutomata::semi_undeterminize() {
             }
         }
     }
-
-    determinize();
     minimize();
 }
 
@@ -677,8 +484,6 @@ VATA::Util::TreeAutomata VATA::Util::TreeAutomata::binary_operation(const TreeAu
                     // result.transitions[in][{}].insert((*(it->second.begin()->second.begin())) * o.stateNum + (*(it2t->second.begin()->second.begin())));
         }
     }
-
-    result.determinize();
     result.minimize();
     return result;
 }
@@ -704,10 +509,9 @@ VATA::Util::TreeAutomata VATA::Util::TreeAutomata::Union(const TreeAutomata &o) 
             }
         }
     }
-    for (const auto &s : o.finalStates)
-      result.finalStates.insert(s + this->stateNum);
-
-    result.determinize();
+    for (const auto &s : o.finalStates) {
+        result.finalStates.insert(s + this->stateNum);
+    }
     result.minimize();
     return result;
 }
@@ -732,7 +536,6 @@ VATA::Util::TreeAutomata VATA::Util::TreeAutomata::uniform(int n) {
   aut.finalStates.insert(0);
     aut.stateNum = pow_of_two;
 
-    // aut.determinize();
     // aut.minimize();
     return aut;
 }
@@ -753,7 +556,6 @@ VATA::Util::TreeAutomata VATA::Util::TreeAutomata::classical(int n) {
   aut.finalStates.insert(0);
     aut.stateNum = 2*n + 1;
 
-    // aut.determinize();
     // aut.minimize();
     return aut;
 }
@@ -777,7 +579,6 @@ VATA::Util::TreeAutomata VATA::Util::TreeAutomata::random(int n) {
   aut.finalStates.insert(0);
     aut.stateNum = state_counter*2 + 1;
 
-    // aut.determinize();
     // aut.minimize();
     return aut;
 }
@@ -813,7 +614,6 @@ VATA::Util::TreeAutomata VATA::Util::TreeAutomata::zero(int n) {
     aut.transitions[{1,0,0,0,0}][{}].insert(n*2);
     aut.stateNum = n*2 + 1;
 
-    // aut.determinize();
     // aut.minimize();
     return aut;
 }
@@ -854,7 +654,6 @@ VATA::Util::TreeAutomata VATA::Util::TreeAutomata::classical_zero_one_zero(int n
     }
 	aut.finalStates.insert(0);
 
-    // aut.determinize();
     // aut.minimize();
     return aut;
 }
@@ -921,7 +720,6 @@ void VATA::Util::TreeAutomata::swap_forward(const int k) {
                 }
             }
         }
-        determinize();
         minimize();
     }
 }
@@ -993,7 +791,6 @@ void VATA::Util::TreeAutomata::swap_backward(const int k) {
                 }
             }
         }
-        determinize();
         minimize();
     }
 }
@@ -1022,7 +819,6 @@ void VATA::Util::TreeAutomata::value_restriction(int k, bool branch) {
     for (const auto &t : to_be_inserted) {
         transitions[t.first] = t.second;
     }
-    determinize();
     minimize();
     swap_backward(k);
 }

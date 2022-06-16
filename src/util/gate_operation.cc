@@ -10,7 +10,6 @@ void VATA::Util::TreeAutomata::X(int t) {
     aut2.branch_restriction(t, false);
     *this = aut1 + aut2;
     this->semi_undeterminize();
-    determinize();
     minimize();
 }
 
@@ -26,7 +25,6 @@ void VATA::Util::TreeAutomata::Y(int t) {
     omega_multiplication();
     omega_multiplication();
     this->semi_undeterminize();
-    determinize();
     minimize();
 }
 
@@ -38,7 +36,6 @@ void VATA::Util::TreeAutomata::Z(int t) {
     aut2.branch_restriction(t, true);
     *this = aut1 - aut2;
     this->semi_undeterminize();
-    determinize();
     minimize();
 }
 
@@ -103,7 +100,6 @@ void VATA::Util::TreeAutomata::H(int t) {
         divide_by_the_square_root_of_two();
     }
     this->semi_undeterminize();
-    determinize();
     minimize();
 }
 
@@ -117,7 +113,6 @@ void VATA::Util::TreeAutomata::S(int t) {
     aut2.omega_multiplication();
     *this = aut1 + aut2;
     this->semi_undeterminize();
-    determinize();
     minimize();
 }
 
@@ -130,7 +125,6 @@ void VATA::Util::TreeAutomata::T(int t) {
     aut2.omega_multiplication();
     *this = aut1 + aut2;
     this->semi_undeterminize();
-    determinize();
     minimize();
 }
 
@@ -149,7 +143,6 @@ void VATA::Util::TreeAutomata::Rx(int t) {
     *this = aut1 - aut2;
     divide_by_the_square_root_of_two();
     this->semi_undeterminize();
-    determinize();
     minimize();
 }
 
@@ -165,7 +158,6 @@ void VATA::Util::TreeAutomata::Ry(int t) {
     *this = aut1 + aut2 - aut3;
     divide_by_the_square_root_of_two();
     this->semi_undeterminize();
-    determinize();
     minimize();
 }
 
@@ -185,7 +177,6 @@ void VATA::Util::TreeAutomata::CNOT(int c, int t) {
     aut3.branch_restriction(c, true);
     *this = aut1 + aut2 + aut3;
     this->semi_undeterminize();
-    determinize();
     minimize();
 }
 
@@ -203,7 +194,6 @@ void VATA::Util::TreeAutomata::CZ(int c, int t) {
     aut4.branch_restriction(c, true);
     *this = aut1 + aut2 - aut3 - aut4;
     this->semi_undeterminize();
-    determinize();
     minimize();
 }
 
@@ -230,7 +220,6 @@ void VATA::Util::TreeAutomata::Toffoli(int c, int c2, int t) {
     aut5.branch_restriction(c, true);
     *this = aut1 + aut2 - aut3 + aut4 + aut5;
     this->semi_undeterminize();
-    determinize();
     minimize();
 }
 
@@ -261,6 +250,5 @@ void VATA::Util::TreeAutomata::Fredkin(int c, int t, int t2) {
     aut5.branch_restriction(c, true);
     *this = aut1 + aut2 - aut3 + aut4 + aut5;
     this->semi_undeterminize();
-    determinize();
     minimize();
 }

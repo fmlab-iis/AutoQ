@@ -111,7 +111,6 @@ private:
 
 public:
     void fraction_simplication();
-    void determinize();
     void minimize();
     void integer_multiplication(int m);
     void omega_multiplication();
