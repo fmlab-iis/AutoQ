@@ -388,7 +388,7 @@ void dfs(const std::map<VATA::Util::TreeAutomata::State, VATA::Util::TreeAutomat
 // Ref: https://quantumcomputing.stackexchange.com/questions/2177/how-can-i-implement-an-n-bit-toffoli-gate
 BOOST_AUTO_TEST_CASE(Grover_Search)
 {
-    int n = 3;
+    int n = 4;
     assert(n >= 2);
     auto aut = VATA::Util::TreeAutomata::classical_zero_one_zero(n);
 
@@ -422,13 +422,17 @@ BOOST_AUTO_TEST_CASE(Grover_Search)
         for (int i=n+1; i<=2*n; i++) aut.X(i);
         /* multi-controlled Z gate */
         if (n >= 3) {
-            aut.Toffoli(n+1, n+2, 2*n+1);
+            aut.Toffoli(n+1, n+2, 2*n+2);
             for (int i=3; i<n; i++) // Note that < does not include n!
-                aut.Toffoli(n+i, 2*n+i-2, 2*n+i-1);
-            aut.CZ(3*n-2, 2*n);
+                aut.Toffoli(n+i, 2*n+i-1, 2*n+i);
+            aut.CZ(3*n-1, 2*n);
             for (int i=n-1; i>=3; i--)
-                aut.Toffoli(n+i, 2*n+i-2, 2*n+i-1);
-            aut.Toffoli(n+1, n+2, 2*n+1);
+                aut.Toffoli(n+i, 2*n+i-1, 2*n+i);
+            aut.Toffoli(n+1, n+2, 2*n+2);
+        // } else if (n == 3) {
+        //     aut.H(2*n);
+        //     aut.Toffoli(4, 5, 6);
+        //     aut.H(2*n);
         } else {
             assert(n == 2);
             aut.CZ(3, 4);
@@ -468,7 +472,7 @@ BOOST_AUTO_TEST_CASE(Grover_Search)
     for (const auto &fl : first_layers) {
         std::vector<float> prob;
         dfs(edge, leaf, fl, prob);
-        std::cout << VATA::Util::Convert::ToString(prob) << "\n";
+        // std::cout << VATA::Util::Convert::ToString(prob) << "\n";
         unsigned ans = -1, two_2n = 1;
         for (int j=0; j<2*n - (n==2); j++)
             two_2n *= 2; // 2 ^ (2n)
@@ -498,7 +502,11 @@ BOOST_AUTO_TEST_CASE(Grover_Search)
         }
         for (unsigned i=0; i<nonzero.size(); i+=2) {
             BOOST_REQUIRE_MESSAGE(nonzero[i] >= nonzero[i+1] && nonzero[i] <= nonzero[i+1], ""); /* in fact check = (make the compiler not complain) */
-            BOOST_REQUIRE_MESSAGE(nonzero[i] <= nonzero[ans*2], "");
+            if (i == ans*2)
+                BOOST_REQUIRE_MESSAGE(nonzero[ans*2] * 2 >= 0.9, "");
+            else
+                BOOST_REQUIRE_MESSAGE(nonzero[i] < nonzero[ans*2], "");
+                
         }
         BOOST_REQUIRE_MESSAGE(!ans_found[ans], "");
         ans_found[ans] = true;
