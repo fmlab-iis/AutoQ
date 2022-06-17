@@ -74,7 +74,6 @@ bool check_equal_aut(VATA::Util::TreeAutomata lhs, VATA::Util::TreeAutomata rhs)
 BOOST_AUTO_TEST_CASE(X_gate_twice_to_identity)
 {
     int n = size;
-    VATA::Serialization::TimbukSerializer serializer;
     for (const auto &before : {VATA::Util::TreeAutomata::uniform(n),
                                VATA::Util::TreeAutomata::classical(n),
                                VATA::Util::TreeAutomata::random(n)}) {
@@ -99,7 +98,6 @@ BOOST_AUTO_TEST_CASE(X_gate_twice_to_identity)
 BOOST_AUTO_TEST_CASE(Y_gate_twice_to_identity)
 {
     int n = size;
-    VATA::Serialization::TimbukSerializer serializer;
     for (const auto &before : {VATA::Util::TreeAutomata::uniform(n), VATA::Util::TreeAutomata::classical(n)}) {
         int loop = 2;
         for (auto t : {1, n/2+1, n}) {
@@ -120,7 +118,6 @@ BOOST_AUTO_TEST_CASE(Y_gate_twice_to_identity)
 
 BOOST_AUTO_TEST_CASE(Z_gate_twice_to_identity)
 {
-    VATA::Serialization::TimbukSerializer serializer;
     for (const auto &before : {VATA::Util::TreeAutomata::uniform(size), VATA::Util::TreeAutomata::classical(size)}) {
         VATA::Util::TreeAutomata after = before;
         int loop = 2;
@@ -140,7 +137,6 @@ BOOST_AUTO_TEST_CASE(Z_gate_twice_to_identity)
 BOOST_AUTO_TEST_CASE(H_gate_twice_to_identity)
 {
     int n = size;
-    VATA::Serialization::TimbukSerializer serializer;
     for (const auto &before : {VATA::Util::TreeAutomata::uniform(n), VATA::Util::TreeAutomata::classical(n)}) {
         int loop = 2;
         for (auto t : {1, n/2+1, n}) {
@@ -161,7 +157,6 @@ BOOST_AUTO_TEST_CASE(H_gate_twice_to_identity)
 
 BOOST_AUTO_TEST_CASE(S_gate_fourth_to_identity)
 {
-    VATA::Serialization::TimbukSerializer serializer;
     for (const auto &before : {VATA::Util::TreeAutomata::uniform(size), VATA::Util::TreeAutomata::classical(size)}) {
         VATA::Util::TreeAutomata after = before;
         int loop = 4;
@@ -179,7 +174,6 @@ BOOST_AUTO_TEST_CASE(S_gate_fourth_to_identity)
 
 BOOST_AUTO_TEST_CASE(T_gate_eighth_to_identity)
 {
-    VATA::Serialization::TimbukSerializer serializer;
     for (const auto &before : {VATA::Util::TreeAutomata::uniform(size), VATA::Util::TreeAutomata::classical(size)}) {
         VATA::Util::TreeAutomata after = before;
         int loop = 8;
@@ -198,7 +192,6 @@ BOOST_AUTO_TEST_CASE(T_gate_eighth_to_identity)
 BOOST_AUTO_TEST_CASE(Rx_gate_eighth_to_identity)
 {
     int n = size;
-    VATA::Serialization::TimbukSerializer serializer;
     for (const auto &before : {VATA::Util::TreeAutomata::uniform(n), VATA::Util::TreeAutomata::classical(n)}) {
         int loop = 8;
         for (auto t : {1, n/2+1, n}) {
@@ -220,7 +213,6 @@ BOOST_AUTO_TEST_CASE(Rx_gate_eighth_to_identity)
 BOOST_AUTO_TEST_CASE(Ry_gate_eighth_to_identity)
 {
     int n = size;
-    VATA::Serialization::TimbukSerializer serializer;
     for (const auto &before : {VATA::Util::TreeAutomata::uniform(n), VATA::Util::TreeAutomata::classical(n)}) {
         int loop = 8;
         for (auto t : {1, n/2+1, n}) {
@@ -242,7 +234,6 @@ BOOST_AUTO_TEST_CASE(Ry_gate_eighth_to_identity)
 BOOST_AUTO_TEST_CASE(CNOT_gate_twice_to_identity)
 {
     int n = size;
-    VATA::Serialization::TimbukSerializer serializer;
     for (const auto &before : {VATA::Util::TreeAutomata::uniform(n),
                                VATA::Util::TreeAutomata::classical(n),
                                VATA::Util::TreeAutomata::random(n)}) {
@@ -263,7 +254,6 @@ BOOST_AUTO_TEST_CASE(CNOT_gate_twice_to_identity)
 
 BOOST_AUTO_TEST_CASE(CZ_gate_twice_to_identity)
 {
-    VATA::Serialization::TimbukSerializer serializer;
     for (const auto &before : {VATA::Util::TreeAutomata::uniform(size), VATA::Util::TreeAutomata::classical(size)}) {
         VATA::Util::TreeAutomata after = before;
         int loop = 2;
@@ -281,7 +271,6 @@ BOOST_AUTO_TEST_CASE(CZ_gate_twice_to_identity)
 
 BOOST_AUTO_TEST_CASE(Toffoli_gate_twice_to_identity)
 {
-    VATA::Serialization::TimbukSerializer serializer;
     for (const auto &before : {VATA::Util::TreeAutomata::uniform(3),
                                VATA::Util::TreeAutomata::classical(3),
                                VATA::Util::TreeAutomata::random(3)}) {
@@ -305,7 +294,6 @@ BOOST_AUTO_TEST_CASE(Toffoli_gate_twice_to_identity)
 
 BOOST_AUTO_TEST_CASE(Fredkin_gate_twice_to_identity)
 {
-    VATA::Serialization::TimbukSerializer serializer;
     for (const auto &before : {VATA::Util::TreeAutomata::uniform(3),
                                VATA::Util::TreeAutomata::classical(3),
                                VATA::Util::TreeAutomata::random(3)}) {
@@ -329,7 +317,6 @@ BOOST_AUTO_TEST_CASE(Fredkin_gate_twice_to_identity)
 BOOST_AUTO_TEST_CASE(Bernstein_Vazirani)
 {
     int n = size;
-    VATA::Serialization::TimbukSerializer serializer;
     auto aut = VATA::Util::TreeAutomata::zero(n+1);
 
     for (int i=1; i<=n+1; i++) {

@@ -104,7 +104,6 @@ public:   // methods
 
 private:
     void remove_useless();
-    bool is_same_partition(const std::vector<int> &state_to_partition_id, State a, State b);
     TreeAutomata binary_operation(const TreeAutomata &o, bool add);
     void swap_forward(const int k);
     void swap_backward(const int k);

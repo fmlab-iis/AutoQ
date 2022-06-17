@@ -29,58 +29,6 @@ int findIndex(const std::vector<T> &arr, T item) {
     std::__throw_out_of_range("findIndex");
 }
 
-bool VATA::Util::TreeAutomata::is_same_partition(const std::vector<int> &state_to_partition_id, State a, State b) {
-    assert (state_to_partition_id[a] == state_to_partition_id[b]);
-    for (const auto &f : transitions) { // for all functions
-        int arity = f.second.begin()->first.size();
-        if (arity < 1) continue; // no test if arity == 0
-        StateVector sv(arity, 0); // declare the input states
-        bool overflow;
-        do {
-            for (int i=0; i<arity; i++) {
-                sv[i] = a;
-                int resultA, resultB;
-                try {
-                    assert(transitions.at(f.first).at(sv).size() == 1);
-                    resultA = state_to_partition_id[*(transitions.at(f.first).at(sv).begin())];
-                } catch (...) { // must use .at in order to trigger exceptions if out of bound
-                    resultA = -1;
-                }
-                sv[i] = b;
-                try {
-                    assert(transitions.at(f.first).at(sv).size() == 1);
-                    resultB = state_to_partition_id[*(transitions.at(f.first).at(sv).begin())];
-                } catch (...) { // must use .at in order to trigger exceptions if out of bound
-                    resultB = -1;
-                }
-                if (resultA != resultB) return false;
-                if (i+1 < arity)
-                    std::swap(sv[i], sv[i+1]);
-            }
-            for (int i=0; i<arity-1; i++) {
-              std::swap(sv[i], sv[i+1]);
-            }
-
-            overflow = (arity == 1);
-            if (!overflow) { // arity > 1
-                sv[1]++;
-                for (int i=1; i<arity; i++) {
-                    if (sv[i] == stateNum) {
-                        if (i == arity - 1) {
-                            overflow = true;
-                            break;
-                        } else {
-                            sv[i] = 0;
-                            sv[i+1]++;
-                        }
-                    } else break;
-                }
-            }
-        } while (!overflow);
-    }
-    return true;
-}
-
 void VATA::Util::TreeAutomata::remove_useless() {
     bool changed;
     std::vector<bool> traversed(stateNum, false);
@@ -648,8 +596,6 @@ VATA::Util::TreeAutomata VATA::Util::TreeAutomata::classical_zero_one_zero(int n
         aut.stateNum = 4*n + 3;
     }
 	aut.finalStates.insert(0);
-
-    // aut.minimize();
     return aut;
 }
 
