@@ -81,11 +81,6 @@ bool VATA::Util::TreeAutomata::is_same_partition(const std::vector<int> &state_t
     return true;
 }
 
-void VATA::Util::TreeAutomata::minimize() {
-    remove_useless();
-    this->sim_reduce();
-}
-
 void VATA::Util::TreeAutomata::remove_useless() {
     bool changed;
     std::vector<bool> traversed(stateNum, false);
@@ -211,7 +206,7 @@ void VATA::Util::TreeAutomata::remove_useless() {
             finalStates_new.insert(it->second);
         }
         // We do not add the untouched final states here, since
-        // it could degrade the performance if sim_reduce() is disabled.
+        // it could severely degrade the performance (with or without sim_reduce()).
     }
     finalStates = finalStates_new;
     stateNum = stateOldToNew.size();
@@ -247,7 +242,7 @@ void VATA::Util::TreeAutomata::integer_multiplication(int m) {
         }
     }
     transitions = transitions_new;
-    minimize();
+    // DO NOT reduce here.
 }
 
 void VATA::Util::TreeAutomata::omega_multiplication() {
@@ -283,7 +278,7 @@ void VATA::Util::TreeAutomata::omega_multiplication() {
         }
     }
     transitions = transitions_new;
-    minimize();
+    // DO NOT reduce here.
 }
 
 void VATA::Util::TreeAutomata::divide_by_the_square_root_of_two() {
@@ -352,7 +347,7 @@ void VATA::Util::TreeAutomata::branch_restriction(int k, bool positive_has_value
             }
         }
     }
-    minimize();
+    remove_useless(); // otherwise, will out of memory
 }
 
 void VATA::Util::TreeAutomata::semi_determinize() {
@@ -372,7 +367,7 @@ void VATA::Util::TreeAutomata::semi_determinize() {
             }
         }
     }
-    minimize();
+    // DO NOT reduce here.
 }
 
 void VATA::Util::TreeAutomata::semi_undeterminize() {
@@ -386,7 +381,7 @@ void VATA::Util::TreeAutomata::semi_undeterminize() {
             }
         }
     }
-    minimize();
+    sim_reduce();
 }
 
 VATA::Util::TreeAutomata VATA::Util::TreeAutomata::binary_operation(const TreeAutomata &o, bool add) {
@@ -484,7 +479,7 @@ VATA::Util::TreeAutomata VATA::Util::TreeAutomata::binary_operation(const TreeAu
                     // result.transitions[in][{}].insert((*(it->second.begin()->second.begin())) * o.stateNum + (*(it2t->second.begin()->second.begin())));
         }
     }
-    result.minimize();
+    result.remove_useless(); // otherwise, will out of memory
     return result;
 }
 
@@ -512,7 +507,7 @@ VATA::Util::TreeAutomata VATA::Util::TreeAutomata::Union(const TreeAutomata &o) 
     for (const auto &s : o.finalStates) {
         result.finalStates.insert(s + this->stateNum);
     }
-    result.minimize();
+    result.sim_reduce();
     return result;
 }
 
@@ -720,7 +715,7 @@ void VATA::Util::TreeAutomata::swap_forward(const int k) {
                 }
             }
         }
-        minimize();
+        // DO NOT reduce here.
     }
 }
 
@@ -791,7 +786,7 @@ void VATA::Util::TreeAutomata::swap_backward(const int k) {
                 }
             }
         }
-        minimize();
+        // DO NOT reduce here.
     }
 }
 
@@ -819,8 +814,8 @@ void VATA::Util::TreeAutomata::value_restriction(int k, bool branch) {
     for (const auto &t : to_be_inserted) {
         transitions[t.first] = t.second;
     }
-    minimize();
     swap_backward(k);
+    sim_reduce();
 }
 
 void VATA::Util::TreeAutomata::fraction_simplication() {

@@ -73,7 +73,7 @@ bool check_equal_aut(VATA::Util::TreeAutomata lhs, VATA::Util::TreeAutomata rhs)
 
 BOOST_AUTO_TEST_CASE(X_gate_twice_to_identity)
 {
-    int n = size/2 + 1;
+    int n = size;
     VATA::Serialization::TimbukSerializer serializer;
     for (const auto &before : {VATA::Util::TreeAutomata::uniform(n),
                                VATA::Util::TreeAutomata::classical(n),
@@ -98,7 +98,7 @@ BOOST_AUTO_TEST_CASE(X_gate_twice_to_identity)
 
 BOOST_AUTO_TEST_CASE(Y_gate_twice_to_identity)
 {
-    int n = size/2 + 1;
+    int n = size;
     VATA::Serialization::TimbukSerializer serializer;
     for (const auto &before : {VATA::Util::TreeAutomata::uniform(n), VATA::Util::TreeAutomata::classical(n)}) {
         int loop = 2;
@@ -139,7 +139,7 @@ BOOST_AUTO_TEST_CASE(Z_gate_twice_to_identity)
 
 BOOST_AUTO_TEST_CASE(H_gate_twice_to_identity)
 {
-    int n = size/2 + 1;
+    int n = size;
     VATA::Serialization::TimbukSerializer serializer;
     for (const auto &before : {VATA::Util::TreeAutomata::uniform(n), VATA::Util::TreeAutomata::classical(n)}) {
         int loop = 2;
@@ -197,7 +197,7 @@ BOOST_AUTO_TEST_CASE(T_gate_eighth_to_identity)
 
 BOOST_AUTO_TEST_CASE(Rx_gate_eighth_to_identity)
 {
-    int n = size/2 + 1;
+    int n = size;
     VATA::Serialization::TimbukSerializer serializer;
     for (const auto &before : {VATA::Util::TreeAutomata::uniform(n), VATA::Util::TreeAutomata::classical(n)}) {
         int loop = 8;
@@ -219,7 +219,7 @@ BOOST_AUTO_TEST_CASE(Rx_gate_eighth_to_identity)
 
 BOOST_AUTO_TEST_CASE(Ry_gate_eighth_to_identity)
 {
-    int n = size/2 + 1;
+    int n = size;
     VATA::Serialization::TimbukSerializer serializer;
     for (const auto &before : {VATA::Util::TreeAutomata::uniform(n), VATA::Util::TreeAutomata::classical(n)}) {
         int loop = 8;
@@ -241,7 +241,7 @@ BOOST_AUTO_TEST_CASE(Ry_gate_eighth_to_identity)
 
 BOOST_AUTO_TEST_CASE(CNOT_gate_twice_to_identity)
 {
-    int n = size/2 + 1;
+    int n = size;
     VATA::Serialization::TimbukSerializer serializer;
     for (const auto &before : {VATA::Util::TreeAutomata::uniform(n),
                                VATA::Util::TreeAutomata::classical(n),
@@ -328,7 +328,7 @@ BOOST_AUTO_TEST_CASE(Fredkin_gate_twice_to_identity)
 
 BOOST_AUTO_TEST_CASE(Bernstein_Vazirani)
 {
-    int n = 4; // 5 is also OK!
+    int n = size;
     VATA::Serialization::TimbukSerializer serializer;
     auto aut = VATA::Util::TreeAutomata::zero(n+1);
 
@@ -388,7 +388,7 @@ void dfs(const std::map<VATA::Util::TreeAutomata::State, VATA::Util::TreeAutomat
 // Ref: https://quantumcomputing.stackexchange.com/questions/2177/how-can-i-implement-an-n-bit-toffoli-gate
 BOOST_AUTO_TEST_CASE(Grover_Search)
 {
-    int n = 4;
+    int n = size - 1; // a little bit faster
     assert(n >= 2);
     auto aut = VATA::Util::TreeAutomata::classical_zero_one_zero(n);
 

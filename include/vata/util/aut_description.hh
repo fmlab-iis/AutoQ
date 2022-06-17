@@ -111,7 +111,6 @@ private:
 
 public:
     void fraction_simplication();
-    void minimize();
     void integer_multiplication(int m);
     void omega_multiplication();
     void divide_by_the_square_root_of_two();
