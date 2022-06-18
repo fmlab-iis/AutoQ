@@ -110,7 +110,6 @@ private:
 
 public:
     void fraction_simplication();
-    void integer_multiplication(int m);
     void omega_multiplication();
     void divide_by_the_square_root_of_two();
     void branch_restriction(int k, bool positive_has_value=true);
