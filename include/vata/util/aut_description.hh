@@ -48,7 +48,7 @@ public:   // data types
 
 public:   // data members
 		std::string name;
-    StateSet finalStates;
+    StateVector finalStates;
     int stateNum, qubitNum;
 	TransitionMap transitions;
 

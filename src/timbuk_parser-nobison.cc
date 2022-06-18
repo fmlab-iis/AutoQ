@@ -234,7 +234,7 @@ static TreeAutomata parse_timbuk(const std::string& str)
 					auto state_num = parse_colonned_token(state);
 					// result.finalStates.insert(state_num.first);
                     /****************************************************************************/
-                    result.finalStates.insert(atoi(state_num.first.c_str())); //result.stateNum.TranslateFwd(state_num.first));
+                    result.finalStates.push_back(atoi(state_num.first.c_str())); //result.stateNum.TranslateFwd(state_num.first));
                     /****************************************************************************/
 				}
 			}

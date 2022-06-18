@@ -21,7 +21,7 @@
 #include <boost/test/unit_test.hpp>
 
 std::string gpath_to_VATA = "";
-int size = 5; // the number of qubits.
+int size = 7; // the number of qubits.
 
 /** returns the path to VATA executable */
 const std::string& get_vata_path()
@@ -336,7 +336,7 @@ BOOST_AUTO_TEST_CASE(Bernstein_Vazirani)
     ans.name = "Bernstein-Vazirani";
     ans.qubitNum = n+1;
     assert(ans.qubitNum >= 2);
-    ans.finalStates.insert(0);
+    ans.finalStates.push_back(0);
     for (int level=1; level<ans.qubitNum; level++) { /* Note that < does not include ans.qubitNum! */
         if (level >= 2)
             ans.transitions[{level}][{2*level - 1, 2*level - 1}] = {2*level - 3};
@@ -375,7 +375,7 @@ void dfs(const std::map<VATA::Util::TreeAutomata::State, VATA::Util::TreeAutomat
 // Ref: https://quantumcomputing.stackexchange.com/questions/2177/how-can-i-implement-an-n-bit-toffoli-gate
 BOOST_AUTO_TEST_CASE(Grover_Search)
 {
-    int n = size - 1; // a little bit faster
+    int n = 4; // currently affordable size
     assert(n >= 2);
     auto aut = VATA::Util::TreeAutomata::classical_zero_one_zero(n);
 
@@ -469,7 +469,7 @@ BOOST_AUTO_TEST_CASE(Grover_Search)
                 break;
             }
         }
-        assert(0 <= ans && ans < n);
+
         std::vector<float> nonzero;
         for (unsigned i=0; i<prob.size(); i++) {
             if (i / two_2n != ans) {

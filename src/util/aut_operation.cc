@@ -147,14 +147,15 @@ void VATA::Util::TreeAutomata::remove_useless() {
         }
     }
     transitions = transitions_new;
-    StateSet finalStates_new;
+    StateVector finalStates_new; // TODO: Can we set the initial capacity?
+    finalStates_new.reserve(finalStates.size());
     for (const auto &s : finalStates) {
         auto it = stateOldToNew.find(s);
         if (it != stateOldToNew.end()) {
-            finalStates_new.insert(it->second);
+            finalStates_new.push_back(it->second);
         }
         // We do not add the untouched final states here, since
-        // it could severely degrade the performance (with or without sim_reduce()).
+        // it could severely degrade the performance (either with or without sim_reduce()).
     }
     finalStates = finalStates_new;
     stateNum = stateOldToNew.size();
@@ -337,10 +338,11 @@ VATA::Util::TreeAutomata VATA::Util::TreeAutomata::binary_operation(const TreeAu
     result.name = name;
     result.qubitNum = qubitNum;
     result.stateNum = stateNum * o.stateNum;
+    result.finalStates.reserve(finalStates.size() * o.finalStates.size()); // TODO: Can we set the initial capacity?
 
     for (const auto &fs1 : finalStates)
         for (const auto &fs2 : o.finalStates) {
-            result.finalStates.insert(fs1 * o.stateNum + fs2);
+            result.finalStates.push_back(fs1 * o.stateNum + fs2);
         }
 
     // We assume here transitions are ordered by symbols.
@@ -452,8 +454,9 @@ VATA::Util::TreeAutomata VATA::Util::TreeAutomata::Union(const TreeAutomata &o) 
             }
         }
     }
+    result.finalStates.reserve(finalStates.size() + o.finalStates.size()); // TODO: Can we set the initial capacity?
     for (const auto &s : o.finalStates) {
-        result.finalStates.insert(s + this->stateNum);
+        result.finalStates.push_back(s + this->stateNum);
     }
     result.sim_reduce();
     return result;
@@ -476,7 +479,7 @@ VATA::Util::TreeAutomata VATA::Util::TreeAutomata::uniform(int n) {
         pow_of_two *= 2;
     }
     aut.transitions[{1,0,0,0,n}][{}] = {pow_of_two-1};
-  aut.finalStates.insert(0);
+    aut.finalStates.push_back(0);
     aut.stateNum = pow_of_two;
 
     // aut.minimize();
@@ -496,7 +499,7 @@ VATA::Util::TreeAutomata VATA::Util::TreeAutomata::classical(int n) {
     }
     aut.transitions[{1,0,0,0,0}][{}] = {2*n};
     aut.transitions[{0,0,0,0,0}][{}] = {2*n - 1};
-  aut.finalStates.insert(0);
+    aut.finalStates.push_back(0);
     aut.stateNum = 2*n + 1;
 
     // aut.minimize();
@@ -519,7 +522,7 @@ VATA::Util::TreeAutomata VATA::Util::TreeAutomata::random(int n) {
     for (int i=state_counter; i<=state_counter*2; i++) {
         aut.transitions[{rand()%5, rand()%5, rand()%5, rand()%5, 0}][{}].insert(i);
     }
-  aut.finalStates.insert(0);
+    aut.finalStates.push_back(0);
     aut.stateNum = state_counter*2 + 1;
 
     // aut.minimize();
@@ -547,7 +550,7 @@ VATA::Util::TreeAutomata VATA::Util::TreeAutomata::zero(int n) {
     TreeAutomata aut;
     aut.name = "Zero";
     aut.qubitNum = n;
-    aut.finalStates.insert(0);
+    aut.finalStates.push_back(0);
     aut.transitions[{1}][{2,1}] = {0};
     for (int level=2; level<=n; level++) {
         aut.transitions[{level}][{level*2-1, level*2-1}] = {level*2-3};
@@ -595,7 +598,7 @@ VATA::Util::TreeAutomata VATA::Util::TreeAutomata::classical_zero_one_zero(int n
         aut.transitions[{0,0,0,0,0}][{}] = {4*n + 1};
         aut.stateNum = 4*n + 3;
     }
-	aut.finalStates.insert(0);
+	aut.finalStates.push_back(0);
     return aut;
 }
 
@@ -1008,11 +1011,12 @@ namespace {
   template <class Index>
   void reindex_aut_states(TreeAutomata& aut, Index& index)
   {
-    StateSet newFinal;
+    StateVector newFinal;
     TransitionMap newTrans;
 
+    newFinal.reserve(aut.finalStates.size()); // TODO: Can we set the initial capacity?
     for (const State& state : aut.finalStates) {
-      newFinal.insert(index.at(state));
+        newFinal.push_back(index.at(state));
     }
 
     // Iterate through all transitions and add reindex everything
