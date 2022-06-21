@@ -42,8 +42,8 @@ void VATA::Util::TreeAutomata::H(int t) {
     aut1.value_restriction(t, false);
     TreeAutomata aut2 = *this;
     aut2.value_restriction(t, true);
-    TreeAutomata aut3 = aut2;
     aut2.branch_restriction(t, false);
+    TreeAutomata aut3 = *this;
     aut3.branch_restriction(t, true);
     *this = aut1 + aut2 - aut3;
     divide_by_the_square_root_of_two();
@@ -95,9 +95,9 @@ void VATA::Util::TreeAutomata::Ry(int t) {
     TreeAutomata aut1 = *this;
     aut1.value_restriction(t, false);
     TreeAutomata aut2 = *this;
-    aut2.value_restriction(t, true);
-    TreeAutomata aut3 = aut2;
     aut2.branch_restriction(t, true);
+    TreeAutomata aut3 = *this;
+    aut3.value_restriction(t, true);
     aut3.branch_restriction(t, false);
     *this = aut1 + aut2 - aut3;
     divide_by_the_square_root_of_two();
@@ -110,14 +110,12 @@ void VATA::Util::TreeAutomata::CNOT(int c, int t) {
     TreeAutomata aut1 = *this;
     aut1.branch_restriction(c, false);
     TreeAutomata aut2 = *this;
-    aut2.value_restriction(c, true);
+    aut2.branch_restriction(c, true);
     TreeAutomata aut3 = aut2;
     aut2.value_restriction(t, false);
     aut2.branch_restriction(t, true);
-    aut2.branch_restriction(c, true);
     aut3.value_restriction(t, true);
     aut3.branch_restriction(t, false);
-    aut3.branch_restriction(c, true);
     *this = aut1 + aut2 + aut3;
     this->semi_undeterminize();
 }
@@ -148,17 +146,13 @@ void VATA::Util::TreeAutomata::Toffoli(int c, int c2, int t) {
     TreeAutomata aut3 = aut2;
     aut3.branch_restriction(c, false);
     TreeAutomata aut4 = *this;
-    aut4.value_restriction(c, true);
-    aut4.value_restriction(c2, true);
+    aut4.branch_restriction(c, true);
+    aut4.branch_restriction(c2, true);
     TreeAutomata aut5 = aut4;
     aut4.value_restriction(t, false);
     aut4.branch_restriction(t, true);
-    aut4.branch_restriction(c2, true);
-    aut4.branch_restriction(c, true);
     aut5.value_restriction(t, true);
     aut5.branch_restriction(t, false);
-    aut5.branch_restriction(c2, true);
-    aut5.branch_restriction(c, true);
     *this = aut1 + aut2 - aut3 + aut4 + aut5;
     this->semi_undeterminize();
 }
@@ -171,23 +165,20 @@ void VATA::Util::TreeAutomata::Fredkin(int c, int t, int t2) {
     TreeAutomata aut2 = *this;
     aut2.branch_restriction(c, true);
     TreeAutomata aut3 = aut2;
+    TreeAutomata aut4 = aut2;
+    TreeAutomata aut5 = aut2;
     aut2.branch_restriction(t, true);
     aut2.branch_restriction(t2, true);
     aut3.branch_restriction(t, false);
     aut3.branch_restriction(t2, false);
-    TreeAutomata aut4 = *this;
-    aut4.value_restriction(c, true);
-    TreeAutomata aut5 = aut4;
     aut4.value_restriction(t, false);
     aut4.value_restriction(t2, true);
     aut4.branch_restriction(t2, false);
     aut4.branch_restriction(t, true);
-    aut4.branch_restriction(c, true);
     aut5.value_restriction(t, true);
     aut5.value_restriction(t2, false);
     aut5.branch_restriction(t2, true);
     aut5.branch_restriction(t, false);
-    aut5.branch_restriction(c, true);
-    *this = aut1 + aut2 - aut3 + aut4 + aut5;
+    *this = aut1 + aut2 + aut3 + aut4 + aut5;
     this->semi_undeterminize();
 }
