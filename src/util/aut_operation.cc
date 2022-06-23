@@ -20,14 +20,232 @@ using DiscontBinaryRelOnStates= DiscontBinaryRelation<State>;
 using StateToIndexMap         = std::unordered_map<State, size_t>;
 using StateToIndexTranslWeak  = Util::TranslatorWeak<StateToIndexMap>;
 
-template <class T>
-int findIndex(const std::vector<T> &arr, T item) {
-    for (int i = 0; i < static_cast<int>(arr.size()); ++i) {
-        if (arr[i] == item)
-            return i;
+namespace {
+
+  /**
+   * @brief  Combine two hash values
+   *
+   * Values taken from
+   * http://www.boost.org/doc/libs/1_64_0/boost/functional/hash/hash.hpp
+   *
+   * TODO: fix to be more suitable for 64b
+   */
+  template <class T>
+  inline size_t hash_combine(size_t lhs, const T& rhs)
+  {
+    size_t rhs_hash = std::hash<T>{}(rhs);
+    lhs ^= rhs_hash + 0x9e3779b9 + (lhs<<6) + (lhs>>2);
+    return lhs;
+  }
+
+  /**
+   * @brief  Hashes a range
+   *
+   * Inspired by
+   * http://www.boost.org/doc/libs/1_64_0/boost/functional/hash/hash.hpp
+   */
+  template <typename It>
+  size_t hash_range(It first, It last)
+  {
+    size_t accum = 0;
+    for (; first != last; ++first) {
+      accum = hash_combine(accum, *first);
     }
-    std::__throw_out_of_range("findIndex");
-}
+
+    return accum;
+  }
+} // anonymous namespace
+
+namespace std
+{
+  /**
+   * @brief  A hasher for vectors
+   */
+  template <class A>
+  struct hash<std::vector<A>>
+  {
+    inline size_t operator()(const std::vector<A>& cont) const
+    {
+      return hash_range(cont.begin(), cont.end());
+    }
+  };
+} // namespace std
+
+
+namespace { // anonymous namespace
+
+  template <class Index>
+  ExplicitLTS translate_to_lts_downward(
+    const TreeAutomata& aut,
+    size_t              numStates,
+    Index&              stateIndex)
+  {
+    std::unordered_map<Symbol, size_t> symbolMap;
+    std::unordered_map<const StateVector*, size_t> lhsMap;
+
+    size_t symbolCnt = 0;
+    Util::TranslatorWeak2<std::unordered_map<Symbol, size_t>>
+      symbolTranslator(symbolMap, [&symbolCnt](const Symbol&){ return symbolCnt++; });
+
+    size_t lhsCnt = numStates;
+    Util::TranslatorWeak2<std::unordered_map<const StateVector*, size_t>>
+      lhsTranslator(lhsMap, [&lhsCnt](const StateVector*){ return lhsCnt++; });
+
+    ExplicitLTS result(numStates);
+
+    // start with getting translation for final states
+    for (const State& finState : aut.finalStates) {
+      stateIndex[finState];
+    }
+
+    // Iterate through all transitions and adds them to the LTS.
+    for (const auto& symMap : aut.transitions) {
+      const auto& symbolName = symbolTranslator(symMap.first);
+
+      for (const auto& vecSet : symMap.second) {
+        const auto& tuple = vecSet.first;
+
+        for (const auto& parent : vecSet.second) {
+          const auto& parentName = stateIndex[parent];
+
+          size_t dest;
+          if (1 == tuple.size())
+          { // a(p) -> q ... inline lhs of size 1 >:-)
+            dest = stateIndex[tuple.front()];
+            assert(dest < numStates);
+          } else
+          { // a(p,r) -> q
+            dest = lhsTranslator(&tuple);
+          }
+
+          result.addTransition(parentName, symbolName, dest);
+        }
+      }
+    }
+
+    for (auto& tupleIndexPair : lhsMap)
+    {	// for n-ary transition (n > 1), decompose the hyperedge into n ordinary
+      // edges
+      assert(tupleIndexPair.first);
+
+      size_t i = 0;
+      for (auto& state : *tupleIndexPair.first) {
+        size_t dest = stateIndex[state];
+        assert(dest < numStates);
+
+        result.addTransition(tupleIndexPair.second, symbolMap.size() + i, dest);
+        ++i;
+      }
+    }
+
+    result.init();
+
+    return result;
+  }
+
+  size_t count_aut_states(const VATA::Util::TreeAutomata& aut)
+  {
+    std::set<State> states;
+    for (const auto& state : aut.finalStates) {
+      states.insert(state);
+    }
+
+    for (const auto& symMap : aut.transitions) {
+      for (const auto& vecSet : symMap.second) {
+        states.insert(vecSet.second.begin(), vecSet.second.end());
+        for (const auto& child : vecSet.first) {
+          states.insert(child);
+        }
+      }
+    }
+
+    return states.size();
+  }
+
+  DiscontBinaryRelOnStates compute_down_sim(const VATA::Util::TreeAutomata& aut)
+  {
+    StateToIndexMap translMap;
+    size_t stateCnt = 0;
+    StateToIndexTranslWeak transl(translMap,
+        [&stateCnt](const State&) {return stateCnt++;});
+
+    size_t num_states = count_aut_states(aut);
+    ExplicitLTS lts = translate_to_lts_downward(aut, num_states, transl);
+    BinaryRelation ltsSim = lts.computeSimulation(num_states);
+    return DiscontBinaryRelOnStates(ltsSim, translMap);
+  }
+
+  template <class Index>
+  void reindex_aut_states(TreeAutomata& aut, Index& index)
+  {
+    StateVector newFinal;
+    TransitionMap newTrans;
+
+    newFinal.reserve(aut.finalStates.size()); // TODO: Can we set the initial capacity?
+    for (const State& state : aut.finalStates) {
+        newFinal.push_back(index.at(state));
+    }
+
+    // Iterate through all transitions and add reindex everything
+    for (const auto& symMap : aut.transitions) {
+      const auto& symbol = symMap.first;
+
+      std::map<StateVector, StateSet> newMap;
+
+      for (const auto& vecSet : symMap.second) {
+        const auto& tuple = vecSet.first;
+        StateVector newTuple;
+        for (const auto& child : tuple) {
+          newTuple.push_back(index[child]);
+        }
+
+        StateSet newSet;
+        for (const auto& parent : vecSet.second) {
+          newSet.insert(index[parent]);
+        }
+
+        auto itBoolPair = newMap.insert({newTuple, newSet});
+        if (!itBoolPair.second) { // there is already something
+            StateSet& ss = itBoolPair.first->second;
+            ss.insert(newSet.begin(), newSet.end());
+        }
+      }
+
+      newTrans.insert({symbol, newMap});
+    }
+
+    aut.finalStates = newFinal;
+    aut.transitions = newTrans;
+  }
+
+  template <class T>
+  int findIndex(const std::vector<T> &arr, T item) {
+      for (int i = 0; i < static_cast<int>(arr.size()); ++i) {
+          if (arr[i] == item)
+              return i;
+      }
+      std::__throw_out_of_range("findIndex");
+  }
+
+  /// Checks that a state is at most once on the right-hand (parent) side of
+  /// any rule.
+  bool aut_is_single_occurrence(const TreeAutomata& aut)
+  {
+    std::set<State> occurrences;
+    for (auto symbMapPair : aut.transitions) {
+      for (auto vecSetPair : symbMapPair.second) {
+        for (auto state : vecSetPair.second) {
+          auto itBoolPair = occurrences.insert(state);
+          if (!itBoolPair.second) { return false; }
+        }
+      }
+    }
+
+    return true;
+  }
+
+} // anonymous namespace
+
 
 void VATA::Util::TreeAutomata::remove_useless() {
     bool changed;
@@ -293,7 +511,7 @@ void VATA::Util::TreeAutomata::semi_undeterminize() {
             }
         }
     }
-    sim_reduce();
+    this->sim_reduce();
 }
 
 VATA::Util::TreeAutomata VATA::Util::TreeAutomata::binary_operation(const TreeAutomata &o, bool add) {
@@ -670,7 +888,7 @@ void VATA::Util::TreeAutomata::value_restriction(int k, bool branch) {
         transitions[t.first] = t.second;
     }
     swap_backward(k);
-    sim_reduce();
+    this->sim_reduce();
 }
 
 void VATA::Util::TreeAutomata::fraction_simplication() {
@@ -713,38 +931,6 @@ void VATA::Util::TreeAutomata::fraction_simplication() {
 
 namespace
 { // anonymous namespace
-  /**
-   * @brief  Combine two hash values
-   *
-   * Values taken from
-   * http://www.boost.org/doc/libs/1_64_0/boost/functional/hash/hash.hpp
-   *
-   * TODO: fix to be more suitable for 64b
-   */
-  template <class T>
-  inline size_t hash_combine(size_t lhs, const T& rhs)
-  {
-    size_t rhs_hash = std::hash<T>{}(rhs);
-    lhs ^= rhs_hash + 0x9e3779b9 + (lhs<<6) + (lhs>>2);
-    return lhs;
-  }
-
-  /**
-   * @brief  Hashes a range
-   *
-   * Inspired by
-   * http://www.boost.org/doc/libs/1_64_0/boost/functional/hash/hash.hpp
-   */
-  template <typename It>
-  size_t hash_range(It first, It last)
-  {
-    size_t accum = 0;
-    for (; first != last; ++first) {
-      accum = hash_combine(accum, *first);
-    }
-
-    return accum;
-  }
 
   std::string gpath_to_VATA = "";
 
@@ -796,169 +982,6 @@ namespace
 //   }
 } // anonymous namespace
 
-namespace std
-{
-  /**
-   * @brief  A hasher for vectors
-   */
-  template <class A>
-  struct hash<std::vector<A>>
-  {
-    inline size_t operator()(const std::vector<A>& cont) const
-    {
-      return hash_range(cont.begin(), cont.end());
-    }
-  };
-} // namespace std
-
-namespace {
-
-  template <class Index>
-  ExplicitLTS translate_to_lts_downward(
-    const TreeAutomata& aut,
-    size_t              numStates,
-    Index&              stateIndex)
-  {
-    std::unordered_map<Symbol, size_t> symbolMap;
-    std::unordered_map<const StateVector*, size_t> lhsMap;
-
-    size_t symbolCnt = 0;
-    Util::TranslatorWeak2<std::unordered_map<Symbol, size_t>>
-      symbolTranslator(symbolMap, [&symbolCnt](const Symbol&){ return symbolCnt++; });
-
-    size_t lhsCnt = numStates;
-    Util::TranslatorWeak2<std::unordered_map<const StateVector*, size_t>>
-      lhsTranslator(lhsMap, [&lhsCnt](const StateVector*){ return lhsCnt++; });
-
-    ExplicitLTS result(numStates);
-
-    // start with getting translation for final states
-    for (const State& finState : aut.finalStates) {
-      stateIndex[finState];
-    }
-
-    // Iterate through all transitions and adds them to the LTS.
-    for (const auto& symMap : aut.transitions) {
-      const auto& symbolName = symbolTranslator(symMap.first);
-
-      for (const auto& vecSet : symMap.second) {
-        const auto& tuple = vecSet.first;
-
-        for (const auto& parent : vecSet.second) {
-          const auto& parentName = stateIndex[parent];
-
-          size_t dest;
-          if (1 == tuple.size())
-          { // a(p) -> q ... inline lhs of size 1 >:-)
-            dest = stateIndex[tuple.front()];
-            assert(dest < numStates);
-          } else
-          { // a(p,r) -> q
-            dest = lhsTranslator(&tuple);
-          }
-
-          result.addTransition(parentName, symbolName, dest);
-        }
-      }
-    }
-
-    for (auto& tupleIndexPair : lhsMap)
-    {	// for n-ary transition (n > 1), decompose the hyperedge into n ordinary
-      // edges
-      assert(tupleIndexPair.first);
-
-      size_t i = 0;
-      for (auto& state : *tupleIndexPair.first) {
-        size_t dest = stateIndex[state];
-        assert(dest < numStates);
-
-        result.addTransition(tupleIndexPair.second, symbolMap.size() + i, dest);
-        ++i;
-      }
-    }
-
-    result.init();
-
-    return result;
-  }
-
-  size_t count_aut_states(const VATA::Util::TreeAutomata& aut)
-  {
-    std::set<State> states;
-    for (const auto& state : aut.finalStates) {
-      states.insert(state);
-    }
-
-    for (const auto& symMap : aut.transitions) {
-      for (const auto& vecSet : symMap.second) {
-        states.insert(vecSet.second.begin(), vecSet.second.end());
-        for (const auto& child : vecSet.first) {
-          states.insert(child);
-        }
-      }
-    }
-
-    return states.size();
-  }
-
-  DiscontBinaryRelOnStates compute_down_sim(const VATA::Util::TreeAutomata& aut)
-  {
-    StateToIndexMap translMap;
-    size_t stateCnt = 0;
-    StateToIndexTranslWeak transl(translMap,
-        [&stateCnt](const State&) {return stateCnt++;});
-
-    size_t num_states = count_aut_states(aut);
-    ExplicitLTS lts = translate_to_lts_downward(aut, num_states, transl);
-    BinaryRelation ltsSim = lts.computeSimulation(num_states);
-    return DiscontBinaryRelOnStates(ltsSim, translMap);
-  }
-
-  template <class Index>
-  void reindex_aut_states(TreeAutomata& aut, Index& index)
-  {
-    StateVector newFinal;
-    TransitionMap newTrans;
-
-    newFinal.reserve(aut.finalStates.size()); // TODO: Can we set the initial capacity?
-    for (const State& state : aut.finalStates) {
-        newFinal.push_back(index.at(state));
-    }
-
-    // Iterate through all transitions and add reindex everything
-    for (const auto& symMap : aut.transitions) {
-      const auto& symbol = symMap.first;
-
-      std::map<StateVector, StateSet> newMap;
-
-      for (const auto& vecSet : symMap.second) {
-        const auto& tuple = vecSet.first;
-        StateVector newTuple;
-        for (const auto& child : tuple) {
-          newTuple.push_back(index[child]);
-        }
-
-        StateSet newSet;
-        for (const auto& parent : vecSet.second) {
-          newSet.insert(index[parent]);
-        }
-
-        auto itBoolPair = newMap.insert({newTuple, newSet});
-        if (!itBoolPair.second) { // there is already something
-            StateSet& ss = itBoolPair.first->second;
-            ss.insert(newSet.begin(), newSet.end());
-        }
-      }
-
-      newTrans.insert({symbol, newMap});
-    }
-
-    aut.finalStates = newFinal;
-    aut.transitions = newTrans;
-  }
-
-} // anonymous namespace
-
 void VATA::Util::TreeAutomata::sim_reduce()
 {
   DiscontBinaryRelOnStates sim = compute_down_sim(*this);
@@ -981,6 +1004,44 @@ void VATA::Util::TreeAutomata::sim_reduce()
   //   VATA_DEBUG("simulation: " + sim.ToString());
   // }
 }
+
+
+bool VATA::Util::TreeAutomata::light_reduce()
+{
+  assert(aut_is_single_occurrence(*this));
+
+  bool changed = false;
+  StateToIndexMap index;
+  for (auto symbMapPair : this->transitions) {
+    for (auto vecSetPair : symbMapPair.second) {
+      if (vecSetPair.second.size() > 1) { changed = true; }
+      for (auto state : vecSetPair.second) {
+        index.insert({state, *vecSetPair.second.begin()});
+      }
+    }
+  }
+
+  // VATA_DEBUG("index: " + Convert::ToString(index));
+  if (changed) {
+    reindex_aut_states(*this, index);
+  }
+
+  return changed;
+}
+
+
+bool VATA::Util::TreeAutomata::light_reduce_iter()
+{
+  size_t iterations = 0;
+  bool changed = true;
+  while (changed) {
+    changed = this->light_reduce();
+    ++iterations;
+  }
+
+  return 1 == iterations;
+}
+
 
 void VATA::Util::TreeAutomata::print() {
     std::string result;
