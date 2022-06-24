@@ -511,7 +511,7 @@ void VATA::Util::TreeAutomata::semi_undeterminize() {
             }
         }
     }
-    this->sim_reduce();
+    this->reduce();
 }
 
 VATA::Util::TreeAutomata VATA::Util::TreeAutomata::binary_operation(const TreeAutomata &o, bool add) {
@@ -603,7 +603,7 @@ VATA::Util::TreeAutomata VATA::Util::TreeAutomata::Union(const TreeAutomata &o) 
     for (const auto &s : o.finalStates) {
         result.finalStates.push_back(s + this->stateNum);
     }
-    result.sim_reduce();
+    result.reduce();
     return result;
 }
 
@@ -908,7 +908,7 @@ void VATA::Util::TreeAutomata::value_restriction(int k, bool branch) {
         transitions[t.first] = t.second;
     }
     swap_backward(k);
-    this->sim_reduce();
+    this->reduce();
 }
 
 void VATA::Util::TreeAutomata::fraction_simplication() {
@@ -1060,6 +1060,13 @@ bool VATA::Util::TreeAutomata::light_reduce_iter()
   }
 
   return 1 == iterations;
+}
+
+
+void VATA::Util::TreeAutomata::reduce()
+{
+  // this->sim_reduce();
+  this->light_reduce_iter();
 }
 
 
