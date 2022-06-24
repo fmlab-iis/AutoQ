@@ -335,7 +335,7 @@ void VATA::Util::TreeAutomata::remove_useless() {
      * Part 3: Renumbering
      *********************/
     TransitionMap transitions_new;
-    std::map<int, int> stateOldToNew;
+    std::map<State, State> stateOldToNew;
     for (const auto &t : transitions) {
         for (const auto &in_out : t.second) {
             const auto &outs = in_out.second;
@@ -518,12 +518,24 @@ VATA::Util::TreeAutomata VATA::Util::TreeAutomata::binary_operation(const TreeAu
     TreeAutomata result;
     result.name = name;
     result.qubitNum = qubitNum;
-    result.stateNum = stateNum * o.stateNum;
-    result.finalStates.reserve(finalStates.size() * o.finalStates.size()); // TODO: Can we set the initial capacity?
+
+    std::map<std::pair<State, State>, State> stateOldToNew; // used only if overflow := true;
+    bool overflow = (static_cast<unsigned long long>(stateNum) * static_cast<unsigned long long>(o.stateNum) >= INT_MAX);
+    if (!overflow)
+        result.finalStates.reserve(finalStates.size() * o.finalStates.size()); // TODO: Can we set the initial capacity?
 
     for (const auto &fs1 : finalStates)
         for (const auto &fs2 : o.finalStates) {
-            result.finalStates.push_back(fs1 * o.stateNum + fs2);
+            int i;
+            if (overflow) {
+                auto it = stateOldToNew.find(std::make_pair(fs1, fs2));
+                if (it == stateOldToNew.end()) {
+                    i = stateOldToNew.size();
+                    stateOldToNew[std::make_pair(fs1, fs2)] = i;
+                }
+                else i = it->second;
+            } else i = fs1 * o.stateNum + fs2;
+            result.finalStates.push_back(i);
         }
 
     // We assume here transitions are ordered by symbols.
@@ -541,11 +553,37 @@ VATA::Util::TreeAutomata VATA::Util::TreeAutomata::binary_operation(const TreeAu
             for (auto itt2 = it2->second.begin(); itt2 != it2->second.end(); itt2++) {
                 StateVector sv;
                 StateSet ss;
-                sv.push_back(itt->first[0] * o.stateNum + itt2->first[0]);
-                sv.push_back(itt->first[1] * o.stateNum + itt2->first[1]);
+                int i;
+                if (overflow) {
+                    auto it = stateOldToNew.find(std::make_pair(itt->first[0], itt2->first[0]));
+                    if (it == stateOldToNew.end()) {
+                        i = stateOldToNew.size();
+                        stateOldToNew[std::make_pair(itt->first[0], itt2->first[0])] = i;
+                    }
+                    else i = it->second;
+                } else i = itt->first[0] * o.stateNum + itt2->first[0];
+                sv.push_back(i);
+                if (overflow) {
+                    auto it = stateOldToNew.find(std::make_pair(itt->first[1], itt2->first[1]));
+                    if (it == stateOldToNew.end()) {
+                        i = stateOldToNew.size();
+                        stateOldToNew[std::make_pair(itt->first[1], itt2->first[1])] = i;
+                    }
+                    else i = it->second;
+                } else i = itt->first[1] * o.stateNum + itt2->first[1];
+                sv.push_back(i);
                 for (const auto &s1 : itt->second) {
                     for (const auto &s2 : itt2->second) {
-                        ss.insert(s1 * o.stateNum + s2);
+                        int i;
+                        if (overflow) {
+                            auto it = stateOldToNew.find(std::make_pair(s1, s2));
+                            if (it == stateOldToNew.end()) {
+                                i = stateOldToNew.size();
+                                stateOldToNew[std::make_pair(s1, s2)] = i;
+                            }
+                            else i = it->second;
+                        } else i = s1 * o.stateNum + s2;
+                        ss.insert(i);
                     }
                 }
                 m.insert(make_pair(sv, ss));
@@ -570,10 +608,24 @@ VATA::Util::TreeAutomata VATA::Util::TreeAutomata::binary_operation(const TreeAu
             }
             in.push_back(it->first[4]); // remember to push k
             for (const auto &s1 : it->second.begin()->second)
-                for (const auto &s2 : it2t->second.begin()->second)
-                    result.transitions[in][{}].insert(s1 * o.stateNum + s2);
+                for (const auto &s2 : it2t->second.begin()->second) {
+                    int i;
+                    if (overflow) {
+                        auto it = stateOldToNew.find(std::make_pair(s1, s2));
+                        if (it == stateOldToNew.end()) {
+                            i = stateOldToNew.size();
+                            stateOldToNew[std::make_pair(s1, s2)] = i;
+                        }
+                        else i = it->second;
+                    } else i = s1 * o.stateNum + s2;
+                    result.transitions[in][{}].insert(i);
+                }
         }
     }
+    if (overflow)
+        result.stateNum = stateOldToNew.size();
+    else
+        result.stateNum = stateNum * o.stateNum;
     result.remove_useless(); // otherwise, will out of memory
     return result;
 }
