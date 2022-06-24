@@ -123,6 +123,12 @@ public:
 
     /// simulation-based reduction
     void sim_reduce();
+    /// lightweight size reduction, returns @p true iff the automaton changed
+    bool light_reduce();
+    /// lightweight size reduction, iterated until change happens, returns @p true iff the automaton changed
+    bool light_reduce_iter();
+    /// reduces the automaton using a prefered reduction
+    void reduce();
 
     void X(int t);
     void Y(int t);
