@@ -551,10 +551,20 @@ void VATA::Util::TreeAutomata::swap_forward(const int k) {
                         for (const auto &ssv2 : svsv[in_out.first[1]]) {
                             to_be_removed[ssv1.first][ssv1.second].insert(in_out.first[0]);
                             to_be_removed[ssv2.first][ssv2.second].insert(in_out.first[1]);
-                            to_be_inserted[t.first][{ssv1.second[0], ssv2.second[0]}].insert(stateNum++);
-                            to_be_inserted[t.first][{ssv1.second[1], ssv2.second[1]}].insert(stateNum++);
+                            if (to_be_inserted[t.first][{ssv1.second[0], ssv2.second[0]}].empty()) {
+                                if (transitions[t.first][{ssv1.second[0], ssv2.second[0]}].empty())
+                                    to_be_inserted[t.first][{ssv1.second[0], ssv2.second[0]}].insert(stateNum++);
+                                else
+                                    to_be_inserted[t.first][{ssv1.second[0], ssv2.second[0]}].insert(*(transitions[t.first][{ssv1.second[0], ssv2.second[0]}].begin()));
+                            }
+                            if (to_be_inserted[t.first][{ssv1.second[1], ssv2.second[1]}].empty()) {
+                                if (transitions[t.first][{ssv1.second[1], ssv2.second[1]}].empty())
+                                    to_be_inserted[t.first][{ssv1.second[1], ssv2.second[1]}].insert(stateNum++);
+                                else
+                                    to_be_inserted[t.first][{ssv1.second[1], ssv2.second[1]}].insert(*(transitions[t.first][{ssv1.second[1], ssv2.second[1]}].begin()));
+                            }
                             for (const auto &s : in_out.second)
-                                to_be_inserted[{next_k, ssv1.first[1], ssv2.first[1]}][{stateNum-2, stateNum-1}].insert(s);
+                                to_be_inserted[{next_k, ssv1.first[1], ssv2.first[1]}][{*(to_be_inserted[t.first][{ssv1.second[0], ssv2.second[0]}].begin()), *(to_be_inserted[t.first][{ssv1.second[1], ssv2.second[1]}].begin())}].insert(s);
                         }
                     }
                 }
@@ -610,11 +620,21 @@ void VATA::Util::TreeAutomata::swap_backward(const int k) {
                             if (ssv1.first == ssv2.first) {
                                 to_be_removed[ssv1.first][ssv1.second].insert(in_out.first[0]);
                                 to_be_removed[ssv2.first][ssv2.second].insert(in_out.first[1]);
-                                to_be_inserted[{t.first[0], t.first[1]}][{ssv1.second[0], ssv2.second[0]}].insert(stateNum++);
-                                to_be_inserted[{t.first[0], t.first[2]}][{ssv1.second[1], ssv2.second[1]}].insert(stateNum++);
+                                if (to_be_inserted[{t.first[0], t.first[1]}][{ssv1.second[0], ssv2.second[0]}].empty()) {
+                                    if (transitions[{t.first[0], t.first[1]}][{ssv1.second[0], ssv2.second[0]}].empty())
+                                        to_be_inserted[{t.first[0], t.first[1]}][{ssv1.second[0], ssv2.second[0]}].insert(stateNum++);
+                                    else
+                                        to_be_inserted[{t.first[0], t.first[1]}][{ssv1.second[0], ssv2.second[0]}].insert(*(transitions[{t.first[0], t.first[1]}][{ssv1.second[0], ssv2.second[0]}].begin()));
+                                }
+                                if (to_be_inserted[{t.first[0], t.first[2]}][{ssv1.second[1], ssv2.second[1]}].empty()) {
+                                    if (transitions[{t.first[0], t.first[2]}][{ssv1.second[1], ssv2.second[1]}].empty())
+                                        to_be_inserted[{t.first[0], t.first[2]}][{ssv1.second[1], ssv2.second[1]}].insert(stateNum++);
+                                    else
+                                        to_be_inserted[{t.first[0], t.first[2]}][{ssv1.second[1], ssv2.second[1]}].insert(*(transitions[{t.first[0], t.first[2]}][{ssv1.second[1], ssv2.second[1]}].begin()));
+                                }
                                 assert(k == ssv1.first[0]);
                                 for (const auto &s : in_out.second)
-                                    to_be_inserted[ssv1.first][{stateNum-2, stateNum-1}].insert(s);
+                                    to_be_inserted[ssv1.first][{*(to_be_inserted[{t.first[0], t.first[1]}][{ssv1.second[0], ssv2.second[0]}].begin()), *(to_be_inserted[{t.first[0], t.first[2]}][{ssv1.second[1], ssv2.second[1]}].begin())}].insert(s);
                             }
                         }
                     }
