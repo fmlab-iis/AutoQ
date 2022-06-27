@@ -412,14 +412,14 @@ void VATA::Util::TreeAutomata::omega_multiplication() {
 }
 
 void VATA::Util::TreeAutomata::divide_by_the_square_root_of_two() {
-    std::vector<StateVector> to_be_removed;
+    std::vector<Symbol> to_be_removed;
     TransitionMap to_be_inserted;
     for (const auto &t : transitions) {
         if (t.first.size() == 5) {
             to_be_removed.push_back(t.first);
-            StateVector sv = t.first;
-            sv[4]++;
-            to_be_inserted[sv] = t.second;
+            Symbol symbol = t.first;
+            symbol[4]++;
+            to_be_inserted[symbol] = t.second;
         }
     }
     for (const auto &t : to_be_removed)
@@ -430,7 +430,9 @@ void VATA::Util::TreeAutomata::divide_by_the_square_root_of_two() {
 }
 
 void VATA::Util::TreeAutomata::branch_restriction(int k, bool positive_has_value) {
-    int num_of_states = stateNum;
+    State num_of_states = stateNum;
+    if (stateNum > std::numeric_limits<State>::max() / 2)
+        throw std::overflow_error("");
     stateNum *= 2;
 
     TransitionMap transitions_copy = transitions;
@@ -485,15 +487,15 @@ void VATA::Util::TreeAutomata::semi_determinize() {
     for (const auto &t : transitions_copy) {
         if (t.first.size() == 1) { // x_i not determinized yet
             transitions.erase(t.first); // modify
-            int counter = 0;
-            StateVector sv;
-            sv.push_back(t.first[0]);
+            SymbolEntry counter = 0;
+            Symbol symbol;
+            symbol.push_back(t.first[0]);
             for (const auto &in_out : t.second) {
-                sv.push_back(counter++);
+                symbol.push_back(counter++);
                 std::map<StateVector, StateSet> value;
                 value.insert(in_out);
-                transitions.insert(std::make_pair(sv, value)); // modify
-                sv.pop_back();
+                transitions.insert(std::make_pair(symbol, value)); // modify
+                symbol.pop_back();
             }
         }
     }
@@ -520,13 +522,15 @@ VATA::Util::TreeAutomata VATA::Util::TreeAutomata::binary_operation(const TreeAu
     result.qubitNum = qubitNum;
 
     std::map<std::pair<State, State>, State> stateOldToNew; // used only if overflow := true;
-    bool overflow = (static_cast<unsigned long long>(stateNum) * static_cast<unsigned long long>(o.stateNum) >= INT_MAX);
+    bool overflow = (stateNum > std::numeric_limits<State>::max() / o.stateNum);
     if (!overflow)
         result.finalStates.reserve(finalStates.size() * o.finalStates.size()); // TODO: Can we set the initial capacity?
+    else
+        throw std::overflow_error("");
 
     for (const auto &fs1 : finalStates)
         for (const auto &fs2 : o.finalStates) {
-            int i;
+            State i;
             if (overflow) {
                 auto it = stateOldToNew.find(std::make_pair(fs1, fs2));
                 if (it == stateOldToNew.end()) {
@@ -553,7 +557,7 @@ VATA::Util::TreeAutomata VATA::Util::TreeAutomata::binary_operation(const TreeAu
             for (auto itt2 = it2->second.begin(); itt2 != it2->second.end(); itt2++) {
                 StateVector sv;
                 StateSet ss;
-                int i;
+                State i;
                 if (overflow) {
                     auto it = stateOldToNew.find(std::make_pair(itt->first[0], itt2->first[0]));
                     if (it == stateOldToNew.end()) {
@@ -574,7 +578,7 @@ VATA::Util::TreeAutomata VATA::Util::TreeAutomata::binary_operation(const TreeAu
                 sv.push_back(i);
                 for (const auto &s1 : itt->second) {
                     for (const auto &s2 : itt2->second) {
-                        int i;
+                        State i;
                         if (overflow) {
                             auto it = stateOldToNew.find(std::make_pair(s1, s2));
                             if (it == stateOldToNew.end()) {
@@ -599,17 +603,17 @@ VATA::Util::TreeAutomata VATA::Util::TreeAutomata::binary_operation(const TreeAu
         for (auto it2t = it2; it2t != o.transitions.end(); it2t++) { // it2 as the new begin point.
             assert(it2t->first.size() == 5);
             assert(it->first[4] == it2t->first[4]); // Two k's must be the same.
-            StateVector in;
+            Symbol symbol;
             for (int i=0; i<4; i++) { // We do not change k here.
                 if (add)
-                    in.push_back(it->first[i] + it2t->first[i]);
+                    symbol.push_back(it->first[i] + it2t->first[i]);
                 else
-                    in.push_back(it->first[i] - it2t->first[i]);
+                    symbol.push_back(it->first[i] - it2t->first[i]);
             }
-            in.push_back(it->first[4]); // remember to push k
+            symbol.push_back(it->first[4]); // remember to push k
             for (const auto &s1 : it->second.begin()->second)
                 for (const auto &s2 : it2t->second.begin()->second) {
-                    int i;
+                    State i;
                     if (overflow) {
                         auto it = stateOldToNew.find(std::make_pair(s1, s2));
                         if (it == stateOldToNew.end()) {
@@ -618,7 +622,7 @@ VATA::Util::TreeAutomata VATA::Util::TreeAutomata::binary_operation(const TreeAu
                         }
                         else i = it->second;
                     } else i = s1 * o.stateNum + s2;
-                    result.transitions[in][{}].insert(i);
+                    result.transitions[symbol][{}].insert(i);
                 }
         }
     }
@@ -664,7 +668,7 @@ VATA::Util::TreeAutomata VATA::Util::TreeAutomata::uniform(int n) {
     aut.name = "Uniform";
     aut.qubitNum = n;
     int pow_of_two = 1;
-    int state_counter = 0;
+    State state_counter = 0;
     for (int level=1; level<=n; level++) {
         for (int i=0; i<pow_of_two; i++) {
             if (level < n)
@@ -708,7 +712,7 @@ VATA::Util::TreeAutomata VATA::Util::TreeAutomata::random(int n) {
     aut.name = "Random";
     aut.qubitNum = n;
     int pow_of_two = 1;
-    int state_counter = 0;
+    State state_counter = 0;
     for (int level=1; level<=n; level++) {
         for (int i=0; i<pow_of_two; i++) {
             aut.transitions[{level}][{state_counter*2+1, state_counter*2+2}] = {state_counter};
@@ -716,7 +720,7 @@ VATA::Util::TreeAutomata VATA::Util::TreeAutomata::random(int n) {
         }
         pow_of_two *= 2;
     }
-    for (int i=state_counter; i<=state_counter*2; i++) {
+    for (State i=state_counter; i<=state_counter*2; i++) {
         aut.transitions[{rand()%5, rand()%5, rand()%5, rand()%5, 0}][{}].insert(i);
     }
     aut.finalStates.push_back(0);
@@ -964,30 +968,30 @@ void VATA::Util::TreeAutomata::value_restriction(int k, bool branch) {
 }
 
 void VATA::Util::TreeAutomata::fraction_simplication() {
-  std::vector<StateVector> to_be_removed;
+    std::vector<Symbol> to_be_removed;
     TransitionMap to_be_inserted;
     for (const auto &t : transitions) {
         if (t.first.size() == 5) {
             to_be_removed.push_back(t.first);
-            StateVector sv = t.first;
-            int gcd = abs(t.first[0]);
+            Symbol symbol = t.first;
+            auto gcd = abs(t.first[0]);
             for (int i=1; i<4; i++)
                 gcd = std::gcd(gcd, abs(t.first[i]));
             if (gcd > 0) {
                 for (int i=0; i<4; i++)
-                    sv[i] /= gcd;
-                while (sv[4] >= 2 && gcd > 0 && (gcd&1) == 0) { // Notice the parentheses enclosing gcd&1 are very important! HAHA
+                    symbol[i] /= gcd;
+                while (symbol[4] >= 2 && gcd > 0 && (gcd&1) == 0) { // Notice the parentheses enclosing gcd&1 are very important! HAHA
                     gcd /= 2;
-                    sv[4] -= 2;
+                    symbol[4] -= 2;
                 }
                 for (int i=0; i<4; i++)
-                    sv[i] *= gcd;
+                    symbol[i] *= gcd;
             } else {
-                sv[4] = 0;
+                symbol[4] = 0;
             }
             for (const auto &in_out : t.second) {
                 for (const auto &s : in_out.second) {
-                    to_be_inserted[sv][in_out.first].insert(s);
+                    to_be_inserted[symbol][in_out.first].insert(s);
                 }
             }
         }
@@ -1147,7 +1151,7 @@ void VATA::Util::TreeAutomata::print() {
 
   result += "\n";
   result += "States ";
-    for (int i=0; i<stateNum; i++) {
+    for (State i=0; i<stateNum; i++) {
         result += std::to_string(i) + " ";
         // result += stateNum.TranslateBwd(i) + " ";
     }
@@ -1156,7 +1160,7 @@ void VATA::Util::TreeAutomata::print() {
 
   result += "\n";
   result += "Final States ";
-    for (unsigned i : finalStates) {
+    for (State i : finalStates) {
         result += std::to_string(i) + " ";
         // result += stateNum.TranslateBwd(i) + " ";
     }

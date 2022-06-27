@@ -117,9 +117,9 @@ static std::pair<std::string, int> parse_colonned_token(std::string str)
 /**
  * @brief  Parse a string with Timbuk definition of an automaton
  */
-std::vector<int> symbol_converter(const std::string& str)
+TreeAutomata::Symbol symbol_converter(const std::string& str)
 {
-	std::vector<int> temp;
+	TreeAutomata::Symbol temp;
     if (str[0] == '[') {
         for (int i=1; i<static_cast<int>(str.length()); i++) {
             size_t j = str.find(',', i);

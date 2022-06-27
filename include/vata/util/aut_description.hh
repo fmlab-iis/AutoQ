@@ -25,31 +25,33 @@ namespace VATA
 	}
 }
 
-struct CompareSymbolName {
-    bool operator()(const std::vector<int> &lhs, const std::vector<int> &rhs) const {
-        if (lhs.size() < rhs.size())
-            return true;
-        else if (lhs.size() > rhs.size())
-            return false;
-        else
-            return lhs < rhs;
-    }
-};
-
 struct VATA::Util::TreeAutomata
 {
 public:   // data types
-    typedef int State;
+    typedef int64_t State; // TODO: will make the program slightly slower. We wish to make another dynamic type.
 	typedef std::vector<State> StateVector;
 	typedef std::set<State> StateSet;
 
-	typedef std::vector<int> Symbol;
+	typedef int32_t SymbolEntry;
+    typedef std::vector<SymbolEntry> Symbol;
+
+    struct CompareSymbolName {
+        bool operator()(const Symbol &lhs, const Symbol &rhs) const {
+            if (lhs.size() < rhs.size())
+                return true;
+            else if (lhs.size() > rhs.size())
+                return false;
+            else
+                return lhs < rhs;
+        }
+    };
     typedef std::map<Symbol, std::map<StateVector, StateSet>, CompareSymbolName> TransitionMap;
 
 public:   // data members
 		std::string name;
     StateVector finalStates;
-    int stateNum, qubitNum;
+    State stateNum;
+    SymbolEntry qubitNum;
 	TransitionMap transitions;
 
 public:   // methods

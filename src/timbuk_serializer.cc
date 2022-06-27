@@ -38,7 +38,7 @@ std::string TimbukSerializer::Serialize(const TreeAutomata& desc)
 
 	result += "\n";
 	result += "States ";
-    for (int i=0; i<desc.stateNum; i++) {
+    for (TreeAutomata::State i=0; i<desc.stateNum; i++) {
         result += std::to_string(i) + " ";
         // result += desc.stateNum.TranslateBwd(i) + " ";
     }
@@ -47,7 +47,7 @@ std::string TimbukSerializer::Serialize(const TreeAutomata& desc)
 
 	result += "\n";
 	result += "Final States ";
-    for (unsigned i : desc.finalStates) {
+    for (TreeAutomata::State i : desc.finalStates) {
         result += std::to_string(i) + " ";
         // result += desc.stateNum.TranslateBwd(i) + " ";
     }
