@@ -58,6 +58,34 @@ void rand_gen(int &a, int &b, int &c) {
     }
 }
 
+std::ostream&
+display(std::ostream& os, std::chrono::nanoseconds ns)
+{
+    using namespace std;
+    using namespace std::chrono;
+    typedef duration<int, ratio<86400>> days;
+    char fill = os.fill();
+    os.fill('0');
+    auto d = duration_cast<days>(ns);
+    ns -= d;
+    auto h = duration_cast<hours>(ns);
+    ns -= h;
+    auto m = duration_cast<minutes>(ns);
+    ns -= m;
+    auto s = duration_cast<seconds>(ns);
+    // auto s = duration<float, std::ratio<1, 1>>(ns);
+    if (d.count() > 0 || h.count() > 0)
+        os << "TOO_LONG & ";
+    else {
+        os //<< setw(2) << d.count() << "d:"
+        // << setw(2) << h.count() << "h:"
+        << m.count() << 'm'
+        << s.count() << "s & ";// << " & ";
+    }
+    os.fill(fill);
+    return os;
+}
+
 int main(int argc, char **argv) {
     type = atoi(argv[1]); // algorithm
     n = atoi(argv[2]); // the gate id / the number of qubits
@@ -158,8 +186,7 @@ int main(int argc, char **argv) {
     }
 
     auto end = chrono::steady_clock::now();
-    std::cout << chrono::duration_cast<chrono::nanoseconds>(end - start).count() / 1000000 << " & ";
-    // std::cout << n << ": " << chrono::duration_cast<chrono::nanoseconds>(end - start).count() / 1000000
-    //                << " ms\n";
+    display(std::cout, end - start);
+    // std::cout << /*n << ": " <<*/ chrono::duration_cast<chrono::milliseconds>(end - start).count() << " & ";
     return 0;
 }
