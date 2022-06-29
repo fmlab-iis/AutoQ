@@ -156,6 +156,9 @@ public:
     static TreeAutomata random(int n);
     static TreeAutomata zero(int n);
     static TreeAutomata classical_zero_one_zero(int n);
+
+    /* Equivalence Checking */
+    static bool check_equal_aut(TreeAutomata lhs, TreeAutomata rhs);
 };
 
 #endif

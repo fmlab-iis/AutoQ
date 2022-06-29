@@ -1015,9 +1015,9 @@ void VATA::Util::TreeAutomata::fraction_simplication() {
     }
 }
 
-namespace
-{ // anonymous namespace
-
+/**************** Equivalence Checking ****************/
+// namespace
+// { // anonymous namespace
   std::string gpath_to_VATA = "";
 
   /** returns the path to VATA executable */
@@ -1051,22 +1051,25 @@ namespace
     return check_inclusion(lhsPath, rhsPath) && check_inclusion(rhsPath, lhsPath);
   }
 
-  bool check_equal_aut(
-      const VATA::Util::TreeAutomata& lhs,
-      const VATA::Util::TreeAutomata& rhs)
+  bool VATA::Util::TreeAutomata::check_equal_aut(
+      VATA::Util::TreeAutomata lhs,
+      VATA::Util::TreeAutomata rhs)
   {
     VATA::Serialization::TimbukSerializer serializer;
-    std::ofstream fileLhs("/tmp/automata1.txt");
-    fileLhs << serializer.Serialize(lhs);
-    fileLhs.close();
+	std::ofstream fileLhs("/tmp/automata1.txt");
+    lhs.fraction_simplication();
+	fileLhs << serializer.Serialize(lhs);
+	fileLhs.close();
 
-    std::ofstream fileRhs("/tmp/automata2.txt");
-    fileRhs << serializer.Serialize(rhs);
-    fileRhs.close();
+	std::ofstream fileRhs("/tmp/automata2.txt");
+    rhs.fraction_simplication();
+	fileRhs << serializer.Serialize(rhs);
+	fileRhs.close();
 
-    return check_equal("/tmp/automata1.txt", "/tmp/automata2.txt");
+	return check_equal("/tmp/automata1.txt", "/tmp/automata2.txt");
   }
-} // anonymous namespace
+// } // anonymous namespace
+/******************************************************/
 
 void VATA::Util::TreeAutomata::sim_reduce()
 {

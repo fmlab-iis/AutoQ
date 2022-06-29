@@ -20,56 +20,7 @@
 #define BOOST_TEST_MODULE AutType
 #include <boost/test/unit_test.hpp>
 
-std::string gpath_to_VATA = "";
 int size = 7; // the number of qubits.
-
-/** returns the path to VATA executable */
-const std::string& get_vata_path()
-{
-	// is it cached?
-	if (!gpath_to_VATA.empty()) return gpath_to_VATA;
-
-	// not cached, get it from ENV
-	const char* path = std::getenv("VATA_PATH");
-	if (nullptr == path) {
-		throw std::runtime_error("Cannot find environment variable VATA_PATH");
-	}
-
-	gpath_to_VATA = path;
-	return gpath_to_VATA;
-}
-
-
-/** checks inclusion of two TAs */
-bool check_inclusion(const std::string& lhsPath, const std::string& rhsPath)
-{
-	std::string aux;
-	VATA::Util::ShellCmd(get_vata_path() + " incl " + lhsPath + " " + rhsPath, aux);
-	return (aux == "1\n");
-}
-
-/** checks language equivalence of two TAs */
-bool check_equal(const std::string& lhsPath, const std::string& rhsPath)
-{
-	return check_inclusion(lhsPath, rhsPath) && check_inclusion(rhsPath, lhsPath);
-}
-
-bool check_equal_aut(VATA::Util::TreeAutomata lhs, VATA::Util::TreeAutomata rhs)
-{
-	VATA::Serialization::TimbukSerializer serializer;
-	std::ofstream fileLhs("/tmp/automata1.txt");
-    lhs.fraction_simplication();
-	fileLhs << serializer.Serialize(lhs);
-	fileLhs.close();
-
-	std::ofstream fileRhs("/tmp/automata2.txt");
-    rhs.fraction_simplication();
-	fileRhs << serializer.Serialize(rhs);
-	fileRhs.close();
-
-	return check_equal("/tmp/automata1.txt", "/tmp/automata2.txt");
-}
-
 
 BOOST_AUTO_TEST_CASE(X_gate_twice_to_identity)
 {
@@ -85,10 +36,10 @@ BOOST_AUTO_TEST_CASE(X_gate_twice_to_identity)
 
                 if (i < loop-1) {
                     if (before.name == "Random")
-                        BOOST_REQUIRE_MESSAGE(!check_equal_aut(before, after), "");
+                        BOOST_REQUIRE_MESSAGE(!VATA::Util::TreeAutomata::check_equal_aut(before, after), "");
                 }
                 else {
-                    BOOST_REQUIRE_MESSAGE(check_equal_aut(before, after), "");
+                    BOOST_REQUIRE_MESSAGE(VATA::Util::TreeAutomata::check_equal_aut(before, after), "");
 				}
             }
         }
@@ -106,10 +57,10 @@ BOOST_AUTO_TEST_CASE(Y_gate_twice_to_identity)
                 after.Y(t);
 
                 if (i < loop-1) {
-                    BOOST_REQUIRE_MESSAGE(!check_equal_aut(before, after), "");
+                    BOOST_REQUIRE_MESSAGE(!VATA::Util::TreeAutomata::check_equal_aut(before, after), "");
 				}
                 else {
-                    BOOST_REQUIRE_MESSAGE(check_equal_aut(before, after), "");
+                    BOOST_REQUIRE_MESSAGE(VATA::Util::TreeAutomata::check_equal_aut(before, after), "");
 				}
             }
         }
@@ -125,10 +76,10 @@ BOOST_AUTO_TEST_CASE(Z_gate_twice_to_identity)
             after.Z(size/2);
 
             if (i < loop-1) {
-                BOOST_REQUIRE_MESSAGE(!check_equal_aut(before, after), "");
+                BOOST_REQUIRE_MESSAGE(!VATA::Util::TreeAutomata::check_equal_aut(before, after), "");
 			}
             else {
-                BOOST_REQUIRE_MESSAGE(check_equal_aut(before, after), "");
+                BOOST_REQUIRE_MESSAGE(VATA::Util::TreeAutomata::check_equal_aut(before, after), "");
 			}
         }
     }
@@ -145,10 +96,10 @@ BOOST_AUTO_TEST_CASE(H_gate_twice_to_identity)
                 after.H(t);
 
                 if (i < loop-1) {
-                    BOOST_REQUIRE_MESSAGE(!check_equal_aut(before, after), "");
+                    BOOST_REQUIRE_MESSAGE(!VATA::Util::TreeAutomata::check_equal_aut(before, after), "");
                 }
                 else {
-                    BOOST_REQUIRE_MESSAGE(check_equal_aut(before, after), "");
+                    BOOST_REQUIRE_MESSAGE(VATA::Util::TreeAutomata::check_equal_aut(before, after), "");
                 }
             }
         }
@@ -164,9 +115,9 @@ BOOST_AUTO_TEST_CASE(S_gate_fourth_to_identity)
             after.S(size/2);
 
             if (i < loop-1) {
-                BOOST_REQUIRE_MESSAGE(!check_equal_aut(before, after), "");
+                BOOST_REQUIRE_MESSAGE(!VATA::Util::TreeAutomata::check_equal_aut(before, after), "");
             } else {
-                BOOST_REQUIRE_MESSAGE(check_equal_aut(before, after), "");
+                BOOST_REQUIRE_MESSAGE(VATA::Util::TreeAutomata::check_equal_aut(before, after), "");
             }
         }
     }
@@ -181,9 +132,9 @@ BOOST_AUTO_TEST_CASE(T_gate_eighth_to_identity)
             after.T(size/2);
 
             if (i < loop-1) {
-                BOOST_REQUIRE_MESSAGE(!check_equal_aut(before, after), "");
+                BOOST_REQUIRE_MESSAGE(!VATA::Util::TreeAutomata::check_equal_aut(before, after), "");
             } else {
-                BOOST_REQUIRE_MESSAGE(check_equal_aut(before, after), "");
+                BOOST_REQUIRE_MESSAGE(VATA::Util::TreeAutomata::check_equal_aut(before, after), "");
             }
         }
     }
@@ -200,10 +151,10 @@ BOOST_AUTO_TEST_CASE(Rx_gate_eighth_to_identity)
                 after.Rx(t);
 
                 if (i < loop-1) {
-                    BOOST_REQUIRE_MESSAGE(!check_equal_aut(before, after), "");
+                    BOOST_REQUIRE_MESSAGE(!VATA::Util::TreeAutomata::check_equal_aut(before, after), "");
                 }
                 else {
-                    BOOST_REQUIRE_MESSAGE(check_equal_aut(before, after), "");
+                    BOOST_REQUIRE_MESSAGE(VATA::Util::TreeAutomata::check_equal_aut(before, after), "");
 				}
             }
         }
@@ -221,10 +172,10 @@ BOOST_AUTO_TEST_CASE(Ry_gate_eighth_to_identity)
                 after.Ry(t);
 
                 if (i < loop-1) {
-                    BOOST_REQUIRE_MESSAGE(!check_equal_aut(before, after), "");
+                    BOOST_REQUIRE_MESSAGE(!VATA::Util::TreeAutomata::check_equal_aut(before, after), "");
                 }
                 else {
-                    BOOST_REQUIRE_MESSAGE(check_equal_aut(before, after), "");
+                    BOOST_REQUIRE_MESSAGE(VATA::Util::TreeAutomata::check_equal_aut(before, after), "");
 				}
             }
         }
@@ -244,9 +195,9 @@ BOOST_AUTO_TEST_CASE(CNOT_gate_twice_to_identity)
 
             if (i < loop-1) {
                 if (before.name == "Random")
-                    BOOST_REQUIRE_MESSAGE(!check_equal_aut(before, after), "");
+                    BOOST_REQUIRE_MESSAGE(!VATA::Util::TreeAutomata::check_equal_aut(before, after), "");
             } else {
-                BOOST_REQUIRE_MESSAGE(check_equal_aut(before, after), "");
+                BOOST_REQUIRE_MESSAGE(VATA::Util::TreeAutomata::check_equal_aut(before, after), "");
             }
         }
     }
@@ -261,9 +212,9 @@ BOOST_AUTO_TEST_CASE(CZ_gate_twice_to_identity)
             after.CZ(size*2/3, size/3);
 
             if (i < loop-1) {
-                BOOST_REQUIRE_MESSAGE(!check_equal_aut(before, after), "");
+                BOOST_REQUIRE_MESSAGE(!VATA::Util::TreeAutomata::check_equal_aut(before, after), "");
             } else {
-                BOOST_REQUIRE_MESSAGE(check_equal_aut(before, after), "");
+                BOOST_REQUIRE_MESSAGE(VATA::Util::TreeAutomata::check_equal_aut(before, after), "");
             }
         }
     }
@@ -283,9 +234,9 @@ BOOST_AUTO_TEST_CASE(Toffoli_gate_twice_to_identity)
 
                 if (i < loop-1) {
                     if (before.name == "Random")
-                        BOOST_REQUIRE_MESSAGE(!check_equal_aut(before, after), "");
+                        BOOST_REQUIRE_MESSAGE(!VATA::Util::TreeAutomata::check_equal_aut(before, after), "");
                 } else {
-                    BOOST_REQUIRE_MESSAGE(check_equal_aut(before, after), "");
+                    BOOST_REQUIRE_MESSAGE(VATA::Util::TreeAutomata::check_equal_aut(before, after), "");
                 }
             }
         } while (std::next_permutation(v, v+3));
@@ -306,9 +257,9 @@ BOOST_AUTO_TEST_CASE(Fredkin_gate_twice_to_identity)
 
                 if (i < loop-1) {
                     if (before.name == "Random")
-                        BOOST_REQUIRE_MESSAGE(!check_equal_aut(before, after), "a");
+                        BOOST_REQUIRE_MESSAGE(!VATA::Util::TreeAutomata::check_equal_aut(before, after), "a");
                 } else {
-                    BOOST_REQUIRE_MESSAGE(check_equal_aut(before, after), "b");
+                    BOOST_REQUIRE_MESSAGE(VATA::Util::TreeAutomata::check_equal_aut(before, after), "b");
                 }
             }
         } while (std::next_permutation(v, v+3));
@@ -351,7 +302,7 @@ BOOST_AUTO_TEST_CASE(Bernstein_Vazirani)
     ans.transitions[{ans.qubitNum}][{ans.stateNum - 3, ans.stateNum - 3}] = {2*(ans.qubitNum-1) - 1};
     ans.transitions[{ans.qubitNum}][{ans.stateNum - 2, ans.stateNum - 1}] = {2*(ans.qubitNum-1)};
 
-    BOOST_REQUIRE_MESSAGE(check_equal_aut(aut, ans), "");
+    BOOST_REQUIRE_MESSAGE(VATA::Util::TreeAutomata::check_equal_aut(aut, ans), "");
 }
 
 void dfs(const std::map<VATA::Util::TreeAutomata::State, VATA::Util::TreeAutomata::StateVector> &edge,
