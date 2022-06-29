@@ -21,6 +21,7 @@ using DiscontBinaryRelOnStates= DiscontBinaryRelation<State>;
 using StateToIndexMap         = std::unordered_map<State, size_t>;
 using StateToIndexTranslWeak  = Util::TranslatorWeak<StateToIndexMap>;
 using StateToStateMap         = std::unordered_map<State, State>;
+using StateToStateTranslWeak  = Util::TranslatorWeak<StateToStateMap>;
 
 namespace {
 
@@ -184,16 +185,8 @@ namespace { // anonymous namespace
     TransitionMap newTrans;
 
     for (const State& state : aut.finalStates) { // process final states
-      auto it = index.find(state);
-      State new_state;
-      if (index.end() != it) {
-        new_state = it->second;
-      } else {
-        new_state = state;
-      }
-
-      if (newFinal.end() == std::find(newFinal.begin(), newFinal.end(), new_state)) {
-        newFinal.push_back(new_state);
+      if (newFinal.end() == std::find(newFinal.begin(), newFinal.end(), index[state])) {
+        newFinal.push_back(index[state]);
       }
     }
 
@@ -207,22 +200,12 @@ namespace { // anonymous namespace
         const auto& tuple = vecSet.first;
         StateVector newTuple;
         for (const auto& child : tuple) {
-          auto it = index.find(child);
-          if (index.end() != it) {
-            newTuple.push_back(it->second);
-          } else {
-            newTuple.push_back(child);
-          }
+          newTuple.push_back(index[child]);
         }
 
         StateSet newSet;
         for (const auto& parent : vecSet.second) {
-          auto it = index.find(parent);
-          if (index.end() != it) {
-            newSet.insert(index[parent]);
-          } else {
-            newSet.insert(parent);
-          }
+          newSet.insert(index[parent]);
         }
 
         auto itBoolPair = newMap.insert({newTuple, newSet});
@@ -263,6 +246,20 @@ namespace { // anonymous namespace
     }
 
     return true;
+  }
+
+  // Makes a TA compact (states are renumbered to start from 0 and go consecutively up
+  void compact_aut(TreeAutomata& aut)
+  {
+    StateToStateMap translMap;
+    size_t stateCnt = 0;
+    StateToStateTranslWeak transl(translMap,
+        [&stateCnt](const State&) {return stateCnt++;});
+
+    // VATA_DEBUG("Before compact stateNum = " + Convert::ToString(aut.stateNum));
+    reindex_aut_states(aut, transl);
+    aut.stateNum = stateCnt;
+    // VATA_DEBUG("After compact stateNum = " + Convert::ToString(aut.stateNum));
   }
 
 } // anonymous namespace
@@ -1185,7 +1182,9 @@ bool VATA::Util::TreeAutomata::light_reduce_down()
       index.insert({state, *class_candidate.begin()});
     }
 
-    reindex_aut_states(*this, index);
+    StateToStateTranslWeak transl(index, [](const State& state) {return state;});
+
+    reindex_aut_states(*this, transl);
     return true;
   }
 
@@ -1206,7 +1205,6 @@ bool VATA::Util::TreeAutomata::light_reduce_down()
     // VATA_DEBUG("top down map: " + Convert::ToString(top_down_map));
 
     for (const auto& parentSetPair : top_down_map) {
-      const auto& parent = parentSetPair.first;
       const auto& childrenSet = parentSetPair.second;
       std::map<State, std::set<State>> left_child_map;
       std::map<State, std::set<State>> right_child_map;
@@ -1245,7 +1243,8 @@ bool VATA::Util::TreeAutomata::light_reduce_down()
         if (!index.empty()) {
           // VATA_DEBUG("index: " + Convert::ToString(index));
           // TODO: assert here something
-          reindex_aut_states(*this, index);
+          StateToStateTranslWeak transl(index, [](const State& state) { return state; });
+          reindex_aut_states(*this, transl);
           return true;
         }
       }
@@ -1269,15 +1268,17 @@ bool VATA::Util::TreeAutomata::light_reduce_down_iter()
 
 void VATA::Util::TreeAutomata::reduce()
 {
+  // VATA_DEBUG("before light_reduce_down: " + Convert::ToString(count_aut_states(*this)));
   // this->sim_reduce();
   this->light_reduce_up_iter();
 
-  // VATA_DEBUG("before light_reduce_down: " + Convert::ToString(count_aut_states(*this)));
 
   TreeAutomata old = *this;
   this->light_reduce_down_iter();
-  assert(check_equal_aut(old, *this));
   // VATA_DEBUG("after light_reduce_down: " + Convert::ToString(count_aut_states(*this)));
+
+  compact_aut(*this);
+  assert(check_equal_aut(old, *this));
 }
 
 
