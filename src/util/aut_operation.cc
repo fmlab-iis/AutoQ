@@ -6,6 +6,7 @@
 
 #include <fstream>
 #include <numeric>
+#include <chrono>
 
 using namespace VATA;
 using namespace VATA::Util;
@@ -430,6 +431,7 @@ void VATA::Util::TreeAutomata::divide_by_the_square_root_of_two() {
 }
 
 void VATA::Util::TreeAutomata::branch_restriction(int k, bool positive_has_value) {
+    auto start = std::chrono::steady_clock::now();
     State num_of_states = stateNum;
     if (stateNum > std::numeric_limits<State>::max() / 2)
         throw std::overflow_error("");
@@ -480,6 +482,8 @@ void VATA::Util::TreeAutomata::branch_restriction(int k, bool positive_has_value
         }
     }
     remove_useless(); // otherwise, will out of memory
+    auto end = std::chrono::steady_clock::now();
+    branch_rest_time += end - start;
 }
 
 void VATA::Util::TreeAutomata::semi_determinize() {
@@ -517,6 +521,7 @@ void VATA::Util::TreeAutomata::semi_undeterminize() {
 }
 
 VATA::Util::TreeAutomata VATA::Util::TreeAutomata::binary_operation(const TreeAutomata &o, bool add) {
+    auto start = std::chrono::steady_clock::now();
     TreeAutomata result;
     result.name = name;
     result.qubitNum = qubitNum;
@@ -631,6 +636,8 @@ VATA::Util::TreeAutomata VATA::Util::TreeAutomata::binary_operation(const TreeAu
     else
         result.stateNum = stateNum * o.stateNum;
     result.remove_useless(); // otherwise, will out of memory
+    auto end = std::chrono::steady_clock::now();
+    binop_time += end - start;
     return result;
 }
 
@@ -940,6 +947,7 @@ void VATA::Util::TreeAutomata::swap_backward(const int k) {
 }
 
 void VATA::Util::TreeAutomata::value_restriction(int k, bool branch) {
+    auto start = std::chrono::steady_clock::now();
     swap_forward(k);
     TransitionMap to_be_inserted;
     std::vector<Symbol> to_be_removed;
@@ -965,6 +973,8 @@ void VATA::Util::TreeAutomata::value_restriction(int k, bool branch) {
     }
     swap_backward(k);
     this->reduce();
+    auto end = std::chrono::steady_clock::now();
+    value_rest_time += end - start;
 }
 
 void VATA::Util::TreeAutomata::fraction_simplication() {
@@ -1190,4 +1200,14 @@ void VATA::Util::TreeAutomata::print() {
         }
     }
     std::cout << result; // << "\n";
+}
+
+int VATA::Util::TreeAutomata::transition_size() {
+    int answer = 0;
+    for (const auto &t : transitions) {
+        for (const auto &in_out : t.second) {
+            answer += in_out.second.size();
+        }
+    }
+    return answer;
 }
