@@ -19,6 +19,7 @@ using TransitionMap           = TreeAutomata::TransitionMap;
 using DiscontBinaryRelOnStates= DiscontBinaryRelation<State>;
 using StateToIndexMap         = std::unordered_map<State, size_t>;
 using StateToIndexTranslWeak  = Util::TranslatorWeak<StateToIndexMap>;
+using StateToStateMap         = std::unordered_map<State, State>;
 
 namespace {
 
@@ -181,9 +182,18 @@ namespace { // anonymous namespace
     StateVector newFinal;
     TransitionMap newTrans;
 
-    newFinal.reserve(aut.finalStates.size()); // TODO: Can we set the initial capacity?
-    for (const State& state : aut.finalStates) {
-        newFinal.push_back(index.at(state));
+    for (const State& state : aut.finalStates) { // process final states
+      auto it = index.find(state);
+      State new_state;
+      if (index.end() != it) {
+        new_state = it->second;
+      } else {
+        new_state = state;
+      }
+
+      if (newFinal.end() == std::find(newFinal.begin(), newFinal.end(), new_state)) {
+        newFinal.push_back(new_state);
+      }
     }
 
     // Iterate through all transitions and add reindex everything
@@ -196,12 +206,22 @@ namespace { // anonymous namespace
         const auto& tuple = vecSet.first;
         StateVector newTuple;
         for (const auto& child : tuple) {
-          newTuple.push_back(index[child]);
+          auto it = index.find(child);
+          if (index.end() != it) {
+            newTuple.push_back(it->second);
+          } else {
+            newTuple.push_back(child);
+          }
         }
 
         StateSet newSet;
         for (const auto& parent : vecSet.second) {
-          newSet.insert(index[parent]);
+          auto it = index.find(parent);
+          if (index.end() != it) {
+            newSet.insert(index[parent]);
+          } else {
+            newSet.insert(parent);
+          }
         }
 
         auto itBoolPair = newMap.insert({newTuple, newSet});
@@ -1066,7 +1086,6 @@ void VATA::Util::TreeAutomata::sim_reduce()
   // states for collapsing in a faster way
   sim.RestrictToSymmetric();       // sim is now an equivalence relation
 
-  using StateToStateMap = std::unordered_map<State, State>;
   StateToStateMap collapseMap;
   sim.GetQuotientProjection(collapseMap);
 
@@ -1082,9 +1101,9 @@ void VATA::Util::TreeAutomata::sim_reduce()
 }
 
 
-bool VATA::Util::TreeAutomata::light_reduce()
+bool VATA::Util::TreeAutomata::light_reduce_up()
 {
-  StateToIndexMap index;
+  StateToStateMap index;
   for (const auto& symbMapPair : this->transitions) {
     for (const auto& vecSetPair : symbMapPair.second) {
       for (auto state : vecSetPair.second) {
@@ -1115,23 +1134,137 @@ bool VATA::Util::TreeAutomata::light_reduce()
 }
 
 
-bool VATA::Util::TreeAutomata::light_reduce_iter()
+bool VATA::Util::TreeAutomata::light_reduce_up_iter()
 {
   size_t iterations = 0;
   bool changed = true;
   while (changed) {
-    changed = this->light_reduce();
+    changed = this->light_reduce_up();
     ++iterations;
   }
 
   return 1 == iterations;
 }
 
+bool VATA::Util::TreeAutomata::light_reduce_down()
+{
+  // VATA_DEBUG("aut:\n" + this->ToString());
+  std::list<std::set<State>> partition;
+  std::map<State, std::set<State>*> state_to_class;
+
+  // first process root states
+  std::set<State> class_candidate(this->finalStates.begin(), this->finalStates.end());
+  for (const auto& symbMapPair : this->transitions) {
+    const auto& vector_map = symbMapPair.second;
+    for (const auto& vecSetPair : vector_map) {
+      const auto& children = vecSetPair.first;
+      for (const auto& child : children) {
+        if (class_candidate.end() != class_candidate.find(child)) {
+          assert(false);
+        }
+      }
+    }
+  }
+
+  if (class_candidate.size() > 1) {
+    StateToStateMap index;
+    for (auto state : class_candidate) {
+      index.insert({state, *class_candidate.begin()});
+    }
+
+    reindex_aut_states(*this, index);
+    return true;
+  }
+
+  // then process other states
+  for (const auto& symbMapPair : this->transitions) {
+    const auto& vector_map = symbMapPair.second;
+    std::map<State, std::set<StateVector>> top_down_map;
+    for (const auto& vecSetPair : vector_map) {
+      const auto& state_vector = vecSetPair.first;
+      const auto& parent_states = vecSetPair.second;
+      for (auto parent : parent_states) {
+        auto itBoolPair = top_down_map.insert({parent, {state_vector}});
+        if (!itBoolPair.second) { // 'parent' already mapped
+          itBoolPair.first->second.insert(state_vector);
+        }
+      }
+    }
+    // VATA_DEBUG("top down map: " + Convert::ToString(top_down_map));
+
+    for (const auto& parentSetPair : top_down_map) {
+      const auto& parent = parentSetPair.first;
+      const auto& childrenSet = parentSetPair.second;
+      std::map<State, std::set<State>> left_child_map;
+      std::map<State, std::set<State>> right_child_map;
+
+      for (const auto& state_vector : childrenSet) {
+        if (2 != state_vector.size()) {
+          assert(0 == state_vector.size());
+          continue;
+        }
+
+        auto itBoolPair = left_child_map.insert({state_vector[0], {state_vector[1]}});
+        if (!itBoolPair.second) { // if no insertion happened
+          itBoolPair.first->second.insert(state_vector[1]);
+        }
+        itBoolPair = right_child_map.insert({state_vector[1], {state_vector[0]}});
+        if (!itBoolPair.second) { // if no insertion happened
+          itBoolPair.first->second.insert(state_vector[0]);
+        }
+      }
+      // VATA_DEBUG("left child map: " + Convert::ToString(left_child_map));
+      // VATA_DEBUG("right child map: " + Convert::ToString(right_child_map));
+
+      StateToStateMap index;
+
+      for (auto stateSetPair : left_child_map) {
+        const auto& state = stateSetPair.first;
+        const auto& left_map_state_set = stateSetPair.second;
+        if (1 == left_map_state_set.size()) { continue; }
+        if (left_map_state_set == right_child_map[state]) { // interesting case
+          const auto& class_cand = left_map_state_set;
+          for (const auto& st2 : class_cand) {
+            index.insert({st2, *class_cand.begin()});
+          }
+        }
+
+        if (!index.empty()) {
+          // VATA_DEBUG("index: " + Convert::ToString(index));
+          // TODO: assert here something
+          reindex_aut_states(*this, index);
+          return true;
+        }
+      }
+    }
+  }
+
+  return false;
+}
+
+bool VATA::Util::TreeAutomata::light_reduce_down_iter()
+{
+  size_t iterations = 0;
+  bool changed = true;
+  while (changed) {
+    changed = this->light_reduce_down();
+    ++iterations;
+  }
+
+  return 1 == iterations;
+}
 
 void VATA::Util::TreeAutomata::reduce()
 {
   // this->sim_reduce();
-  this->light_reduce_iter();
+  this->light_reduce_up_iter();
+
+  // VATA_DEBUG("before light_reduce_down: " + Convert::ToString(count_aut_states(*this)));
+
+  TreeAutomata old = *this;
+  this->light_reduce_down_iter();
+  assert(check_equal_aut(old, *this));
+  // VATA_DEBUG("after light_reduce_down: " + Convert::ToString(count_aut_states(*this)));
 }
 
 
