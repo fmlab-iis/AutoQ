@@ -12,6 +12,7 @@
 #define _VATA_AUT_DESCRIPTION_HH_
 
 // VATA headers
+#include <chrono>
 #include <algorithm>
 #include <vata/vata.hh>
 #include <vata/util/triple.hh>
@@ -53,6 +54,9 @@ public:   // data members
     State stateNum;
     SymbolEntry qubitNum;
 	TransitionMap transitions;
+    inline static int gateCount;
+    inline static std::chrono::steady_clock::duration binop_time, branch_rest_time, value_rest_time;
+    /* Notice inline is very convenient for declaring and defining a static member variable together! */
 
 public:   // methods
 
@@ -122,6 +126,7 @@ public:
     TreeAutomata operator-(const TreeAutomata &o) { return binary_operation(o, false); }
     TreeAutomata Union(const TreeAutomata &o); // U is in uppercase since "union" is a reserved keyword.
     void print();
+    int transition_size();
 
     /// simulation-based reduction
     void sim_reduce();
@@ -155,6 +160,9 @@ public:
     static TreeAutomata random(int n);
     static TreeAutomata zero(int n);
     static TreeAutomata classical_zero_one_zero(int n);
+
+    /* Equivalence Checking */
+    static bool check_equal_aut(TreeAutomata lhs, TreeAutomata rhs);
 };
 
 #endif

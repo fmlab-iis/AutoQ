@@ -58,14 +58,15 @@ void rand_gen(int &a, int &b, int &c) {
     }
 }
 
-std::ostream&
-display(std::ostream& os, std::chrono::nanoseconds ns)
+std::string toString(std::chrono::steady_clock::duration tp)
 {
     using namespace std;
     using namespace std::chrono;
+    nanoseconds ns = duration_cast<nanoseconds>(tp);
     typedef duration<int, ratio<86400>> days;
-    char fill = os.fill();
-    os.fill('0');
+    std::stringstream ss;
+    char fill = ss.fill();
+    ss.fill('0');
     auto d = duration_cast<days>(ns);
     ns -= d;
     auto h = duration_cast<hours>(ns);
@@ -73,26 +74,35 @@ display(std::ostream& os, std::chrono::nanoseconds ns)
     auto m = duration_cast<minutes>(ns);
     ns -= m;
     auto s = duration_cast<seconds>(ns);
+    ns -= s;
+    auto ms = duration_cast<milliseconds>(ns);
     // auto s = duration<float, std::ratio<1, 1>>(ns);
     if (d.count() > 0 || h.count() > 0)
-        os << "TOO_LONG & ";
-    else {
-        os //<< setw(2) << d.count() << "d:"
-        // << setw(2) << h.count() << "h:"
-        << m.count() << 'm'
-        << s.count() << "s & ";// << " & ";
+        ss << "TOO_LONG & ";
+    else if (m.count() == 0 && s.count() < 10) {
+        ss << s.count() << '.' << ms.count() / 100 << "s";
+    } else {
+        if (m.count() > 0) ss << m.count() << 'm';
+        ss << s.count() << 's';// << " & ";
     }
-    os.fill(fill);
-    return os;
+    ss.fill(fill);
+    return ss.str();
 }
 
 int main(int argc, char **argv) {
     type = atoi(argv[1]); // algorithm
     n = atoi(argv[2]); // the gate id / the number of qubits
-    auto start = chrono::steady_clock::now();
+    if (type == 6) {
+        int k = n;
+        n = 3;
+        while (--k) n <<= 1; // * 2
+    }
 
+    int stateBefore = 0, transitionBefore = 0;
+    VATA::Util::TreeAutomata aut;
+    auto start = chrono::steady_clock::now();
     if (type == 0) {
-        auto aut = VATA::Util::TreeAutomata::classical(10);
+        aut = VATA::Util::TreeAutomata::classical(10);
         n--;
         switch(n) {
             case 0: aut.X(1); break;
@@ -110,7 +120,8 @@ int main(int argc, char **argv) {
             default: break;
         }
     } else if (type == 1) { /* Algorithm 1 - Bernstein-Vazirani */
-        auto aut = VATA::Util::TreeAutomata::zero(n+1);
+        aut = VATA::Util::TreeAutomata::zero(n+1);
+        stateBefore = aut.stateNum, transitionBefore = aut.transition_size();
         for (int i=1; i<=n+1; i++) aut.H(i);
         aut.Z(n+1);
         for (int i=1; i<=n; i++) {
@@ -121,7 +132,8 @@ int main(int argc, char **argv) {
         for (int i=1; i<=n; i++) aut.H(i);
     } else if (type == 2) { /* Algorithm 2 - Grover's Search */
         if (!(n >= 2)) throw std::out_of_range("");
-        auto aut = VATA::Util::TreeAutomata::classical_zero_one_zero(n);
+        aut = VATA::Util::TreeAutomata::classical_zero_one_zero(n);
+        stateBefore = aut.stateNum, transitionBefore = aut.transition_size();
         for (int i=1; i<=n; i++) aut.X(i);
         for (int i=n+1; i<=2*n+1; i++) aut.H(i);
         for (int iter=1; iter <= M_PI / (4 * asin(1 / pow(2, n/2.0))); iter++) {
@@ -158,13 +170,8 @@ int main(int argc, char **argv) {
         }
         for (int i=1; i<=n; i++) aut.X(i);
     } else if (type >= 3) { /* Algorithm 3 - Random Circuit */
-        if (type == 6) {
-            int k = n;
-            n = 3;
-            while (--k) n <<= 1; // * 2
-        }
         if (!(n >= 3)) throw std::out_of_range("");
-        auto aut = VATA::Util::TreeAutomata::classical(n);
+        aut = VATA::Util::TreeAutomata::classical(n);
         for (int i=0; i<((type==3) ? 6 : 3)*n; i++) {
             int a, b, c;
             switch(rand() % 12) {
@@ -184,9 +191,13 @@ int main(int argc, char **argv) {
             }
         }
     }
-
     auto end = chrono::steady_clock::now();
-    display(std::cout, end - start);
+    auto duration = end - start;
+    std::cout << n << " & " << aut.qubitNum << " & " << VATA::Util::TreeAutomata::gateCount << " & " << stateBefore << " & " << aut.stateNum << " & " << transitionBefore << " & " << aut.transition_size()
+                    << " & " << VATA::Util::TreeAutomata::binop_time * 100 / duration
+                    << "\\% & " << VATA::Util::TreeAutomata::branch_rest_time * 100 / duration
+                    << "\\% & " << VATA::Util::TreeAutomata::value_rest_time * 100 / duration
+                    << "\\% & " << toString(duration) << "\\\\\\hline\n";
     // std::cout << /*n << ": " <<*/ chrono::duration_cast<chrono::milliseconds>(end - start).count() << " & ";
     return 0;
 }
