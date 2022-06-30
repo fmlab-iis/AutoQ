@@ -407,14 +407,17 @@ BOOST_AUTO_TEST_CASE(Grover_Search)
             }
         }
     }
-    std::vector<bool> ans_found(n);
+    unsigned N = 1, two_2n = 1;
+    for (int j=0; j<n; j++)
+        N <<= 1; // N := 2^n
+    if (n == 2) two_2n = 8; // 2^(2n-1)
+    else two_2n = N * N; // 2^(2n)
+    std::vector<bool> ans_found(N);
     for (const auto &fl : first_layers) {
         std::vector<float> prob;
         dfs(edge, leaf, fl, prob);
         // std::cout << VATA::Util::Convert::ToString(prob) << "\n";
-        unsigned ans = -1, two_2n = 1;
-        for (int j=0; j<2*n - (n==2); j++)
-            two_2n *= 2; // 2 ^ (2n)
+        unsigned ans = UINT_MAX / 2;
         for (unsigned i=0; i<prob.size(); i++) {
             if (prob[i] > 0) { /* in fact check != (make the compiler not complain) */
                 ans = i / two_2n;
@@ -450,7 +453,7 @@ BOOST_AUTO_TEST_CASE(Grover_Search)
         BOOST_REQUIRE_MESSAGE(!ans_found[ans], "");
         ans_found[ans] = true;
     }
-    for (int i=0; i<n; i++)
+    for (unsigned i=0; i<N; i++)
         BOOST_REQUIRE_MESSAGE(ans_found[i], "");
     /************************************************************************************/
 }
