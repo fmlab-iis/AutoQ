@@ -130,10 +130,14 @@ public:
 
     /// simulation-based reduction
     void sim_reduce();
-    /// lightweight size reduction, returns @p true iff the automaton changed
-    bool light_reduce();
-    /// lightweight size reduction, iterated until change happens, returns @p true iff the automaton changed
-    bool light_reduce_iter();
+    /// lightweight size reduction, done upwards; returns @p true iff the automaton changed
+    bool light_reduce_up();
+    /// lightweight upwareds size reduction, iterated until change happens, returns @p true iff the automaton changed
+    bool light_reduce_up_iter();
+    /// lightweight size reduction, done downwards; returns @p true iff the automaton changed
+    bool light_reduce_down();
+    /// lightweight downwards size reduction, iterated until change happens, returns @p true iff the automaton changed
+    bool light_reduce_down_iter();
     /// reduces the automaton using a prefered reduction
     void reduce();
 
