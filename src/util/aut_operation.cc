@@ -1065,7 +1065,7 @@ void VATA::Util::TreeAutomata::fraction_simplication() {
   }
 
   /** checks language equivalence of two TAs */
-  bool check_equal(const std::string& lhsPath, const std::string& rhsPath)
+  bool VATA::Util::TreeAutomata::check_equal(const std::string& lhsPath, const std::string& rhsPath)
   {
     return check_inclusion(lhsPath, rhsPath) && check_inclusion(rhsPath, lhsPath);
   }

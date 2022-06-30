@@ -100,6 +100,7 @@ int main(int argc, char **argv) {
 
     int stateBefore = 0, transitionBefore = 0;
     VATA::Util::TreeAutomata aut;
+    VATA::Serialization::TimbukSerializer serializer;
     auto start = chrono::steady_clock::now();
     if (type == 0) {
         aut = VATA::Util::TreeAutomata::classical(10);
@@ -130,6 +131,13 @@ int main(int argc, char **argv) {
             aut = aut.Union(aut2);
         }
         for (int i=1; i<=n; i++) aut.H(i);
+        std::ofstream fileLhs("/tmp/automata1.txt");
+        aut.fraction_simplication();
+        fileLhs << serializer.Serialize(aut);
+        fileLhs.close();
+        if (!VATA::Util::TreeAutomata::check_equal("/tmp/automata1.txt", "./reference_answers/Bernstein_Vazirani" + std::to_string(n) + ".txt")) {
+            throw std::exception();
+        }
     } else if (type == 2) { /* Algorithm 2 - Grover's Search */
         if (!(n >= 2)) throw std::out_of_range("");
         aut = VATA::Util::TreeAutomata::classical_zero_one_zero(n);
@@ -169,6 +177,13 @@ int main(int argc, char **argv) {
             for (int i=n+1; i<=2*n; i++) aut.H(i);
         }
         for (int i=1; i<=n; i++) aut.X(i);
+        std::ofstream fileLhs("/tmp/automata1.txt");
+        aut.fraction_simplication();
+        fileLhs << serializer.Serialize(aut);
+        fileLhs.close();
+        if (!VATA::Util::TreeAutomata::check_equal("/tmp/automata1.txt", "./reference_answers/Grover" + std::to_string(n) + ".txt")) {
+            throw std::exception();
+        }
     } else if (type >= 3) { /* Algorithm 3 - Random Circuit */
         if (!(n >= 3)) throw std::out_of_range("");
         aut = VATA::Util::TreeAutomata::classical(n);
