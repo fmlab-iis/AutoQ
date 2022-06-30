@@ -1243,6 +1243,36 @@ bool VATA::Util::TreeAutomata::light_reduce_down()
         if (!index.empty()) {
           // VATA_DEBUG("index: " + Convert::ToString(index));
           // TODO: assert here something
+          //
+          // check sanity
+          bool sane = true;
+          for (const auto& symbMapPair : this->transitions) {
+            const auto& vector_map = symbMapPair.second;
+            if (!sane) { break; }
+            for (const auto& vecSetPair : vector_map) {
+              const auto& vec = vecSetPair.first;
+              if (2 == vec.size()) {
+                if ((left_map_state_set.end() != left_map_state_set.find(vec[0]) &&
+                     vec[1] != state) ||
+                    (left_map_state_set.end() != left_map_state_set.find(vec[1]) &&
+                     vec[0] != state)
+                   ) {
+                  sane = false;
+                  VATA_DEBUG("Sanity check in downward light reduction failed, not reducing!");
+                  break;
+                }
+
+              } else {
+                assert(0 == vec.size());
+              }
+            }
+          }
+
+          if (!sane) { // if some sanity check failed
+            index = StateToStateMap();
+            continue;
+          }
+
           StateToStateTranslWeak transl(index, [](const State& state) { return state; });
           reindex_aut_states(*this, transl);
           return true;
