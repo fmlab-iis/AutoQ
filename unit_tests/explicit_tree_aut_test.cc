@@ -296,11 +296,16 @@ BOOST_AUTO_TEST_CASE(Bernstein_Vazirani)
         ans.transitions[{level}][{2*level, 2*level - 1}] = {2*level - 2};
     }
     ans.stateNum = 2*(ans.qubitNum-1) + 1;
-    ans.transitions[{0,0,0,0,1}][{}] = {ans.stateNum++};
+    ans.transitions[{0,0,0,0,0}][{}] = {ans.stateNum++};
     ans.transitions[{1,0,0,0,1}][{}] = {ans.stateNum++};
     ans.transitions[{-1,0,0,0,1}][{}] = {ans.stateNum++};
     ans.transitions[{ans.qubitNum}][{ans.stateNum - 3, ans.stateNum - 3}] = {static_cast<VATA::Util::TreeAutomata::State>(2*(ans.qubitNum-1) - 1)};
     ans.transitions[{ans.qubitNum}][{ans.stateNum - 2, ans.stateNum - 1}] = {static_cast<VATA::Util::TreeAutomata::State>(2*(ans.qubitNum-1))};
+
+    // VATA::Serialization::TimbukSerializer serializer;
+    // std::ofstream fileRhs("reference_answers/Bernstein_Vazirani" + std::to_string(n) + ".txt");
+	// fileRhs << serializer.Serialize(ans);
+	// fileRhs.close();
 
     BOOST_REQUIRE_MESSAGE(VATA::Util::TreeAutomata::check_equal_aut(aut, ans), "");
 }
@@ -333,7 +338,7 @@ void dfs(const std::map<VATA::Util::TreeAutomata::State, VATA::Util::TreeAutomat
 // Ref: https://quantumcomputing.stackexchange.com/questions/2177/how-can-i-implement-an-n-bit-toffoli-gate
 BOOST_AUTO_TEST_CASE(Grover_Search)
 {
-    int n = 4; // currently affordable size
+    int n = 4;
     assert(n >= 2);
     auto aut = VATA::Util::TreeAutomata::classical_zero_one_zero(n);
 
@@ -392,6 +397,12 @@ BOOST_AUTO_TEST_CASE(Grover_Search)
     for (int i=1; i<=n; i++) aut.X(i);
     /********************************/
 
+    // VATA::Serialization::TimbukSerializer serializer;
+    // std::ofstream fileRhs("reference_answers/Grover" + std::to_string(n) + ".txt");
+    // aut.fraction_simplication();
+	// fileRhs << serializer.Serialize(aut);
+	// fileRhs.close();
+
     /******************************** Answer Validation *********************************/
     std::map<VATA::Util::TreeAutomata::State, VATA::Util::TreeAutomata::StateVector> edge;
     std::map<VATA::Util::TreeAutomata::State, VATA::Util::TreeAutomata::Symbol> leaf;
@@ -430,6 +441,7 @@ BOOST_AUTO_TEST_CASE(Grover_Search)
                 break;
             }
         }
+        // printf("%u\n", ans);
 
         std::vector<float> nonzero;
         for (unsigned i=0; i<prob.size(); i++) {
@@ -454,7 +466,6 @@ BOOST_AUTO_TEST_CASE(Grover_Search)
                 BOOST_REQUIRE_MESSAGE(nonzero[ans*2] * 2 >= 0.9, "");
             else
                 BOOST_REQUIRE_MESSAGE(nonzero[i] < nonzero[ans*2], "");
-                
         }
         BOOST_REQUIRE_MESSAGE(!ans_found[ans], "");
         ans_found[ans] = true;
