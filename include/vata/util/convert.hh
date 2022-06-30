@@ -101,7 +101,31 @@ public:
 		// the output stream for the string
 		std::ostringstream oss;
 		// insert the object into the stream
-		oss << n;
+        if constexpr(std::is_same<T, __int128_t>::value) {
+            // Ref: https://stackoverflow.com/a/25115163/11550178
+            std::ostream::sentry s( oss );
+            if ( s ) {
+                __uint128_t tmp = n < 0 ? -n : n;
+                char buffer[ 128 ];
+                char* d = std::end( buffer );
+                do
+                {
+                    -- d;
+                    *d = "0123456789"[ tmp % 10 ];
+                    tmp /= 10;
+                } while ( tmp != 0 );
+                if ( n < 0 ) {
+                    -- d;
+                    *d = '-';
+                }
+                int len = std::end( buffer ) - d;
+                if ( oss.rdbuf()->sputn( d, len ) != len ) {
+                    oss.setstate( std::ios_base::badbit );
+                }
+            }
+        } else {
+		    oss << n;
+        }
 		// return the string
 		return oss.str();
 	}

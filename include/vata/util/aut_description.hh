@@ -26,6 +26,24 @@ namespace VATA
 	}
 }
 
+namespace std {
+    template<> class numeric_limits<__int128_t> {
+        public:
+            static __int128_t max() {
+                return (static_cast<__int128_t>(numeric_limits<__int64_t>::max()) << 64) + numeric_limits<__uint64_t>::max();
+            }
+            static __int128_t min() {
+                return static_cast<__uint128_t>(1) << 127;
+            }
+            inline static int digits = 127;
+    };
+    template<> struct hash<__int128_t> {
+        size_t operator()(__int128_t var) const {
+            return std::hash<__uint64_t>{}(static_cast<__uint64_t>(var) ^ static_cast<__uint64_t>(var >> 64));
+        }
+    };
+}
+
 struct VATA::Util::TreeAutomata
 {
 public:   // data types
@@ -33,7 +51,7 @@ public:   // data types
 	typedef std::vector<State> StateVector;
 	typedef std::set<State> StateSet;
 
-	typedef int32_t SymbolEntry;
+	typedef __int128_t SymbolEntry;
     typedef std::vector<SymbolEntry> Symbol;
 
     struct CompareSymbolName {

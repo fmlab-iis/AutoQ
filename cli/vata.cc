@@ -193,7 +193,7 @@ int main(int argc, char **argv) {
     }
     auto end = chrono::steady_clock::now();
     auto duration = end - start;
-    std::cout << n << " & " << aut.qubitNum << " & " << VATA::Util::TreeAutomata::gateCount << " & " << stateBefore << " & " << aut.stateNum << " & " << transitionBefore << " & " << aut.transition_size()
+    std::cout << n << " & " << VATA::Util::Convert::ToString(aut.qubitNum) << " & " << VATA::Util::TreeAutomata::gateCount << " & " << stateBefore << " & " << aut.stateNum << " & " << transitionBefore << " & " << aut.transition_size()
                     << " & " << VATA::Util::TreeAutomata::binop_time * 100 / duration
                     << "\\% & " << VATA::Util::TreeAutomata::branch_rest_time * 100 / duration
                     << "\\% & " << VATA::Util::TreeAutomata::value_rest_time * 100 / duration

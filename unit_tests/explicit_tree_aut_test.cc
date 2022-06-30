@@ -299,8 +299,8 @@ BOOST_AUTO_TEST_CASE(Bernstein_Vazirani)
     ans.transitions[{0,0,0,0,1}][{}] = {ans.stateNum++};
     ans.transitions[{1,0,0,0,1}][{}] = {ans.stateNum++};
     ans.transitions[{-1,0,0,0,1}][{}] = {ans.stateNum++};
-    ans.transitions[{ans.qubitNum}][{ans.stateNum - 3, ans.stateNum - 3}] = {2*(ans.qubitNum-1) - 1};
-    ans.transitions[{ans.qubitNum}][{ans.stateNum - 2, ans.stateNum - 1}] = {2*(ans.qubitNum-1)};
+    ans.transitions[{ans.qubitNum}][{ans.stateNum - 3, ans.stateNum - 3}] = {static_cast<VATA::Util::TreeAutomata::State>(2*(ans.qubitNum-1) - 1)};
+    ans.transitions[{ans.qubitNum}][{ans.stateNum - 2, ans.stateNum - 1}] = {static_cast<VATA::Util::TreeAutomata::State>(2*(ans.qubitNum-1))};
 
     BOOST_REQUIRE_MESSAGE(VATA::Util::TreeAutomata::check_equal_aut(aut, ans), "");
 }
@@ -322,6 +322,12 @@ void dfs(const std::map<VATA::Util::TreeAutomata::State, VATA::Util::TreeAutomat
         }
     }
 }
+
+// BOOST_AUTO_TEST_CASE(NOW)
+// {
+//     std::cout << VATA::Util::Convert::ToString(std::numeric_limits<__int128_t>::max()) << "\n";
+//     std::cout << VATA::Util::Convert::ToString(std::numeric_limits<__int128_t>::min()) << "\n";
+// }
 
 // Ref: https://demonstrations.wolfram.com/QuantumCircuitImplementingGroversSearchAlgorithm
 // Ref: https://quantumcomputing.stackexchange.com/questions/2177/how-can-i-implement-an-n-bit-toffoli-gate

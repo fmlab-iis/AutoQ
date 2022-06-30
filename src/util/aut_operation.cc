@@ -629,8 +629,8 @@ VATA::Util::TreeAutomata VATA::Util::TreeAutomata::binary_operation(const TreeAu
             for (int i=0; i<4; i++) { // We do not change k here.
                 SymbolEntry a = it->first[i];
                 SymbolEntry b = add ? it2t->first[i] : -it2t->first[i];
-                if (a>=0 && b>=0 && a>std::numeric_limits<SymbolEntry>::max()-b
-                 || a<0 && b<0 && a<std::numeric_limits<SymbolEntry>::min()-b)
+                if ((a>=0 && b>=0 && a>std::numeric_limits<SymbolEntry>::max()-b)
+                 || (a<0 && b<0 && a<std::numeric_limits<SymbolEntry>::min()-b))
                     throw std::overflow_error("");
                 symbol.push_back(a + b);
             }
