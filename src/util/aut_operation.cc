@@ -627,10 +627,12 @@ VATA::Util::TreeAutomata VATA::Util::TreeAutomata::binary_operation(const TreeAu
             assert(it->first[4] == it2t->first[4]); // Two k's must be the same.
             Symbol symbol;
             for (int i=0; i<4; i++) { // We do not change k here.
-                if (add)
-                    symbol.push_back(it->first[i] + it2t->first[i]);
-                else
-                    symbol.push_back(it->first[i] - it2t->first[i]);
+                SymbolEntry a = it->first[i];
+                SymbolEntry b = add ? it2t->first[i] : -it2t->first[i];
+                if (a>=0 && b>=0 && a>std::numeric_limits<SymbolEntry>::max()-b
+                 || a<0 && b<0 && a<std::numeric_limits<SymbolEntry>::min()-b)
+                    throw std::overflow_error("");
+                symbol.push_back(a + b);
             }
             symbol.push_back(it->first[4]); // remember to push k
             for (const auto &s1 : it->second.begin()->second)
