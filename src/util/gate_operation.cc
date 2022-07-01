@@ -194,3 +194,36 @@ void VATA::Util::TreeAutomata::Fredkin(int c, int t, int t2) {
     this->semi_undeterminize();
     gateCount++;
 }
+
+void VATA::Util::TreeAutomata::randG(int G, int A, int B, int C) {
+    int g, a, b, c;
+    do { 
+        g = rand() % 12;
+        a = rand() % qubitNum + 1;
+        if (g >= 8) {
+            do {
+                b = rand() % qubitNum + 1;
+            } while (b == a);
+        }
+        if (g >= 10) {
+            do {
+                c = rand() % qubitNum + 1;
+            } while (c == a || c == b);
+        }
+    } while (g==G && a==A && (g<8 || G<8 || b==B) && (g<10 || G<10 || c==C));
+    switch(g) {
+        case 0: X(a); break;
+        case 1: Y(a); break;
+        case 2: Z(a); break;
+        case 3: H(a); break;
+        case 4: S(a); break;
+        case 5: T(a); break;
+        case 6: Rx(a); break;
+        case 7: Ry(a); break;
+        case 8: CNOT(a, b); break;
+        case 9: CZ(a, b); break;
+        case 10: Toffoli(a, b, c); break;
+        case 11: Fredkin(a, b, c); break;
+        default: break;
+    }
+}
