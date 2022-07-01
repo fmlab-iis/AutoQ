@@ -20,16 +20,16 @@ using VATA::Util::ReadFile;
 int type, n;
 
 int rand_gen() {
-    if (type == 4) return 1;
-    else if (type == 6) return n;
+    if (type == 3) return 1;
+    else if (type == 5) return n;
     else return rand() % n + 1;
 }
 
 void rand_gen(int &a, int &b) {
-    if (type == 4) { // TOP
+    if (type == 3) { // TOP
         a = 1;
         b = 2;
-    } else if (type == 6) { // BOTTOM
+    } else if (type == 5) { // BOTTOM
         a = n-1;
         b = n;
     } else {
@@ -41,11 +41,11 @@ void rand_gen(int &a, int &b) {
 }
 
 void rand_gen(int &a, int &b, int &c) {
-    if (type == 4) { // TOP
+    if (type == 3) { // TOP
         a = 1;
         b = 2;
         c = 3;
-    } else if (type == 6) { // BOTTOM
+    } else if (type == 5) { // BOTTOM
         a = n-2;
         b = n-1;
         c = n;
@@ -125,9 +125,9 @@ std::string toString(std::chrono::steady_clock::duration tp)
 int main(int argc, char **argv) {
     type = atoi(argv[1]); // algorithm
     n = atoi(argv[2]); // the gate id / the number of qubits
-    if (type == 6) {
+    if (type == 5) {
         int k = n;
-        n = 3;
+        n = 10;
         while (--k) n <<= 1; // * 2
     }
 
@@ -551,7 +551,7 @@ int main(int argc, char **argv) {
     } else if (type >= 3) { /* Algorithm 3 - Random Circuit */
         if (!(n >= 3)) throw std::out_of_range("");
         aut = VATA::Util::TreeAutomata::classical(n);
-        for (int i=0; i<((type==3) ? 6 : 3)*n; i++) {
+        for (int i=0; i<3*n; i++) {
             int a, b, c;
             switch(rand() % 12) {
                 case 0: aut.X(rand_gen()); break;
