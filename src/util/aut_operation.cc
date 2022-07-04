@@ -1001,37 +1001,26 @@ void VATA::Util::TreeAutomata::fraction_simplication() {
     TransitionMap to_be_inserted;
     for (const auto &t : transitions) {
         if (t.first.size() == 5) {
-            to_be_removed.push_back(t.first);
             Symbol symbol = t.first;
-            auto gcd = abs(t.first[0]);
-            for (int i=1; i<4; i++)
-                gcd = std::gcd(gcd, abs(t.first[i]));
-            if (gcd > 0) {
-                for (int i=0; i<4; i++)
-                    symbol[i] /= gcd;
-                while (symbol[4] >= 2 && gcd > 0 && (gcd&1) == 0) { // Notice the parentheses enclosing gcd&1 are very important! HAHA
-                    gcd /= 2;
+            if (symbol[0]==0 && symbol[1]==0 && symbol[2]==0 && symbol[3]==0) symbol[4] = 0;
+            else {
+                while ((symbol[0]&1)==0 && (symbol[1]&1)==0 && (symbol[2]&1)==0 && (symbol[3]&1)==0 && symbol[4]>=2) { // Notice the parentheses enclosing symbol[i]&1 are very important! HAHA
+                    for (int i=0; i<4; i++) symbol[i] /= 2;
                     symbol[4] -= 2;
                 }
-                for (int i=0; i<4; i++)
-                    symbol[i] *= gcd;
-            } else {
-                symbol[4] = 0;
             }
-            for (const auto &in_out : t.second) {
-                for (const auto &s : in_out.second) {
-                    to_be_inserted[symbol][in_out.first].insert(s);
+            if (t.first != symbol) {
+                to_be_removed.push_back(t.first);
+                for (const auto &in_out : t.second) {
+                    for (const auto &s : in_out.second) {
+                        to_be_inserted[symbol][in_out.first].insert(s);
+                    }
                 }
             }
         }
     }
-
-    for (const auto &t : to_be_removed) {
-        transitions.erase(t);
-    }
-    for (const auto &t : to_be_inserted) {
-        transitions.insert(t);
-    }
+    for (const auto &t : to_be_removed) transitions.erase(t);
+    for (const auto &t : to_be_inserted) transitions.insert(t);
 }
 
 /**************** Equivalence Checking ****************/
