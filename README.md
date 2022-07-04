@@ -1,5 +1,5 @@
-# libVATA - A C++ library for efficient manipulation with non-deterministic finite (tree) automata
-[![Build Status](https://travis-ci.org/ondrik/libvata.svg?branch=master)](https://travis-ci.org/ondrik/libvata)
+# AutoQ - A C++ tool for quantum circuit verification
+<!-- [![Build Status](https://travis-ci.org/ondrik/libvata.svg?branch=master)](https://travis-ci.org/ondrik/libvata)
 
 ## About
 libvata is a highly optimised non-deterministic finite tree automata library.
@@ -200,4 +200,4 @@ If you have further questions, do not hesitate to contact the authors:
   * Jiri Simacek   <simacek@fit.vutbr.cz>
   * Tomas Vojnar   <vojnar@fit.vutbr.cz>
   * Martin Hruska  <ihruska@fit.vutbr.cz>
-  * Lukas Holik    <holik@fit.vutbr.cz>
+  * Lukas Holik    <holik@fit.vutbr.cz> -->
