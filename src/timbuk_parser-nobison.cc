@@ -124,11 +124,11 @@ TreeAutomata::Symbol symbol_converter(const std::string& str)
         for (int i=1; i<static_cast<int>(str.length()); i++) {
             size_t j = str.find(',', i);
             if (j == std::string::npos) j = str.length()-1;
-            temp.push_back(atoi(str.substr(i, j-i).c_str()));
+            temp.push_back(boost::lexical_cast<TreeAutomata::SymbolEntry>(str.substr(i, j-i).c_str()));
             i = j;
         }
     } else {
-        temp.push_back(atoi(str.c_str()));
+        temp.push_back(boost::lexical_cast<TreeAutomata::SymbolEntry>(str.c_str()));
     }
     assert(temp.size() == 1 || temp.size() == 5);
     return temp;
@@ -339,8 +339,11 @@ static TreeAutomata parse_timbuk(const std::string& str)
 	}
 
     for (const auto &kv : result.transitions) {
-        if (kv.first.size() < 5)
-            result.qubitNum = std::max(result.qubitNum, kv.first[0]);
+        if (kv.first.size() < 5) {
+            if (kv.first[0] > INT_MAX)
+                throw std::overflow_error("");
+            result.qubitNum = std::max(result.qubitNum, static_cast<int>(kv.first[0]));
+        }
     }
 
 	return result;
