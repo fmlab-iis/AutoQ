@@ -1249,7 +1249,7 @@ bool VATA::Util::TreeAutomata::light_reduce_down()
                      vec[0] != state)
                    ) {
                   sane = false;
-                  VATA_DEBUG("Sanity check in downward light reduction failed, not reducing!");
+                //   VATA_DEBUG("Sanity check in downward light reduction failed, not reducing!");
                   break;
                 }
 

@@ -125,17 +125,13 @@ std::string toString(std::chrono::steady_clock::duration tp)
 int main(int argc, char **argv) {
     type = atoi(argv[1]); // algorithm
     n = atoi(argv[2]); // the gate id / the number of qubits
-    if (type == 5) {
-        int k = n;
-        n = 10;
-        while (--k) n <<= 1; // * 2
-    }
 
     int stateBefore = 0, transitionBefore = 0;
     VATA::Util::TreeAutomata aut;
     VATA::Serialization::TimbukSerializer serializer;
     auto start = chrono::steady_clock::now();
     if (type == 0) {
+        auto start = chrono::steady_clock::now();
         aut = VATA::Util::TreeAutomata::classical(10);
         n--;
         switch(n) {
@@ -153,6 +149,9 @@ int main(int argc, char **argv) {
             case 11: aut.Fredkin(1, 2, 3); break;
             default: break;
         }
+        auto duration = chrono::steady_clock::now() - start;
+        std::cout << toString(duration) << " & ";
+        return 0;
     } else if (type == 1) { /* Algorithm 1 - Bernstein-Vazirani */
         aut = VATA::Util::TreeAutomata::zero(n+1);
         stateBefore = aut.stateNum, transitionBefore = aut.transition_size();
@@ -211,7 +210,7 @@ int main(int argc, char **argv) {
                 aut.fraction_simplication();
                 fileLhs << serializer.Serialize(aut);
                 fileLhs.close();
-                if (VATA::Util::TreeAutomata::check_equal("/tmp/automata1.txt", "/home/alan23273850/libvata2/reference_answers/Bernstein_Vazirani" + std::to_string(n) + ".txt")) {
+                if (VATA::Util::TreeAutomata::check_equal("/tmp/automata1.txt", "./reference_answers/Bernstein_Vazirani" + std::to_string(n) + ".txt")) {
                     std::cout << "An equivalent automaton appears!\n";
                 }
                 auto end = chrono::steady_clock::now();
@@ -447,7 +446,7 @@ int main(int argc, char **argv) {
                 aut.fraction_simplication();
                 fileLhs << serializer.Serialize(aut);
                 fileLhs.close();
-                if (VATA::Util::TreeAutomata::check_equal("/tmp/automata1.txt", "/home/alan23273850/libvata2/reference_answers/Grover" + std::to_string(n) + ".txt")) {
+                if (VATA::Util::TreeAutomata::check_equal("/tmp/automata1.txt", "./reference_answers/Grover" + std::to_string(n) + ".txt")) {
                     std::cout << "An equivalent automaton appears!\n";
                 }
                 auto end = chrono::steady_clock::now();
@@ -550,6 +549,7 @@ int main(int argc, char **argv) {
         return 0;
     } else if (type >= 3) { /* Algorithm 3 - Random Circuit */
         if (!(n >= 3)) throw std::out_of_range("");
+        auto start = chrono::steady_clock::now();
         aut = VATA::Util::TreeAutomata::classical(n);
         for (int i=0; i<3*n; i++) {
             int a, b, c;
@@ -569,6 +569,9 @@ int main(int argc, char **argv) {
                 default: break;
             }
         }
+        auto duration = chrono::steady_clock::now() - start;
+        std::cout << " & " << toString(duration);
+        return 0;
     }
     auto end = chrono::steady_clock::now();
     auto duration = end - start;
