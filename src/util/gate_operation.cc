@@ -60,8 +60,7 @@ void VATA::Util::TreeAutomata::S(int t) {
     TreeAutomata aut2 = *this;
     aut1.branch_restriction(t, false);
     aut2.branch_restriction(t, true);
-    aut2.omega_multiplication();
-    aut2.omega_multiplication();
+    aut2.omega_multiplication(2);
     *this = aut1 + aut2;
     this->semi_undeterminize();
     gateCount++;
@@ -89,8 +88,7 @@ void VATA::Util::TreeAutomata::Rx(int t) {
     aut3.value_restriction(t, true);
     aut3.branch_restriction(t, false);
     aut2 = aut2 + aut3;
-    aut2.omega_multiplication();
-    aut2.omega_multiplication();
+    aut2.omega_multiplication(2);
     *this = aut1 - aut2;
     divide_by_the_square_root_of_two();
     this->semi_undeterminize();

@@ -393,33 +393,25 @@ void VATA::Util::TreeAutomata::remove_useless() {
     stateNum = stateOldToNew.size();
 }
 
-void VATA::Util::TreeAutomata::omega_multiplication() {
+void VATA::Util::TreeAutomata::omega_multiplication(int rotation) {
     TransitionMap transitions_new;
     for (const auto &t_old : transitions) {
         if (t_old.first.size() == 5) {
+            /************************** rotation **************************/
             Symbol temp;
-            temp.push_back(-t_old.first[3]);
-            for (unsigned i=0; i<t_old.first.size()-2; i++) { // exclude "k"
-                temp.push_back(t_old.first[i]);
-            }
-            temp.push_back(t_old.first[t_old.first.size()-1]);
-            auto it = transitions_new.find(temp);   // has the symbol been used?
-            if (transitions_new.end() != it) { // found it!
-                auto &in_out = it->second;
-                for (const auto &kv : t_old.second) { // go over all states in the set of parents
-                    auto jt = in_out.find(kv.first);    // try to find the tuple
-                    if (in_out.end() != jt) { // found it!
-                        StateSet &ss = jt->second;
-                        StateSet dest;
-                        set_union(ss.begin(), ss.end(), kv.second.begin(), kv.second.end(), inserter(dest, dest.begin()));
-                        ss = dest;
-                    } else {
-                        in_out[kv.first] = kv.second;
-                    }
+            if (rotation == 1) {
+                temp.push_back(-t_old.first[3]);
+                for (unsigned i=0; i<3; i++) { // exclude "k"
+                    temp.push_back(t_old.first[i]);
                 }
-            } else { // didn't find it
-                transitions_new[temp] = t_old.second;
+            } else {
+                temp.push_back(-t_old.first[2]);
+                temp.push_back(-t_old.first[3]);
+                temp.push_back(t_old.first[0]);
+                temp.push_back(t_old.first[1]);
             }
+            temp.push_back(t_old.first[4]);
+            transitions_new[temp] = t_old.second;
         } else {
             assert(t_old.first.size() <= 2);
             transitions_new.insert(t_old);
