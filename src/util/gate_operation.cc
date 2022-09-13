@@ -1,15 +1,16 @@
 #include <vata/util/aut_description.hh>
 
-void VATA::Util::TreeAutomata::X(int t) {
-    this->semi_determinize();
-    TreeAutomata aut1 = *this;
-    TreeAutomata aut2 = *this;
-    aut1.value_restriction(t, false);
-    aut1.branch_restriction(t, true);
-    aut2.value_restriction(t, true);
-    aut2.branch_restriction(t, false);
-    *this = aut1 + aut2;
-    this->semi_undeterminize();
+void VATA::Util::TreeAutomata::X(int k) {
+    auto transitions_copy = transitions;
+    for (const auto &t : transitions_copy) {
+        if (t.first.size() < 5 && t.first[0] == k) {
+            transitions.erase(t.first);
+            for (const auto &in_out : t.second) {
+                assert(in_out.first.size() == 2);
+                transitions[t.first][{in_out.first[1], in_out.first[0]}] = in_out.second;
+            }
+        }
+    }
     gateCount++;
 }
 

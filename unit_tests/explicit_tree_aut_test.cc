@@ -408,82 +408,90 @@ BOOST_AUTO_TEST_CASE(Grover_Search)
 	// fileRhs << serializer.Serialize(aut);
 	// fileRhs.close();
 
-    // VATA::Parsing::TimbukParser parser;
-    // std::ifstream t("reference_answers/Grover4.txt");
-    // std::stringstream buffer;
-    // buffer << t.rdbuf();
-    // auto aut = parser.ParseString(buffer.str());
+    // char cwd[PATH_MAX];
+    // if (getcwd(cwd, sizeof(cwd)) != NULL) {
+    //     printf("Current working dir: %s\n", cwd);
+    // } else {
+    //     perror("getcwd() error");
+    // }
+
+    VATA::Parsing::TimbukParser parser;
+    std::ifstream t("../../reference_answers/Grover" + std::to_string(n) + ".txt");
+    std::stringstream buffer;
+    buffer << t.rdbuf();
+    auto ans = parser.ParseString(buffer.str());
     // int n = (aut.qubitNum + 1) / 3;
     // aut.print();
 
     /******************************** Answer Validation *********************************/
-    std::map<VATA::Util::TreeAutomata::State, VATA::Util::TreeAutomata::StateVector> edge;
-    std::map<VATA::Util::TreeAutomata::State, VATA::Util::TreeAutomata::Symbol> leaf;
-    std::vector<VATA::Util::TreeAutomata::StateVector> first_layers;
-    for (const auto &t : aut.transitions) {
-        for (const auto &in_out : t.second) {
-            const auto &in = in_out.first;
-            for (const auto &s : in_out.second) {
-                if (in.empty()) { // is leaf transition
-                    assert(t.first.size() == 5);
-                    leaf[s] = t.first;
-                }
-                if (t.first.size() == 1 && t.first[0] == 1) {
-                    first_layers.push_back(in);
-                } else {
-                    assert(edge[s].empty());
-                    edge[s] = in;
-                }
-            }
-        }
-    }
-    unsigned N = 1, two_2n = 1;
-    for (int j=0; j<n; j++)
-        N <<= 1; // N := 2^n
-    if (n == 2) two_2n = 8; // 2^(2n-1)
-    else two_2n = N * N; // 2^(2n)
-    std::vector<bool> ans_found(N);
-    for (const auto &fl : first_layers) {
-        std::vector<double> prob;
-        dfs(edge, leaf, fl, prob);
-        // std::cout << VATA::Util::Convert::ToString(prob) << "\n";
-        unsigned ans = UINT_MAX / 2;
-        for (unsigned i=0; i<prob.size(); i++) {
-            if (prob[i] > 0) { /* in fact check != (make the compiler not complain) */
-                ans = i / two_2n;
-                break;
-            }
-        }
-        // printf("%u\n", ans);
+    BOOST_REQUIRE_MESSAGE(VATA::Util::TreeAutomata::check_equal_aut(aut, ans), "");
+    // std::map<VATA::Util::TreeAutomata::State, VATA::Util::TreeAutomata::StateVector> edge;
+    // std::map<VATA::Util::TreeAutomata::State, VATA::Util::TreeAutomata::Symbol> leaf;
+    // std::vector<VATA::Util::TreeAutomata::StateVector> first_layers;
+    // for (const auto &t : aut.transitions) {
+    //     for (const auto &in_out : t.second) {
+    //         const auto &in = in_out.first;
+    //         for (const auto &s : in_out.second) {
+    //             if (in.empty()) { // is leaf transition
+    //                 assert(t.first.size() == 5);
+    //                 leaf[s] = t.first;
+    //             }
+    //             if (t.first.size() == 1 && t.first[0] == 1) {
+    //                 first_layers.push_back(in);
+    //             } else {
+    //                 assert(edge[s].empty());
+    //                 edge[s] = in;
+    //             }
+    //         }
+    //     }
+    // }
+    // unsigned N = 1, two_2n = 1;
+    // for (int j=0; j<n; j++)
+    //     N <<= 1; // N := 2^n
+    // if (n == 2) two_2n = 8; // 2^(2n-1)
+    // else two_2n = N * N; // 2^(2n)
+    // std::vector<bool> ans_found(N);
+    // for (const auto &fl : first_layers) {
+    //     std::vector<double> prob;
+    //     dfs(edge, leaf, fl, prob);
+    //     // std::cout << VATA::Util::Convert::ToString(prob) << "\n";
+    //     unsigned ans = UINT_MAX / 2;
+    //     for (unsigned i=0; i<prob.size(); i++) {
+    //         if (prob[i] > 0) { /* in fact check != (make the compiler not complain) */
+    //             ans = i / two_2n;
+    //             break;
+    //         }
+    //     }
+    //     // printf("%u\n", ans);
 
-        std::vector<double> nonzero;
-        for (unsigned i=0; i<prob.size(); i++) {
-            if (i / two_2n != ans) {
-                BOOST_REQUIRE_MESSAGE(prob[i] <= 0, ""); /* in fact check = (make the compiler not complain) */
-            } else {
-                int two_n_minus_1 = 1;
-                if (n >= 3) {
-                    for (int j=0; j<n-1; j++)
-                        two_n_minus_1 *= 2; // 2 ^ (n-1)
-                }
-                if (i % two_n_minus_1 == 0) {
-                    nonzero.push_back(prob[i]);
-                } else {
-                    BOOST_REQUIRE_MESSAGE(prob[i] <= 0, ""); /* in fact check = (make the compiler not complain) */
-                }
-            }
-        }
-        for (unsigned i=0; i<nonzero.size(); i+=2) {
-            BOOST_REQUIRE_MESSAGE(nonzero[i] >= nonzero[i+1] && nonzero[i] <= nonzero[i+1], ""); /* in fact check = (make the compiler not complain) */
-            if (i == ans*2)
-                BOOST_REQUIRE_MESSAGE(nonzero[ans*2] * 2 >= 0.9, "");
-            else
-                BOOST_REQUIRE_MESSAGE(nonzero[i] < nonzero[ans*2], "");
-        }
-        BOOST_REQUIRE_MESSAGE(!ans_found[ans], "");
-        ans_found[ans] = true;
-    }
-    for (unsigned i=0; i<N; i++)
-        BOOST_REQUIRE_MESSAGE(ans_found[i], "");
+    //     std::vector<double> nonzero;
+    //     for (unsigned i=0; i<prob.size(); i++) {
+    //         if (i / two_2n != ans) {
+    //             BOOST_REQUIRE_MESSAGE(prob[i] <= 0, ""); /* in fact check = (make the compiler not complain) */
+    //         } else {
+    //             int two_n_minus_1 = 1;
+    //             if (n >= 3) {
+    //                 for (int j=0; j<n-1; j++)
+    //                     two_n_minus_1 *= 2; // 2 ^ (n-1)
+    //             }
+    //             if (i % two_n_minus_1 == 0) {
+    //                 nonzero.push_back(prob[i]);
+    //             } else {
+    //                 BOOST_REQUIRE_MESSAGE(prob[i] <= 0, ""); /* in fact check = (make the compiler not complain) */
+    //             }
+    //         }
+    //     }
+    //     for (unsigned i=0; i<nonzero.size(); i+=2) {
+    //         BOOST_REQUIRE_MESSAGE(nonzero[i] >= nonzero[i+1] && nonzero[i] <= nonzero[i+1], ""); /* in fact check = (make the compiler not complain) */
+    //         if (i == ans*2)
+    //             BOOST_REQUIRE_MESSAGE(nonzero[ans*2] * 2 >= 0.9, "");
+    //         else
+    //             BOOST_REQUIRE_MESSAGE(nonzero[i] < nonzero[ans*2], "");
+    //     }
+    //     BOOST_REQUIRE_MESSAGE(!ans_found[ans], "");
+    //     ans_found[ans] = true;
+    // }
+    // for (unsigned i=0; i<N; i++)
+    //     BOOST_REQUIRE_MESSAGE(ans_found[i], "");
     /************************************************************************************/
 }
