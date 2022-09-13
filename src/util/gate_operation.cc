@@ -13,19 +13,35 @@ void VATA::Util::TreeAutomata::X(int t) {
     gateCount++;
 }
 
-void VATA::Util::TreeAutomata::Y(int t) {
-    this->semi_determinize();
-    TreeAutomata aut1 = *this;
-    TreeAutomata aut2 = *this;
-    aut1.value_restriction(t, false);
-    aut1.branch_restriction(t, true);
-    aut2.value_restriction(t, true);
-    aut2.branch_restriction(t, false);
-    *this = aut1 - aut2;
-    omega_multiplication();
-    omega_multiplication();
-    this->semi_undeterminize();
+void VATA::Util::TreeAutomata::Y(int k) {
+    TransitionMap transitions_copy = transitions;
+    for (const auto &t : transitions_copy) {
+        Symbol symbol;
+        if (t.first.size() == 5) {
+            symbol = Symbol({-t.first[0], -t.first[1], -t.first[2], -t.first[3], t.first[4]});
+        } else {
+            symbol = t.first;
+        }
+        for (const auto &in_out : t.second) {
+            StateVector in;
+            for (const auto &s : in_out.first)
+                in.push_back(s+stateNum);
+            for (const auto &s : in_out.second)
+                transitions[symbol][in].insert(s+stateNum);
+        }
+    }    
+    auto &tak = transitions.at({k});
+    auto in_outs = tak;
+    for (const auto &in_out : in_outs) {
+        assert(in_out.first.size() == 2);
+        if (in_out.first[0] < stateNum && in_out.first[1] < stateNum) {
+            tak[{in_out.first[1]+stateNum, in_out.first[0]}] = in_out.second;
+            tak.erase(in_out.first);
+        }
+    }
+    stateNum *= 2;
     gateCount++;
+    omega_multiplication(2);
 }
 
 void VATA::Util::TreeAutomata::Z(int t) {
