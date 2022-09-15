@@ -192,23 +192,51 @@ void VATA::Util::TreeAutomata::CZ(int c, int t) {
 
 void VATA::Util::TreeAutomata::Toffoli(int c, int c2, int t) {
     assert(c != c2 && c2 != t && t != c);
-    this->semi_determinize();
-    TreeAutomata aut1 = *this;
-    aut1.branch_restriction(c, false);
-    TreeAutomata aut2 = *this;
-    aut2.branch_restriction(c2, false);
-    TreeAutomata aut3 = aut2;
-    aut3.branch_restriction(c, false);
-    TreeAutomata aut4 = *this;
-    aut4.branch_restriction(c, true);
-    aut4.branch_restriction(c2, true);
-    TreeAutomata aut5 = aut4;
-    aut4.value_restriction(t, false);
-    aut4.branch_restriction(t, true);
-    aut5.value_restriction(t, true);
-    aut5.branch_restriction(t, false);
-    *this = aut1 + aut2 - aut3 + aut4 + aut5;
-    this->semi_undeterminize();
+    if (c < t && c2 < t) {
+        if (c > c2) std::swap(c, c2);
+        auto aut2 = *this;
+        aut2.CNOT(c2, t);
+        for (const auto &tr : aut2.transitions) {
+            if (!(tr.first.size() < 5 && tr.first[0] <= c)) {
+                auto &ttf = transitions[tr.first];
+                for (const auto &in_out : tr.second) {
+                    StateVector in;
+                    for (const auto &s : in_out.first)
+                        in.push_back(s+stateNum);
+                    for (const auto &s : in_out.second)
+                        ttf[in].insert(s+stateNum);
+                }
+            }
+        }
+        auto &tac = transitions.at({c});
+        auto in_outs = tac;
+        for (const auto &in_out : in_outs) {
+            assert(in_out.first.size() == 2);
+            if (in_out.first[0] < stateNum && in_out.first[1] < stateNum) {
+                tac[{in_out.first[0], in_out.first[1]+stateNum}] = in_out.second;
+                tac.erase(in_out.first);
+            }
+        }
+        stateNum += aut2.stateNum;
+    } else {
+        this->semi_determinize();
+        TreeAutomata aut1 = *this;
+        aut1.branch_restriction(c, false);
+        TreeAutomata aut2 = *this;
+        aut2.branch_restriction(c2, false);
+        TreeAutomata aut3 = aut2;
+        aut3.branch_restriction(c, false);
+        TreeAutomata aut4 = *this;
+        aut4.branch_restriction(c, true);
+        aut4.branch_restriction(c2, true);
+        TreeAutomata aut5 = aut4;
+        aut4.value_restriction(t, false);
+        aut4.branch_restriction(t, true);
+        aut5.value_restriction(t, true);
+        aut5.branch_restriction(t, false);
+        *this = aut1 + aut2 - aut3 + aut4 + aut5;
+        this->semi_undeterminize();
+    }
     gateCount++;
 }
 
