@@ -44,6 +44,8 @@ void VATA::Util::TreeAutomata::Y(int k) {
     }
     stateNum *= 2;
     omega_multiplication(2);
+    remove_useless();
+    reduce();
     gateCount++;
 }
 
@@ -129,7 +131,7 @@ void VATA::Util::TreeAutomata::Ry(int t) {
     gateCount++;
 }
 
-void VATA::Util::TreeAutomata::CNOT(int c, int t) {
+void VATA::Util::TreeAutomata::CNOT(int c, int t, bool opt) {
     assert(c != t);
     if (c > t) {
         this->semi_determinize();
@@ -169,6 +171,10 @@ void VATA::Util::TreeAutomata::CNOT(int c, int t) {
             }
         }
         stateNum += automata_copy.stateNum;
+        if (opt) {
+            remove_useless();
+            reduce();
+        }
     }
     gateCount++;
 }
@@ -195,7 +201,7 @@ void VATA::Util::TreeAutomata::Toffoli(int c, int c2, int t) {
     if (c < t && c2 < t) {
         if (c > c2) std::swap(c, c2);
         auto aut2 = *this;
-        aut2.CNOT(c2, t);
+        aut2.CNOT(c2, t, false);
         for (const auto &tr : aut2.transitions) {
             if (!(tr.first.size() < 5 && tr.first[0] <= c)) {
                 auto &ttf = transitions[tr.first];
@@ -218,6 +224,8 @@ void VATA::Util::TreeAutomata::Toffoli(int c, int c2, int t) {
             }
         }
         stateNum += aut2.stateNum;
+        remove_useless();
+        reduce();
     } else {
         this->semi_determinize();
         TreeAutomata aut1 = *this;

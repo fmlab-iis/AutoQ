@@ -169,7 +169,7 @@ public:
     void T(int t);
     void Rx(int t);
     void Ry(int t);
-    void CNOT(int c, int t);
+    void CNOT(int c, int t, bool opt=true);
     void CZ(int c, int t);
     void Toffoli(int c, int c2, int t);
     void Fredkin(int c, int t, int t2);
