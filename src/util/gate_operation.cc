@@ -23,14 +23,16 @@ void VATA::Util::TreeAutomata::Y(int k) {
         } else {
             symbol = t.first;
         }
-        for (const auto &in_out : t.second) {
-            StateVector in;
-            for (const auto &s : in_out.first)
-                in.push_back(s+stateNum);
-            for (const auto &s : in_out.second)
-                transitions[symbol][in].insert(s+stateNum);
+        if (!(symbol.size() < 5 && symbol[0] <= k)) {
+            for (const auto &in_out : t.second) {
+                StateVector in;
+                for (const auto &s : in_out.first)
+                    in.push_back(s+stateNum);
+                for (const auto &s : in_out.second)
+                    transitions[symbol][in].insert(s+stateNum);
+            }
         }
-    }    
+    } 
     auto &tak = transitions.at({k});
     auto in_outs = tak;
     for (const auto &in_out : in_outs) {
