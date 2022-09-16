@@ -1,6 +1,48 @@
 #include <vata/util/aut_description.hh>
 
+namespace {
+    std::string toString(std::chrono::steady_clock::duration tp) {
+        using namespace std;
+        using namespace std::chrono;
+        nanoseconds ns = duration_cast<nanoseconds>(tp);
+        typedef duration<int, ratio<86400>> days;
+        std::stringstream ss;
+        char fill = ss.fill();
+        ss.fill('0');
+        auto d = duration_cast<days>(ns);
+        ns -= d;
+        auto h = duration_cast<hours>(ns);
+        ns -= h;
+        auto m = duration_cast<minutes>(ns);
+        ns -= m;
+        auto s = duration_cast<seconds>(ns);
+        ns -= s;
+        auto ms = duration_cast<milliseconds>(ns);
+        // auto s = duration<float, std::ratio<1, 1>>(ns);
+        if (d.count() > 0 || h.count() > 0)
+            ss << "TOO_LONG & ";
+        else if (m.count() == 0 && s.count() < 10) {
+            ss << s.count() << '.' << ms.count() / 100 << "s";
+        } else {
+            if (m.count() > 0) ss << m.count() << 'm';
+            ss << s.count() << 's';// << " & ";
+        }
+        ss.fill(fill);
+        return ss.str();
+    }
+}
+
+int VATA::Util::TreeAutomata::count_transitions() {
+    int count = 0;
+    for (const auto &t : transitions)
+        for (const auto &in_outs : t.second) {
+            count += in_outs.second.size();
+        }
+    return count;
+}
+
 void VATA::Util::TreeAutomata::X(int k) {
+    auto start = std::chrono::steady_clock::now();
     auto transitions_copy = transitions;
     for (const auto &t : transitions_copy) {
         if (t.first.size() < 5 && t.first[0] == k) {
@@ -12,9 +54,12 @@ void VATA::Util::TreeAutomata::X(int k) {
         }
     }
     gateCount++;
+    auto duration = std::chrono::steady_clock::now() - start;
+    if (gateLog) std::cout << "X" << k << "：" << stateNum << " states " << count_transitions() << " transitions " << toString(duration) << "\n";
 }
 
 void VATA::Util::TreeAutomata::Y(int k) {
+    auto start = std::chrono::steady_clock::now();
     TransitionMap transitions_copy = transitions;
     for (const auto &t : transitions_copy) {
         Symbol symbol;
@@ -47,9 +92,12 @@ void VATA::Util::TreeAutomata::Y(int k) {
     remove_useless();
     reduce();
     gateCount++;
+    auto duration = std::chrono::steady_clock::now() - start;
+    if (gateLog) std::cout << "Y" << k << "：" << stateNum << " states " << count_transitions() << " transitions " << toString(duration) << "\n";
 }
 
 void VATA::Util::TreeAutomata::Z(int t) {
+    auto start = std::chrono::steady_clock::now();
     TransitionMap transitions_copy = transitions;
     for (const auto &tr : transitions_copy) {
         Symbol symbol;
@@ -81,9 +129,12 @@ void VATA::Util::TreeAutomata::Z(int t) {
     remove_useless();
     reduce();
     gateCount++;
+    auto duration = std::chrono::steady_clock::now() - start;
+    if (gateLog) std::cout << "Z" << t << "：" << stateNum << " states " << count_transitions() << " transitions " << toString(duration) << "\n";
 }
 
 void VATA::Util::TreeAutomata::H(int t) {
+    auto start = std::chrono::steady_clock::now();
     this->semi_determinize();
     TreeAutomata aut1 = *this;
     aut1.value_restriction(t, false);
@@ -96,9 +147,12 @@ void VATA::Util::TreeAutomata::H(int t) {
     divide_by_the_square_root_of_two();
     this->semi_undeterminize();
     gateCount++;
+    auto duration = std::chrono::steady_clock::now() - start;
+    if (gateLog) std::cout << "H" << t << "：" << stateNum << " states " << count_transitions() << " transitions " << toString(duration) << "\n";
 }
 
 void VATA::Util::TreeAutomata::S(int t) {
+    auto start = std::chrono::steady_clock::now();
     auto aut2 = *this;
     aut2.omega_multiplication(2);
     for (const auto &tr : aut2.transitions) {
@@ -126,9 +180,12 @@ void VATA::Util::TreeAutomata::S(int t) {
     remove_useless();
     reduce();
     gateCount++;
+    auto duration = std::chrono::steady_clock::now() - start;
+    if (gateLog) std::cout << "S" << t << "：" << stateNum << " states " << count_transitions() << " transitions " << toString(duration) << "\n";
 }
 
 void VATA::Util::TreeAutomata::T(int t) {
+    auto start = std::chrono::steady_clock::now();
     auto aut2 = *this;
     aut2.omega_multiplication();
     for (const auto &tr : aut2.transitions) {
@@ -156,9 +213,12 @@ void VATA::Util::TreeAutomata::T(int t) {
     remove_useless();
     reduce();
     gateCount++;
+    auto duration = std::chrono::steady_clock::now() - start;
+    if (gateLog) std::cout << "T" << t << "：" << stateNum << " states " << count_transitions() << " transitions " << toString(duration) << "\n";
 }
 
 void VATA::Util::TreeAutomata::Rx(int t) {
+    auto start = std::chrono::steady_clock::now();
     this->semi_determinize();
     TreeAutomata aut1 = *this;
     TreeAutomata aut2 = *this;
@@ -173,9 +233,12 @@ void VATA::Util::TreeAutomata::Rx(int t) {
     divide_by_the_square_root_of_two();
     this->semi_undeterminize();
     gateCount++;
+    auto duration = std::chrono::steady_clock::now() - start;
+    if (gateLog) std::cout << "Rx" << t << "：" << stateNum << " states " << count_transitions() << " transitions " << toString(duration) << "\n";
 }
 
 void VATA::Util::TreeAutomata::Ry(int t) {
+    auto start = std::chrono::steady_clock::now();
     this->semi_determinize();
     TreeAutomata aut1 = *this;
     aut1.value_restriction(t, false);
@@ -188,9 +251,12 @@ void VATA::Util::TreeAutomata::Ry(int t) {
     divide_by_the_square_root_of_two();
     this->semi_undeterminize();
     gateCount++;
+    auto duration = std::chrono::steady_clock::now() - start;
+    if (gateLog) std::cout << "Ry" << t << "：" << stateNum << " states " << count_transitions() << " transitions " << toString(duration) << "\n";
 }
 
 void VATA::Util::TreeAutomata::CNOT(int c, int t, bool opt) {
+    auto start = std::chrono::steady_clock::now();
     assert(c != t);
     if (c > t) {
         this->semi_determinize();
@@ -236,9 +302,12 @@ void VATA::Util::TreeAutomata::CNOT(int c, int t, bool opt) {
         }
     }
     gateCount++;
+    auto duration = std::chrono::steady_clock::now() - start;
+    if (gateLog) std::cout << "CNOT" << c << "," << t << "：" << stateNum << " states " << count_transitions() << " transitions " << toString(duration) << "\n";
 }
 
 void VATA::Util::TreeAutomata::CZ(int c, int t) {
+    auto start = std::chrono::steady_clock::now();
     assert(c != t);
     if (c > t) std::swap(c, t);
     auto aut2 = *this;
@@ -292,9 +361,12 @@ void VATA::Util::TreeAutomata::CZ(int c, int t) {
     remove_useless();
     reduce();
     gateCount++;
+    auto duration = std::chrono::steady_clock::now() - start;
+    if (gateLog) std::cout << "CZ" << c << "," << t << "：" << stateNum << " states " << count_transitions() << " transitions " << toString(duration) << "\n";
 }
 
 void VATA::Util::TreeAutomata::Toffoli(int c, int c2, int t) {
+    auto start = std::chrono::steady_clock::now();
     assert(c != c2 && c2 != t && t != c);
     if (c < t && c2 < t) {
         if (c > c2) std::swap(c, c2);
@@ -344,9 +416,12 @@ void VATA::Util::TreeAutomata::Toffoli(int c, int c2, int t) {
         this->semi_undeterminize();
     }
     gateCount++;
+    auto duration = std::chrono::steady_clock::now() - start;
+    if (gateLog) std::cout << "Toffoli" << c << "," << c2 << "," << t << "：" << stateNum << " states " << count_transitions() << " transitions " << toString(duration) << "\n";
 }
 
 void VATA::Util::TreeAutomata::Fredkin(int c, int t, int t2) {
+    auto start = std::chrono::steady_clock::now();
     assert(c != t && t != t2 && t2 != c);
     this->semi_determinize();
     TreeAutomata aut1 = *this;
@@ -371,6 +446,8 @@ void VATA::Util::TreeAutomata::Fredkin(int c, int t, int t2) {
     *this = aut1 + aut2 + aut3 + aut4 + aut5;
     this->semi_undeterminize();
     gateCount++;
+    auto duration = std::chrono::steady_clock::now() - start;
+    if (gateLog) std::cout << "Fredkin" << c << "," << t << "," << t2 << "：" << stateNum << " states " << count_transitions() << " transitions " << toString(duration) << "\n";
 }
 
 void VATA::Util::TreeAutomata::randG(int G, int A, int B, int C) {

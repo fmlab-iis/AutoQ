@@ -75,6 +75,7 @@ public:   // data members
     int qubitNum;
 	TransitionMap transitions;
     inline static int gateCount;
+    inline static bool gateLog, opLog;
     inline static std::chrono::steady_clock::duration binop_time, branch_rest_time, value_rest_time;
     /* Notice inline is very convenient for declaring and defining a static member variable together! */
 
@@ -161,6 +162,7 @@ public:
     /// reduces the automaton using a prefered reduction
     void reduce();
 
+    int count_transitions();
     void X(int t);
     void Y(int t);
     void Z(int t);

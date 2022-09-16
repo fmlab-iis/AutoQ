@@ -125,6 +125,19 @@ std::string toString(std::chrono::steady_clock::duration tp)
 int main(int argc, char **argv) {
     type = atoi(argv[1]); // algorithm
     n = atoi(argv[2]); // the gate id / the number of qubits
+    if (argc > 4) {
+        VATA::Util::TreeAutomata::gateLog = true;
+        VATA::Util::TreeAutomata::opLog = true;
+    } else if (argc > 3) {
+        if (strcmp(argv[3], "g") == 0)
+            VATA::Util::TreeAutomata::gateLog = true;
+        else if (strcmp(argv[3], "op") == 0)
+            VATA::Util::TreeAutomata::opLog = true;
+        else {
+            cout << "Log not supported!" << endl;
+            return 0;
+        }
+    }
 
     int stateBefore = 0, transitionBefore = 0;
     VATA::Util::TreeAutomata aut;
