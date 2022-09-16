@@ -76,26 +76,62 @@ void VATA::Util::TreeAutomata::H(int t) {
 }
 
 void VATA::Util::TreeAutomata::S(int t) {
-    this->semi_determinize();
-    TreeAutomata aut1 = *this;
-    TreeAutomata aut2 = *this;
-    aut1.branch_restriction(t, false);
-    aut2.branch_restriction(t, true);
+    auto aut2 = *this;
     aut2.omega_multiplication(2);
-    *this = aut1 + aut2;
-    this->semi_undeterminize();
+    for (const auto &tr : aut2.transitions) {
+        if (!(tr.first.size() < 5 && tr.first[0] <= t)) {
+            auto &ttf = transitions[tr.first];
+            for (const auto &in_out : tr.second) {
+                StateVector in;
+                for (const auto &s : in_out.first)
+                    in.push_back(s+stateNum);
+                for (const auto &s : in_out.second)
+                    ttf[in].insert(s+stateNum);
+            }
+        }
+    }
+    auto &tac = transitions.at({t});
+    auto in_outs = tac;
+    for (const auto &in_out : in_outs) {
+        assert(in_out.first.size() == 2);
+        if (in_out.first[0] < stateNum && in_out.first[1] < stateNum) {
+            tac[{in_out.first[0], in_out.first[1]+stateNum}] = in_out.second;
+            tac.erase(in_out.first);
+        }
+    }
+    stateNum += aut2.stateNum;
+    remove_useless();
+    reduce();
     gateCount++;
 }
 
 void VATA::Util::TreeAutomata::T(int t) {
-    this->semi_determinize();
-    TreeAutomata aut1 = *this;
-    TreeAutomata aut2 = *this;
-    aut1.branch_restriction(t, false);
-    aut2.branch_restriction(t, true);
+    auto aut2 = *this;
     aut2.omega_multiplication();
-    *this = aut1 + aut2;
-    this->semi_undeterminize();
+    for (const auto &tr : aut2.transitions) {
+        if (!(tr.first.size() < 5 && tr.first[0] <= t)) {
+            auto &ttf = transitions[tr.first];
+            for (const auto &in_out : tr.second) {
+                StateVector in;
+                for (const auto &s : in_out.first)
+                    in.push_back(s+stateNum);
+                for (const auto &s : in_out.second)
+                    ttf[in].insert(s+stateNum);
+            }
+        }
+    }
+    auto &tac = transitions.at({t});
+    auto in_outs = tac;
+    for (const auto &in_out : in_outs) {
+        assert(in_out.first.size() == 2);
+        if (in_out.first[0] < stateNum && in_out.first[1] < stateNum) {
+            tac[{in_out.first[0], in_out.first[1]+stateNum}] = in_out.second;
+            tac.erase(in_out.first);
+        }
+    }
+    stateNum += aut2.stateNum;
+    remove_useless();
+    reduce();
     gateCount++;
 }
 
@@ -147,9 +183,9 @@ void VATA::Util::TreeAutomata::CNOT(int c, int t, bool opt) {
         *this = aut1 + aut2 + aut3;
         this->semi_undeterminize();
     } else {
-        auto automata_copy = *this;
-        automata_copy.X(t);
-        for (const auto &tr : automata_copy.transitions) {
+        auto aut2 = *this;
+        aut2.X(t);
+        for (const auto &tr : aut2.transitions) {
             if (!(tr.first.size() < 5 && tr.first[0] <= c)) {
                 auto &ttf = transitions[tr.first];
                 for (const auto &in_out : tr.second) {
@@ -170,7 +206,7 @@ void VATA::Util::TreeAutomata::CNOT(int c, int t, bool opt) {
                 tac.erase(in_out.first);
             }
         }
-        stateNum += automata_copy.stateNum;
+        stateNum += aut2.stateNum;
         if (opt) {
             remove_useless();
             reduce();
