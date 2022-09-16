@@ -262,10 +262,41 @@ namespace { // anonymous namespace
     // VATA_DEBUG("After compact stateNum = " + Convert::ToString(aut.stateNum));
   }
 
+  std::string toString(std::chrono::steady_clock::duration tp)
+  {
+    using namespace std;
+    using namespace std::chrono;
+    nanoseconds ns = duration_cast<nanoseconds>(tp);
+    typedef duration<int, ratio<86400>> days;
+    std::stringstream ss;
+    char fill = ss.fill();
+    ss.fill('0');
+    auto d = duration_cast<days>(ns);
+    ns -= d;
+    auto h = duration_cast<hours>(ns);
+    ns -= h;
+    auto m = duration_cast<minutes>(ns);
+    ns -= m;
+    auto s = duration_cast<seconds>(ns);
+    ns -= s;
+    auto ms = duration_cast<milliseconds>(ns);
+    // auto s = duration<float, std::ratio<1, 1>>(ns);
+    if (d.count() > 0 || h.count() > 0)
+        ss << "TOO_LONG & ";
+    else if (m.count() == 0 && s.count() < 10) {
+        ss << s.count() << '.' << ms.count() / 100 << "s";
+    } else {
+        if (m.count() > 0) ss << m.count() << 'm';
+        ss << s.count() << 's';// << " & ";
+    }
+    ss.fill(fill);
+    return ss.str();
+  }
 } // anonymous namespace
 
 
 void VATA::Util::TreeAutomata::remove_useless() {
+    auto start = std::chrono::steady_clock::now();
     bool changed;
     std::vector<bool> traversed(stateNum, false);
     TransitionMap transitions_remaining = transitions;
@@ -391,6 +422,8 @@ void VATA::Util::TreeAutomata::remove_useless() {
     }
     finalStates = finalStates_new;
     stateNum = stateOldToNew.size();
+    auto duration = std::chrono::steady_clock::now() - start;
+    if (opLog) std::cout << "remove_useless：" << stateNum << " states " << count_transitions() << " transitions " << toString(duration) << "\n";
 }
 
 void VATA::Util::TreeAutomata::omega_multiplication(int rotation) {
@@ -1281,6 +1314,7 @@ bool VATA::Util::TreeAutomata::light_reduce_down_iter()
 
 void VATA::Util::TreeAutomata::reduce()
 {
+  auto start = std::chrono::steady_clock::now();
   // VATA_DEBUG("before light_reduce_down: " + Convert::ToString(count_aut_states(*this)));
   // this->sim_reduce();
   this->light_reduce_up_iter();
@@ -1292,6 +1326,9 @@ void VATA::Util::TreeAutomata::reduce()
 
   compact_aut(*this);
   assert(check_equal_aut(old, *this));
+
+  auto duration = std::chrono::steady_clock::now() - start;
+  if (opLog) std::cout << "reduce：" << stateNum << " states " << count_transitions() << " transitions " << toString(duration) << "\n";
 }
 
 
