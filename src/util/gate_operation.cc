@@ -181,18 +181,57 @@ void VATA::Util::TreeAutomata::CNOT(int c, int t, bool opt) {
 
 void VATA::Util::TreeAutomata::CZ(int c, int t) {
     assert(c != t);
-    this->semi_determinize();
-    TreeAutomata aut1 = *this;
-    aut1.branch_restriction(c, false);
-    TreeAutomata aut2 = *this;
-    aut2.branch_restriction(t, false);
-    TreeAutomata aut3 = aut2;
-    aut3.branch_restriction(c, false);
-    TreeAutomata aut4 = *this;
-    aut4.branch_restriction(t, true);
-    aut4.branch_restriction(c, true);
-    *this = aut1 + aut2 - aut3 - aut4;
-    this->semi_undeterminize();
+    if (c > t) std::swap(c, t);
+    auto aut2 = *this;
+    for (const auto &tr : transitions) {
+        Symbol symbol;
+        if (tr.first.size() == 5) {
+            symbol = Symbol({-tr.first[0], -tr.first[1], -tr.first[2], -tr.first[3], tr.first[4]});
+        } else {
+            symbol = tr.first;
+        }
+        if (!(symbol.size() < 5 && symbol[0] <= t)) {
+            for (const auto &in_out : tr.second) {
+                StateVector in;
+                for (const auto &s : in_out.first)
+                    in.push_back(s+stateNum);
+                for (const auto &s : in_out.second)
+                    aut2.transitions[symbol][in].insert(s+stateNum);
+            }
+        }
+    } 
+    auto &tak = aut2.transitions.at({t});
+    auto in_outs = tak;
+    for (const auto &in_out : in_outs) {
+        assert(in_out.first.size() == 2);
+        if (in_out.first[0] < stateNum && in_out.first[1] < stateNum) {
+            tak[{in_out.first[0], in_out.first[1]+stateNum}] = in_out.second;
+            tak.erase(in_out.first);
+        }
+    }
+    for (const auto &tr : aut2.transitions) {
+        if (!(tr.first.size() < 5 && tr.first[0] <= c)) {
+            for (const auto &in_out : tr.second) {
+                StateVector in;
+                for (const auto &s : in_out.first)
+                    in.push_back(s+stateNum);
+                for (const auto &s : in_out.second)
+                    transitions[tr.first][in].insert(s+stateNum);
+            }
+        }
+    } 
+    auto &tak2 = transitions.at({c});
+    auto in_outs2 = tak2;
+    for (const auto &in_out : in_outs2) {
+        assert(in_out.first.size() == 2);
+        if (in_out.first[0] < stateNum && in_out.first[1] < stateNum) {
+            tak2[{in_out.first[0], in_out.first[1]+stateNum}] = in_out.second;
+            tak2.erase(in_out.first);
+        }
+    }
+    stateNum *= 3;
+    remove_useless();
+    reduce();
     gateCount++;
 }
 
