@@ -50,13 +50,36 @@ void VATA::Util::TreeAutomata::Y(int k) {
 }
 
 void VATA::Util::TreeAutomata::Z(int t) {
-    this->semi_determinize();
-    TreeAutomata aut1 = *this;
-    TreeAutomata aut2 = *this;
-    aut1.branch_restriction(t, false);
-    aut2.branch_restriction(t, true);
-    *this = aut1 - aut2;
-    this->semi_undeterminize();
+    TransitionMap transitions_copy = transitions;
+    for (const auto &tr : transitions_copy) {
+        Symbol symbol;
+        if (tr.first.size() == 5) {
+            symbol = Symbol({-tr.first[0], -tr.first[1], -tr.first[2], -tr.first[3], tr.first[4]});
+        } else {
+            symbol = tr.first;
+        }
+        if (!(symbol.size() < 5 && symbol[0] <= t)) {
+            for (const auto &in_out : tr.second) {
+                StateVector in;
+                for (const auto &s : in_out.first)
+                    in.push_back(s+stateNum);
+                for (const auto &s : in_out.second)
+                    transitions[symbol][in].insert(s+stateNum);
+            }
+        }
+    } 
+    auto &tak = transitions.at({t});
+    auto in_outs = tak;
+    for (const auto &in_out : in_outs) {
+        assert(in_out.first.size() == 2);
+        if (in_out.first[0] < stateNum && in_out.first[1] < stateNum) {
+            tak[{in_out.first[0], in_out.first[1]+stateNum}] = in_out.second;
+            tak.erase(in_out.first);
+        }
+    }
+    stateNum *= 2;
+    remove_useless();
+    reduce();
     gateCount++;
 }
 
