@@ -45,7 +45,7 @@ void VATA::Util::TreeAutomata::X(int k) {
     auto start = std::chrono::steady_clock::now();
     auto transitions_copy = transitions;
     for (const auto &t : transitions_copy) {
-        if (t.first.size() < 5 && t.first[0] == k) {
+        if (is_internal(t.first) && t.first[0] == k) {
             transitions.erase(t.first);
             for (const auto &in_out : t.second) {
                 assert(in_out.first.size() == 2);
@@ -63,12 +63,12 @@ void VATA::Util::TreeAutomata::Y(int k) {
     TransitionMap transitions_copy = transitions;
     for (const auto &t : transitions_copy) {
         Symbol symbol;
-        if (t.first.size() == 5) {
+        if (is_leaf(t.first)) {
             symbol = Symbol({-t.first[0], -t.first[1], -t.first[2], -t.first[3], t.first[4]});
         } else {
             symbol = t.first;
         }
-        if (!(symbol.size() < 5 && symbol[0] <= k)) {
+        if (!(is_internal(symbol) && symbol[0] <= k)) {
             for (const auto &in_out : t.second) {
                 StateVector in;
                 for (const auto &s : in_out.first)
@@ -101,12 +101,12 @@ void VATA::Util::TreeAutomata::Z(int t) {
     TransitionMap transitions_copy = transitions;
     for (const auto &tr : transitions_copy) {
         Symbol symbol;
-        if (tr.first.size() == 5) {
+        if (is_leaf(tr.first)) {
             symbol = Symbol({-tr.first[0], -tr.first[1], -tr.first[2], -tr.first[3], tr.first[4]});
         } else {
             symbol = tr.first;
         }
-        if (!(symbol.size() < 5 && symbol[0] <= t)) {
+        if (!(is_internal(symbol) && symbol[0] <= t)) {
             for (const auto &in_out : tr.second) {
                 StateVector in;
                 for (const auto &s : in_out.first)
@@ -156,7 +156,7 @@ void VATA::Util::TreeAutomata::S(int t) {
     auto aut2 = *this;
     aut2.omega_multiplication(2);
     for (const auto &tr : aut2.transitions) {
-        if (!(tr.first.size() < 5 && tr.first[0] <= t)) {
+        if (!(is_internal(tr.first) && tr.first[0] <= t)) {
             auto &ttf = transitions[tr.first];
             for (const auto &in_out : tr.second) {
                 StateVector in;
@@ -189,7 +189,7 @@ void VATA::Util::TreeAutomata::T(int t) {
     auto aut2 = *this;
     aut2.omega_multiplication();
     for (const auto &tr : aut2.transitions) {
-        if (!(tr.first.size() < 5 && tr.first[0] <= t)) {
+        if (!(is_internal(tr.first) && tr.first[0] <= t)) {
             auto &ttf = transitions[tr.first];
             for (const auto &in_out : tr.second) {
                 StateVector in;
@@ -275,7 +275,7 @@ void VATA::Util::TreeAutomata::CNOT(int c, int t, bool opt) {
         auto aut2 = *this;
         aut2.X(t);
         for (const auto &tr : aut2.transitions) {
-            if (!(tr.first.size() < 5 && tr.first[0] <= c)) {
+            if (!(is_internal(tr.first) && tr.first[0] <= c)) {
                 auto &ttf = transitions[tr.first];
                 for (const auto &in_out : tr.second) {
                     StateVector in;
@@ -313,12 +313,12 @@ void VATA::Util::TreeAutomata::CZ(int c, int t) {
     auto aut2 = *this;
     for (const auto &tr : transitions) {
         Symbol symbol;
-        if (tr.first.size() == 5) {
+        if (is_leaf(tr.first)) {
             symbol = Symbol({-tr.first[0], -tr.first[1], -tr.first[2], -tr.first[3], tr.first[4]});
         } else {
             symbol = tr.first;
         }
-        if (!(symbol.size() < 5 && symbol[0] <= t)) {
+        if (!(is_internal(symbol) && symbol[0] <= t)) {
             for (const auto &in_out : tr.second) {
                 StateVector in;
                 for (const auto &s : in_out.first)
@@ -338,7 +338,7 @@ void VATA::Util::TreeAutomata::CZ(int c, int t) {
         }
     }
     for (const auto &tr : aut2.transitions) {
-        if (!(tr.first.size() < 5 && tr.first[0] <= c)) {
+        if (!(is_internal(tr.first) && tr.first[0] <= c)) {
             for (const auto &in_out : tr.second) {
                 StateVector in;
                 for (const auto &s : in_out.first)
@@ -373,7 +373,7 @@ void VATA::Util::TreeAutomata::Toffoli(int c, int c2, int t) {
         auto aut2 = *this;
         aut2.CNOT(c2, t, false);
         for (const auto &tr : aut2.transitions) {
-            if (!(tr.first.size() < 5 && tr.first[0] <= c)) {
+            if (!(is_internal(tr.first) && tr.first[0] <= c)) {
                 auto &ttf = transitions[tr.first];
                 for (const auto &in_out : tr.second) {
                     StateVector in;

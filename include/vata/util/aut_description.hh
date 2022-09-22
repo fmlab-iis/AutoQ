@@ -55,6 +55,8 @@ public:   // data types
 
 	typedef boost::multiprecision::cpp_int SymbolEntry;
     typedef std::vector<SymbolEntry> Symbol;
+    inline bool is_internal(const Symbol &symbol) { return symbol.size() < 5; }
+    inline bool is_leaf(const Symbol &symbol) { return symbol.size() == 5; }
 
     struct CompareSymbolName {
         bool operator()(const Symbol &lhs, const Symbol &rhs) const {

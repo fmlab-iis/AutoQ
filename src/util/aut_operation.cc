@@ -430,7 +430,7 @@ void VATA::Util::TreeAutomata::remove_useless(bool only_bottom_up) {
 void VATA::Util::TreeAutomata::omega_multiplication(int rotation) {
     TransitionMap transitions_new;
     for (const auto &t_old : transitions) {
-        if (t_old.first.size() == 5) {
+        if (is_leaf(t_old.first)) {
             /************************** rotation **************************/
             Symbol temp;
             if (rotation == 1) {
@@ -459,7 +459,7 @@ void VATA::Util::TreeAutomata::divide_by_the_square_root_of_two() {
     std::vector<Symbol> to_be_removed;
     TransitionMap to_be_inserted;
     for (const auto &t : transitions) {
-        if (t.first.size() == 5) {
+        if (is_leaf(t.first)) {
             to_be_removed.push_back(t.first);
             Symbol symbol = t.first;
             symbol[4]++;
@@ -495,7 +495,7 @@ void VATA::Util::TreeAutomata::branch_restriction(int k, bool positive_has_value
                 in_outs_dest.insert(make_pair(in, out)); // duplicate this internal transition
             }
         } else { // (a,b,c,d,k)
-            assert(t.first.size() == 5);
+            assert(is_leaf(t.first));
             for (const auto &in_out : t.second) {
                 assert(in_out.first.empty());
                 for (const auto &n : in_out.second) { // Note we do not change k.
@@ -563,6 +563,16 @@ void VATA::Util::TreeAutomata::semi_undeterminize() {
     this->reduce();
 }
 
+#define construct_product_state_id(a, b, i) \
+    State i; \
+    if (overflow) { \
+        auto it = stateOldToNew.find(std::make_pair(a, b)); \
+        if (it == stateOldToNew.end()) { \
+            i = stateOldToNew.size(); \
+            stateOldToNew[std::make_pair(a, b)] = i; \
+        } \
+        else i = it->second; \
+    } else i = a * o.stateNum + b;
 VATA::Util::TreeAutomata VATA::Util::TreeAutomata::binary_operation(const TreeAutomata &o, bool add) {
     auto start = std::chrono::steady_clock::now();
     TreeAutomata result;
@@ -578,15 +588,7 @@ VATA::Util::TreeAutomata VATA::Util::TreeAutomata::binary_operation(const TreeAu
 
     for (const auto &fs1 : finalStates)
         for (const auto &fs2 : o.finalStates) {
-            State i;
-            if (overflow) {
-                auto it = stateOldToNew.find(std::make_pair(fs1, fs2));
-                if (it == stateOldToNew.end()) {
-                    i = stateOldToNew.size();
-                    stateOldToNew[std::make_pair(fs1, fs2)] = i;
-                }
-                else i = it->second;
-            } else i = fs1 * o.stateNum + fs2;
+            construct_product_state_id(fs1, fs2, i);
             result.finalStates.push_back(i);
         }
 
@@ -601,7 +603,7 @@ VATA::Util::TreeAutomata VATA::Util::TreeAutomata::binary_operation(const TreeAu
     auto it = transitions.begin();
     auto it2 = o.transitions.begin();
     for (; it != transitions.end(); it++) { // iterate over all internal transitions of T1
-        if (it->first.size() == 5) break; // internal
+        if (is_leaf(it->first)) break; // internal
         if (it->first < it2->first) continue;
         while (it2 != o.transitions.end() && it->first > it2->first)
             it2++;
@@ -617,31 +619,23 @@ VATA::Util::TreeAutomata VATA::Util::TreeAutomata::binary_operation(const TreeAu
         if (it == transitions.begin() || it->first[0] != std::prev(it)->first[0]) { // T1 goes into the new level.
             next_level_states = std::vector<bool>(stateNum * o.stateNum);
             auto it3 = it; // it3 indicates the next level of it.
-            while (it3 != transitions.end() && it3->first.size() < 5 && it3->first[0] == it->first[0])
+            while (it3 != transitions.end() && is_internal(it3->first) && it3->first[0] == it->first[0])
                 it3++;
             if (it3 == transitions.end()) {} // T1 has no leaf transitions?
-            else if (it3->first.size() == 5) { // The next level of T1 is leaf transitions.
+            else if (is_leaf(it3->first)) { // The next level of T1 is leaf transitions.
                 auto it4 = it2; // Initially it2 has the same symbol as it.
-                while (it4 != o.transitions.end() && it4->first.size() < 5)
+                while (it4 != o.transitions.end() && is_internal(it4->first))
                     it4++;
                 auto it4i = it4;
                 // We hope it4 currently points to the first leaf transition.
                 // If it4 points to o.transitions.end(), then the following loop will not be executed.
                 for (; it3 != transitions.end(); it3++) { // iterate over all leaf transitions of T1
-                    assert(it3->first.size() == 5);
+                    assert(is_leaf(it3->first));
                     for (it4 = it4i; it4 != o.transitions.end(); it4++) { // iterate over all leaf transitions of T2
-                        assert(it4->first.size() == 5);
+                        assert(is_leaf(it4->first));
                         for (const auto &s1 : it3->second.begin()->second) { // iterate over all output states of it3
                             for (const auto &s2 : it4->second.begin()->second) { // iterate over all output states of it4
-                                State i;
-                                if (overflow) {
-                                    auto it = stateOldToNew.find(std::make_pair(s1, s2));
-                                    if (it == stateOldToNew.end()) {
-                                        i = stateOldToNew.size();
-                                        stateOldToNew[std::make_pair(s1, s2)] = i;
-                                    }
-                                    else i = it->second;
-                                } else i = s1 * o.stateNum + s2;
+                                construct_product_state_id(s1, s2, i);
                                 next_level_states[i] = true; // collect all output state products of the next level
                             }
                         }
@@ -650,11 +644,11 @@ VATA::Util::TreeAutomata VATA::Util::TreeAutomata::binary_operation(const TreeAu
             } else { // The next level of T1 is still internal transitions.
                 int current_level = static_cast<int>(it3->first[0]);
                 auto it4 = it2; // Initially it2 has the same symbol as it.
-                while (it4 != o.transitions.end() && it4->first.size() < 5 && it4->first[0] == current_level)
+                while (it4 != o.transitions.end() && is_internal(it4->first) && it4->first[0] == current_level)
                     it4++;
                 // We hope it4 currently points to T2's first transition of the next level.
                 // If it4 points to o.transitions.end(), then the following loop will not be executed.
-                for (; it3->first.size() < 5 && it3->first[0] == current_level; it3++) {
+                for (; is_internal(it3->first) && it3->first[0] == current_level; it3++) {
                     if (it3->first < it4->first) continue;
                     while (it4 != o.transitions.end() && it3->first > it4->first)
                         it4++;
@@ -666,15 +660,7 @@ VATA::Util::TreeAutomata VATA::Util::TreeAutomata::binary_operation(const TreeAu
                         for (auto itt2 = it4->second.begin(); itt2 != it4->second.end(); itt2++) { // all input-output pairs of it4
                             for (const auto &s1 : itt->second) { // all output states of it3
                                 for (const auto &s2 : itt2->second) { // all output states of it4
-                                    State i;
-                                    if (overflow) {
-                                        auto it = stateOldToNew.find(std::make_pair(s1, s2));
-                                        if (it == stateOldToNew.end()) {
-                                            i = stateOldToNew.size();
-                                            stateOldToNew[std::make_pair(s1, s2)] = i;
-                                        }
-                                        else i = it->second;
-                                    } else i = s1 * o.stateNum + s2;
+                                    construct_product_state_id(s1, s2, i);
                                     next_level_states[i] = true; // collect all output state products of the next level
                                 }
                             }
@@ -688,38 +674,15 @@ VATA::Util::TreeAutomata VATA::Util::TreeAutomata::binary_operation(const TreeAu
             for (auto itt2 = it2->second.begin(); itt2 != it2->second.end(); itt2++) { // iterate over all input-output pairs of it2
                 StateVector sv;
                 StateSet ss;
-                State i;
-                if (overflow) {
-                    auto it = stateOldToNew.find(std::make_pair(itt->first[0], itt2->first[0]));
-                    if (it == stateOldToNew.end()) {
-                        i = stateOldToNew.size();
-                        stateOldToNew[std::make_pair(itt->first[0], itt2->first[0])] = i;
-                    }
-                    else i = it->second;
-                } else i = itt->first[0] * o.stateNum + itt2->first[0];
+                construct_product_state_id(itt->first[0], itt2->first[0], i);
                 if (!next_level_states[i]) continue;
                 sv.push_back(i); // construct product of T1's and T2's left input states
-                if (overflow) {
-                    auto it = stateOldToNew.find(std::make_pair(itt->first[1], itt2->first[1]));
-                    if (it == stateOldToNew.end()) {
-                        i = stateOldToNew.size();
-                        stateOldToNew[std::make_pair(itt->first[1], itt2->first[1])] = i;
-                    }
-                    else i = it->second;
-                } else i = itt->first[1] * o.stateNum + itt2->first[1];
-                if (!next_level_states[i]) continue;
-                sv.push_back(i); // construct product of T1's and T2's right input states
+                construct_product_state_id(itt->first[1], itt2->first[1], j);
+                if (!next_level_states[j]) continue;
+                sv.push_back(j); // construct product of T1's and T2's right input states
                 for (const auto &s1 : itt->second) { // all output states of itt
                     for (const auto &s2 : itt2->second) { // all output states of itt2
-                        State i;
-                        if (overflow) {
-                            auto it = stateOldToNew.find(std::make_pair(s1, s2));
-                            if (it == stateOldToNew.end()) {
-                                i = stateOldToNew.size();
-                                stateOldToNew[std::make_pair(s1, s2)] = i;
-                            }
-                            else i = it->second;
-                        } else i = s1 * o.stateNum + s2;
+                        construct_product_state_id(s1, s2, i);
                         if (previous_level_states[i])
                             ss.insert(i);
                     }
@@ -736,12 +699,12 @@ VATA::Util::TreeAutomata VATA::Util::TreeAutomata::binary_operation(const TreeAu
     }
     previous_level_states = previous_level_states2;
     // We now advance it2 to T2's first leaf transition.
-    while (it2 != o.transitions.end() && it2->first.size() != 5)
+    while (it2 != o.transitions.end() && !is_leaf(it2->first))
         it2++;
     for (; it != transitions.end(); it++) {
-        assert(it->first.size() == 5);
+        assert(is_leaf(it->first));
         for (auto it2t = it2; it2t != o.transitions.end(); it2t++) { // it2 as the new begin point.
-            assert(it2t->first.size() == 5);
+            assert(is_leaf(it2t->first));
             assert(it->first[4] == it2t->first[4]); // Two k's must be the same.
             Symbol symbol;
             for (int i=0; i<4; i++) { // We do not change k here.
@@ -755,15 +718,7 @@ VATA::Util::TreeAutomata VATA::Util::TreeAutomata::binary_operation(const TreeAu
             symbol.push_back(it->first[4]); // remember to push k
             for (const auto &s1 : it->second.begin()->second)
                 for (const auto &s2 : it2t->second.begin()->second) {
-                    State i;
-                    if (overflow) {
-                        auto it = stateOldToNew.find(std::make_pair(s1, s2));
-                        if (it == stateOldToNew.end()) {
-                            i = stateOldToNew.size();
-                            stateOldToNew[std::make_pair(s1, s2)] = i;
-                        }
-                        else i = it->second;
-                    } else i = s1 * o.stateNum + s2;
+                    construct_product_state_id(s1, s2, i);
                     if (previous_level_states[i])
                         result.transitions[symbol][{}].insert(i);
                 }
@@ -952,7 +907,7 @@ void VATA::Util::TreeAutomata::swap_forward(const int k) {
         for (const auto &t : transitions) {
             auto &symbol = t.first;
             auto &in_outs = t.second;
-            if (symbol.size() < 5 && symbol[0] == next_k) {
+            if (is_internal(symbol) && symbol[0] == next_k) {
                 assert(symbol.size() <= 2);
                 for (const auto &in_out : in_outs) {
                     for (const auto &s : in_out.second)
@@ -963,7 +918,7 @@ void VATA::Util::TreeAutomata::swap_forward(const int k) {
         std::vector<Symbol> to_be_removed2;
         TransitionMap to_be_removed, to_be_inserted;
         for (const auto &t : transitions) {
-            if (t.first.size() < 5 && t.first[0] == k) {
+            if (is_internal(t.first) && t.first[0] == k) {
                 for (const auto &in_out : t.second) {
                     assert(in_out.first.size() == 2);
                     for (const auto &ssv1 : svsv[in_out.first[0]]) {
@@ -1019,7 +974,7 @@ void VATA::Util::TreeAutomata::swap_backward(const int k) {
         for (const auto &t : transitions) {
             auto &symbol = t.first;
             auto &in_outs = t.second;
-            if (symbol.size() < 5 && symbol[0] == k) {
+            if (is_internal(symbol) && symbol[0] == k) {
                 assert(symbol.size() == 2);
                 for (const auto &in_out : in_outs) {
                     for (const auto &s : in_out.second)
@@ -1030,7 +985,7 @@ void VATA::Util::TreeAutomata::swap_backward(const int k) {
         std::vector<Symbol> to_be_removed2;
         TransitionMap to_be_removed, to_be_inserted;
         for (const auto &t : transitions) {
-            if (t.first.size() < 5 && t.first[0] == next_k) {
+            if (is_internal(t.first) && t.first[0] == next_k) {
                 assert(t.first.size() == 3);
                 for (const auto &in_out : t.second) {
                     assert(in_out.first.size() == 2);
@@ -1090,7 +1045,7 @@ void VATA::Util::TreeAutomata::value_restriction(int k, bool branch) {
     TransitionMap to_be_inserted;
     std::vector<Symbol> to_be_removed;
     for (const auto &t : transitions) {
-        if (t.first.size() < 5 && t.first[0] == k) {
+        if (is_internal(t.first) && t.first[0] == k) {
             to_be_removed.push_back(t.first);
             for (const auto &in_out : t.second) {
                 assert(in_out.first.size() == 2);
@@ -1119,7 +1074,7 @@ void VATA::Util::TreeAutomata::fraction_simplication() {
     std::vector<Symbol> to_be_removed;
     TransitionMap to_be_inserted;
     for (const auto &t : transitions) {
-        if (t.first.size() == 5) {
+        if (is_leaf(t.first)) {
             Symbol symbol = t.first;
             if (symbol[0]==0 && symbol[1]==0 && symbol[2]==0 && symbol[3]==0) symbol[4] = 0;
             else {
