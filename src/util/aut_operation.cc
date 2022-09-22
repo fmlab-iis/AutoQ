@@ -295,7 +295,7 @@ namespace { // anonymous namespace
 } // anonymous namespace
 
 
-void VATA::Util::TreeAutomata::remove_useless() {
+void VATA::Util::TreeAutomata::remove_useless(bool only_bottom_up) {
     auto start = std::chrono::steady_clock::now();
     bool changed;
     std::vector<bool> traversed(stateNum, false);
@@ -341,45 +341,46 @@ void VATA::Util::TreeAutomata::remove_useless() {
     /******************
      * Part 2: Top-Down
      ******************/
-    traversed = std::vector<bool>(stateNum, false);
-    for (const auto &s : finalStates)
-        traversed[s] = true;
-    transitions_remaining = transitions;
-    do {
-        changed = false;
-        transitions_mother = transitions_remaining;
-        for (const auto &t : transitions_mother) {
+    if (!only_bottom_up) {
+        traversed = std::vector<bool>(stateNum, false);
+        for (const auto &s : finalStates)
+            traversed[s] = true;
+        transitions_remaining = transitions;
+        do {
+            changed = false;
+            transitions_mother = transitions_remaining;
+            for (const auto &t : transitions_mother) {
+                const auto &symbol = t.first;
+                for (const auto &in_out : t.second) {
+                    const auto &in = in_out.first;
+                    const auto &outs = in_out.second;
+                    for (const auto &s : outs) {
+                        if (traversed[s]) {
+                            for (const auto &v : in)
+                                traversed[v] = true;
+                            transitions_remaining.at(symbol).at(in).erase(s);
+                            changed = true;
+                        }
+                    }
+                    if (transitions_remaining.at(symbol).at(in).empty())
+                        transitions_remaining.at(symbol).erase(in);
+                }
+                if (transitions_remaining.at(symbol).empty())
+                    transitions_remaining.erase(symbol);
+            }
+        } while(changed);
+        for (const auto &t : transitions_remaining) {
             const auto &symbol = t.first;
             for (const auto &in_out : t.second) {
-                const auto &in = in_out.first;
-                const auto &outs = in_out.second;
-                for (const auto &s : outs) {
-                    if (traversed[s]) {
-                        for (const auto &v : in)
-                            traversed[v] = true;
-                        transitions_remaining.at(symbol).at(in).erase(s);
-                        changed = true;
-                    }
-                }
-                if (transitions_remaining.at(symbol).at(in).empty())
-                    transitions_remaining.at(symbol).erase(in);
+                for (const auto &s : in_out.second)
+                    transitions.at(symbol).at(in_out.first).erase(s);
+                if (transitions.at(symbol).at(in_out.first).empty())
+                    transitions.at(symbol).erase(in_out.first);
             }
-            if (transitions_remaining.at(symbol).empty())
-                transitions_remaining.erase(symbol);
+            if (transitions.at(symbol).empty())
+                transitions.erase(symbol);
         }
-    } while(changed);
-    for (const auto &t : transitions_remaining) {
-        const auto &symbol = t.first;
-        for (const auto &in_out : t.second) {
-            for (const auto &s : in_out.second)
-                transitions.at(symbol).at(in_out.first).erase(s);
-            if (transitions.at(symbol).at(in_out.first).empty())
-                transitions.at(symbol).erase(in_out.first);
-        }
-        if (transitions.at(symbol).empty())
-            transitions.erase(symbol);
     }
-
     /*********************
      * Part 3: Renumbering
      *********************/
@@ -592,16 +593,99 @@ VATA::Util::TreeAutomata VATA::Util::TreeAutomata::binary_operation(const TreeAu
     // We assume here transitions are ordered by symbols.
     // x_i are placed in the beginning, and leaves are placed in the end.
     // This traversal method is due to efficiency.
+    std::vector<bool> previous_level_states2(stateNum * o.stateNum);
+    std::vector<bool> previous_level_states(stateNum * o.stateNum);
+    for (auto s : result.finalStates)
+        previous_level_states[s] = true;
+    std::vector<bool> next_level_states;
     auto it = transitions.begin();
-    for (; it != transitions.end(); it++) {
-        if (it->first.size() == 5) break;
-        auto it2 = o.transitions.begin();
-        while (it2 != o.transitions.end() && it->first != it2->first)
+    auto it2 = o.transitions.begin();
+    for (; it != transitions.end(); it++) { // iterate over all internal transitions of T1
+        if (it->first.size() == 5) break; // internal
+        if (it->first < it2->first) continue;
+        while (it2 != o.transitions.end() && it->first > it2->first)
             it2++;
-        if (it2 == o.transitions.end()) continue;
+        if (it2 == o.transitions.end()) break;
+        if (it->first < it2->first) continue;
+        assert(it->first == it2->first); // Ensure T1's and T2's current transitions have the same symbol now.
+        // Update previous_level_states.
+        if (it != transitions.begin() && it->first[0] != std::prev(it)->first[0]) { // T1 changes level.
+            previous_level_states = previous_level_states2;
+            previous_level_states2 = std::vector<bool>(stateNum * o.stateNum);
+        }
+        // Update next_level_states.
+        if (it == transitions.begin() || it->first[0] != std::prev(it)->first[0]) { // T1 goes into the new level.
+            next_level_states = std::vector<bool>(stateNum * o.stateNum);
+            auto it3 = it; // it3 indicates the next level of it.
+            while (it3 != transitions.end() && it3->first.size() < 5 && it3->first[0] == it->first[0])
+                it3++;
+            if (it3 == transitions.end()) {} // T1 has no leaf transitions?
+            else if (it3->first.size() == 5) { // The next level of T1 is leaf transitions.
+                auto it4 = it2; // Initially it2 has the same symbol as it.
+                while (it4 != o.transitions.end() && it4->first.size() < 5)
+                    it4++;
+                auto it4i = it4;
+                // We hope it4 currently points to the first leaf transition.
+                // If it4 points to o.transitions.end(), then the following loop will not be executed.
+                for (; it3 != transitions.end(); it3++) { // iterate over all leaf transitions of T1
+                    assert(it3->first.size() == 5);
+                    for (it4 = it4i; it4 != o.transitions.end(); it4++) { // iterate over all leaf transitions of T2
+                        assert(it4->first.size() == 5);
+                        for (const auto &s1 : it3->second.begin()->second) { // iterate over all output states of it3
+                            for (const auto &s2 : it4->second.begin()->second) { // iterate over all output states of it4
+                                State i;
+                                if (overflow) {
+                                    auto it = stateOldToNew.find(std::make_pair(s1, s2));
+                                    if (it == stateOldToNew.end()) {
+                                        i = stateOldToNew.size();
+                                        stateOldToNew[std::make_pair(s1, s2)] = i;
+                                    }
+                                    else i = it->second;
+                                } else i = s1 * o.stateNum + s2;
+                                next_level_states[i] = true; // collect all output state products of the next level
+                            }
+                        }
+                    }
+                }
+            } else { // The next level of T1 is still internal transitions.
+                int current_level = static_cast<int>(it3->first[0]);
+                auto it4 = it2; // Initially it2 has the same symbol as it.
+                while (it4 != o.transitions.end() && it4->first.size() < 5 && it4->first[0] == current_level)
+                    it4++;
+                // We hope it4 currently points to T2's first transition of the next level.
+                // If it4 points to o.transitions.end(), then the following loop will not be executed.
+                for (; it3->first.size() < 5 && it3->first[0] == current_level; it3++) {
+                    if (it3->first < it4->first) continue;
+                    while (it4 != o.transitions.end() && it3->first > it4->first)
+                        it4++;
+                    if (it4 == o.transitions.end()) break;
+                    if (it3->first < it4->first) continue;
+                    assert(it3->first == it4->first);
+                    // Ensure T1's and T2's current transitions have the same symbol now.
+                    for (auto itt = it3->second.begin(); itt != it3->second.end(); itt++) { // all input-output pairs of it3
+                        for (auto itt2 = it4->second.begin(); itt2 != it4->second.end(); itt2++) { // all input-output pairs of it4
+                            for (const auto &s1 : itt->second) { // all output states of it3
+                                for (const auto &s2 : itt2->second) { // all output states of it4
+                                    State i;
+                                    if (overflow) {
+                                        auto it = stateOldToNew.find(std::make_pair(s1, s2));
+                                        if (it == stateOldToNew.end()) {
+                                            i = stateOldToNew.size();
+                                            stateOldToNew[std::make_pair(s1, s2)] = i;
+                                        }
+                                        else i = it->second;
+                                    } else i = s1 * o.stateNum + s2;
+                                    next_level_states[i] = true; // collect all output state products of the next level
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
         std::map<StateVector, StateSet> m;
-        for (auto itt = it->second.begin(); itt != it->second.end(); itt++)
-            for (auto itt2 = it2->second.begin(); itt2 != it2->second.end(); itt2++) {
+        for (auto itt = it->second.begin(); itt != it->second.end(); itt++) { // iterate over all input-output pairs of it
+            for (auto itt2 = it2->second.begin(); itt2 != it2->second.end(); itt2++) { // iterate over all input-output pairs of it2
                 StateVector sv;
                 StateSet ss;
                 State i;
@@ -613,7 +697,8 @@ VATA::Util::TreeAutomata VATA::Util::TreeAutomata::binary_operation(const TreeAu
                     }
                     else i = it->second;
                 } else i = itt->first[0] * o.stateNum + itt2->first[0];
-                sv.push_back(i);
+                if (!next_level_states[i]) continue;
+                sv.push_back(i); // construct product of T1's and T2's left input states
                 if (overflow) {
                     auto it = stateOldToNew.find(std::make_pair(itt->first[1], itt2->first[1]));
                     if (it == stateOldToNew.end()) {
@@ -622,9 +707,10 @@ VATA::Util::TreeAutomata VATA::Util::TreeAutomata::binary_operation(const TreeAu
                     }
                     else i = it->second;
                 } else i = itt->first[1] * o.stateNum + itt2->first[1];
-                sv.push_back(i);
-                for (const auto &s1 : itt->second) {
-                    for (const auto &s2 : itt2->second) {
+                if (!next_level_states[i]) continue;
+                sv.push_back(i); // construct product of T1's and T2's right input states
+                for (const auto &s1 : itt->second) { // all output states of itt
+                    for (const auto &s2 : itt2->second) { // all output states of itt2
                         State i;
                         if (overflow) {
                             auto it = stateOldToNew.find(std::make_pair(s1, s2));
@@ -634,15 +720,22 @@ VATA::Util::TreeAutomata VATA::Util::TreeAutomata::binary_operation(const TreeAu
                             }
                             else i = it->second;
                         } else i = s1 * o.stateNum + s2;
-                        ss.insert(i);
+                        if (previous_level_states[i])
+                            ss.insert(i);
                     }
                 }
-                m.insert(make_pair(sv, ss));
+                if (ss.size() > 0) {
+                    previous_level_states2[sv[0]] = true;
+                    previous_level_states2[sv[1]] = true;
+                    m.insert(std::make_pair(sv, ss));
+                }
             }
+        }
         result.transitions.insert(make_pair(it->first, m));
         assert(m.begin()->first.size() == 2);
     }
-    auto it2 = o.transitions.begin();
+    previous_level_states = previous_level_states2;
+    // We now advance it2 to T2's first leaf transition.
     while (it2 != o.transitions.end() && it2->first.size() != 5)
         it2++;
     for (; it != transitions.end(); it++) {
@@ -671,7 +764,8 @@ VATA::Util::TreeAutomata VATA::Util::TreeAutomata::binary_operation(const TreeAu
                         }
                         else i = it->second;
                     } else i = s1 * o.stateNum + s2;
-                    result.transitions[symbol][{}].insert(i);
+                    if (previous_level_states[i])
+                        result.transitions[symbol][{}].insert(i);
                 }
         }
     }
@@ -679,7 +773,7 @@ VATA::Util::TreeAutomata VATA::Util::TreeAutomata::binary_operation(const TreeAu
         result.stateNum = stateOldToNew.size();
     else
         result.stateNum = stateNum * o.stateNum;
-    result.remove_useless(); // otherwise, will out of memory
+    result.remove_useless(true); // otherwise, will out of memory
     auto end = std::chrono::steady_clock::now();
     binop_time += end - start;
     return result;

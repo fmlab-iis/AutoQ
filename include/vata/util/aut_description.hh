@@ -130,7 +130,7 @@ public:   // methods
 	}
 
 private:
-    void remove_useless();
+    void remove_useless(bool only_bottom_up=false);
     TreeAutomata binary_operation(const TreeAutomata &o, bool add);
     void swap_forward(const int k);
     void swap_backward(const int k);
