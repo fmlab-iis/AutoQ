@@ -76,6 +76,7 @@ public:   // data members
     State stateNum;
     int qubitNum;
 	TransitionMap transitions;
+    bool isTopdownDeterministic;
     inline static int gateCount;
     inline static bool gateLog, opLog;
     inline static std::chrono::steady_clock::duration binop_time, branch_rest_time, value_rest_time;
@@ -88,7 +89,8 @@ public:   // methods
 		finalStates(),
         stateNum(),
         qubitNum(),
-		transitions()
+		transitions(),
+        isTopdownDeterministic(false)
 	{ }
 
 	/**

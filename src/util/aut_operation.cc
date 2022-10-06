@@ -530,6 +530,7 @@ void VATA::Util::TreeAutomata::branch_restriction(int k, bool positive_has_value
 }
 
 void VATA::Util::TreeAutomata::semi_determinize() {
+    if (isTopdownDeterministic) return;
     TransitionMap transitions_copy = transitions;
     for (const auto &t : transitions_copy) {
         if (t.first.size() == 1) { // x_i not determinized yet
@@ -550,6 +551,7 @@ void VATA::Util::TreeAutomata::semi_determinize() {
 }
 
 void VATA::Util::TreeAutomata::semi_undeterminize() {
+    if (isTopdownDeterministic) return;
     TransitionMap transitions_copy = transitions;
     for (const auto &t : transitions_copy) {
         if (t.first.size() == 2) { // pick all determinized x_i's
@@ -784,6 +786,7 @@ VATA::Util::TreeAutomata VATA::Util::TreeAutomata::uniform(int n) {
     aut.stateNum = pow_of_two;
 
     // aut.minimize();
+    aut.isTopdownDeterministic = true;
     return aut;
 }
 
@@ -827,6 +830,7 @@ VATA::Util::TreeAutomata VATA::Util::TreeAutomata::random(int n) {
     aut.stateNum = state_counter*2 + 1;
 
     // aut.minimize();
+    aut.isTopdownDeterministic = true;
     return aut;
 }
 
@@ -862,6 +866,7 @@ VATA::Util::TreeAutomata VATA::Util::TreeAutomata::zero(int n) {
     aut.stateNum = n*2 + 1;
 
     // aut.minimize();
+    aut.isTopdownDeterministic = true;
     return aut;
 }
 
@@ -902,6 +907,7 @@ VATA::Util::TreeAutomata VATA::Util::TreeAutomata::classical_zero_one_zero(int n
 }
 
 void VATA::Util::TreeAutomata::swap_forward(const int k) {
+    if (isTopdownDeterministic) return;
     for (int next_k=k+1; next_k<=qubitNum; next_k++) {
         std::map<State, std::vector<std::pair<Symbol, StateVector>>> svsv;
         for (const auto &t : transitions) {
@@ -969,6 +975,7 @@ void VATA::Util::TreeAutomata::swap_forward(const int k) {
 }
 
 void VATA::Util::TreeAutomata::swap_backward(const int k) {
+    if (isTopdownDeterministic) return;
     for (int next_k=qubitNum; next_k>k; next_k--) {
       std::map<State, std::vector<std::pair<Symbol, StateVector>>> svsv;
         for (const auto &t : transitions) {
