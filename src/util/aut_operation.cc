@@ -942,6 +942,38 @@ VATA::Util::TreeAutomata VATA::Util::TreeAutomata::zero_zero_one_zero(int n) {
     return aut;
 }
 
+VATA::Util::TreeAutomata VATA::Util::TreeAutomata::zero_one_zero(int n) {
+    TreeAutomata aut;
+    assert(n >= 2);
+    aut.name = "Zero_One_Zero";
+    aut.qubitNum = (n+1) + (n>=3) * (n-1);
+
+    aut.transitions[{1}][{2,1}] = {0};
+    for (int level=2; level<=n; level++) {
+        aut.transitions[{level}][{level*2-1, level*2-1}] = {level*2-3};
+        aut.transitions[{level}][{level*2, level*2-1}] = {level*2-2};
+    }
+    aut.transitions[{n+1}][{2*(n+1)-1, 2*(n+1)-1}] = {2*n-1};
+    aut.transitions[{n+1}][{2*(n+1)-1, 2*(n+1)}] = {2*n};
+    if (n >= 3) {
+        for (int level=n+2; level<=2*n; level++) {
+            aut.transitions[{level}][{2*level-1, 2*level-1}] = {2*(level-1)-1};
+            aut.transitions[{level}][{2*level, 2*level-1}] = {2*(level-1)};
+        }
+        aut.transitions[{1,0,0,0,0}][{}] = {4*n};
+        aut.transitions[{0,0,0,0,0}][{}] = {4*n - 1};
+        aut.stateNum = 4*n + 1;
+    } else {
+        assert(n == 2);
+        aut.transitions[{1,0,0,0,0}][{}] = {2*n + 2};
+        aut.transitions[{0,0,0,0,0}][{}] = {2*n + 1};
+        aut.stateNum = 2*n + 3;
+    }
+	aut.finalStates.push_back(0);
+    aut.isTopdownDeterministic = true;
+    return aut;
+}
+
 void VATA::Util::TreeAutomata::swap_forward(const int k) {
     if (isTopdownDeterministic) return;
     for (int next_k=k+1; next_k<=qubitNum; next_k++) {

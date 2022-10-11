@@ -495,3 +495,134 @@ BOOST_AUTO_TEST_CASE(Grover_Search)
     //     BOOST_REQUIRE_MESSAGE(ans_found[i], "");
     /************************************************************************************/
 }
+
+BOOST_AUTO_TEST_CASE(Grover_Search_only_one_oracle)
+{
+    int n = 4;
+    assert(n >= 2);
+    auto aut = VATA::Util::TreeAutomata::zero_one_zero(n);
+
+    /***********************/
+    unsigned ans = 0;
+    for (int i=0; i<n; i++) {
+        ans <<= 1;
+        ans |= (i&1);
+    }
+    /***********************/
+
+    /**********************************/
+    for (int i=1; i<=n+1; i++) aut.H(i);
+    /**********************************/
+
+    for (int iter=1; iter <= M_PI / (4 * asin(1 / pow(2, n/2.0))); iter++) {
+        /********************************/
+        for (int i=1; i<=n; i++) {
+            if ((ans & (1 << (i-1))) == 0)
+                aut.X(n+1-i);
+        }
+        /* multi-controlled NOT gate */
+        if (n >= 3) {
+            aut.Toffoli(1, 2, n+2);
+            for (int i=3; i<=n; i++)
+                aut.Toffoli(i, n+i-1, n+i);
+            aut.CNOT(2*n, n+1);
+            for (int i=n; i>=3; i--)
+                aut.Toffoli(i, n+i-1, n+i);
+            aut.Toffoli(1, 2, n+2);
+        } else {
+            assert(n == 2);
+            aut.Toffoli(1, 2, 3);
+        }
+        /********************************/
+        for (int i=1; i<=n; i++) {
+            if ((ans & (1 << (i-1))) == 0)
+                aut.X(n+1-i);
+        }
+        /********************************/
+
+        /********************************/
+        for (int i=1; i<=n; i++) aut.H(i);
+        for (int i=1; i<=n; i++) aut.X(i);
+        /* multi-controlled Z gate */
+        if (n >= 3) {
+            aut.Toffoli(1, 2, n+2);
+            for (int i=3; i<n; i++) // Note that < does not include n!
+                aut.Toffoli(i, n+i-1, n+i);
+            aut.CZ(2*n-1, n);
+            for (int i=n-1; i>=3; i--)
+                aut.Toffoli(i, n+i-1, n+i);
+            aut.Toffoli(1, 2, n+2);
+        // } else if (n == 3) {
+        //     aut.H(2*n);
+        //     aut.Toffoli(4, 5, 6);
+        //     aut.H(2*n);
+        } else {
+            assert(n == 2);
+            aut.CZ(1, 2);
+        }
+        /********************************/
+        for (int i=1; i<=n; i++) aut.X(i);
+        for (int i=1; i<=n; i++) aut.H(i);
+        /********************************/
+    }
+
+    /******************************** Answer Validation *********************************/
+    std::map<VATA::Util::TreeAutomata::State, VATA::Util::TreeAutomata::StateVector> edge;
+    std::map<VATA::Util::TreeAutomata::State, VATA::Util::TreeAutomata::Symbol> leaf;
+    std::vector<VATA::Util::TreeAutomata::StateVector> first_layers;
+    for (const auto &t : aut.transitions) {
+        for (const auto &in_out : t.second) {
+            const auto &in = in_out.first;
+            for (const auto &s : in_out.second) {
+                if (in.empty()) { // is leaf transition
+                    assert(t.first.size() == 5);
+                    leaf[s] = t.first;
+                }
+                if (t.first.size() == 1 && t.first[0] == 1) {
+                    first_layers.push_back(in);
+                } else {
+                    assert(edge[s].empty());
+                    edge[s] = in;
+                }
+            }
+        }
+    }
+    unsigned N, two_n_minus_one = 1;
+    if (n <= 2) N = 4;
+    else {
+        for (int j=0; j<n-1; j++)
+            two_n_minus_one <<= 1; // N := 2^(n-1)
+        N = two_n_minus_one * 2; // N := 2^n
+    }
+    BOOST_REQUIRE_MESSAGE(first_layers.size() == 1, "");
+    std::vector<bool> ans_found(N);
+    for (const auto &fl : first_layers) {
+        std::vector<double> prob;
+        dfs(edge, leaf, fl, prob);
+        // std::cout << prob.size() << VATA::Util::Convert::ToString(prob) << "\n";
+        std::vector<double> nonzero;
+        for (unsigned i=0; i<prob.size(); i++) {
+            if (i % two_n_minus_one != 0) {
+                BOOST_REQUIRE_MESSAGE(prob[i] <= 0, ""); /* in fact check = (make the compiler not complain) */
+            } else {
+                nonzero.push_back(prob[i]);
+            }
+        }
+        for (unsigned i=0; i<nonzero.size(); i+=2) {
+            BOOST_REQUIRE_MESSAGE(nonzero[i] >= nonzero[i+1] && nonzero[i] <= nonzero[i+1], ""); /* in fact check = (make the compiler not complain) */
+            if (i == ans*2)
+                BOOST_REQUIRE_MESSAGE(nonzero[ans*2] * 2 >= 0.9, "");
+            else
+                BOOST_REQUIRE_MESSAGE(nonzero[i] < nonzero[ans*2], "");
+        }
+        BOOST_REQUIRE_MESSAGE(!ans_found[ans], "");
+        ans_found[ans] = true;
+    }
+    for (unsigned i=0; i<N; i++) {
+        if (i == ans)
+            BOOST_REQUIRE_MESSAGE(ans_found[i], "");
+        else
+            BOOST_REQUIRE_MESSAGE(!ans_found[i], "");
+    }
+    /************************************************************************************/
+}

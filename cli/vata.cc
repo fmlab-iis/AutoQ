@@ -560,6 +560,61 @@ int main(int argc, char **argv) {
                     << "\\% & " << VATA::Util::TreeAutomata::value_rest_time * 100 / total_duration
                     << "\\% & " << toString(total_duration / NUM_OF_LOOPS) << "\\\\\\hline\n";
         return 0;
+    } else if (type == 9) { /* Algorithm 9 - Grover's Search with only one oracle */
+        if (!(n >= 2)) throw std::out_of_range("");
+        aut = VATA::Util::TreeAutomata::zero_one_zero(n);
+        stateBefore = aut.stateNum, transitionBefore = aut.transition_size();
+        unsigned ans = 0;
+        for (int i=0; i<n; i++) {
+            ans <<= 1;
+            ans |= (i&1);
+        }
+        for (int i=1; i<=n+1; i++) aut.H(i);
+        for (int iter=1; iter <= M_PI / (4 * asin(1 / pow(2, n/2.0))); iter++) {
+            for (int i=1; i<=n; i++) {
+                if ((ans & (1 << (i-1))) == 0)
+                    aut.X(n+1-i);
+            }
+            /* multi-controlled NOT gate */
+            if (n >= 3) {
+                aut.Toffoli(1, 2, n+2);
+                for (int i=3; i<=n; i++)
+                    aut.Toffoli(i, n+i-1, n+i);
+                aut.CNOT(2*n, n+1);
+                for (int i=n; i>=3; i--)
+                    aut.Toffoli(i, n+i-1, n+i);
+                aut.Toffoli(1, 2, n+2);
+            } else {
+                assert(n == 2);
+                aut.Toffoli(1, 2, 3);
+            }
+            for (int i=1; i<=n; i++) {
+                if ((ans & (1 << (i-1))) == 0)
+                    aut.X(n+1-i);
+            }
+            for (int i=1; i<=n; i++) aut.H(i);
+            for (int i=1; i<=n; i++) aut.X(i);
+            /* multi-controlled Z gate */
+            if (n >= 3) {
+                aut.Toffoli(1, 2, n+2);
+                for (int i=3; i<n; i++) // Note that < does not include n!
+                    aut.Toffoli(i, n+i-1, n+i);
+                aut.CZ(2*n-1, n);
+                for (int i=n-1; i>=3; i--)
+                    aut.Toffoli(i, n+i-1, n+i);
+                aut.Toffoli(1, 2, n+2);
+            // } else if (n == 3) {
+            //     aut.H(2*n);
+            //     aut.Toffoli(4, 5, 6);
+            //     aut.H(2*n);
+            } else {
+                assert(n == 2);
+                aut.CZ(1, 2);
+            }
+            for (int i=1; i<=n; i++) aut.X(i);
+            for (int i=1; i<=n; i++) aut.H(i);
+        }
+        // TODO: Notice that I still don't know how to verify the answer here...
     } else if (type >= 3) { /* Algorithm 3 - Random Circuit */
         if (!(n >= 3)) throw std::out_of_range("");
         auto start = chrono::steady_clock::now();
