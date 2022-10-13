@@ -145,7 +145,7 @@ int main(int argc, char **argv) {
     auto start = chrono::steady_clock::now();
     if (type == 0) {
         auto start = chrono::steady_clock::now();
-        aut = VATA::Util::TreeAutomata::classical(10);
+        aut = VATA::Util::TreeAutomata::basis(10);
         n--;
         switch(n) {
             case 0: aut.X(1); break;
@@ -618,7 +618,7 @@ int main(int argc, char **argv) {
     } else if (type >= 3) { /* Algorithm 3 - Random Circuit */
         if (!(n >= 3)) throw std::out_of_range("");
         auto start = chrono::steady_clock::now();
-        aut = VATA::Util::TreeAutomata::classical(n);
+        aut = VATA::Util::TreeAutomata::basis(n);
         for (int i=0; i<3*n; i++) {
             int a, b, c;
             switch(rand() % 12) {

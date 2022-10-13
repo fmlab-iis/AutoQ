@@ -790,7 +790,7 @@ VATA::Util::TreeAutomata VATA::Util::TreeAutomata::uniform(int n) {
     return aut;
 }
 
-VATA::Util::TreeAutomata VATA::Util::TreeAutomata::classical(int n) {
+VATA::Util::TreeAutomata VATA::Util::TreeAutomata::basis(int n) {
     TreeAutomata aut;
     aut.name = "Classical";
     aut.qubitNum = n;

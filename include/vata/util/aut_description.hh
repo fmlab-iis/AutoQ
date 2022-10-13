@@ -183,7 +183,7 @@ public:
 
     /* Produce an automaton instance. */
     static TreeAutomata uniform(int n);
-    static TreeAutomata classical(int n);
+    static TreeAutomata basis(int n);
     static TreeAutomata random(int n);
     static TreeAutomata zero(int n);
     static TreeAutomata classical_zero_one_zero(int n);
