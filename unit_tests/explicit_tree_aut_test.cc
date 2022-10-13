@@ -244,28 +244,28 @@ BOOST_AUTO_TEST_CASE(Toffoli_gate_twice_to_identity)
     }
 }
 
-BOOST_AUTO_TEST_CASE(Fredkin_gate_twice_to_identity)
-{
-    for (const auto &before : {VATA::Util::TreeAutomata::uniform(3),
-                               VATA::Util::TreeAutomata::basis(3),
-                               VATA::Util::TreeAutomata::random(3)}) {
-        int v[] = {1,2,3};
-        do {
-            VATA::Util::TreeAutomata after = before;
-            int loop = 2;
-            for (int i=0; i<loop; i++) {
-                after.Fredkin(v[0], v[1], v[2]);
+// BOOST_AUTO_TEST_CASE(Fredkin_gate_twice_to_identity)
+// {
+//     for (const auto &before : {VATA::Util::TreeAutomata::uniform(3),
+//                                VATA::Util::TreeAutomata::basis(3),
+//                                VATA::Util::TreeAutomata::random(3)}) {
+//         int v[] = {1,2,3};
+//         do {
+//             VATA::Util::TreeAutomata after = before;
+//             int loop = 2;
+//             for (int i=0; i<loop; i++) {
+//                 after.Fredkin(v[0], v[1], v[2]);
 
-                if (i < loop-1) {
-                    if (before.name == "Random")
-                        BOOST_REQUIRE_MESSAGE(!VATA::Util::TreeAutomata::check_equal_aut(before, after), "a");
-                } else {
-                    BOOST_REQUIRE_MESSAGE(VATA::Util::TreeAutomata::check_equal_aut(before, after), "b");
-                }
-            }
-        } while (std::next_permutation(v, v+3));
-    }
-}
+//                 if (i < loop-1) {
+//                     if (before.name == "Random")
+//                         BOOST_REQUIRE_MESSAGE(!VATA::Util::TreeAutomata::check_equal_aut(before, after), "a");
+//                 } else {
+//                     BOOST_REQUIRE_MESSAGE(VATA::Util::TreeAutomata::check_equal_aut(before, after), "b");
+//                 }
+//             }
+//         } while (std::next_permutation(v, v+3));
+//     }
+// }
 
 BOOST_AUTO_TEST_CASE(Bernstein_Vazirani)
 {

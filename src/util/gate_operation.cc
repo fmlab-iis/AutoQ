@@ -420,40 +420,40 @@ void VATA::Util::TreeAutomata::Toffoli(int c, int c2, int t) {
     if (gateLog) std::cout << "Toffoli" << c << "," << c2 << "," << t << "：" << stateNum << " states " << count_transitions() << " transitions " << toString(duration) << "\n";
 }
 
-void VATA::Util::TreeAutomata::Fredkin(int c, int t, int t2) {
-    auto start = std::chrono::steady_clock::now();
-    assert(c != t && t != t2 && t2 != c);
-    this->semi_determinize();
-    TreeAutomata aut1 = *this;
-    aut1.branch_restriction(c, false);
-    TreeAutomata aut2 = *this;
-    aut2.branch_restriction(c, true);
-    TreeAutomata aut3 = aut2;
-    TreeAutomata aut4 = aut2;
-    TreeAutomata aut5 = aut2;
-    aut2.branch_restriction(t, true);
-    aut2.branch_restriction(t2, true);
-    aut3.branch_restriction(t, false);
-    aut3.branch_restriction(t2, false);
-    aut4.value_restriction(t, false);
-    aut4.value_restriction(t2, true);
-    aut4.branch_restriction(t2, false);
-    aut4.branch_restriction(t, true);
-    aut5.value_restriction(t, true);
-    aut5.value_restriction(t2, false);
-    aut5.branch_restriction(t2, true);
-    aut5.branch_restriction(t, false);
-    *this = aut1 + aut2 + aut3 + aut4 + aut5;
-    this->semi_undeterminize();
-    gateCount++;
-    auto duration = std::chrono::steady_clock::now() - start;
-    if (gateLog) std::cout << "Fredkin" << c << "," << t << "," << t2 << "：" << stateNum << " states " << count_transitions() << " transitions " << toString(duration) << "\n";
-}
+// void VATA::Util::TreeAutomata::Fredkin(int c, int t, int t2) {
+//     auto start = std::chrono::steady_clock::now();
+//     assert(c != t && t != t2 && t2 != c);
+//     this->semi_determinize();
+//     TreeAutomata aut1 = *this;
+//     aut1.branch_restriction(c, false);
+//     TreeAutomata aut2 = *this;
+//     aut2.branch_restriction(c, true);
+//     TreeAutomata aut3 = aut2;
+//     TreeAutomata aut4 = aut2;
+//     TreeAutomata aut5 = aut2;
+//     aut2.branch_restriction(t, true);
+//     aut2.branch_restriction(t2, true);
+//     aut3.branch_restriction(t, false);
+//     aut3.branch_restriction(t2, false);
+//     aut4.value_restriction(t, false);
+//     aut4.value_restriction(t2, true);
+//     aut4.branch_restriction(t2, false);
+//     aut4.branch_restriction(t, true);
+//     aut5.value_restriction(t, true);
+//     aut5.value_restriction(t2, false);
+//     aut5.branch_restriction(t2, true);
+//     aut5.branch_restriction(t, false);
+//     *this = aut1 + aut2 + aut3 + aut4 + aut5;
+//     this->semi_undeterminize();
+//     gateCount++;
+//     auto duration = std::chrono::steady_clock::now() - start;
+//     if (gateLog) std::cout << "Fredkin" << c << "," << t << "," << t2 << "：" << stateNum << " states " << count_transitions() << " transitions " << toString(duration) << "\n";
+// }
 
 void VATA::Util::TreeAutomata::randG(int G, int A, int B, int C) {
     int g, a, b, c;
     do { 
-        g = rand() % 12;
+        g = rand() % 11;
         a = rand() % qubitNum + 1;
         if (g >= 8) {
             do {
@@ -478,7 +478,7 @@ void VATA::Util::TreeAutomata::randG(int G, int A, int B, int C) {
         case 8: CNOT(a, b); break;
         case 9: CZ(a, b); break;
         case 10: Toffoli(a, b, c); break;
-        case 11: Fredkin(a, b, c); break;
+        // case 11: Fredkin(a, b, c); break;
         default: break;
     }
 }

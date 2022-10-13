@@ -159,7 +159,7 @@ int main(int argc, char **argv) {
             case 8: aut.CNOT(1, 2); break;
             case 9: aut.CZ(1, 2); break;
             case 10: aut.Toffoli(1, 2, 3); break;
-            case 11: aut.Fredkin(1, 2, 3); break;
+            // case 11: aut.Fredkin(1, 2, 3); break;
             default: break;
         }
         auto duration = chrono::steady_clock::now() - start;
@@ -621,7 +621,7 @@ int main(int argc, char **argv) {
         aut = VATA::Util::TreeAutomata::basis(n);
         for (int i=0; i<3*n; i++) {
             int a, b, c;
-            switch(rand() % 12) {
+            switch(rand() % 11) {
                 case 0: aut.X(rand_gen()); break;
                 case 1: aut.Y(rand_gen()); break;
                 case 2: aut.Z(rand_gen()); break;
@@ -633,7 +633,7 @@ int main(int argc, char **argv) {
                 case 8: rand_gen(a, b); aut.CNOT(a, b); break;
                 case 9: rand_gen(a, b); aut.CZ(a, b); break;
                 case 10: rand_gen(a, b, c); aut.Toffoli(a, b, c); break;
-                case 11: rand_gen(a, b, c); aut.Fredkin(a, b, c); break;
+                // case 11: rand_gen(a, b, c); aut.Fredkin(a, b, c); break;
                 default: break;
             }
         }

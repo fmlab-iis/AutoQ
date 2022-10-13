@@ -178,7 +178,7 @@ public:
     void CNOT(int c, int t, bool opt=true);
     void CZ(int c, int t);
     void Toffoli(int c, int c2, int t);
-    void Fredkin(int c, int t, int t2);
+    // void Fredkin(int c, int t, int t2);
     void randG(int G, int A, int B=0, int C=0);
 
     /* Produce an automaton instance. */
