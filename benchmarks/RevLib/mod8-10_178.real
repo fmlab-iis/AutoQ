@@ -1,0 +1,20 @@
+# Used Library: MCT (gates: 9, quantum costs: 69)
+# This file have been taken from RevLib (www.revlib.org). 
+.version 1.0
+.numvars 5
+.variables e d c b a
+.inputs e d c b a
+.outputs e d c b a
+.constants -----
+.garbage 1----
+.begin
+t3 a b c 
+t2 a c 
+t2 d b 
+t5 a b c e d 
+t2 d b 
+t5 a c d e b 
+t2 a b 
+t2 a c 
+t1 a 
+.end

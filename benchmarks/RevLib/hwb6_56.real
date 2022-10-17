@@ -1,0 +1,139 @@
+# Function: hwb4
+# Used Library: MCT (gates: 126 quantum costs: 1530)
+# This file has been taken from RevLib (www.revlib.org).
+.version 1.0
+.numvars 6
+.variables a b c d e f
+.inputs a b c d e f
+.outputs a b c d e f
+.constants ------
+.garbage ------
+.begin
+t3 a d f
+t3 a d e
+t4 a b f d
+t2 f a
+t3 b d f
+t4 b c d f
+t2 e c
+t2 f e
+t5 a b c e f
+t5 a b c e d
+t3 a e f
+t4 a e f b
+t4 b d f c
+t5 a b d e f
+t3 d f e
+t4 c d e f
+t4 c d e b
+t2 f e
+t5 a c d e f
+t2 f c
+t3 a f b
+t4 b c f a
+t5 b c d e f
+t3 e f c
+t4 a b f c
+t5 a b c f e
+t3 d f c
+t4 c d f e
+t4 b e f a
+t4 c d f a
+t3 e f d
+t5 a b e f c
+t6 a b c d f e
+t4 c e f b
+t6 b c d e f a
+t4 d e f b
+t2 b a
+t4 c e f a
+t5 b d e f c
+t5 a d e f b
+t2 b a
+t6 a b c e f d
+t4 d e f b
+t4 d e f a
+t5 b c e f d
+t4 d e f b
+t5 a c e f b
+t5 a c e f d
+t5 b d e f c
+t4 a e f d
+t3 e f d
+t5 a c d f e
+t5 b c d f a
+t5 a c e f b
+t3 e f c
+t5 a b d f e
+t3 e f b
+t4 b d f e
+t4 b c f e
+t3 e f c
+t4 b d f a
+t4 a c f e
+t3 e f d
+t3 c f b
+t3 b f a
+t4 b c f a
+t3 a f e
+t3 e f b
+t2 f b
+t3 b f a
+t6 a b c d e f
+t4 a b f d
+t3 a f b
+t3 a f c
+t4 b d e f
+t3 e f d
+t4 a d e f
+t3 a f e
+t3 d f a
+t3 d e c
+t4 b c e d
+t4 b c e a
+t5 a b d e c
+t3 d e b
+t4 a c e f
+t4 a e f c
+t3 c e a
+t2 f d
+t3 c e f
+t3 d e a
+t4 a c f e
+t4 a b e f
+t3 b f e
+t3 b e f
+t3 b e d
+t3 d f c
+t3 c e a
+t5 a b c d e
+t4 c d e a
+t4 a c d f
+t3 d f c
+t2 e b
+t3 d f a
+t3 c d f
+t4 c d f a
+t3 a f c
+t4 a b c f
+t4 a b d e
+t3 a e d
+t2 d e
+t2 e d
+t2 f a
+t3 b c e
+t3 c e b
+t3 a c e
+t3 a e c
+t2 c d
+t2 d c
+t3 a e b
+t3 b e a
+t2 b c
+t3 a b d
+t3 b d a
+t2 a b
+t2 c b
+t2 b a
+.end
+

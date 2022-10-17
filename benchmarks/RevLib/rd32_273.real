@@ -1,0 +1,33 @@
+# Function: rd32
+# Used Library: MCT (Gates: 20, Quantum costs: 116)
+# This file was created by Zakaria Hamza using ESOPSolver v.0.
+# This file have been taken from RevLib (www.revlib.org).
+.version 1.0
+.numvars 5
+.variables a b c d e
+.inputs a b c 0 0
+.outputs g g g d e  
+.constants ---00
+.garbage 111--
+.begin
+t1 a
+t1 b
+t4 a b c e
+t1 b
+t1 c
+t4 a b c e
+t1 c
+t4 a b c d
+t1 a
+t1 b
+t1 c
+t4 a b c e
+t1 c
+t4 a b c d
+t1 b
+t1 c
+t4 a b c d
+t1 c
+t4 a b c d
+t4 a b c e
+.end

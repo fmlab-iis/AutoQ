@@ -1,0 +1,22 @@
+# Function: 1-bit Full Adder (ordered list)
+# Gates: 9
+# Quantum costs: 29
+# This file was created by Zakaria Hamza.
+.version 1.0
+.numvars 5
+.variables a b c d e
+.inputs a b c 0 0
+.outputs g g g d e  
+.constants ---00
+.garbage 111--
+.begin
+t3 a c d
+t3 b c e
+t3 b c d
+t3 a b d
+t1 b
+t1 c
+t3 b c e
+t1 a
+t2 a e
+.end

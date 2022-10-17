@@ -1,0 +1,13 @@
+# Function: Peres gate
+# Used Library: P (gates: 1, quantum costs: 4)
+# This file have been taken from RevLib (www.revlib.org).
+.version 1.0
+.numvars 3
+.variables a b c
+.inputs a b c
+.outputs a b c
+.constants ---
+.garbage ---
+.begin
+p c b a
+.end

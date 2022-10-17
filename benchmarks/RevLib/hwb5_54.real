@@ -1,0 +1,37 @@
+# Function: hwb5
+# Used Library: MCF (gates: 24  quantum costs: 248)
+# This file has been taken from RevLib (www.revlib.org).
+.version 1.0
+.numvars 5
+.variables a b c d e
+.inputs a b c d e
+.outputs a b c d e
+.constants -----
+.garbage -----
+.begin
+f5 a d e b c
+f4 d e a c
+f4 b e c d
+f4 c e a d
+f3 e b d
+f3 e a b
+f5 b c d a e
+f4 c d a b
+f3 d c e
+f3 e b d
+f4 a d b c
+f3 d b e
+f3 e c d
+f3 d a e
+f3 e b d
+f2 d e
+f4 b c a d
+f3 b c e
+f3 c a e
+f3 e b c
+f2 c d
+f3 b a d
+f2 b c
+f2 a b
+.end
+

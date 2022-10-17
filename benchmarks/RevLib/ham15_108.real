@@ -1,0 +1,82 @@
+# Function: ham15
+# Used Library: MCT (gates: 70, quantum costs: 453)
+# This file have been taken from RevLib (www.revlib.org).
+.version 1.0
+.numvars 15
+.variables a b c d e f g h i j k l m n o
+.inputs a b c d e f g h i j k l m n o
+.outputs a b c d e f g h i j k l m n o
+.constants ---------------
+.garbage ---------------
+.begin
+t2 o j
+t2 n o
+t5 l m n o e
+t2 o l
+t3 m n o
+t3 l o n
+t5 l m n o b
+t2 o k
+t4 l m n o
+t3 l o j
+t5 l m n o f
+t3 m o a
+t3 n o a
+t5 l m n o a
+t2 o m
+t5 l m n o d
+t3 m o j
+t3 m o c
+t5 l m n o c
+t4 l m o n
+t4 m n o c
+t4 m n o l
+t3 l o a
+t5 l m n o g
+t3 l o n
+t3 n o l
+t5 l m n o h
+t4 l n o m
+t5 l m n o j
+t5 l m n o k
+t3 l m o
+t3 l n k
+t2 o n
+t5 l m n o i
+t2 m n
+t2 k j
+t2 j n
+t2 n m
+t2 m i
+t2 i m
+t2 l o
+t2 m l
+t2 o l
+t2 k o
+t2 j l
+t2 l h
+t2 h l
+t2 k n
+t2 h k
+t2 k g
+t2 g k
+t2 g j
+t2 j f
+t2 f i
+t2 i e
+t2 e h
+t2 h d
+t2 d g
+t2 g c
+t2 c g
+t2 f j
+t2 c f
+t2 f b
+t2 e i
+t2 b e
+t2 b f
+t2 e a
+t2 d h
+t2 a d
+t2 a e
+.end

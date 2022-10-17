@@ -1,0 +1,23 @@
+# Function: aj-e11
+# Used Library: MCT (gates: 13 , quantum costs: 45)
+# This file has been taken from RevLib (www.revlib.org).
+.version 1.0
+.numvars 4
+.variables a b c d
+.inputs  a b c d
+.outputs a b c d
+.begin
+t2 b c
+t2 c d
+t3 a d c
+t2 a c
+t2 c b
+t4 b c d a
+t3 b c a
+t2 a d
+t2 d c
+t3 a c d
+t3 a d b
+t3 a b c
+t1 d
+.end

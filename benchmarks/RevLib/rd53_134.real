@@ -1,0 +1,26 @@
+# Function: rd53
+# Used Library: MCT+P (gates: 8, quantum costs: 120)
+# This file has been taken from RevLib (www.revlib.org).
+.version 1.0
+.numvars 7
+.variables  a b c d e f g
+.inputs x1 x2 x3 x4 x5 0 0 
+.outputs g g g g c2 c1 c0 
+.constants -----00
+.garbage 1111---
+.define p a b c
+.cost 4
+.description Peres gate
+t a b c
+t a b
+.enddefine
+.begin
+t5 a b c d g
+t5 a b c e g
+t5 b c d e g
+p c b f
+t5 a b d e g
+p b a f
+p a d f
+p d e f
+.end

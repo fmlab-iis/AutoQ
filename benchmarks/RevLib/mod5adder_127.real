@@ -1,0 +1,33 @@
+# Function: mod5adder
+# Used Library: MCT (gates: 21, quantum costs: 125)
+# This file has been taken from RevLib (www.revlib.org).
+.version 1.0
+.numvars 6
+.variables  a b c d e f 
+.inputs a b c d e f 
+.outputs a b c d e f 
+.constants ------
+.garbage ------
+.begin
+t1 d
+t1 e
+t1 f
+t4 a e f d
+t3 c f e
+t2 c e
+t3 b d e
+t3 c d f
+t3 e f d
+t1 b
+t1 c
+t5 b c e f d
+t1 c
+t1 b
+t5 b c d f e
+t4 b d e f
+t3 a d f
+t1 f
+t1 e
+t1 d
+t3 a f e
+.end

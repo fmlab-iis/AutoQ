@@ -1,0 +1,5100 @@
+# Function: urf6
+# Generated using the approach proposed in M. Saeedi, M. S. Zamani, M. Sedighi, Z. Sasanian. “Synthesis of Reversible Circuit Using Cycle-Based Approach”. ACM Journal of Emerging Technologies in Computing Systems. 2010
+# Submitted by Mehdi Saeedi.
+# Used Library: MCT (gates: 5088 quantum costs: 17046)
+# This file has been taken from RevLib (www.revlib.org).
+.version 1.0
+.numvars 15
+.variables a14 a13 a12 a11 a10 a9 a8 a7 a6 a5 a4 a3 a2 a1 a0
+.inputs a14 a13 a12 a11 a10 a9 a8 a7 a6 a5 a4 a3 a2 a1 a0
+.outputs a14 a13 a12 a11 a10 a9 a8 a7 a6 a5 a4 a3 a2 a1 a0
+.begin
+t1 a14
+t2 a11 a12
+t2 a12 a13
+t2 a12 a11
+t2 a12 a10
+t2 a12 a8
+t2 a12 a6
+t2 a12 a5
+t2 a12 a4
+t2 a3 a2
+t2 a12 a3
+t2 a2 a12
+t2 a12 a1
+t2 a3 a13
+t2 a3 a11
+t2 a3 a10
+t2 a3 a9
+t2 a3 a8
+t2 a3 a6
+t2 a3 a5
+t2 a3 a0
+t2 a2 a14
+t2 a2 a13
+t2 a2 a10
+t2 a2 a0
+t1 a2
+t2 a0 a2
+t2 a2 a5
+t2 a2 a7
+t1 a2
+t2 a0 a13
+t2 a0 a11
+t2 a0 a9
+t2 a0 a8
+t2 a0 a6
+t2 a0 a4
+t2 a0 a3
+t2 a0 a1
+t2 a9 a7
+t2 a1 a9
+t1 a4
+t2 a1 a4
+t2 a11 a5
+t2 a1 a11
+t2 a10 a14
+t2 a14 a10
+t2 a14 a6
+t2 a14 a4
+t2 a14 a3
+t2 a9 a14
+t2 a14 a1
+t2 a11 a0
+t2 a11 a12
+t2 a11 a13
+t2 a11 a3
+t2 a11 a2
+t3 a0 a12 a11
+t2 a11 a3
+t2 a1 a2
+t2 a11 a1
+t3 a0 a13 a11
+t2 a11 a3
+t2 a11 a1
+t2 a9 a0
+t2 a9 a13
+t2 a9 a12
+t2 a9 a6
+t2 a9 a3
+t2 a9 a2
+t3 a0 a1 a9
+t2 a12 a13
+t3 a13 a0 a2
+t2 a0 a2
+t2 a14 a0
+t2 a14 a1
+t2 a2 a14
+t2 a13 a2
+t2 a12 a1
+t2 a3 a0
+t2 a3 a1
+t3 a13 a1 a12
+t2 a3 a13
+t2 a13 a12
+t3 a13 a2 a3
+t2 a14 a13
+t2 a14 a12
+t2 a14 a3
+t1 a11
+t1 a10
+t1 a9
+t1 a6
+t3 a0 a1 a2
+t7 a14 a6 a5 a4 a3 a2 a0
+t8 a13 a12 a11 a10 a9 a8 a7 a14
+t7 a14 a6 a5 a4 a3 a2 a0
+t3 a0 a1 a2
+t7 a14 a6 a5 a4 a3 a2 a1
+t8 a13 a12 a11 a10 a9 a8 a7 a14
+t7 a14 a6 a5 a4 a3 a2 a1
+t1 a9
+t1 a10
+t1 a11
+t2 a14 a3
+t2 a13 a12
+t2 a14 a13
+t3 a13 a2 a3
+t2 a3 a13
+t3 a13 a1 a12
+t2 a3 a1
+t2 a3 a0
+t2 a12 a1
+t2 a13 a2
+t2 a12 a13
+t2 a2 a14
+t2 a14 a1
+t2 a14 a0
+t2 a1 a2
+t2 a0 a2
+t3 a13 a0 a2
+t3 a12 a0 a2
+t3 a0 a1 a9
+t2 a9 a2
+t2 a9 a3
+t2 a9 a6
+t2 a9 a7
+t2 a9 a12
+t2 a9 a13
+t2 a14 a1
+t2 a9 a14
+t2 a9 a0
+t2 a11 a1
+t2 a11 a2
+t2 a11 a3
+t3 a0 a13 a11
+t2 a11 a1
+t2 a11 a2
+t2 a11 a3
+t3 a0 a12 a11
+t2 a11 a2
+t2 a11 a3
+t2 a11 a5
+t2 a11 a13
+t2 a11 a12
+t2 a11 a0
+t2 a14 a3
+t2 a14 a4
+t2 a14 a6
+t2 a14 a10
+t2 a10 a14
+t2 a0 a1
+t2 a1 a4
+t2 a1 a5
+t2 a1 a7
+t2 a1 a9
+t2 a1 a11
+t2 a0 a2
+t2 a3 a6
+t2 a3 a8
+t2 a0 a3
+t2 a3 a0
+t2 a2 a0
+t2 a0 a13
+t2 a2 a1
+t2 a2 a5
+t2 a2 a7
+t2 a12 a10
+t2 a2 a12
+t2 a2 a14
+t2 a3 a2
+t2 a3 a5
+t2 a3 a9
+t2 a3 a10
+t2 a12 a3
+t2 a3 a11
+t1 a3
+t2 a12 a1
+t2 a12 a2
+t2 a12 a4
+t2 a12 a5
+t2 a12 a6
+t2 a12 a8
+t2 a12 a13
+t2 a11 a12
+t1 a14
+t1 a13
+t1 a11
+t2 a8 a12
+t2 a12 a13
+t2 a12 a8
+t2 a12 a7
+t2 a12 a6
+t2 a12 a4
+t2 a12 a2
+t2 a12 a0
+t2 a10 a3
+t2 a3 a13
+t2 a3 a12
+t2 a3 a10
+t2 a3 a9
+t2 a3 a8
+t2 a3 a7
+t2 a3 a6
+t2 a2 a5
+t2 a3 a2
+t2 a2 a12
+t2 a2 a11
+t2 a2 a9
+t2 a2 a10
+t2 a2 a0
+t2 a11 a0
+t2 a0 a12
+t2 a0 a11
+t2 a0 a10
+t2 a0 a8
+t2 a0 a7
+t2 a0 a6
+t2 a0 a3
+t2 a1 a2
+t2 a14 a0
+t2 a0 a1
+t2 a11 a9
+t2 a1 a11
+t2 a10 a7
+t2 a10 a5
+t2 a10 a3
+t2 a14 a10
+t2 a14 a2
+t2 a10 a12
+t2 a10 a14
+t2 a10 a9
+t2 a10 a6
+t2 a10 a4
+t3 a0 a12 a10
+t2 a11 a0
+t2 a11 a8
+t2 a11 a7
+t2 a11 a3
+t2 a11 a2
+t2 a0 a2
+t3 a13 a0 a11
+t2 a11 a0
+t2 a11 a14
+t2 a11 a12
+t2 a11 a9
+t2 a11 a8
+t2 a11 a6
+t3 a0 a1 a11
+t2 a12 a13
+t3 a13 a0 a2
+t2 a1 a2
+t2 a14 a0
+t2 a14 a1
+t2 a2 a14
+t2 a13 a2
+t2 a12 a1
+t2 a3 a0
+t2 a3 a1
+t3 a13 a1 a12
+t2 a3 a13
+t2 a13 a12
+t3 a13 a2 a3
+t2 a14 a13
+t2 a14 a12
+t2 a14 a3
+t1 a11
+t1 a10
+t1 a8
+t1 a7
+t1 a6
+t1 a5
+t1 a4
+t3 a0 a1 a2
+t7 a14 a6 a5 a4 a3 a2 a0
+t8 a13 a12 a11 a10 a9 a8 a7 a14
+t7 a14 a6 a5 a4 a3 a2 a0
+t3 a0 a1 a2
+t7 a14 a6 a5 a4 a3 a2 a1
+t8 a13 a12 a11 a10 a9 a8 a7 a14
+t7 a14 a6 a5 a4 a3 a2 a1
+t1 a8
+t1 a10
+t1 a11
+t2 a14 a3
+t2 a13 a12
+t2 a14 a13
+t3 a13 a2 a3
+t2 a3 a13
+t3 a13 a1 a12
+t2 a3 a1
+t2 a3 a0
+t2 a12 a1
+t2 a13 a2
+t2 a12 a13
+t2 a2 a14
+t2 a14 a1
+t2 a14 a0
+t2 a0 a2
+t3 a13 a0 a2
+t3 a12 a0 a2
+t3 a0 a1 a11
+t2 a11 a2
+t2 a11 a6
+t2 a11 a8
+t2 a11 a9
+t2 a11 a12
+t2 a11 a14
+t2 a11 a0
+t3 a0 a13 a11
+t2 a11 a2
+t2 a11 a3
+t2 a11 a7
+t2 a11 a8
+t2 a11 a9
+t2 a11 a0
+t3 a0 a12 a10
+t2 a10 a3
+t2 a10 a4
+t2 a10 a5
+t2 a10 a6
+t2 a10 a7
+t2 a14 a9
+t2 a10 a14
+t2 a10 a12
+t2 a14 a0
+t2 a14 a1
+t2 a14 a3
+t2 a14 a5
+t2 a14 a7
+t2 a14 a10
+t2 a14 a11
+t2 a1 a9
+t2 a0 a1
+t2 a1 a11
+t2 a0 a2
+t2 a3 a6
+t2 a3 a7
+t2 a3 a8
+t2 a3 a10
+t2 a3 a12
+t2 a0 a3
+t2 a2 a11
+t2 a11 a0
+t2 a2 a5
+t2 a2 a9
+t2 a2 a10
+t2 a2 a12
+t2 a3 a2
+t2 a3 a5
+t2 a3 a9
+t2 a3 a13
+t2 a10 a3
+t2 a12 a0
+t2 a12 a2
+t2 a12 a4
+t2 a12 a6
+t2 a12 a7
+t2 a12 a8
+t2 a12 a13
+t2 a8 a12
+t1 a13
+t1 a14
+t1 a9
+t1 a1
+t1 a0
+t2 a11 a12
+t2 a12 a13
+t2 a12 a11
+t2 a12 a7
+t2 a14 a3
+t2 a3 a14
+t2 a3 a12
+t2 a3 a11
+t2 a3 a7
+t2 a3 a6
+t2 a14 a2
+t2 a2 a14
+t2 a9 a7
+t2 a2 a9
+t2 a2 a11
+t2 a2 a6
+t2 a2 a4
+t2 a2 a5
+t2 a2 a0
+t2 a14 a13
+t2 a0 a14
+t2 a0 a12
+t2 a0 a11
+t2 a0 a10
+t2 a0 a8
+t2 a0 a7
+t2 a0 a6
+t2 a11 a1
+t2 a1 a13
+t2 a1 a11
+t2 a1 a8
+t2 a1 a6
+t2 a1 a5
+t2 a1 a4
+t2 a1 a3
+t2 a1 a0
+t2 a14 a10
+t2 a14 a2
+t2 a14 a7
+t2 a14 a4
+t2 a14 a1
+t3 a0 a12 a14
+t2 a9 a13
+t2 a9 a8
+t2 a14 a9
+t2 a14 a6
+t2 a14 a5
+t2 a14 a4
+t2 a14 a3
+t2 a14 a1
+t2 a9 a12
+t2 a9 a4
+t3 a0 a13 a9
+t2 a9 a0
+t2 a9 a12
+t2 a9 a8
+t2 a9 a6
+t2 a9 a4
+t2 a9 a3
+t2 a9 a2
+t3 a0 a1 a9
+t2 a12 a13
+t3 a13 a0 a2
+t2 a0 a2
+t2 a1 a2
+t2 a14 a0
+t2 a14 a1
+t2 a2 a14
+t2 a13 a2
+t2 a12 a1
+t2 a3 a0
+t2 a3 a1
+t3 a13 a1 a12
+t2 a3 a13
+t2 a13 a12
+t3 a13 a2 a3
+t2 a14 a13
+t2 a14 a12
+t2 a14 a3
+t1 a11
+t1 a10
+t1 a9
+t1 a6
+t3 a0 a1 a2
+t7 a14 a6 a5 a4 a3 a2 a0
+t8 a13 a12 a11 a10 a9 a8 a7 a14
+t7 a14 a6 a5 a4 a3 a2 a0
+t3 a0 a1 a2
+t7 a14 a6 a5 a4 a3 a2 a1
+t8 a13 a12 a11 a10 a9 a8 a7 a14
+t7 a14 a6 a5 a4 a3 a2 a1
+t1 a9
+t1 a11
+t2 a14 a3
+t2 a13 a12
+t2 a14 a13
+t3 a13 a2 a3
+t2 a3 a13
+t3 a13 a1 a12
+t2 a3 a1
+t2 a3 a0
+t2 a12 a1
+t2 a13 a2
+t2 a12 a13
+t2 a2 a14
+t2 a14 a1
+t2 a14 a0
+t2 a1 a2
+t2 a0 a2
+t3 a13 a0 a2
+t3 a12 a0 a2
+t3 a0 a1 a9
+t2 a9 a2
+t2 a9 a3
+t2 a9 a4
+t2 a9 a6
+t2 a9 a8
+t2 a9 a12
+t2 a9 a0
+t3 a0 a13 a9
+t2 a9 a12
+t2 a14 a9
+t2 a9 a4
+t2 a9 a7
+t2 a9 a8
+t2 a9 a13
+t2 a14 a1
+t2 a14 a3
+t2 a14 a5
+t2 a14 a6
+t3 a0 a12 a14
+t2 a1 a4
+t2 a14 a1
+t2 a14 a7
+t2 a14 a13
+t2 a14 a2
+t2 a14 a10
+t2 a1 a0
+t2 a1 a3
+t2 a1 a5
+t2 a1 a6
+t2 a1 a8
+t2 a1 a11
+t2 a1 a13
+t2 a11 a1
+t2 a0 a6
+t2 a0 a7
+t2 a0 a8
+t2 a0 a10
+t2 a12 a11
+t2 a0 a12
+t2 a0 a13
+t2 a2 a0
+t2 a0 a14
+t2 a2 a4
+t2 a2 a5
+t2 a2 a6
+t2 a2 a7
+t2 a2 a9
+t2 a2 a11
+t2 a14 a2
+t2 a3 a6
+t2 a12 a7
+t2 a3 a12
+t2 a3 a14
+t2 a14 a3
+t2 a11 a12
+t1 a11
+t2 a11 a13
+t2 a12 a11
+t2 a10 a3
+t2 a3 a1
+t1 a3
+t2 a3 a10
+t2 a12 a14
+t2 a12 a8
+t2 a12 a7
+t2 a12 a6
+t2 a0 a4
+t2 a2 a0
+t2 a3 a12
+t2 a12 a2
+t2 a3 a13
+t2 a3 a7
+t2 a3 a5
+t2 a2 a11
+t2 a2 a9
+t2 a2 a8
+t2 a2 a5
+t2 a2 a6
+t2 a1 a2
+t2 a0 a14
+t2 a0 a11
+t2 a0 a10
+t2 a0 a9
+t2 a0 a8
+t2 a1 a3
+t2 a0 a1
+t2 a1 a14
+t2 a1 a12
+t2 a1 a11
+t2 a1 a9
+t2 a1 a7
+t2 a1 a6
+t2 a1 a4
+t2 a11 a13
+t2 a11 a14
+t2 a14 a11
+t2 a14 a10
+t2 a14 a9
+t2 a14 a7
+t2 a14 a6
+t2 a14 a3
+t2 a11 a0
+t2 a11 a12
+t2 a11 a14
+t2 a11 a9
+t2 a11 a8
+t2 a11 a7
+t2 a11 a6
+t2 a11 a5
+t2 a11 a4
+t2 a11 a2
+t3 a0 a12 a11
+t2 a11 a0
+t2 a11 a8
+t2 a11 a6
+t2 a11 a4
+t2 a11 a1
+t3 a0 a13 a11
+t2 a11 a0
+t2 a11 a14
+t2 a11 a13
+t2 a11 a12
+t2 a11 a10
+t2 a11 a9
+t2 a11 a8
+t2 a11 a7
+t3 a0 a1 a11
+t2 a12 a13
+t3 a13 a0 a2
+t2 a0 a2
+t2 a14 a0
+t2 a14 a1
+t2 a2 a14
+t2 a13 a2
+t2 a12 a1
+t2 a3 a0
+t2 a3 a1
+t3 a13 a1 a12
+t2 a3 a13
+t2 a13 a12
+t3 a13 a2 a3
+t2 a14 a13
+t2 a14 a12
+t2 a14 a3
+t1 a11
+t1 a10
+t1 a9
+t1 a8
+t1 a4
+t3 a0 a1 a2
+t7 a14 a6 a5 a4 a3 a2 a0
+t8 a13 a12 a11 a10 a9 a8 a7 a14
+t7 a14 a6 a5 a4 a3 a2 a0
+t3 a0 a1 a2
+t7 a14 a6 a5 a4 a3 a2 a1
+t8 a13 a12 a11 a10 a9 a8 a7 a14
+t7 a14 a6 a5 a4 a3 a2 a1
+t1 a10
+t1 a11
+t2 a14 a3
+t2 a13 a12
+t2 a14 a13
+t3 a13 a2 a3
+t2 a3 a13
+t3 a13 a1 a12
+t2 a3 a1
+t2 a3 a0
+t2 a12 a1
+t2 a13 a2
+t2 a12 a13
+t2 a2 a14
+t2 a14 a1
+t2 a14 a0
+t2 a1 a2
+t2 a0 a2
+t3 a13 a0 a2
+t3 a12 a0 a2
+t3 a0 a1 a11
+t2 a11 a7
+t2 a11 a8
+t2 a11 a9
+t2 a11 a10
+t2 a11 a12
+t2 a11 a13
+t2 a11 a14
+t2 a11 a0
+t3 a0 a13 a11
+t2 a11 a1
+t2 a11 a2
+t2 a11 a4
+t2 a11 a6
+t2 a11 a8
+t2 a11 a0
+t3 a0 a12 a11
+t2 a11 a2
+t2 a11 a4
+t2 a11 a5
+t2 a11 a6
+t2 a11 a7
+t2 a11 a8
+t2 a11 a9
+t2 a14 a13
+t2 a11 a14
+t2 a11 a12
+t2 a11 a0
+t2 a14 a3
+t2 a14 a6
+t2 a14 a7
+t2 a14 a9
+t2 a14 a10
+t2 a1 a11
+t2 a0 a11
+t2 a14 a11
+t2 a11 a14
+t2 a3 a4
+t2 a1 a3
+t2 a1 a6
+t2 a1 a7
+t2 a1 a9
+t2 a1 a12
+t2 a0 a1
+t2 a0 a2
+t2 a0 a3
+t2 a0 a8
+t2 a0 a9
+t2 a0 a10
+t2 a2 a0
+t2 a2 a4
+t2 a2 a5
+t2 a2 a6
+t2 a2 a8
+t2 a2 a9
+t2 a2 a11
+t2 a3 a0
+t2 a3 a1
+t2 a3 a2
+t2 a3 a5
+t2 a3 a7
+t2 a3 a10
+t2 a12 a13
+t2 a3 a12
+t1 a13
+t2 a10 a3
+t2 a12 a0
+t2 a12 a2
+t2 a12 a4
+t2 a12 a6
+t2 a12 a7
+t2 a12 a8
+t2 a12 a11
+t2 a14 a0
+t2 a14 a12
+t1 a14
+t2 a12 a14
+t2 a14 a12
+t2 a12 a13
+t2 a12 a11
+t2 a12 a10
+t2 a12 a8
+t2 a12 a7
+t2 a12 a6
+t2 a12 a5
+t2 a12 a2
+t2 a12 a1
+t2 a3 a13
+t2 a3 a12
+t2 a3 a11
+t2 a3 a7
+t2 a3 a6
+t2 a3 a2
+t2 a14 a2
+t2 a2 a14
+t2 a2 a13
+t2 a2 a12
+t2 a2 a11
+t2 a2 a8
+t2 a2 a7
+t2 a2 a0
+t2 a0 a2
+t2 a2 a6
+t2 a0 a14
+t2 a0 a12
+t2 a0 a9
+t2 a0 a8
+t2 a0 a5
+t2 a0 a3
+t2 a0 a1
+t2 a1 a9
+t2 a1 a8
+t2 a1 a7
+t2 a1 a2
+t2 a1 a0
+t2 a11 a14
+t2 a14 a11
+t2 a14 a10
+t2 a14 a9
+t2 a14 a6
+t2 a14 a5
+t2 a14 a3
+t2 a14 a2
+t2 a14 a1
+t2 a11 a12
+t2 a11 a14
+t2 a11 a9
+t2 a11 a8
+t2 a11 a7
+t2 a11 a6
+t3 a0 a12 a11
+t2 a11 a0
+t2 a11 a9
+t2 a11 a7
+t2 a11 a4
+t2 a11 a3
+t2 a11 a2
+t3 a0 a13 a11
+t2 a13 a12
+t2 a13 a10
+t2 a13 a9
+t2 a13 a4
+t2 a13 a2
+t3 a0 a1 a13
+t2 a13 a12
+t2 a13 a10
+t2 a13 a9
+t2 a13 a4
+t2 a12 a13
+t3 a13 a0 a2
+t2 a0 a2
+t2 a13 a2
+t2 a12 a2
+t2 a1 a2
+t2 a14 a0
+t2 a14 a1
+t2 a2 a14
+t2 a13 a2
+t2 a12 a1
+t2 a3 a0
+t2 a3 a1
+t3 a13 a1 a12
+t2 a3 a13
+t2 a13 a12
+t3 a13 a2 a3
+t2 a14 a13
+t2 a14 a12
+t2 a14 a3
+t1 a11
+t1 a8
+t1 a5
+t3 a0 a1 a2
+t7 a14 a6 a5 a4 a3 a2 a0
+t8 a13 a12 a11 a10 a9 a8 a7 a14
+t7 a14 a6 a5 a4 a3 a2 a0
+t3 a0 a1 a2
+t7 a14 a6 a5 a4 a3 a2 a1
+t8 a13 a12 a11 a10 a9 a8 a7 a14
+t7 a14 a6 a5 a4 a3 a2 a1
+t1 a11
+t2 a14 a3
+t2 a13 a12
+t2 a14 a13
+t3 a13 a2 a3
+t2 a3 a13
+t3 a13 a1 a12
+t2 a3 a1
+t2 a3 a0
+t2 a12 a1
+t2 a13 a2
+t2 a12 a13
+t2 a2 a14
+t2 a14 a1
+t2 a14 a0
+t2 a12 a2
+t2 a13 a12
+t3 a12 a0 a2
+t2 a0 a2
+t2 a12 a2
+t2 a13 a4
+t2 a13 a9
+t2 a13 a10
+t3 a0 a1 a13
+t2 a13 a2
+t2 a13 a4
+t2 a13 a9
+t2 a13 a10
+t2 a13 a12
+t3 a0 a13 a11
+t2 a11 a2
+t2 a11 a3
+t2 a11 a4
+t2 a11 a7
+t2 a11 a9
+t2 a11 a0
+t3 a0 a12 a11
+t2 a11 a6
+t2 a11 a7
+t2 a11 a8
+t2 a14 a9
+t2 a11 a14
+t2 a11 a12
+t2 a14 a1
+t2 a14 a3
+t2 a14 a5
+t2 a14 a6
+t2 a14 a10
+t2 a14 a11
+t2 a11 a14
+t2 a1 a0
+t2 a1 a7
+t2 a0 a1
+t2 a1 a8
+t2 a1 a9
+t2 a0 a2
+t2 a0 a3
+t2 a0 a5
+t2 a2 a0
+t2 a0 a6
+t2 a0 a12
+t2 a0 a14
+t2 a2 a7
+t2 a2 a8
+t2 a2 a11
+t2 a2 a13
+t2 a14 a2
+t1 a3
+t2 a3 a6
+t2 a3 a7
+t1 a6
+t2 a3 a2
+t2 a12 a11
+t1 a12
+t2 a12 a13
+t2 a3 a12
+t2 a12 a0
+t2 a12 a1
+t2 a12 a2
+t2 a12 a5
+t2 a12 a6
+t2 a12 a7
+t2 a12 a8
+t2 a12 a10
+t2 a12 a14
+t2 a14 a12
+t1 a9
+t1 a1
+t2 a9 a12
+t2 a12 a13
+t2 a12 a9
+t2 a12 a8
+t2 a12 a5
+t2 a12 a2
+t2 a12 a0
+t2 a10 a3
+t2 a3 a10
+t2 a3 a9
+t2 a3 a7
+t2 a3 a6
+t2 a3 a5
+t2 a2 a4
+t2 a2 a1
+t2 a3 a2
+t2 a2 a13
+t2 a2 a6
+t2 a2 a7
+t2 a2 a0
+t2 a14 a2
+t2 a14 a12
+t2 a0 a14
+t2 a0 a3
+t2 a11 a12
+t2 a1 a11
+t2 a1 a9
+t2 a1 a8
+t2 a1 a7
+t2 a1 a6
+t2 a1 a5
+t2 a11 a1
+t2 a1 a2
+t2 a14 a10
+t2 a14 a4
+t2 a11 a0
+t2 a11 a14
+t2 a11 a13
+t2 a11 a10
+t2 a11 a8
+t2 a11 a7
+t3 a0 a12 a11
+t2 a11 a0
+t2 a11 a13
+t2 a11 a10
+t2 a11 a5
+t2 a11 a4
+t2 a11 a1
+t3 a0 a13 a11
+t2 a5 a0
+t2 a5 a1
+t2 a5 a14
+t2 a5 a12
+t2 a5 a3
+t2 a5 a2
+t3 a0 a1 a5
+t2 a12 a13
+t3 a13 a0 a2
+t2 a0 a2
+t2 a1 a2
+t2 a14 a0
+t2 a14 a1
+t2 a2 a14
+t2 a13 a2
+t2 a12 a1
+t2 a3 a0
+t2 a3 a1
+t3 a13 a1 a12
+t2 a3 a13
+t2 a13 a12
+t3 a13 a2 a3
+t2 a14 a13
+t2 a14 a12
+t2 a14 a3
+t1 a11
+t1 a10
+t1 a9
+t1 a5
+t1 a4
+t3 a0 a1 a2
+t7 a14 a6 a5 a4 a3 a2 a0
+t8 a13 a12 a11 a10 a9 a8 a7 a14
+t7 a14 a6 a5 a4 a3 a2 a0
+t3 a0 a1 a2
+t7 a14 a6 a5 a4 a3 a2 a1
+t8 a13 a12 a11 a10 a9 a8 a7 a14
+t7 a14 a6 a5 a4 a3 a2 a1
+t1 a5
+t1 a9
+t1 a10
+t1 a11
+t2 a14 a3
+t2 a13 a12
+t2 a14 a13
+t3 a13 a2 a3
+t2 a3 a13
+t3 a13 a1 a12
+t2 a3 a1
+t2 a3 a0
+t2 a12 a1
+t2 a13 a2
+t2 a12 a13
+t2 a2 a14
+t2 a14 a1
+t2 a14 a0
+t2 a1 a2
+t2 a0 a2
+t3 a13 a0 a2
+t3 a12 a0 a2
+t3 a0 a1 a5
+t2 a5 a2
+t2 a5 a3
+t2 a5 a12
+t2 a5 a14
+t2 a5 a1
+t2 a5 a0
+t3 a0 a13 a11
+t2 a11 a1
+t2 a11 a4
+t2 a11 a5
+t2 a11 a10
+t2 a11 a13
+t2 a11 a0
+t3 a0 a12 a11
+t2 a1 a2
+t2 a1 a7
+t2 a1 a8
+t2 a11 a1
+t2 a11 a10
+t2 a11 a13
+t2 a14 a12
+t2 a11 a14
+t2 a11 a0
+t2 a14 a2
+t2 a14 a4
+t2 a14 a10
+t2 a1 a5
+t2 a1 a6
+t2 a1 a9
+t2 a1 a11
+t2 a1 a12
+t2 a0 a2
+t2 a0 a3
+t2 a0 a12
+t2 a0 a14
+t2 a2 a0
+t2 a2 a1
+t2 a2 a4
+t2 a2 a6
+t2 a2 a7
+t2 a2 a13
+t2 a3 a1
+t2 a3 a2
+t2 a3 a4
+t2 a3 a5
+t2 a3 a6
+t2 a3 a7
+t2 a3 a9
+t2 a3 a10
+t2 a10 a3
+t2 a12 a0
+t2 a12 a2
+t2 a12 a5
+t2 a12 a8
+t2 a12 a9
+t2 a12 a13
+t2 a9 a12
+t1 a1
+t1 a9
+t1 a11
+t1 a0
+t2 a14 a12
+t2 a12 a14
+t2 a12 a13
+t2 a12 a10
+t2 a12 a9
+t2 a12 a5
+t2 a3 a4
+t2 a12 a3
+t2 a12 a1
+t2 a3 a12
+t2 a3 a11
+t2 a3 a9
+t2 a14 a2
+t2 a2 a14
+t2 a2 a13
+t2 a2 a10
+t2 a2 a7
+t2 a2 a6
+t2 a2 a4
+t2 a2 a3
+t2 a2 a1
+t2 a2 a0
+t2 a11 a0
+t2 a0 a12
+t2 a0 a11
+t2 a0 a9
+t2 a0 a7
+t2 a0 a4
+t2 a0 a3
+t2 a1 a2
+t2 a0 a1
+t2 a1 a0
+t2 a1 a14
+t2 a1 a12
+t2 a1 a10
+t2 a1 a9
+t2 a1 a4
+t2 a14 a1
+t2 a1 a3
+t2 a7 a6
+t2 a14 a7
+t2 a7 a6
+t2 a14 a2
+t2 a10 a0
+t2 a10 a7
+t2 a10 a6
+t2 a10 a5
+t2 a10 a2
+t2 a10 a1
+t3 a0 a12 a10
+t2 a9 a13
+t2 a9 a14
+t2 a9 a8
+t2 a9 a6
+t2 a9 a5
+t2 a9 a3
+t2 a9 a2
+t2 a9 a1
+t3 a0 a13 a9
+t2 a9 a0
+t2 a9 a1
+t2 a9 a14
+t2 a9 a8
+t2 a9 a5
+t2 a9 a4
+t2 a9 a2
+t3 a0 a1 a9
+t2 a12 a13
+t3 a13 a0 a2
+t2 a0 a2
+t2 a1 a2
+t2 a14 a0
+t2 a14 a1
+t2 a2 a14
+t2 a13 a2
+t2 a12 a1
+t2 a3 a0
+t2 a3 a1
+t3 a13 a1 a12
+t2 a3 a13
+t2 a13 a12
+t3 a13 a2 a3
+t2 a14 a13
+t2 a14 a12
+t2 a14 a3
+t1 a11
+t1 a10
+t1 a9
+t1 a4
+t3 a0 a1 a2
+t7 a14 a6 a5 a4 a3 a2 a0
+t8 a13 a12 a11 a10 a9 a8 a7 a14
+t7 a14 a6 a5 a4 a3 a2 a0
+t3 a0 a1 a2
+t7 a14 a6 a5 a4 a3 a2 a1
+t8 a13 a12 a11 a10 a9 a8 a7 a14
+t7 a14 a6 a5 a4 a3 a2 a1
+t1 a9
+t1 a10
+t1 a11
+t2 a14 a3
+t2 a13 a12
+t2 a14 a13
+t3 a13 a2 a3
+t2 a3 a13
+t3 a13 a1 a12
+t2 a3 a1
+t2 a3 a0
+t2 a12 a1
+t2 a13 a2
+t2 a12 a13
+t2 a2 a14
+t2 a14 a1
+t2 a14 a0
+t2 a1 a2
+t2 a0 a2
+t3 a13 a0 a2
+t3 a12 a0 a2
+t3 a0 a1 a9
+t2 a9 a2
+t2 a9 a4
+t2 a9 a5
+t2 a9 a8
+t2 a9 a14
+t2 a9 a1
+t2 a9 a0
+t3 a0 a13 a9
+t2 a1 a2
+t2 a9 a1
+t2 a9 a3
+t2 a9 a5
+t2 a9 a8
+t2 a14 a6
+t2 a9 a14
+t2 a9 a13
+t3 a0 a12 a10
+t2 a10 a1
+t2 a10 a5
+t2 a10 a6
+t2 a10 a7
+t2 a10 a0
+t2 a1 a3
+t2 a14 a1
+t2 a14 a7
+t2 a0 a4
+t2 a0 a9
+t2 a1 a0
+t2 a1 a10
+t2 a1 a12
+t2 a1 a14
+t2 a2 a1
+t2 a2 a3
+t2 a2 a7
+t2 a0 a2
+t2 a0 a11
+t2 a0 a12
+t2 a11 a0
+t2 a2 a0
+t2 a2 a4
+t2 a2 a6
+t2 a2 a10
+t2 a2 a13
+t2 a2 a14
+t2 a14 a2
+t2 a3 a4
+t2 a3 a9
+t2 a3 a11
+t2 a3 a12
+t2 a12 a1
+t2 a12 a3
+t2 a12 a4
+t2 a12 a5
+t2 a12 a9
+t2 a12 a10
+t1 a14
+t2 a12 a14
+t2 a14 a13
+t2 a14 a12
+t1 a0
+t1 a3
+t2 a2 a8
+t1 a2
+t2 a12 a9
+t2 a12 a7
+t2 a12 a6
+t2 a12 a5
+t2 a12 a4
+t2 a12 a3
+t2 a12 a1
+t2 a3 a10
+t2 a3 a9
+t2 a2 a3
+t2 a3 a6
+t2 a3 a0
+t2 a2 a14
+t2 a2 a11
+t2 a2 a1
+t2 a8 a0
+t2 a0 a13
+t2 a0 a8
+t2 a0 a5
+t2 a0 a2
+t2 a0 a1
+t2 a14 a1
+t2 a1 a14
+t2 a1 a13
+t2 a1 a12
+t2 a1 a10
+t2 a1 a9
+t2 a1 a7
+t2 a1 a5
+t2 a14 a10
+t2 a14 a9
+t2 a14 a7
+t2 a14 a4
+t2 a1 a2
+t2 a14 a1
+t2 a14 a0
+t2 a11 a0
+t2 a11 a9
+t2 a11 a8
+t2 a11 a7
+t2 a11 a6
+t2 a11 a4
+t2 a11 a2
+t3 a0 a12 a11
+t3 a0 a13 a14
+t2 a14 a3
+t2 a11 a0
+t2 a11 a13
+t2 a11 a12
+t2 a11 a9
+t2 a11 a6
+t2 a11 a3
+t3 a0 a1 a11
+t2 a12 a13
+t3 a13 a0 a2
+t2 a0 a2
+t2 a14 a0
+t2 a14 a1
+t2 a2 a14
+t2 a13 a2
+t2 a12 a1
+t2 a3 a0
+t2 a3 a1
+t3 a13 a1 a12
+t2 a3 a13
+t2 a13 a12
+t3 a13 a2 a3
+t2 a14 a13
+t2 a14 a12
+t2 a14 a3
+t1 a11
+t1 a10
+t1 a9
+t1 a8
+t1 a7
+t1 a6
+t3 a0 a1 a2
+t7 a14 a6 a5 a4 a3 a2 a0
+t8 a13 a12 a11 a10 a9 a8 a7 a14
+t7 a14 a6 a5 a4 a3 a2 a0
+t3 a0 a1 a2
+t7 a14 a6 a5 a4 a3 a2 a1
+t8 a13 a12 a11 a10 a9 a8 a7 a14
+t7 a14 a6 a5 a4 a3 a2 a1
+t1 a8
+t1 a11
+t2 a14 a3
+t2 a13 a12
+t2 a14 a13
+t3 a13 a2 a3
+t2 a3 a13
+t3 a13 a1 a12
+t2 a3 a1
+t2 a3 a0
+t2 a12 a1
+t2 a13 a2
+t2 a12 a13
+t2 a2 a14
+t2 a14 a1
+t2 a14 a0
+t2 a1 a2
+t2 a0 a2
+t3 a13 a0 a2
+t3 a12 a0 a2
+t3 a0 a1 a11
+t2 a11 a3
+t2 a11 a6
+t2 a11 a9
+t2 a11 a12
+t2 a11 a13
+t2 a11 a0
+t2 a14 a3
+t3 a0 a13 a14
+t3 a0 a12 a11
+t2 a11 a2
+t2 a11 a4
+t2 a11 a6
+t2 a11 a7
+t2 a11 a8
+t2 a11 a9
+t2 a11 a0
+t2 a14 a0
+t2 a14 a1
+t2 a14 a2
+t2 a14 a4
+t2 a1 a14
+t2 a14 a7
+t2 a14 a9
+t2 a14 a10
+t2 a1 a5
+t2 a1 a12
+t2 a1 a13
+t2 a14 a1
+t2 a2 a1
+t2 a0 a2
+t2 a0 a5
+t2 a0 a8
+t2 a0 a13
+t2 a2 a8
+t2 a8 a0
+t2 a3 a6
+t2 a2 a3
+t2 a2 a11
+t2 a2 a14
+t2 a3 a0
+t2 a3 a9
+t2 a3 a10
+t2 a12 a1
+t2 a12 a3
+t2 a12 a4
+t2 a12 a5
+t2 a12 a6
+t2 a12 a7
+t2 a12 a9
+t1 a12
+t2 a12 a13
+t1 a11
+t1 a10
+t2 a14 a12
+t2 a12 a14
+t2 a12 a8
+t2 a12 a7
+t2 a12 a3
+t2 a12 a1
+t2 a14 a3
+t2 a3 a14
+t2 a3 a13
+t2 a3 a12
+t2 a3 a7
+t2 a3 a6
+t2 a3 a2
+t2 a3 a0
+t2 a2 a10
+t2 a2 a8
+t2 a2 a1
+t1 a7
+t2 a0 a7
+t2 a2 a7
+t2 a0 a11
+t2 a0 a10
+t2 a0 a9
+t2 a0 a8
+t2 a1 a5
+t2 a0 a1
+t2 a1 a0
+t2 a1 a13
+t2 a1 a12
+t2 a1 a8
+t2 a1 a4
+t2 a1 a2
+t2 a11 a14
+t2 a14 a13
+t2 a14 a12
+t2 a11 a7
+t2 a11 a5
+t2 a11 a4
+t2 a14 a11
+t2 a14 a3
+t2 a14 a1
+t2 a11 a14
+t2 a14 a0
+t2 a11 a10
+t2 a11 a9
+t2 a11 a8
+t2 a11 a2
+t3 a0 a12 a11
+t2 a9 a0
+t2 a9 a14
+t2 a9 a7
+t2 a9 a6
+t2 a9 a1
+t1 a9
+t2 a9 a5
+t2 a10 a5
+t3 a0 a13 a9
+t2 a10 a0
+t2 a10 a12
+t2 a10 a3
+t3 a0 a1 a10
+t2 a12 a13
+t3 a13 a0 a2
+t2 a0 a2
+t2 a1 a2
+t2 a14 a0
+t2 a14 a1
+t2 a2 a14
+t2 a13 a2
+t2 a12 a1
+t2 a3 a0
+t2 a3 a1
+t3 a13 a1 a12
+t2 a3 a13
+t2 a13 a12
+t3 a13 a2 a3
+t2 a14 a13
+t2 a14 a12
+t2 a14 a3
+t1 a11
+t1 a10
+t1 a6
+t3 a0 a1 a2
+t7 a14 a6 a5 a4 a3 a2 a0
+t8 a13 a12 a11 a10 a9 a8 a7 a14
+t7 a14 a6 a5 a4 a3 a2 a0
+t3 a0 a1 a2
+t7 a14 a6 a5 a4 a3 a2 a1
+t8 a13 a12 a11 a10 a9 a8 a7 a14
+t7 a14 a6 a5 a4 a3 a2 a1
+t1 a9
+t1 a10
+t1 a11
+t2 a14 a3
+t2 a13 a12
+t2 a14 a13
+t3 a13 a2 a3
+t2 a3 a13
+t3 a13 a1 a12
+t2 a3 a1
+t2 a3 a0
+t2 a12 a1
+t2 a13 a2
+t2 a12 a13
+t2 a2 a14
+t2 a14 a1
+t2 a14 a0
+t2 a1 a2
+t2 a0 a2
+t3 a13 a0 a2
+t3 a12 a0 a2
+t3 a0 a1 a10
+t2 a10 a3
+t2 a10 a5
+t2 a10 a12
+t2 a10 a0
+t3 a0 a13 a9
+t2 a9 a1
+t2 a9 a5
+t2 a9 a6
+t2 a9 a7
+t2 a9 a14
+t2 a9 a0
+t3 a0 a12 a11
+t2 a11 a2
+t2 a11 a4
+t2 a11 a5
+t2 a11 a7
+t2 a11 a8
+t2 a11 a9
+t2 a11 a10
+t2 a14 a0
+t2 a11 a14
+t2 a14 a11
+t2 a14 a1
+t2 a14 a3
+t2 a14 a4
+t2 a14 a5
+t2 a14 a7
+t2 a14 a12
+t2 a14 a13
+t2 a11 a14
+t2 a1 a0
+t2 a1 a2
+t2 a1 a4
+t2 a1 a5
+t2 a1 a8
+t2 a1 a12
+t2 a1 a13
+t2 a0 a1
+t2 a0 a5
+t2 a0 a7
+t2 a0 a8
+t2 a0 a9
+t2 a0 a10
+t2 a0 a11
+t2 a2 a1
+t2 a2 a7
+t2 a2 a8
+t2 a2 a10
+t2 a3 a0
+t2 a3 a2
+t2 a3 a6
+t2 a12 a7
+t2 a12 a14
+t2 a3 a12
+t1 a3
+t2 a3 a13
+t2 a14 a3
+t2 a12 a1
+t2 a12 a8
+t2 a14 a12
+t1 a2
+t1 a1
+t2 a8 a12
+t2 a12 a8
+t2 a12 a4
+t2 a12 a2
+t2 a10 a3
+t2 a3 a12
+t2 a3 a10
+t2 a2 a14
+t2 a2 a13
+t2 a2 a12
+t2 a0 a2
+t2 a2 a10
+t2 a2 a9
+t2 a2 a6
+t2 a0 a14
+t2 a0 a13
+t2 a0 a11
+t2 a0 a8
+t2 a0 a5
+t2 a0 a4
+t2 a0 a1
+t2 a14 a1
+t2 a1 a14
+t2 a1 a13
+t2 a1 a12
+t2 a1 a10
+t2 a1 a9
+t2 a1 a5
+t2 a1 a4
+t2 a1 a3
+t2 a14 a1
+t2 a1 a0
+t2 a14 a11
+t2 a14 a10
+t2 a14 a9
+t2 a14 a8
+t2 a14 a7
+t2 a14 a5
+t2 a14 a4
+t2 a14 a2
+t2 a11 a0
+t2 a11 a14
+t2 a11 a4
+t3 a0 a12 a11
+t2 a11 a0
+t2 a11 a13
+t2 a11 a14
+t2 a11 a9
+t2 a11 a8
+t2 a11 a7
+t2 a11 a4
+t2 a11 a3
+t2 a1 a2
+t2 a11 a1
+t3 a0 a13 a11
+t2 a11 a0
+t2 a11 a9
+t2 a11 a6
+t2 a11 a4
+t2 a11 a3
+t3 a0 a1 a11
+t2 a12 a13
+t3 a13 a0 a2
+t2 a0 a2
+t2 a14 a0
+t2 a14 a1
+t2 a2 a14
+t2 a13 a2
+t2 a12 a1
+t2 a3 a0
+t2 a3 a1
+t3 a13 a1 a12
+t2 a3 a13
+t2 a13 a12
+t3 a13 a2 a3
+t2 a14 a13
+t2 a14 a12
+t2 a14 a3
+t1 a11
+t1 a10
+t1 a8
+t1 a7
+t1 a4
+t3 a0 a1 a2
+t7 a14 a6 a5 a4 a3 a2 a0
+t8 a13 a12 a11 a10 a9 a8 a7 a14
+t7 a14 a6 a5 a4 a3 a2 a0
+t3 a0 a1 a2
+t7 a14 a6 a5 a4 a3 a2 a1
+t8 a13 a12 a11 a10 a9 a8 a7 a14
+t7 a14 a6 a5 a4 a3 a2 a1
+t1 a8
+t1 a10
+t1 a11
+t2 a14 a3
+t2 a13 a12
+t2 a14 a13
+t3 a13 a2 a3
+t2 a3 a13
+t3 a13 a1 a12
+t2 a3 a1
+t2 a3 a0
+t2 a12 a1
+t2 a13 a2
+t2 a12 a13
+t2 a2 a14
+t2 a14 a1
+t2 a14 a0
+t2 a1 a2
+t2 a0 a2
+t3 a13 a0 a2
+t3 a12 a0 a2
+t3 a0 a1 a11
+t2 a11 a3
+t2 a11 a4
+t2 a11 a6
+t2 a11 a9
+t2 a11 a0
+t3 a0 a13 a11
+t2 a11 a1
+t2 a11 a2
+t2 a11 a3
+t2 a11 a4
+t2 a11 a7
+t2 a11 a8
+t2 a11 a9
+t2 a11 a14
+t2 a11 a13
+t2 a11 a0
+t3 a0 a12 a11
+t2 a14 a4
+t2 a14 a0
+t2 a11 a14
+t2 a14 a11
+t2 a14 a1
+t2 a14 a2
+t2 a14 a5
+t2 a14 a7
+t2 a14 a8
+t2 a1 a14
+t2 a1 a0
+t2 a0 a14
+t2 a14 a9
+t2 a14 a10
+t2 a1 a3
+t2 a1 a4
+t2 a1 a5
+t2 a1 a12
+t2 a1 a13
+t2 a14 a1
+t2 a0 a2
+t2 a0 a4
+t2 a0 a5
+t2 a0 a6
+t2 a0 a8
+t2 a0 a11
+t2 a0 a13
+t2 a2 a6
+t2 a2 a9
+t2 a2 a10
+t2 a2 a12
+t2 a2 a13
+t2 a2 a14
+t2 a3 a10
+t2 a3 a12
+t2 a10 a3
+t2 a12 a2
+t2 a12 a4
+t2 a12 a8
+t2 a8 a12
+t1 a3
+t1 a8
+t1 a13
+t1 a14
+t1 a11
+t2 a11 a12
+t2 a12 a11
+t2 a12 a10
+t2 a12 a9
+t2 a12 a8
+t2 a12 a7
+t2 a12 a5
+t2 a3 a4
+t2 a12 a3
+t2 a3 a14
+t2 a3 a13
+t2 a3 a11
+t2 a3 a10
+t2 a2 a3
+t2 a3 a8
+t2 a3 a5
+t2 a3 a0
+t2 a2 a14
+t2 a2 a13
+t2 a2 a12
+t2 a2 a9
+t2 a14 a0
+t2 a0 a14
+t2 a0 a10
+t2 a0 a7
+t2 a0 a6
+t2 a0 a5
+t2 a0 a4
+t2 a0 a2
+t2 a0 a1
+t2 a1 a13
+t2 a1 a12
+t2 a11 a6
+t2 a1 a11
+t2 a1 a4
+t2 a1 a3
+t2 a1 a0
+t2 a9 a14
+t2 a11 a10
+t2 a8 a3
+t2 a11 a8
+t2 a8 a3
+t2 a11 a2
+t2 a11 a1
+t3 a0 a12 a11
+t2 a11 a10
+t2 a11 a8
+t2 a11 a6
+t2 a11 a3
+t2 a11 a2
+t2 a11 a1
+t2 a14 a12
+t2 a14 a11
+t3 a0 a13 a14
+t2 a14 a12
+t2 a14 a11
+t2 a14 a9
+t2 a14 a8
+t2 a14 a5
+t2 a14 a4
+t2 a14 a3
+t2 a8 a2
+t2 a8 a1
+t2 a1 a2
+t2 a14 a1
+t2 a8 a13
+t2 a8 a12
+t2 a8 a3
+t1 a8
+t1 a11
+t2 a8 a4
+t3 a0 a1 a8
+t2 a12 a13
+t3 a13 a0 a2
+t2 a0 a2
+t2 a14 a0
+t2 a14 a1
+t2 a2 a14
+t2 a13 a2
+t2 a12 a1
+t2 a3 a0
+t2 a3 a1
+t3 a13 a1 a12
+t2 a3 a13
+t2 a13 a12
+t3 a13 a2 a3
+t2 a14 a13
+t2 a14 a12
+t2 a14 a3
+t1 a9
+t1 a6
+t3 a0 a1 a2
+t7 a14 a6 a5 a4 a3 a2 a0
+t8 a13 a12 a11 a10 a9 a8 a7 a14
+t7 a14 a6 a5 a4 a3 a2 a0
+t3 a0 a1 a2
+t7 a14 a6 a5 a4 a3 a2 a1
+t8 a13 a12 a11 a10 a9 a8 a7 a14
+t7 a14 a6 a5 a4 a3 a2 a1
+t1 a8
+t1 a9
+t1 a11
+t2 a14 a3
+t2 a13 a12
+t2 a14 a13
+t3 a13 a2 a3
+t2 a3 a13
+t3 a13 a1 a12
+t2 a3 a1
+t2 a3 a0
+t2 a12 a1
+t2 a13 a2
+t2 a12 a13
+t2 a2 a14
+t2 a1 a2
+t2 a14 a1
+t2 a14 a0
+t2 a0 a2
+t3 a13 a0 a2
+t3 a12 a0 a2
+t3 a0 a1 a8
+t2 a8 a2
+t2 a8 a3
+t2 a8 a4
+t2 a8 a12
+t2 a8 a13
+t2 a14 a8
+t2 a8 a1
+t2 a14 a3
+t2 a14 a4
+t2 a14 a5
+t2 a14 a9
+t2 a14 a11
+t2 a14 a12
+t3 a0 a13 a14
+t2 a14 a11
+t2 a14 a12
+t2 a11 a1
+t2 a11 a2
+t2 a11 a3
+t2 a11 a6
+t2 a11 a8
+t2 a11 a10
+t3 a0 a12 a11
+t2 a11 a1
+t2 a11 a2
+t2 a11 a3
+t2 a11 a6
+t2 a11 a8
+t2 a11 a10
+t2 a9 a14
+t2 a1 a0
+t2 a1 a3
+t2 a1 a4
+t2 a1 a6
+t2 a1 a11
+t2 a1 a12
+t2 a1 a13
+t2 a0 a1
+t2 a0 a2
+t2 a0 a4
+t2 a0 a5
+t2 a0 a6
+t2 a0 a7
+t2 a0 a10
+t2 a0 a14
+t2 a2 a14
+t2 a14 a0
+t2 a3 a5
+t2 a3 a8
+t2 a2 a3
+t2 a12 a9
+t2 a2 a12
+t1 a2
+t2 a2 a13
+t2 a3 a0
+t2 a3 a4
+t2 a3 a10
+t2 a3 a11
+t2 a12 a3
+t2 a12 a13
+t2 a12 a14
+t2 a12 a4
+t2 a12 a5
+t2 a12 a7
+t2 a12 a8
+t2 a12 a10
+t2 a11 a0
+t1 a11
+t2 a12 a11
+t2 a11 a12
+t2 a12 a14
+t2 a12 a13
+t2 a12 a7
+t2 a12 a6
+t2 a12 a5
+t2 a12 a4
+t2 a3 a12
+t2 a3 a11
+t2 a3 a9
+t2 a3 a5
+t2 a3 a2
+t2 a2 a10
+t2 a2 a6
+t2 a1 a6
+t2 a2 a8
+t2 a14 a0
+t2 a0 a14
+t2 a0 a13
+t2 a0 a12
+t2 a0 a11
+t2 a0 a10
+t2 a0 a9
+t2 a0 a8
+t2 a0 a7
+t2 a0 a5
+t2 a1 a14
+t2 a1 a7
+t2 a1 a4
+t2 a1 a3
+t2 a8 a14
+t2 a14 a12
+t2 a14 a8
+t2 a14 a2
+t2 a14 a1
+t2 a14 a13
+t2 a14 a11
+t2 a14 a10
+t2 a14 a9
+t2 a14 a7
+t2 a14 a5
+t2 a14 a4
+t2 a14 a3
+t3 a0 a12 a14
+t2 a14 a13
+t2 a14 a11
+t2 a14 a10
+t2 a14 a9
+t2 a14 a7
+t2 a14 a5
+t2 a14 a4
+t2 a14 a3
+t2 a10 a0
+t2 a10 a7
+t2 a10 a6
+t2 a10 a5
+t2 a10 a4
+t2 a10 a1
+t3 a0 a13 a10
+t2 a11 a1
+t2 a11 a14
+t2 a11 a13
+t2 a11 a7
+t2 a11 a6
+t2 a11 a4
+t3 a0 a1 a11
+t2 a12 a13
+t3 a13 a0 a2
+t2 a0 a2
+t2 a1 a2
+t2 a14 a0
+t2 a14 a1
+t2 a2 a14
+t2 a13 a2
+t2 a12 a1
+t2 a3 a0
+t2 a3 a1
+t3 a13 a1 a12
+t2 a3 a13
+t2 a13 a12
+t3 a13 a2 a3
+t2 a14 a13
+t2 a14 a12
+t2 a14 a3
+t1 a11
+t1 a10
+t1 a9
+t1 a8
+t1 a5
+t1 a4
+t3 a0 a1 a2
+t7 a14 a6 a5 a4 a3 a2 a0
+t8 a13 a12 a11 a10 a9 a8 a7 a14
+t7 a14 a6 a5 a4 a3 a2 a0
+t3 a0 a1 a2
+t7 a14 a6 a5 a4 a3 a2 a1
+t8 a13 a12 a11 a10 a9 a8 a7 a14
+t7 a14 a6 a5 a4 a3 a2 a1
+t1 a8
+t1 a10
+t1 a11
+t2 a14 a3
+t2 a13 a12
+t2 a14 a13
+t3 a13 a2 a3
+t2 a3 a13
+t3 a13 a1 a12
+t2 a3 a1
+t2 a3 a0
+t2 a12 a1
+t2 a13 a2
+t2 a12 a13
+t2 a2 a14
+t2 a14 a1
+t2 a14 a0
+t2 a1 a2
+t2 a0 a2
+t3 a13 a0 a2
+t3 a12 a0 a2
+t3 a0 a1 a11
+t2 a11 a4
+t2 a11 a6
+t2 a11 a7
+t2 a11 a13
+t2 a11 a14
+t2 a11 a1
+t3 a0 a13 a10
+t2 a10 a1
+t2 a10 a4
+t2 a10 a5
+t2 a10 a6
+t2 a10 a7
+t2 a10 a0
+t1 a4
+t2 a3 a4
+t2 a14 a5
+t2 a14 a3
+t2 a14 a7
+t2 a14 a9
+t2 a14 a10
+t2 a14 a11
+t2 a14 a13
+t3 a0 a12 a14
+t2 a14 a5
+t2 a14 a3
+t2 a14 a7
+t2 a14 a9
+t2 a14 a10
+t2 a14 a11
+t2 a14 a13
+t2 a14 a1
+t2 a14 a2
+t2 a14 a8
+t2 a14 a12
+t2 a8 a14
+t2 a3 a6
+t2 a3 a7
+t2 a1 a3
+t2 a1 a14
+t2 a0 a5
+t2 a0 a7
+t2 a0 a8
+t2 a0 a9
+t2 a0 a10
+t2 a0 a11
+t2 a0 a12
+t2 a0 a14
+t1 a0
+t2 a0 a13
+t2 a14 a0
+t2 a2 a6
+t2 a2 a8
+t2 a2 a10
+t2 a3 a2
+t2 a3 a5
+t2 a3 a9
+t2 a3 a12
+t2 a12 a0
+t2 a12 a4
+t2 a12 a5
+t2 a12 a6
+t2 a12 a7
+t2 a12 a13
+t2 a12 a14
+t1 a1
+t1 a11
+t2 a9 a12
+t1 a6
+t2 a12 a8
+t2 a12 a6
+t1 a8
+t2 a12 a9
+t2 a12 a5
+t2 a12 a2
+t2 a12 a1
+t2 a3 a12
+t2 a3 a9
+t2 a3 a0
+t2 a10 a2
+t2 a2 a13
+t2 a10 a9
+t2 a2 a10
+t2 a2 a3
+t2 a2 a1
+t2 a0 a2
+t2 a2 a12
+t2 a0 a13
+t2 a0 a7
+t2 a0 a5
+t2 a14 a1
+t2 a1 a14
+t2 a1 a13
+t2 a1 a8
+t2 a1 a7
+t2 a1 a6
+t2 a1 a5
+t2 a1 a2
+t2 a10 a6
+t2 a10 a14
+t2 a10 a8
+t2 a10 a4
+t2 a14 a10
+t2 a14 a0
+t2 a14 a3
+t2 a14 a1
+t3 a0 a12 a14
+t2 a14 a9
+t2 a14 a8
+t2 a14 a4
+t2 a14 a3
+t2 a14 a1
+t2 a10 a13
+t2 a10 a1
+t1 a10
+t2 a10 a5
+t2 a11 a5
+t3 a0 a13 a10
+t2 a11 a0
+t2 a11 a13
+t2 a11 a7
+t2 a11 a3
+t3 a0 a1 a11
+t2 a12 a13
+t3 a13 a0 a2
+t2 a0 a2
+t2 a1 a2
+t2 a14 a0
+t2 a14 a1
+t2 a2 a14
+t2 a13 a2
+t2 a12 a1
+t2 a3 a0
+t2 a3 a1
+t3 a13 a1 a12
+t2 a3 a13
+t2 a13 a12
+t3 a13 a2 a3
+t2 a14 a13
+t2 a14 a12
+t2 a14 a3
+t1 a11
+t3 a0 a1 a2
+t7 a14 a6 a5 a4 a3 a2 a0
+t8 a13 a12 a11 a10 a9 a8 a7 a14
+t7 a14 a6 a5 a4 a3 a2 a0
+t3 a0 a1 a2
+t7 a14 a6 a5 a4 a3 a2 a1
+t8 a13 a12 a11 a10 a9 a8 a7 a14
+t7 a14 a6 a5 a4 a3 a2 a1
+t1 a9
+t1 a10
+t1 a11
+t2 a14 a3
+t2 a13 a12
+t2 a14 a13
+t3 a13 a2 a3
+t2 a3 a13
+t3 a13 a1 a12
+t2 a3 a1
+t2 a3 a0
+t2 a12 a1
+t2 a13 a2
+t2 a12 a13
+t2 a2 a14
+t2 a14 a1
+t2 a14 a0
+t2 a1 a2
+t2 a0 a2
+t3 a13 a0 a2
+t3 a12 a0 a2
+t3 a0 a1 a11
+t2 a11 a3
+t2 a11 a5
+t2 a11 a7
+t2 a11 a13
+t2 a11 a0
+t3 a0 a13 a10
+t2 a10 a1
+t2 a10 a4
+t2 a10 a5
+t2 a10 a6
+t2 a10 a8
+t2 a10 a9
+t2 a10 a13
+t2 a14 a1
+t2 a14 a3
+t2 a14 a4
+t2 a14 a8
+t2 a14 a9
+t3 a0 a12 a14
+t2 a14 a1
+t2 a14 a3
+t2 a14 a4
+t2 a14 a8
+t2 a14 a9
+t2 a14 a0
+t2 a14 a6
+t2 a14 a10
+t2 a10 a14
+t2 a1 a2
+t2 a1 a5
+t2 a1 a6
+t2 a1 a7
+t2 a1 a8
+t2 a1 a13
+t2 a1 a14
+t2 a14 a1
+t2 a0 a2
+t2 a0 a5
+t2 a0 a7
+t2 a0 a12
+t2 a0 a13
+t2 a2 a1
+t2 a3 a9
+t2 a2 a3
+t2 a2 a10
+t2 a2 a12
+t2 a2 a13
+t2 a10 a2
+t2 a3 a0
+t2 a3 a4
+t2 a3 a6
+t2 a3 a7
+t2 a3 a11
+t2 a3 a12
+t1 a3
+t2 a3 a14
+t2 a3 a13
+t2 a12 a1
+t2 a12 a2
+t2 a12 a5
+t2 a12 a6
+t2 a12 a8
+t2 a12 a9
+t2 a9 a12
+t1 a10
+t2 a12 a13
+t2 a12 a10
+t2 a12 a9
+t2 a12 a7
+t2 a12 a6
+t2 a12 a5
+t2 a12 a4
+t2 a12 a0
+t2 a14 a3
+t2 a3 a14
+t2 a3 a13
+t2 a3 a12
+t2 a3 a10
+t2 a3 a9
+t2 a3 a8
+t2 a3 a7
+t2 a3 a6
+t2 a3 a4
+t2 a2 a1
+t2 a2 a0
+t2 a3 a2
+t2 a2 a3
+t2 a2 a10
+t2 a7 a5
+t1 a8
+t2 a2 a8
+t1 a7
+t2 a2 a7
+t2 a7 a5
+t2 a0 a14
+t2 a0 a12
+t2 a0 a11
+t2 a0 a9
+t2 a0 a8
+t2 a0 a7
+t2 a0 a5
+t2 a14 a1
+t2 a1 a14
+t2 a1 a13
+t2 a1 a12
+t2 a1 a11
+t2 a10 a9
+t2 a1 a10
+t2 a1 a8
+t2 a1 a6
+t2 a1 a2
+t2 a1 a0
+t2 a11 a14
+t2 a14 a12
+t2 a14 a11
+t2 a10 a6
+t2 a10 a3
+t2 a14 a10
+t2 a14 a2
+t2 a14 a1
+t2 a11 a9
+t2 a11 a7
+t2 a11 a6
+t2 a11 a4
+t2 a11 a3
+t3 a0 a12 a11
+t2 a11 a9
+t2 a11 a7
+t2 a11 a6
+t2 a11 a4
+t2 a10 a0
+t2 a10 a13
+t2 a10 a12
+t2 a10 a7
+t2 a10 a5
+t3 a0 a13 a10
+t2 a11 a0
+t2 a11 a14
+t2 a11 a13
+t2 a11 a10
+t2 a11 a8
+t3 a0 a1 a11
+t2 a12 a13
+t3 a13 a0 a2
+t2 a0 a2
+t2 a1 a2
+t2 a14 a0
+t2 a14 a1
+t2 a2 a14
+t2 a13 a2
+t2 a12 a1
+t2 a3 a0
+t2 a3 a1
+t3 a13 a1 a12
+t2 a3 a13
+t2 a13 a12
+t3 a13 a2 a3
+t2 a14 a13
+t2 a14 a12
+t2 a14 a3
+t1 a11
+t1 a10
+t1 a6
+t3 a0 a1 a2
+t7 a14 a6 a5 a4 a3 a2 a0
+t8 a13 a12 a11 a10 a9 a8 a7 a14
+t7 a14 a6 a5 a4 a3 a2 a0
+t3 a0 a1 a2
+t7 a14 a6 a5 a4 a3 a2 a1
+t8 a13 a12 a11 a10 a9 a8 a7 a14
+t7 a14 a6 a5 a4 a3 a2 a1
+t1 a10
+t1 a11
+t2 a14 a3
+t2 a13 a12
+t2 a14 a13
+t3 a13 a2 a3
+t2 a3 a13
+t3 a13 a1 a12
+t2 a3 a1
+t2 a3 a0
+t2 a12 a1
+t2 a13 a2
+t2 a12 a13
+t2 a2 a14
+t2 a14 a1
+t2 a14 a0
+t2 a0 a2
+t3 a13 a0 a2
+t3 a12 a0 a2
+t3 a0 a1 a11
+t2 a11 a8
+t2 a11 a10
+t2 a11 a13
+t2 a11 a14
+t2 a11 a0
+t3 a0 a13 a10
+t2 a10 a3
+t2 a10 a5
+t2 a10 a6
+t2 a10 a7
+t2 a10 a9
+t2 a10 a12
+t2 a10 a13
+t2 a10 a0
+t2 a11 a4
+t2 a11 a6
+t2 a11 a7
+t2 a11 a9
+t3 a0 a12 a11
+t2 a11 a3
+t2 a11 a4
+t2 a11 a7
+t2 a14 a11
+t2 a11 a6
+t2 a11 a9
+t2 a14 a1
+t2 a14 a3
+t2 a14 a10
+t2 a14 a12
+t2 a1 a11
+t2 a11 a14
+t2 a1 a0
+t2 a1 a6
+t2 a1 a8
+t2 a1 a9
+t2 a1 a10
+t2 a1 a12
+t2 a1 a13
+t2 a14 a1
+t2 a0 a5
+t2 a0 a7
+t2 a0 a8
+t2 a0 a9
+t2 a0 a11
+t2 a0 a12
+t2 a0 a14
+t2 a2 a0
+t2 a3 a1
+t2 a2 a3
+t2 a2 a5
+t2 a3 a2
+t1 a8
+t1 a2
+t2 a2 a7
+t1 a1
+t2 a2 a10
+t2 a3 a0
+t2 a3 a4
+t2 a3 a6
+t2 a12 a9
+t2 a3 a12
+t2 a3 a13
+t2 a3 a14
+t2 a14 a3
+t2 a12 a0
+t2 a12 a10
+t1 a14
+t2 a12 a14
+t2 a12 a11
+t2 a3 a2
+t2 a12 a3
+t2 a12 a1
+t2 a13 a11
+t2 a14 a13
+t2 a13 a11
+t2 a3 a14
+t2 a3 a10
+t2 a3 a9
+t2 a3 a5
+t2 a3 a4
+t2 a2 a13
+t2 a2 a11
+t2 a2 a10
+t2 a2 a9
+t2 a2 a6
+t2 a0 a4
+t2 a2 a0
+t2 a0 a13
+t2 a0 a12
+t2 a0 a11
+t2 a0 a10
+t2 a0 a8
+t2 a0 a7
+t2 a1 a0
+t2 a14 a0
+t2 a0 a6
+t2 a9 a0
+t2 a0 a5
+t2 a1 a11
+t2 a1 a4
+t2 a1 a3
+t2 a14 a10
+t2 a14 a8
+t2 a14 a7
+t2 a14 a4
+t2 a14 a1
+t2 a9 a14
+t2 a9 a13
+t2 a9 a7
+t2 a9 a3
+t3 a0 a12 a9
+t2 a10 a0
+t2 a10 a13
+t2 a10 a14
+t2 a10 a12
+t2 a10 a9
+t2 a10 a7
+t2 a10 a2
+t2 a10 a1
+t3 a0 a13 a10
+t2 a9 a0
+t2 a9 a1
+t2 a9 a13
+t2 a9 a4
+t1 a9
+t1 a10
+t2 a9 a6
+t2 a9 a5
+t3 a0 a1 a9
+t2 a12 a13
+t3 a13 a0 a2
+t2 a0 a2
+t2 a1 a2
+t2 a14 a0
+t2 a14 a1
+t2 a2 a14
+t2 a13 a2
+t2 a12 a1
+t2 a3 a0
+t2 a3 a1
+t3 a13 a1 a12
+t2 a3 a13
+t2 a13 a12
+t3 a13 a2 a3
+t2 a14 a13
+t2 a14 a12
+t2 a14 a3
+t3 a0 a1 a2
+t7 a14 a6 a5 a4 a3 a2 a0
+t8 a13 a12 a11 a10 a9 a8 a7 a14
+t7 a14 a6 a5 a4 a3 a2 a0
+t3 a0 a1 a2
+t7 a14 a6 a5 a4 a3 a2 a1
+t8 a13 a12 a11 a10 a9 a8 a7 a14
+t7 a14 a6 a5 a4 a3 a2 a1
+t1 a9
+t1 a10
+t2 a14 a3
+t2 a13 a12
+t2 a14 a13
+t3 a13 a2 a3
+t2 a3 a13
+t3 a13 a1 a12
+t2 a3 a1
+t2 a3 a0
+t2 a12 a1
+t2 a13 a2
+t2 a12 a13
+t2 a2 a14
+t2 a14 a1
+t2 a14 a0
+t2 a1 a2
+t2 a0 a2
+t3 a13 a0 a2
+t3 a12 a0 a2
+t3 a0 a1 a9
+t2 a9 a4
+t2 a9 a5
+t2 a9 a6
+t2 a9 a13
+t2 a9 a1
+t2 a9 a0
+t3 a0 a13 a10
+t2 a10 a1
+t2 a10 a2
+t2 a10 a7
+t2 a10 a9
+t2 a10 a12
+t2 a14 a13
+t2 a10 a14
+t2 a10 a0
+t3 a0 a12 a9
+t2 a9 a3
+t2 a9 a5
+t2 a9 a7
+t2 a14 a0
+t2 a9 a14
+t2 a1 a4
+t2 a1 a5
+t2 a1 a6
+t2 a14 a1
+t2 a14 a7
+t2 a14 a8
+t2 a14 a10
+t2 a14 a11
+t2 a1 a0
+t2 a1 a3
+t2 a1 a11
+t2 a0 a4
+t2 a0 a5
+t2 a0 a6
+t2 a0 a7
+t2 a0 a8
+t2 a0 a10
+t2 a0 a11
+t2 a0 a12
+t2 a2 a4
+t2 a2 a13
+t2 a0 a13
+t2 a2 a0
+t2 a2 a6
+t2 a3 a2
+t2 a2 a8
+t2 a2 a9
+t2 a2 a10
+t1 a3
+t2 a3 a5
+t1 a2
+t2 a2 a11
+t2 a2 a5
+t2 a3 a14
+t2 a3 a13
+t2 a12 a2
+t2 a12 a8
+t2 a12 a14
+t1 a1
+t2 a12 a9
+t2 a3 a12
+t2 a2 a12
+t2 a12 a0
+t2 a14 a11
+t2 a2 a14
+t2 a2 a10
+t2 a2 a9
+t2 a2 a6
+t2 a0 a6
+t2 a2 a7
+t2 a0 a11
+t2 a0 a10
+t2 a0 a5
+t2 a0 a1
+t2 a1 a13
+t2 a10 a6
+t2 a1 a10
+t2 a1 a12
+t2 a1 a4
+t2 a14 a1
+t2 a1 a3
+t2 a1 a0
+t2 a14 a12
+t2 a14 a9
+t2 a8 a7
+t2 a14 a8
+t2 a14 a6
+t2 a8 a14
+t2 a14 a7
+t2 a8 a0
+t2 a8 a12
+t2 a8 a5
+t2 a8 a4
+t3 a0 a12 a8
+t2 a10 a0
+t2 a10 a12
+t2 a10 a8
+t2 a10 a7
+t2 a10 a1
+t3 a0 a13 a10
+t2 a14 a13
+t2 a14 a12
+t2 a14 a10
+t2 a14 a5
+t3 a0 a1 a14
+t2 a14 a13
+t2 a14 a12
+t2 a14 a10
+t2 a14 a7
+t2 a14 a5
+t2 a14 a2
+t2 a12 a13
+t3 a13 a0 a2
+t2 a0 a2
+t2 a1 a2
+t2 a14 a0
+t2 a14 a1
+t2 a2 a14
+t2 a13 a2
+t2 a12 a1
+t2 a3 a0
+t2 a3 a1
+t3 a13 a1 a12
+t2 a3 a13
+t2 a13 a12
+t3 a13 a2 a3
+t2 a14 a13
+t2 a14 a12
+t2 a14 a3
+t1 a10
+t1 a8
+t3 a0 a1 a2
+t7 a14 a6 a5 a4 a3 a2 a0
+t8 a13 a12 a11 a10 a9 a8 a7 a14
+t7 a14 a6 a5 a4 a3 a2 a0
+t3 a0 a1 a2
+t7 a14 a6 a5 a4 a3 a2 a1
+t8 a13 a12 a11 a10 a9 a8 a7 a14
+t7 a14 a6 a5 a4 a3 a2 a1
+t1 a8
+t1 a10
+t2 a14 a3
+t2 a13 a12
+t2 a14 a13
+t3 a13 a2 a3
+t2 a3 a13
+t3 a13 a1 a12
+t2 a3 a1
+t2 a3 a0
+t2 a12 a1
+t2 a13 a2
+t2 a12 a13
+t2 a2 a14
+t2 a1 a2
+t2 a14 a1
+t2 a14 a0
+t2 a0 a2
+t3 a13 a0 a2
+t3 a12 a0 a2
+t2 a14 a5
+t2 a14 a7
+t2 a14 a10
+t2 a14 a12
+t2 a14 a13
+t3 a0 a1 a14
+t2 a14 a2
+t2 a14 a5
+t2 a14 a10
+t2 a14 a12
+t2 a14 a13
+t3 a0 a13 a10
+t2 a10 a1
+t2 a10 a6
+t2 a10 a7
+t2 a10 a8
+t2 a10 a12
+t2 a10 a0
+t3 a0 a12 a8
+t2 a8 a2
+t2 a8 a4
+t2 a8 a5
+t2 a14 a12
+t2 a14 a0
+t2 a8 a14
+t2 a14 a8
+t2 a14 a1
+t2 a14 a2
+t2 a14 a3
+t2 a14 a6
+t2 a14 a9
+t2 a14 a11
+t2 a1 a0
+t2 a1 a3
+t2 a1 a4
+t2 a1 a6
+t2 a1 a10
+t2 a1 a12
+t2 a1 a13
+t2 a0 a1
+t2 a2 a0
+t2 a0 a5
+t2 a0 a6
+t2 a0 a10
+t2 a0 a11
+t2 a2 a7
+t2 a2 a9
+t2 a2 a12
+t2 a2 a14
+t2 a12 a0
+t2 a3 a12
+t2 a12 a3
+t2 a3 a4
+t2 a12 a1
+t2 a12 a6
+t2 a12 a7
+t2 a12 a9
+t2 a12 a11
+t2 a12 a13
+t1 a13
+t1 a11
+t2 a5 a12
+t2 a12 a13
+t2 a12 a5
+t2 a12 a4
+t2 a12 a2
+t2 a12 a1
+t2 a12 a0
+t2 a9 a3
+t2 a3 a13
+t2 a3 a9
+t2 a3 a8
+t2 a2 a6
+t2 a2 a0
+t2 a3 a2
+t2 a2 a14
+t2 a2 a12
+t2 a2 a11
+t2 a2 a10
+t2 a2 a8
+t2 a2 a9
+t2 a2 a1
+t2 a14 a0
+t2 a0 a14
+t2 a0 a11
+t2 a0 a10
+t2 a0 a6
+t2 a14 a1
+t2 a1 a14
+t2 a1 a13
+t2 a1 a12
+t2 a1 a6
+t2 a1 a5
+t2 a1 a4
+t2 a1 a3
+t2 a1 a2
+t2 a1 a0
+t2 a9 a14
+t2 a14 a9
+t2 a14 a4
+t2 a14 a1
+t2 a14 a0
+t2 a11 a12
+t2 a13 a9
+t2 a13 a7
+t2 a11 a13
+t3 a0 a12 a11
+t2 a11 a0
+t2 a11 a12
+t2 a11 a10
+t2 a11 a6
+t2 a11 a2
+t1 a11
+t2 a11 a5
+t2 a13 a11
+t3 a0 a13 a11
+t2 a13 a4
+t3 a0 a1 a13
+t2 a13 a11
+t2 a13 a9
+t2 a13 a7
+t2 a13 a4
+t2 a12 a13
+t3 a13 a0 a2
+t2 a0 a2
+t2 a1 a2
+t2 a14 a0
+t2 a14 a1
+t2 a2 a14
+t2 a13 a2
+t2 a12 a1
+t2 a3 a0
+t2 a3 a1
+t3 a13 a1 a12
+t2 a3 a13
+t2 a13 a12
+t3 a13 a2 a3
+t2 a14 a13
+t2 a14 a12
+t2 a14 a3
+t1 a10
+t1 a9
+t3 a0 a1 a2
+t7 a14 a6 a5 a4 a3 a2 a0
+t8 a13 a12 a11 a10 a9 a8 a7 a14
+t7 a14 a6 a5 a4 a3 a2 a0
+t3 a0 a1 a2
+t7 a14 a6 a5 a4 a3 a2 a1
+t8 a13 a12 a11 a10 a9 a8 a7 a14
+t7 a14 a6 a5 a4 a3 a2 a1
+t1 a5
+t1 a9
+t1 a11
+t2 a14 a3
+t2 a13 a12
+t2 a14 a13
+t3 a13 a2 a3
+t2 a3 a13
+t3 a13 a1 a12
+t2 a3 a1
+t2 a3 a0
+t2 a12 a1
+t2 a13 a2
+t2 a12 a13
+t2 a2 a14
+t2 a14 a1
+t2 a14 a0
+t2 a1 a2
+t2 a0 a2
+t3 a13 a0 a2
+t3 a12 a0 a2
+t2 a13 a4
+t2 a13 a7
+t2 a13 a9
+t2 a13 a11
+t3 a0 a1 a13
+t2 a13 a4
+t2 a13 a7
+t2 a13 a9
+t2 a13 a11
+t3 a0 a13 a11
+t2 a11 a2
+t2 a11 a5
+t2 a11 a6
+t2 a11 a10
+t2 a11 a12
+t2 a11 a0
+t3 a0 a12 a11
+t2 a11 a7
+t2 a11 a9
+t2 a11 a13
+t2 a11 a12
+t2 a1 a0
+t2 a1 a4
+t2 a14 a1
+t2 a14 a9
+t2 a9 a14
+t2 a1 a2
+t2 a1 a3
+t2 a1 a5
+t2 a1 a6
+t2 a1 a12
+t2 a1 a13
+t2 a1 a14
+t2 a14 a1
+t2 a0 a6
+t2 a0 a10
+t2 a0 a11
+t2 a0 a14
+t2 a2 a14
+t2 a14 a0
+t2 a2 a1
+t2 a2 a6
+t2 a2 a8
+t2 a2 a9
+t2 a2 a10
+t2 a2 a11
+t2 a2 a12
+t2 a3 a0
+t2 a3 a2
+t2 a3 a6
+t2 a3 a8
+t2 a3 a9
+t2 a3 a13
+t2 a9 a3
+t2 a12 a0
+t2 a12 a1
+t2 a12 a2
+t2 a12 a4
+t2 a12 a5
+t2 a12 a13
+t2 a5 a12
+t1 a10
+t1 a3
+t2 a11 a12
+t2 a12 a11
+t2 a12 a7
+t2 a12 a5
+t2 a3 a12
+t2 a3 a8
+t2 a3 a7
+t2 a3 a6
+t2 a3 a1
+t2 a14 a2
+t2 a2 a14
+t2 a2 a12
+t2 a2 a6
+t2 a2 a10
+t2 a2 a0
+t2 a14 a0
+t2 a14 a11
+t2 a0 a14
+t2 a0 a5
+t2 a0 a4
+t2 a9 a1
+t2 a13 a9
+t2 a1 a13
+t2 a1 a12
+t2 a1 a5
+t2 a1 a4
+t2 a1 a3
+t2 a14 a12
+t2 a14 a10
+t2 a14 a9
+t2 a14 a8
+t2 a14 a7
+t2 a14 a2
+t2 a13 a8
+t2 a13 a3
+t3 a0 a12 a13
+t2 a13 a9
+t2 a13 a8
+t2 a13 a3
+t2 a10 a13
+t2 a10 a14
+t1 a4
+t2 a10 a5
+t2 a10 a4
+t1 a10
+t2 a10 a8
+t3 a0 a13 a10
+t2 a11 a0
+t2 a11 a14
+t2 a11 a13
+t2 a11 a10
+t2 a11 a8
+t2 a11 a7
+t2 a11 a6
+t2 a11 a5
+t3 a0 a1 a11
+t2 a12 a13
+t3 a13 a0 a2
+t2 a0 a2
+t2 a14 a0
+t2 a14 a1
+t2 a2 a14
+t2 a13 a2
+t2 a12 a1
+t2 a3 a0
+t2 a3 a1
+t3 a13 a1 a12
+t2 a3 a13
+t2 a13 a12
+t3 a13 a2 a3
+t2 a14 a13
+t2 a14 a12
+t2 a14 a3
+t1 a11
+t1 a9
+t1 a7
+t3 a0 a1 a2
+t7 a14 a6 a5 a4 a3 a2 a0
+t8 a13 a12 a11 a10 a9 a8 a7 a14
+t7 a14 a6 a5 a4 a3 a2 a0
+t3 a0 a1 a2
+t7 a14 a6 a5 a4 a3 a2 a1
+t8 a13 a12 a11 a10 a9 a8 a7 a14
+t7 a14 a6 a5 a4 a3 a2 a1
+t1 a9
+t1 a10
+t1 a11
+t2 a14 a3
+t2 a13 a12
+t2 a14 a13
+t3 a13 a2 a3
+t2 a3 a13
+t3 a13 a1 a12
+t2 a3 a1
+t2 a3 a0
+t2 a12 a1
+t2 a13 a2
+t2 a12 a13
+t2 a2 a14
+t2 a14 a1
+t2 a14 a0
+t2 a0 a2
+t3 a13 a0 a2
+t3 a12 a0 a2
+t3 a0 a1 a11
+t2 a11 a5
+t2 a11 a6
+t2 a11 a7
+t2 a11 a8
+t2 a11 a10
+t2 a11 a13
+t2 a11 a14
+t2 a11 a0
+t3 a0 a13 a10
+t2 a10 a4
+t2 a10 a5
+t2 a14 a8
+t2 a10 a14
+t2 a10 a13
+t2 a13 a3
+t2 a13 a8
+t2 a13 a9
+t3 a0 a12 a13
+t2 a13 a3
+t2 a13 a8
+t2 a13 a9
+t2 a14 a2
+t2 a14 a7
+t2 a14 a9
+t2 a14 a10
+t2 a14 a11
+t2 a14 a12
+t2 a1 a3
+t2 a1 a4
+t2 a1 a5
+t2 a1 a9
+t2 a1 a12
+t2 a1 a13
+t2 a9 a1
+t2 a0 a4
+t2 a0 a5
+t2 a0 a11
+t2 a0 a14
+t2 a2 a14
+t2 a14 a0
+t2 a2 a6
+t2 a2 a10
+t2 a2 a12
+t2 a14 a2
+t2 a3 a1
+t2 a3 a6
+t2 a3 a7
+t2 a3 a8
+t2 a3 a12
+t2 a12 a5
+t2 a12 a7
+t2 a12 a11
+t2 a11 a12
+t1 a3
+t1 a10
+t1 a12
+t1 a13
+t1 a0
+t2 a14 a12
+t2 a12 a14
+t2 a12 a13
+t2 a12 a7
+t2 a12 a5
+t2 a3 a4
+t2 a12 a3
+t2 a2 a1
+t2 a12 a2
+t2 a2 a12
+t2 a3 a14
+t2 a3 a11
+t2 a3 a8
+t2 a3 a7
+t2 a3 a6
+t2 a3 a5
+t2 a2 a14
+t2 a2 a8
+t2 a2 a7
+t2 a2 a5
+t2 a2 a0
+t2 a14 a0
+t2 a0 a14
+t2 a0 a12
+t2 a0 a10
+t2 a0 a8
+t2 a0 a7
+t2 a0 a4
+t2 a0 a3
+t2 a0 a1
+t2 a10 a1
+t2 a10 a14
+t2 a1 a10
+t2 a14 a1
+t2 a1 a9
+t2 a11 a12
+t2 a1 a11
+t2 a1 a7
+t2 a1 a4
+t2 a1 a3
+t2 a14 a13
+t2 a14 a12
+t2 a8 a5
+t2 a14 a8
+t2 a8 a5
+t2 a14 a2
+t2 a14 a0
+t2 a11 a4
+t2 a11 a14
+t1 a4
+t3 a0 a12 a11
+t2 a11 a0
+t2 a11 a7
+t2 a11 a6
+t2 a11 a5
+t2 a11 a1
+t3 a0 a13 a11
+t2 a14 a13
+t2 a14 a8
+t2 a14 a5
+t3 a0 a1 a14
+t2 a14 a13
+t2 a14 a9
+t2 a14 a8
+t2 a14 a7
+t2 a14 a5
+t2 a3 a1
+t2 a14 a3
+t2 a12 a13
+t3 a13 a0 a2
+t2 a0 a2
+t2 a14 a0
+t2 a2 a14
+t2 a13 a2
+t2 a12 a1
+t2 a3 a0
+t3 a13 a1 a12
+t2 a3 a13
+t2 a13 a12
+t3 a13 a2 a3
+t2 a14 a13
+t2 a14 a12
+t2 a14 a3
+t1 a11
+t1 a10
+t1 a7
+t3 a0 a1 a2
+t7 a14 a6 a5 a4 a3 a2 a0
+t8 a13 a12 a11 a10 a9 a8 a7 a14
+t7 a14 a6 a5 a4 a3 a2 a0
+t3 a0 a1 a2
+t7 a14 a6 a5 a4 a3 a2 a1
+t8 a13 a12 a11 a10 a9 a8 a7 a14
+t7 a14 a6 a5 a4 a3 a2 a1
+t1 a10
+t1 a11
+t2 a14 a3
+t2 a13 a12
+t2 a14 a13
+t3 a13 a2 a3
+t2 a3 a13
+t3 a13 a1 a12
+t2 a3 a1
+t2 a3 a0
+t2 a12 a1
+t2 a13 a2
+t2 a12 a13
+t2 a2 a14
+t2 a14 a1
+t2 a14 a0
+t2 a1 a2
+t2 a0 a2
+t3 a13 a0 a2
+t3 a12 a0 a2
+t2 a14 a3
+t2 a14 a5
+t2 a14 a7
+t2 a14 a8
+t2 a14 a9
+t2 a14 a13
+t3 a0 a1 a14
+t2 a14 a3
+t2 a14 a5
+t2 a14 a7
+t2 a14 a8
+t2 a14 a13
+t3 a0 a13 a11
+t2 a11 a1
+t2 a11 a2
+t2 a11 a5
+t2 a11 a6
+t2 a11 a7
+t2 a11 a0
+t3 a0 a12 a11
+t2 a11 a3
+t2 a11 a4
+t2 a11 a7
+t2 a14 a12
+t2 a11 a14
+t2 a14 a0
+t2 a14 a2
+t2 a14 a3
+t2 a14 a5
+t2 a14 a7
+t2 a14 a8
+t2 a14 a10
+t2 a14 a13
+t2 a1 a10
+t2 a0 a10
+t2 a10 a14
+t2 a1 a2
+t2 a3 a4
+t2 a3 a7
+t2 a1 a3
+t2 a1 a9
+t2 a1 a11
+t2 a1 a12
+t2 a2 a14
+t2 a14 a1
+t2 a3 a8
+t2 a0 a3
+t2 a0 a12
+t2 a14 a0
+t2 a2 a5
+t2 a2 a7
+t2 a2 a8
+t2 a2 a12
+t2 a3 a5
+t2 a3 a6
+t2 a3 a11
+t2 a12 a3
+t2 a3 a14
+t2 a12 a1
+t2 a12 a2
+t2 a12 a4
+t2 a12 a5
+t1 a12
+t2 a12 a13
+t2 a12 a7
+t2 a14 a12
+t1 a14
+t2 a11 a12
+t2 a12 a11
+t2 a12 a8
+t2 a12 a6
+t2 a12 a3
+t2 a12 a2
+t2 a12 a1
+t2 a12 a0
+t2 a14 a3
+t2 a3 a14
+t2 a3 a13
+t2 a3 a10
+t2 a3 a9
+t2 a3 a5
+t2 a3 a1
+t2 a7 a2
+t2 a2 a13
+t2 a2 a12
+t2 a2 a7
+t2 a2 a5
+t2 a2 a4
+t2 a0 a3
+t2 a2 a0
+t2 a0 a14
+t2 a0 a8
+t2 a0 a7
+t2 a0 a6
+t2 a0 a5
+t2 a0 a4
+t2 a11 a1
+t2 a1 a11
+t2 a1 a10
+t2 a1 a9
+t2 a1 a7
+t2 a1 a6
+t2 a1 a5
+t2 a1 a4
+t2 a1 a2
+t2 a1 a0
+t2 a10 a13
+t2 a10 a14
+t2 a14 a10
+t2 a14 a7
+t2 a14 a0
+t2 a14 a9
+t3 a0 a12 a14
+t2 a9 a8
+t2 a14 a9
+t2 a14 a6
+t2 a14 a5
+t2 a14 a3
+t2 a14 a1
+t2 a10 a0
+t2 a9 a14
+t2 a10 a9
+t2 a10 a6
+t2 a10 a5
+t2 a10 a3
+t1 a10
+t1 a11
+t2 a10 a4
+t3 a0 a13 a10
+t2 a9 a0
+t2 a9 a1
+t2 a9 a13
+t2 a9 a2
+t3 a0 a1 a9
+t2 a12 a13
+t3 a13 a0 a2
+t2 a0 a2
+t2 a1 a2
+t2 a14 a0
+t2 a14 a1
+t2 a2 a14
+t2 a13 a2
+t2 a12 a1
+t2 a3 a0
+t2 a3 a1
+t3 a13 a1 a12
+t2 a3 a13
+t2 a13 a12
+t3 a13 a2 a3
+t2 a14 a13
+t2 a14 a12
+t2 a14 a3
+t1 a9
+t1 a7
+t3 a0 a1 a2
+t7 a14 a6 a5 a4 a3 a2 a0
+t8 a13 a12 a11 a10 a9 a8 a7 a14
+t7 a14 a6 a5 a4 a3 a2 a0
+t3 a0 a1 a2
+t7 a14 a6 a5 a4 a3 a2 a1
+t8 a13 a12 a11 a10 a9 a8 a7 a14
+t7 a14 a6 a5 a4 a3 a2 a1
+t1 a7
+t1 a9
+t1 a10
+t1 a11
+t2 a14 a3
+t2 a13 a12
+t2 a14 a13
+t3 a13 a2 a3
+t2 a3 a13
+t3 a13 a1 a12
+t2 a3 a1
+t2 a3 a0
+t2 a12 a1
+t2 a13 a2
+t2 a12 a13
+t2 a2 a14
+t2 a14 a1
+t2 a14 a0
+t2 a1 a2
+t2 a0 a2
+t3 a13 a0 a2
+t3 a12 a0 a2
+t3 a0 a1 a9
+t2 a9 a2
+t2 a9 a8
+t2 a9 a13
+t2 a9 a14
+t2 a9 a1
+t2 a9 a0
+t3 a0 a13 a10
+t2 a10 a3
+t2 a10 a4
+t2 a10 a5
+t2 a10 a6
+t2 a10 a8
+t2 a14 a9
+t2 a10 a14
+t2 a10 a13
+t2 a10 a0
+t2 a14 a1
+t2 a14 a3
+t2 a14 a5
+t2 a14 a6
+t2 a14 a8
+t3 a0 a12 a14
+t2 a14 a9
+t2 a0 a7
+t2 a14 a0
+t2 a14 a10
+t2 a14 a13
+t2 a10 a14
+t2 a0 a6
+t2 a1 a0
+t2 a2 a4
+t2 a2 a5
+t2 a1 a2
+t2 a1 a9
+t2 a1 a10
+t2 a1 a11
+t2 a11 a1
+t2 a0 a3
+t2 a0 a4
+t2 a0 a5
+t2 a0 a8
+t2 a0 a14
+t2 a2 a0
+t2 a2 a3
+t2 a2 a7
+t2 a2 a12
+t2 a2 a13
+t2 a7 a2
+t2 a3 a1
+t2 a3 a5
+t2 a3 a9
+t2 a3 a10
+t2 a3 a14
+t1 a3
+t2 a3 a13
+t2 a14 a3
+t2 a2 a1
+t1 a0
+t2 a12 a0
+t2 a12 a2
+t2 a12 a3
+t2 a12 a6
+t2 a12 a8
+t2 a12 a11
+t2 a11 a12
+t2 a14 a12
+t2 a12 a9
+t1 a12
+t2 a12 a14
+t2 a12 a11
+t2 a12 a10
+t2 a12 a7
+t2 a12 a6
+t2 a12 a5
+t2 a14 a3
+t2 a3 a14
+t2 a3 a13
+t2 a3 a12
+t2 a3 a11
+t2 a3 a9
+t2 a3 a7
+t2 a3 a5
+t2 a3 a1
+t2 a3 a0
+t2 a2 a13
+t2 a2 a11
+t2 a2 a9
+t2 a2 a8
+t2 a2 a5
+t2 a2 a4
+t2 a2 a3
+t2 a0 a10
+t2 a0 a7
+t2 a0 a5
+t2 a0 a3
+t2 a9 a1
+t2 a1 a13
+t2 a9 a12
+t2 a1 a9
+t2 a1 a7
+t2 a1 a6
+t2 a1 a5
+t2 a1 a2
+t2 a11 a13
+t2 a11 a14
+t2 a14 a11
+t2 a14 a9
+t2 a14 a4
+t2 a14 a3
+t2 a14 a1
+t2 a14 a0
+t2 a9 a0
+t2 a9 a8
+t2 a9 a7
+t2 a9 a6
+t2 a9 a5
+t2 a9 a3
+t2 a11 a9
+t2 a9 a1
+t3 a0 a12 a9
+t2 a11 a0
+t2 a11 a12
+t2 a11 a8
+t2 a11 a6
+t2 a11 a5
+t2 a11 a4
+t2 a11 a2
+t1 a11
+t3 a13 a0 a11
+t2 a0 a2
+t1 a2
+t2 a1 a2
+t2 a10 a1
+t2 a11 a2
+t1 a4
+t2 a10 a5
+t2 a10 a4
+t1 a10
+t2 a10 a8
+t2 a10 a7
+t3 a0 a1 a10
+t3 a12 a0 a2
+t2 a14 a0
+t2 a14 a1
+t2 a2 a14
+t2 a12 a13
+t2 a13 a2
+t2 a12 a1
+t2 a3 a0
+t2 a3 a1
+t3 a13 a1 a12
+t2 a3 a13
+t2 a13 a12
+t3 a13 a2 a3
+t2 a14 a13
+t2 a14 a12
+t2 a14 a3
+t1 a9
+t3 a0 a1 a2
+t7 a14 a6 a5 a4 a3 a2 a0
+t8 a13 a12 a11 a10 a9 a8 a7 a14
+t7 a14 a6 a5 a4 a3 a2 a0
+t3 a0 a1 a2
+t7 a14 a6 a5 a4 a3 a2 a1
+t8 a13 a12 a11 a10 a9 a8 a7 a14
+t7 a14 a6 a5 a4 a3 a2 a1
+t1 a9
+t1 a10
+t1 a11
+t2 a14 a3
+t2 a13 a12
+t2 a14 a13
+t3 a13 a2 a3
+t2 a3 a13
+t3 a13 a1 a12
+t2 a3 a1
+t2 a3 a0
+t2 a12 a1
+t2 a13 a2
+t2 a12 a13
+t2 a2 a14
+t2 a14 a1
+t2 a14 a0
+t2 a1 a2
+t2 a0 a2
+t3 a13 a0 a2
+t3 a12 a0 a2
+t3 a0 a1 a10
+t2 a10 a2
+t2 a10 a4
+t2 a10 a5
+t2 a10 a7
+t2 a10 a8
+t2 a10 a1
+t3 a0 a13 a11
+t2 a11 a1
+t2 a11 a4
+t2 a11 a5
+t2 a11 a6
+t2 a11 a8
+t2 a11 a9
+t2 a11 a12
+t2 a11 a13
+t2 a11 a0
+t3 a0 a12 a9
+t2 a9 a1
+t2 a9 a3
+t2 a9 a5
+t2 a9 a6
+t2 a9 a7
+t2 a9 a8
+t2 a14 a9
+t2 a9 a12
+t2 a9 a0
+t2 a14 a1
+t2 a14 a3
+t2 a14 a4
+t2 a14 a11
+t2 a14 a13
+t2 a11 a14
+t2 a2 a5
+t2 a1 a2
+t2 a1 a6
+t2 a1 a7
+t2 a1 a9
+t2 a1 a12
+t2 a1 a13
+t2 a2 a9
+t2 a9 a1
+t2 a0 a3
+t2 a0 a5
+t2 a0 a7
+t2 a0 a10
+t2 a2 a3
+t2 a2 a4
+t2 a2 a8
+t2 a2 a11
+t2 a2 a13
+t2 a3 a0
+t2 a3 a1
+t2 a3 a5
+t2 a3 a7
+t2 a3 a9
+t2 a12 a11
+t2 a3 a12
+t2 a3 a13
+t2 a3 a14
+t2 a14 a3
+t2 a12 a5
+t2 a12 a6
+t2 a12 a7
+t2 a12 a9
+t2 a12 a10
+t2 a12 a14
+t1 a14
+t2 a14 a12
+t1 a2
+t1 a1
+t2 a12 a1
+t2 a1 a12
+t2 a1 a11
+t2 a1 a10
+t2 a1 a8
+t2 a1 a7
+t2 a1 a6
+t2 a1 a5
+t2 a1 a4
+t2 a1 a0
+t2 a11 a0
+t2 a0 a11
+t2 a0 a10
+t2 a0 a9
+t2 a0 a8
+t2 a0 a5
+t2 a0 a3
+t2 a0 a1
+t2 a9 a3
+t2 a3 a9
+t2 a3 a7
+t2 a3 a5
+t2 a3 a1
+t2 a14 a13
+t2 a14 a12
+t2 a14 a11
+t2 a14 a10
+t2 a14 a9
+t2 a14 a7
+t2 a14 a6
+t1 a14
+t2 a14 a5
+t2 a0 a2
+t2 a1 a2
+t3 a0 a1 a14
+t2 a3 a0
+t2 a3 a1
+t2 a2 a3
+t1 a12
+t1 a11
+t1 a10
+t1 a9
+t3 a0 a1 a2
+t14 a14 a13 a12 a11 a10 a9 a8 a7 a6 a5 a4 a3 a2 a0
+t3 a0 a1 a2
+t14 a14 a13 a12 a11 a10 a9 a8 a7 a6 a5 a4 a3 a2 a1
+t1 a10
+t1 a14
+t1 a9
+t1 a11
+t2 a2 a3
+t2 a3 a1
+t2 a0 a9
+t2 a3 a0
+t3 a0 a1 a14
+t2 a0 a1
+t2 a1 a2
+t2 a14 a5
+t2 a14 a6
+t2 a14 a7
+t2 a14 a9
+t2 a14 a10
+t2 a14 a11
+t2 a14 a12
+t2 a14 a13
+t2 a1 a5
+t2 a1 a7
+t2 a3 a1
+t1 a3
+t2 a9 a3
+t2 a0 a5
+t2 a0 a10
+t1 a0
+t2 a0 a8
+t2 a0 a11
+t2 a1 a11
+t2 a11 a0
+t2 a1 a4
+t2 a1 a6
+t2 a12 a8
+t2 a1 a12
+t2 a1 a10
+t2 a12 a14
+t2 a14 a2
+t1 a14
+t2 a12 a11
+t2 a12 a9
+t2 a12 a6
+t2 a12 a5
+t2 a12 a4
+t2 a12 a3
+t2 a3 a13
+t2 a3 a2
+t2 a2 a14
+t2 a2 a10
+t2 a14 a0
+t2 a0 a14
+t2 a0 a13
+t2 a0 a12
+t2 a0 a11
+t2 a0 a10
+t2 a0 a9
+t2 a0 a8
+t2 a0 a5
+t2 a0 a4
+t2 a0 a3
+t2 a0 a2
+t2 a14 a1
+t2 a1 a14
+t2 a1 a13
+t2 a1 a12
+t2 a1 a11
+t2 a1 a7
+t2 a1 a4
+t2 a1 a3
+t2 a1 a2
+t2 a1 a0
+t2 a10 a14
+t2 a14 a12
+t2 a14 a10
+t2 a14 a9
+t2 a14 a8
+t2 a14 a7
+t2 a14 a6
+t2 a14 a5
+t2 a14 a3
+t2 a14 a0
+t2 a8 a6
+t2 a8 a2
+t2 a8 a1
+t3 a0 a12 a8
+t2 a8 a6
+t2 a8 a2
+t2 a8 a1
+t2 a9 a0
+t2 a9 a13
+t2 a9 a14
+t2 a9 a8
+t2 a9 a5
+t2 a9 a3
+t2 a9 a2
+t3 a0 a13 a9
+t2 a11 a1
+t2 a11 a14
+t2 a11 a13
+t2 a11 a10
+t2 a11 a8
+t2 a11 a7
+t2 a11 a4
+t2 a11 a2
+t3 a0 a1 a11
+t2 a12 a13
+t3 a13 a0 a2
+t2 a0 a2
+t2 a1 a2
+t2 a14 a0
+t2 a14 a1
+t2 a2 a14
+t2 a13 a2
+t2 a12 a1
+t2 a3 a0
+t2 a3 a1
+t3 a13 a1 a12
+t2 a3 a13
+t2 a13 a12
+t3 a13 a2 a3
+t2 a14 a13
+t2 a14 a12
+t2 a14 a3
+t1 a11
+t1 a10
+t1 a9
+t1 a8
+t1 a7
+t1 a5
+t1 a4
+t3 a0 a1 a2
+t7 a14 a6 a5 a4 a3 a2 a0
+t8 a13 a12 a11 a10 a9 a8 a7 a14
+t7 a14 a6 a5 a4 a3 a2 a0
+t3 a0 a1 a2
+t7 a14 a6 a5 a4 a3 a2 a1
+t8 a13 a12 a11 a10 a9 a8 a7 a14
+t7 a14 a6 a5 a4 a3 a2 a1
+t1 a8
+t1 a9
+t1 a10
+t1 a11
+t2 a14 a3
+t2 a13 a12
+t2 a14 a13
+t3 a13 a2 a3
+t2 a3 a13
+t3 a13 a1 a12
+t2 a3 a1
+t2 a3 a0
+t2 a12 a1
+t2 a13 a2
+t2 a12 a13
+t2 a2 a14
+t2 a14 a1
+t2 a14 a0
+t2 a1 a2
+t2 a0 a2
+t3 a13 a0 a2
+t3 a12 a0 a2
+t3 a0 a1 a11
+t2 a11 a2
+t2 a11 a4
+t2 a11 a7
+t2 a11 a8
+t2 a11 a10
+t2 a11 a13
+t2 a11 a14
+t2 a11 a1
+t3 a0 a13 a9
+t2 a9 a2
+t2 a9 a3
+t2 a9 a8
+t2 a14 a5
+t2 a9 a14
+t2 a9 a13
+t2 a9 a0
+t2 a1 a2
+t2 a8 a1
+t2 a8 a6
+t3 a0 a12 a8
+t2 a8 a1
+t2 a14 a8
+t2 a8 a6
+t2 a0 a3
+t2 a14 a0
+t2 a14 a7
+t2 a14 a9
+t2 a14 a10
+t2 a14 a12
+t2 a10 a14
+t2 a0 a4
+t2 a1 a0
+t2 a1 a7
+t2 a12 a11
+t2 a1 a12
+t2 a1 a13
+t2 a1 a14
+t2 a14 a1
+t2 a0 a2
+t2 a0 a5
+t2 a0 a8
+t2 a0 a9
+t2 a0 a10
+t2 a0 a12
+t2 a0 a13
+t2 a0 a14
+t2 a14 a0
+t2 a2 a10
+t2 a2 a14
+t2 a14 a2
+t2 a3 a2
+t2 a3 a13
+t2 a12 a1
+t2 a12 a3
+t2 a12 a4
+t2 a12 a5
+t2 a12 a6
+t2 a12 a8
+t2 a12 a9
+t2 a12 a14
+t1 a13
+t1 a12
+t1 a2
+t2 a13 a1
+t2 a1 a13
+t2 a1 a10
+t2 a1 a6
+t2 a1 a5
+t2 a1 a3
+t2 a1 a0
+t2 a13 a0
+t2 a0 a13
+t2 a0 a10
+t2 a0 a7
+t2 a0 a5
+t2 a0 a4
+t2 a0 a3
+t2 a11 a3
+t2 a3 a11
+t2 a3 a9
+t2 a3 a7
+t2 a3 a6
+t2 a3 a5
+t2 a3 a1
+t2 a12 a14
+t2 a14 a12
+t2 a14 a11
+t2 a14 a9
+t2 a14 a6
+t2 a14 a5
+t2 a14 a4
+t2 a14 a3
+t2 a0 a2
+t3 a0 a1 a14
+t2 a3 a0
+t2 a3 a1
+t2 a2 a3
+t1 a14
+t1 a13
+t1 a12
+t1 a11
+t1 a10
+t1 a8
+t1 a7
+t3 a0 a1 a2
+t14 a14 a13 a12 a11 a10 a9 a8 a7 a6 a5 a4 a3 a2 a0
+t3 a0 a1 a2
+t14 a14 a13 a12 a11 a10 a9 a8 a7 a6 a5 a4 a3 a2 a1
+t1 a11
+t1 a12
+t1 a13
+t1 a14
+t2 a2 a3
+t2 a3 a1
+t2 a3 a0
+t3 a0 a1 a14
+t2 a0 a2
+t2 a14 a3
+t2 a14 a4
+t2 a14 a5
+t2 a14 a6
+t2 a14 a9
+t2 a14 a11
+t2 a14 a12
+t2 a12 a14
+t2 a1 a5
+t2 a1 a6
+t2 a3 a1
+t2 a3 a7
+t2 a3 a9
+t2 a3 a11
+t2 a11 a3
+t2 a0 a3
+t2 a0 a4
+t2 a0 a5
+t2 a0 a7
+t2 a0 a10
+t2 a0 a13
+t2 a1 a13
+t2 a13 a0
+t2 a1 a3
+t2 a1 a10
+t2 a13 a1
+t1 a12
+t2 a3 a13
+t1 a3
+t2 a10 a12
+t2 a12 a10
+t2 a12 a9
+t2 a12 a8
+t2 a12 a7
+t2 a12 a4
+t2 a3 a10
+t2 a3 a9
+t2 a3 a6
+t2 a3 a5
+t2 a3 a4
+t2 a3 a2
+t2 a14 a2
+t2 a2 a14
+t2 a2 a12
+t2 a2 a9
+t2 a2 a5
+t2 a2 a3
+t2 a2 a4
+t2 a1 a2
+t2 a10 a0
+t2 a0 a10
+t2 a0 a8
+t2 a0 a7
+t2 a0 a6
+t2 a0 a5
+t2 a0 a3
+t2 a0 a1
+t2 a1 a14
+t2 a1 a13
+t2 a1 a12
+t2 a1 a9
+t2 a1 a8
+t2 a1 a6
+t2 a1 a4
+t2 a11 a13
+t2 a11 a14
+t2 a14 a11
+t2 a14 a1
+t2 a11 a0
+t2 a11 a12
+t2 a11 a14
+t2 a10 a9
+t2 a10 a7
+t2 a10 a6
+t2 a11 a10
+t2 a11 a4
+t2 a11 a3
+t3 a0 a12 a11
+t2 a10 a13
+t2 a10 a12
+t2 a10 a8
+t2 a10 a5
+t2 a10 a2
+t3 a0 a13 a10
+t2 a9 a0
+t2 a9 a12
+t2 a9 a8
+t2 a9 a3
+t1 a9
+t1 a11
+t2 a9 a6
+t2 a9 a5
+t2 a9 a4
+t3 a0 a1 a9
+t2 a12 a13
+t3 a13 a0 a2
+t2 a0 a2
+t2 a1 a2
+t2 a14 a0
+t2 a14 a1
+t2 a2 a14
+t2 a13 a2
+t2 a12 a1
+t2 a3 a0
+t2 a3 a1
+t3 a13 a1 a12
+t2 a3 a13
+t2 a13 a12
+t3 a13 a2 a3
+t2 a14 a13
+t2 a14 a12
+t2 a14 a3
+t1 a10
+t3 a0 a1 a2
+t7 a14 a6 a5 a4 a3 a2 a0
+t8 a13 a12 a11 a10 a9 a8 a7 a14
+t7 a14 a6 a5 a4 a3 a2 a0
+t3 a0 a1 a2
+t7 a14 a6 a5 a4 a3 a2 a1
+t8 a13 a12 a11 a10 a9 a8 a7 a14
+t7 a14 a6 a5 a4 a3 a2 a1
+t1 a9
+t1 a10
+t1 a11
+t2 a14 a3
+t2 a13 a12
+t2 a14 a13
+t3 a13 a2 a3
+t2 a3 a13
+t3 a13 a1 a12
+t2 a3 a1
+t2 a3 a0
+t2 a12 a1
+t2 a13 a2
+t2 a12 a13
+t2 a2 a14
+t2 a14 a1
+t2 a14 a0
+t2 a1 a2
+t2 a0 a2
+t3 a13 a0 a2
+t3 a12 a0 a2
+t3 a0 a1 a9
+t2 a9 a3
+t2 a9 a4
+t2 a9 a5
+t2 a9 a6
+t2 a9 a8
+t2 a9 a12
+t2 a9 a0
+t3 a0 a13 a10
+t2 a10 a2
+t2 a10 a5
+t2 a10 a6
+t2 a10 a7
+t2 a10 a8
+t2 a10 a9
+t2 a10 a12
+t2 a10 a13
+t3 a0 a12 a11
+t2 a11 a3
+t2 a11 a4
+t2 a11 a6
+t2 a11 a7
+t2 a11 a10
+t2 a12 a9
+t2 a11 a12
+t2 a14 a13
+t2 a11 a14
+t2 a11 a0
+t2 a14 a1
+t2 a14 a11
+t2 a11 a14
+t2 a1 a2
+t2 a1 a4
+t2 a1 a6
+t2 a1 a8
+t2 a1 a12
+t2 a1 a13
+t2 a1 a14
+t2 a0 a1
+t2 a3 a5
+t2 a2 a3
+t2 a0 a2
+t2 a0 a6
+t2 a0 a7
+t2 a0 a8
+t2 a0 a10
+t2 a10 a0
+t2 a12 a4
+t2 a2 a12
+t2 a2 a14
+t2 a14 a2
+t2 a3 a2
+t2 a3 a4
+t2 a3 a6
+t2 a3 a9
+t2 a3 a10
+t1 a3
+t2 a3 a13
+t2 a12 a7
+t2 a12 a8
+t2 a12 a10
+t2 a10 a12
+t1 a2
+t1 a10
+t1 a11
+t1 a1
+t2 a11 a12
+t2 a12 a13
+t2 a12 a11
+t2 a12 a9
+t2 a12 a8
+t2 a12 a5
+t2 a12 a2
+t2 a14 a3
+t2 a3 a14
+t2 a3 a12
+t2 a3 a11
+t2 a3 a7
+t2 a3 a6
+t2 a3 a4
+t2 a3 a1
+t2 a2 a13
+t2 a2 a12
+t2 a11 a10
+t2 a2 a11
+t2 a2 a9
+t2 a2 a7
+t2 a2 a6
+t2 a2 a1
+t2 a14 a0
+t2 a0 a14
+t2 a10 a9
+t2 a10 a8
+t2 a0 a10
+t2 a0 a13
+t2 a0 a7
+t2 a0 a6
+t2 a0 a5
+t2 a0 a2
+t2 a14 a1
+t2 a1 a14
+t2 a1 a12
+t2 a1 a11
+t2 a1 a9
+t2 a1 a6
+t2 a1 a4
+t2 a1 a3
+t2 a11 a14
+t2 a14 a13
+t2 a11 a8
+t2 a11 a4
+t2 a14 a11
+t2 a14 a3
+t2 a14 a0
+t2 a11 a12
+t2 a9 a7
+t2 a11 a9
+t1 a7
+t1 a11
+t2 a9 a7
+t3 a0 a12 a11
+t2 a10 a0
+t2 a10 a14
+t2 a10 a6
+t2 a10 a4
+t2 a10 a2
+t2 a10 a1
+t3 a0 a13 a10
+t2 a5 a1
+t2 a5 a14
+t2 a5 a13
+t2 a5 a12
+t2 a5 a3
+t1 a5
+t2 a5 a4
+t3 a0 a1 a5
+t2 a12 a13
+t3 a13 a0 a2
+t2 a0 a2
+t2 a1 a2
+t2 a14 a0
+t2 a14 a1
+t2 a2 a14
+t2 a13 a2
+t2 a12 a1
+t2 a3 a0
+t2 a3 a1
+t3 a13 a1 a12
+t2 a3 a13
+t2 a13 a12
+t3 a13 a2 a3
+t2 a14 a13
+t2 a14 a12
+t2 a14 a3
+t1 a10
+t3 a0 a1 a2
+t7 a14 a6 a5 a4 a3 a2 a0
+t8 a13 a12 a11 a10 a9 a8 a7 a14
+t7 a14 a6 a5 a4 a3 a2 a0
+t3 a0 a1 a2
+t7 a14 a6 a5 a4 a3 a2 a1
+t8 a13 a12 a11 a10 a9 a8 a7 a14
+t7 a14 a6 a5 a4 a3 a2 a1
+t1 a5
+t1 a10
+t1 a11
+t2 a14 a3
+t2 a13 a12
+t2 a14 a13
+t3 a13 a2 a3
+t2 a3 a13
+t3 a13 a1 a12
+t2 a3 a1
+t2 a3 a0
+t2 a12 a1
+t2 a13 a2
+t2 a12 a13
+t2 a2 a14
+t2 a14 a1
+t2 a14 a0
+t2 a1 a2
+t2 a0 a2
+t3 a13 a0 a2
+t3 a12 a0 a2
+t3 a0 a1 a5
+t2 a5 a3
+t2 a5 a4
+t2 a5 a12
+t2 a5 a13
+t2 a5 a14
+t2 a5 a1
+t3 a0 a13 a10
+t2 a10 a1
+t2 a10 a2
+t2 a10 a4
+t2 a10 a6
+t2 a10 a9
+t2 a14 a8
+t2 a10 a14
+t2 a10 a0
+t3 a0 a12 a11
+t2 a11 a4
+t2 a11 a7
+t2 a11 a8
+t2 a11 a9
+t2 a11 a12
+t2 a14 a11
+t2 a11 a10
+t2 a3 a4
+t2 a14 a3
+t2 a14 a0
+t2 a14 a13
+t2 a1 a11
+t2 a11 a14
+t2 a3 a6
+t2 a3 a9
+t2 a3 a10
+t2 a1 a3
+t2 a1 a12
+t2 a14 a1
+t2 a0 a2
+t2 a0 a5
+t2 a0 a6
+t2 a0 a7
+t2 a0 a8
+t2 a0 a9
+t2 a0 a10
+t2 a0 a13
+t2 a0 a14
+t2 a14 a0
+t2 a2 a1
+t2 a2 a6
+t2 a2 a7
+t2 a2 a9
+t2 a2 a10
+t2 a12 a11
+t2 a2 a12
+t2 a2 a13
+t1 a1
+t2 a3 a12
+t2 a3 a1
+t1 a3
+t2 a3 a7
+t2 a12 a2
+t2 a12 a5
+t2 a12 a8
+t1 a12
+t2 a12 a11
+t2 a12 a7
+t2 a12 a6
+t2 a12 a2
+t2 a12 a0
+t2 a3 a11
+t2 a3 a5
+t2 a14 a2
+t2 a2 a14
+t2 a2 a13
+t2 a2 a11
+t2 a2 a9
+t2 a2 a8
+t2 a2 a5
+t2 a2 a4
+t2 a2 a3
+t2 a10 a0
+t2 a0 a13
+t2 a0 a12
+t2 a0 a10
+t2 a0 a9
+t2 a0 a4
+t2 a0 a2
+t2 a1 a12
+t2 a1 a9
+t2 a1 a8
+t2 a1 a6
+t2 a1 a5
+t2 a10 a14
+t2 a14 a13
+t2 a14 a12
+t2 a14 a10
+t2 a14 a9
+t2 a14 a7
+t2 a14 a5
+t3 a12 a3 a0
+t2 a14 a3
+t2 a14 a2
+t2 a14 a1
+t3 a0 a12 a14
+t2 a14 a3
+t2 a14 a2
+t2 a14 a1
+t2 a10 a0
+t2 a10 a12
+t2 a10 a5
+t2 a10 a4
+t2 a10 a3
+t2 a10 a1
+t2 a10 a2
+t1 a10
+t3 a13 a0 a10
+t2 a0 a2
+t1 a2
+t2 a10 a2
+t2 a11 a1
+t2 a11 a14
+t2 a11 a7
+t2 a11 a3
+t3 a0 a1 a11
+t3 a12 a0 a2
+t2 a1 a2
+t2 a14 a0
+t2 a14 a1
+t2 a2 a14
+t2 a12 a13
+t2 a13 a2
+t2 a12 a1
+t2 a3 a0
+t2 a3 a1
+t3 a13 a1 a12
+t2 a3 a13
+t2 a13 a12
+t3 a13 a2 a3
+t2 a14 a13
+t2 a14 a12
+t2 a14 a3
+t1 a11
+t1 a9
+t1 a8
+t1 a6
+t1 a5
+t1 a4
+t3 a0 a1 a2
+t7 a14 a6 a5 a4 a3 a2 a0
+t8 a13 a12 a11 a10 a9 a8 a7 a14
+t7 a14 a6 a5 a4 a3 a2 a0
+t3 a0 a1 a2
+t7 a14 a6 a5 a4 a3 a2 a1
+t8 a13 a12 a11 a10 a9 a8 a7 a14
+t7 a14 a6 a5 a4 a3 a2 a1
+t1 a10
+t1 a11
+t2 a14 a3
+t2 a13 a12
+t2 a14 a13
+t3 a13 a2 a3
+t2 a3 a13
+t3 a13 a1 a12
+t2 a3 a1
+t2 a3 a0
+t2 a12 a1
+t2 a13 a2
+t2 a12 a13
+t2 a2 a14
+t2 a14 a1
+t2 a14 a0
+t2 a1 a2
+t2 a0 a2
+t3 a13 a0 a2
+t3 a12 a0 a2
+t3 a0 a1 a11
+t2 a11 a3
+t2 a11 a7
+t2 a14 a1
+t2 a11 a14
+t3 a0 a13 a10
+t2 a10 a1
+t2 a10 a3
+t2 a10 a4
+t2 a10 a5
+t2 a10 a12
+t2 a10 a0
+t2 a14 a2
+t2 a14 a3
+t3 a0 a12 a14
+t2 a14 a1
+t2 a14 a2
+t2 a14 a3
+t3 a12 a3 a0
+t2 a14 a5
+t2 a14 a7
+t2 a14 a9
+t2 a14 a10
+t2 a14 a12
+t2 a14 a13
+t2 a10 a14
+t2 a1 a5
+t2 a1 a6
+t2 a1 a8
+t2 a1 a9
+t2 a1 a12
+t2 a2 a4
+t2 a2 a9
+t2 a0 a2
+t2 a0 a10
+t2 a0 a12
+t2 a0 a13
+t2 a10 a0
+t2 a3 a5
+t2 a2 a3
+t2 a2 a8
+t2 a2 a11
+t2 a2 a13
+t2 a2 a14
+t2 a14 a2
+t2 a3 a9
+t2 a3 a10
+t2 a3 a11
+t2 a3 a14
+t2 a14 a3
+t2 a12 a0
+t2 a12 a2
+t2 a12 a6
+t2 a12 a7
+t2 a12 a9
+t2 a12 a11
+t1 a12
+t2 a12 a13
+t2 a11 a12
+t2 a14 a7
+t2 a7 a14
+t2 a7 a0
+t1 a7
+t2 a7 a13
+t2 a7 a12
+t2 a7 a11
+t2 a7 a9
+t2 a7 a5
+t2 a7 a4
+t2 a7 a2
+t2 a13 a10
+t2 a13 a14
+t2 a14 a13
+t2 a14 a8
+t2 a14 a7
+t2 a14 a1
+t2 a14 a0
+t2 a13 a12
+t2 a13 a9
+t2 a13 a4
+t2 a13 a0
+t2 a1 a14
+t2 a1 a13
+t2 a1 a12
+t2 a1 a6
+t2 a1 a3
+t2 a1 a2
+t2 a11 a12
+t2 a12 a14
+t2 a12 a11
+t2 a12 a10
+t2 a12 a8
+t2 a12 a7
+t2 a12 a6
+t2 a12 a5
+t2 a12 a3
+t2 a12 a2
+t2 a12 a1
+t2 a7 a0
+t2 a14 a7
+t2 a0 a14
+t2 a1 a0
+t2 a1 a7
+t2 a13 a0
+t2 a13 a1
+t2 a1 a12
+t3 a7 a1 a13
+t2 a12 a1
+t3 a12 a0 a1
+t2 a14 a13
+t2 a14 a12
+t2 a14 a1
+t1 a11
+t1 a8
+t1 a5
+t1 a4
+t1 a3
+t1 a2
+t8 a6 a5 a4 a3 a2 a1 a0 a7
+t8 a13 a12 a11 a10 a9 a8 a7 a0
+t8 a6 a5 a4 a3 a2 a1 a0 a7
+t8 a13 a12 a11 a10 a9 a8 a7 a0
+t1 a11
+t2 a12 a1
+t2 a14 a12
+t2 a14 a13
+t3 a12 a0 a1
+t2 a1 a12
+t3 a7 a1 a13
+t2 a1 a0
+t2 a13 a1
+t2 a1 a7
+t2 a0 a14
+t2 a14 a7
+t2 a7 a0
+t2 a1 a2
+t2 a1 a3
+t2 a12 a1
+t2 a12 a5
+t2 a12 a6
+t2 a12 a7
+t2 a12 a8
+t2 a12 a10
+t2 a12 a11
+t2 a12 a14
+t2 a11 a12
+t2 a1 a6
+t2 a13 a12
+t2 a1 a13
+t2 a1 a14
+t2 a13 a0
+t2 a13 a4
+t1 a13
+t2 a13 a9
+t2 a14 a13
+t2 a14 a0
+t2 a13 a10
+t2 a14 a1
+t2 a14 a7
+t2 a14 a8
+t2 a7 a13
+t2 a13 a14
+t2 a7 a0
+t2 a7 a2
+t2 a7 a4
+t2 a7 a5
+t2 a7 a9
+t2 a7 a11
+t2 a7 a12
+t1 a7
+t2 a13 a1
+t2 a1 a13
+t2 a1 a12
+t2 a1 a10
+t2 a7 a9
+t2 a7 a4
+t2 a1 a7
+t2 a7 a1
+t2 a1 a3
+t1 a3
+t2 a7 a14
+t2 a7 a12
+t2 a7 a11
+t2 a7 a6
+t2 a7 a5
+t2 a7 a0
+t2 a1 a7
+t2 a0 a1
+t1 a14
+t1 a13
+t1 a11
+t1 a8
+t1 a5
+t8 a6 a5 a4 a3 a2 a1 a0 a7
+t9 a14 a13 a12 a11 a10 a9 a8 a7 a0
+t8 a6 a5 a4 a3 a2 a1 a0 a7
+t9 a14 a13 a12 a11 a10 a9 a8 a7 a0
+t2 a13 a9
+t1 a2
+t1 a14
+t1 a13
+t2 a0 a1
+t2 a1 a7
+t2 a7 a0
+t2 a1 a3
+t2 a1 a4
+t2 a7 a1
+t2 a7 a5
+t2 a7 a6
+t2 a7 a9
+t2 a7 a11
+t2 a7 a12
+t2 a7 a14
+t2 a13 a11
+t2 a13 a7
+t1 a13
+t2 a14 a7
+t1 a1
+t2 a1 a13
+t2 a12 a10
+t2 a1 a12
+t2 a13 a8
+t2 a13 a3
+t2 a13 a0
+t2 a12 a14
+t2 a12 a9
+t2 a12 a7
+t2 a12 a6
+t2 a12 a5
+t2 a12 a3
+t2 a12 a0
+t2 a8 a14
+t2 a14 a13
+t2 a14 a12
+t2 a14 a11
+t2 a14 a8
+t2 a14 a6
+t2 a14 a4
+t2 a14 a0
+t2 a1 a9
+t2 a1 a8
+t2 a1 a6
+t2 a1 a2
+t2 a10 a0
+t2 a10 a13
+t2 a0 a10
+t2 a0 a12
+t2 a0 a11
+t2 a0 a9
+t2 a0 a3
+t2 a0 a2
+t2 a10 a2
+t2 a10 a11
+t2 a2 a10
+t2 a2 a9
+t2 a2 a6
+t2 a2 a4
+t2 a10 a8
+t2 a10 a7
+t2 a10 a5
+t2 a10 a4
+t2 a10 a3
+t2 a10 a0
+t3 a12 a11 a10
+t2 a13 a11
+t2 a12 a11
+t2 a1 a13
+t2 a2 a1
+t2 a1 a12
+t2 a0 a13
+t2 a0 a1
+t2 a14 a0
+t2 a14 a2
+t2 a1 a14
+t3 a2 a0 a1
+t3 a13 a1 a2
+t3 a12 a1 a0
+t2 a11 a0
+t2 a11 a1
+t2 a11 a2
+t2 a14 a11
+t1 a10
+t1 a8
+t1 a5
+t6 a14 a11 a10 a9 a8 a12
+t9 a7 a6 a5 a4 a3 a2 a1 a0 a14
+t6 a14 a11 a10 a9 a8 a12
+t7 a14 a12 a11 a10 a9 a8 a13
+t9 a7 a6 a5 a4 a3 a2 a1 a0 a14
+t7 a14 a12 a11 a10 a9 a8 a13
+t1 a8
+t1 a10
+t2 a14 a11
+t2 a11 a2
+t2 a11 a1
+t2 a11 a0
+t3 a12 a1 a0
+t3 a13 a1 a2
+t3 a2 a0 a1
+t2 a1 a14
+t2 a14 a2
+t2 a14 a0
+t2 a0 a1
+t2 a0 a13
+t2 a1 a12
+t2 a2 a1
+t2 a1 a13
+t2 a12 a11
+t2 a13 a11
+t3 a12 a11 a10
+t2 a0 a3
+t2 a10 a0
+t2 a10 a4
+t2 a10 a5
+t2 a10 a7
+t2 a10 a8
+t2 a2 a10
+t2 a0 a10
+t2 a10 a13
+t2 a10 a11
+t2 a2 a4
+t2 a2 a6
+t2 a2 a9
+t2 a10 a2
+t2 a0 a9
+t2 a0 a12
+t2 a10 a0
+t2 a1 a2
+t2 a1 a6
+t2 a1 a8
+t2 a1 a9
+t2 a1 a11
+t2 a14 a0
+t2 a14 a4
+t2 a14 a6
+t2 a14 a8
+t2 a14 a11
+t2 a14 a12
+t2 a14 a13
+t2 a8 a14
+t2 a12 a0
+t2 a12 a3
+t2 a12 a5
+t2 a12 a6
+t2 a12 a7
+t2 a12 a9
+t2 a12 a10
+t2 a12 a14
+t2 a13 a0
+t2 a13 a1
+t2 a13 a3
+t2 a13 a7
+t2 a13 a8
+t2 a13 a9
+t2 a13 a11
+t1 a0
+t2 a10 a13
+t2 a13 a10
+t2 a13 a1
+t1 a13
+t2 a11 a2
+t2 a14 a11
+t2 a6 a4
+t2 a2 a4
+t2 a14 a6
+t2 a6 a4
+t1 a14
+t2 a1 a3
+t2 a1 a0
+t2 a14 a1
+t2 a1 a14
+t2 a1 a13
+t2 a2 a13
+t2 a13 a6
+t2 a1 a10
+t2 a1 a9
+t2 a1 a8
+t2 a1 a7
+t2 a1 a5
+t2 a1 a4
+t2 a2 a14
+t2 a2 a11
+t2 a2 a5
+t2 a2 a3
+t2 a11 a0
+t2 a0 a13
+t2 a0 a11
+t2 a0 a9
+t2 a0 a2
+t2 a14 a12
+t2 a13 a12
+t2 a12 a0
+t3 a14 a13 a12
+t2 a2 a14
+t2 a1 a2
+t2 a2 a13
+t2 a2 a12
+t3 a14 a2 a1
+t2 a0 a1
+t2 a0 a2
+t1 a11
+t1 a10
+t1 a9
+t1 a7
+t1 a5
+t6 a14 a12 a11 a10 a9 a13
+t10 a8 a7 a6 a5 a4 a3 a2 a1 a0 a14
+t6 a14 a12 a11 a10 a9 a13
+t6 a13 a12 a11 a10 a9 a0
+t10 a8 a7 a6 a5 a4 a3 a2 a1 a0 a14
+t6 a13 a12 a11 a10 a9 a0
+t1 a10
+t1 a11
+t2 a0 a2
+t2 a0 a1
+t3 a14 a2 a1
+t2 a2 a12
+t2 a2 a13
+t2 a1 a2
+t2 a2 a14
+t3 a14 a13 a12
+t2 a12 a0
+t2 a13 a12
+t2 a14 a12
+t2 a0 a2
+t2 a0 a9
+t2 a0 a11
+t2 a0 a13
+t2 a11 a0
+t2 a2 a3
+t2 a2 a4
+t2 a2 a5
+t2 a2 a6
+t2 a2 a11
+t2 a2 a13
+t2 a2 a14
+t2 a11 a2
+t2 a1 a0
+t2 a1 a3
+t2 a1 a4
+t2 a1 a5
+t2 a1 a6
+t2 a1 a7
+t2 a1 a8
+t2 a1 a9
+t2 a13 a10
+t2 a1 a13
+t2 a1 a14
+t2 a13 a1
+t2 a13 a6
+t2 a10 a13
+t2 a14 a0
+t2 a6 a4
+t2 a14 a6
+t1 a4
+t1 a14
+t2 a6 a4
+t1 a2
+t2 a14 a13
+t2 a14 a12
+t2 a14 a10
+t2 a14 a9
+t2 a14 a8
+t2 a13 a14
+t2 a13 a11
+t2 a13 a9
+t2 a13 a5
+t2 a13 a4
+t2 a13 a2
+t2 a13 a0
+t2 a11 a0
+t2 a0 a13
+t2 a0 a11
+t2 a0 a10
+t2 a0 a6
+t2 a0 a5
+t2 a0 a3
+t2 a0 a2
+t2 a0 a1
+t2 a14 a12
+t2 a12 a0
+t3 a14 a13 a12
+t1 a11
+t1 a9
+t1 a8
+t1 a7
+t14 a12 a11 a10 a9 a8 a7 a6 a5 a4 a3 a2 a1 a0 a14
+t1 a1
+t1 a2
+t1 a3
+t1 a4
+t1 a5
+t1 a9
+t1 a11
+t3 a14 a13 a12
+t2 a12 a0
+t2 a0 a13
+t2 a14 a12
+t2 a0 a1
+t2 a0 a2
+t2 a0 a3
+t2 a0 a5
+t2 a0 a6
+t2 a0 a10
+t1 a0
+t2 a13 a11
+t2 a0 a11
+t2 a11 a0
+t2 a13 a2
+t2 a13 a4
+t2 a13 a5
+t2 a14 a9
+t2 a13 a14
+t2 a14 a13
+t2 a14 a1
+t2 a14 a2
+t2 a14 a3
+t2 a14 a8
+t2 a14 a10
+t2 a14 a11
+t2 a14 a12
+t1 a12
+.end

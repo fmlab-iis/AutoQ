@@ -1,0 +1,19 @@
+# Function: 4gt4-v1
+# Checks, if input is greater than 4.
+# Note: Embedding with constant 1.
+# Used Library: MCT (gates: 5, quantum costs: 57)
+# This file have been taken from RevLib (www.revlib.org). 
+.version 1.0
+.numvars 5
+.variables a b c d e
+.inputs 1 b c d e
+.outputs g g g g f
+.constants 1----
+.garbage 1111-
+.begin
+t3 a e b
+t3 e c a
+t5 d c b a e
+t4 a d c b
+t3 b a e
+.end

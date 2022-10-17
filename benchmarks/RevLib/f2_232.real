@@ -1,0 +1,34 @@
+# Function: f2
+# Used Library: MCT (Gates: 19, Quantum costs: 255)
+# This file have been taken from RevLib (www.revlib.org).
+.version  1.0
+# Created by tfc2real J. Rice Jan 2009
+# Parameters for Exorcism: -n 1 -r 1 -a 1 -b 0 -c 1
+# Templates applied in both directions
+.numvars 8
+.variables  f3 f2 f1 f0 x3 x2 x1 x0
+.inputs  0 0 0 0 x3 x2 x1 x0
+.outputs  f3 f2 f1 f0 x3 x2 x1 x0
+.constants 0000----
+.garbage 1111----
+.begin
+t1 x0
+t3 x0 x3 f3
+t3 x0 x1 f1
+t5 x0 x1 x2 x3 f0
+t5 x0 x1 x2 x3 f1
+t5 x0 x1 x2 x3 f3
+t3 x0 x2 f0
+t1 x0
+t1 x2
+t1 x3
+t5 x0 x1 x2 x3 f1
+t5 x0 x1 x2 x3 f2
+t1 x1
+t5 x0 x1 x2 x3 f0
+t4 x0 x1 x3 f0
+t4 x0 x1 x3 f2
+t1 x3
+t5 x0 x1 x2 x3 f2
+t5 x0 x1 x2 x3 f3
+.end

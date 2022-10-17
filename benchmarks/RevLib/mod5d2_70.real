@@ -1,0 +1,18 @@
+# Function: mod5d2
+# Used Library: MCT (gates: 8 , quantum costs: 16)
+# This file has been taken from RevLib (www.revlib.org).
+.version 1.0
+.numvars 5
+.variables a b c d e
+.inputs  a b c d e
+.outputs a b c d e
+.begin
+t1 e
+t1 d
+t2 d c
+t2 d b
+t2 e d
+t3 b d a
+t3 b c a
+t2 c b
+.end

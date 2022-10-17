@@ -1,0 +1,144 @@
+# Function: sym9
+# Used Library: MCT (gates: 129, quantum costs: 6941)
+.version  1.0
+# This file has been taken from RevLib (www.revlib.org).
+# Created by tfc2real J. Rice Jan 2009
+# Parameters for Exorcism: -n 1 -r 1 -a 0 -b 1 -c 1
+# Templates applied in both directions
+.numvars 10
+.variables  s x9 x8 x7 x6 x5 x4 x3 x2 x1
+.inputs  0 x9 x8 x7 x6 x5 x4 x3 x2 x1
+.outputs  s x9 x8 x7 x6 x5 x4 x3 x2 x1
+.constants 0---------
+.garbage 111111111-
+.begin
+t8 x2 x3 x4 x5 x6 x7 x8 s
+t8 x2 x3 x4 x5 x6 x7 x9 s
+t8 x1 x2 x3 x4 x5 x6 x7 s
+t7 x2 x3 x4 x6 x8 x9 s
+t7 x1 x2 x3 x6 x7 x9 s
+t7 x1 x2 x3 x5 x7 x8 s
+t7 x1 x3 x4 x7 x8 x9 s
+t1 s
+t1 x7
+t8 x1 x2 x3 x4 x5 x7 x9 s
+t8 x1 x3 x4 x5 x6 x7 x8 s
+t1 x4
+t9 x1 x2 x4 x5 x6 x7 x8 x9 s
+t1 x7
+t8 x3 x4 x5 x6 x7 x8 x9 s
+t1 x4
+t1 x3
+t8 x1 x3 x4 x5 x6 x7 x9 s
+t8 x1 x2 x3 x4 x6 x7 x8 s
+t8 x1 x2 x3 x5 x6 x8 x9 s
+t1 x3
+t1 x6
+t8 x2 x4 x5 x6 x7 x8 x9 s
+t1 x9
+t10 x1 x2 x3 x4 x5 x6 x7 x8 x9 s
+t9 x1 x2 x3 x5 x6 x7 x8 x9 s
+t1 x2
+t9 x1 x2 x3 x4 x5 x6 x8 x9 s
+t8 x1 x2 x3 x4 x5 x8 x9 s
+t1 x3
+t1 x4
+t1 x7
+t10 x1 x2 x3 x4 x5 x6 x7 x8 x9 s
+t7 x2 x3 x4 x6 x7 x9 s
+t1 x9
+t1 x7
+t1 x4
+t1 x3
+t1 x8
+t9 x1 x2 x3 x4 x5 x6 x8 x9 s
+t8 x1 x3 x4 x5 x6 x8 x9 s
+t1 x6
+t9 x1 x2 x4 x5 x6 x7 x8 x9 s
+t1 x2
+t1 x8
+t1 x1
+t9 x1 x2 x3 x4 x5 x7 x8 x9 s
+t8 x1 x2 x4 x5 x7 x8 x9 s
+t1 x2
+t9 x1 x2 x3 x5 x6 x7 x8 x9 s
+t1 x7
+t1 x3
+t1 x6
+t1 x8
+t9 x1 x2 x3 x4 x5 x6 x7 x8 s
+t7 x1 x2 x3 x6 x7 x8 s
+t1 x9
+t9 x1 x2 x3 x5 x6 x7 x8 x9 s
+t1 x6
+t1 x4
+t10 x1 x2 x3 x4 x5 x6 x7 x8 x9 s
+t9 x1 x3 x4 x5 x6 x7 x8 x9 s
+t7 x1 x3 x4 x7 x8 x9 s
+t1 x7
+t1 x3
+t1 x6
+t10 x1 x2 x3 x4 x5 x6 x7 x8 x9 s
+t7 x1 x2 x4 x6 x8 x9 s
+t1 x8
+t1 x6
+t1 x2
+t1 x1
+t1 x5
+t9 x1 x2 x4 x5 x6 x7 x8 x9 s
+t8 x1 x2 x5 x6 x7 x8 x9 s
+t1 x8
+t10 x1 x2 x3 x4 x5 x6 x7 x8 x9 s
+t9 x1 x2 x3 x4 x5 x6 x7 x8 s
+t1 x2
+t1 x7
+t9 x2 x3 x4 x5 x6 x7 x8 x9 s
+t8 x1 x2 x4 x5 x7 x8 x9 s
+t1 x9
+t1 x8
+t1 x7
+t1 x4
+t10 x1 x2 x3 x4 x5 x6 x7 x8 x9 s
+t9 x1 x2 x3 x4 x5 x7 x8 x9 s
+t1 x2
+t1 x1
+t1 x7
+t10 x1 x2 x3 x4 x5 x6 x7 x8 x9 s
+t1 x4
+t1 x6
+t1 x8
+t10 x1 x2 x3 x4 x5 x6 x7 x8 x9 s
+t7 x1 x4 x5 x6 x7 x8 s
+t1 x8
+t1 x2
+t1 x9
+t8 x1 x2 x3 x5 x6 x7 x9 s
+t9 x1 x2 x4 x5 x6 x7 x8 x9 s
+t8 x1 x2 x5 x6 x7 x8 x9 s
+t1 x3
+t1 x8
+t8 x1 x2 x3 x4 x5 x6 x8 s
+t8 x2 x3 x4 x5 x6 x7 x8 s
+t1 x7
+t9 x2 x3 x4 x5 x6 x7 x8 x9 s
+t1 x8
+t9 x1 x2 x3 x4 x5 x6 x8 x9 s
+t8 x1 x3 x4 x5 x6 x8 x9 s
+t8 x1 x3 x4 x5 x6 x7 x9 s
+t1 x4
+t1 x8
+t9 x1 x2 x3 x4 x5 x6 x8 x9 s
+t8 x1 x2 x3 x4 x5 x8 x9 s
+t8 x1 x2 x3 x5 x7 x8 x9 s
+t1 x7
+t9 x1 x3 x4 x5 x6 x7 x8 x9 s
+t8 x3 x4 x5 x6 x7 x8 x9 s
+t8 x2 x3 x5 x6 x7 x8 x9 s
+t7 x3 x5 x6 x7 x8 x9 s
+t1 x9
+t1 x8
+t1 x6
+t1 x4
+t9 x1 x2 x3 x4 x5 x6 x7 x8 s
+t8 x1 x2 x3 x4 x5 x7 x9 s
+.end
