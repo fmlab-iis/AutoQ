@@ -10,6 +10,7 @@
 
 // C++ headers
 #include <regex>
+#include <fstream>
 
 // VATA headers
 #include <vata/vata.hh>
@@ -364,4 +365,12 @@ TreeAutomata TimbukParser::ParseString(const std::string& str)
 	}
 
 	return timbukParse;
+}
+
+TreeAutomata TimbukParser::FromFileToAutomata(const char* filepath)
+{
+    std::ifstream t(filepath);
+    std::stringstream buffer;
+    buffer << t.rdbuf();
+    return ParseString(buffer.str());
 }

@@ -28,8 +28,8 @@ namespace VATA
  *
  * This class is a serializer of automata into the Timbuk format.
  */
-class VATA::Serialization::TimbukSerializer :
-	public VATA::Serialization::AbstrSerializer
+class VATA::Serialization::TimbukSerializer //:
+	// public VATA::Serialization::AbstrSerializer
 {
 public:   // data types
 
@@ -37,20 +37,21 @@ public:   // data types
 
 private:  // data members
 
-	std::string name_;
+	// std::string name_;
+    TimbukSerializer() {}
 
 public:   // methods
 
-	TimbukSerializer() :
-		name_("anonymous")
-	{ }
+	// TimbukSerializer() :
+	// 	name_("anonymous")
+	// { }
 
-	inline void SetName(const std::string& name)
-	{
-		name_ = name;
-	}
+	// inline void SetName(const std::string& name)
+	// {
+	// 	name_ = name;
+	// }
 
-	virtual std::string Serialize(const TreeAutomata& desc);
+	static std::string Serialize(const TreeAutomata& desc);
 };
 
 #endif

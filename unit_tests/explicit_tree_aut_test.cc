@@ -303,9 +303,8 @@ BOOST_AUTO_TEST_CASE(Bernstein_Vazirani)
     ans.transitions[{ans.qubitNum}][{ans.stateNum - 3, ans.stateNum - 3}] = {static_cast<VATA::Util::TreeAutomata::State>(2*(ans.qubitNum-1) - 1)};
     ans.transitions[{ans.qubitNum}][{ans.stateNum - 2, ans.stateNum - 1}] = {static_cast<VATA::Util::TreeAutomata::State>(2*(ans.qubitNum-1))};
 
-    // VATA::Serialization::TimbukSerializer serializer;
     // std::ofstream fileRhs("reference_answers/Bernstein_Vazirani" + std::to_string(n) + ".txt");
-	// fileRhs << serializer.Serialize(ans);
+	// fileRhs << VATA::Serialization::TimbukSerializer::Serialize(ans);
 	// fileRhs.close();
 
     BOOST_REQUIRE_MESSAGE(VATA::Util::TreeAutomata::check_equal_aut(aut, ans), "");
@@ -345,7 +344,7 @@ BOOST_AUTO_TEST_CASE(Grover_Search)
 {
     int n = 4;
     assert(n >= 2);
-    auto aut = VATA::Util::TreeAutomata::classical_zero_one_zero(n);
+    auto aut = VATA::Util::TreeAutomata::basis_zero_one_zero(n);
 
     /********************************/
     for (int i=1; i<=n; i++) aut.X(i);
@@ -402,10 +401,9 @@ BOOST_AUTO_TEST_CASE(Grover_Search)
     for (int i=1; i<=n; i++) aut.X(i);
     /********************************/
 
-    // VATA::Serialization::TimbukSerializer serializer;
     // std::ofstream fileRhs("reference_answers/Grover" + std::to_string(n) + ".txt");
     // aut.fraction_simplication();
-	// fileRhs << serializer.Serialize(aut);
+	// fileRhs << VATA::Serialization::TimbukSerializer::Serialize(aut);
 	// fileRhs.close();
 
     // char cwd[PATH_MAX];
@@ -415,11 +413,10 @@ BOOST_AUTO_TEST_CASE(Grover_Search)
     //     perror("getcwd() error");
     // }
 
-    VATA::Parsing::TimbukParser parser;
     std::ifstream t("../../reference_answers/Grover" + std::to_string(n) + ".txt");
     std::stringstream buffer;
     buffer << t.rdbuf();
-    auto ans = parser.ParseString(buffer.str());
+    auto ans = VATA::Parsing::TimbukParser::ParseString(buffer.str());
     // int n = (aut.qubitNum + 1) / 3;
     // aut.print();
 

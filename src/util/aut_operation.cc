@@ -870,7 +870,7 @@ VATA::Util::TreeAutomata VATA::Util::TreeAutomata::zero(int n) {
     return aut;
 }
 
-VATA::Util::TreeAutomata VATA::Util::TreeAutomata::classical_zero_one_zero(int n) {
+VATA::Util::TreeAutomata VATA::Util::TreeAutomata::basis_zero_one_zero(int n) {
     TreeAutomata aut;
     assert(n >= 2);
     aut.name = "Classical_Zero_One_Zero";
@@ -1195,7 +1195,7 @@ void VATA::Util::TreeAutomata::fraction_simplication() {
 
 
   /** checks inclusion of two TAs */
-  bool check_inclusion(const std::string& lhsPath, const std::string& rhsPath)
+  bool VATA::Util::TreeAutomata::check_inclusion(const std::string& lhsPath, const std::string& rhsPath)
   {
     std::string aux;
     VATA::Util::ShellCmd(get_vata_path() + " incl " + lhsPath + " " + rhsPath, aux);
@@ -1212,15 +1212,14 @@ void VATA::Util::TreeAutomata::fraction_simplication() {
       VATA::Util::TreeAutomata lhs,
       VATA::Util::TreeAutomata rhs)
   {
-    VATA::Serialization::TimbukSerializer serializer;
 	std::ofstream fileLhs("/tmp/automata1.txt");
     lhs.fraction_simplication();
-	fileLhs << serializer.Serialize(lhs);
+	fileLhs << VATA::Serialization::TimbukSerializer::Serialize(lhs);
 	fileLhs.close();
 
 	std::ofstream fileRhs("/tmp/automata2.txt");
     rhs.fraction_simplication();
-	fileRhs << serializer.Serialize(rhs);
+	fileRhs << VATA::Serialization::TimbukSerializer::Serialize(rhs);
 	fileRhs.close();
 
 	return check_equal("/tmp/automata1.txt", "/tmp/automata2.txt");

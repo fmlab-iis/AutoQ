@@ -186,13 +186,14 @@ public:
     static TreeAutomata basis(int n);
     static TreeAutomata random(int n);
     static TreeAutomata zero(int n);
-    static TreeAutomata classical_zero_one_zero(int n);
+    static TreeAutomata basis_zero_one_zero(int n);
     static TreeAutomata zero_zero_one_zero(int n);
     static TreeAutomata zero_one_zero(int n);
 
     /* Equivalence Checking */
     static bool check_equal(const std::string& lhsPath, const std::string& rhsPath);
     static bool check_equal_aut(TreeAutomata lhs, TreeAutomata rhs);
+    static bool check_inclusion(const std::string& lhsPath, const std::string& rhsPath);
 };
 
 #endif
