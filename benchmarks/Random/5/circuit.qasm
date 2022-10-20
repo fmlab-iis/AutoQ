@@ -1,0 +1,18 @@
+OPENQASM 2.0;
+include "qelib1.inc";
+qreg qubits[5];
+rx(pi/2) qubits[1];
+rx(pi/2) qubits[0];
+y qubits[0];
+x qubits[2];
+h qubits[1];
+cx qubits[2], qubits[0];
+h qubits[3];
+s qubits[0];
+ccx qubits[2], qubits[1], qubits[3];
+t qubits[4];
+s qubits[0];
+x qubits[3];
+h qubits[0];
+ccx qubits[2], qubits[3], qubits[4];
+cz qubits[3], qubits[1];
