@@ -122,35 +122,80 @@ std::string toString(std::chrono::steady_clock::duration tp)
 // }
 
 int main(int argc, char **argv) {
-    for (int n=1; n<=100; n++) {
-        /* Algorithm 1 - Bernstein-Vazirani */
-        VATA::Util::TreeAutomata aut = VATA::Util::TreeAutomata::zero(n+1);
-        std::ofstream pre("/home/alan23273850/libvata2/benchmarks/Bernstein_Vazirani/" + std::to_string(n) + "/pre.aut");
+    for (int n=2; n<=22; n++) {
+        /* Algorithm 9 - Grover's Search with only one oracle */
+        VATA::Util::TreeAutomata aut = VATA::Util::TreeAutomata::zero((n+1) + (n>=3) * (n-1));
+        std::ofstream pre("/home/alan23273850/libvata2/benchmarks/Grover/" + std::to_string(n) + "/pre.aut");
         aut.fraction_simplication();
         pre << VATA::Serialization::TimbukSerializer::Serialize(aut);
         pre.close();
 
-        // std::ofstream qasm("/home/alan23273850/libvata2/benchmarks/Bernstein_Vazirani/" + std::to_string(n) + "/circuit.qasm");
+        // std::ofstream qasm("/home/alan23273850/libvata2/benchmarks/Grover/" + std::to_string(n) + "/circuit.qasm");
         // qasm << "OPENQASM 2.0;\n";
         // qasm << "include \"qelib1.inc\";\n";
-        // qasm << "qreg qubits[" + std::to_string(aut.qubitNum) + "];\n\n";
+        // qasm << "qreg qubits[" + std::to_string(aut.qubitNum) + "];\n";
         // qasm.close();
+        aut.X(n+1); // for preparing the initial state
+        // system(("echo '' >> /home/alan23273850/libvata2/benchmarks/Grover/" + std::to_string(n) + "/circuit.qasm").c_str());
 
         auto start = chrono::steady_clock::now();
         int stateBefore = aut.stateNum, transitionBefore = aut.transition_size();
-        for (int i=1; i<=n+1; i++) aut.H(i);
-        aut.Z(n+1);
-        for (int i=1; i<=n; i++) {
-            if (i & 1)
-                aut.CNOT(i, n+1);
+        unsigned ans = 0;
+        for (int i=0; i<n; i++) {
+            ans <<= 1;
+            ans |= (i&1);
         }
-        for (int i=1; i<=n; i++) aut.H(i);
+        for (int i=1; i<=n+1; i++) aut.H(i);
+        for (int iter=1; iter <= M_PI / (4 * asin(1 / pow(2, n/2.0))); iter++) {
+            for (int i=1; i<=n; i++) {
+                if ((ans & (1 << (i-1))) == 0)
+                    aut.X(n+1-i);
+            }
+            /* multi-controlled NOT gate */
+            if (n >= 3) {
+                aut.Toffoli(1, 2, n+2);
+                for (int i=3; i<=n; i++)
+                    aut.Toffoli(i, n+i-1, n+i);
+                aut.CNOT(2*n, n+1);
+                for (int i=n; i>=3; i--)
+                    aut.Toffoli(i, n+i-1, n+i);
+                aut.Toffoli(1, 2, n+2);
+            } else {
+                assert(n == 2);
+                aut.Toffoli(1, 2, 3);
+            }
+            for (int i=1; i<=n; i++) {
+                if ((ans & (1 << (i-1))) == 0)
+                    aut.X(n+1-i);
+            }
+            for (int i=1; i<=n; i++) aut.H(i);
+            for (int i=1; i<=n; i++) aut.X(i);
+            /* multi-controlled Z gate */
+            if (n >= 3) {
+                aut.Toffoli(1, 2, n+2);
+                for (int i=3; i<n; i++) // Note that < does not include n!
+                    aut.Toffoli(i, n+i-1, n+i);
+                aut.CZ(2*n-1, n);
+                for (int i=n-1; i>=3; i--)
+                    aut.Toffoli(i, n+i-1, n+i);
+                aut.Toffoli(1, 2, n+2);
+            // } else if (n == 3) {
+            //     aut.H(2*n);
+            //     aut.Toffoli(4, 5, 6);
+            //     aut.H(2*n);
+            } else {
+                assert(n == 2);
+                aut.CZ(1, 2);
+            }
+            for (int i=1; i<=n; i++) aut.X(i);
+            for (int i=1; i<=n; i++) aut.H(i);
+        }
 
-        std::ofstream fileLhs("/home/alan23273850/libvata2/benchmarks/Bernstein_Vazirani/" + std::to_string(n) + "/post.aut");
+        std::ofstream fileLhs("/home/alan23273850/libvata2/benchmarks/Grover/" + std::to_string(n) + "/post.aut");
         aut.fraction_simplication();
         fileLhs << VATA::Serialization::TimbukSerializer::Serialize(aut);
         fileLhs.close();
-        if (!VATA::Util::TreeAutomata::check_equal("/home/alan23273850/libvata2/benchmarks/Bernstein_Vazirani/" + std::to_string(n) + "/post.aut", "/home/alan23273850/libvata2/benchmarks/Bernstein_Vazirani/" + std::to_string(n) + "/post.aut")) {
+        if (!VATA::Util::TreeAutomata::check_equal("/home/alan23273850/libvata2/benchmarks/Grover/" + std::to_string(n) + "/post.aut", "/home/alan23273850/libvata2/benchmarks/Grover/" + std::to_string(n) + "/post.aut")) {
             throw std::exception();
         }
 

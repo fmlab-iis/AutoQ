@@ -1,7 +1,7 @@
 #include <vata/util/aut_description.hh>
 
 // #define TO_QASM
-#define QASM_FILENAME "./Bernstein_Vazirani/" + std::to_string(qubitNum-1) + "/circuit.qasm"
+#define QASM_FILENAME "./Grover/" + std::to_string((qubitNum+1)/2) + "/circuit.qasm"
 // OPENQASM 2.0;
 // include "qelib1.inc";
 // qreg qubits[?];
