@@ -315,7 +315,7 @@ void VATA::Util::TreeAutomata::CNOT(int c, int t, bool opt) {
         this->semi_undeterminize();
     } else {
         auto aut2 = *this;
-        aut2.X(t);
+        aut2.X(t); gateCount--; // prevent repeated counting
         for (const auto &tr : aut2.transitions) {
             if (!(is_internal(tr.first) && tr.first[0] <= c)) {
                 auto &ttf = transitions[tr.first];
@@ -421,7 +421,7 @@ void VATA::Util::TreeAutomata::Toffoli(int c, int c2, int t) {
     if (c < t && c2 < t) {
         if (c > c2) std::swap(c, c2);
         auto aut2 = *this;
-        aut2.CNOT(c2, t, false);
+        aut2.CNOT(c2, t, false); gateCount--; // prevent repeated counting
         for (const auto &tr : aut2.transitions) {
             if (!(is_internal(tr.first) && tr.first[0] <= c)) {
                 auto &ttf = transitions[tr.first];

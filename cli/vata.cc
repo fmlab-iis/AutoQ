@@ -147,8 +147,8 @@ int main(int argc, char **argv) {
     //     }
     // }
 
-    int stateBefore = 0, transitionBefore = 0;
     VATA::Util::TreeAutomata aut = VATA::Parsing::TimbukParser::FromFileToAutomata(argv[1]);
+    int stateBefore = aut.stateNum, transitionBefore = aut.transition_size();
     auto start = chrono::steady_clock::now();
     string line;
     ifstream qasm(argv[2]);
