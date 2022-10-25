@@ -202,13 +202,15 @@ int main(int argc, char **argv) {
     auto durationSim = chrono::steady_clock::now() - startSim;
     
     auto durationVer = durationSim; // just borrow its type!
-    std::ofstream fileLhs("/tmp/automata1.txt");
+    std::ofstream fileLhs(argv[3]);
     aut.fraction_simplication();
     fileLhs << VATA::Serialization::TimbukSerializer::Serialize(aut);
-    fileLhs.close(); // Notice that we assume fractions in argv[3] are already simplified.
+    fileLhs.close(); // Notice that we assume fractions in argv[4] are already simplified.
     auto startVer = chrono::steady_clock::now();
-    if (!VATA::Util::TreeAutomata::check_inclusion("/tmp/automata1.txt", argv[3]))
-        throw std::runtime_error("Does not satisfy the postcondition!");
+    if (argc >= 5) {
+        if (!VATA::Util::TreeAutomata::check_inclusion(argv[3], argv[4]))
+            throw std::runtime_error("Does not satisfy the postcondition!");
+    }
     durationVer = chrono::steady_clock::now() - startVer;
     
     std::cout << VATA::Util::Convert::ToString(aut.qubitNum) << " & " << VATA::Util::TreeAutomata::gateCount
