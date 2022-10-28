@@ -54,16 +54,16 @@ for line in file.readlines():
         cols = line.split(' & ')
         t = 0; i = 15 if './Random/35' in line else 7
         # for i in (7, 8, 13, 14, 15, 16):
-        if cols[i].endswith('s'):
-            cols[i] = cols[i][:-1]
-            if 'm' in cols[i]:
-                t += int(cols[i].split('m')[0]) * 60 + float(cols[i].split('m')[1])
+        cell = cols[i][8:-1]
+        if cell.endswith('s'):
+            cell = cell[:-1]
+            if 'm' in cell:
+                t += int(cell.split('m')[0]) * 60 + float(cell.split('m')[1])
             else:
-                t += float(cols[i])
+                t += float(cell)
         lst.append((t, line))
     else:
         print('/'.join(line.split('/')[2:]), end='\\\\\hline\n')
 
-print('}')
-print(r'\end{tabular}')
+print(r'\end{tabular}}')
 print(r'\end{table}')
