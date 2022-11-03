@@ -2,18 +2,21 @@
 import sys
 from qiskit import QuantumCircuit
 
-print(r'\begin{table}')
-print(r'\resizebox{\textwidth}{!}{')
+# print(r'\begin{table}')
+print(r'\resizebox*{!}{\dimexpr\textheight-4\baselineskip\relax}{')
 print(r'\begin{tabular}{|c||c|c||c|c|c|c|c|c||c|c|c|c|c|c||c||c|}\hline')
 current_benchmark = ''
 lst = []
-bm = {'BernsteinVazirani': 'Bernstein-Vazirani\'s algorithm with single oracle',  'Feynman': 'Feynman',
-    'Grover': 'Grover\'s algorithm with single oracle', 'MCToffoli': 'Multi-controlled Toffoli gate',
+bm = {'BernsteinVazirani': 'Bernstein-Vazirani\'s algorithm with one hidden string',  'Feynman': 'Feynman',
+    'Grover': 'Grover\'s algorithm with one oracle', 'MCToffoli': 'Multi-controlled Toffoli gate',
     'MOGrover': 'Grover\'s algorithm with all possible oracles', 'Random': 'Random gates',
     'RevLib': 'RevLib'}
 
 file = open(sys.argv[1], 'r')
 for line in file.readlines():
+    # Ignore the row where all tools are timeout or fail.
+    if (r'\multicolumn{8}{c||}{TO} & \multicolumn{6}{c||}{TO}' in line) and line.endswith('TO\n'):
+        continue
     # If AutoQ-P timeout, print #q and #G from the qasm file.
     if r'\multicolumn{8}{c||}{TO}' in line:
         qc = QuantumCircuit.from_qasm_file(f"{line.split(' & ')[0]}/circuit.qasm")
@@ -47,8 +50,8 @@ for line in file.readlines():
     if line.split('/')[1] != current_benchmark:
         current_benchmark = line.split('/')[1]
         print(r'\hline\multicolumn{17}{|c|}{\textbf{' + bm[current_benchmark] + '}}', end='\\\\\hline\n')
-        print('\\textbf{Problem} & \\textbf{\#q} & \\textbf{\#G} & \\textbf{P-sb} & \\textbf{P-sa} & \\textbf{P-tb} & \\textbf{P-ta} & \\textbf{P-exeT} & \\textbf{P-verT} \
-& \\textbf{C-sb} & \\textbf{C-sa} & \\textbf{C-tb} & \\textbf{C-ta} & \\textbf{C-exeT} & \\textbf{C-verT} \
+        print('\\textbf{Problem} & \\textbf{\#q} & \\textbf{\#G} & \\textbf{P-sb} & \\textbf{P-sa} & \\textbf{P-tb} & \\textbf{P-ta} & \\textbf{P-exeT} & \\textbf{P-incT} \
+& \\textbf{C-sb} & \\textbf{C-sa} & \\textbf{C-tb} & \\textbf{C-ta} & \\textbf{C-exeT} & \\textbf{C-incT} \
 & \\textbf{qiskitT} & \\textbf{feynmanT}', end='\\\\\hline\n')
     if './Random/' in line:
         cols = line.split(' & ')
@@ -66,4 +69,4 @@ for line in file.readlines():
         print('/'.join(line.split('/')[2:]), end='\\\\\hline\n')
 
 print(r'\end{tabular}}')
-print(r'\end{table}')
+# print(r'\end{table}')

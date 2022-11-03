@@ -8,7 +8,6 @@ timeout3 = 'XXX'
 timeout4 = 'XXX'
 
 for root, dirnames, filenames in sorted(os.walk('.')):
-    if 'Random' not in root: continue
     if len(dirnames) == 0 and 'post.aut' in filenames:
         print(root, end=' & ', flush=True)# , dirnames, filenames)
         ###################################
