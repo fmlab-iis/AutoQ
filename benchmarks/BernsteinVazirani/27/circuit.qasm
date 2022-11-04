@@ -72,3 +72,4 @@ h qubits[23];
 h qubits[24];
 h qubits[25];
 h qubits[26];
+h qubits[27];

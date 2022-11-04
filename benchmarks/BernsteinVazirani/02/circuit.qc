@@ -8,5 +8,6 @@ Z q2
 tof q0 q2
 H q0
 H q1
+H q2
 
 END

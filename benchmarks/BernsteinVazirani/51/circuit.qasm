@@ -132,3 +132,4 @@ h qubits[47];
 h qubits[48];
 h qubits[49];
 h qubits[50];
+h qubits[51];

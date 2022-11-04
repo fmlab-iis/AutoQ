@@ -11,5 +11,6 @@ tof q2 q3
 H q0
 H q1
 H q2
+H q3
 
 END

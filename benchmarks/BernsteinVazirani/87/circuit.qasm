@@ -222,3 +222,4 @@ h qubits[83];
 h qubits[84];
 h qubits[85];
 h qubits[86];
+h qubits[87];

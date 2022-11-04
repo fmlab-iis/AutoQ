@@ -204,3 +204,4 @@ h qubits[76];
 h qubits[77];
 h qubits[78];
 h qubits[79];
+h qubits[80];

@@ -1,14 +1,14 @@
 # Feynman -- quantum circuit toolkit
-# Original (/home/alan23273850/libvata2/benchmarks/BernsteinVazirani/75/circuit.qc):
+# Original (./75/circuit.qc):
 #   Qubits: 76
-#   H: 151
+#   H: 152
 #   Z: 1
 #   cnot: 38
 #   Depth: 41
 #   T depth: 0
-# Result (2.910ms):
+# Result (2.998ms):
 #   Qubits: 76
-#   H: 151
+#   H: 152
 #   Z: 1
 #   cnot: 38
 #   Depth: 41
@@ -207,4 +207,5 @@ H q71
 H q72
 H q73
 H q74
+H q75
 END

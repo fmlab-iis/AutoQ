@@ -177,3 +177,4 @@ h qubits[65];
 h qubits[66];
 h qubits[67];
 h qubits[68];
+h qubits[69];

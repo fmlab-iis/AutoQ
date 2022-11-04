@@ -1,14 +1,14 @@
 # Feynman -- quantum circuit toolkit
-# Original (/home/alan23273850/libvata2/benchmarks/BernsteinVazirani/1/circuit.qc):
+# Original (./01/circuit.qc):
 #   Qubits: 2
-#   H: 3
+#   H: 4
 #   Z: 1
 #   cnot: 1
 #   Depth: 4
 #   T depth: 0
-# Result (0.169ms):
+# Result (0.259ms):
 #   Qubits: 2
-#   H: 3
+#   H: 4
 #   Z: 1
 #   cnot: 1
 #   Depth: 4
@@ -22,4 +22,5 @@ H q1
 Z q1
 tof q0 q1
 H q0
+H q1
 END
