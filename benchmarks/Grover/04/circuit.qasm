@@ -104,3 +104,4 @@ h qubits[0];
 h qubits[1];
 h qubits[3];
 h qubits[5];
+h qubits[7];

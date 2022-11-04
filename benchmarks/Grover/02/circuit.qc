@@ -18,5 +18,6 @@ tof q0
 tof q1
 H q0
 H q1
+H q2
 
 END

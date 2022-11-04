@@ -1,16 +1,16 @@
 # Feynman -- quantum circuit toolkit
 # Original (/home/alan23273850/libvata2/benchmarks/Grover/17/circuit.qc):
 #   Qubits: 34
-#   H: 44890
+#   H: 44891
 #   T: 123256
 #   X: 14769
 #   cnot: 105932
 #   cz: 284
 #   Depth: 134901
 #   T depth: 53960
-# Result (237.086ms):
+# Result (237.651ms):
 #   Qubits: 34
-#   H: 44890
+#   H: 44891
 #   T: 123256
 #   X: 14769
 #   cnot: 105932
@@ -42640,4 +42640,5 @@ H q25
 H q27
 H q29
 H q31
+H q33
 END
