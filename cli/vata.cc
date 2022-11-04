@@ -18,108 +18,11 @@ using VATA::Util::ReadFile;
 
 int type, n;
 
-int rand_gen() {
-    if (type == 3) return 1;
-    else if (type == 5) return n;
-    else return rand() % n + 1;
-}
-
-void rand_gen(int &a, int &b) {
-    if (type == 3) { // TOP
-        a = 1;
-        b = 2;
-    } else if (type == 5) { // BOTTOM
-        a = n-1;
-        b = n;
-    } else {
-        a = rand() % n + 1;
-        do {
-            b = rand() % n + 1;
-        } while (b == a);
-    }
-}
-
-void rand_gen(int &a, int &b, int &c) {
-    if (type == 3) { // TOP
-        a = 1;
-        b = 2;
-        c = 3;
-    } else if (type == 5) { // BOTTOM
-        a = n-2;
-        b = n-1;
-        c = n;
-    } else {
-        a = rand() % n + 1;
-        do {
-            b = rand() % n + 1;
-        } while (b == a);
-        do {
-            c = rand() % n + 1;
-        } while (c == a || c == b);
-    }
-}
-
-std::string toString(std::chrono::steady_clock::duration tp)
-{
-    using namespace std;
-    using namespace std::chrono;
-    nanoseconds ns = duration_cast<nanoseconds>(tp);
-    typedef duration<int, ratio<86400>> days;
-    std::stringstream ss;
-    char fill = ss.fill();
-    ss.fill('0');
-    auto d = duration_cast<days>(ns);
-    ns -= d;
-    auto h = duration_cast<hours>(ns);
-    ns -= h;
-    auto m = duration_cast<minutes>(ns);
-    ns -= m;
-    auto s = duration_cast<seconds>(ns);
-    ns -= s;
-    auto ms = duration_cast<milliseconds>(ns);
-    // auto s = duration<float, std::ratio<1, 1>>(ns);
-    if (d.count() > 0 || h.count() > 0)
-        ss << "TOO_LONG & ";
-    else if (m.count() == 0 && s.count() < 10) {
-        ss << s.count() << '.' << ms.count() / 100 << "s";
-    } else {
-        if (m.count() > 0) ss << m.count() << 'm';
-        ss << s.count() << 's';// << " & ";
-    }
-    ss.fill(fill);
-    return ss.str();
-}
-
-// std::string toString(int tp) // expect unit: ms
-// {
-//     using namespace std;
-//     using namespace std::chrono;
-//     milliseconds ns(tp);
-//     typedef duration<int, ratio<86400>> days;
-//     std::stringstream ss;
-//     char fill = ss.fill();
-//     ss.fill('0');
-//     auto d = duration_cast<days>(ns);
-//     ns -= d;
-//     auto h = duration_cast<hours>(ns);
-//     ns -= h;
-//     auto m = duration_cast<minutes>(ns);
-//     ns -= m;
-//     auto s = duration_cast<seconds>(ns);
-//     ns -= s;
-//     auto ms = duration_cast<milliseconds>(ns);
-//     // auto s = duration<float, std::ratio<1, 1>>(ns);
-//     if (d.count() > 0 || h.count() > 0)
-//         ss << "TOO_LONG & ";
-//     else if (m.count() == 0 && s.count() < 10) {
-//         ss << s.count() << '.' << ms.count() / 100 << "s";
-//     } else {
-//         if (m.count() > 0) ss << m.count() << 'm';
-//         ss << s.count() << 's';// << " & ";
-//     }
-//     ss.fill(fill);
-//     return ss.str();
-// }
+int rand_gen();
+void rand_gen(int &a, int &b);
+void rand_gen(int &a, int &b, int &c);
+std::string toString(std::chrono::steady_clock::duration tp);
+void produce_BernsteinVazirani_post();
 
 int main(int argc, char **argv) {
     VATA::Util::TreeAutomata aut = VATA::Parsing::TimbukParser::FromFileToAutomata(argv[1]);
@@ -218,4 +121,107 @@ int main(int argc, char **argv) {
         << " & " << transitionBefore << " & " << aut.transition_size()
         << " & " << toString(durationSim) << " & " << toString(durationVer);
     return 0;
+}
+
+int rand_gen() {
+    if (type == 3) return 1;
+    else if (type == 5) return n;
+    else return rand() % n + 1;
+}
+void rand_gen(int &a, int &b) {
+    if (type == 3) { // TOP
+        a = 1;
+        b = 2;
+    } else if (type == 5) { // BOTTOM
+        a = n-1;
+        b = n;
+    } else {
+        a = rand() % n + 1;
+        do {
+            b = rand() % n + 1;
+        } while (b == a);
+    }
+}
+void rand_gen(int &a, int &b, int &c) {
+    if (type == 3) { // TOP
+        a = 1;
+        b = 2;
+        c = 3;
+    } else if (type == 5) { // BOTTOM
+        a = n-2;
+        b = n-1;
+        c = n;
+    } else {
+        a = rand() % n + 1;
+        do {
+            b = rand() % n + 1;
+        } while (b == a);
+        do {
+            c = rand() % n + 1;
+        } while (c == a || c == b);
+    }
+}
+
+std::string toString(std::chrono::steady_clock::duration tp) {
+    using namespace std;
+    using namespace std::chrono;
+    nanoseconds ns = duration_cast<nanoseconds>(tp);
+    typedef duration<int, ratio<86400>> days;
+    std::stringstream ss;
+    char fill = ss.fill();
+    ss.fill('0');
+    auto d = duration_cast<days>(ns);
+    ns -= d;
+    auto h = duration_cast<hours>(ns);
+    ns -= h;
+    auto m = duration_cast<minutes>(ns);
+    ns -= m;
+    auto s = duration_cast<seconds>(ns);
+    ns -= s;
+    auto ms = duration_cast<milliseconds>(ns);
+    // auto s = duration<float, std::ratio<1, 1>>(ns);
+    if (d.count() > 0 || h.count() > 0)
+        ss << "TOO_LONG & ";
+    else if (m.count() == 0 && s.count() < 10) {
+        ss << s.count() << '.' << ms.count() / 100 << "s";
+    } else {
+        if (m.count() > 0) ss << m.count() << 'm';
+        ss << s.count() << 's';// << " & ";
+    }
+    ss.fill(fill);
+    return ss.str();
+}
+
+void produce_BernsteinVazirani_post() {
+    for (int n=1; n<=99; n++) {
+        VATA::Util::TreeAutomata ans;
+        ans.name = "Bernstein-Vazirani";
+        ans.qubitNum = n+1;
+        assert(ans.qubitNum >= 2);
+        ans.finalStates.push_back(0);
+        //
+        ans.transitions[{1}][{1, 2}] = {0};
+        for (int level=2; level<=n; level++) { /* Note that < does not include ans.qubitNum! */
+            ans.transitions[{level}][{2*level - 1, 2*level - 1}] = {2*level - 3};
+            if (level & 1)
+                ans.transitions[{level}][{2*level - 1, 2*level}] = {2*level - 2};
+            else
+                ans.transitions[{level}][{2*level, 2*level - 1}] = {2*level - 2};
+        }
+        ans.transitions[{n+1}][{2*(n+1) - 1, 2*(n+1) - 1}] = {2*(n+1) - 3};
+        ans.transitions[{n+1}][{2*(n+1) - 1, 2*(n+1)}] = {2*(n+1) - 2};
+        //
+        ans.transitions[{0,0,0,0,0}][{}] = {2*(n+1) - 1};
+        ans.transitions[{1,0,0,0,0}][{}] = {2*(n+1)};
+        ans.stateNum = 2*(n+1) + 1;
+
+        std::ofstream of("/tmp/automaton.aut");
+        of << VATA::Serialization::TimbukSerializer::Serialize(ans);
+        of.close();
+        if (n < 10)
+            system(("/home/alan23273850/libvata/build/cli/vata red /tmp/automaton.aut > benchmarks/BernsteinVazirani/0" + std::to_string(n) + "/post.aut").c_str());
+        else
+            system(("/home/alan23273850/libvata/build/cli/vata red /tmp/automaton.aut > benchmarks/BernsteinVazirani/" + std::to_string(n) + "/post.aut").c_str());
+    }
+    system("rm /tmp/automaton.aut");
 }
