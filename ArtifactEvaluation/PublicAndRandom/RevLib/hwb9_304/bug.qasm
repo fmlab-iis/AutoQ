@@ -701,4 +701,4 @@ cx qubits[65], qubits[54];
 ccx qubits[3], qubits[54], qubits[65];
 cx qubits[65], qubits[39];
 ccx qubits[4], qubits[39], qubits[65];
-ccx qubits[4], qubits[39], qubits[65];
+x qubits[65];

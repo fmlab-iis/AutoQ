@@ -1436,4 +1436,4 @@ ccx qubits[0],qubits[10],qubits[11];
 h qubits[11];
 h qubits[11];
 cx qubits[0],qubits[10];
-cx qubits[0],qubits[10];
+h qubits[11];

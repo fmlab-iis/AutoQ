@@ -160,6 +160,6 @@ tof q1 q15 q45
 tof q1 q45 q15
 tof q15 q44
 tof q2 q44 q15
-tof q2 q44 q15
+tof q15
 
 END

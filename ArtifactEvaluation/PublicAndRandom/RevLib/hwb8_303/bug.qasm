@@ -451,4 +451,4 @@ cx qubits[43], qubits[37];
 ccx qubits[2], qubits[37], qubits[43];
 cx qubits[43], qubits[27];
 ccx qubits[3], qubits[27], qubits[43];
-ccx qubits[3], qubits[27], qubits[43];
+x qubits[43];

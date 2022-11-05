@@ -5031,6 +5031,6 @@ tof q2 q7 q5
 tof q2 q7 q0
 tof q5 q0 q7
 tof q5 q0 q2
-tof q5 q0 q2
+tof q2
 
 END

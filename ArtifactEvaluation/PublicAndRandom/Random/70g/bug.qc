@@ -280,6 +280,6 @@ tof q61 q59
 H q69
 Z q42
 tof q16 q58 q8
-tof q16 q58 q8
+Z q42
 
 END

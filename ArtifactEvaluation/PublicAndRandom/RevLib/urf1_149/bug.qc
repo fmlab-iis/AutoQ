@@ -11555,6 +11555,6 @@ tof q6 q8 q0
 tof q2 q8 q4
 tof q2 q8 q0
 tof q4 q8 q2
-tof q4 q8 q2
+tof q2
 
 END

@@ -182,4 +182,4 @@ cx qubits[21],qubits[22];
 cx qubits[25],qubits[26];
 cx qubits[28],qubits[29];
 cx qubits[32],qubits[33];
-cx qubits[32],qubits[33];
+h qubits[30];

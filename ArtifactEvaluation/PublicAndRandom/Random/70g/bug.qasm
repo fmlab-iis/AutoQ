@@ -212,4 +212,4 @@ cx qubits[61], qubits[59];
 h qubits[69];
 z qubits[42];
 ccx qubits[16], qubits[58], qubits[8];
-ccx qubits[16], qubits[58], qubits[8];
+z qubits[42];

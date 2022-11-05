@@ -32006,4 +32006,4 @@ ccx qubits[2], qubits[10], qubits[4];
 ccx qubits[2], qubits[10], qubits[1];
 ccx qubits[2], qubits[10], qubits[0];
 ccx qubits[9], qubits[10], qubits[2];
-ccx qubits[9], qubits[10], qubits[2];
+x qubits[2];

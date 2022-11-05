@@ -450,6 +450,6 @@ tof q43 q37
 tof q2 q37 q43
 tof q43 q27
 tof q3 q27 q43
-tof q3 q27 q43
+tof q43
 
 END

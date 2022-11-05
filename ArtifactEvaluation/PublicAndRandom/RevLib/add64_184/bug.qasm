@@ -258,4 +258,4 @@ ccx qubits[2], qubits[1], qubits[0];
 cx qubits[2], qubits[1];
 ccx qubits[1], qubits[3], qubits[0];
 cx qubits[1], qubits[3];
-cx qubits[1], qubits[3];
+x qubits[3];

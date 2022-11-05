@@ -23215,5 +23215,5 @@ tof b c
 tof c b
 tof a b
 tof b a
-tof b a
+X f
 END

@@ -131,6 +131,6 @@ H q22
 Z q6 q1
 Y q20
 Z q19 q25
-Z q19 q25
+Y q20
 
 END

@@ -700,6 +700,6 @@ tof q65 q54
 tof q3 q54 q65
 tof q65 q39
 tof q4 q39 q65
-tof q4 q39 q65
+tof q65
 
 END

@@ -282,6 +282,6 @@ tof q30 q25
 tof q2 q25 q30
 tof q30 q18
 tof q3 q18 q30
-tof q3 q18 q30
+tof q30
 
 END

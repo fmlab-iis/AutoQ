@@ -283,4 +283,4 @@ cx qubits[30], qubits[25];
 ccx qubits[2], qubits[25], qubits[30];
 cx qubits[30], qubits[18];
 ccx qubits[3], qubits[18], qubits[30];
-ccx qubits[3], qubits[18], qubits[30];
+x qubits[30];

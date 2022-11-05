@@ -212,4 +212,4 @@ cx qubits[29], qubits[64];
 cz qubits[29], qubits[44];
 rx(pi/2) qubits[56];
 cz qubits[58], qubits[22];
-cz qubits[58], qubits[22];
+rx(pi/2) qubits[56];

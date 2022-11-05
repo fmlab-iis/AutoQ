@@ -107,4 +107,4 @@ rx(pi/2) qubits[22];
 cz qubits[6], qubits[1];
 y qubits[20];
 cz qubits[19], qubits[25];
-cz qubits[19], qubits[25];
+y qubits[20];

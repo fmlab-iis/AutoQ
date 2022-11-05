@@ -212,4 +212,4 @@ rx(pi/2) qubits[19];
 s qubits[20];
 ry(pi/2) qubits[50];
 ccx qubits[32], qubits[11], qubits[47];
-ccx qubits[32], qubits[11], qubits[47];
+ry(pi/2) qubits[50];

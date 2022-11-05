@@ -131,6 +131,6 @@ Z q21
 Y q25
 tof q12 q16 q27
 tof q20 q32
-tof q20 q32
+Y q25
 
 END

@@ -140,6 +140,6 @@ S q7
 T q12
 tof q10
 tof q26 q33
-tof q26 q33
+tof q10
 
 END

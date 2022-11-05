@@ -129,6 +129,6 @@ tof q2 q1 q0
 tof q2 q1
 tof q1 q3 q0
 tof q1 q3
-tof q1 q3
+tof q3
 
 END

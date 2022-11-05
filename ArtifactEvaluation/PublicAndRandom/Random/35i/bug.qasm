@@ -107,4 +107,4 @@ z qubits[21];
 y qubits[25];
 ccx qubits[12], qubits[16], qubits[27];
 cx qubits[20], qubits[32];
-cx qubits[20], qubits[32];
+y qubits[25];

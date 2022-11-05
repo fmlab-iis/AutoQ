@@ -2,7 +2,7 @@
 import sys
 from qiskit import QuantumCircuit
 
-print(r'\begin{tabular}{|c||c|c||c|c|c|c|c|c||c|c|c|c|c|c||c||c|}\hline')
+print(r'\begin{tabular}{|c||c|c||c|c|c|c|c|c||c|c|c|c|c|c||c|c|}\hline')
 current_benchmark = ''
 lst = []
 bm = {'BernsteinVazirani': 'Bernstein-Vazirani\'s algorithm with one hidden string',  'Feynman': 'Feynman',
@@ -19,10 +19,10 @@ for line in file.readlines():
     if r'\multicolumn{8}{c||}{TO}' in line:
         qc = QuantumCircuit.from_qasm_file(f"{line.split(' & ')[0]}/bug.qasm")
         line = line.replace(r'\multicolumn{8}{c||}{TO}', f'{qc.num_qubits} & {qc.size()} & ' + r'\multicolumn{6}{c||}{\textbf{TO}}')
-    else:
-        line = ' & '.join(line.split(' & ')[:7] + [r'\textbf{' + line.split(' & ')[7] + '}'] + line.split(' & ')[8:])
-        if r'\multicolumn{6}{c||}{TO}' not in line:
-            line = ' & '.join(line.split(' & ')[:13] + [r'\textbf{' + line.split(' & ')[13] + '}'] + line.split(' & ')[14:])
+    # else:
+    #     line = ' & '.join(line.split(' & ')[:7] + [r'\textbf{' + line.split(' & ')[7] + '}'] + line.split(' & ')[8:])
+    #     if r'\multicolumn{6}{c||}{TO}' not in line:
+    #         line = ' & '.join(line.split(' & ')[:13] + [r'\textbf{' + line.split(' & ')[13] + '}'] + line.split(' & ')[14:])
     line = line.replace(r'\multicolumn{6}{c||}{TO}', r'\multicolumn{6}{c||}{\textbf{TO}}')
     # line = ' & '.join(line.split(' & ')[:-2] + [r'\textbf{' + line.split(' & ')[-2] + '}'] + line.split(' & ')[-1:])
     line = line.strip().replace('_', r'\_').replace('^', r'\textasciicircum')#.replace('Equal (took ', '').replace('s)', 's')

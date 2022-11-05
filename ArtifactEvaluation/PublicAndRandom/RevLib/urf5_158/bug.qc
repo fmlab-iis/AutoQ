@@ -10277,6 +10277,6 @@ tof q2 q8 q5
 tof q2 q8 q1
 tof q2 q8 q0
 tof q6 q8 q2
-tof q6 q8 q2
+tof q2
 
 END

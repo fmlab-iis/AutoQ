@@ -265,6 +265,7 @@ S q20
 X q50
 H q50
 tof q32 q11 q47
-tof q32 q11 q47
+X q50
+H q50
 
 END

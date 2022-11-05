@@ -97,6 +97,6 @@ tof q2 q30 q31
 tof q31
 tof q5 q31 q27
 tof q5 q27 q31
-tof q5 q27 q31
+tof q31
 
 END

@@ -1759,4 +1759,4 @@ cx qubits[316], qubits[28];
 cx qubits[317], qubits[29];
 cx qubits[318], qubits[30];
 cx qubits[319], qubits[31];
-cx qubits[319], qubits[31];
+x qubits[31];

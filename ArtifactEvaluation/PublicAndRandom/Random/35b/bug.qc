@@ -127,6 +127,6 @@ Z q6 q9
 H q2
 H q34
 tof q21 q32 q30
-tof q21 q32 q30
+H q34
 
 END

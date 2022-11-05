@@ -270,6 +270,8 @@ H q56
 S q56
 H q56
 Z q58 q22
-Z q58 q22
+H q56
+S q56
+H q56
 
 END

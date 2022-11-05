@@ -5032,4 +5032,4 @@ ccx qubits[2], qubits[7], qubits[5];
 ccx qubits[2], qubits[7], qubits[0];
 ccx qubits[5], qubits[0], qubits[7];
 ccx qubits[5], qubits[0], qubits[2];
-ccx qubits[5], qubits[0], qubits[2];
+x qubits[2];

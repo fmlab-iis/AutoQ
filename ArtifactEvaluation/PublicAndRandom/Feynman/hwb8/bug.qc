@@ -4769,6 +4769,6 @@ tof b c
 tof c b
 tof a b
 tof b a
-tof b a
+H c
 END
 # size = 2710 cost = 7020

@@ -107,4 +107,4 @@ s qubits[7];
 t qubits[12];
 x qubits[10];
 cx qubits[26], qubits[33];
-cx qubits[26], qubits[33];
+x qubits[10];

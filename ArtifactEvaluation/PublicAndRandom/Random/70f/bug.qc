@@ -260,6 +260,6 @@ tof q17
 tof q6 q64
 H q4
 tof q8 q65 q67
-tof q8 q65 q67
+H q4
 
 END

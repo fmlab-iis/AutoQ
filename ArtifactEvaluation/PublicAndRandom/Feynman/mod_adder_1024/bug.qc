@@ -867,5 +867,5 @@ H x12
 Z x1 x11 x12
 H x12
 tof x1 x11
-tof x1 x11
+H x12
 END

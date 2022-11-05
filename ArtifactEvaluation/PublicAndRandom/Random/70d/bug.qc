@@ -266,6 +266,6 @@ X q65
 H q65
 tof q34
 Z q60 q7
-Z q60 q7
+tof q34
 
 END
