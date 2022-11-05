@@ -111,8 +111,14 @@ int main(int argc, char **argv) {
     fileLhs.close(); // Notice that we assume fractions in argv[4] are already simplified.
     auto startVer = chrono::steady_clock::now();
     if (argc >= 5) {
-        if (!VATA::Util::TreeAutomata::check_inclusion(argv[3], argv[4]))
-            throw std::runtime_error("Does not satisfy the postcondition!");
+        if (!VATA::Util::TreeAutomata::check_inclusion(argv[3], argv[4])) {
+            // throw std::runtime_error("Does not satisfy the postcondition!");
+            std::cout << VATA::Util::Convert::ToString(aut.qubitNum) << " & " << VATA::Util::TreeAutomata::gateCount
+            << " & " << stateBefore << " & " << aut.stateNum
+            << " & " << transitionBefore << " & " << aut.transition_size()
+            << " & " << toString(durationSim) << " & V";
+            return 0;
+        }
     }
     durationVer = chrono::steady_clock::now() - startVer;
     
