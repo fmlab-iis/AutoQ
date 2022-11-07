@@ -79,9 +79,7 @@ while len(process_pool_large) > 0:
             process_pool_large.pop(i)
             break
 
-os.system('pkill -9 -f permutation')
-os.system('pkill -9 -f composition')
-os.system('pkill -9 -f feynver')
+os.system('pkill -9 -f permutation; pkill -9 -f composition; pkill -9 -f SliQSim; pkill -9 -f feynver; pkill -9 -f vata')
 
 f = open(name, 'w')
 for row in string_pool_large:
