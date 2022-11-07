@@ -24,6 +24,7 @@ void rand_gen(int &a, int &b, int &c);
 std::string toString(std::chrono::steady_clock::duration tp);
 void produce_BernsteinVazirani_post();
 void produce_Grover_post();
+void produce_MCToffoli_pre_and_post();
 
 int main(int argc, char **argv) {
     VATA::Util::TreeAutomata aut = VATA::Parsing::TimbukParser::FromFileToAutomata(argv[1]);
@@ -319,6 +320,47 @@ void produce_Grover_post() {
             system(("/home/alan23273850/libvata/build/cli/vata red /tmp/automaton.aut > benchmarks/Grover/0" + std::to_string(n) + "/post.aut").c_str());
         else
             system(("/home/alan23273850/libvata/build/cli/vata red /tmp/automaton.aut > benchmarks/Grover/" + std::to_string(n) + "/post.aut").c_str());
+    }
+    system("rm /tmp/automaton.aut");
+}
+
+void produce_MCToffoli_pre_and_post() {
+    for (int n=3; n<=99; n++) {
+        VATA::Util::TreeAutomata ans;
+        ans.qubitNum = 2*n;
+        ans.finalStates.push_back(0);
+        //
+        ans.transitions[{1}][{2, 1}] = {0}; // 10
+        ans.transitions[{1}][{1, 2}] = {0}; // 01
+        for (int level=2; level<ans.qubitNum; level++) {
+            if (level & 1) {
+                ans.transitions[{level}][{2*level-1, 2*level-1}] = {2*level-3}; // 0 -> 00
+                ans.transitions[{level}][{2*level-1, 2*level}] = {2*level-2}; // 1 -> 01
+                ans.transitions[{level}][{2*level, 2*level-1}] = {2*level-2}; // 1 -> 10
+            } else {
+                ans.transitions[{level}][{2*level-1, 2*level-1}] = {2*level-3}; // 0 -> 00
+                ans.transitions[{level}][{2*level, 2*level-1}] = {2*level-2}; // 1 -> 10
+            }
+        }
+        ans.transitions[{ans.qubitNum}][{2*ans.qubitNum-1, 2*ans.qubitNum-1}] = {2*ans.qubitNum-3}; // 0 -> 00
+        ans.transitions[{ans.qubitNum}][{2*ans.qubitNum-1, 2*ans.qubitNum}] = {2*ans.qubitNum-2}; // 1 -> 01
+        ans.transitions[{ans.qubitNum}][{2*ans.qubitNum, 2*ans.qubitNum-1}] = {2*ans.qubitNum-2}; // 1 -> 10
+        //
+        ans.transitions[{0,0,0,0,0}][{}] = {2*ans.qubitNum-1}; // 0
+        ans.transitions[{1,0,0,0,0}][{}] = {2*ans.qubitNum}; // 1
+        ans.stateNum = 2*ans.qubitNum + 1;
+
+        std::ofstream of("/tmp/automaton.aut");
+        of << VATA::Serialization::TimbukSerializer::Serialize(ans);
+        of.close();
+        if (n < 10) {
+            system(("cp /tmp/automaton.aut benchmarks/MCToffoli/0" + std::to_string(n) + "/pre.aut").c_str());
+            system(("/home/alan23273850/libvata/build/cli/vata red /tmp/automaton.aut > benchmarks/MCToffoli/0" + std::to_string(n) + "/post.aut").c_str());
+        }
+        else {
+            system(("cp /tmp/automaton.aut benchmarks/MCToffoli/" + std::to_string(n) + "/pre.aut").c_str());
+            system(("/home/alan23273850/libvata/build/cli/vata red /tmp/automaton.aut > benchmarks/MCToffoli/" + std::to_string(n) + "/post.aut").c_str());
+        }
     }
     system("rm /tmp/automaton.aut");
 }
