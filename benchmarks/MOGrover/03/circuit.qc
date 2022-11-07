@@ -3,6 +3,9 @@ BEGIN
 
 tof q8
 
+tof q0
+tof q1
+tof q2
 H q3
 H q4
 H q6
@@ -59,5 +62,9 @@ tof q6
 H q3
 H q4
 H q6
+tof q0
+tof q1
+tof q2
+H q8
 
 END

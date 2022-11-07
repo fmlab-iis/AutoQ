@@ -3,6 +3,18 @@ BEGIN
 
 tof q35
 
+tof q0
+tof q1
+tof q2
+tof q3
+tof q4
+tof q5
+tof q6
+tof q7
+tof q8
+tof q9
+tof q10
+tof q11
 H q12
 H q13
 H q15
@@ -5816,5 +5828,18 @@ H q27
 H q29
 H q31
 H q33
+tof q0
+tof q1
+tof q2
+tof q3
+tof q4
+tof q5
+tof q6
+tof q7
+tof q8
+tof q9
+tof q10
+tof q11
+H q35
 
 END

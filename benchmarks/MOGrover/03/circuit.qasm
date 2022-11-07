@@ -3,6 +3,9 @@ include "qelib1.inc";
 qreg qubits[9];
 x qubits[8];
 
+x qubits[0];
+x qubits[1];
+x qubits[2];
 h qubits[3];
 h qubits[4];
 h qubits[6];
@@ -59,3 +62,7 @@ x qubits[6];
 h qubits[3];
 h qubits[4];
 h qubits[6];
+x qubits[0];
+x qubits[1];
+x qubits[2];
+h qubits[8];

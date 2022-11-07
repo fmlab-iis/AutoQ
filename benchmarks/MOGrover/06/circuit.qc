@@ -3,6 +3,12 @@ BEGIN
 
 tof q17
 
+tof q0
+tof q1
+tof q2
+tof q3
+tof q4
+tof q5
 H q6
 H q7
 H q9
@@ -346,5 +352,12 @@ H q9
 H q11
 H q13
 H q15
+tof q0
+tof q1
+tof q2
+tof q3
+tof q4
+tof q5
+H q17
 
 END

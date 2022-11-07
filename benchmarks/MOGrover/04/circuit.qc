@@ -3,6 +3,10 @@ BEGIN
 
 tof q11
 
+tof q0
+tof q1
+tof q2
+tof q3
 H q4
 H q5
 H q7
@@ -116,5 +120,10 @@ H q4
 H q5
 H q7
 H q9
+tof q0
+tof q1
+tof q2
+tof q3
+H q11
 
 END

@@ -1,18 +1,18 @@
 # Feynman -- quantum circuit toolkit
-# Original (/home/alan23273850/libvata2/benchmarks/MOGrover/5/circuit.qc):
+# Original (/home/alan23273850/libvata2/benchmarks/MOGrover/05/circuit.qc):
 #   Qubits: 15
-#   H: 158
+#   H: 159
 #   T: 392
-#   X: 41
+#   X: 51
 #   cnot: 380
 #   cz: 4
 #   Depth: 461
 #   T depth: 184
-# Result (3.463ms):
+# Result (3.486ms):
 #   Qubits: 15
-#   H: 158
+#   H: 159
 #   T: 392
-#   X: 41
+#   X: 51
 #   cnot: 380
 #   cz: 4
 #   Depth: 461
@@ -22,6 +22,11 @@
 .o q0 q1 q2 q3 q4 q5 q6 q7 q8 q9 q10 q11 q12 q13 q14
 BEGIN 
 tof q14
+tof q0
+tof q1
+tof q2
+tof q3
+tof q4
 H q5
 H q6
 H q8
@@ -212,4 +217,10 @@ H q6
 H q8
 H q10
 H q12
+tof q0
+tof q1
+tof q2
+tof q3
+tof q4
+H q14
 END

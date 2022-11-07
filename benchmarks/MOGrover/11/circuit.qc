@@ -3,6 +3,17 @@ BEGIN
 
 tof q32
 
+tof q0
+tof q1
+tof q2
+tof q3
+tof q4
+tof q5
+tof q6
+tof q7
+tof q8
+tof q9
+tof q10
 H q11
 H q12
 H q14
@@ -3725,5 +3736,17 @@ H q24
 H q26
 H q28
 H q30
+tof q0
+tof q1
+tof q2
+tof q3
+tof q4
+tof q5
+tof q6
+tof q7
+tof q8
+tof q9
+tof q10
+H q32
 
 END
