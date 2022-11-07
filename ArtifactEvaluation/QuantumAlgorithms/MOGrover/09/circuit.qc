@@ -3,6 +3,15 @@ BEGIN
 
 tof q26
 
+tof q0
+tof q1
+tof q2
+tof q3
+tof q4
+tof q5
+tof q6
+tof q7
+tof q8
 H q9
 H q10
 H q12
@@ -1475,5 +1484,15 @@ H q18
 H q20
 H q22
 H q24
+tof q0
+tof q1
+tof q2
+tof q3
+tof q4
+tof q5
+tof q6
+tof q7
+tof q8
+H q26
 
 END

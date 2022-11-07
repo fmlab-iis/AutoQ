@@ -3,6 +3,16 @@ BEGIN
 
 tof q29
 
+tof q0
+tof q1
+tof q2
+tof q3
+tof q4
+tof q5
+tof q6
+tof q7
+tof q8
+tof q9
 H q10
 H q11
 H q13
@@ -2414,5 +2424,16 @@ H q21
 H q23
 H q25
 H q27
+tof q0
+tof q1
+tof q2
+tof q3
+tof q4
+tof q5
+tof q6
+tof q7
+tof q8
+tof q9
+H q29
 
 END
