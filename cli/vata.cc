@@ -24,6 +24,7 @@ void rand_gen(int &a, int &b, int &c);
 std::string toString(std::chrono::steady_clock::duration tp);
 void produce_BernsteinVazirani_post();
 void produce_Grover_post();
+void produce_MOGrover_post();
 void produce_MCToffoli_pre_and_post();
 
 int main(int argc, char **argv) {
@@ -361,6 +362,71 @@ void produce_MCToffoli_pre_and_post() {
             system(("cp /tmp/automaton.aut benchmarks/MCToffoli/" + std::to_string(n) + "/pre.aut").c_str());
             system(("/home/alan23273850/libvata/build/cli/vata red /tmp/automaton.aut > benchmarks/MCToffoli/" + std::to_string(n) + "/post.aut").c_str());
         }
+    }
+    system("rm /tmp/automaton.aut");
+}
+
+void produce_MOGrover_post() {
+    for (int n=3; n<=12; n++) {
+        VATA::Util::TreeAutomata ans;
+        ans.qubitNum = 3*n;
+        int pow2n = 1 << n;
+        for (int z=0; z<pow2n; z++) {
+            VATA::Util::TreeAutomata single;
+            single.qubitNum = 3*n;
+            single.finalStates.push_back(0);
+            // solution qubits
+            if (z & 1) single.transitions[{1}][{1, 2}] = {0}; // 01
+            else single.transitions[{1}][{2, 1}] = {0}; // 10
+            for (int i=2; i<=n; i++) {
+                single.transitions[{i}][{2*i - 1, 2*i - 1}] = {2*i - 3}; // 0 -> 00
+                if ((z>>(i-1)) & 1)
+                    single.transitions[{i}][{2*i - 1, 2*i}] = {2*i - 2}; // 1 -> 01
+                else
+                    single.transitions[{i}][{2*i, 2*i - 1}] = {2*i - 2}; // 1 -> 10
+            }
+            // 1st output qubit
+            single.transitions[{n+1}][{2*n + 1, 2*n + 1}] = {2*n - 1}; // 0 -> 00
+            if (z & 1) single.transitions[{n+1}][{2*n + 2, 2*n + 3}] = {2*n}; // 1 -> 少多
+            else single.transitions[{n+1}][{2*n + 3, 2*n + 2}] = {2*n}; // 1 -> 多少
+            int p=2*n+1, q=2*n+2, r=2*n+3;
+            for (int i=1; i<n; i++) {
+                // 2nd-(n)th output qubits
+                single.transitions[{n+2*i}][{p+3, p+3}] = {p}; // 0 -> 00
+                single.transitions[{n+2*i}][{q+3, q+3}] = {q}; // 少 -> 少少
+                if ((z>>i) & 1)
+                    single.transitions[{n+2*i}][{q+3, r+3}] = {r}; // 多 -> 少多
+                else
+                    single.transitions[{n+2*i}][{r+3, q+3}] = {r}; // 多 -> 多少
+                p+=3; q+=3; r+=3;
+                // 1st-(n-1)th work qubits
+                single.transitions[{n+2*i+1}][{p+3, p+3}] = {p}; // 0 -> 00
+                single.transitions[{n+2*i+1}][{q+3, p+3}] = {q}; // 少 -> 少0
+                single.transitions[{n+2*i+1}][{r+3, p+3}] = {r}; // 多 -> 多0
+                p+=3; q+=3; r+=3;
+            }
+            // the last target qubit
+            single.transitions[{3*n}][{p+3, p+3}] = {p}; // 0 -> 00
+            single.transitions[{3*n}][{p+3, q+3}] = {q}; // 少 -> 0少
+            single.transitions[{3*n}][{p+3, r+3}] = {r}; // 多 -> 0多
+            p+=3; q+=3; r+=3;
+            // amplitudes
+            single.transitions[{0,0,0,0,0}][{}] = {p}; // 0
+            single.transitions[Grover_small_amplitude(n)][{}] = {q}; // 少
+            single.transitions[Grover_large_amplitude(n)][{}] = {r}; // 多
+            single.stateNum = r + 1;
+            //
+            ans = ans.Union(single);
+            // ans.remove_useless();
+            // ans.reduce();
+        }
+        std::ofstream of("/tmp/automaton.aut");
+        of << VATA::Serialization::TimbukSerializer::Serialize(ans);
+        of.close();
+        if (n < 10)
+            system(("/home/alan23273850/libvata/build/cli/vata red /tmp/automaton.aut > benchmarks/MOGrover/0" + std::to_string(n) + "/post.aut").c_str());
+        else
+            system(("/home/alan23273850/libvata/build/cli/vata red /tmp/automaton.aut > benchmarks/MOGrover/" + std::to_string(n) + "/post.aut").c_str());
     }
     system("rm /tmp/automaton.aut");
 }
