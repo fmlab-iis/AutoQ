@@ -1,0 +1,30 @@
+\begin{tabular}{|c||c|c||c|c|c|c|c|c||c|c|c|c|c|c||c||c|c|}\hline
+\hline\multicolumn{18}{|c|}{\textbf{Bernstein-Vazirani's algorithm with one hidden string}}\\\hline
+\textbf{Problem} & \textbf{\#q} & \textbf{\#G} & \textbf{P-sb} & \textbf{P-sa} & \textbf{P-tb} & \textbf{P-ta} & \textbf{P-exeT} & \textbf{P-incT} & \textbf{C-sb} & \textbf{C-sa} & \textbf{C-tb} & \textbf{C-ta} & \textbf{C-exeT} & \textbf{C-incT} & \textbf{SliQSim} & \textbf{feynmanV} & \textbf{feynmanT}\\\hline
+95 & 96 & 241 & 193 & 193 & 193 & 193 & \textbf{6.0s} & 0.0s & 193 & 193 & 193 & 193 & \textbf{7.1s} & 0.0s & 0.0s & \textbf{Equal} & 0.5s\\\hline
+96 & 97 & 243 & 195 & 195 & 195 & 195 & \textbf{5.9s} & 0.0s & 195 & 195 & 195 & 195 & \textbf{7.1s} & 0.0s & 0.0s & \textbf{Equal} & 0.5s\\\hline
+97 & 98 & 246 & 197 & 197 & 197 & 197 & \textbf{6.3s} & 0.0s & 197 & 197 & 197 & 197 & \textbf{7.4s} & 0.0s & 0.0s & \textbf{Equal} & 0.6s\\\hline
+98 & 99 & 248 & 199 & 199 & 199 & 199 & \textbf{6.5s} & 0.0s & 199 & 199 & 199 & 199 & \textbf{7.7s} & 0.0s & 0.0s & \textbf{Equal} & 0.6s\\\hline
+99 & 100 & 251 & 201 & 201 & 201 & 201 & \textbf{6.7s} & 0.0s & 201 & 201 & 201 & 201 & \textbf{7.8s} & 0.0s & 0.0s & \textbf{Equal} & 0.6s\\\hline
+\hline\multicolumn{18}{|c|}{\textbf{Grover's algorithm with one oracle}}\\\hline
+\textbf{Problem} & \textbf{\#q} & \textbf{\#G} & \textbf{P-sb} & \textbf{P-sa} & \textbf{P-tb} & \textbf{P-ta} & \textbf{P-exeT} & \textbf{P-incT} & \textbf{C-sb} & \textbf{C-sa} & \textbf{C-tb} & \textbf{C-ta} & \textbf{C-exeT} & \textbf{C-incT} & \textbf{SliQSim} & \textbf{feynmanV} & \textbf{feynmanT}\\\hline
+12 & 24 & 5215 & 49 & 71 & 49 & 71 & \textbf{11s} & 0.0s & 49 & 71 & 49 & 71 & \textbf{49s} & 0.0s & \textbf{2.8s} & \multicolumn{2}{c|}{$>$ 12m}\\\hline
+14 & 28 & 12217 & 57 & 83 & 57 & 83 & \textbf{31s} & 0.0s & 57 & 83 & 57 & 83 & \textbf{2m26s} & 0.0s & \textbf{18s} & \multicolumn{2}{c|}{$>$ 12m}\\\hline
+16 & 32 & 28159 & 65 & 95 & 65 & 95 & \textbf{1m29s} & 0.0s & 65 & 95 & 65 & 95 & \textbf{6m59s} & 0.0s & \textbf{1m41s} & \multicolumn{2}{c|}{$>$ 12m}\\\hline
+18 & 36 & 63537 & 73 & 107 & 73 & 107 & \textbf{4m1s} & 0.0s & \multicolumn{6}{c||}{\textbf{$>$ 12m}} & \textbf{9m27s} & \multicolumn{2}{c|}{$>$ 12m}\\\hline
+20 & 40 & 141527 & 81 & 119 & 81 & 119 & \textbf{10m56s} & 0.0s & \multicolumn{6}{c||}{\textbf{$>$ 12m}} & \textbf{$>$ 12m} & \multicolumn{2}{c|}{$>$ 12m}\\\hline
+\hline\multicolumn{18}{|c|}{\textbf{Multi-controlled Toffoli gate}}\\\hline
+\textbf{Problem} & \textbf{\#q} & \textbf{\#G} & \textbf{P-sb} & \textbf{P-sa} & \textbf{P-tb} & \textbf{P-ta} & \textbf{P-exeT} & \textbf{P-incT} & \textbf{C-sb} & \textbf{C-sa} & \textbf{C-tb} & \textbf{C-ta} & \textbf{C-exeT} & \textbf{C-incT} & \textbf{SliQSim} & \textbf{feynmanV} & \textbf{feynmanT}\\\hline
+08 & 16 & 15 & 33 & 782 & 42 & 1293 & \textbf{0.1s} & 0.0s & 33 & 401 & 42 & 531 & \textbf{2.8s} & 0.0s & 1.3s & \textbf{Equal} & 0.0s\\\hline
+10 & 20 & 19 & 41 & 3090 & 52 & 5137 & \textbf{0.7s} & 0.0s & 41 & 1557 & 52 & 2071 & \textbf{35s} & 0.0s & 6.6s & \textbf{Equal} & 0.1s\\\hline
+12 & 24 & 23 & 49 & 12310 & 62 & 20501 & \textbf{7.0s} & 0.2s & 49 & 6169 & 62 & 8219 & \textbf{7m52s} & 0.1s & 24s & \textbf{Equal} & 0.1s\\\hline
+14 & 28 & 27 & 57 & 49178 & 72 & 81945 & \textbf{52s} & 1.8s & \multicolumn{6}{c||}{\textbf{$>$ 12m}} & 1m37s & \textbf{Equal} & 0.2s\\\hline
+16 & 32 & 31 & 65 & 196638 & 82 & 327709 & \textbf{5m36s} & 14s & \multicolumn{6}{c||}{\textbf{$>$ 12m}} & $>$ 12m & \textbf{Equal} & 0.2s\\\hline
+\hline\multicolumn{18}{|c|}{\textbf{Grover's algorithm with all possible oracles}}\\\hline
+\textbf{Problem} & \textbf{\#q} & \textbf{\#G} & \textbf{P-sb} & \textbf{P-sa} & \textbf{P-tb} & \textbf{P-ta} & \textbf{P-exeT} & \textbf{P-incT} & \textbf{C-sb} & \textbf{C-sa} & \textbf{C-tb} & \textbf{C-ta} & \textbf{C-exeT} & \textbf{C-incT} & \textbf{SliQSim} & \textbf{feynmanV} & \textbf{feynmanT}\\\hline
+06 & 18 & 357 & 37 & 252 & 43 & 315 & \textbf{3.3s} & 0.0s & 37 & 510 & 43 & 573 & \textbf{12s} & 0.0s & \textbf{1.7s} & \multicolumn{2}{c|}{$>$ 12m}\\\hline
+07 & 21 & 552 & 43 & 481 & 50 & 608 & \textbf{10s} & 0.0s & 43 & 1123 & 50 & 1250 & \textbf{42s} & 0.0s & \textbf{5.4s} & \multicolumn{2}{c|}{$>$ 12m}\\\hline
+08 & 24 & 939 & 49 & 934 & 57 & 1189 & \textbf{39s} & 0.1s & 49 & 2472 & 57 & 2727 & \textbf{2m40s} & 0.0s & \textbf{26s} & \multicolumn{2}{c|}{$>$ 12m}\\\hline
+09 & 27 & 1492 & 55 & 1835 & 64 & 2346 & \textbf{2m17s} & 0.4s & 55 & 5421 & 64 & 5932 & \textbf{10m13s} & 0.1s & \textbf{2m5s} & \multicolumn{2}{c|}{$>$ 12m}\\\hline
+10 & 30 & 2433 & 61 & 3632 & 71 & 4655 & \textbf{9m48s} & 2.1s & \multicolumn{6}{c||}{\textbf{$>$ 12m}} & \textbf{11m31s} & \multicolumn{2}{c|}{$>$ 12m}\\\hline
+\end{tabular}
