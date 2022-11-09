@@ -77,11 +77,11 @@ int main(int argc, char **argv) {
             std::smatch match_pieces;
             if (std::regex_search(line, match_pieces, digit))
                 aut.Tdg(1 + atoi(match_pieces[0].str().c_str()));
-        } else if (line.find("rx(pi/2) ") == 0) {
+        } else if (line.find("rx(pi/2) ") == 0 || line.find("rx(pi / 2)") == 0) {
             std::smatch match_pieces;
             if (std::regex_search(line, match_pieces, digit))
                 aut.Rx(1 + atoi(match_pieces[0].str().c_str()));
-        } else if (line.find("ry(pi/2) ") == 0) {
+        } else if (line.find("ry(pi/2) ") == 0 || line.find("ry(pi / 2)") == 0) {
             std::smatch match_pieces;
             if (std::regex_search(line, match_pieces, digit))
                 aut.Ry(1 + atoi(match_pieces[0].str().c_str()));
