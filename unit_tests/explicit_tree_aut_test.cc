@@ -124,6 +124,22 @@ BOOST_AUTO_TEST_CASE(S_gate_fourth_to_identity)
     }
 }
 
+BOOST_AUTO_TEST_CASE(Sdg_gate_equal_to_S_three_times)
+{
+    for (const auto &before : {VATA::Util::TreeAutomata::uniform(size),
+                                VATA::Util::TreeAutomata::basis(size),
+                                VATA::Util::TreeAutomata::random(size),
+                                VATA::Util::TreeAutomata::zero(size),
+                                VATA::Util::TreeAutomata::basis_zero_one_zero(size),
+                                VATA::Util::TreeAutomata::zero_zero_one_zero(size),
+                                VATA::Util::TreeAutomata::zero_one_zero(size)}) {
+        VATA::Util::TreeAutomata after1 = before, after2 = before;
+        for (int i=0; i<3; i++) after1.S(size/2);
+        after2.Sdg(size/2);
+        BOOST_REQUIRE_MESSAGE(VATA::Util::TreeAutomata::check_equal_aut(after1, after2), "");
+    }
+}
+
 BOOST_AUTO_TEST_CASE(T_gate_eighth_to_identity)
 {
     for (const auto &before : {VATA::Util::TreeAutomata::uniform(size), VATA::Util::TreeAutomata::basis(size)}) {
@@ -138,6 +154,37 @@ BOOST_AUTO_TEST_CASE(T_gate_eighth_to_identity)
                 BOOST_REQUIRE_MESSAGE(VATA::Util::TreeAutomata::check_equal_aut(before, after), "");
             }
         }
+    }
+}
+
+BOOST_AUTO_TEST_CASE(Tdg_gate_equal_to_T_seven_times)
+{
+    for (const auto &before : {VATA::Util::TreeAutomata::uniform(size),
+                                VATA::Util::TreeAutomata::basis(size),
+                                VATA::Util::TreeAutomata::random(size),
+                                VATA::Util::TreeAutomata::zero(size),
+                                VATA::Util::TreeAutomata::basis_zero_one_zero(size),
+                                VATA::Util::TreeAutomata::zero_zero_one_zero(size),
+                                VATA::Util::TreeAutomata::zero_one_zero(size)}) {
+        VATA::Util::TreeAutomata after1 = before, after2 = before;
+        for (int i=0; i<7; i++) after1.T(size/2);
+        after2.Tdg(size/2);
+        BOOST_REQUIRE_MESSAGE(VATA::Util::TreeAutomata::check_equal_aut(after1, after2), "");
+    }
+}
+
+BOOST_AUTO_TEST_CASE(swap_gate_simply_exchanges_basis)
+{
+    for (const auto &before : {VATA::Util::TreeAutomata::uniform(size),
+                                VATA::Util::TreeAutomata::basis(size),
+                                // VATA::Util::TreeAutomata::random(size),
+                                VATA::Util::TreeAutomata::zero(size),
+                                VATA::Util::TreeAutomata::basis_zero_one_zero(size),
+                                VATA::Util::TreeAutomata::zero_zero_one_zero(size),
+                                VATA::Util::TreeAutomata::zero_one_zero(size)}) {
+        VATA::Util::TreeAutomata after = before;
+        after.swap(size*1/3, size*2/3);
+        BOOST_REQUIRE_MESSAGE(VATA::Util::TreeAutomata::check_equal_aut(before, after), "");
     }
 }
 

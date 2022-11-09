@@ -470,6 +470,126 @@ void VATA::Util::TreeAutomata::Toffoli(int c, int c2, int t) {
     if (gateLog) std::cout << "Toffoli" << c << "," << c2 << "," << t << "：" << stateNum << " states " << count_transitions() << " transitions " << toString(duration) << "\n";
 }
 
+void VATA::Util::TreeAutomata::Tdg(int t) {
+    // #ifdef TO_QASM
+    //     system(("echo 'tdg qubits[" + std::to_string(t-1) + "];' >> " + QASM_FILENAME).c_str());
+    //     return;
+    // #endif
+    auto start = std::chrono::steady_clock::now();
+    auto aut2 = *this;
+    TransitionMap transitions_new;
+    for (const auto &t_old : aut2.transitions) {
+        if (is_leaf(t_old.first)) {
+            Symbol temp;
+            temp.push_back(t_old.first[1]);
+            temp.push_back(t_old.first[2]);
+            temp.push_back(t_old.first[3]);
+            temp.push_back(-t_old.first[0]);
+            temp.push_back(t_old.first[4]);
+            transitions_new[temp] = t_old.second;
+        } else {
+            assert(t_old.first.size() <= 2);
+            transitions_new.insert(t_old);
+        }
+    }
+    aut2.transitions = transitions_new;
+    /******************************/
+    for (const auto &tr : aut2.transitions) {
+        if (!(is_internal(tr.first) && tr.first[0] <= t)) {
+            auto &ttf = transitions[tr.first];
+            for (const auto &in_out : tr.second) {
+                StateVector in;
+                for (const auto &s : in_out.first)
+                    in.push_back(s+stateNum);
+                for (const auto &s : in_out.second)
+                    ttf[in].insert(s+stateNum);
+            }
+        }
+    }
+    auto &tac = transitions.at({t});
+    auto in_outs = tac;
+    for (const auto &in_out : in_outs) {
+        assert(in_out.first.size() == 2);
+        if (in_out.first[0] < stateNum && in_out.first[1] < stateNum) {
+            tac[{in_out.first[0], in_out.first[1]+stateNum}] = in_out.second;
+            tac.erase(in_out.first);
+        }
+    }
+    stateNum += aut2.stateNum;
+    remove_useless();
+    reduce();
+    gateCount++;
+    auto duration = std::chrono::steady_clock::now() - start;
+    if (gateLog) std::cout << "Tdg" << t << "：" << stateNum << " states " << count_transitions() << " transitions " << toString(duration) << "\n";
+}
+
+void VATA::Util::TreeAutomata::Sdg(int t) {
+    // #ifdef TO_QASM
+    //     system(("echo 'sdg qubits[" + std::to_string(t-1) + "];' >> " + QASM_FILENAME).c_str());
+    //     return;
+    // #endif
+    auto start = std::chrono::steady_clock::now();
+    auto aut2 = *this;
+    TransitionMap transitions_new;
+    for (const auto &t_old : aut2.transitions) {
+        if (is_leaf(t_old.first)) {
+            Symbol temp;
+            temp.push_back(t_old.first[2]);
+            temp.push_back(t_old.first[3]);
+            temp.push_back(-t_old.first[0]);
+            temp.push_back(-t_old.first[1]);
+            temp.push_back(t_old.first[4]);
+            transitions_new[temp] = t_old.second;
+        } else {
+            assert(t_old.first.size() <= 2);
+            transitions_new.insert(t_old);
+        }
+    }
+    aut2.transitions = transitions_new;
+    /******************************/
+    for (const auto &tr : aut2.transitions) {
+        if (!(is_internal(tr.first) && tr.first[0] <= t)) {
+            auto &ttf = transitions[tr.first];
+            for (const auto &in_out : tr.second) {
+                StateVector in;
+                for (const auto &s : in_out.first)
+                    in.push_back(s+stateNum);
+                for (const auto &s : in_out.second)
+                    ttf[in].insert(s+stateNum);
+            }
+        }
+    }
+    auto &tac = transitions.at({t});
+    auto in_outs = tac;
+    for (const auto &in_out : in_outs) {
+        assert(in_out.first.size() == 2);
+        if (in_out.first[0] < stateNum && in_out.first[1] < stateNum) {
+            tac[{in_out.first[0], in_out.first[1]+stateNum}] = in_out.second;
+            tac.erase(in_out.first);
+        }
+    }
+    stateNum += aut2.stateNum;
+    remove_useless();
+    reduce();
+    gateCount++;
+    auto duration = std::chrono::steady_clock::now() - start;
+    if (gateLog) std::cout << "Sdg" << t << "：" << stateNum << " states " << count_transitions() << " transitions " << toString(duration) << "\n";
+}
+
+void VATA::Util::TreeAutomata::swap(int t1, int t2) {
+    // #ifdef TO_QASM
+    //     system(("echo 'swap qubits[" + std::to_string(t1-1) + "], qubits[" + std::to_string(t2-1) + "];' >> " + QASM_FILENAME).c_str());
+    //     return;
+    // #endif
+    auto start = std::chrono::steady_clock::now();
+    CNOT(t1, t2);
+    CNOT(t2, t1);
+    CNOT(t1, t2);
+    gateCount++;
+    auto duration = std::chrono::steady_clock::now() - start;
+    if (gateLog) std::cout << "swap" << t1 << "," << t2 << "：" << stateNum << " states " << count_transitions() << " transitions " << toString(duration) << "\n";
+}
+
 // void VATA::Util::TreeAutomata::Fredkin(int c, int t, int t2) {
 //     auto start = std::chrono::steady_clock::now();
 //     assert(c != t && t != t2 && t2 != c);

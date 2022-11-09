@@ -65,10 +65,18 @@ int main(int argc, char **argv) {
             std::smatch match_pieces;
             if (std::regex_search(line, match_pieces, digit))
                 aut.S(1 + atoi(match_pieces[0].str().c_str()));
+        } else if (line.find("sdg ") == 0) {
+            std::smatch match_pieces;
+            if (std::regex_search(line, match_pieces, digit))
+                aut.Sdg(1 + atoi(match_pieces[0].str().c_str()));
         } else if (line.find("t ") == 0) {
             std::smatch match_pieces;
             if (std::regex_search(line, match_pieces, digit))
                 aut.T(1 + atoi(match_pieces[0].str().c_str()));
+        } else if (line.find("tdg ") == 0) {
+            std::smatch match_pieces;
+            if (std::regex_search(line, match_pieces, digit))
+                aut.Tdg(1 + atoi(match_pieces[0].str().c_str()));
         } else if (line.find("rx(pi/2) ") == 0) {
             std::smatch match_pieces;
             if (std::regex_search(line, match_pieces, digit))
@@ -101,6 +109,14 @@ int main(int argc, char **argv) {
                 ++it;
             }
             aut.Toffoli(pos[0], pos[1], pos[2]);
+        } else if (line.find("swap ") == 0) {
+            std::regex_iterator<std::string::iterator> it(line.begin(), line.end(), digit);
+            std::vector<int> pos;
+            while (it != END) {
+                pos.push_back(1 + atoi(it->str().c_str()));
+                ++it;
+            }
+            aut.swap(pos[0], pos[1]);
         } else if (line.length() > 0)
             throw std::runtime_error("Unsupported gate: " + line);
     }
