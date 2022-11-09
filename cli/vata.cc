@@ -37,7 +37,7 @@ int main(int argc, char **argv) {
     const std::regex_iterator<std::string::iterator> END;
     if (!qasm.is_open()) return EXIT_FAILURE;
     while (getline(qasm, line)) {
-        if (line.find("OPENQASM") == 0 || line.find("include ") == 0) continue;
+        if (line.find("OPENQASM") == 0 || line.find("include ") == 0|| line.find("//") == 0) continue;
         if (line.find("qreg ") == 0) {
             std::regex_iterator<std::string::iterator> it(line.begin(), line.end(), digit);
             while (it != END) {
@@ -85,7 +85,7 @@ int main(int argc, char **argv) {
             std::smatch match_pieces;
             if (std::regex_search(line, match_pieces, digit))
                 aut.Ry(1 + atoi(match_pieces[0].str().c_str()));
-        } else if (line.find("cx ") == 0) {
+        } else if (line.find("cx ") == 0 || line.find("CX ") == 0 ) {
             std::regex_iterator<std::string::iterator> it(line.begin(), line.end(), digit);
             std::vector<int> pos;
             while (it != END) {
