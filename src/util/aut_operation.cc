@@ -432,20 +432,26 @@ void VATA::Util::TreeAutomata::omega_multiplication(int rotation) {
     for (const auto &t_old : transitions) {
         if (is_leaf(t_old.first)) {
             /************************** rotation **************************/
-            Symbol temp;
-            if (rotation == 1) {
-                temp.push_back(-t_old.first[3]);
-                for (unsigned i=0; i<3; i++) { // exclude "k"
-                    temp.push_back(t_old.first[i]);
+            Symbol sym = t_old.first;
+            int r = rotation;
+            while (r != 0) {
+                if (r > 0) {
+                    auto temp = sym[3];
+                    for (int i=3; i>=1; i--) { // exclude "k"
+                        sym[i] = sym[i-1];
+                    }
+                    sym[0] = -temp;
+                    r--;
+                } else {
+                    auto temp = sym[0];
+                    for (int i=0; i<=2; i++) { // exclude "k"
+                        sym[i] = sym[i+1];
+                    }
+                    sym[3] = -temp;
+                    r++;
                 }
-            } else {
-                temp.push_back(-t_old.first[2]);
-                temp.push_back(-t_old.first[3]);
-                temp.push_back(t_old.first[0]);
-                temp.push_back(t_old.first[1]);
             }
-            temp.push_back(t_old.first[4]);
-            transitions_new[temp] = t_old.second;
+            transitions_new[sym] = t_old.second;
         } else {
             assert(t_old.first.size() <= 2);
             transitions_new.insert(t_old);
