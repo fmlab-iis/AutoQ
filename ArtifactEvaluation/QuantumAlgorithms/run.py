@@ -71,7 +71,6 @@ for root, dirnames, filenames in sorted(os.walk('.')):
         process_pool_large.append((len(process_pool_large), process_pool_small))
         string_pool_large.append(string_pool_small)
 
-f = open(name, 'w')
 while len(process_pool_large) > 0:
     for i, pps in enumerate(process_pool_large):
         all_finish = True
