@@ -582,9 +582,9 @@ void VATA::Util::TreeAutomata::swap(int t1, int t2) {
     //     return;
     // #endif
     auto start = std::chrono::steady_clock::now();
-    CNOT(t1, t2);
-    CNOT(t2, t1);
-    CNOT(t1, t2);
+    CNOT(t1, t2); gateCount--; // prevent repeated counting
+    CNOT(t2, t1); gateCount--; // prevent repeated counting
+    CNOT(t1, t2); gateCount--; // prevent repeated counting
     gateCount++;
     auto duration = std::chrono::steady_clock::now() - start;
     if (gateLog) std::cout << "swap" << t1 << "," << t2 << "：" << stateNum << " states " << count_transitions() << " transitions " << toString(duration) << "\n";
