@@ -1,65 +1,61 @@
-\begin{tabular}{|c||c|c||c|c|c|c|c|c||c|c|c|c|c|c||c||c|c|}\hline
-\hline\multicolumn{18}{|c|}{\textbf{Feynman}}\\\hline
-\textbf{Problem} & \textbf{\#q} & \textbf{\#G} & \textbf{P-sb} & \textbf{P-sa} & \textbf{P-tb} & \textbf{P-ta} & \textbf{P-exeT} & \textbf{P-bug} & \textbf{C-sb} & \textbf{C-sa} & \textbf{C-tb} & \textbf{C-ta} & \textbf{C-exeT} & \textbf{C-bug} & \textbf{SliQSim} & \textbf{feynmanV} & \textbf{feynmanT}\\\hline
-csum\_mux\_9 & 30 & 141 & 61 & 61 & 61 & 61 & \textbf{0.2s} & V & 61 & 61 & 61 & 61 & \textbf{0.6s} & V & 0.0s & \textbf{Inconclusive} & 5.6s\\\hline
-gf2\textasciicircum10\_mult & 30 & 348 & 61 & 61 & 61 & 61 & \textbf{0.7s} & V & 61 & 61 & 61 & 61 & \textbf{1.6s} & V & 0.0s & \textbf{Inconclusive} & 0.5s\\\hline
-gf2\textasciicircum16\_mult & 48 & 876 & 97 & 97 & 97 & 97 & \textbf{4.2s} & V & 97 & 97 & 97 & 97 & \textbf{9.8s} & V & 0.1s & \textbf{Inconclusive} & 3.6s\\\hline
-gf2\textasciicircum32\_mult & 96 & 3323 & 193 & 193 & 193 & 193 & \textbf{1m0s} & V & 193 & 193 & 193 & 193 & \textbf{2m16s} & V & 0.7s & \textbf{Inconclusive} & 49s\\\hline
-gf2\textasciicircum64\_mult & 192 & 12732 & \multicolumn{6}{c||}{\textbf{$>$ 12m}} & \multicolumn{6}{c||}{\textbf{$>$ 12m}} & 11s & \textbf{Inconclusive} & 9m35s\\\hline
-ham15-high & 20 & 1799 & 41 & 41 & 41 & 41 & \textbf{3.5s} & V & 41 & 41 & 41 & 41 & \textbf{4.1s} & V & 0.3s & \textbf{Inconclusive} & 3m44s\\\hline
-hwb10 & 16 & 31765 & 33 & 33 & 33 & 33 & \textbf{55s} & V & 33 & 33 & 33 & 33 & \textbf{1m16s} & V & \textbf{55s} & \multicolumn{2}{c|}{$>$ 12m}\\\hline
-hwb11 & 15 & 87790 & 31 & 31 & 31 & 31 & \textbf{2m15s} & V & 31 & 31 & 31 & 31 & \textbf{3m5s} & V & \textbf{6m25s} & \multicolumn{2}{c|}{$>$ 12m}\\\hline
-hwb12 & 20 & 171483 & 41 & 41 & 41 & 41 & \textbf{6m43s} & V & 41 & 41 & 41 & 41 & \textbf{9m10s} & V & \textbf{$>$ 12m} & \multicolumn{2}{c|}{$>$ 12m}\\\hline
-hwb8 & 12 & 6447 & 25 & 25 & 25 & 25 & \textbf{6.8s} & V & 25 & 25 & 25 & 25 & \textbf{9.7s} & V & \textbf{2.2s} & \multicolumn{2}{c|}{$>$ 12m}\\\hline
-mod\_adder\_1024 & 28 & 1436 & 57 & 57 & 57 & 57 & \textbf{4.5s} & V & 57 & 57 & 57 & 57 & \textbf{5.1s} & V & 0.2s & \textbf{Inconclusive} & 7.8s\\\hline
-qcla\_adder\_10 & 36 & 182 & 73 & 73 & 73 & 73 & \textbf{0.8s} & V & 73 & 73 & 73 & 73 & \textbf{1.2s} & V & 0.0s & \textbf{Inconclusive} & 1.0s\\\hline
-qcla\_mod\_7 & 26 & 295 & 53 & 53 & 53 & 53 & \textbf{0.9s} & V & 53 & 53 & 53 & 53 & \textbf{1.3s} & V & 0.0s & \textbf{Inconclusive} & 1m26s\\\hline
-\hline\multicolumn{18}{|c|}{\textbf{Random gates}}\\\hline
-\textbf{Problem} & \textbf{\#q} & \textbf{\#G} & \textbf{P-sb} & \textbf{P-sa} & \textbf{P-tb} & \textbf{P-ta} & \textbf{P-exeT} & \textbf{P-bug} & \textbf{C-sb} & \textbf{C-sa} & \textbf{C-tb} & \textbf{C-ta} & \textbf{C-exeT} & \textbf{C-bug} & \textbf{SliQSim} & \textbf{feynmanV} & \textbf{feynmanT}\\\hline
-35a & 35 & 106 & 71 & 343 & 71 & 343 & \textbf{1.2s} & V & 71 & 343 & 71 & 343 & \textbf{2.0s} & V & 0.0s & \textbf{Inconclusive} & 0.2s\\\hline
-35b & 35 & 106 & 71 & 396 & 71 & 396 & \textbf{0.6s} & V & 71 & 396 & 71 & 396 & \textbf{1.0s} & V & 0.1s & \textbf{Not equal} & 0.1s\\\hline
-35c & 35 & 106 & 71 & 87 & 71 & 87 & \textbf{0.5s} & V & 71 & 87 & 71 & 87 & \textbf{0.8s} & V & 0.0s & \textbf{Not equal} & 0.1s\\\hline
-35d & 35 & 106 & 71 & 137 & 71 & 137 & \textbf{0.5s} & V & 71 & 137 & 71 & 137 & \textbf{0.9s} & V & 0.0s & \textbf{Not equal} & 0.2s\\\hline
-35e & 35 & 106 & 71 & 108 & 71 & 108 & \textbf{0.4s} & V & 71 & 108 & 71 & 108 & \textbf{0.8s} & V & 0.0s & \textbf{Inconclusive} & 0.1s\\\hline
-35f & 35 & 106 & 71 & 291 & 71 & 291 & \textbf{0.9s} & V & 71 & 291 & 71 & 291 & \textbf{1.4s} & V & 0.0s & \textbf{Not equal} & 0.2s\\\hline
-35g & 35 & 106 & 71 & 103 & 71 & 103 & \textbf{0.4s} & V & 71 & 103 & 71 & 103 & \textbf{0.8s} & V & 0.0s & \textbf{Inconclusive} & 0.2s\\\hline
-35h & 35 & 106 & 71 & 103 & 71 & 103 & \textbf{0.5s} & V & 71 & 103 & 71 & 103 & \textbf{0.8s} & V & 0.0s & \textbf{Inconclusive} & 0.2s\\\hline
-35i & 35 & 106 & 71 & 153 & 71 & 153 & \textbf{0.5s} & V & 71 & 153 & 71 & 153 & \textbf{1.1s} & V & 0.0s & \textbf{Not equal} & 0.2s\\\hline
-35j & 35 & 106 & 71 & 344 & 71 & 344 & \textbf{0.6s} & V & 71 & 344 & 71 & 344 & \textbf{1.0s} & V & 0.0s & \textbf{Inconclusive} & 0.2s\\\hline
-70a & 70 & 211 & 141 & 542 & 141 & 542 & \textbf{7.2s} & V & 141 & 542 & 141 & 542 & \textbf{10s} & V & 0.1s & \textbf{Inconclusive} & 0.9s\\\hline
-70b & 70 & 211 & 141 & 683 & 141 & 683 & \textbf{5.6s} & V & 141 & 683 & 141 & 683 & \textbf{9.9s} & V & 0.1s & \textbf{Not equal} & 0.6s\\\hline
-70c & 70 & 211 & 141 & 609 & 141 & 609 & \textbf{4.5s} & V & 141 & 609 & 141 & 609 & \textbf{7.1s} & V & 0.1s & \textbf{Inconclusive} & 0.6s\\\hline
-70d & 70 & 211 & 141 & 3080 & 141 & 3080 & \textbf{27s} & 0.0s & 141 & 3080 & 141 & 3080 & \textbf{45s} & 0.1s & 0.2s & \textbf{Not equal} & 0.8s\\\hline
-70e & 70 & 211 & 141 & 1804 & 141 & 1804 & \textbf{10s} & V & 141 & 1804 & 141 & 1804 & \textbf{17s} & V & 0.2s & \textbf{Inconclusive} & 0.7s\\\hline
-70f & 70 & 211 & 141 & 1305 & 141 & 1305 & \textbf{14s} & V & 141 & 1305 & 141 & 1305 & \textbf{20s} & V & 0.1s & \textbf{Not equal} & 0.7s\\\hline
-70g & 70 & 211 & 141 & 577 & 141 & 577 & \textbf{8.2s} & 0.0s & 141 & 577 & 141 & 577 & \textbf{15s} & 0.0s & 0.1s & \textbf{Inconclusive} & 1.0s\\\hline
-70h & 70 & 211 & 141 & 617 & 141 & 617 & \textbf{5.3s} & V & 141 & 617 & 141 & 617 & \textbf{9.1s} & V & 0.1s & \textbf{Inconclusive} & 1.0s\\\hline
-70i & 70 & 211 & 141 & 664 & 141 & 664 & \textbf{8.1s} & V & 141 & 664 & 141 & 664 & \textbf{13s} & V & 0.1s & \textbf{Inconclusive} & 1.1s\\\hline
-70j & 70 & 211 & 141 & 4387 & 141 & 4387 & \textbf{53s} & V & 141 & 4387 & 141 & 4387 & \textbf{1m15s} & V & 0.2s & \textbf{Inconclusive} & 1.1s\\\hline
-\hline\multicolumn{18}{|c|}{\textbf{RevLib}}\\\hline
-\textbf{Problem} & \textbf{\#q} & \textbf{\#G} & \textbf{P-sb} & \textbf{P-sa} & \textbf{P-tb} & \textbf{P-ta} & \textbf{P-exeT} & \textbf{P-bug} & \textbf{C-sb} & \textbf{C-sa} & \textbf{C-tb} & \textbf{C-ta} & \textbf{C-exeT} & \textbf{C-bug} & \textbf{SliQSim} & \textbf{feynmanV} & \textbf{feynmanT}\\\hline
-add16\_174 & 49 & 65 & 99 & 99 & 99 & 99 & \textbf{1.1s} & V & 99 & 99 & 99 & 99 & \textbf{1.3s} & V & \textbf{0.0s} & \multicolumn{2}{c|}{$>$ 12m}\\\hline
-add32\_183 & 97 & 129 & 195 & 195 & 195 & 195 & \textbf{9.4s} & V & 195 & 195 & 195 & 195 & \textbf{11s} & V & \textbf{0.0s} & \multicolumn{2}{c|}{$>$ 12m}\\\hline
-add64\_184 & 193 & 257 & 387 & 387 & 387 & 387 & \textbf{1m6s} & V & 387 & 387 & 387 & 387 & \textbf{1m14s} & V & \textbf{0.0s} & \multicolumn{2}{c|}{$>$ 12m}\\\hline
-apex2\_289 & 498 & 1747 & \multicolumn{6}{c||}{\textbf{$>$ 12m}} & \multicolumn{6}{c||}{\textbf{$>$ 12m}} & \textbf{0.1s} & \multicolumn{2}{c|}{$>$ 12m}\\\hline
-avg8\_325 & 320 & 1758 & 641 & 641 & 641 & 641 & \textbf{11m17s} & V & \multicolumn{6}{c||}{\textbf{$>$ 12m}} & \textbf{0.0s} & \multicolumn{2}{c|}{$>$ 12m}\\\hline
-bw\_291 & 87 & 308 & 175 & 175 & 175 & 175 & \textbf{5.0s} & V & 175 & 175 & 175 & 175 & \textbf{24s} & V & 0.0s & \textbf{Not equal} & 12s\\\hline
-cps\_292 & 923 & 2764 & \multicolumn{6}{c||}{\textbf{$>$ 12m}} & \multicolumn{6}{c||}{\textbf{$>$ 12m}} & \textbf{0.2s} & \multicolumn{2}{c|}{$>$ 12m}\\\hline
-cycle10\_293 & 39 & 79 & 79 & 79 & 79 & 79 & \textbf{0.2s} & V & 79 & 79 & 79 & 79 & \textbf{1.1s} & V & 0.0s & \textbf{Not equal} & 0.4s\\\hline
-e64-bdd\_295 & 195 & 388 & 391 & 391 & 391 & 391 & \textbf{21s} & V & 391 & 391 & 391 & 391 & \textbf{1m48s} & V & \textbf{0.0s} & \multicolumn{2}{c|}{$>$ 12m}\\\hline
-ex5p\_296 & 206 & 648 & 413 & 413 & 413 & 413 & \textbf{1m1s} & V & 413 & 413 & 413 & 413 & \textbf{4m11s} & V & 0.0s & \textbf{Not equal} & 1m30s\\\hline
-ham15\_298 & 45 & 154 & 91 & 91 & 91 & 91 & \textbf{0.3s} & V & 91 & 91 & 91 & 91 & \textbf{2.5s} & V & 0.0s & \textbf{Not equal} & 1.1s\\\hline
-hwb6\_301 & 46 & 160 & 93 & 93 & 93 & 93 & \textbf{0.9s} & V & 93 & 93 & 93 & 93 & \textbf{4.8s} & V & 0.0s & \textbf{Not equal} & 2.6s\\\hline
-hwb7\_302 & 73 & 282 & 147 & 147 & 147 & 147 & \textbf{4.4s} & V & 147 & 147 & 147 & 147 & \textbf{16s} & V & 0.0s & \textbf{Not equal} & 11s\\\hline
-hwb8\_303 & 112 & 450 & 225 & 225 & 225 & 225 & \textbf{18s} & V & 225 & 225 & 225 & 225 & \textbf{54s} & V & 0.0s & \textbf{Not equal} & 38s\\\hline
-hwb9\_304 & 170 & 700 & 341 & 341 & 341 & 341 & \textbf{52s} & V & 341 & 341 & 341 & 341 & \textbf{3m6s} & V & 0.0s & \textbf{Not equal} & 2m26s\\\hline
-mod5adder\_306 & 32 & 97 & 65 & 65 & 65 & 65 & \textbf{0.2s} & V & 65 & 65 & 65 & 65 & \textbf{1.1s} & V & 0.0s & \textbf{Not equal} & 0.8s\\\hline
-rd84\_313 & 34 & 105 & 69 & 69 & 69 & 69 & \textbf{0.2s} & V & 69 & 69 & 69 & 69 & \textbf{1.3s} & V & 0.0s & \textbf{Not equal} & 1.0s\\\hline
-spla\_315 & 489 & 1710 & \multicolumn{6}{c||}{\textbf{$>$ 12m}} & \multicolumn{6}{c||}{\textbf{$>$ 12m}} & \textbf{0.1s} & \multicolumn{2}{c|}{$>$ 12m}\\\hline
-urf1\_149 & 9 & 11555 & 19 & 19 & 19 & 19 & \textbf{17s} & V & 19 & 19 & 19 & 19 & \textbf{22s} & V & \textbf{0.3s} & \multicolumn{2}{c|}{$>$ 12m}\\\hline
-urf2\_152 & 8 & 5031 & 17 & 17 & 17 & 17 & \textbf{7.9s} & V & 17 & 17 & 17 & 17 & \textbf{10s} & V & \textbf{0.1s} & \multicolumn{2}{c|}{$>$ 12m}\\\hline
-urf3\_155 & 10 & 26469 & 21 & 21 & 21 & 21 & \textbf{42s} & V & 21 & 21 & 21 & 21 & \textbf{56s} & V & \textbf{0.7s} & \multicolumn{2}{c|}{$>$ 12m}\\\hline
-urf4\_187 & 11 & 32005 & 23 & 23 & 23 & 23 & \textbf{1m4s} & V & 23 & 23 & 23 & 23 & \textbf{1m15s} & V & \textbf{0.9s} & \multicolumn{2}{c|}{$>$ 12m}\\\hline
-urf5\_158 & 9 & 10277 & 19 & 19 & 19 & 19 & \textbf{13s} & V & 19 & 19 & 19 & 19 & \textbf{21s} & V & \textbf{0.2s} & \multicolumn{2}{c|}{$>$ 12m}\\\hline
-urf6\_160 & 15 & 10741 & 31 & 31 & 31 & 31 & \textbf{34s} & V & 31 & 31 & 31 & 31 & \textbf{42s} & V & \textbf{0.2s} & \multicolumn{2}{c|}{$>$ 12m}\\\hline
+\begin{tabular}{|c||c|c||c|c||c|c||c|c|}\hline
+\hline\multicolumn{9}{|c|}{\textbf{Feynman}}\\\hline
+\textbf{Problem} & \textbf{\#q} & \textbf{\#G} & \textbf{P-time} & \textbf{P-bug} & \textbf{C-time} & \textbf{C-bug} & \textbf{F-time} & \textbf{F-bug}\\\hline
+csum\_mux\_9 & 30 & 141 & 0.5s & V & 1.3s & V & 6.0s & Inconclusive\\\hline
+gf2\textasciicircum10\_mult & 30 & 348 & 1.5s & V & 3.5s & V & 0.5s & Inconclusive\\\hline
+gf2\textasciicircum16\_mult & 48 & 876 & 9.3s & V & 23s & V & 3.6s & Inconclusive\\\hline
+gf2\textasciicircum32\_mult & 96 & 3323 & 2m0s & V & 4m36s & V & 51s & Inconclusive\\\hline
+ham15-high & 20 & 1799 & 7.5s & V & 10s & V & 3m50s & Inconclusive\\\hline
+hwb10 & 16 & 31765 & 1m49s & V & 2m28s & V & \multicolumn{2}{c|}{$>$ 30m}\\\hline
+hwb11 & 15 & 87790 & 4m31s & V & 6m3s & V & \multicolumn{2}{c|}{$>$ 30m}\\\hline
+hwb12 & 20 & 171483 & 13m43s & V & 18m3s & V & \multicolumn{2}{c|}{$>$ 30m}\\\hline
+hwb8 & 12 & 6447 & 16s & V & 26s & V & \multicolumn{2}{c|}{$>$ 30m}\\\hline
+mod\_adder\_1024 & 28 & 1436 & 10s & V & 12s & V & 8.7s & Inconclusive\\\hline
+qcla\_adder\_10 & 36 & 182 & 1.7s & V & 2.7s & V & 1.0s & Inconclusive\\\hline
+qcla\_mod\_7 & 26 & 295 & 2.0s & V & 2.7s & V & 1m28s & Inconclusive\\\hline
+\hline\multicolumn{9}{|c|}{\textbf{Random gates}}\\\hline
+\textbf{Problem} & \textbf{\#q} & \textbf{\#G} & \textbf{P-time} & \textbf{P-bug} & \textbf{C-time} & \textbf{C-bug} & \textbf{F-time} & \textbf{F-bug}\\\hline
+35a & 35 & 106 & 2.6s & V & 4.4s & V & 0.2s & Inconclusive\\\hline
+35b & 35 & 106 & 1.3s & V & 2.6s & V & 0.1s & Not equal\\\hline
+35c & 35 & 106 & 1.1s & V & 1.7s & V & 0.1s & Not equal\\\hline
+35d & 35 & 106 & 1.1s & V & 1.9s & V & 0.1s & Not equal\\\hline
+35e & 35 & 106 & 1.0s & V & 1.7s & V & 0.1s & Inconclusive\\\hline
+35f & 35 & 106 & 2.0s & V & 3.4s & V & 0.2s & Not equal\\\hline
+35g & 35 & 106 & 1.0s & V & 1.7s & V & 0.2s & Inconclusive\\\hline
+35h & 35 & 106 & 1.2s & V & 2.0s & V & 0.2s & Inconclusive\\\hline
+35i & 35 & 106 & 1.2s & V & 2.5s & V & 0.3s & Not equal\\\hline
+35j & 35 & 106 & 1.4s & V & 2.3s & V & 0.2s & Inconclusive\\\hline
+70a & 70 & 211 & 21s & V & 27s & V & 1.3s & Inconclusive\\\hline
+70b & 70 & 211 & 15s & V & 22s & V & 0.7s & Not equal\\\hline
+70c & 70 & 211 & 10s & V & 17s & V & 0.8s & Inconclusive\\\hline
+70d & 70 & 211 & 1m1s & X & 1m28s & X & 0.9s & Not equal\\\hline
+70e & 70 & 211 & 24s & V & 39s & V & 0.8s & Inconclusive\\\hline
+70f & 70 & 211 & 31s & V & 51s & V & 0.8s & Not equal\\\hline
+70g & 70 & 211 & 20s & X & 32s & X & 1.2s & Inconclusive\\\hline
+70h & 70 & 211 & 15s & V & 22s & V & 1.3s & Inconclusive\\\hline
+70i & 70 & 211 & 18s & V & 27s & V & 1.0s & Inconclusive\\\hline
+70j & 70 & 211 & 1m37s & V & 2m50s & V & 1.2s & Inconclusive\\\hline
+\hline\multicolumn{9}{|c|}{\textbf{RevLib}}\\\hline
+\textbf{Problem} & \textbf{\#q} & \textbf{\#G} & \textbf{P-time} & \textbf{P-bug} & \textbf{C-time} & \textbf{C-bug} & \textbf{F-time} & \textbf{F-bug}\\\hline
+add16\_174 & 49 & 65 & 3.1s & V & 3.0s & V & \multicolumn{2}{c|}{$>$ 30m}\\\hline
+add32\_183 & 97 & 129 & 25s & V & 26s & V & \multicolumn{2}{c|}{$>$ 30m}\\\hline
+add64\_184 & 193 & 257 & 2m8s & V & 2m24s & V & \multicolumn{2}{c|}{$>$ 30m}\\\hline
+avg8\_325 & 320 & 1758 & 22m42s & V & \multicolumn{2}{c||}{$>$ 30m} & \multicolumn{2}{c|}{$>$ 30m}\\\hline
+bw\_291 & 87 & 308 & 11s & V & 51s & V & 15s & Not equal\\\hline
+cycle10\_293 & 39 & 79 & 0.5s & V & 3.6s & V & 0.5s & Not equal\\\hline
+e64-bdd\_295 & 195 & 388 & 50s & V & 3m42s & V & \multicolumn{2}{c|}{$>$ 30m}\\\hline
+ex5p\_296 & 206 & 648 & 2m5s & V & 8m16s & V & 1m36s & Not equal\\\hline
+ham15\_298 & 45 & 154 & 1.3s & V & 5.4s & V & 0.9s & Not equal\\\hline
+hwb6\_301 & 46 & 160 & 2.5s & V & 12s & V & 2.7s & Not equal\\\hline
+hwb7\_302 & 73 & 282 & 10s & V & 36s & V & 15s & Not equal\\\hline
+hwb8\_303 & 112 & 450 & 34s & V & 1m52s & V & 43s & Not equal\\\hline
+hwb9\_304 & 170 & 700 & 1m48s & V & 6m26s & V & 2m29s & Not equal\\\hline
+mod5adder\_306 & 32 & 97 & 0.8s & V & 3.6s & V & 1.1s & Not equal\\\hline
+rd84\_313 & 34 & 105 & 0.9s & V & 4.3s & V & 1.5s & Not equal\\\hline
+urf1\_149 & 9 & 11555 & 40s & V & 45s & V & \multicolumn{2}{c|}{$>$ 30m}\\\hline
+urf2\_152 & 8 & 5031 & 14s & V & 24s & V & 21m39s & Not equal\\\hline
+urf3\_155 & 10 & 26469 & 1m29s & V & 1m50s & V & \multicolumn{2}{c|}{$>$ 30m}\\\hline
+urf4\_187 & 11 & 32005 & 2m10s & V & 2m31s & V & \multicolumn{2}{c|}{$>$ 30m}\\\hline
+urf5\_158 & 9 & 10277 & 26s & V & 41s & V & \multicolumn{2}{c|}{$>$ 30m}\\\hline
+urf6\_160 & 15 & 10741 & 1m6s & V & 1m27s & V & \multicolumn{2}{c|}{$>$ 30m}\\\hline
 \end{tabular}

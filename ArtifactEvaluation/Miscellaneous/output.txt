@@ -1,57 +1,53 @@
-./Feynman/csum_mux_9 & 30 & 141 & 61 & 61 & 61 & 61 & 0.2s & V & 61 & 61 & 61 & 61 & 0.6s & V & 0.0s & Inconclusive & 5.648s
-./Feynman/gf2^10_mult & 30 & 348 & 61 & 61 & 61 & 61 & 0.7s & V & 61 & 61 & 61 & 61 & 1.6s & V & 0.0s & Inconclusive & 0.516s
-./Feynman/gf2^16_mult & 48 & 876 & 97 & 97 & 97 & 97 & 4.2s & V & 97 & 97 & 97 & 97 & 9.8s & V & 0.1s & Inconclusive & 3.575s
-./Feynman/gf2^32_mult & 96 & 3323 & 193 & 193 & 193 & 193 & 1m0s & V & 193 & 193 & 193 & 193 & 2m16s & V & 0.7s & Inconclusive & 48.911s
-./Feynman/gf2^64_mult & \multicolumn{AutoQ_permutation}{c||}{TO} & \multicolumn{AutoQ_composition}{c||}{TO} & 11s & Inconclusive & 574.721s
-./Feynman/ham15-high & 20 & 1799 & 41 & 41 & 41 & 41 & 3.5s & V & 41 & 41 & 41 & 41 & 4.1s & V & 0.3s & Inconclusive & 224.097s
-./Feynman/hwb10 & 16 & 31765 & 33 & 33 & 33 & 33 & 55s & V & 33 & 33 & 33 & 33 & 1m16s & V & 55s & \multicolumn{Feynman}{c|}{TO}
-./Feynman/hwb11 & 15 & 87790 & 31 & 31 & 31 & 31 & 2m15s & V & 31 & 31 & 31 & 31 & 3m5s & V & 6m25s & \multicolumn{Feynman}{c|}{TO}
-./Feynman/hwb12 & 20 & 171483 & 41 & 41 & 41 & 41 & 6m43s & V & 41 & 41 & 41 & 41 & 9m10s & V & TO & \multicolumn{Feynman}{c|}{TO}
-./Feynman/hwb8 & 12 & 6447 & 25 & 25 & 25 & 25 & 6.8s & V & 25 & 25 & 25 & 25 & 9.7s & V & 2.2s & \multicolumn{Feynman}{c|}{TO}
-./Feynman/mod_adder_1024 & 28 & 1436 & 57 & 57 & 57 & 57 & 4.5s & V & 57 & 57 & 57 & 57 & 5.1s & V & 0.2s & Inconclusive & 7.773s
-./Feynman/qcla_adder_10 & 36 & 182 & 73 & 73 & 73 & 73 & 0.8s & V & 73 & 73 & 73 & 73 & 1.2s & V & 0.0s & Inconclusive & 1.029s
-./Feynman/qcla_mod_7 & 26 & 295 & 53 & 53 & 53 & 53 & 0.9s & V & 53 & 53 & 53 & 53 & 1.3s & V & 0.0s & Inconclusive & 86.125s
-./Random/35a & 35 & 106 & 71 & 343 & 71 & 343 & 1.2s & V & 71 & 343 & 71 & 343 & 2.0s & V & 0.0s & Inconclusive & 0.164s
-./Random/35b & 35 & 106 & 71 & 396 & 71 & 396 & 0.6s & V & 71 & 396 & 71 & 396 & 1.0s & V & 0.1s & Not equal & 0.137s
-./Random/35c & 35 & 106 & 71 & 87 & 71 & 87 & 0.5s & V & 71 & 87 & 71 & 87 & 0.8s & V & 0.0s & Not equal & 0.137s
-./Random/35d & 35 & 106 & 71 & 137 & 71 & 137 & 0.5s & V & 71 & 137 & 71 & 137 & 0.9s & V & 0.0s & Not equal & 0.155s
-./Random/35e & 35 & 106 & 71 & 108 & 71 & 108 & 0.4s & V & 71 & 108 & 71 & 108 & 0.8s & V & 0.0s & Inconclusive & 0.095s
-./Random/35f & 35 & 106 & 71 & 291 & 71 & 291 & 0.9s & V & 71 & 291 & 71 & 291 & 1.4s & V & 0.0s & Not equal & 0.217s
-./Random/35g & 35 & 106 & 71 & 103 & 71 & 103 & 0.4s & V & 71 & 103 & 71 & 103 & 0.8s & V & 0.0s & Inconclusive & 0.159s
-./Random/35h & 35 & 106 & 71 & 103 & 71 & 103 & 0.5s & V & 71 & 103 & 71 & 103 & 0.8s & V & 0.0s & Inconclusive & 0.158s
-./Random/35i & 35 & 106 & 71 & 153 & 71 & 153 & 0.5s & V & 71 & 153 & 71 & 153 & 1.1s & V & 0.0s & Not equal & 0.176s
-./Random/35j & 35 & 106 & 71 & 344 & 71 & 344 & 0.6s & V & 71 & 344 & 71 & 344 & 1.0s & V & 0.0s & Inconclusive & 0.161s
-./Random/70a & 70 & 211 & 141 & 542 & 141 & 542 & 7.2s & V & 141 & 542 & 141 & 542 & 10s & V & 0.1s & Inconclusive & 0.947s
-./Random/70b & 70 & 211 & 141 & 683 & 141 & 683 & 5.6s & V & 141 & 683 & 141 & 683 & 9.9s & V & 0.1s & Not equal & 0.588s
-./Random/70c & 70 & 211 & 141 & 609 & 141 & 609 & 4.5s & V & 141 & 609 & 141 & 609 & 7.1s & V & 0.1s & Inconclusive & 0.635s
-./Random/70d & 70 & 211 & 141 & 3080 & 141 & 3080 & 27s & 0.0s & 141 & 3080 & 141 & 3080 & 45s & 0.1s & 0.2s & Not equal & 0.812s
-./Random/70e & 70 & 211 & 141 & 1804 & 141 & 1804 & 10s & V & 141 & 1804 & 141 & 1804 & 17s & V & 0.2s & Inconclusive & 0.748s
-./Random/70f & 70 & 211 & 141 & 1305 & 141 & 1305 & 14s & V & 141 & 1305 & 141 & 1305 & 20s & V & 0.1s & Not equal & 0.704s
-./Random/70g & 70 & 211 & 141 & 577 & 141 & 577 & 8.2s & 0.0s & 141 & 577 & 141 & 577 & 15s & 0.0s & 0.1s & Inconclusive & 0.969s
-./Random/70h & 70 & 211 & 141 & 617 & 141 & 617 & 5.3s & V & 141 & 617 & 141 & 617 & 9.1s & V & 0.1s & Inconclusive & 0.991s
-./Random/70i & 70 & 211 & 141 & 664 & 141 & 664 & 8.1s & V & 141 & 664 & 141 & 664 & 13s & V & 0.1s & Inconclusive & 1.058s
-./Random/70j & 70 & 211 & 141 & 4387 & 141 & 4387 & 53s & V & 141 & 4387 & 141 & 4387 & 1m15s & V & 0.2s & Inconclusive & 1.072s
-./RevLib/add16_174 & 49 & 65 & 99 & 99 & 99 & 99 & 1.1s & V & 99 & 99 & 99 & 99 & 1.3s & V & 0.0s & \multicolumn{Feynman}{c|}{TO}
-./RevLib/add32_183 & 97 & 129 & 195 & 195 & 195 & 195 & 9.4s & V & 195 & 195 & 195 & 195 & 11s & V & 0.0s & \multicolumn{Feynman}{c|}{TO}
-./RevLib/add64_184 & 193 & 257 & 387 & 387 & 387 & 387 & 1m6s & V & 387 & 387 & 387 & 387 & 1m14s & V & 0.0s & \multicolumn{Feynman}{c|}{TO}
-./RevLib/apex2_289 & \multicolumn{AutoQ_permutation}{c||}{TO} & \multicolumn{AutoQ_composition}{c||}{TO} & 0.1s & \multicolumn{Feynman}{c|}{TO}
-./RevLib/avg8_325 & 320 & 1758 & 641 & 641 & 641 & 641 & 11m17s & V & \multicolumn{AutoQ_composition}{c||}{TO} & 0.0s & \multicolumn{Feynman}{c|}{TO}
-./RevLib/bw_291 & 87 & 308 & 175 & 175 & 175 & 175 & 5.0s & V & 175 & 175 & 175 & 175 & 24s & V & 0.0s & Not equal & 12.225s
-./RevLib/cps_292 & \multicolumn{AutoQ_permutation}{c||}{TO} & \multicolumn{AutoQ_composition}{c||}{TO} & 0.2s & \multicolumn{Feynman}{c|}{TO}
-./RevLib/cycle10_293 & 39 & 79 & 79 & 79 & 79 & 79 & 0.2s & V & 79 & 79 & 79 & 79 & 1.1s & V & 0.0s & Not equal & 0.415s
-./RevLib/e64-bdd_295 & 195 & 388 & 391 & 391 & 391 & 391 & 21s & V & 391 & 391 & 391 & 391 & 1m48s & V & 0.0s & \multicolumn{Feynman}{c|}{TO}
-./RevLib/ex5p_296 & 206 & 648 & 413 & 413 & 413 & 413 & 1m1s & V & 413 & 413 & 413 & 413 & 4m11s & V & 0.0s & Not equal & 89.623s
-./RevLib/ham15_298 & 45 & 154 & 91 & 91 & 91 & 91 & 0.3s & V & 91 & 91 & 91 & 91 & 2.5s & V & 0.0s & Not equal & 1.059s
-./RevLib/hwb6_301 & 46 & 160 & 93 & 93 & 93 & 93 & 0.9s & V & 93 & 93 & 93 & 93 & 4.8s & V & 0.0s & Not equal & 2.566s
-./RevLib/hwb7_302 & 73 & 282 & 147 & 147 & 147 & 147 & 4.4s & V & 147 & 147 & 147 & 147 & 16s & V & 0.0s & Not equal & 10.860s
-./RevLib/hwb8_303 & 112 & 450 & 225 & 225 & 225 & 225 & 18s & V & 225 & 225 & 225 & 225 & 54s & V & 0.0s & Not equal & 38.073s
-./RevLib/hwb9_304 & 170 & 700 & 341 & 341 & 341 & 341 & 52s & V & 341 & 341 & 341 & 341 & 3m6s & V & 0.0s & Not equal & 145.677s
-./RevLib/mod5adder_306 & 32 & 97 & 65 & 65 & 65 & 65 & 0.2s & V & 65 & 65 & 65 & 65 & 1.1s & V & 0.0s & Not equal & 0.755s
-./RevLib/rd84_313 & 34 & 105 & 69 & 69 & 69 & 69 & 0.2s & V & 69 & 69 & 69 & 69 & 1.3s & V & 0.0s & Not equal & 1.040s
-./RevLib/spla_315 & \multicolumn{AutoQ_permutation}{c||}{TO} & \multicolumn{AutoQ_composition}{c||}{TO} & 0.1s & \multicolumn{Feynman}{c|}{TO}
-./RevLib/urf1_149 & 9 & 11555 & 19 & 19 & 19 & 19 & 17s & V & 19 & 19 & 19 & 19 & 22s & V & 0.3s & \multicolumn{Feynman}{c|}{TO}
-./RevLib/urf2_152 & 8 & 5031 & 17 & 17 & 17 & 17 & 7.9s & V & 17 & 17 & 17 & 17 & 10s & V & 0.1s & \multicolumn{Feynman}{c|}{TO}
-./RevLib/urf3_155 & 10 & 26469 & 21 & 21 & 21 & 21 & 42s & V & 21 & 21 & 21 & 21 & 56s & V & 0.7s & \multicolumn{Feynman}{c|}{TO}
-./RevLib/urf4_187 & 11 & 32005 & 23 & 23 & 23 & 23 & 1m4s & V & 23 & 23 & 23 & 23 & 1m15s & V & 0.9s & \multicolumn{Feynman}{c|}{TO}
-./RevLib/urf5_158 & 9 & 10277 & 19 & 19 & 19 & 19 & 13s & V & 19 & 19 & 19 & 19 & 21s & V & 0.2s & \multicolumn{Feynman}{c|}{TO}
-./RevLib/urf6_160 & 15 & 10741 & 31 & 31 & 31 & 31 & 34s & V & 31 & 31 & 31 & 31 & 42s & V & 0.2s & \multicolumn{Feynman}{c|}{TO}
+./Feynman/csum_mux_9 & 30 & 141 & 0.5s & V & 1.3s & V & 6.003s & Inconclusive
+./Feynman/gf2^10_mult & 30 & 348 & 1.5s & V & 3.5s & V & 0.514s & Inconclusive
+./Feynman/gf2^16_mult & 48 & 876 & 9.3s & V & 23s & V & 3.643s & Inconclusive
+./Feynman/gf2^32_mult & 96 & 3323 & 2m0s & V & 4m36s & V & 51.251s & Inconclusive
+./Feynman/ham15-high & 20 & 1799 & 7.5s & V & 10s & V & 229.713s & Inconclusive
+./Feynman/hwb10 & 16 & 31765 & 1m49s & V & 2m28s & V & \multicolumn{Feynman}{c|}{TO}
+./Feynman/hwb11 & 15 & 87790 & 4m31s & V & 6m3s & V & \multicolumn{Feynman}{c|}{TO}
+./Feynman/hwb12 & 20 & 171483 & 13m43s & V & 18m3s & V & \multicolumn{Feynman}{c|}{TO}
+./Feynman/hwb8 & 12 & 6447 & 16s & V & 26s & V & \multicolumn{Feynman}{c|}{TO}
+./Feynman/mod_adder_1024 & 28 & 1436 & 10s & V & 12s & V & 8.705s & Inconclusive
+./Feynman/qcla_adder_10 & 36 & 182 & 1.7s & V & 2.7s & V & 1.044s & Inconclusive
+./Feynman/qcla_mod_7 & 26 & 295 & 2.0s & V & 2.7s & V & 88.130s & Inconclusive
+./Random/35a & 35 & 106 & 2.6s & V & 4.4s & V & 0.166s & Inconclusive
+./Random/35b & 35 & 106 & 1.3s & V & 2.6s & V & 0.150s & Not equal
+./Random/35c & 35 & 106 & 1.1s & V & 1.7s & V & 0.136s & Not equal
+./Random/35d & 35 & 106 & 1.1s & V & 1.9s & V & 0.137s & Not equal
+./Random/35e & 35 & 106 & 1.0s & V & 1.7s & V & 0.094s & Inconclusive
+./Random/35f & 35 & 106 & 2.0s & V & 3.4s & V & 0.213s & Not equal
+./Random/35g & 35 & 106 & 1.0s & V & 1.7s & V & 0.169s & Inconclusive
+./Random/35h & 35 & 106 & 1.2s & V & 2.0s & V & 0.167s & Inconclusive
+./Random/35i & 35 & 106 & 1.2s & V & 2.5s & V & 0.270s & Not equal
+./Random/35j & 35 & 106 & 1.4s & V & 2.3s & V & 0.182s & Inconclusive
+./Random/70a & 70 & 211 & 21s & V & 27s & V & 1.304s & Inconclusive
+./Random/70b & 70 & 211 & 15s & V & 22s & V & 0.743s & Not equal
+./Random/70c & 70 & 211 & 10s & V & 17s & V & 0.845s & Inconclusive
+./Random/70d & 70 & 211 & 1m1s & X & 1m28s & X & 0.925s & Not equal
+./Random/70e & 70 & 211 & 24s & V & 39s & V & 0.787s & Inconclusive
+./Random/70f & 70 & 211 & 31s & V & 51s & V & 0.844s & Not equal
+./Random/70g & 70 & 211 & 20s & X & 32s & X & 1.247s & Inconclusive
+./Random/70h & 70 & 211 & 15s & V & 22s & V & 1.262s & Inconclusive
+./Random/70i & 70 & 211 & 18s & V & 27s & V & 1.027s & Inconclusive
+./Random/70j & 70 & 211 & 1m37s & V & 2m50s & V & 1.160s & Inconclusive
+./RevLib/add16_174 & 49 & 65 & 3.1s & V & 3.0s & V & \multicolumn{Feynman}{c|}{TO}
+./RevLib/add32_183 & 97 & 129 & 25s & V & 26s & V & \multicolumn{Feynman}{c|}{TO}
+./RevLib/add64_184 & 193 & 257 & 2m8s & V & 2m24s & V & \multicolumn{Feynman}{c|}{TO}
+./RevLib/avg8_325 & 320 & 1758 & 22m42s & V & \multicolumn{AutoQ_composition}{c||}{TO} & \multicolumn{Feynman}{c|}{TO}
+./RevLib/bw_291 & 87 & 308 & 11s & V & 51s & V & 14.702s & Not equal
+./RevLib/cycle10_293 & 39 & 79 & 0.5s & V & 3.6s & V & 0.470s & Not equal
+./RevLib/e64-bdd_295 & 195 & 388 & 50s & V & 3m42s & V & \multicolumn{Feynman}{c|}{TO}
+./RevLib/ex5p_296 & 206 & 648 & 2m5s & V & 8m16s & V & 95.997s & Not equal
+./RevLib/ham15_298 & 45 & 154 & 1.3s & V & 5.4s & V & 0.851s & Not equal
+./RevLib/hwb6_301 & 46 & 160 & 2.5s & V & 12s & V & 2.712s & Not equal
+./RevLib/hwb7_302 & 73 & 282 & 10s & V & 36s & V & 14.853s & Not equal
+./RevLib/hwb8_303 & 112 & 450 & 34s & V & 1m52s & V & 43.337s & Not equal
+./RevLib/hwb9_304 & 170 & 700 & 1m48s & V & 6m26s & V & 148.512s & Not equal
+./RevLib/mod5adder_306 & 32 & 97 & 0.8s & V & 3.6s & V & 1.120s & Not equal
+./RevLib/rd84_313 & 34 & 105 & 0.9s & V & 4.3s & V & 1.459s & Not equal
+./RevLib/urf1_149 & 9 & 11555 & 40s & V & 45s & V & \multicolumn{Feynman}{c|}{TO}
+./RevLib/urf2_152 & 8 & 5031 & 14s & V & 24s & V & 1299.432s & Not equal
+./RevLib/urf3_155 & 10 & 26469 & 1m29s & V & 1m50s & V & \multicolumn{Feynman}{c|}{TO}
+./RevLib/urf4_187 & 11 & 32005 & 2m10s & V & 2m31s & V & \multicolumn{Feynman}{c|}{TO}
+./RevLib/urf5_158 & 9 & 10277 & 26s & V & 41s & V & \multicolumn{Feynman}{c|}{TO}
+./RevLib/urf6_160 & 15 & 10741 & 1m6s & V & 1m27s & V & \multicolumn{Feynman}{c|}{TO}
