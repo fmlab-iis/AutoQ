@@ -8,7 +8,7 @@ name = sys.argv[1]
 def AutoQ_permutation(root, str1, semaphore):
     with semaphore:
         another = root.replace('.', '').replace('/', '') + 'permutation'
-        p = subprocess.run(f'VATA_PATH=/home/alan23273850/libvata/build/cli/vata timeout 720 ../permutation {root}/pre.aut {root}/circuit.qasm /tmp/{another}.aut {root}/post.aut', shell=True, capture_output=True, executable='/bin/bash')
+        p = subprocess.run(f'VATA_PATH=/home/alan23273850/libvata/build/cli/vata timeout 720 ./permutation {root}/pre.aut {root}/circuit.qasm /tmp/{another}.aut {root}/post.aut', shell=True, capture_output=True, executable='/bin/bash')
         ret = p.returncode
         if ret == 0:
             str1.value = list(map(lambda x: x.decode('utf-8'), p.stdout.splitlines()))[0]
@@ -21,7 +21,7 @@ def AutoQ_permutation(root, str1, semaphore):
 def AutoQ_composition(root, str2, semaphore):
     with semaphore:
         another = root.replace('.', '').replace('/', '') + 'composition'
-        p = subprocess.run(f'VATA_PATH=/home/alan23273850/libvata/build/cli/vata timeout 720 ../composition {root}/pre.aut {root}/circuit.qasm /tmp/{another}.aut {root}/post.aut', shell=True, capture_output=True, executable='/bin/bash')
+        p = subprocess.run(f'VATA_PATH=/home/alan23273850/libvata/build/cli/vata timeout 720 ./composition {root}/pre.aut {root}/circuit.qasm /tmp/{another}.aut {root}/post.aut', shell=True, capture_output=True, executable='/bin/bash')
         ret = p.returncode
         if ret == 0:
             str2.value = list(map(lambda x: x.decode('utf-8'), p.stdout.splitlines()))[0]
