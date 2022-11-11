@@ -350,7 +350,7 @@ void produce_MCToffoli_pre_and_post() {
         ans.transitions[{1}][{2, 1}] = {0}; // 10
         ans.transitions[{1}][{1, 2}] = {0}; // 01
         for (int level=2; level<ans.qubitNum; level++) {
-            if (level & 1) {
+            if (!(level & 1)) {
                 ans.transitions[{level}][{2*level-1, 2*level-1}] = {2*level-3}; // 0 -> 00
                 ans.transitions[{level}][{2*level-1, 2*level}] = {2*level-2}; // 1 -> 01
                 ans.transitions[{level}][{2*level, 2*level-1}] = {2*level-2}; // 1 -> 10

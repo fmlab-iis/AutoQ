@@ -8,11 +8,11 @@
 ./Grover/16 & 32 & 28159 & 65 & 95 & 65 & 95 & 1m29s & 0.0s & 65 & 95 & 65 & 95 & 6m59s & 0.0s & 1m41s & \multicolumn{Feynman}{c|}{TO}
 ./Grover/18 & 36 & 63537 & 73 & 107 & 73 & 107 & 4m1s & 0.0s & \multicolumn{AutoQ_composition}{c||}{TO} & 9m27s & \multicolumn{Feynman}{c|}{TO}
 ./Grover/20 & 40 & 141527 & 81 & 119 & 81 & 119 & 10m56s & 0.0s & \multicolumn{AutoQ_composition}{c||}{TO} & TO & \multicolumn{Feynman}{c|}{TO}
-./MCToffoli/08 & 16 & 15 & 33 & 782 & 42 & 1293 & 0.1s & 0.0s & 33 & 401 & 42 & 531 & 2.8s & 0.0s & 1.3s & Equal & 0.049s
-./MCToffoli/10 & 20 & 19 & 41 & 3090 & 52 & 5137 & 0.7s & 0.0s & 41 & 1557 & 52 & 2071 & 35s & 0.0s & 6.6s & Equal & 0.081s
-./MCToffoli/12 & 24 & 23 & 49 & 12310 & 62 & 20501 & 7.0s & 0.2s & 49 & 6169 & 62 & 8219 & 7m52s & 0.1s & 24s & Equal & 0.116s
-./MCToffoli/14 & 28 & 27 & 57 & 49178 & 72 & 81945 & 52s & 1.8s & \multicolumn{AutoQ_composition}{c||}{TO} & 1m37s & Equal & 0.157s
-./MCToffoli/16 & 32 & 31 & 65 & 196638 & 82 & 327709 & 5m36s & 14s & \multicolumn{AutoQ_composition}{c||}{TO} & TO & Equal & 0.229s
+./MCToffoli/08 & 16 & 15 & 33 & 104 & 42 & 149 & 0.0s & 0.0s & 33 & 404 & 42 & 915 & 2.8s & 0.0s & 1.6s & Equal & 0.045s
+./MCToffoli/10 & 20 & 19 & 41 & 150 & 52 & 216 & 0.0s & 0.0s & 41 & 1560 & 52 & 3607 & 27s & 0.0s & 6.1s & Equal & 0.075s
+./MCToffoli/12 & 24 & 23 & 49 & 204 & 62 & 295 & 0.0s & 0.0s & 49 & 6172 & 62 & 14363 & 6m48s & 0.1s & 25s & Equal & 0.110s
+./MCToffoli/14 & 28 & 27 & 57 & 266 & 72 & 386 & 0.1s & 0.0s & \multicolumn{AutoQ_composition}{c||}{TO} & 1m40s & Equal & 0.138s
+./MCToffoli/16 & 32 & 31 & 65 & 336 & 82 & 489 & 0.2s & 0.0s & \multicolumn{AutoQ_composition}{c||}{TO} & TO & Equal & 0.191s
 ./MOGrover/06 & 18 & 357 & 37 & 252 & 43 & 315 & 3.3s & 0.0s & 37 & 510 & 43 & 573 & 12s & 0.0s & 1.7s & \multicolumn{Feynman}{c|}{TO}
 ./MOGrover/07 & 21 & 552 & 43 & 481 & 50 & 608 & 10s & 0.0s & 43 & 1123 & 50 & 1250 & 42s & 0.0s & 5.4s & \multicolumn{Feynman}{c|}{TO}
 ./MOGrover/08 & 24 & 939 & 49 & 934 & 57 & 1189 & 39s & 0.1s & 49 & 2472 & 57 & 2727 & 2m40s & 0.0s & 26s & \multicolumn{Feynman}{c|}{TO}
