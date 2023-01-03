@@ -430,9 +430,10 @@ void VATA::Util::TreeAutomata::remove_useless(bool only_bottom_up) {
 void VATA::Util::TreeAutomata::omega_multiplication(int rotation) {
     TransitionMap transitions_new;
     for (const auto &t_old : transitions) {
-        if (is_leaf(t_old.first)) {
+        const Symbol &symbol = t_old.first;
+        if (symbol.is_leaf()) {
             /************************** rotation **************************/
-            Symbol sym = t_old.first;
+            InitialSymbol sym = symbol.initial_symbol();
             int r = rotation;
             while (r != 0) {
                 if (r > 0) {
@@ -451,9 +452,9 @@ void VATA::Util::TreeAutomata::omega_multiplication(int rotation) {
                     r++;
                 }
             }
-            transitions_new[sym] = t_old.second;
+            transitions_new[{sym, symbol.second}] = t_old.second;
         } else {
-            assert(t_old.first.size() <= 2);
+            assert(symbol.initial_symbol().size() + symbol.tag().size() <= 2);
             transitions_new.insert(t_old);
         }
     }
@@ -465,11 +466,12 @@ void VATA::Util::TreeAutomata::divide_by_the_square_root_of_two() {
     std::vector<Symbol> to_be_removed;
     TransitionMap to_be_inserted;
     for (const auto &t : transitions) {
-        if (is_leaf(t.first)) {
-            to_be_removed.push_back(t.first);
-            Symbol symbol = t.first;
-            symbol[4]++;
-            to_be_inserted[symbol] = t.second;
+        const Symbol &symbol = t.first;
+        if (symbol.is_leaf()) {
+            to_be_removed.push_back(symbol);
+            InitialSymbol sym = symbol.initial_symbol();
+            sym[4]++;
+            to_be_inserted[{sym, symbol.tag()}] = t.second;
         }
     }
     for (const auto &t : to_be_removed)
@@ -488,8 +490,9 @@ void VATA::Util::TreeAutomata::branch_restriction(int k, bool positive_has_value
 
     TransitionMap transitions_copy = transitions;
     for (const auto &t : transitions_copy) {
-        if (t.first.size() <= 2) { // x_i + determinized number
-            auto &in_outs_dest = transitions.at(t.first);
+        const Symbol &symbol = t.first;
+        if (symbol.size() <= 2) { // x_i + determinized number
+            auto &in_outs_dest = transitions.at(symbol);
             for (const auto &in_out : t.second) {
                 StateVector in;
                 assert(in_out.first.size() == 2);
@@ -501,11 +504,12 @@ void VATA::Util::TreeAutomata::branch_restriction(int k, bool positive_has_value
                 in_outs_dest.insert(make_pair(in, out)); // duplicate this internal transition
             }
         } else { // (a,b,c,d,k)
-            assert(is_leaf(t.first));
+            assert(symbol.is_leaf());
             for (const auto &in_out : t.second) {
                 assert(in_out.first.empty());
                 for (const auto &n : in_out.second) { // Note we do not change k.
-                    transitions[{0,0,0,0, t.first[4]}][{}].insert(n + num_of_states); // duplicate this leaf transition
+                    auto k = symbol.initial_symbol(4);
+                    transitions[{{0,0,0,0, k}, symbol.tag()}][{}].insert(n + num_of_states); // duplicate this leaf transition
                 }
             }
         }
@@ -513,8 +517,9 @@ void VATA::Util::TreeAutomata::branch_restriction(int k, bool positive_has_value
 
     transitions_copy = transitions;
     for (const auto &t : transitions_copy) {
-        if (t.first.size() <= 2 && t.first[0] == k) { // x_i + determinized number
-            auto &in_outs_dest = transitions.at(t.first);
+        const Symbol &symbol = t.first;
+        if (symbol.size() <= 2 && symbol.initial_symbol(0) == k) { // x_i + determinized number
+            auto &in_outs_dest = transitions.at(symbol);
             for (const auto &in_out : t.second) {
                 assert(in_out.first.size() == 2);
                 StateVector sv = in_out.first;
@@ -539,17 +544,18 @@ void VATA::Util::TreeAutomata::semi_determinize() {
     if (isTopdownDeterministic) return;
     TransitionMap transitions_copy = transitions;
     for (const auto &t : transitions_copy) {
-        if (t.first.size() == 1) { // x_i not determinized yet
-            transitions.erase(t.first); // modify
+        const Symbol &symbol = t.first;
+        if (symbol.size() == 1) { // x_i not determinized yet
+            transitions.erase(symbol); // modify
             SymbolEntry counter = 0;
-            Symbol symbol;
-            symbol.push_back(t.first[0]);
+            Symbol new_symbol;
+            new_symbol.initial_symbol() = symbol.initial_symbol();
             for (const auto &in_out : t.second) {
-                symbol.push_back(counter++);
+                new_symbol.tag().push_back(counter++);
                 std::map<StateVector, StateSet> value;
                 value.insert(in_out);
-                transitions.insert(std::make_pair(symbol, value)); // modify
-                symbol.pop_back();
+                transitions.insert(std::make_pair(new_symbol, value)); // modify
+                new_symbol.tag().pop_back();
             }
         }
     }
@@ -560,11 +566,12 @@ void VATA::Util::TreeAutomata::semi_undeterminize() {
     if (isTopdownDeterministic) return;
     TransitionMap transitions_copy = transitions;
     for (const auto &t : transitions_copy) {
-        if (t.first.size() == 2) { // pick all determinized x_i's
-            transitions.erase(t.first); // modify
+        const Symbol &symbol = t.first;
+        if (symbol.size() == 2) { // pick all determinized x_i's
+            transitions.erase(symbol); // modify
             for (const auto &in_out : t.second) {
                 for (const auto &v : in_out.second)
-                    transitions[{t.first[0]}][in_out.first].insert(v); // modify
+                    transitions[symbol.initial_symbol()][in_out.first].insert(v); // modify
             }
         }
     }
@@ -611,7 +618,7 @@ VATA::Util::TreeAutomata VATA::Util::TreeAutomata::binary_operation(const TreeAu
     auto it = transitions.begin();
     auto it2 = o.transitions.begin();
     for (; it != transitions.end(); it++) { // iterate over all internal transitions of T1
-        if (is_leaf(it->first)) break; // internal
+        if (it->first.is_leaf()) break; // internal
         if (it->first < it2->first) continue;
         while (it2 != o.transitions.end() && it->first > it2->first)
             it2++;
@@ -619,28 +626,28 @@ VATA::Util::TreeAutomata VATA::Util::TreeAutomata::binary_operation(const TreeAu
         if (it->first < it2->first) continue;
         assert(it->first == it2->first); // Ensure T1's and T2's current transitions have the same symbol now.
         // Update previous_level_states.
-        if (it != transitions.begin() && it->first[0] != std::prev(it)->first[0]) { // T1 changes level.
+        if (it != transitions.begin() && it->first.initial_symbol(0) != std::prev(it)->first.initial_symbol(0)) { // T1 changes level.
             previous_level_states = previous_level_states2;
             previous_level_states2 = std::vector<bool>(stateNum * o.stateNum);
         }
         // Update next_level_states.
-        if (it == transitions.begin() || it->first[0] != std::prev(it)->first[0]) { // T1 goes into the new level.
+        if (it == transitions.begin() || it->first.initial_symbol(0) != std::prev(it)->first.initial_symbol(0)) { // T1 goes into the new level.
             next_level_states = std::vector<bool>(stateNum * o.stateNum);
             auto it3 = it; // it3 indicates the next level of it.
-            while (it3 != transitions.end() && is_internal(it3->first) && it3->first[0] == it->first[0])
+            while (it3 != transitions.end() && it3->first.is_internal() && it3->first.initial_symbol(0) == it->first.initial_symbol(0))
                 it3++;
             if (it3 == transitions.end()) {} // T1 has no leaf transitions?
-            else if (is_leaf(it3->first)) { // The next level of T1 is leaf transitions.
+            else if (it3->first.is_leaf()) { // The next level of T1 is leaf transitions.
                 auto it4 = it2; // Initially it2 has the same symbol as it.
-                while (it4 != o.transitions.end() && is_internal(it4->first))
+                while (it4 != o.transitions.end() && it4->first.is_internal())
                     it4++;
                 auto it4i = it4;
                 // We hope it4 currently points to the first leaf transition.
                 // If it4 points to o.transitions.end(), then the following loop will not be executed.
                 for (; it3 != transitions.end(); it3++) { // iterate over all leaf transitions of T1
-                    assert(is_leaf(it3->first));
+                    assert(it3->first.is_leaf());
                     for (it4 = it4i; it4 != o.transitions.end(); it4++) { // iterate over all leaf transitions of T2
-                        assert(is_leaf(it4->first));
+                        assert(it4->first.is_leaf());
                         for (const auto &s1 : it3->second.begin()->second) { // iterate over all output states of it3
                             for (const auto &s2 : it4->second.begin()->second) { // iterate over all output states of it4
                                 construct_product_state_id(s1, s2, i);
@@ -650,13 +657,13 @@ VATA::Util::TreeAutomata VATA::Util::TreeAutomata::binary_operation(const TreeAu
                     }
                 }
             } else { // The next level of T1 is still internal transitions.
-                int current_level = static_cast<int>(it3->first[0]);
+                int current_level = static_cast<int>(it3->first.initial_symbol(0));
                 auto it4 = it2; // Initially it2 has the same symbol as it.
-                while (it4 != o.transitions.end() && is_internal(it4->first) && it4->first[0] == current_level)
+                while (it4 != o.transitions.end() && it4->first.is_internal() && it4->first.initial_symbol(0) == current_level)
                     it4++;
                 // We hope it4 currently points to T2's first transition of the next level.
                 // If it4 points to o.transitions.end(), then the following loop will not be executed.
-                for (; is_internal(it3->first) && it3->first[0] == current_level; it3++) {
+                for (; it3->first.is_internal() && it3->first.initial_symbol(0) == current_level; it3++) {
                     if (it3->first < it4->first) continue;
                     while (it4 != o.transitions.end() && it3->first > it4->first)
                         it4++;
@@ -707,28 +714,30 @@ VATA::Util::TreeAutomata VATA::Util::TreeAutomata::binary_operation(const TreeAu
     }
     previous_level_states = previous_level_states2;
     // We now advance it2 to T2's first leaf transition.
-    while (it2 != o.transitions.end() && !is_leaf(it2->first))
+    while (it2 != o.transitions.end() && !it2->first.is_leaf())
         it2++;
     for (; it != transitions.end(); it++) {
-        assert(is_leaf(it->first));
+        assert(it->first.is_leaf());
         for (auto it2t = it2; it2t != o.transitions.end(); it2t++) { // it2 as the new begin point.
-            assert(is_leaf(it2t->first));
-            assert(it->first[4] == it2t->first[4]); // Two k's must be the same.
-            Symbol symbol;
+            assert(it2t->first.is_leaf());
+            assert(it->first.initial_symbol(4) == it2t->first.initial_symbol(4)); // Two k's must be the same.
+            InitialSymbol symbol;
             for (int i=0; i<4; i++) { // We do not change k here.
-                SymbolEntry a = it->first[i];
-                SymbolEntry b = add ? it2t->first[i] : -it2t->first[i];
+                SymbolEntry a = it->first.initial_symbol(i);
+                SymbolEntry b = add ? it2t->first.initial_symbol(i) : -it2t->first.initial_symbol(i);
                 // if ((a>=0 && b>=0 && a>std::numeric_limits<SymbolEntry>::max()-b)
                 //  || (a<0 && b<0 && a<std::numeric_limits<SymbolEntry>::min()-b))
                 //     throw std::overflow_error("");
                 symbol.push_back(a + b);
             }
-            symbol.push_back(it->first[4]); // remember to push k
+            symbol.push_back(it->first.initial_symbol(4)); // remember to push k
             for (const auto &s1 : it->second.begin()->second)
                 for (const auto &s2 : it2t->second.begin()->second) {
                     construct_product_state_id(s1, s2, i);
-                    if (previous_level_states[i])
-                        result.transitions[symbol][{}].insert(i);
+                    if (previous_level_states[i]) {
+                        assert(it->first.tag() == it2t->first.tag()); // untagged
+                        result.transitions[{symbol, it->first.tag()}][{}].insert(i);
+                    }
                 }
         }
     }
@@ -985,9 +994,9 @@ void VATA::Util::TreeAutomata::swap_forward(const int k) {
     for (int next_k=k+1; next_k<=qubitNum; next_k++) {
         std::map<State, std::vector<std::pair<Symbol, StateVector>>> svsv;
         for (const auto &t : transitions) {
-            auto &symbol = t.first;
-            auto &in_outs = t.second;
-            if (is_internal(symbol) && symbol[0] == next_k) {
+            const auto &symbol = t.first;
+            const auto &in_outs = t.second;
+            if (symbol.is_internal() && symbol.initial_symbol(0) == next_k) {
                 assert(symbol.size() <= 2);
                 for (const auto &in_out : in_outs) {
                     for (const auto &s : in_out.second)
@@ -998,49 +1007,52 @@ void VATA::Util::TreeAutomata::swap_forward(const int k) {
         std::vector<Symbol> to_be_removed2;
         TransitionMap to_be_removed, to_be_inserted;
         for (const auto &t : transitions) {
-            if (is_internal(t.first) && t.first[0] == k) {
+            const Symbol &symbol = t.first;
+            if (symbol.is_internal() && symbol.initial_symbol(0) == k) {
                 for (const auto &in_out : t.second) {
                     assert(in_out.first.size() == 2);
                     for (const auto &ssv1 : svsv[in_out.first[0]]) {
                         for (const auto &ssv2 : svsv[in_out.first[1]]) {
                             to_be_removed[ssv1.first][ssv1.second].insert(in_out.first[0]);
                             to_be_removed[ssv2.first][ssv2.second].insert(in_out.first[1]);
-                            if (to_be_inserted[t.first][{ssv1.second[0], ssv2.second[0]}].empty()) {
-                                if (transitions[t.first][{ssv1.second[0], ssv2.second[0]}].empty())
-                                    to_be_inserted[t.first][{ssv1.second[0], ssv2.second[0]}].insert(stateNum++);
+                            if (to_be_inserted[symbol][{ssv1.second[0], ssv2.second[0]}].empty()) {
+                                if (transitions[symbol][{ssv1.second[0], ssv2.second[0]}].empty())
+                                    to_be_inserted[symbol][{ssv1.second[0], ssv2.second[0]}].insert(stateNum++);
                                 else
-                                    to_be_inserted[t.first][{ssv1.second[0], ssv2.second[0]}].insert(*(transitions[t.first][{ssv1.second[0], ssv2.second[0]}].begin()));
+                                    to_be_inserted[symbol][{ssv1.second[0], ssv2.second[0]}].insert(*(transitions[symbol][{ssv1.second[0], ssv2.second[0]}].begin()));
                             }
-                            if (to_be_inserted[t.first][{ssv1.second[1], ssv2.second[1]}].empty()) {
-                                if (transitions[t.first][{ssv1.second[1], ssv2.second[1]}].empty())
-                                    to_be_inserted[t.first][{ssv1.second[1], ssv2.second[1]}].insert(stateNum++);
+                            if (to_be_inserted[symbol][{ssv1.second[1], ssv2.second[1]}].empty()) {
+                                if (transitions[symbol][{ssv1.second[1], ssv2.second[1]}].empty())
+                                    to_be_inserted[symbol][{ssv1.second[1], ssv2.second[1]}].insert(stateNum++);
                                 else
-                                    to_be_inserted[t.first][{ssv1.second[1], ssv2.second[1]}].insert(*(transitions[t.first][{ssv1.second[1], ssv2.second[1]}].begin()));
+                                    to_be_inserted[symbol][{ssv1.second[1], ssv2.second[1]}].insert(*(transitions[symbol][{ssv1.second[1], ssv2.second[1]}].begin()));
                             }
                             for (const auto &s : in_out.second)
-                                to_be_inserted[{next_k, ssv1.first[1], ssv2.first[1]}][{*(to_be_inserted[t.first][{ssv1.second[0], ssv2.second[0]}].begin()), *(to_be_inserted[t.first][{ssv1.second[1], ssv2.second[1]}].begin())}].insert(s);
+                                to_be_inserted[{{next_k}, {ssv1.first.tag(0), ssv2.first.tag(0)}}][{*(to_be_inserted[symbol][{ssv1.second[0], ssv2.second[0]}].begin()), *(to_be_inserted[symbol][{ssv1.second[1], ssv2.second[1]}].begin())}].insert(s);
                         }
                     }
                 }
-                to_be_removed2.push_back(t.first);
+                to_be_removed2.push_back(symbol);
             }
         }
         for (const auto &v : to_be_removed2)
             transitions.erase(v);
         for (const auto &t : to_be_removed) {
+            const Symbol &symbol = t.first;
             for (const auto &in_out : t.second) {
                 for (const auto &s : in_out.second)
-                    transitions[t.first][in_out.first].erase(s);
-                if (transitions[t.first][in_out.first].empty())
-                    transitions[t.first].erase(in_out.first);
-                if (transitions[t.first].empty())
-                    transitions.erase(t.first);
+                    transitions[symbol][in_out.first].erase(s);
+                if (transitions[symbol][in_out.first].empty())
+                    transitions[symbol].erase(in_out.first);
+                if (transitions[symbol].empty())
+                    transitions.erase(symbol);
             }
         }
         for (const auto &t : to_be_inserted) {
+            const Symbol &symbol = t.first;
             for (const auto &in_out : t.second) {
                 for (const auto &s : in_out.second) {
-                    transitions[t.first][in_out.first].insert(s);
+                    transitions[symbol][in_out.first].insert(s);
                 }
             }
         }
@@ -1053,9 +1065,9 @@ void VATA::Util::TreeAutomata::swap_backward(const int k) {
     for (int next_k=qubitNum; next_k>k; next_k--) {
       std::map<State, std::vector<std::pair<Symbol, StateVector>>> svsv;
         for (const auto &t : transitions) {
-            auto &symbol = t.first;
-            auto &in_outs = t.second;
-            if (is_internal(symbol) && symbol[0] == k) {
+            const auto &symbol = t.first;
+            const auto &in_outs = t.second;
+            if (symbol.is_internal() && symbol.initial_symbol(0) == k) {
                 assert(symbol.size() == 2);
                 for (const auto &in_out : in_outs) {
                     for (const auto &s : in_out.second)
@@ -1066,8 +1078,9 @@ void VATA::Util::TreeAutomata::swap_backward(const int k) {
         std::vector<Symbol> to_be_removed2;
         TransitionMap to_be_removed, to_be_inserted;
         for (const auto &t : transitions) {
-            if (is_internal(t.first) && t.first[0] == next_k) {
-                assert(t.first.size() == 3);
+            const Symbol &symbol = t.first;
+            if (symbol.is_internal() && symbol.initial_symbol(0) == next_k) {
+                assert(symbol.size() == 3);
                 for (const auto &in_out : t.second) {
                     assert(in_out.first.size() == 2);
                     for (const auto &ssv1 : svsv[in_out.first[0]]) {
@@ -1075,44 +1088,48 @@ void VATA::Util::TreeAutomata::swap_backward(const int k) {
                             if (ssv1.first == ssv2.first) {
                                 to_be_removed[ssv1.first][ssv1.second].insert(in_out.first[0]);
                                 to_be_removed[ssv2.first][ssv2.second].insert(in_out.first[1]);
-                                if (to_be_inserted[{t.first[0], t.first[1]}][{ssv1.second[0], ssv2.second[0]}].empty()) {
-                                    if (transitions[{t.first[0], t.first[1]}][{ssv1.second[0], ssv2.second[0]}].empty())
-                                        to_be_inserted[{t.first[0], t.first[1]}][{ssv1.second[0], ssv2.second[0]}].insert(stateNum++);
+                                Symbol t1 = {symbol.initial_symbol(), {symbol.tag(0)}};
+                                if (to_be_inserted[t1][{ssv1.second[0], ssv2.second[0]}].empty()) {
+                                    if (transitions[t1][{ssv1.second[0], ssv2.second[0]}].empty())
+                                        to_be_inserted[t1][{ssv1.second[0], ssv2.second[0]}].insert(stateNum++);
                                     else
-                                        to_be_inserted[{t.first[0], t.first[1]}][{ssv1.second[0], ssv2.second[0]}].insert(*(transitions[{t.first[0], t.first[1]}][{ssv1.second[0], ssv2.second[0]}].begin()));
+                                        to_be_inserted[t1][{ssv1.second[0], ssv2.second[0]}].insert(*(transitions[t1][{ssv1.second[0], ssv2.second[0]}].begin()));
                                 }
-                                if (to_be_inserted[{t.first[0], t.first[2]}][{ssv1.second[1], ssv2.second[1]}].empty()) {
-                                    if (transitions[{t.first[0], t.first[2]}][{ssv1.second[1], ssv2.second[1]}].empty())
-                                        to_be_inserted[{t.first[0], t.first[2]}][{ssv1.second[1], ssv2.second[1]}].insert(stateNum++);
+                                Symbol t2 = {symbol.initial_symbol(), {symbol.tag(1)}};
+                                if (to_be_inserted[t2][{ssv1.second[1], ssv2.second[1]}].empty()) {
+                                    if (transitions[t2][{ssv1.second[1], ssv2.second[1]}].empty())
+                                        to_be_inserted[t2][{ssv1.second[1], ssv2.second[1]}].insert(stateNum++);
                                     else
-                                        to_be_inserted[{t.first[0], t.first[2]}][{ssv1.second[1], ssv2.second[1]}].insert(*(transitions[{t.first[0], t.first[2]}][{ssv1.second[1], ssv2.second[1]}].begin()));
+                                        to_be_inserted[t2][{ssv1.second[1], ssv2.second[1]}].insert(*(transitions[t2][{ssv1.second[1], ssv2.second[1]}].begin()));
                                 }
-                                assert(k == ssv1.first[0]);
+                                assert(k == ssv1.first.initial_symbol(0));
                                 for (const auto &s : in_out.second)
-                                    to_be_inserted[ssv1.first][{*(to_be_inserted[{t.first[0], t.first[1]}][{ssv1.second[0], ssv2.second[0]}].begin()), *(to_be_inserted[{t.first[0], t.first[2]}][{ssv1.second[1], ssv2.second[1]}].begin())}].insert(s);
+                                    to_be_inserted[ssv1.first][{*(to_be_inserted[t1][{ssv1.second[0], ssv2.second[0]}].begin()), *(to_be_inserted[t2][{ssv1.second[1], ssv2.second[1]}].begin())}].insert(s);
                             }
                         }
                     }
                 }
-                to_be_removed2.push_back(t.first);
+                to_be_removed2.push_back(symbol);
             }
         }
         for (const auto &v : to_be_removed2)
             transitions.erase(v);
         for (const auto &t : to_be_removed) {
+            const Symbol &symbol = t.first;
             for (const auto &in_out : t.second) {
                 for (const auto &s : in_out.second)
-                    transitions[t.first][in_out.first].erase(s);
-                if (transitions[t.first][in_out.first].empty())
-                    transitions[t.first].erase(in_out.first);
-                if (transitions[t.first].empty())
-                    transitions.erase(t.first);
+                    transitions[symbol][in_out.first].erase(s);
+                if (transitions[symbol][in_out.first].empty())
+                    transitions[symbol].erase(in_out.first);
+                if (transitions[symbol].empty())
+                    transitions.erase(symbol);
             }
         }
         for (const auto &t : to_be_inserted) {
+            const Symbol &symbol = t.first;
             for (const auto &in_out : t.second) {
                 for (const auto &s : in_out.second) {
-                    transitions[t.first][in_out.first].insert(s);
+                    transitions[symbol][in_out.first].insert(s);
                 }
             }
         }
@@ -1126,15 +1143,16 @@ void VATA::Util::TreeAutomata::value_restriction(int k, bool branch) {
     TransitionMap to_be_inserted;
     std::vector<Symbol> to_be_removed;
     for (const auto &t : transitions) {
-        if (is_internal(t.first) && t.first[0] == k) {
-            to_be_removed.push_back(t.first);
+        const Symbol &symbol = t.first;
+        if (symbol.is_internal() && symbol.initial_symbol(0) == k) {
+            to_be_removed.push_back(symbol);
             for (const auto &in_out : t.second) {
                 assert(in_out.first.size() == 2);
                 for (const auto &s : in_out.second) {
                     if (branch)
-                        to_be_inserted[t.first][{in_out.first[1], in_out.first[1]}].insert(s);
+                        to_be_inserted[symbol][{in_out.first[1], in_out.first[1]}].insert(s);
                     else
-                        to_be_inserted[t.first][{in_out.first[0], in_out.first[0]}].insert(s);
+                        to_be_inserted[symbol][{in_out.first[0], in_out.first[0]}].insert(s);
                 }
             }
         }
@@ -1155,13 +1173,14 @@ void VATA::Util::TreeAutomata::fraction_simplication() {
     std::vector<Symbol> to_be_removed;
     TransitionMap to_be_inserted;
     for (const auto &t : transitions) {
-        if (is_leaf(t.first)) {
-            Symbol symbol = t.first;
-            if (symbol[0]==0 && symbol[1]==0 && symbol[2]==0 && symbol[3]==0) symbol[4] = 0;
+        Symbol symbol = t.first;
+        if (symbol.is_leaf()) {
+            InitialSymbol &sym = symbol.initial_symbol();
+            if (sym[0]==0 && sym[1]==0 && sym[2]==0 && sym[3]==0) sym[4] = 0;
             else {
-                while ((symbol[0]&1)==0 && (symbol[1]&1)==0 && (symbol[2]&1)==0 && (symbol[3]&1)==0 && symbol[4]>=2) { // Notice the parentheses enclosing symbol[i]&1 are very important! HAHA
-                    for (int i=0; i<4; i++) symbol[i] /= 2;
-                    symbol[4] -= 2;
+                while ((sym[0]&1)==0 && (sym[1]&1)==0 && (sym[2]&1)==0 && (sym[3]&1)==0 && sym[4]>=2) { // Notice the parentheses enclosing sym[i]&1 are very important! HAHA
+                    for (int i=0; i<4; i++) sym[i] /= 2;
+                    sym[4] -= 2;
                 }
             }
             if (t.first != symbol) {

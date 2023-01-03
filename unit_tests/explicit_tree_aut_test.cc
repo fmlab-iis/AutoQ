@@ -366,7 +366,7 @@ void dfs(const std::map<VATA::Util::TreeAutomata::State, VATA::Util::TreeAutomat
         if (!new_layer.empty()) {
             dfs(edge, leaf, new_layer, prob);
         } else {
-            const auto &symbol = leaf.at(s);
+            const auto &symbol = leaf.at(s).initial_symbol();
             assert(symbol.size() == 5);
             double a = static_cast<double>(symbol[0]) / pow(2, static_cast<double>(symbol[4])/2.0);
             double b = static_cast<double>(symbol[1]) / pow(2, static_cast<double>(symbol[4])/2.0);
@@ -615,14 +615,15 @@ BOOST_AUTO_TEST_CASE(Grover_Search_only_one_oracle)
     std::map<VATA::Util::TreeAutomata::State, VATA::Util::TreeAutomata::Symbol> leaf;
     std::vector<VATA::Util::TreeAutomata::StateVector> first_layers;
     for (const auto &t : aut.transitions) {
+        const auto &symbol = t.first;
         for (const auto &in_out : t.second) {
             const auto &in = in_out.first;
             for (const auto &s : in_out.second) {
                 if (in.empty()) { // is leaf transition
-                    assert(t.first.size() == 5);
-                    leaf[s] = t.first;
+                    assert(symbol.is_leaf());
+                    leaf[s] = symbol;
                 }
-                if (t.first.size() == 1 && t.first[0] == 1) {
+                if (symbol.size() == 1 && symbol.initial_symbol(0) == 1) {
                     first_layers.push_back(in);
                 } else {
                     assert(edge[s].empty());

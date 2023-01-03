@@ -120,7 +120,7 @@ static std::pair<std::string, int> parse_colonned_token(std::string str)
  */
 TreeAutomata::Symbol symbol_converter(const std::string& str)
 {
-	TreeAutomata::Symbol temp;
+	TreeAutomata::InitialSymbol temp;
     if (str[0] == '[') {
         for (int i=1; i<static_cast<int>(str.length()); i++) {
             size_t j = str.find(',', i);
@@ -340,10 +340,10 @@ static TreeAutomata parse_timbuk(const std::string& str)
 	}
 
     for (const auto &kv : result.transitions) {
-        if (kv.first.size() < 5) {
-            if (kv.first[0] > INT_MAX)
+        if (kv.first.is_internal()) {
+            if (kv.first.initial_symbol(0) > INT_MAX)
                 throw std::overflow_error("");
-            result.qubitNum = std::max(result.qubitNum, static_cast<int>(kv.first[0]));
+            result.qubitNum = std::max(result.qubitNum, static_cast<int>(kv.first.initial_symbol(0)));
         }
     }
 

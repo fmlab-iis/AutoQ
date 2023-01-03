@@ -55,11 +55,12 @@ void VATA::Util::TreeAutomata::X(int k) {
     auto start = std::chrono::steady_clock::now();
     auto transitions_copy = transitions;
     for (const auto &t : transitions_copy) {
-        if (is_internal(t.first) && t.first[0] == k) {
-            transitions.erase(t.first);
+        const auto &symbol = t.first;
+        if (symbol.is_internal() && symbol.initial_symbol(0) == k) {
+            transitions.erase(symbol);
             for (const auto &in_out : t.second) {
                 assert(in_out.first.size() == 2);
-                transitions[t.first][{in_out.first[1], in_out.first[0]}] = in_out.second;
+                transitions[symbol][{in_out.first[1], in_out.first[0]}] = in_out.second;
             }
         }
     }
@@ -76,19 +77,20 @@ void VATA::Util::TreeAutomata::Y(int k) {
     auto start = std::chrono::steady_clock::now();
     TransitionMap transitions_copy = transitions;
     for (const auto &t : transitions_copy) {
-        Symbol symbol;
-        if (is_leaf(t.first)) {
-            symbol = Symbol({-t.first[0], -t.first[1], -t.first[2], -t.first[3], t.first[4]});
+        const Symbol &symbol = t.first;
+        Symbol new_symbol;
+        if (symbol.is_leaf()) {
+            new_symbol = {{-symbol.initial_symbol(0), -symbol.initial_symbol(1), -symbol.initial_symbol(2), -symbol.initial_symbol(3), symbol.initial_symbol(4)}, symbol.tag()};
         } else {
-            symbol = t.first;
+            new_symbol = symbol;
         }
-        if (!(is_internal(symbol) && symbol[0] <= k)) {
+        if (!(new_symbol.is_internal() && new_symbol.initial_symbol(0) <= k)) {
             for (const auto &in_out : t.second) {
                 StateVector in;
                 for (const auto &s : in_out.first)
                     in.push_back(s+stateNum);
                 for (const auto &s : in_out.second)
-                    transitions[symbol][in].insert(s+stateNum);
+                    transitions[new_symbol][in].insert(s+stateNum);
             }
         }
     } 
@@ -118,19 +120,20 @@ void VATA::Util::TreeAutomata::Z(int t) {
     auto start = std::chrono::steady_clock::now();
     TransitionMap transitions_copy = transitions;
     for (const auto &tr : transitions_copy) {
-        Symbol symbol;
-        if (is_leaf(tr.first)) {
-            symbol = Symbol({-tr.first[0], -tr.first[1], -tr.first[2], -tr.first[3], tr.first[4]});
+        const Symbol &symbol = tr.first;
+        Symbol new_symbol;
+        if (symbol.is_leaf()) {
+            new_symbol = {-symbol.initial_symbol(0), -symbol.initial_symbol(1), -symbol.initial_symbol(2), -symbol.initial_symbol(3), symbol.initial_symbol(4)};
         } else {
-            symbol = tr.first;
+            new_symbol = symbol;
         }
-        if (!(is_internal(symbol) && symbol[0] <= t)) {
+        if (!(new_symbol.is_internal() && new_symbol.initial_symbol(0) <= t)) {
             for (const auto &in_out : tr.second) {
                 StateVector in;
                 for (const auto &s : in_out.first)
                     in.push_back(s+stateNum);
                 for (const auto &s : in_out.second)
-                    transitions[symbol][in].insert(s+stateNum);
+                    transitions[new_symbol][in].insert(s+stateNum);
             }
         }
     } 
@@ -182,8 +185,9 @@ void VATA::Util::TreeAutomata::S(int t) {
     auto aut2 = *this;
     aut2.omega_multiplication(2);
     for (const auto &tr : aut2.transitions) {
-        if (!(is_internal(tr.first) && tr.first[0] <= t)) {
-            auto &ttf = transitions[tr.first];
+        const Symbol &symbol = tr.first;
+        if (!(symbol.is_internal() && symbol.initial_symbol(0) <= t)) {
+            auto &ttf = transitions[symbol];
             for (const auto &in_out : tr.second) {
                 StateVector in;
                 for (const auto &s : in_out.first)
@@ -219,8 +223,9 @@ void VATA::Util::TreeAutomata::T(int t) {
     auto aut2 = *this;
     aut2.omega_multiplication();
     for (const auto &tr : aut2.transitions) {
-        if (!(is_internal(tr.first) && tr.first[0] <= t)) {
-            auto &ttf = transitions[tr.first];
+        const Symbol &symbol = tr.first;
+        if (!(symbol.is_internal() && symbol.initial_symbol(0) <= t)) {
+            auto &ttf = transitions[symbol];
             for (const auto &in_out : tr.second) {
                 StateVector in;
                 for (const auto &s : in_out.first)
@@ -317,8 +322,9 @@ void VATA::Util::TreeAutomata::CNOT(int c, int t, bool opt) {
         auto aut2 = *this;
         aut2.X(t); gateCount--; // prevent repeated counting
         for (const auto &tr : aut2.transitions) {
-            if (!(is_internal(tr.first) && tr.first[0] <= c)) {
-                auto &ttf = transitions[tr.first];
+            const Symbol &symbol = tr.first;
+            if (!(symbol.is_internal() && symbol.initial_symbol(0) <= c)) {
+                auto &ttf = transitions[symbol];
                 for (const auto &in_out : tr.second) {
                     StateVector in;
                     for (const auto &s : in_out.first)
@@ -358,19 +364,20 @@ void VATA::Util::TreeAutomata::CZ(int c, int t) {
     if (c > t) std::swap(c, t);
     auto aut2 = *this;
     for (const auto &tr : transitions) {
-        Symbol symbol;
-        if (is_leaf(tr.first)) {
-            symbol = Symbol({-tr.first[0], -tr.first[1], -tr.first[2], -tr.first[3], tr.first[4]});
+        const Symbol &symbol = tr.first;
+        Symbol new_symbol;
+        if (symbol.is_leaf()) {
+            new_symbol = {-symbol.initial_symbol(0), -symbol.initial_symbol(1), -symbol.initial_symbol(2), -symbol.initial_symbol(3), symbol.initial_symbol(4)};
         } else {
-            symbol = tr.first;
+            new_symbol = symbol;
         }
-        if (!(is_internal(symbol) && symbol[0] <= t)) {
+        if (!(new_symbol.is_internal() && new_symbol.initial_symbol(0) <= t)) {
             for (const auto &in_out : tr.second) {
                 StateVector in;
                 for (const auto &s : in_out.first)
                     in.push_back(s+stateNum);
                 for (const auto &s : in_out.second)
-                    aut2.transitions[symbol][in].insert(s+stateNum);
+                    aut2.transitions[new_symbol][in].insert(s+stateNum);
             }
         }
     } 
@@ -384,13 +391,14 @@ void VATA::Util::TreeAutomata::CZ(int c, int t) {
         }
     }
     for (const auto &tr : aut2.transitions) {
-        if (!(is_internal(tr.first) && tr.first[0] <= c)) {
+        const Symbol &symbol = tr.first;
+        if (!(symbol.is_internal() && symbol.initial_symbol(0) <= c)) {
             for (const auto &in_out : tr.second) {
                 StateVector in;
                 for (const auto &s : in_out.first)
                     in.push_back(s+stateNum);
                 for (const auto &s : in_out.second)
-                    transitions[tr.first][in].insert(s+stateNum);
+                    transitions[symbol][in].insert(s+stateNum);
             }
         }
     } 
@@ -423,8 +431,9 @@ void VATA::Util::TreeAutomata::Toffoli(int c, int c2, int t) {
         auto aut2 = *this;
         aut2.CNOT(c2, t, false); gateCount--; // prevent repeated counting
         for (const auto &tr : aut2.transitions) {
-            if (!(is_internal(tr.first) && tr.first[0] <= c)) {
-                auto &ttf = transitions[tr.first];
+            const Symbol &symbol = tr.first;
+            if (!(symbol.is_internal() && symbol.initial_symbol(0) <= c)) {
+                auto &ttf = transitions[symbol];
                 for (const auto &in_out : tr.second) {
                     StateVector in;
                     for (const auto &s : in_out.first)
@@ -479,24 +488,26 @@ void VATA::Util::TreeAutomata::Tdg(int t) {
     auto aut2 = *this;
     TransitionMap transitions_new;
     for (const auto &t_old : aut2.transitions) {
-        if (is_leaf(t_old.first)) {
-            Symbol temp;
-            temp.push_back(t_old.first[1]);
-            temp.push_back(t_old.first[2]);
-            temp.push_back(t_old.first[3]);
-            temp.push_back(-t_old.first[0]);
-            temp.push_back(t_old.first[4]);
-            transitions_new[temp] = t_old.second;
+        const Symbol &symbol = t_old.first;
+        if (symbol.is_leaf()) {
+            InitialSymbol temp;
+            temp.push_back(symbol.initial_symbol(1));
+            temp.push_back(symbol.initial_symbol(2));
+            temp.push_back(symbol.initial_symbol(3));
+            temp.push_back(-symbol.initial_symbol(0));
+            temp.push_back(symbol.initial_symbol(4));
+            transitions_new[{temp, symbol.tag()}] = t_old.second;
         } else {
-            assert(t_old.first.size() <= 2);
+            assert(symbol.size() <= 2);
             transitions_new.insert(t_old);
         }
     }
     aut2.transitions = transitions_new;
     /******************************/
     for (const auto &tr : aut2.transitions) {
-        if (!(is_internal(tr.first) && tr.first[0] <= t)) {
-            auto &ttf = transitions[tr.first];
+        const Symbol &symbol = tr.first;
+        if (!(symbol.is_internal() && symbol.initial_symbol(0) <= t)) {
+            auto &ttf = transitions[symbol];
             for (const auto &in_out : tr.second) {
                 StateVector in;
                 for (const auto &s : in_out.first)
@@ -532,24 +543,26 @@ void VATA::Util::TreeAutomata::Sdg(int t) {
     auto aut2 = *this;
     TransitionMap transitions_new;
     for (const auto &t_old : aut2.transitions) {
-        if (is_leaf(t_old.first)) {
-            Symbol temp;
-            temp.push_back(t_old.first[2]);
-            temp.push_back(t_old.first[3]);
-            temp.push_back(-t_old.first[0]);
-            temp.push_back(-t_old.first[1]);
-            temp.push_back(t_old.first[4]);
-            transitions_new[temp] = t_old.second;
+        const Symbol &symbol = t_old.first;
+        if (symbol.is_leaf()) {
+            InitialSymbol temp;
+            temp.push_back(symbol.initial_symbol(2));
+            temp.push_back(symbol.initial_symbol(3));
+            temp.push_back(-symbol.initial_symbol(0));
+            temp.push_back(-symbol.initial_symbol(1));
+            temp.push_back(symbol.initial_symbol(4));
+            transitions_new[{temp, symbol.tag()}] = t_old.second;
         } else {
-            assert(t_old.first.size() <= 2);
+            assert(symbol.size() <= 2);
             transitions_new.insert(t_old);
         }
     }
     aut2.transitions = transitions_new;
     /******************************/
     for (const auto &tr : aut2.transitions) {
-        if (!(is_internal(tr.first) && tr.first[0] <= t)) {
-            auto &ttf = transitions[tr.first];
+        const Symbol &symbol = tr.first;
+        if (!(symbol.is_internal() && symbol.initial_symbol(0) <= t)) {
+            auto &ttf = transitions[symbol];
             for (const auto &in_out : tr.second) {
                 StateVector in;
                 for (const auto &s : in_out.first)

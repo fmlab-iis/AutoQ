@@ -28,24 +28,6 @@ namespace VATA
 	}
 }
 
-// namespace std {
-//     template<> class numeric_limits<__int128_t> {
-//         public:
-//             static __int128_t max() {
-//                 return (static_cast<__int128_t>(numeric_limits<__int64_t>::max()) << 64) + numeric_limits<__uint64_t>::max();
-//             }
-//             static __int128_t min() {
-//                 return static_cast<__uint128_t>(1) << 127;
-//             }
-//             inline static int digits = 127;
-//     };
-//     template<> struct hash<__int128_t> {
-//         size_t operator()(__int128_t var) const {
-//             return std::hash<__uint64_t>{}(static_cast<__uint64_t>(var) ^ static_cast<__uint64_t>(var >> 64));
-//         }
-//     };
-// }
-
 struct VATA::Util::TreeAutomata
 {
 public:   // data types
@@ -54,24 +36,74 @@ public:   // data types
 	typedef std::set<State> StateSet;
 
 	typedef boost::multiprecision::cpp_int SymbolEntry;
-    typedef std::vector<SymbolEntry> Symbol;
-    inline bool is_internal(const Symbol &symbol) { return symbol.size() < 5; }
-    inline bool is_leaf(const Symbol &symbol) { return symbol.size() == 5; }
-
-    struct CompareSymbolName {
-        bool operator()(const Symbol &lhs, const Symbol &rhs) const {
-            if (lhs.size() < rhs.size())
+    typedef std::vector<SymbolEntry> Tag;
+    typedef std::vector<SymbolEntry> stdvectorSymbolEntry;
+    struct Symbol; // forward declaration for operator Symbol()
+    struct InitialSymbol : stdvectorSymbolEntry {
+        using stdvectorSymbolEntry::stdvectorSymbolEntry; // inherit parent constructors
+        bool is_internal() const { return size() < 5; }
+        bool is_leaf() const { return size() == 5; }
+        friend std::ostream& operator<<(std::ostream& os, const InitialSymbol& obj) {
+            os << VATA::Util::Convert::ToString(static_cast<stdvectorSymbolEntry>(obj));
+            return os;
+        }
+        operator Symbol() const { return Symbol(*this, {}); }
+    };
+    typedef std::pair<InitialSymbol, Tag> stdpairInitialSymbolTag;
+    struct Symbol : stdpairInitialSymbolTag {
+        using stdpairInitialSymbolTag::stdpairInitialSymbolTag; // inherit parent constructors
+        Symbol(SymbolEntry a) : stdpairInitialSymbolTag({a}, {}) {}
+        Symbol(SymbolEntry a, SymbolEntry b, SymbolEntry c, SymbolEntry d, SymbolEntry e) : stdpairInitialSymbolTag({a,b,c,d,e}, {}) {}
+        // Reference: https://stackoverflow.com/a/32595916/11550178
+        InitialSymbol& initial_symbol() & { return first; }
+        const InitialSymbol& initial_symbol() const & { return first; }
+        SymbolEntry& initial_symbol(int index) & { return first.at(index); }
+        const SymbolEntry& initial_symbol(int index) const & { return first.at(index); }
+        Tag& tag() & { return second; }
+        const Tag& tag() const & { return second; }
+        SymbolEntry& tag(int index) & { return second.at(index); }
+        const SymbolEntry& tag(int index) const & { return second.at(index); }
+        /*********************************************************/
+        size_t size() const { return initial_symbol().size() + tag().size(); }
+        bool is_internal() const { return initial_symbol().is_internal(); }
+        bool is_leaf() const { return initial_symbol().is_leaf(); }
+        bool is_tagged() const { return !tag().empty(); }
+        bool operator<(const Symbol &rhs) const {
+            if (initial_symbol().size()+tag().size() < rhs.initial_symbol().size()+rhs.tag().size())
                 return true;
-            else if (lhs.size() > rhs.size())
+            else if (initial_symbol().size()+tag().size() > rhs.initial_symbol().size()+rhs.tag().size())
                 return false;
-            else
-                return lhs < rhs;
+            else {
+                auto v1 = initial_symbol();
+                v1.insert(v1.end(), tag().begin(), tag().end());
+                auto v2 = rhs.initial_symbol();
+                v2.insert(v2.end(), rhs.tag().begin(), rhs.tag().end());
+                return v1 < v2;
+            }
+            // if (is_internal() && rhs.is_leaf())
+            //     return true;
+            // if (is_leaf() && rhs.is_internal())
+            //     return false;
+            // else if (initial_symbol() == rhs.initial_symbol()) { // if symbol content is the same, compare tag
+            //     if (tag().size() < rhs.tag().size())
+            //         return true;
+            //     else if (tag().size() > rhs.tag().size())
+            //         return false;
+            //     else
+            //         return tag() < rhs.tag();
+            // }
+            // else // compare symbol content first
+            //     return initial_symbol() < rhs.initial_symbol();
+        }
+        friend std::ostream& operator<<(std::ostream& os, const Symbol& obj) {
+            os << obj.initial_symbol(); // print only the initial symbol
+            return os;
         }
     };
-    typedef std::map<Symbol, std::map<StateVector, StateSet>, CompareSymbolName> TransitionMap;
+    typedef std::map<Symbol, std::map<StateVector, StateSet>> TransitionMap;
 
 public:   // data members
-		std::string name;
+	std::string name;
     StateVector finalStates;
     State stateNum;
     int qubitNum;
@@ -198,5 +230,31 @@ public:
     static bool check_equal_aut(TreeAutomata lhs, TreeAutomata rhs);
     static bool check_inclusion(const std::string& lhsPath, const std::string& rhsPath);
 };
+
+namespace std {
+//     template<> class numeric_limits<__int128_t> {
+//         public:
+//             static __int128_t max() {
+//                 return (static_cast<__int128_t>(numeric_limits<__int64_t>::max()) << 64) + numeric_limits<__uint64_t>::max();
+//             }
+//             static __int128_t min() {
+//                 return static_cast<__uint128_t>(1) << 127;
+//             }
+//             inline static int digits = 127;
+//     };
+//     template<> struct hash<__int128_t> {
+//         size_t operator()(__int128_t var) const {
+//             return std::hash<__uint64_t>{}(static_cast<__uint64_t>(var) ^ static_cast<__uint64_t>(var >> 64));
+//         }
+//     };
+    template <> struct hash<typename VATA::Util::TreeAutomata::Symbol> {
+        size_t operator()(const VATA::Util::TreeAutomata::Symbol& obj) const {
+            std::size_t seed = 0;
+            boost::hash_combine(seed, obj.first);
+            boost::hash_combine(seed, obj.second);
+            return seed;
+        }
+    };
+}
 
 #endif
