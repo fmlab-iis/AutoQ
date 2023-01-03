@@ -498,7 +498,7 @@ void VATA::Util::TreeAutomata::Tdg(int t) {
             temp.push_back(symbol.initial_symbol(4));
             transitions_new[{temp, symbol.tag()}] = t_old.second;
         } else {
-            assert(symbol.size() <= 2);
+            assert(symbol.tag().size() <= 1);
             transitions_new.insert(t_old);
         }
     }
@@ -553,7 +553,7 @@ void VATA::Util::TreeAutomata::Sdg(int t) {
             temp.push_back(symbol.initial_symbol(4));
             transitions_new[{temp, symbol.tag()}] = t_old.second;
         } else {
-            assert(symbol.size() <= 2);
+            assert(symbol.tag().size() <= 1);
             transitions_new.insert(t_old);
         }
     }

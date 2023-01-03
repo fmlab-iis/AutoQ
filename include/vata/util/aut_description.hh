@@ -35,8 +35,8 @@ public:   // data types
 	typedef std::vector<State> StateVector;
 	typedef std::set<State> StateSet;
 
-	typedef boost::multiprecision::cpp_int SymbolEntry;
-    typedef std::vector<SymbolEntry> Tag;
+	typedef std::vector<int> Tag;
+    typedef boost::multiprecision::cpp_int SymbolEntry;
     typedef std::vector<SymbolEntry> stdvectorSymbolEntry;
     struct Symbol; // forward declaration for operator Symbol()
     struct InitialSymbol : stdvectorSymbolEntry {
@@ -61,39 +61,26 @@ public:   // data types
         const SymbolEntry& initial_symbol(int index) const & { return first.at(index); }
         Tag& tag() & { return second; }
         const Tag& tag() const & { return second; }
-        SymbolEntry& tag(int index) & { return second.at(index); }
-        const SymbolEntry& tag(int index) const & { return second.at(index); }
+        int& tag(int index) & { return second.at(index); }
+        const int& tag(int index) const & { return second.at(index); }
         /*********************************************************/
         size_t size() const { return initial_symbol().size() + tag().size(); }
         bool is_internal() const { return initial_symbol().is_internal(); }
         bool is_leaf() const { return initial_symbol().is_leaf(); }
         bool is_tagged() const { return !tag().empty(); }
         bool operator<(const Symbol &rhs) const {
-            if (initial_symbol().size()+tag().size() < rhs.initial_symbol().size()+rhs.tag().size())
-                return true;
-            else if (initial_symbol().size()+tag().size() > rhs.initial_symbol().size()+rhs.tag().size())
-                return false;
-            else {
-                auto v1 = initial_symbol();
-                v1.insert(v1.end(), tag().begin(), tag().end());
-                auto v2 = rhs.initial_symbol();
-                v2.insert(v2.end(), rhs.tag().begin(), rhs.tag().end());
-                return v1 < v2;
-            }
-            // if (is_internal() && rhs.is_leaf())
-            //     return true;
-            // if (is_leaf() && rhs.is_internal())
-            //     return false;
-            // else if (initial_symbol() == rhs.initial_symbol()) { // if symbol content is the same, compare tag
-            //     if (tag().size() < rhs.tag().size())
-            //         return true;
-            //     else if (tag().size() > rhs.tag().size())
-            //         return false;
-            //     else
-            //         return tag() < rhs.tag();
-            // }
-            // else // compare symbol content first
-            //     return initial_symbol() < rhs.initial_symbol();
+            if (is_internal() && rhs.is_leaf()) return true;
+            else if (is_leaf() && rhs.is_internal()) return false;
+            else if (initial_symbol() == rhs.initial_symbol()) { // if symbol content is the same, compare tag
+                // TODO: I still don't understand why "tag size" should also be compared first.
+                if (tag().size() < rhs.tag().size())
+                    return true;
+                else if (tag().size() > rhs.tag().size())
+                    return false;
+                else
+                    return tag() < rhs.tag();
+            } // compare symbol content first
+            else return initial_symbol() < rhs.initial_symbol();
         }
         friend std::ostream& operator<<(std::ostream& os, const Symbol& obj) {
             os << obj.initial_symbol(); // print only the initial symbol

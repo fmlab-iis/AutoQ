@@ -454,7 +454,7 @@ void VATA::Util::TreeAutomata::omega_multiplication(int rotation) {
             }
             transitions_new[{sym, symbol.second}] = t_old.second;
         } else {
-            assert(symbol.initial_symbol().size() + symbol.tag().size() <= 2);
+            assert(symbol.tag().size() <= 1);
             transitions_new.insert(t_old);
         }
     }
@@ -491,7 +491,7 @@ void VATA::Util::TreeAutomata::branch_restriction(int k, bool positive_has_value
     TransitionMap transitions_copy = transitions;
     for (const auto &t : transitions_copy) {
         const Symbol &symbol = t.first;
-        if (symbol.size() <= 2) { // x_i + determinized number
+        if (symbol.is_internal()) { // x_i + determinized number
             auto &in_outs_dest = transitions.at(symbol);
             for (const auto &in_out : t.second) {
                 StateVector in;
@@ -518,7 +518,7 @@ void VATA::Util::TreeAutomata::branch_restriction(int k, bool positive_has_value
     transitions_copy = transitions;
     for (const auto &t : transitions_copy) {
         const Symbol &symbol = t.first;
-        if (symbol.size() <= 2 && symbol.initial_symbol(0) == k) { // x_i + determinized number
+        if (symbol.is_internal() && symbol.initial_symbol(0) == k) { // x_i + determinized number
             auto &in_outs_dest = transitions.at(symbol);
             for (const auto &in_out : t.second) {
                 assert(in_out.first.size() == 2);
@@ -545,9 +545,9 @@ void VATA::Util::TreeAutomata::semi_determinize() {
     TransitionMap transitions_copy = transitions;
     for (const auto &t : transitions_copy) {
         const Symbol &symbol = t.first;
-        if (symbol.size() == 1) { // x_i not determinized yet
+        if (symbol.is_internal()) { // x_i not determinized yet
             transitions.erase(symbol); // modify
-            SymbolEntry counter = 0;
+            int counter = 0;
             Symbol new_symbol;
             new_symbol.initial_symbol() = symbol.initial_symbol();
             for (const auto &in_out : t.second) {
@@ -567,7 +567,7 @@ void VATA::Util::TreeAutomata::semi_undeterminize() {
     TransitionMap transitions_copy = transitions;
     for (const auto &t : transitions_copy) {
         const Symbol &symbol = t.first;
-        if (symbol.size() == 2) { // pick all determinized x_i's
+        if (symbol.is_internal()) { // pick all determinized x_i's
             transitions.erase(symbol); // modify
             for (const auto &in_out : t.second) {
                 for (const auto &v : in_out.second)
@@ -997,7 +997,7 @@ void VATA::Util::TreeAutomata::swap_forward(const int k) {
             const auto &symbol = t.first;
             const auto &in_outs = t.second;
             if (symbol.is_internal() && symbol.initial_symbol(0) == next_k) {
-                assert(symbol.size() <= 2);
+                assert(symbol.tag().size() <= 1);
                 for (const auto &in_out : in_outs) {
                     for (const auto &s : in_out.second)
                         svsv[s].push_back(make_pair(symbol, in_out.first));
@@ -1068,7 +1068,7 @@ void VATA::Util::TreeAutomata::swap_backward(const int k) {
             const auto &symbol = t.first;
             const auto &in_outs = t.second;
             if (symbol.is_internal() && symbol.initial_symbol(0) == k) {
-                assert(symbol.size() == 2);
+                assert(symbol.tag().size() == 1);
                 for (const auto &in_out : in_outs) {
                     for (const auto &s : in_out.second)
                         svsv[s].push_back(make_pair(symbol, in_out.first));
@@ -1080,7 +1080,7 @@ void VATA::Util::TreeAutomata::swap_backward(const int k) {
         for (const auto &t : transitions) {
             const Symbol &symbol = t.first;
             if (symbol.is_internal() && symbol.initial_symbol(0) == next_k) {
-                assert(symbol.size() == 3);
+                assert(symbol.tag().size() == 2);
                 for (const auto &in_out : t.second) {
                     assert(in_out.first.size() == 2);
                     for (const auto &ssv1 : svsv[in_out.first[0]]) {
