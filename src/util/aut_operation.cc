@@ -11,17 +11,17 @@
 using namespace VATA;
 using namespace VATA::Util;
 
-using State                   = TreeAutomata::State;
-using StateSet                = TreeAutomata::StateSet;
-using StateVector             = TreeAutomata::StateVector;
-using Symbol                  = TreeAutomata::Symbol;
-using TransitionMap           = TreeAutomata::TransitionMap;
+// using State                   = TreeAutomata::State;
+// using StateSet                = TreeAutomata::StateSet;
+// using StateVector             = TreeAutomata::StateVector;
+// using Symbol                  = TreeAutomata::Symbol;
+// using TransitionMap           = TreeAutomata::TransitionMap;
 
-using DiscontBinaryRelOnStates= DiscontBinaryRelation<State>;
-using StateToIndexMap         = std::unordered_map<State, size_t>;
-using StateToIndexTranslWeak  = Util::TranslatorWeak<StateToIndexMap>;
-using StateToStateMap         = std::unordered_map<State, State>;
-using StateToStateTranslWeak  = Util::TranslatorWeak<StateToStateMap>;
+// using DiscontBinaryRelOnStates= DiscontBinaryRelation<State>;
+// using StateToIndexMap         = std::unordered_map<State, size_t>;
+// using StateToIndexTranslWeak  = Util::TranslatorWeak<StateToIndexMap>;
+// using StateToStateMap         = std::unordered_map<State, State>;
+// using StateToStateTranslWeak  = Util::TranslatorWeak<StateToStateMap>;
 
 namespace {
 
@@ -77,12 +77,16 @@ namespace std
 
 namespace { // anonymous namespace
 
-  template <class Index>
+  template <class Index, typename InitialSymbol>
   ExplicitLTS translate_to_lts_downward(
-    const TreeAutomata& aut,
+    const Automata<InitialSymbol>& aut,
     size_t              numStates,
     Index&              stateIndex)
   {
+    using State = typename Automata<InitialSymbol>::State;
+    using Symbol = typename Automata<InitialSymbol>::Symbol;
+    using StateVector = typename Automata<InitialSymbol>::StateVector;
+
     std::unordered_map<Symbol, size_t> symbolMap;
     std::unordered_map<const StateVector*, size_t> lhsMap;
 
@@ -146,8 +150,11 @@ namespace { // anonymous namespace
     return result;
   }
 
-  size_t count_aut_states(const VATA::Util::TreeAutomata& aut)
+  template <typename InitialSymbol>
+  size_t count_aut_states(const VATA::Util::Automata<InitialSymbol>& aut)
   {
+    using State = typename Automata<InitialSymbol>::State;
+
     std::set<State> states;
     for (const auto& state : aut.finalStates) {
       states.insert(state);
@@ -165,8 +172,14 @@ namespace { // anonymous namespace
     return states.size();
   }
 
-  DiscontBinaryRelOnStates compute_down_sim(const VATA::Util::TreeAutomata& aut)
+  template <typename InitialSymbol>
+  typename Util::DiscontBinaryRelation<typename Automata<InitialSymbol>::State> compute_down_sim(const VATA::Util::Automata<InitialSymbol>& aut)
   {
+    using State = typename Automata<InitialSymbol>::State;
+    using StateToIndexMap = typename std::unordered_map<State, size_t>;
+    using StateToIndexTranslWeak = typename Util::TranslatorWeak<StateToIndexMap>;
+    using DiscontBinaryRelOnStates = typename Util::DiscontBinaryRelation<State>;
+
     StateToIndexMap translMap;
     size_t stateCnt = 0;
     StateToIndexTranslWeak transl(translMap,
@@ -178,9 +191,14 @@ namespace { // anonymous namespace
     return DiscontBinaryRelOnStates(ltsSim, translMap);
   }
 
-  template <class Index>
-  void reindex_aut_states(TreeAutomata& aut, Index& index)
+  template <class Index, typename InitialSymbol>
+  void reindex_aut_states(Automata<InitialSymbol>& aut, Index& index)
   {
+    using State = typename Automata<InitialSymbol>::State;
+    using StateSet = typename Automata<InitialSymbol>::StateSet;
+    using StateVector = typename Automata<InitialSymbol>::StateVector;
+    using TransitionMap = typename Automata<InitialSymbol>::TransitionMap;
+
     StateVector newFinal;
     TransitionMap newTrans;
 
@@ -233,8 +251,11 @@ namespace { // anonymous namespace
 
   /// Checks that a state is at most once on the right-hand (parent) side of
   /// any rule.
-  bool aut_is_single_occurrence(const TreeAutomata& aut)
+  template <typename InitialSymbol>
+  bool aut_is_single_occurrence(const Automata<InitialSymbol>& aut)
   {
+    using State = typename Automata<InitialSymbol>::State;
+
     std::set<State> occurrences;
     for (auto symbMapPair : aut.transitions) {
       for (auto vecSetPair : symbMapPair.second) {
@@ -249,8 +270,12 @@ namespace { // anonymous namespace
   }
 
   // Makes a TA compact (states are renumbered to start from 0 and go consecutively up
-  void compact_aut(TreeAutomata& aut)
+  template <typename InitialSymbol>
+  void compact_aut(Automata<InitialSymbol>& aut)
   {
+    using State = typename Automata<InitialSymbol>::State;
+    using StateToStateMap = typename std::unordered_map<State, State>;
+    using StateToStateTranslWeak = typename Util::TranslatorWeak<StateToStateMap>;
     StateToStateMap translMap;
     size_t stateCnt = 0;
     StateToStateTranslWeak transl(translMap,
@@ -295,7 +320,8 @@ namespace { // anonymous namespace
 } // anonymous namespace
 
 
-void VATA::Util::TreeAutomata::remove_useless(bool only_bottom_up) {
+template <typename InitialSymbol>
+void VATA::Util::Automata<InitialSymbol>::remove_useless(bool only_bottom_up) {
     auto start = std::chrono::steady_clock::now();
     bool changed;
     std::vector<bool> traversed(stateNum, false);
@@ -424,10 +450,11 @@ void VATA::Util::TreeAutomata::remove_useless(bool only_bottom_up) {
     finalStates = finalStates_new;
     stateNum = stateOldToNew.size();
     auto duration = std::chrono::steady_clock::now() - start;
-    if (opLog) std::cout << "remove_useless：" << stateNum << " states " << count_transitions() << " transitions " << toString(duration) << "\n";
+    if (opLog) std::cout << __FUNCTION__ << "：" << stateNum << " states " << count_transitions() << " transitions\n";
 }
 
-void VATA::Util::TreeAutomata::omega_multiplication(int rotation) {
+template <typename InitialSymbol>
+void VATA::Util::Automata<InitialSymbol>::omega_multiplication(int rotation) {
     TransitionMap transitions_new;
     for (const auto &t_old : transitions) {
         const Symbol &symbol = t_old.first;
@@ -460,9 +487,11 @@ void VATA::Util::TreeAutomata::omega_multiplication(int rotation) {
     }
     transitions = transitions_new;
     // DO NOT reduce here.
+    if (opLog) std::cout << __FUNCTION__ << "：" << stateNum << " states " << count_transitions() << " transitions\n";
 }
 
-void VATA::Util::TreeAutomata::divide_by_the_square_root_of_two() {
+template <typename InitialSymbol>
+void VATA::Util::Automata<InitialSymbol>::divide_by_the_square_root_of_two() {
     std::vector<Symbol> to_be_removed;
     TransitionMap to_be_inserted;
     for (const auto &t : transitions) {
@@ -479,9 +508,11 @@ void VATA::Util::TreeAutomata::divide_by_the_square_root_of_two() {
     for (const auto &t : to_be_inserted)
         transitions.insert(t);
     // fraction_simplication();
+    if (opLog) std::cout << __FUNCTION__ << "：" << stateNum << " states " << count_transitions() << " transitions\n";
 }
 
-void VATA::Util::TreeAutomata::branch_restriction(int k, bool positive_has_value) {
+template <typename InitialSymbol>
+void VATA::Util::Automata<InitialSymbol>::branch_restriction(int k, bool positive_has_value) {
     auto start = std::chrono::steady_clock::now();
     State num_of_states = stateNum;
     if (stateNum > std::numeric_limits<State>::max() / 2)
@@ -538,14 +569,17 @@ void VATA::Util::TreeAutomata::branch_restriction(int k, bool positive_has_value
     remove_useless(); // otherwise, will out of memory
     auto end = std::chrono::steady_clock::now();
     branch_rest_time += end - start;
+    if (opLog) std::cout << __FUNCTION__ << "：" << stateNum << " states " << count_transitions() << " transitions\n";
 }
 
-void VATA::Util::TreeAutomata::semi_determinize() {
+template <typename InitialSymbol>
+void VATA::Util::Automata<InitialSymbol>::semi_determinize() {
     if (isTopdownDeterministic) return;
     TransitionMap transitions_copy = transitions;
     for (const auto &t : transitions_copy) {
         const Symbol &symbol = t.first;
         if (symbol.is_internal()) { // x_i not determinized yet
+            assert(!symbol.is_tagged()); // not determinized yet
             transitions.erase(symbol); // modify
             int counter = 0;
             Symbol new_symbol;
@@ -560,14 +594,17 @@ void VATA::Util::TreeAutomata::semi_determinize() {
         }
     }
     // DO NOT reduce here.
+    if (opLog) std::cout << __FUNCTION__ << "：" << stateNum << " states " << count_transitions() << " transitions\n";
 }
 
-void VATA::Util::TreeAutomata::semi_undeterminize() {
+template <typename InitialSymbol>
+void VATA::Util::Automata<InitialSymbol>::semi_undeterminize() {
     if (isTopdownDeterministic) return;
     TransitionMap transitions_copy = transitions;
     for (const auto &t : transitions_copy) {
         const Symbol &symbol = t.first;
         if (symbol.is_internal()) { // pick all determinized x_i's
+            assert(symbol.is_tagged()); // determinized
             transitions.erase(symbol); // modify
             for (const auto &in_out : t.second) {
                 for (const auto &v : in_out.second)
@@ -576,6 +613,7 @@ void VATA::Util::TreeAutomata::semi_undeterminize() {
         }
     }
     this->reduce();
+    if (opLog) std::cout << __FUNCTION__ << "：" << stateNum << " states " << count_transitions() << " transitions\n";
 }
 
 #define construct_product_state_id(a, b, i) \
@@ -588,7 +626,8 @@ void VATA::Util::TreeAutomata::semi_undeterminize() {
         } \
         else i = it->second; \
     } else i = a * o.stateNum + b;
-VATA::Util::TreeAutomata VATA::Util::TreeAutomata::binary_operation(const TreeAutomata &o, bool add) {
+template <typename InitialSymbol>
+VATA::Util::Automata<InitialSymbol> VATA::Util::Automata<InitialSymbol>::binary_operation(const Automata<InitialSymbol> &o, bool add) {
     auto start = std::chrono::steady_clock::now();
     TreeAutomata result;
     result.name = name;
@@ -749,11 +788,13 @@ VATA::Util::TreeAutomata VATA::Util::TreeAutomata::binary_operation(const TreeAu
     result.remove_useless(true); // otherwise, will out of memory
     auto end = std::chrono::steady_clock::now();
     binop_time += end - start;
+    if (opLog) std::cout << __FUNCTION__ << "：" << stateNum << " states " << count_transitions() << " transitions\n";
     return result;
 }
 
-VATA::Util::TreeAutomata VATA::Util::TreeAutomata::Union(const TreeAutomata &o) {
-    TreeAutomata result;
+template <typename InitialSymbol>
+VATA::Util::Automata<InitialSymbol> VATA::Util::Automata<InitialSymbol>::Union(const Automata<InitialSymbol> &o) {
+    Automata<InitialSymbol> result;
     result = *this;
     result.name = "Union";
     assert(result.qubitNum == o.qubitNum);
@@ -778,11 +819,13 @@ VATA::Util::TreeAutomata VATA::Util::TreeAutomata::Union(const TreeAutomata &o) 
         result.finalStates.push_back(s + this->stateNum);
     }
     result.reduce();
+    if (opLog) std::cout << __FUNCTION__ << "：" << stateNum << " states " << count_transitions() << " transitions\n";
     return result;
 }
 
-VATA::Util::TreeAutomata VATA::Util::TreeAutomata::uniform(int n) {
-    TreeAutomata aut;
+template <typename InitialSymbol>
+VATA::Util::Automata<InitialSymbol> VATA::Util::Automata<InitialSymbol>::uniform(int n) {
+    Automata<InitialSymbol> aut;
     aut.name = "Uniform";
     aut.qubitNum = n;
     int pow_of_two = 1;
@@ -806,8 +849,9 @@ VATA::Util::TreeAutomata VATA::Util::TreeAutomata::uniform(int n) {
     return aut;
 }
 
-VATA::Util::TreeAutomata VATA::Util::TreeAutomata::basis(int n) {
-    TreeAutomata aut;
+template <typename InitialSymbol>
+VATA::Util::Automata<InitialSymbol> VATA::Util::Automata<InitialSymbol>::basis(int n) {
+    Automata<InitialSymbol> aut;
     aut.name = "Classical";
     aut.qubitNum = n;
 
@@ -826,8 +870,9 @@ VATA::Util::TreeAutomata VATA::Util::TreeAutomata::basis(int n) {
     return aut;
 }
 
-VATA::Util::TreeAutomata VATA::Util::TreeAutomata::random(int n) {
-    TreeAutomata aut;
+template <typename InitialSymbol>
+VATA::Util::Automata<InitialSymbol> VATA::Util::Automata<InitialSymbol>::random(int n) {
+    Automata<InitialSymbol> aut;
     aut.name = "Random";
     aut.qubitNum = n;
     int pow_of_two = 1;
@@ -850,7 +895,8 @@ VATA::Util::TreeAutomata VATA::Util::TreeAutomata::random(int n) {
     return aut;
 }
 
-VATA::Util::TreeAutomata VATA::Util::TreeAutomata::zero(int n) {
+template <typename InitialSymbol>
+VATA::Util::Automata<InitialSymbol> VATA::Util::Automata<InitialSymbol>::zero(int n) {
     /* Example of n = 6:
         Final States 0
         Transitions
@@ -868,7 +914,7 @@ VATA::Util::TreeAutomata VATA::Util::TreeAutomata::zero(int n) {
         [0,0,0,0,0] -> 11
         [1,0,0,0,0] -> 12
     */
-    TreeAutomata aut;
+    Automata<InitialSymbol> aut;
     aut.name = "Zero";
     aut.qubitNum = n;
     aut.finalStates.push_back(0);
@@ -886,8 +932,9 @@ VATA::Util::TreeAutomata VATA::Util::TreeAutomata::zero(int n) {
     return aut;
 }
 
-VATA::Util::TreeAutomata VATA::Util::TreeAutomata::basis_zero_one_zero(int n) {
-    TreeAutomata aut;
+template <typename InitialSymbol>
+VATA::Util::Automata<InitialSymbol> VATA::Util::Automata<InitialSymbol>::basis_zero_one_zero(int n) {
+    Automata<InitialSymbol> aut;
     assert(n >= 2);
     aut.name = "Classical_Zero_One_Zero";
     aut.qubitNum = n + (n+1) + (n>=3) * (n-1);
@@ -922,8 +969,9 @@ VATA::Util::TreeAutomata VATA::Util::TreeAutomata::basis_zero_one_zero(int n) {
     return aut;
 }
 
-VATA::Util::TreeAutomata VATA::Util::TreeAutomata::zero_zero_one_zero(int n) {
-    TreeAutomata aut;
+template <typename InitialSymbol>
+VATA::Util::Automata<InitialSymbol> VATA::Util::Automata<InitialSymbol>::zero_zero_one_zero(int n) {
+    Automata<InitialSymbol> aut;
     assert(n >= 2);
     aut.name = "Zero_Zero_One_Zero";
     aut.qubitNum = n + (n+1) + (n>=3) * (n-1);
@@ -958,8 +1006,9 @@ VATA::Util::TreeAutomata VATA::Util::TreeAutomata::zero_zero_one_zero(int n) {
     return aut;
 }
 
-VATA::Util::TreeAutomata VATA::Util::TreeAutomata::zero_one_zero(int n) {
-    TreeAutomata aut;
+template <typename InitialSymbol>
+VATA::Util::Automata<InitialSymbol> VATA::Util::Automata<InitialSymbol>::zero_one_zero(int n) {
+    Automata<InitialSymbol> aut;
     assert(n >= 2);
     aut.name = "Zero_One_Zero";
     aut.qubitNum = (n+1) + (n>=3) * (n-1);
@@ -990,7 +1039,8 @@ VATA::Util::TreeAutomata VATA::Util::TreeAutomata::zero_one_zero(int n) {
     return aut;
 }
 
-void VATA::Util::TreeAutomata::swap_forward(const int k) {
+template <typename InitialSymbol>
+void VATA::Util::Automata<InitialSymbol>::swap_forward(const int k) {
     if (isTopdownDeterministic) return;
     for (int next_k=k+1; next_k<=qubitNum; next_k++) {
         std::map<State, std::vector<std::pair<Symbol, StateVector>>> svsv;
@@ -1059,9 +1109,11 @@ void VATA::Util::TreeAutomata::swap_forward(const int k) {
         }
         // DO NOT reduce here.
     }
+    if (opLog) std::cout << __FUNCTION__ << "：" << stateNum << " states " << count_transitions() << " transitions\n";
 }
 
-void VATA::Util::TreeAutomata::swap_backward(const int k) {
+template <typename InitialSymbol>
+void VATA::Util::Automata<InitialSymbol>::swap_backward(const int k) {
     if (isTopdownDeterministic) return;
     for (int next_k=qubitNum; next_k>k; next_k--) {
       std::map<State, std::vector<std::pair<Symbol, StateVector>>> svsv;
@@ -1136,9 +1188,11 @@ void VATA::Util::TreeAutomata::swap_backward(const int k) {
         }
         // DO NOT reduce here.
     }
+    if (opLog) std::cout << __FUNCTION__ << "：" << stateNum << " states " << count_transitions() << " transitions\n";
 }
 
-void VATA::Util::TreeAutomata::value_restriction(int k, bool branch) {
+template <typename InitialSymbol>
+void VATA::Util::Automata<InitialSymbol>::value_restriction(int k, bool branch) {
     auto start = std::chrono::steady_clock::now();
     swap_forward(k);
     TransitionMap to_be_inserted;
@@ -1168,9 +1222,11 @@ void VATA::Util::TreeAutomata::value_restriction(int k, bool branch) {
     this->reduce();
     auto end = std::chrono::steady_clock::now();
     value_rest_time += end - start;
+    if (opLog) std::cout << __FUNCTION__ << "：" << stateNum << " states " << count_transitions() << " transitions\n";
 }
 
-void VATA::Util::TreeAutomata::fraction_simplication() {
+template <typename InitialSymbol>
+void VATA::Util::Automata<InitialSymbol>::fraction_simplication() {
     std::vector<Symbol> to_be_removed;
     TransitionMap to_be_inserted;
     for (const auto &t : transitions) {
@@ -1196,6 +1252,7 @@ void VATA::Util::TreeAutomata::fraction_simplication() {
     }
     for (const auto &t : to_be_removed) transitions.erase(t);
     for (const auto &t : to_be_inserted) transitions.insert(t);
+    if (opLog) std::cout << __FUNCTION__ << "：" << stateNum << " states " << count_transitions() << " transitions\n";
 }
 
 /**************** Equivalence Checking ****************/
@@ -1221,7 +1278,8 @@ void VATA::Util::TreeAutomata::fraction_simplication() {
 
 
   /** checks inclusion of two TAs */
-  bool VATA::Util::TreeAutomata::check_inclusion(const std::string& lhsPath, const std::string& rhsPath)
+  template <typename InitialSymbol>
+  bool VATA::Util::Automata<InitialSymbol>::check_inclusion(const std::string& lhsPath, const std::string& rhsPath)
   {
     std::string aux;
     VATA::Util::ShellCmd(get_vata_path() + " incl " + lhsPath + " " + rhsPath, aux);
@@ -1229,14 +1287,16 @@ void VATA::Util::TreeAutomata::fraction_simplication() {
   }
 
   /** checks language equivalence of two TAs */
-  bool VATA::Util::TreeAutomata::check_equal(const std::string& lhsPath, const std::string& rhsPath)
+  template <typename InitialSymbol>
+  bool VATA::Util::Automata<InitialSymbol>::check_equal(const std::string& lhsPath, const std::string& rhsPath)
   {
     return check_inclusion(lhsPath, rhsPath) && check_inclusion(rhsPath, lhsPath);
   }
 
-  bool VATA::Util::TreeAutomata::check_equal_aut(
-      VATA::Util::TreeAutomata lhs,
-      VATA::Util::TreeAutomata rhs)
+  template <typename InitialSymbol>
+  bool VATA::Util::Automata<InitialSymbol>::check_equal_aut(
+      VATA::Util::Automata<InitialSymbol> lhs,
+      VATA::Util::Automata<InitialSymbol> rhs)
   {
 	std::ofstream fileLhs("/tmp/automata1.txt");
     lhs.fraction_simplication();
@@ -1253,8 +1313,13 @@ void VATA::Util::TreeAutomata::fraction_simplication() {
 // } // anonymous namespace
 /******************************************************/
 
-void VATA::Util::TreeAutomata::sim_reduce()
+template <typename InitialSymbol>
+void VATA::Util::Automata<InitialSymbol>::sim_reduce()
 {
+  using State = typename Automata<InitialSymbol>::State;
+  using DiscontBinaryRelOnStates = typename Util::DiscontBinaryRelation<State>;
+  using StateToStateMap = typename std::unordered_map<State, State>;
+
   DiscontBinaryRelOnStates sim = compute_down_sim(*this);
 
   // TODO: this is probably not optimal, we could probably get the mapping of
@@ -1264,7 +1329,7 @@ void VATA::Util::TreeAutomata::sim_reduce()
   StateToStateMap collapseMap;
   sim.GetQuotientProjection(collapseMap);
 
-  // TreeAutomata old = *this;
+  // Automata old = *this;
   reindex_aut_states(*this, collapseMap);
 
   // if (!check_equal_aut(*this, old)) {
@@ -1275,9 +1340,12 @@ void VATA::Util::TreeAutomata::sim_reduce()
   // }
 }
 
-
-bool VATA::Util::TreeAutomata::light_reduce_up()
+template <typename InitialSymbol>
+bool VATA::Util::Automata<InitialSymbol>::light_reduce_up()
 {
+  using State = typename Automata<InitialSymbol>::State;
+  using StateToStateMap = typename std::unordered_map<State, State>;
+
   StateToStateMap index;
   for (const auto& symbMapPair : this->transitions) {
     for (const auto& vecSetPair : symbMapPair.second) {
@@ -1300,7 +1368,7 @@ bool VATA::Util::TreeAutomata::light_reduce_up()
 
   // VATA_DEBUG("index: " + Convert::ToString(index));
   if (changed) {
-    // TreeAutomata old = *this;
+    // Automata old = *this;
     reindex_aut_states(*this, index);
     // assert(check_equal_aut(old, *this));
   }
@@ -1308,8 +1376,8 @@ bool VATA::Util::TreeAutomata::light_reduce_up()
   return changed;
 }
 
-
-bool VATA::Util::TreeAutomata::light_reduce_up_iter()
+template <typename InitialSymbol>
+bool VATA::Util::Automata<InitialSymbol>::light_reduce_up_iter()
 {
   size_t iterations = 0;
   bool changed = true;
@@ -1321,8 +1389,13 @@ bool VATA::Util::TreeAutomata::light_reduce_up_iter()
   return 1 == iterations;
 }
 
-bool VATA::Util::TreeAutomata::light_reduce_down()
+template <typename InitialSymbol>
+bool VATA::Util::Automata<InitialSymbol>::light_reduce_down()
 {
+  using State = typename Automata<InitialSymbol>::State;
+  using StateToStateMap = typename std::unordered_map<State, State>;
+  using StateToStateTranslWeak = typename Util::TranslatorWeak<StateToStateMap>;
+
   // VATA_DEBUG("aut:\n" + this->ToString());
   std::list<std::set<State>> partition;
   std::map<State, std::set<State>*> state_to_class;
@@ -1449,7 +1522,8 @@ bool VATA::Util::TreeAutomata::light_reduce_down()
   return false;
 }
 
-bool VATA::Util::TreeAutomata::light_reduce_down_iter()
+template <typename InitialSymbol>
+bool VATA::Util::Automata<InitialSymbol>::light_reduce_down_iter()
 {
   size_t iterations = 0;
   bool changed = true;
@@ -1461,7 +1535,8 @@ bool VATA::Util::TreeAutomata::light_reduce_down_iter()
   return 1 == iterations;
 }
 
-void VATA::Util::TreeAutomata::reduce()
+template <typename InitialSymbol>
+void VATA::Util::Automata<InitialSymbol>::reduce()
 {
   auto start = std::chrono::steady_clock::now();
   // VATA_DEBUG("before light_reduce_down: " + Convert::ToString(count_aut_states(*this)));
@@ -1469,7 +1544,7 @@ void VATA::Util::TreeAutomata::reduce()
   this->light_reduce_up_iter();
 
 
-  TreeAutomata old = *this;
+  Automata old = *this;
   this->light_reduce_down_iter();
   // VATA_DEBUG("after light_reduce_down: " + Convert::ToString(count_aut_states(*this)));
 
@@ -1477,11 +1552,11 @@ void VATA::Util::TreeAutomata::reduce()
   assert(check_equal_aut(old, *this));
 
   auto duration = std::chrono::steady_clock::now() - start;
-  if (opLog) std::cout << "reduce：" << stateNum << " states " << count_transitions() << " transitions " << toString(duration) << "\n";
+  if (opLog) std::cout << __FUNCTION__ << "：" << stateNum << " states " << count_transitions() << " transitions\n";
 }
 
-
-void VATA::Util::TreeAutomata::print() {
+template <typename InitialSymbol>
+void VATA::Util::Automata<InitialSymbol>::print() {
     std::string result;
 
   result += "Ops ";
@@ -1538,7 +1613,8 @@ void VATA::Util::TreeAutomata::print() {
     std::cout << result; // << "\n";
 }
 
-int VATA::Util::TreeAutomata::transition_size() {
+template <typename InitialSymbol>
+int VATA::Util::Automata<InitialSymbol>::transition_size() {
     int answer = 0;
     for (const auto &t : transitions) {
         for (const auto &in_out : t.second) {
@@ -1547,3 +1623,6 @@ int VATA::Util::TreeAutomata::transition_size() {
     }
     return answer;
 }
+
+// https://bytefreaks.net/programming-2/c/c-undefined-reference-to-templated-class-function
+template struct VATA::Util::Automata<VATA::Util::Concrete>;

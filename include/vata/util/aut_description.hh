@@ -24,44 +24,36 @@ namespace VATA
 {
 	namespace Util
 	{
-		struct TreeAutomata;
+        template <typename TT> struct Automata;
+        struct Concrete;
+		typedef Automata<Concrete> TreeAutomata;
 	}
 }
 
-struct VATA::Util::TreeAutomata
+template <typename TT>
+struct VATA::Util::Automata
 {
 public:   // data types
+    typedef TT InitialSymbol;
+    typedef typename InitialSymbol::Entry SymbolEntry;
     typedef int64_t State; // TODO: will make the program slightly slower. We wish to make another dynamic type.
 	typedef std::vector<State> StateVector;
 	typedef std::set<State> StateSet;
 
 	typedef std::vector<int> Tag;
-    typedef boost::multiprecision::cpp_int SymbolEntry;
-    typedef std::vector<SymbolEntry> stdvectorSymbolEntry;
-    struct Symbol; // forward declaration for operator Symbol()
-    struct InitialSymbol : stdvectorSymbolEntry {
-        using stdvectorSymbolEntry::stdvectorSymbolEntry; // inherit parent constructors
-        bool is_internal() const { return size() < 5; }
-        bool is_leaf() const { return size() == 5; }
-        friend std::ostream& operator<<(std::ostream& os, const InitialSymbol& obj) {
-            os << VATA::Util::Convert::ToString(static_cast<stdvectorSymbolEntry>(obj));
-            return os;
-        }
-        operator Symbol() const { return Symbol(*this, {}); }
-    };
     typedef std::pair<InitialSymbol, Tag> stdpairInitialSymbolTag;
     struct Symbol : stdpairInitialSymbolTag {
         using stdpairInitialSymbolTag::stdpairInitialSymbolTag; // inherit parent constructors
         template<typename... Args> Symbol(Args... args) : stdpairInitialSymbolTag({args...}, {}) {}
         // Reference: https://stackoverflow.com/a/32595916/11550178
-        InitialSymbol& initial_symbol() & { return first; }
-        const InitialSymbol& initial_symbol() const & { return first; }
-        SymbolEntry& initial_symbol(int index) & { return first.at(index); }
-        const SymbolEntry& initial_symbol(int index) const & { return first.at(index); }
-        Tag& tag() & { return second; }
-        const Tag& tag() const & { return second; }
-        int& tag(int index) & { return second.at(index); }
-        const int& tag(int index) const & { return second.at(index); }
+        InitialSymbol& initial_symbol() & { return this->first; }
+        const InitialSymbol& initial_symbol() const & { return this->first; }
+        SymbolEntry& initial_symbol(int index) & { return this->first.at(index); }
+        const SymbolEntry& initial_symbol(int index) const & { return this->first.at(index); }
+        Tag& tag() & { return this->second; }
+        const Tag& tag() const & { return this->second; }
+        int& tag(int index) & { return this->second.at(index); }
+        const int& tag(int index) const & { return this->second.at(index); }
         /*********************************************************/
         size_t size() const { return initial_symbol().size() + tag().size(); }
         bool is_internal() const { return initial_symbol().is_internal(); }
@@ -102,7 +94,7 @@ public:   // data members
 
 public:   // methods
 
-	TreeAutomata() :
+	Automata() :
 		name(),
 		finalStates(),
         stateNum(),
@@ -116,7 +108,7 @@ public:   // methods
 	 *
 	 * Checks whether the final states and transitions of two automata descriptions match.
 	 */
-	bool operator==(const TreeAutomata& rhs) const
+	bool operator==(const Automata& rhs) const
 	{
 		return (finalStates == rhs.finalStates) && (transitions == rhs.transitions);
 	}
@@ -126,7 +118,7 @@ public:   // methods
 	 *
 	 * Checks whether all components of two automata descriptions match.
 	 */
-	bool StrictlyEqual(const TreeAutomata& rhs) const
+	bool StrictlyEqual(const Automata& rhs) const
 	{
 		return
 			(name == rhs.name) &&
@@ -153,7 +145,7 @@ public:   // methods
 
 private:
     void remove_useless(bool only_bottom_up=false);
-    TreeAutomata binary_operation(const TreeAutomata &o, bool add);
+    Automata binary_operation(const Automata &o, bool add);
     void swap_forward(const int k);
     void swap_backward(const int k);
 
@@ -165,9 +157,9 @@ public:
     void value_restriction(int k, bool branch);
     void semi_determinize();
     void semi_undeterminize();
-    TreeAutomata operator+(const TreeAutomata &o) { return binary_operation(o, true); }
-    TreeAutomata operator-(const TreeAutomata &o) { return binary_operation(o, false); }
-    TreeAutomata Union(const TreeAutomata &o); // U is in uppercase since "union" is a reserved keyword.
+    Automata operator+(const Automata &o) { return binary_operation(o, true); }
+    Automata operator-(const Automata &o) { return binary_operation(o, false); }
+    Automata Union(const Automata &o); // U is in uppercase since "union" is a reserved keyword.
     void print();
     int transition_size();
 
@@ -203,18 +195,31 @@ public:
     void swap(int t1, int t2);
 
     /* Produce an automaton instance. */
-    static TreeAutomata uniform(int n);
-    static TreeAutomata basis(int n);
-    static TreeAutomata random(int n);
-    static TreeAutomata zero(int n);
-    static TreeAutomata basis_zero_one_zero(int n);
-    static TreeAutomata zero_zero_one_zero(int n);
-    static TreeAutomata zero_one_zero(int n);
+    static Automata uniform(int n);
+    static Automata basis(int n);
+    static Automata random(int n);
+    static Automata zero(int n);
+    static Automata basis_zero_one_zero(int n);
+    static Automata zero_zero_one_zero(int n);
+    static Automata zero_one_zero(int n);
 
     /* Equivalence Checking */
     static bool check_equal(const std::string& lhsPath, const std::string& rhsPath);
-    static bool check_equal_aut(TreeAutomata lhs, TreeAutomata rhs);
+    static bool check_equal_aut(Automata lhs, Automata rhs);
     static bool check_inclusion(const std::string& lhsPath, const std::string& rhsPath);
+};
+
+// Concrete initial symbol
+typedef std::vector<boost::multiprecision::cpp_int> stdvectorboostmultiprecisioncpp_int;
+struct VATA::Util::Concrete : stdvectorboostmultiprecisioncpp_int {
+    using stdvectorboostmultiprecisioncpp_int::stdvectorboostmultiprecisioncpp_int;
+    typedef typename VATA::Util::Concrete::value_type Entry;
+    bool is_leaf() const { return size() == 5; }
+    bool is_internal() const { return size() < 5; }
+    friend std::ostream& operator<<(std::ostream& os, const Concrete& obj) {
+        os << VATA::Util::Convert::ToString(static_cast<stdvectorboostmultiprecisioncpp_int>(obj));
+        return os;
+    }
 };
 
 namespace std {

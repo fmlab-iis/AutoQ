@@ -38,7 +38,8 @@ namespace {
     }
 }
 
-int VATA::Util::TreeAutomata::count_transitions() {
+template <typename InitialSymbol>
+int VATA::Util::Automata<InitialSymbol>::count_transitions() {
     int count = 0;
     for (const auto &t : transitions)
         for (const auto &in_outs : t.second) {
@@ -47,7 +48,8 @@ int VATA::Util::TreeAutomata::count_transitions() {
     return count;
 }
 
-void VATA::Util::TreeAutomata::X(int k) {
+template <typename InitialSymbol>
+void VATA::Util::Automata<InitialSymbol>::X(int k) {
     #ifdef TO_QASM
         system(("echo 'x qubits[" + std::to_string(k-1) + "];' >> " + QASM_FILENAME).c_str());
         return;
@@ -69,7 +71,8 @@ void VATA::Util::TreeAutomata::X(int k) {
     if (gateLog) std::cout << "X" << k << "：" << stateNum << " states " << count_transitions() << " transitions " << toString(duration) << "\n";
 }
 
-void VATA::Util::TreeAutomata::Y(int k) {
+template <typename InitialSymbol>
+void VATA::Util::Automata<InitialSymbol>::Y(int k) {
     #ifdef TO_QASM
         system(("echo 'y qubits[" + std::to_string(k-1) + "];' >> " + QASM_FILENAME).c_str());
         return;
@@ -112,7 +115,8 @@ void VATA::Util::TreeAutomata::Y(int k) {
     if (gateLog) std::cout << "Y" << k << "：" << stateNum << " states " << count_transitions() << " transitions " << toString(duration) << "\n";
 }
 
-void VATA::Util::TreeAutomata::Z(int t) {
+template <typename InitialSymbol>
+void VATA::Util::Automata<InitialSymbol>::Z(int t) {
     #ifdef TO_QASM
         system(("echo 'z qubits[" + std::to_string(t-1) + "];' >> " + QASM_FILENAME).c_str());
         return;
@@ -154,19 +158,20 @@ void VATA::Util::TreeAutomata::Z(int t) {
     if (gateLog) std::cout << "Z" << t << "：" << stateNum << " states " << count_transitions() << " transitions " << toString(duration) << "\n";
 }
 
-void VATA::Util::TreeAutomata::H(int t) {
+template <typename InitialSymbol>
+void VATA::Util::Automata<InitialSymbol>::H(int t) {
     #ifdef TO_QASM
         system(("echo 'h qubits[" + std::to_string(t-1) + "];' >> " + QASM_FILENAME).c_str());
         return;
     #endif
     auto start = std::chrono::steady_clock::now();
     this->semi_determinize();
-    TreeAutomata aut1 = *this;
+    auto aut1 = *this;
     aut1.value_restriction(t, false);
-    TreeAutomata aut2 = *this;
+    auto aut2 = *this;
     aut2.value_restriction(t, true);
     aut2.branch_restriction(t, false);
-    TreeAutomata aut3 = *this;
+    auto aut3 = *this;
     aut3.branch_restriction(t, true);
     *this = aut1 + aut2 - aut3;
     divide_by_the_square_root_of_two();
@@ -176,7 +181,8 @@ void VATA::Util::TreeAutomata::H(int t) {
     if (gateLog) std::cout << "H" << t << "：" << stateNum << " states " << count_transitions() << " transitions " << toString(duration) << "\n";
 }
 
-void VATA::Util::TreeAutomata::S(int t) {
+template <typename InitialSymbol>
+void VATA::Util::Automata<InitialSymbol>::S(int t) {
     #ifdef TO_QASM
         system(("echo 's qubits[" + std::to_string(t-1) + "];' >> " + QASM_FILENAME).c_str());
         return;
@@ -214,7 +220,8 @@ void VATA::Util::TreeAutomata::S(int t) {
     if (gateLog) std::cout << "S" << t << "：" << stateNum << " states " << count_transitions() << " transitions " << toString(duration) << "\n";
 }
 
-void VATA::Util::TreeAutomata::T(int t) {
+template <typename InitialSymbol>
+void VATA::Util::Automata<InitialSymbol>::T(int t) {
     #ifdef TO_QASM
         system(("echo 't qubits[" + std::to_string(t-1) + "];' >> " + QASM_FILENAME).c_str());
         return;
@@ -252,18 +259,19 @@ void VATA::Util::TreeAutomata::T(int t) {
     if (gateLog) std::cout << "T" << t << "：" << stateNum << " states " << count_transitions() << " transitions " << toString(duration) << "\n";
 }
 
-void VATA::Util::TreeAutomata::Rx(int t) {
+template <typename InitialSymbol>
+void VATA::Util::Automata<InitialSymbol>::Rx(int t) {
     #ifdef TO_QASM
         system(("echo 'rx(pi/2) qubits[" + std::to_string(t-1) + "];' >> " + QASM_FILENAME).c_str());
         return;
     #endif
     auto start = std::chrono::steady_clock::now();
     this->semi_determinize();
-    TreeAutomata aut1 = *this;
-    TreeAutomata aut2 = *this;
+    auto aut1 = *this;
+    auto aut2 = *this;
     aut2.value_restriction(t, false);
     aut2.branch_restriction(t, true);
-    TreeAutomata aut3 = *this;
+    auto aut3 = *this;
     aut3.value_restriction(t, true);
     aut3.branch_restriction(t, false);
     aut2 = aut2 + aut3;
@@ -276,18 +284,19 @@ void VATA::Util::TreeAutomata::Rx(int t) {
     if (gateLog) std::cout << "Rx" << t << "：" << stateNum << " states " << count_transitions() << " transitions " << toString(duration) << "\n";
 }
 
-void VATA::Util::TreeAutomata::Ry(int t) {
+template <typename InitialSymbol>
+void VATA::Util::Automata<InitialSymbol>::Ry(int t) {
     #ifdef TO_QASM
         system(("echo 'ry(pi/2) qubits[" + std::to_string(t-1) + "];' >> " + QASM_FILENAME).c_str());
         return;
     #endif
     auto start = std::chrono::steady_clock::now();
     this->semi_determinize();
-    TreeAutomata aut1 = *this;
+    auto aut1 = *this;
     aut1.value_restriction(t, false);
-    TreeAutomata aut2 = *this;
+    auto aut2 = *this;
     aut2.branch_restriction(t, true);
-    TreeAutomata aut3 = *this;
+    auto aut3 = *this;
     aut3.value_restriction(t, true);
     aut3.branch_restriction(t, false);
     *this = aut1 + aut2 - aut3;
@@ -298,7 +307,8 @@ void VATA::Util::TreeAutomata::Ry(int t) {
     if (gateLog) std::cout << "Ry" << t << "：" << stateNum << " states " << count_transitions() << " transitions " << toString(duration) << "\n";
 }
 
-void VATA::Util::TreeAutomata::CNOT(int c, int t, bool opt) {
+template <typename InitialSymbol>
+void VATA::Util::Automata<InitialSymbol>::CNOT(int c, int t, bool opt) {
     #ifdef TO_QASM
         system(("echo 'cx qubits[" + std::to_string(c-1) + "], qubits[" + std::to_string(t-1) + "];' >> " + QASM_FILENAME).c_str());
         return;
@@ -307,11 +317,11 @@ void VATA::Util::TreeAutomata::CNOT(int c, int t, bool opt) {
     assert(c != t);
     if (c > t) {
         this->semi_determinize();
-        TreeAutomata aut1 = *this;
+        auto aut1 = *this;
         aut1.branch_restriction(c, false);
-        TreeAutomata aut2 = *this;
+        auto aut2 = *this;
         aut2.branch_restriction(c, true);
-        TreeAutomata aut3 = aut2;
+        auto aut3 = aut2;
         aut2.value_restriction(t, false);
         aut2.branch_restriction(t, true);
         aut3.value_restriction(t, true);
@@ -354,7 +364,8 @@ void VATA::Util::TreeAutomata::CNOT(int c, int t, bool opt) {
     if (gateLog) std::cout << "CNOT" << c << "," << t << "：" << stateNum << " states " << count_transitions() << " transitions " << toString(duration) << "\n";
 }
 
-void VATA::Util::TreeAutomata::CZ(int c, int t) {
+template <typename InitialSymbol>
+void VATA::Util::Automata<InitialSymbol>::CZ(int c, int t) {
     #ifdef TO_QASM
         system(("echo 'cz qubits[" + std::to_string(c-1) + "], qubits[" + std::to_string(t-1) + "];' >> " + QASM_FILENAME).c_str());
         return;
@@ -419,7 +430,8 @@ void VATA::Util::TreeAutomata::CZ(int c, int t) {
     if (gateLog) std::cout << "CZ" << c << "," << t << "：" << stateNum << " states " << count_transitions() << " transitions " << toString(duration) << "\n";
 }
 
-void VATA::Util::TreeAutomata::Toffoli(int c, int c2, int t) {
+template <typename InitialSymbol>
+void VATA::Util::Automata<InitialSymbol>::Toffoli(int c, int c2, int t) {
     #ifdef TO_QASM
         system(("echo 'ccx qubits[" + std::to_string(c-1) + "], qubits[" + std::to_string(c2-1) + "], qubits[" + std::to_string(t-1) + "];' >> " + QASM_FILENAME).c_str());
         return;
@@ -457,16 +469,16 @@ void VATA::Util::TreeAutomata::Toffoli(int c, int c2, int t) {
         reduce();
     } else {
         this->semi_determinize();
-        TreeAutomata aut1 = *this;
+        auto aut1 = *this;
         aut1.branch_restriction(c, false);
-        TreeAutomata aut2 = *this;
+        auto aut2 = *this;
         aut2.branch_restriction(c2, false);
-        TreeAutomata aut3 = aut2;
+        auto aut3 = aut2;
         aut3.branch_restriction(c, false);
-        TreeAutomata aut4 = *this;
+        auto aut4 = *this;
         aut4.branch_restriction(c, true);
         aut4.branch_restriction(c2, true);
-        TreeAutomata aut5 = aut4;
+        auto aut5 = aut4;
         aut4.value_restriction(t, false);
         aut4.branch_restriction(t, true);
         aut5.value_restriction(t, true);
@@ -479,7 +491,8 @@ void VATA::Util::TreeAutomata::Toffoli(int c, int c2, int t) {
     if (gateLog) std::cout << "Toffoli" << c << "," << c2 << "," << t << "：" << stateNum << " states " << count_transitions() << " transitions " << toString(duration) << "\n";
 }
 
-void VATA::Util::TreeAutomata::Tdg(int t) {
+template <typename InitialSymbol>
+void VATA::Util::Automata<InitialSymbol>::Tdg(int t) {
     // #ifdef TO_QASM
     //     system(("echo 'tdg qubits[" + std::to_string(t-1) + "];' >> " + QASM_FILENAME).c_str());
     //     return;
@@ -534,7 +547,8 @@ void VATA::Util::TreeAutomata::Tdg(int t) {
     if (gateLog) std::cout << "Tdg" << t << "：" << stateNum << " states " << count_transitions() << " transitions " << toString(duration) << "\n";
 }
 
-void VATA::Util::TreeAutomata::Sdg(int t) {
+template <typename InitialSymbol>
+void VATA::Util::Automata<InitialSymbol>::Sdg(int t) {
     // #ifdef TO_QASM
     //     system(("echo 'sdg qubits[" + std::to_string(t-1) + "];' >> " + QASM_FILENAME).c_str());
     //     return;
@@ -589,7 +603,8 @@ void VATA::Util::TreeAutomata::Sdg(int t) {
     if (gateLog) std::cout << "Sdg" << t << "：" << stateNum << " states " << count_transitions() << " transitions " << toString(duration) << "\n";
 }
 
-void VATA::Util::TreeAutomata::swap(int t1, int t2) {
+template <typename InitialSymbol>
+void VATA::Util::Automata<InitialSymbol>::swap(int t1, int t2) {
     // #ifdef TO_QASM
     //     system(("echo 'swap qubits[" + std::to_string(t1-1) + "], qubits[" + std::to_string(t2-1) + "];' >> " + QASM_FILENAME).c_str());
     //     return;
@@ -603,17 +618,17 @@ void VATA::Util::TreeAutomata::swap(int t1, int t2) {
     if (gateLog) std::cout << "swap" << t1 << "," << t2 << "：" << stateNum << " states " << count_transitions() << " transitions " << toString(duration) << "\n";
 }
 
-// void VATA::Util::TreeAutomata::Fredkin(int c, int t, int t2) {
+// void VATA::Util::Automata<InitialSymbol>::Fredkin(int c, int t, int t2) {
 //     auto start = std::chrono::steady_clock::now();
 //     assert(c != t && t != t2 && t2 != c);
 //     this->semi_determinize();
-//     TreeAutomata aut1 = *this;
+//     auto aut1 = *this;
 //     aut1.branch_restriction(c, false);
-//     TreeAutomata aut2 = *this;
+//     auto aut2 = *this;
 //     aut2.branch_restriction(c, true);
-//     TreeAutomata aut3 = aut2;
-//     TreeAutomata aut4 = aut2;
-//     TreeAutomata aut5 = aut2;
+//     auto aut3 = aut2;
+//     auto aut4 = aut2;
+//     auto aut5 = aut2;
 //     aut2.branch_restriction(t, true);
 //     aut2.branch_restriction(t2, true);
 //     aut3.branch_restriction(t, false);
@@ -633,7 +648,8 @@ void VATA::Util::TreeAutomata::swap(int t1, int t2) {
 //     if (gateLog) std::cout << "Fredkin" << c << "," << t << "," << t2 << "：" << stateNum << " states " << count_transitions() << " transitions " << toString(duration) << "\n";
 // }
 
-void VATA::Util::TreeAutomata::randG(int G, int A, int B, int C) {
+template <typename InitialSymbol>
+void VATA::Util::Automata<InitialSymbol>::randG(int G, int A, int B, int C) {
     int g, a, b, c;
     do { 
         g = rand() % 11;
@@ -665,3 +681,6 @@ void VATA::Util::TreeAutomata::randG(int G, int A, int B, int C) {
         default: break;
     }
 }
+
+// https://bytefreaks.net/programming-2/c/c-undefined-reference-to-templated-class-function
+template struct VATA::Util::Automata<VATA::Util::Concrete>;
