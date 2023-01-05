@@ -52,8 +52,7 @@ public:   // data types
     typedef std::pair<InitialSymbol, Tag> stdpairInitialSymbolTag;
     struct Symbol : stdpairInitialSymbolTag {
         using stdpairInitialSymbolTag::stdpairInitialSymbolTag; // inherit parent constructors
-        Symbol(SymbolEntry a) : stdpairInitialSymbolTag({a}, {}) {}
-        Symbol(SymbolEntry a, SymbolEntry b, SymbolEntry c, SymbolEntry d, SymbolEntry e) : stdpairInitialSymbolTag({a,b,c,d,e}, {}) {}
+        template<typename... Args> Symbol(Args... args) : stdpairInitialSymbolTag({args...}, {}) {}
         // Reference: https://stackoverflow.com/a/32595916/11550178
         InitialSymbol& initial_symbol() & { return first; }
         const InitialSymbol& initial_symbol() const & { return first; }
