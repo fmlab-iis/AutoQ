@@ -593,6 +593,7 @@ VATA::Util::TreeAutomata VATA::Util::TreeAutomata::binary_operation(const TreeAu
     TreeAutomata result;
     result.name = name;
     result.qubitNum = qubitNum;
+    result.isTopdownDeterministic = isTopdownDeterministic; // IMPORTANT: Avoid missing copying new fields afterwards.
 
     std::map<std::pair<State, State>, State> stateOldToNew; // used only if overflow := true;
     bool overflow = (stateNum > std::numeric_limits<State>::max() / o.stateNum);
@@ -752,7 +753,7 @@ VATA::Util::TreeAutomata VATA::Util::TreeAutomata::binary_operation(const TreeAu
 }
 
 VATA::Util::TreeAutomata VATA::Util::TreeAutomata::Union(const TreeAutomata &o) {
-    TreeAutomata result, o2;
+    TreeAutomata result;
     result = *this;
     result.name = "Union";
     assert(result.qubitNum == o.qubitNum);
@@ -801,7 +802,7 @@ VATA::Util::TreeAutomata VATA::Util::TreeAutomata::uniform(int n) {
     aut.stateNum = pow_of_two;
 
     // aut.minimize();
-    aut.isTopdownDeterministic = true;
+    // aut.isTopdownDeterministic = true;
     return aut;
 }
 
@@ -845,7 +846,7 @@ VATA::Util::TreeAutomata VATA::Util::TreeAutomata::random(int n) {
     aut.stateNum = state_counter*2 + 1;
 
     // aut.minimize();
-    aut.isTopdownDeterministic = true;
+    // aut.isTopdownDeterministic = true;
     return aut;
 }
 
@@ -881,7 +882,7 @@ VATA::Util::TreeAutomata VATA::Util::TreeAutomata::zero(int n) {
     aut.stateNum = n*2 + 1;
 
     // aut.minimize();
-    aut.isTopdownDeterministic = true;
+    // aut.isTopdownDeterministic = true;
     return aut;
 }
 
@@ -953,7 +954,7 @@ VATA::Util::TreeAutomata VATA::Util::TreeAutomata::zero_zero_one_zero(int n) {
         aut.stateNum = 4*n + 3;
     }
 	aut.finalStates.push_back(0);
-    aut.isTopdownDeterministic = true;
+    // aut.isTopdownDeterministic = true;
     return aut;
 }
 
@@ -985,7 +986,7 @@ VATA::Util::TreeAutomata VATA::Util::TreeAutomata::zero_one_zero(int n) {
         aut.stateNum = 2*n + 3;
     }
 	aut.finalStates.push_back(0);
-    aut.isTopdownDeterministic = true;
+    // aut.isTopdownDeterministic = true;
     return aut;
 }
 
