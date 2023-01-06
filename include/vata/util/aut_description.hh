@@ -48,8 +48,6 @@ public:   // data types
         // Reference: https://stackoverflow.com/a/32595916/11550178
         InitialSymbol& initial_symbol() & { return this->first; }
         const InitialSymbol& initial_symbol() const & { return this->first; }
-        SymbolEntry& initial_symbol(int index) & { return this->first.at(index); }
-        const SymbolEntry& initial_symbol(int index) const & { return this->first.at(index); }
         Tag& tag() & { return this->second; }
         const Tag& tag() const & { return this->second; }
         int& tag(int index) & { return this->second.at(index); }
@@ -273,12 +271,13 @@ struct VATA::Util::Concrete : stdvectorboostmultiprecisioncpp_int {
         for (int i=0; i<4; i++)
             at(i) = -at(i);
     }
-    // void Tdg() {
-    //     auto temp = -at(0);
-    //     for (int i=0; i<3; i++)
-    //         at(i) = at(i+1);
-    //     at(3) = temp;
-    // }
+    void Tdg() {
+        Entry t = -at(0); // IMPORTANT: MAY NOT use "auto" here; otherwise, t is always synced with -at(0), which is not what we want.
+        for (int i=0; i<3; i++) {
+            at(i) = at(i+1);
+        }
+        at(3) = t;
+    }
     void Sdg() {
         Entry a=at(2), b=at(3), c=-at(0), d=-at(1);
         at(0)=a; at(1)=b; at(2)=c; at(3)=d;

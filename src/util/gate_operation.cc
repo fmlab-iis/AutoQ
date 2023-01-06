@@ -491,13 +491,9 @@ void VATA::Util::Automata<InitialSymbol>::Tdg(int t) {
     for (const auto &t_old : aut2.transitions) {
         const Symbol &symbol = t_old.first;
         if (symbol.is_leaf()) {
-            InitialSymbol temp;
-            temp.push_back(symbol.initial_symbol(1));
-            temp.push_back(symbol.initial_symbol(2));
-            temp.push_back(symbol.initial_symbol(3));
-            temp.push_back(-symbol.initial_symbol(0));
-            temp.push_back(symbol.initial_symbol(4));
-            transitions_new[{temp, symbol.tag()}] = t_old.second;
+            Symbol s = symbol;
+            s.initial_symbol().Tdg();
+            transitions_new[s] = t_old.second;
         } else {
             assert(symbol.tag().size() <= 1);
             transitions_new.insert(t_old);
