@@ -80,20 +80,16 @@ void VATA::Util::Automata<InitialSymbol>::Y(int k) {
     auto start = std::chrono::steady_clock::now();
     TransitionMap transitions_copy = transitions;
     for (const auto &t : transitions_copy) {
-        const Symbol &symbol = t.first;
-        Symbol new_symbol;
-        if (symbol.is_leaf()) {
-            new_symbol = {{-symbol.initial_symbol(0), -symbol.initial_symbol(1), -symbol.initial_symbol(2), -symbol.initial_symbol(3), symbol.initial_symbol(4)}, symbol.tag()};
-        } else {
-            new_symbol = symbol;
-        }
-        if (!(new_symbol.is_internal() && new_symbol.initial_symbol().qubit() <= k)) {
+        Symbol symbol = t.first;
+        if (symbol.is_leaf())
+            symbol.initial_symbol().Y();
+        if (!(symbol.is_internal() && symbol.initial_symbol().qubit() <= k)) {
             for (const auto &in_out : t.second) {
                 StateVector in;
                 for (const auto &s : in_out.first)
                     in.push_back(s+stateNum);
                 for (const auto &s : in_out.second)
-                    transitions[new_symbol][in].insert(s+stateNum);
+                    transitions[symbol][in].insert(s+stateNum);
             }
         }
     } 
@@ -124,20 +120,16 @@ void VATA::Util::Automata<InitialSymbol>::Z(int t) {
     auto start = std::chrono::steady_clock::now();
     TransitionMap transitions_copy = transitions;
     for (const auto &tr : transitions_copy) {
-        const Symbol &symbol = tr.first;
-        Symbol new_symbol;
-        if (symbol.is_leaf()) {
-            new_symbol = {-symbol.initial_symbol(0), -symbol.initial_symbol(1), -symbol.initial_symbol(2), -symbol.initial_symbol(3), symbol.initial_symbol(4)};
-        } else {
-            new_symbol = symbol;
-        }
-        if (!(new_symbol.is_internal() && new_symbol.initial_symbol().qubit() <= t)) {
+        Symbol symbol = tr.first;
+        if (symbol.is_leaf())
+            symbol.initial_symbol().Y();
+        if (!(symbol.is_internal() && symbol.initial_symbol().qubit() <= t)) {
             for (const auto &in_out : tr.second) {
                 StateVector in;
                 for (const auto &s : in_out.first)
                     in.push_back(s+stateNum);
                 for (const auto &s : in_out.second)
-                    transitions[new_symbol][in].insert(s+stateNum);
+                    transitions[symbol][in].insert(s+stateNum);
             }
         }
     } 
@@ -375,20 +367,16 @@ void VATA::Util::Automata<InitialSymbol>::CZ(int c, int t) {
     if (c > t) std::swap(c, t);
     auto aut2 = *this;
     for (const auto &tr : transitions) {
-        const Symbol &symbol = tr.first;
-        Symbol new_symbol;
-        if (symbol.is_leaf()) {
-            new_symbol = {-symbol.initial_symbol(0), -symbol.initial_symbol(1), -symbol.initial_symbol(2), -symbol.initial_symbol(3), symbol.initial_symbol(4)};
-        } else {
-            new_symbol = symbol;
-        }
-        if (!(new_symbol.is_internal() && new_symbol.initial_symbol().qubit() <= t)) {
+        Symbol symbol = tr.first;
+        if (symbol.is_leaf())
+            symbol.initial_symbol().Y();
+        if (!(symbol.is_internal() && symbol.initial_symbol().qubit() <= t)) {
             for (const auto &in_out : tr.second) {
                 StateVector in;
                 for (const auto &s : in_out.first)
                     in.push_back(s+stateNum);
                 for (const auto &s : in_out.second)
-                    aut2.transitions[new_symbol][in].insert(s+stateNum);
+                    aut2.transitions[symbol][in].insert(s+stateNum);
             }
         }
     } 
@@ -559,13 +547,9 @@ void VATA::Util::Automata<InitialSymbol>::Sdg(int t) {
     for (const auto &t_old : aut2.transitions) {
         const Symbol &symbol = t_old.first;
         if (symbol.is_leaf()) {
-            InitialSymbol temp;
-            temp.push_back(symbol.initial_symbol(2));
-            temp.push_back(symbol.initial_symbol(3));
-            temp.push_back(-symbol.initial_symbol(0));
-            temp.push_back(-symbol.initial_symbol(1));
-            temp.push_back(symbol.initial_symbol(4));
-            transitions_new[{temp, symbol.tag()}] = t_old.second;
+            Symbol s = symbol;
+            s.initial_symbol().Sdg();
+            transitions_new[s] = t_old.second;
         } else {
             assert(symbol.tag().size() <= 1);
             transitions_new.insert(t_old);

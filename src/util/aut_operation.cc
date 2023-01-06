@@ -459,27 +459,10 @@ void VATA::Util::Automata<InitialSymbol>::omega_multiplication(int rotation) {
     for (const auto &t_old : transitions) {
         const Symbol &symbol = t_old.first;
         if (symbol.is_leaf()) {
+            Symbol s = symbol;
             /************************** rotation **************************/
-            InitialSymbol sym = symbol.initial_symbol();
-            int r = rotation;
-            while (r != 0) {
-                if (r > 0) {
-                    auto temp = sym[3];
-                    for (int i=3; i>=1; i--) { // exclude "k"
-                        sym[i] = sym[i-1];
-                    }
-                    sym[0] = -temp;
-                    r--;
-                } else {
-                    auto temp = sym[0];
-                    for (int i=0; i<=2; i++) { // exclude "k"
-                        sym[i] = sym[i+1];
-                    }
-                    sym[3] = -temp;
-                    r++;
-                }
-            }
-            transitions_new[{sym, symbol.second}] = t_old.second;
+            s.initial_symbol().omega_multiplication(rotation);
+            transitions_new[s] = t_old.second;
         } else {
             assert(symbol.tag().size() <= 1);
             transitions_new.insert(t_old);
@@ -498,9 +481,9 @@ void VATA::Util::Automata<InitialSymbol>::divide_by_the_square_root_of_two() {
         const Symbol &symbol = t.first;
         if (symbol.is_leaf()) {
             to_be_removed.push_back(symbol);
-            InitialSymbol sym = symbol.initial_symbol();
-            sym[4]++;
-            to_be_inserted[{sym, symbol.tag()}] = t.second;
+            Symbol s = symbol;
+            s.initial_symbol().divide_by_the_square_root_of_two();
+            to_be_inserted[s] = t.second;
         }
     }
     for (const auto &t : to_be_removed)
@@ -539,8 +522,9 @@ void VATA::Util::Automata<InitialSymbol>::branch_restriction(int k, bool positiv
             for (const auto &in_out : t.second) {
                 assert(in_out.first.empty());
                 for (const auto &n : in_out.second) { // Note we do not change k.
-                    auto k = symbol.initial_symbol(4);
-                    transitions[{{0,0,0,0, k}, symbol.tag()}][{}].insert(n + num_of_states); // duplicate this leaf transition
+                    Symbol s = symbol;
+                    s.initial_symbol().back_to_zero();
+                    transitions[s][{}].insert(n + num_of_states); // duplicate this leaf transition
                 }
             }
         }

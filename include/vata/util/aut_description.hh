@@ -217,6 +217,7 @@ struct VATA::Util::Concrete : stdvectorboostmultiprecisioncpp_int {
     Entry qubit() const { return is_leaf() ? 0 : at(0); }
     bool is_leaf() const { return size() == 5; }
     bool is_internal() const { return size() < 5; }
+    void back_to_zero() { at(0) = at(1) = at(2) = at(3) = 0; }
     friend std::ostream& operator<<(std::ostream& os, const Concrete& obj) {
         os << VATA::Util::Convert::ToString(static_cast<stdvectorboostmultiprecisioncpp_int>(obj));
         return os;
@@ -244,6 +245,43 @@ struct VATA::Util::Concrete : stdvectorboostmultiprecisioncpp_int {
                 at(4) -= 2;
             }
         }
+    }
+    void omega_multiplication(int rotation=1) {
+        int r = rotation;
+        while (r != 0) {
+            if (r > 0) {
+                auto temp = at(3);
+                for (int i=3; i>=1; i--) { // exclude "k"
+                    at(i) = at(i-1);
+                }
+                at(0) = -temp;
+                r--;
+            } else {
+                auto temp = at(0);
+                for (int i=0; i<=2; i++) { // exclude "k"
+                    at(i) = at(i+1);
+                }
+                at(3) = -temp;
+                r++;
+            }
+        }
+    }
+    void divide_by_the_square_root_of_two() {
+        at(4)++;
+    }
+    void Y() {
+        for (int i=0; i<4; i++)
+            at(i) = -at(i);
+    }
+    // void Tdg() {
+    //     auto temp = -at(0);
+    //     for (int i=0; i<3; i++)
+    //         at(i) = at(i+1);
+    //     at(3) = temp;
+    // }
+    void Sdg() {
+        Entry a=at(2), b=at(3), c=-at(0), d=-at(1);
+        at(0)=a; at(1)=b; at(2)=c; at(3)=d;
     }
 };
 
