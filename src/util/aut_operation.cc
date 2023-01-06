@@ -507,7 +507,7 @@ void VATA::Util::Automata<InitialSymbol>::divide_by_the_square_root_of_two() {
         transitions.erase(t);
     for (const auto &t : to_be_inserted)
         transitions.insert(t);
-    // fraction_simplication();
+    // fraction_simplification();
     if (opLog) std::cout << __FUNCTION__ << "：" << stateNum << " states " << count_transitions() << " transitions\n";
 }
 
@@ -1226,7 +1226,7 @@ void VATA::Util::Automata<InitialSymbol>::value_restriction(int k, bool branch) 
 }
 
 template <typename InitialSymbol>
-void VATA::Util::Automata<InitialSymbol>::fraction_simplication() {
+void VATA::Util::Automata<InitialSymbol>::fraction_simplification() {
     std::vector<Symbol> to_be_removed;
     TransitionMap to_be_inserted;
     for (const auto &t : transitions) {
@@ -1299,12 +1299,12 @@ void VATA::Util::Automata<InitialSymbol>::fraction_simplication() {
       VATA::Util::Automata<InitialSymbol> rhs)
   {
 	std::ofstream fileLhs("/tmp/automata1.txt");
-    lhs.fraction_simplication();
+    lhs.fraction_simplification();
 	fileLhs << VATA::Serialization::TimbukSerializer::Serialize(lhs);
 	fileLhs.close();
 
 	std::ofstream fileRhs("/tmp/automata2.txt");
-    rhs.fraction_simplication();
+    rhs.fraction_simplification();
 	fileRhs << VATA::Serialization::TimbukSerializer::Serialize(rhs);
 	fileRhs.close();
 

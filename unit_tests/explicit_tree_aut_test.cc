@@ -449,7 +449,7 @@ BOOST_AUTO_TEST_CASE(Grover_Search)
     /********************************/
 
     // std::ofstream fileRhs("reference_answers/Grover" + std::to_string(n) + ".txt");
-    // aut.fraction_simplication();
+    // aut.fraction_simplification();
 	// fileRhs << VATA::Serialization::TimbukSerializer::Serialize(aut);
 	// fileRhs.close();
 

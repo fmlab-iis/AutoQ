@@ -125,7 +125,7 @@ int main(int argc, char **argv) {
     
     auto durationVer = durationSim; // just borrow its type!
     std::ofstream fileLhs(argv[3]);
-    aut.fraction_simplication();
+    aut.fraction_simplification();
     fileLhs << VATA::Serialization::TimbukSerializer::Serialize(aut);
     fileLhs.close(); // Notice that we assume fractions in argv[4] are already simplified.
     auto startVer = chrono::steady_clock::now();
