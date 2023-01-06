@@ -53,7 +53,6 @@ public:   // data types
         int& tag(int index) & { return this->second.at(index); }
         const int& tag(int index) const & { return this->second.at(index); }
         /*********************************************************/
-        size_t size() const { return initial_symbol().size() + tag().size(); }
         bool is_internal() const { return initial_symbol().is_internal(); }
         bool is_leaf() const { return initial_symbol().is_leaf(); }
         bool is_tagged() const { return !tag().empty(); }

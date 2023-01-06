@@ -33,8 +33,6 @@ class VATA::Serialization::TimbukSerializer //:
 {
 public:   // data types
 
-	typedef VATA::Util::TreeAutomata TreeAutomata;
-
 private:  // data members
 
 	// std::string name_;
@@ -51,7 +49,8 @@ public:   // methods
 	// 	name_ = name;
 	// }
 
-	static std::string Serialize(const TreeAutomata& desc);
+	template <typename InitialSymbol>
+    static std::string Serialize(const VATA::Util::Automata<InitialSymbol>& desc);
 };
 
 #endif

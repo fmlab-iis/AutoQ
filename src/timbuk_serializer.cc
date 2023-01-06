@@ -13,6 +13,8 @@
 #include <vata/serialization/timbuk_serializer.hh>
 
 using VATA::Util::Convert;
+using VATA::Util::Automata;
+using VATA::Util::TreeAutomata;
 using VATA::Serialization::TimbukSerializer;
 
 // Standard library headers
@@ -20,8 +22,8 @@ using VATA::Serialization::TimbukSerializer;
 
 using std::for_each;
 
-
-std::string TimbukSerializer::Serialize(const TreeAutomata& desc)
+template <typename InitialSymbol>
+std::string TimbukSerializer::Serialize(const Automata<InitialSymbol>& desc)
 {
 	std::string result;
 
@@ -38,7 +40,7 @@ std::string TimbukSerializer::Serialize(const TreeAutomata& desc)
 
 	result += "\n";
 	result += "States ";
-    for (TreeAutomata::State i=0; i<desc.stateNum; i++) {
+    for (auto i=0; i<desc.stateNum; i++) {
         result += std::to_string(i) + " ";
         // result += desc.stateNum.TranslateBwd(i) + " ";
     }
@@ -47,7 +49,7 @@ std::string TimbukSerializer::Serialize(const TreeAutomata& desc)
 
 	result += "\n";
 	result += "Final States ";
-    for (TreeAutomata::State i : desc.finalStates) {
+    for (auto i : desc.finalStates) {
         result += std::to_string(i) + " ";
         // result += desc.stateNum.TranslateBwd(i) + " ";
     }
@@ -79,3 +81,6 @@ std::string TimbukSerializer::Serialize(const TreeAutomata& desc)
 
 	return result;
 }
+
+// https://bytefreaks.net/programming-2/c/c-undefined-reference-to-templated-class-function
+template std::string TimbukSerializer::Serialize(const TreeAutomata& desc);

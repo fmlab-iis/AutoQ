@@ -1527,60 +1527,7 @@ void VATA::Util::Automata<InitialSymbol>::reduce()
 
 template <typename InitialSymbol>
 void VATA::Util::Automata<InitialSymbol>::print() {
-    std::string result;
-
-  result += "Ops ";
-  for (auto itSymb = transitions.cbegin();
-    itSymb != transitions.cend(); ++itSymb)
-  {
-    result += VATA::Util::Convert::ToString(itSymb->first) + ":" +
-      VATA::Util::Convert::ToString(itSymb->second.begin()->first.size()) + " ";
-  }
-
-  result += "\n";
-  result += "Automaton " + (name.empty()? "anonymous" : name);
-
-  result += "\n";
-  result += "States ";
-    for (State i=0; i<stateNum; i++) {
-        result += std::to_string(i) + " ";
-        // result += stateNum.TranslateBwd(i) + " ";
-    }
-  // for_each(states.cbegin(), states.cend(),
-  //  [&result](const std::string& sStr){ result += sStr + " ";});
-
-  result += "\n";
-  result += "Final States ";
-    for (State i : finalStates) {
-        result += std::to_string(i) + " ";
-        // result += stateNum.TranslateBwd(i) + " ";
-    }
-  // for_each(finalStates.cbegin(), finalStates.cend(),
-  //  [&result](const std::string& fsStr){ result += fsStr + " ";});
-
-  result += "\n";
-  result += "Transitions\n";
-
-    for (const auto &t : transitions) {
-        for (const auto &t2 : t.second) {
-            for (const auto &finalSet : t2.second) {
-                result += Convert::ToString(t.first);
-                if (!(t2.first.empty())) {
-                    result += "(";
-                    result += std::to_string(t2.first[0]); //stateNum.TranslateBwd(t2.first[0]);
-                    for (size_t i = 1; i < t2.first.size(); ++i) {
-                        result += ", ";
-                        result += std::to_string(t2.first[i]); //stateNum.TranslateBwd(t2.first[i]);
-                    }
-                    result += ")";
-                }
-                result += " -> ";
-                result += std::to_string(finalSet); //stateNum.TranslateBwd(finalSet);
-                result += "\n";
-            }
-        }
-    }
-    std::cout << result; // << "\n";
+    std::cout << VATA::Serialization::TimbukSerializer::Serialize(*this);
 }
 
 template <typename InitialSymbol>
