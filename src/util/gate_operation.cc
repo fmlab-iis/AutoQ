@@ -58,7 +58,7 @@ void VATA::Util::Automata<InitialSymbol>::X(int k) {
     auto transitions_copy = transitions;
     for (const auto &t : transitions_copy) {
         const auto &symbol = t.first;
-        if (symbol.is_internal() && symbol.initial_symbol(0) == k) {
+        if (symbol.is_internal() && symbol.initial_symbol().qubit() == k) {
             transitions.erase(symbol);
             for (const auto &in_out : t.second) {
                 assert(in_out.first.size() == 2);
@@ -87,7 +87,7 @@ void VATA::Util::Automata<InitialSymbol>::Y(int k) {
         } else {
             new_symbol = symbol;
         }
-        if (!(new_symbol.is_internal() && new_symbol.initial_symbol(0) <= k)) {
+        if (!(new_symbol.is_internal() && new_symbol.initial_symbol().qubit() <= k)) {
             for (const auto &in_out : t.second) {
                 StateVector in;
                 for (const auto &s : in_out.first)
@@ -131,7 +131,7 @@ void VATA::Util::Automata<InitialSymbol>::Z(int t) {
         } else {
             new_symbol = symbol;
         }
-        if (!(new_symbol.is_internal() && new_symbol.initial_symbol(0) <= t)) {
+        if (!(new_symbol.is_internal() && new_symbol.initial_symbol().qubit() <= t)) {
             for (const auto &in_out : tr.second) {
                 StateVector in;
                 for (const auto &s : in_out.first)
@@ -192,7 +192,7 @@ void VATA::Util::Automata<InitialSymbol>::S(int t) {
     aut2.omega_multiplication(2);
     for (const auto &tr : aut2.transitions) {
         const Symbol &symbol = tr.first;
-        if (!(symbol.is_internal() && symbol.initial_symbol(0) <= t)) {
+        if (!(symbol.is_internal() && symbol.initial_symbol().qubit() <= t)) {
             auto &ttf = transitions[symbol];
             for (const auto &in_out : tr.second) {
                 StateVector in;
@@ -231,7 +231,7 @@ void VATA::Util::Automata<InitialSymbol>::T(int t) {
     aut2.omega_multiplication();
     for (const auto &tr : aut2.transitions) {
         const Symbol &symbol = tr.first;
-        if (!(symbol.is_internal() && symbol.initial_symbol(0) <= t)) {
+        if (!(symbol.is_internal() && symbol.initial_symbol().qubit() <= t)) {
             auto &ttf = transitions[symbol];
             for (const auto &in_out : tr.second) {
                 StateVector in;
@@ -333,7 +333,7 @@ void VATA::Util::Automata<InitialSymbol>::CNOT(int c, int t, bool opt) {
         aut2.X(t); gateCount--; // prevent repeated counting
         for (const auto &tr : aut2.transitions) {
             const Symbol &symbol = tr.first;
-            if (!(symbol.is_internal() && symbol.initial_symbol(0) <= c)) {
+            if (!(symbol.is_internal() && symbol.initial_symbol().qubit() <= c)) {
                 auto &ttf = transitions[symbol];
                 for (const auto &in_out : tr.second) {
                     StateVector in;
@@ -382,7 +382,7 @@ void VATA::Util::Automata<InitialSymbol>::CZ(int c, int t) {
         } else {
             new_symbol = symbol;
         }
-        if (!(new_symbol.is_internal() && new_symbol.initial_symbol(0) <= t)) {
+        if (!(new_symbol.is_internal() && new_symbol.initial_symbol().qubit() <= t)) {
             for (const auto &in_out : tr.second) {
                 StateVector in;
                 for (const auto &s : in_out.first)
@@ -403,7 +403,7 @@ void VATA::Util::Automata<InitialSymbol>::CZ(int c, int t) {
     }
     for (const auto &tr : aut2.transitions) {
         const Symbol &symbol = tr.first;
-        if (!(symbol.is_internal() && symbol.initial_symbol(0) <= c)) {
+        if (!(symbol.is_internal() && symbol.initial_symbol().qubit() <= c)) {
             for (const auto &in_out : tr.second) {
                 StateVector in;
                 for (const auto &s : in_out.first)
@@ -444,7 +444,7 @@ void VATA::Util::Automata<InitialSymbol>::Toffoli(int c, int c2, int t) {
         aut2.CNOT(c2, t, false); gateCount--; // prevent repeated counting
         for (const auto &tr : aut2.transitions) {
             const Symbol &symbol = tr.first;
-            if (!(symbol.is_internal() && symbol.initial_symbol(0) <= c)) {
+            if (!(symbol.is_internal() && symbol.initial_symbol().qubit() <= c)) {
                 auto &ttf = transitions[symbol];
                 for (const auto &in_out : tr.second) {
                     StateVector in;
@@ -519,7 +519,7 @@ void VATA::Util::Automata<InitialSymbol>::Tdg(int t) {
     /******************************/
     for (const auto &tr : aut2.transitions) {
         const Symbol &symbol = tr.first;
-        if (!(symbol.is_internal() && symbol.initial_symbol(0) <= t)) {
+        if (!(symbol.is_internal() && symbol.initial_symbol().qubit() <= t)) {
             auto &ttf = transitions[symbol];
             for (const auto &in_out : tr.second) {
                 StateVector in;
@@ -575,7 +575,7 @@ void VATA::Util::Automata<InitialSymbol>::Sdg(int t) {
     /******************************/
     for (const auto &tr : aut2.transitions) {
         const Symbol &symbol = tr.first;
-        if (!(symbol.is_internal() && symbol.initial_symbol(0) <= t)) {
+        if (!(symbol.is_internal() && symbol.initial_symbol().qubit() <= t)) {
             auto &ttf = transitions[symbol];
             for (const auto &in_out : tr.second) {
                 StateVector in;

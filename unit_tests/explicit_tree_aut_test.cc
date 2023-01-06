@@ -623,7 +623,7 @@ BOOST_AUTO_TEST_CASE(Grover_Search_only_one_oracle)
                     assert(symbol.is_leaf());
                     leaf[s] = symbol;
                 }
-                if (symbol.is_internal() && symbol.initial_symbol(0) == 1) {
+                if (symbol.is_internal() && symbol.initial_symbol().qubit() == 1) {
                     first_layers.push_back(in);
                 } else {
                     assert(edge[s].empty());

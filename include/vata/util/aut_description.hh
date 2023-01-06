@@ -214,6 +214,7 @@ typedef std::vector<boost::multiprecision::cpp_int> stdvectorboostmultiprecision
 struct VATA::Util::Concrete : stdvectorboostmultiprecisioncpp_int {
     using stdvectorboostmultiprecisioncpp_int::stdvectorboostmultiprecisioncpp_int;
     typedef typename VATA::Util::Concrete::value_type Entry;
+    Entry qubit() const { return is_leaf() ? 0 : at(0); }
     bool is_leaf() const { return size() == 5; }
     bool is_internal() const { return size() < 5; }
     friend std::ostream& operator<<(std::ostream& os, const Concrete& obj) {

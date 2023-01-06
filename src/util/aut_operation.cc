@@ -549,7 +549,7 @@ void VATA::Util::Automata<InitialSymbol>::branch_restriction(int k, bool positiv
     transitions_copy = transitions;
     for (const auto &t : transitions_copy) {
         const Symbol &symbol = t.first;
-        if (symbol.is_internal() && symbol.initial_symbol(0) == k) { // x_i + determinized number
+        if (symbol.is_internal() && symbol.initial_symbol().qubit() == k) { // x_i + determinized number
             auto &in_outs_dest = transitions.at(symbol);
             for (const auto &in_out : t.second) {
                 assert(in_out.first.size() == 2);
@@ -666,15 +666,15 @@ VATA::Util::Automata<InitialSymbol> VATA::Util::Automata<InitialSymbol>::binary_
         if (it->first < it2->first) continue;
         assert(it->first == it2->first); // Ensure T1's and T2's current transitions have the same symbol now.
         // Update previous_level_states.
-        if (it != transitions.begin() && it->first.initial_symbol(0) != std::prev(it)->first.initial_symbol(0)) { // T1 changes level.
+        if (it != transitions.begin() && it->first.initial_symbol().qubit() != std::prev(it)->first.initial_symbol().qubit()) { // T1 changes level.
             previous_level_states = previous_level_states2;
             previous_level_states2 = std::vector<bool>(stateNum * o.stateNum);
         }
         // Update next_level_states.
-        if (it == transitions.begin() || it->first.initial_symbol(0) != std::prev(it)->first.initial_symbol(0)) { // T1 goes into the new level.
+        if (it == transitions.begin() || it->first.initial_symbol().qubit() != std::prev(it)->first.initial_symbol().qubit()) { // T1 goes into the new level.
             next_level_states = std::vector<bool>(stateNum * o.stateNum);
             auto it3 = it; // it3 indicates the next level of it.
-            while (it3 != transitions.end() && it3->first.is_internal() && it3->first.initial_symbol(0) == it->first.initial_symbol(0))
+            while (it3 != transitions.end() && it3->first.is_internal() && it3->first.initial_symbol().qubit() == it->first.initial_symbol().qubit())
                 it3++;
             if (it3 == transitions.end()) {} // T1 has no leaf transitions?
             else if (it3->first.is_leaf()) { // The next level of T1 is leaf transitions.
@@ -697,13 +697,13 @@ VATA::Util::Automata<InitialSymbol> VATA::Util::Automata<InitialSymbol>::binary_
                     }
                 }
             } else { // The next level of T1 is still internal transitions.
-                int current_level = static_cast<int>(it3->first.initial_symbol(0));
+                int current_level = static_cast<int>(it3->first.initial_symbol().qubit());
                 auto it4 = it2; // Initially it2 has the same symbol as it.
-                while (it4 != o.transitions.end() && it4->first.is_internal() && it4->first.initial_symbol(0) == current_level)
+                while (it4 != o.transitions.end() && it4->first.is_internal() && it4->first.initial_symbol().qubit() == current_level)
                     it4++;
                 // We hope it4 currently points to T2's first transition of the next level.
                 // If it4 points to o.transitions.end(), then the following loop will not be executed.
-                for (; it3->first.is_internal() && it3->first.initial_symbol(0) == current_level; it3++) {
+                for (; it3->first.is_internal() && it3->first.initial_symbol().qubit() == current_level; it3++) {
                     if (it3->first < it4->first) continue;
                     while (it4 != o.transitions.end() && it3->first > it4->first)
                         it4++;
@@ -1047,7 +1047,7 @@ void VATA::Util::Automata<InitialSymbol>::swap_forward(const int k) {
         for (const auto &t : transitions) {
             const auto &symbol = t.first;
             const auto &in_outs = t.second;
-            if (symbol.is_internal() && symbol.initial_symbol(0) == next_k) {
+            if (symbol.is_internal() && symbol.initial_symbol().qubit() == next_k) {
                 assert(symbol.tag().size() <= 1);
                 for (const auto &in_out : in_outs) {
                     for (const auto &s : in_out.second)
@@ -1059,7 +1059,7 @@ void VATA::Util::Automata<InitialSymbol>::swap_forward(const int k) {
         TransitionMap to_be_removed, to_be_inserted;
         for (const auto &t : transitions) {
             const Symbol &symbol = t.first;
-            if (symbol.is_internal() && symbol.initial_symbol(0) == k) {
+            if (symbol.is_internal() && symbol.initial_symbol().qubit() == k) {
                 for (const auto &in_out : t.second) {
                     assert(in_out.first.size() == 2);
                     for (const auto &ssv1 : svsv[in_out.first[0]]) {
@@ -1120,7 +1120,7 @@ void VATA::Util::Automata<InitialSymbol>::swap_backward(const int k) {
         for (const auto &t : transitions) {
             const auto &symbol = t.first;
             const auto &in_outs = t.second;
-            if (symbol.is_internal() && symbol.initial_symbol(0) == k) {
+            if (symbol.is_internal() && symbol.initial_symbol().qubit() == k) {
                 assert(symbol.tag().size() == 1);
                 for (const auto &in_out : in_outs) {
                     for (const auto &s : in_out.second)
@@ -1132,7 +1132,7 @@ void VATA::Util::Automata<InitialSymbol>::swap_backward(const int k) {
         TransitionMap to_be_removed, to_be_inserted;
         for (const auto &t : transitions) {
             const Symbol &symbol = t.first;
-            if (symbol.is_internal() && symbol.initial_symbol(0) == next_k) {
+            if (symbol.is_internal() && symbol.initial_symbol().qubit() == next_k) {
                 assert(symbol.tag().size() == 2);
                 for (const auto &in_out : t.second) {
                     assert(in_out.first.size() == 2);
@@ -1155,7 +1155,7 @@ void VATA::Util::Automata<InitialSymbol>::swap_backward(const int k) {
                                     else
                                         to_be_inserted[t2][{ssv1.second[1], ssv2.second[1]}].insert(*(transitions[t2][{ssv1.second[1], ssv2.second[1]}].begin()));
                                 }
-                                assert(k == ssv1.first.initial_symbol(0));
+                                assert(k == ssv1.first.initial_symbol().qubit());
                                 for (const auto &s : in_out.second)
                                     to_be_inserted[ssv1.first][{*(to_be_inserted[t1][{ssv1.second[0], ssv2.second[0]}].begin()), *(to_be_inserted[t2][{ssv1.second[1], ssv2.second[1]}].begin())}].insert(s);
                             }
@@ -1199,7 +1199,7 @@ void VATA::Util::Automata<InitialSymbol>::value_restriction(int k, bool branch) 
     std::vector<Symbol> to_be_removed;
     for (const auto &t : transitions) {
         const Symbol &symbol = t.first;
-        if (symbol.is_internal() && symbol.initial_symbol(0) == k) {
+        if (symbol.is_internal() && symbol.initial_symbol().qubit() == k) {
             to_be_removed.push_back(symbol);
             for (const auto &in_out : t.second) {
                 assert(in_out.first.size() == 2);

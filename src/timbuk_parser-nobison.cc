@@ -341,9 +341,9 @@ static TreeAutomata parse_timbuk(const std::string& str)
 
     for (const auto &kv : result.transitions) {
         if (kv.first.is_internal()) {
-            if (kv.first.initial_symbol(0) > INT_MAX)
+            if (kv.first.initial_symbol().qubit() > INT_MAX)
                 throw std::overflow_error("");
-            result.qubitNum = std::max(result.qubitNum, static_cast<int>(kv.first.initial_symbol(0)));
+            result.qubitNum = std::max(result.qubitNum, static_cast<int>(kv.first.initial_symbol().qubit()));
         }
     }
 
