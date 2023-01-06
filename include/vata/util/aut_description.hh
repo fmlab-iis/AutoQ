@@ -221,6 +221,21 @@ struct VATA::Util::Concrete : stdvectorboostmultiprecisioncpp_int {
         os << VATA::Util::Convert::ToString(static_cast<stdvectorboostmultiprecisioncpp_int>(obj));
         return os;
     }
+    Concrete operator+(const Concrete &o) const { return binary_operation(o, true); }
+    Concrete operator-(const Concrete &o) const { return binary_operation(o, false); }
+    Concrete binary_operation(const Concrete &o, bool add) const {
+        assert(this->at(4) == o.at(4)); // Two k's must be the same.
+        Concrete symbol;
+        for (int i=0; i<4; i++) { // We do not change k here.
+            if (add) symbol.push_back(this->at(i) + o.at(i));
+            else symbol.push_back(this->at(i) - o.at(i));
+            // if ((a>=0 && b>=0 && a>std::numeric_limits<Entry>::max()-b)
+            //  || (a<0 && b<0 && a<std::numeric_limits<Entry>::min()-b))
+            //     throw std::overflow_error("");
+        }
+        symbol.push_back(this->at(4)); // remember to push k
+        return symbol;
+    }
 };
 
 namespace std {

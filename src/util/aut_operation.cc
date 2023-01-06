@@ -760,17 +760,9 @@ VATA::Util::Automata<InitialSymbol> VATA::Util::Automata<InitialSymbol>::binary_
         assert(it->first.is_leaf());
         for (auto it2t = it2; it2t != o.transitions.end(); it2t++) { // it2 as the new begin point.
             assert(it2t->first.is_leaf());
-            assert(it->first.initial_symbol(4) == it2t->first.initial_symbol(4)); // Two k's must be the same.
             InitialSymbol symbol;
-            for (int i=0; i<4; i++) { // We do not change k here.
-                SymbolEntry a = it->first.initial_symbol(i);
-                SymbolEntry b = add ? it2t->first.initial_symbol(i) : -it2t->first.initial_symbol(i);
-                // if ((a>=0 && b>=0 && a>std::numeric_limits<SymbolEntry>::max()-b)
-                //  || (a<0 && b<0 && a<std::numeric_limits<SymbolEntry>::min()-b))
-                //     throw std::overflow_error("");
-                symbol.push_back(a + b);
-            }
-            symbol.push_back(it->first.initial_symbol(4)); // remember to push k
+            if (add) symbol = it->first.initial_symbol() + it2t->first.initial_symbol();
+            else symbol = it->first.initial_symbol() - it2t->first.initial_symbol();
             for (const auto &s1 : it->second.begin()->second)
                 for (const auto &s2 : it2t->second.begin()->second) {
                     construct_product_state_id(s1, s2, i);
