@@ -1222,16 +1222,10 @@ void VATA::Util::Automata<InitialSymbol>::fraction_simplification() {
     std::vector<Symbol> to_be_removed;
     TransitionMap to_be_inserted;
     for (const auto &t : transitions) {
-        Symbol symbol = t.first;
-        if (symbol.is_leaf()) {
-            InitialSymbol &sym = symbol.initial_symbol();
-            if (sym[0]==0 && sym[1]==0 && sym[2]==0 && sym[3]==0) sym[4] = 0;
-            else {
-                while ((sym[0]&1)==0 && (sym[1]&1)==0 && (sym[2]&1)==0 && (sym[3]&1)==0 && sym[4]>=2) { // Notice the parentheses enclosing sym[i]&1 are very important! HAHA
-                    for (int i=0; i<4; i++) sym[i] /= 2;
-                    sym[4] -= 2;
-                }
-            }
+        const Symbol &s = t.first;
+        if (s.is_leaf()) {
+            Symbol symbol = s;
+            symbol.initial_symbol().fraction_simplification();
             if (t.first != symbol) {
                 to_be_removed.push_back(t.first);
                 for (const auto &in_out : t.second) {

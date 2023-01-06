@@ -236,6 +236,15 @@ struct VATA::Util::Concrete : stdvectorboostmultiprecisioncpp_int {
         symbol.push_back(this->at(4)); // remember to push k
         return symbol;
     }
+    void fraction_simplification() {
+        if (at(0)==0 && at(1)==0 && at(2)==0 && at(3)==0) at(4) = 0;
+        else {
+            while ((at(0)&1)==0 && (at(1)&1)==0 && (at(2)&1)==0 && (at(3)&1)==0 && at(4)>=2) { // Notice the parentheses enclosing at(i)&1 are very important! HAHA
+                for (int i=0; i<4; i++) at(i) /= 2;
+                at(4) -= 2;
+            }
+        }
+    }
 };
 
 namespace std {
