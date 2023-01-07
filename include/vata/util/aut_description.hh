@@ -27,6 +27,8 @@ namespace VATA
         template <typename TT> struct Automata;
         struct Concrete;
 		typedef Automata<Concrete> TreeAutomata;
+        struct Symbolic;
+		typedef Automata<Symbolic> SymbolicAutomata;
 	}
 }
 
@@ -274,15 +276,116 @@ struct VATA::Util::Concrete : stdvectorboostmultiprecisioncpp_int {
             at(i) = -at(i);
     }
     void Tdg() {
-        Entry t = -at(0); // IMPORTANT: MAY NOT use "auto" here; otherwise, t is always synced with -at(0), which is not what we want.
+        auto t = at(0);
         for (int i=0; i<3; i++) {
             at(i) = at(i+1);
         }
+        at(3) = -t;
+    }
+    void Sdg() {
+        auto a=at(2), b=at(3), c=at(0), d=at(1);
+        at(0)=a; at(1)=b; at(2)=-c; at(3)=-d;
+    }
+};
+
+// Symbolic initial symbol
+typedef std::vector<std::vector<boost::multiprecision::cpp_int>> stdvectorstdvectorboostmultiprecisioncpp_int;
+struct VATA::Util::Symbolic : stdvectorstdvectorboostmultiprecisioncpp_int {
+    using stdvectorstdvectorboostmultiprecisioncpp_int::stdvectorstdvectorboostmultiprecisioncpp_int;
+    typedef typename VATA::Util::Symbolic::value_type::value_type Entry;
+    template <typename T, typename = std::enable_if_t<std::is_convertible_v<T, Entry>>>
+        Symbolic(T qubit) : stdvectorstdvectorboostmultiprecisioncpp_int({{qubit}}) {}
+    Entry qubit() const { return is_leaf() ? 0 : at(0).at(0); }
+    bool is_leaf() const { return size() == 5; }
+    bool is_internal() const { return size() < 5; }
+    void back_to_zero() {
+        for (int i=0; i<4; i++)
+            std::fill(at(i).begin(), at(i).end(), 0);
+    }
+    friend std::ostream& operator<<(std::ostream& os, const Symbolic& obj) {
+        // os << VATA::Util::Convert::ToString(static_cast<stdvectorstdvectorboostmultiprecisioncpp_int>(obj));
+        return os;
+    }
+    Symbolic operator+(const Symbolic &o) const { return binary_operation(o, true); }
+    Symbolic operator-(const Symbolic &o) const { return binary_operation(o, false); }
+    Symbolic binary_operation(Symbolic o, bool add) const {
+        assert(this->at(4) == o.at(4)); // Two k's must be the same.
+        Symbolic symbol;
+        for (int i=0; i<4; i++) { // We do not change k here.
+            if (add) {
+                std::transform(this->at(i).begin(), this->at(i).end(), o.at(i).begin(),
+                               o.at(i).begin(), std::plus<Entry>());
+                symbol.push_back(o.at(i));
+            }
+            else {
+                std::transform(this->at(i).begin(), this->at(i).end(), o.at(i).begin(),
+                               o.at(i).begin(), std::minus<Entry>());
+                symbol.push_back(o.at(i));
+            }
+        }
+        symbol.push_back(this->at(4)); // remember to push k
+        return symbol;
+    }
+    void fraction_simplification() {
+        // if (at(0)==0 && at(1)==0 && at(2)==0 && at(3)==0) at(4) = 0;
+        // else {
+        //     while ((at(0)&1)==0 && (at(1)&1)==0 && (at(2)&1)==0 && (at(3)&1)==0 && at(4)>=2) { // Notice the parentheses enclosing at(i)&1 are very important! HAHA
+        //         for (int i=0; i<4; i++) at(i) /= 2;
+        //         at(4) -= 2;
+        //     }
+        // }
+    }
+    void omega_multiplication(int rotation=1) {
+        int r = rotation;
+        while (r != 0) {
+            if (r > 0) {
+                auto temp = at(3);
+                for (int i=3; i>=1; i--) { // exclude "k"
+                    at(i) = at(i-1);
+                }
+                std::transform(temp.begin(), temp.end(), temp.begin(),
+                               std::negate<Entry>());
+                at(0) = temp;
+                r--;
+            } else {
+                auto temp = at(0);
+                for (int i=0; i<=2; i++) { // exclude "k"
+                    at(i) = at(i+1);
+                }
+                std::transform(temp.begin(), temp.end(), temp.begin(),
+                               std::negate<Entry>());
+                at(3) = temp;
+                r++;
+            }
+        }
+    }
+    void divide_by_the_square_root_of_two() {
+        assert(at(4).size() == 1);
+        at(4).at(0)++;
+    }
+    void Y() {
+        for (int i=0; i<4; i++)
+            std::transform(at(i).begin(), at(i).end(), at(i).begin(),
+                           std::negate<Entry>());
+    }
+    void Tdg() {
+        auto t = at(0);
+        for (int i=0; i<3; i++) {
+            at(i) = at(i+1);
+        }
+        std::transform(t.begin(), t.end(), t.begin(),
+                       std::negate<Entry>());
         at(3) = t;
     }
     void Sdg() {
-        Entry a=at(2), b=at(3), c=-at(0), d=-at(1);
-        at(0)=a; at(1)=b; at(2)=c; at(3)=d;
+        auto a=at(2), b=at(3), c=at(0), d=at(1);
+        at(0)=a; at(1)=b;
+        std::transform(c.begin(), c.end(), c.begin(),
+                       std::negate<Entry>());
+        at(2)=c;
+        std::transform(d.begin(), d.end(), d.begin(),
+                       std::negate<Entry>());
+        at(3)=d;
     }
 };
 
@@ -304,6 +407,14 @@ namespace std {
 //     };
     template <> struct hash<typename VATA::Util::TreeAutomata::Symbol> {
         size_t operator()(const VATA::Util::TreeAutomata::Symbol& obj) const {
+            std::size_t seed = 0;
+            boost::hash_combine(seed, obj.first);
+            boost::hash_combine(seed, obj.second);
+            return seed;
+        }
+    };
+    template <> struct hash<typename VATA::Util::SymbolicAutomata::Symbol> {
+        size_t operator()(const VATA::Util::SymbolicAutomata::Symbol& obj) const {
             std::size_t seed = 0;
             boost::hash_combine(seed, obj.first);
             boost::hash_combine(seed, obj.second);

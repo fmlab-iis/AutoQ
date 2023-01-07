@@ -664,3 +664,4 @@ void VATA::Util::Automata<InitialSymbol>::randG(int G, int A, int B, int C) {
 
 // https://bytefreaks.net/programming-2/c/c-undefined-reference-to-templated-class-function
 template struct VATA::Util::Automata<VATA::Util::Concrete>;
+template struct VATA::Util::Automata<VATA::Util::Symbolic>;

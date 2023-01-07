@@ -1543,3 +1543,5 @@ int VATA::Util::Automata<InitialSymbol>::transition_size() {
 
 // https://bytefreaks.net/programming-2/c/c-undefined-reference-to-templated-class-function
 template struct VATA::Util::Automata<VATA::Util::Concrete>;
+template <> void VATA::Util::Automata<VATA::Util::Symbolic>::print() {}
+template struct VATA::Util::Automata<VATA::Util::Symbolic>;
