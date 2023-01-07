@@ -211,6 +211,9 @@ typedef std::vector<boost::multiprecision::cpp_int> stdvectorboostmultiprecision
 struct VATA::Util::Concrete : stdvectorboostmultiprecisioncpp_int {
     using stdvectorboostmultiprecisioncpp_int::stdvectorboostmultiprecisioncpp_int;
     typedef typename VATA::Util::Concrete::value_type Entry;
+    // Notice that if we do not use is_convertible_v, type int will not be accepted in this case.
+    template <typename T, typename = std::enable_if_t<std::is_convertible_v<T, Entry>>>
+        Concrete(T qubit) : stdvectorboostmultiprecisioncpp_int({qubit}) {} 
     Entry qubit() const { return is_leaf() ? 0 : at(0); }
     bool is_leaf() const { return size() == 5; }
     bool is_internal() const { return size() < 5; }
