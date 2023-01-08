@@ -303,7 +303,7 @@ struct VATA::Util::Symbolic : stdvectorstdvectorboostmultiprecisioncpp_int {
             std::fill(at(i).begin(), at(i).end(), 0);
     }
     friend std::ostream& operator<<(std::ostream& os, const Symbolic& obj) {
-        // os << VATA::Util::Convert::ToString(static_cast<stdvectorstdvectorboostmultiprecisioncpp_int>(obj));
+        os << VATA::Util::Convert::ToString(static_cast<stdvectorstdvectorboostmultiprecisioncpp_int>(obj));
         return os;
     }
     Symbolic operator+(const Symbolic &o) const { return binary_operation(o, true); }

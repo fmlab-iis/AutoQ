@@ -15,6 +15,7 @@
 using VATA::Util::Convert;
 using VATA::Util::Automata;
 using VATA::Util::TreeAutomata;
+using VATA::Util::SymbolicAutomata;
 using VATA::Serialization::TimbukSerializer;
 
 // Standard library headers
@@ -84,3 +85,4 @@ std::string TimbukSerializer::Serialize(const Automata<InitialSymbol>& desc)
 
 // https://bytefreaks.net/programming-2/c/c-undefined-reference-to-templated-class-function
 template std::string TimbukSerializer::Serialize(const TreeAutomata& desc);
+template std::string TimbukSerializer::Serialize(const SymbolicAutomata& desc);
