@@ -1574,11 +1574,11 @@ bool VATA::Util::is_spec_satisfied(const Constraint &C, const SymbolicAutomata &
     std::vector<std::pair<State, StateSet>> processed; // ← ∅;
     std::queue<std::pair<State, StateSet>> worklist;
     for (const auto &te : Ae.transitions) {
-        if (te.second.size() == 1 && te.second.find({}) != te.second.end()) { // only accept the leaf transition
+        if (te.first.is_leaf()) {
             for (const auto &qe: te.second.at({})) {
                 StateSet Us;
                 for (const auto &ps : As.transitions) {
-                    if (ps.second.size() == 1 && ps.second.find({}) != ps.second.end()) { // only accept the leaf transition
+                    if (ps.first.is_leaf()) {
                         if (check_validity(C, ps.first.initial_symbol(), te.first.initial_symbol())) { // C ⇒ ps(te)
                             for (const auto &us: ps.second.at({})) {
                                 Us.insert(us);
@@ -1596,7 +1596,7 @@ bool VATA::Util::is_spec_satisfied(const Constraint &C, const SymbolicAutomata &
         if (std::find(processed.begin(), processed.end(), qeUs) == processed.end()) { // not found
             processed.push_back(qeUs);
             for (const auto &te : Ae.transitions) {
-                if (!te.second.empty() && te.second.find({})==te.second.end()) { // internal transition, condition can be better
+                if (te.first.is_internal()) {
                     const auto &alpha = te.first;
                     auto qeUs1 = qeUs;
                     for (auto qeUs2 : processed) {
