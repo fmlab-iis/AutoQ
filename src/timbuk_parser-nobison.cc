@@ -125,11 +125,11 @@ TreeAutomata::Symbol symbol_converter(const std::string& str)
         for (int i=1; i<static_cast<int>(str.length()); i++) {
             size_t j = str.find(',', i);
             if (j == std::string::npos) j = str.length()-1;
-            temp.push_back(boost::lexical_cast<TreeAutomata::SymbolEntry>(str.substr(i, j-i).c_str()));
+            temp.push_back(boost::lexical_cast<TreeAutomata::InitialSymbol::Entry>(str.substr(i, j-i).c_str()));
             i = j;
         }
     } else {
-        temp.push_back(boost::lexical_cast<TreeAutomata::SymbolEntry>(str.c_str()));
+        temp.push_back(boost::lexical_cast<TreeAutomata::InitialSymbol::Entry>(str.c_str()));
     }
     assert(temp.size() == 1 || temp.size() == 5);
     return temp;

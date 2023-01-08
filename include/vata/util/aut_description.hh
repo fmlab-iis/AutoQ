@@ -29,6 +29,9 @@ namespace VATA
 		typedef Automata<Concrete> TreeAutomata;
         struct Symbolic;
 		typedef Automata<Symbolic> SymbolicAutomata;
+        struct Predicate;
+        typedef Automata<Predicate> PredicateAutomata;
+        struct Constraint;
 	}
 }
 
@@ -37,7 +40,6 @@ struct VATA::Util::Automata
 {
 public:   // data types
     typedef TT InitialSymbol;
-    typedef typename InitialSymbol::Entry SymbolEntry;
     typedef int64_t State; // TODO: will make the program slightly slower. We wish to make another dynamic type.
 	typedef std::vector<State> StateVector;
 	typedef std::set<State> StateSet;
@@ -327,13 +329,24 @@ struct VATA::Util::Symbolic : stdvectorstdvectorboostmultiprecisioncpp_int {
         return symbol;
     }
     void fraction_simplification() {
-        // if (at(0)==0 && at(1)==0 && at(2)==0 && at(3)==0) at(4) = 0;
-        // else {
-        //     while ((at(0)&1)==0 && (at(1)&1)==0 && (at(2)&1)==0 && (at(3)&1)==0 && at(4)>=2) { // Notice the parentheses enclosing at(i)&1 are very important! HAHA
-        //         for (int i=0; i<4; i++) at(i) /= 2;
-        //         at(4) -= 2;
-        //     }
-        // }
+        if (std::all_of(at(0).begin(), at(0).end(), [](Entry i) { return i==0; }) &&
+            std::all_of(at(1).begin(), at(1).end(), [](Entry i) { return i==0; }) &&
+            std::all_of(at(2).begin(), at(2).end(), [](Entry i) { return i==0; }) &&
+            std::all_of(at(3).begin(), at(3).end(), [](Entry i) { return i==0; }))
+            at(4) = {0};
+        else {
+            while (std::all_of(at(0).begin(), at(0).end(), [](Entry i) { return (i&1)==0; }) &&
+                   std::all_of(at(1).begin(), at(1).end(), [](Entry i) { return (i&1)==0; }) &&
+                   std::all_of(at(2).begin(), at(2).end(), [](Entry i) { return (i&1)==0; }) &&
+                   std::all_of(at(3).begin(), at(3).end(), [](Entry i) { return (i&1)==0; }) &&
+                   at(4).at(0)>=2) { // Notice the parentheses enclosing i&1 are very important!
+                for (int i=0; i<4; i++) {
+                    std::transform(at(i).begin(), at(i).end(), at(i).begin(),
+                                   [](Entry i) { return i/2; });
+                }
+                at(4).at(0) -= 2;
+            }
+        }
     }
     void omega_multiplication(int rotation=1) {
         int r = rotation;
@@ -388,6 +401,38 @@ struct VATA::Util::Symbolic : stdvectorstdvectorboostmultiprecisioncpp_int {
         at(3)=d;
     }
 };
+
+struct VATA::Util::Predicate : std::string {
+    using std::string::string;
+    bool is_leaf_v = true;
+    template <typename T, typename = std::enable_if_t<std::is_convertible_v<T, boost::multiprecision::cpp_int>>>
+        Predicate(T qubit) : std::string(static_cast<boost::multiprecision::cpp_int>(qubit).str()) { is_leaf_v = false; }
+    bool is_leaf() const { return is_leaf_v; }
+    bool is_internal() const { return !is_leaf_v; }
+};
+
+struct VATA::Util::Constraint : std::string {
+    using std::string::string;
+    std::string to_expr(Symbolic s) const {
+        assert(s.size() == 5);
+        // TODO: Currently consider only the "a" part, without "b", "c", "d", "e".
+        const auto &v = s.at(0);
+        assert(v.size() <= 27);
+        std::string expr = v.at(0).str();
+        for (int i=1; i<v.size(); i++) {
+            expr = "(+ " + expr + " (* " + v.at(i).str() + " " + static_cast<char>('a'+i-1) + "))";
+        }
+        expr = "(/ (abs " + expr + ") " + std::to_string(std::pow(2, static_cast<double>(s.at(4).at(0))/2)) + ")";
+        return expr;
+    }
+};
+
+namespace VATA {
+	namespace Util {
+        bool is_spec_satisfied(const Constraint &C, const SymbolicAutomata &Ae, const PredicateAutomata &As);
+        bool check_validity(const Constraint &C, const PredicateAutomata::InitialSymbol &ps, const SymbolicAutomata::InitialSymbol &te);
+    }
+}
 
 namespace std {
 //     template<> class numeric_limits<__int128_t> {

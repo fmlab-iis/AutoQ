@@ -7,6 +7,8 @@
 #include <fstream>
 #include <numeric>
 #include <chrono>
+#include <queue>
+#include <regex>
 
 using namespace VATA;
 using namespace VATA::Util;
@@ -1539,6 +1541,105 @@ int VATA::Util::Automata<InitialSymbol>::transition_size() {
         }
     }
     return answer;
+}
+
+// std::string exec(const char* cmd) {
+//     std::array<char, 128> buffer;
+//     std::string result;
+//     std::unique_ptr<FILE, decltype(&pclose)> pipe(popen(cmd, "r"), pclose);
+//     if (!pipe) {
+//         throw std::runtime_error("popen() failed!");
+//     }
+//     while (fgets(buffer.data(), buffer.size(), pipe.get()) != nullptr) {
+//         result += buffer.data();
+//     }
+//     return result;
+// }
+bool VATA::Util::check_validity(const Constraint &C, const PredicateAutomata::InitialSymbol &ps, const SymbolicAutomata::InitialSymbol &te) {
+    std::string result;
+    std::regex e("\\$"); // example: z3 <(echo '(declare-fun x () Int)(declare-fun z () Int)(assert (= z (+ x 3)))(check-sat)')
+    std::string smt_input = "bash -c \"z3 <(echo '" + C + "(assert (not " + std::regex_replace(ps, e, C.to_expr(te)) + "))(check-sat)')\"";
+    std::cout << smt_input << "\n";
+    ShellCmd(smt_input, result);
+    std::cout << result;
+    if (result == "unsat\n") return true;
+    else if (result == "sat\n") return false;
+    else throw std::runtime_error("z3 error");
+}
+bool VATA::Util::is_spec_satisfied(const Constraint &C, const SymbolicAutomata &Ae, const PredicateAutomata &As) {
+    using State = SymbolicAutomata::State;
+    using StateSet = SymbolicAutomata::StateSet;
+    using StateVector = SymbolicAutomata::StateVector;
+    StateSet As_finalStates(As.finalStates.begin(), As.finalStates.end());
+    std::vector<std::pair<State, StateSet>> processed; // ← ∅;
+    std::queue<std::pair<State, StateSet>> worklist;
+    for (const auto &te : Ae.transitions) {
+        if (te.second.size() == 1 && te.second.find({}) != te.second.end()) { // only accept the leaf transition
+            for (const auto &qe: te.second.at({})) {
+                StateSet Us;
+                for (const auto &ps : As.transitions) {
+                    if (ps.second.size() == 1 && ps.second.find({}) != ps.second.end()) { // only accept the leaf transition
+                        if (check_validity(C, ps.first.initial_symbol(), te.first.initial_symbol())) { // C ⇒ ps(te)
+                            for (const auto &us: ps.second.at({})) {
+                                Us.insert(us);
+                            }
+                        }
+                    }
+                } // compute Us above!
+                worklist.push({qe, Us});
+            }
+        }
+    } // antichainize Worklist
+    while (!worklist.empty()) {
+        auto qeUs = worklist.front();
+        worklist.pop();
+        if (std::find(processed.begin(), processed.end(), qeUs) == processed.end()) { // not found
+            processed.push_back(qeUs);
+            for (const auto &te : Ae.transitions) {
+                if (!te.second.empty() && te.second.find({})==te.second.end()) { // internal transition, condition can be better
+                    const auto &alpha = te.first;
+                    auto qeUs1 = qeUs;
+                    for (auto qeUs2 : processed) {
+                        bool flip = false;
+                        do {
+                            // Assume Ae and As have the same internal symbols!
+                            StateSet Hs;
+                            for (const auto &in_out : As.transitions.at({VATA::Util::Predicate(alpha.initial_symbol().at(0).at(0)), {}})) {
+                                assert(in_out.first.size() == 2);
+                                if (qeUs1.second.find(in_out.first[0]) != qeUs1.second.end()
+                                    && qeUs2.second.find(in_out.first[1]) != qeUs2.second.end()) {
+                                        Hs.insert(in_out.second.begin(), in_out.second.end());
+                                    }
+                            } // compute Hs above!
+                            StateVector output;
+                            std::set_intersection(Hs.begin(), Hs.end(), As_finalStates.begin(), As_finalStates.end(), std::back_inserter(output));
+                            // output.resize(it - output.begin());
+                            bool Hs_Rs_no_intersection = output.empty();
+                            // check the above boolean value!
+                            auto it = te.second.find({qeUs1.first, qeUs2.first});
+                            if (it != te.second.end()) {
+                                for (const auto &q : it->second) { // He
+                                    auto qHs = std::make_pair(q, Hs);
+                                    if (std::find(processed.begin(), processed.end(), qHs) == processed.end()) { // not found
+                                        if (std::find(Ae.finalStates.begin(), Ae.finalStates.end(), q) != Ae.finalStates.end()
+                                            && Hs_Rs_no_intersection) {
+                                            return false;
+                                        }
+                                        worklist.push(qHs);
+                                        // antichainize Worklist and Processed
+                                    }
+                                }
+                            }
+                            // perform swap
+                            std::swap(qeUs1, qeUs2);
+                            flip = !flip;
+                        } while (flip);
+                    }
+                }
+            }
+        }
+    }
+    return true;
 }
 
 // https://bytefreaks.net/programming-2/c/c-undefined-reference-to-templated-class-function
