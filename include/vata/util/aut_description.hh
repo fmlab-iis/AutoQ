@@ -417,12 +417,12 @@ struct VATA::Util::Constraint : std::string {
         assert(s.size() == 5);
         // TODO: Currently consider only the "a" part, without "b", "c", "d", "e".
         const auto &v = s.at(0);
-        assert(v.size() <= 27);
+        assert(v.size() <= 27 * 4);
         std::string expr = v.at(0).str();
-        for (int i=1; i<v.size(); i++) {
-            expr = "(+ " + expr + " (* " + v.at(i).str() + " " + static_cast<char>('a'+i-1) + "))";
+        for (int i=4; i<v.size(); i+=4) {
+            expr = "(+ " + expr + " (* " + v.at(i).str() + " " + static_cast<char>('a'+i/4-1) + "))";
         }
-        expr = "(/ (abs " + expr + ") " + std::to_string(std::pow(2, static_cast<double>(s.at(4).at(0))/2)) + ")";
+        expr = "(/ " + expr + " " + std::to_string(std::pow(2, static_cast<double>(s.at(4).at(0))/2)) + ")";
         return expr;
     }
 };
