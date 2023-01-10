@@ -293,21 +293,22 @@ struct VATA::Util::Concrete : stdvectorboostmultiprecisioncpp_int {
 };
 
 // Symbolic initial symbol
-typedef std::vector<std::vector<boost::multiprecision::cpp_int>> stdvectorstdvectorboostmultiprecisioncpp_int;
-struct VATA::Util::Symbolic : stdvectorstdvectorboostmultiprecisioncpp_int {
-    using stdvectorstdvectorboostmultiprecisioncpp_int::stdvectorstdvectorboostmultiprecisioncpp_int;
-    typedef typename VATA::Util::Symbolic::value_type::value_type Entry;
+typedef std::vector<std::map<std::string, boost::multiprecision::cpp_int>> stdvectorstdmapstdstringboostmultiprecisioncpp_int;
+struct VATA::Util::Symbolic : stdvectorstdmapstdstringboostmultiprecisioncpp_int {
+    using stdvectorstdmapstdstringboostmultiprecisioncpp_int::stdvectorstdmapstdstringboostmultiprecisioncpp_int;
+    typedef typename VATA::Util::Symbolic::value_type Map;
+    typedef typename VATA::Util::Symbolic::value_type::value_type Pair;
+    typedef typename VATA::Util::Symbolic::value_type::mapped_type Entry;
     template <typename T, typename = std::enable_if_t<std::is_convertible_v<T, Entry>>>
-        Symbolic(T qubit) : stdvectorstdvectorboostmultiprecisioncpp_int({{qubit}}) {}
-    Entry qubit() const { return is_leaf() ? 0 : at(0).at(0); }
+        Symbolic(T qubit) : stdvectorstdmapstdstringboostmultiprecisioncpp_int({Map{{"1", qubit}}}) {}
+    Entry qubit() const { return is_leaf() ? 0 : at(0).at("1"); }
     bool is_leaf() const { return size() == 5; }
     bool is_internal() const { return size() < 5; }
     void back_to_zero() {
-        for (int i=0; i<4; i++)
-            std::fill(at(i).begin(), at(i).end(), 0);
+        std::fill(begin(), begin()+4, Map());
     }
     friend std::ostream& operator<<(std::ostream& os, const Symbolic& obj) {
-        os << VATA::Util::Convert::ToString(static_cast<stdvectorstdvectorboostmultiprecisioncpp_int>(obj));
+        os << VATA::Util::Convert::ToString(static_cast<stdvectorstdmapstdstringboostmultiprecisioncpp_int>(obj));
         return os;
     }
     Symbolic operator+(const Symbolic &o) const { return binary_operation(o, true); }
@@ -317,36 +318,38 @@ struct VATA::Util::Symbolic : stdvectorstdvectorboostmultiprecisioncpp_int {
         Symbolic symbol;
         for (int i=0; i<4; i++) { // We do not change k here.
             if (add) {
-                std::transform(this->at(i).begin(), this->at(i).end(), o.at(i).begin(),
-                               o.at(i).begin(), std::plus<Entry>());
-                symbol.push_back(o.at(i));
+                auto &m = o.at(i);
+                for (const auto &kv : this->at(i)) {
+                    auto k = kv.first;
+                    auto v = kv.second;
+                    m[k] += v;
+                }
+                symbol.push_back(m);
             }
             else {
-                std::transform(this->at(i).begin(), this->at(i).end(), o.at(i).begin(),
-                               o.at(i).begin(), std::minus<Entry>());
-                symbol.push_back(o.at(i));
+                auto m = at(i); // DO NOT use reference here, or the original map would be modified!
+                for (const auto &kv : o.at(i)) {
+                    auto k = kv.first;
+                    auto v = kv.second;
+                    m[k] -= v;
+                }
+                symbol.push_back(m);
             }
         }
         symbol.push_back(this->at(4)); // remember to push k
         return symbol;
     }
     void fraction_simplification() {
-        if (std::all_of(at(0).begin(), at(0).end(), [](Entry i) { return i==0; }) &&
-            std::all_of(at(1).begin(), at(1).end(), [](Entry i) { return i==0; }) &&
-            std::all_of(at(2).begin(), at(2).end(), [](Entry i) { return i==0; }) &&
-            std::all_of(at(3).begin(), at(3).end(), [](Entry i) { return i==0; }))
-            at(4) = {0};
+        if (std::all_of(begin(), begin()+4, [](const Map &m) { return m.empty(); }))
+            at(4).clear();
         else {
-            while (std::all_of(at(0).begin(), at(0).end(), [](Entry i) { return (i&1)==0; }) &&
-                   std::all_of(at(1).begin(), at(1).end(), [](Entry i) { return (i&1)==0; }) &&
-                   std::all_of(at(2).begin(), at(2).end(), [](Entry i) { return (i&1)==0; }) &&
-                   std::all_of(at(3).begin(), at(3).end(), [](Entry i) { return (i&1)==0; }) &&
-                   at(4).at(0)>=2) { // Notice the parentheses enclosing i&1 are very important!
+            while (std::all_of(begin(), begin()+4, [](const Map &m) {
+                return std::all_of(m.begin(), m.end(), [](const auto &p) { return (p.second&1)==0; });
+            }) && at(4).at("1") >= 2) { // Notice the parentheses enclosing i&1 are very important!
                 for (int i=0; i<4; i++) {
-                    std::transform(at(i).begin(), at(i).end(), at(i).begin(),
-                                   [](Entry i) { return i/2; });
+                    std::for_each(at(i).begin(), at(i).end(), [](auto &p) { p.second /= 2; });
                 }
-                at(4).at(0) -= 2;
+                at(4).at("1") -= 2;
             }
         }
     }
@@ -358,8 +361,7 @@ struct VATA::Util::Symbolic : stdvectorstdvectorboostmultiprecisioncpp_int {
                 for (int i=3; i>=1; i--) { // exclude "k"
                     at(i) = at(i-1);
                 }
-                std::transform(temp.begin(), temp.end(), temp.begin(),
-                               std::negate<Entry>());
+                std::for_each(temp.begin(), temp.end(), [](auto &p) { p.second = -p.second; });
                 at(0) = temp;
                 r--;
             } else {
@@ -367,39 +369,33 @@ struct VATA::Util::Symbolic : stdvectorstdvectorboostmultiprecisioncpp_int {
                 for (int i=0; i<=2; i++) { // exclude "k"
                     at(i) = at(i+1);
                 }
-                std::transform(temp.begin(), temp.end(), temp.begin(),
-                               std::negate<Entry>());
+                std::for_each(temp.begin(), temp.end(), [](auto &p) { p.second = -p.second; });
                 at(3) = temp;
                 r++;
             }
         }
     }
     void divide_by_the_square_root_of_two() {
-        assert(at(4).size() == 1);
-        at(4).at(0)++;
+        at(4)["1"]++; // use [] instead of () in case the original map is empty.
     }
     void Y() {
         for (int i=0; i<4; i++)
-            std::transform(at(i).begin(), at(i).end(), at(i).begin(),
-                           std::negate<Entry>());
+            std::for_each(at(i).begin(), at(i).end(), [](auto &p) { p.second = -p.second; });
     }
     void Tdg() {
         auto t = at(0);
         for (int i=0; i<3; i++) {
             at(i) = at(i+1);
         }
-        std::transform(t.begin(), t.end(), t.begin(),
-                       std::negate<Entry>());
+        std::for_each(t.begin(), t.end(), [](auto &p) { p.second = -p.second; });
         at(3) = t;
     }
     void Sdg() {
         auto a=at(2), b=at(3), c=at(0), d=at(1);
         at(0)=a; at(1)=b;
-        std::transform(c.begin(), c.end(), c.begin(),
-                       std::negate<Entry>());
+        std::for_each(c.begin(), c.end(), [](auto &p) { p.second = -p.second; });
         at(2)=c;
-        std::transform(d.begin(), d.end(), d.begin(),
-                       std::negate<Entry>());
+        std::for_each(d.begin(), d.end(), [](auto &p) { p.second = -p.second; });
         at(3)=d;
     }
 };
@@ -411,21 +407,23 @@ struct VATA::Util::Predicate : std::string {
         Predicate(T qubit) : std::string(static_cast<boost::multiprecision::cpp_int>(qubit).str()) { is_leaf_v = false; }
     bool is_leaf() const { return is_leaf_v; }
     bool is_internal() const { return !is_leaf_v; }
+    boost::multiprecision::cpp_int qubit() const { return is_leaf() ? 0 : boost::multiprecision::cpp_int(*this); }
 };
 
 struct VATA::Util::Constraint : std::string {
     using std::string::string;
-    std::string to_expr(Symbolic s) const {
+    std::vector<std::string> to_exprs(Symbolic s) const {
         assert(s.size() == 5);
-        // TODO: Currently consider only the "a" part, without "b", "c", "d", "e".
-        const auto &v = s.at(0);
-        assert(v.size() <= 27 * 4);
-        std::string expr = v.at(0).str();
-        for (int i=4; i<v.size(); i+=4) {
-            expr = "(+ " + expr + " (* " + v.at(i).str() + " " + static_cast<char>('a'+i/4-1) + "))";
+        std::vector<std::string> result;
+        for (int i=0; i<4; i++) {
+            std::string expr = "0";
+            for (const auto &kv : s.at(i)) {
+                expr = "(+ " + expr + " (* " + kv.second.str() + " " + kv.first + "))";
+            }
+            expr = "(/ " + expr + " " + std::to_string(std::pow(2, static_cast<double>(s.at(4)["1"])/2)) + ")";
+            result.push_back(expr);
         }
-        expr = "(/ " + expr + " " + std::to_string(std::pow(2, static_cast<double>(s.at(4).at(0))/2)) + ")";
-        return expr;
+        return result;
     }
 };
 

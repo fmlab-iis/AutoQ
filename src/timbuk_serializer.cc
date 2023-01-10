@@ -16,6 +16,7 @@ using VATA::Util::Convert;
 using VATA::Util::Automata;
 using VATA::Util::TreeAutomata;
 using VATA::Util::SymbolicAutomata;
+using VATA::Util::PredicateAutomata;
 using VATA::Serialization::TimbukSerializer;
 
 // Standard library headers
@@ -32,8 +33,12 @@ std::string TimbukSerializer::Serialize(const Automata<InitialSymbol>& desc)
 	for (auto itSymb = desc.transitions.cbegin();
 		itSymb != desc.transitions.cend(); ++itSymb)
 	{
-		result += VATA::Util::Convert::ToString(itSymb->first) + ":" +
-			VATA::Util::Convert::ToString(itSymb->second.begin()->first.size()) + " ";
+        if (std::is_convertible_v<InitialSymbol, std::string>)
+            result += "[" + VATA::Util::Convert::ToString(itSymb->first) + "]:" +
+			    VATA::Util::Convert::ToString(itSymb->second.begin()->first.size()) + " ";
+        else
+		    result += VATA::Util::Convert::ToString(itSymb->first) + ":" +
+			    VATA::Util::Convert::ToString(itSymb->second.begin()->first.size()) + " ";
 	}
 
 	result += "\n";
@@ -63,7 +68,10 @@ std::string TimbukSerializer::Serialize(const Automata<InitialSymbol>& desc)
     for (const auto &t : desc.transitions) {
         for (const auto &t2 : t.second) {
             for (const auto &finalSet : t2.second) {
-                result += Convert::ToString(t.first);
+                if (std::is_convertible_v<InitialSymbol, std::string>)
+                    result += "[" + Convert::ToString(t.first) + "]";
+                else
+                    result += Convert::ToString(t.first);
                 if (!(t2.first.empty())) {
                     result += "(";
                     result += std::to_string(t2.first[0]); //desc.stateNum.TranslateBwd(t2.first[0]);
@@ -86,3 +94,4 @@ std::string TimbukSerializer::Serialize(const Automata<InitialSymbol>& desc)
 // https://bytefreaks.net/programming-2/c/c-undefined-reference-to-templated-class-function
 template std::string TimbukSerializer::Serialize(const TreeAutomata& desc);
 template std::string TimbukSerializer::Serialize(const SymbolicAutomata& desc);
+template std::string TimbukSerializer::Serialize(const PredicateAutomata& desc);

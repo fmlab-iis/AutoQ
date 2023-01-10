@@ -463,7 +463,7 @@ BOOST_AUTO_TEST_CASE(Grover_Search)
     std::ifstream t("../../reference_answers/Grover" + std::to_string(n) + ".txt");
     std::stringstream buffer;
     buffer << t.rdbuf();
-    auto ans = VATA::Parsing::TimbukParser::ParseString(buffer.str());
+    auto ans = VATA::Parsing::TimbukParser<VATA::Util::TreeAutomata::InitialSymbol>::ParseString(buffer.str());
     // int n = (aut.qubitNum + 1) / 3;
     // aut.print();
 

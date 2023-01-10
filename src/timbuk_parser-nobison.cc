@@ -19,7 +19,11 @@
 
 using VATA::Parsing::AbstrParser;
 using VATA::Parsing::TimbukParser;
+using VATA::Util::Predicate;
+using VATA::Util::Automata;
 using VATA::Util::TreeAutomata;
+using VATA::Util::SymbolicAutomata;
+using VATA::Util::PredicateAutomata;
 using VATA::Util::Convert;
 
 
@@ -134,13 +138,48 @@ TreeAutomata::Symbol symbol_converter(const std::string& str)
     assert(temp.size() == 1 || temp.size() == 5);
     return temp;
 }
-static TreeAutomata parse_timbuk(const std::string& str)
+
+SymbolicAutomata::Symbol symbol_converter2(const std::string& str)
 {
-	TreeAutomata result;
+	SymbolicAutomata::InitialSymbol temp;
+    if (str[0] == '[') {
+        for (int i=1; i<static_cast<int>(str.length()); i++) {
+            size_t j = str.find(',', i);
+            if (j == std::string::npos) j = str.length()-1;
+            try {
+                auto v = boost::lexical_cast<SymbolicAutomata::InitialSymbol::Entry>(str.substr(i, j-i).c_str());
+                if (v == 0)
+                    temp.push_back(VATA::Util::Symbolic::Map());
+                else
+                    temp.push_back({{"1", v}});
+            } catch (boost::bad_lexical_cast& e) {
+                temp.push_back({{str.substr(i, j-i).c_str(), 1}});
+            }
+            i = j;
+        }
+    } else {
+        try {
+            auto v = boost::lexical_cast<SymbolicAutomata::InitialSymbol::Entry>(str.c_str());
+            if (v == 0)
+                temp.push_back(VATA::Util::Symbolic::Map());
+            else
+                temp.push_back({{"1", v}});
+        } catch (boost::bad_lexical_cast& e) {
+            temp.push_back({{str.c_str(), 1}});
+        }
+    }
+    assert(temp.size() == 1 || temp.size() == 5);
+    return temp;
+}
+
+template <typename InitialSymbol>
+static Automata<InitialSymbol> parse_timbuk(const std::string& str)
+{
+	Automata<InitialSymbol> result;
 
 	bool are_transitions = false;
 	bool aut_parsed = false;
-	bool ops_parsed = false;
+	// bool ops_parsed = false;
 	bool states_parsed = false;
 	bool final_parsed = false;
 
@@ -177,21 +216,21 @@ static TreeAutomata parse_timbuk(const std::string& str)
 			}
 			else if ("Ops" == first_word)
 			{
-				if (ops_parsed)
-				{
-					throw std::runtime_error(std::string(__FUNCTION__) + "Ops already parsed!");
-				}
+				// if (ops_parsed)
+				// {
+				// 	throw std::runtime_error(std::string(__FUNCTION__) + "Ops already parsed!");
+				// }
 
-				ops_parsed = true;
+				// ops_parsed = true;
 
-				while (!str.empty())
-				{
-					std::string label = read_word(str);
-					auto label_num = parse_colonned_token(label);
-                    auto temp = symbol_converter(label_num.first);
+				// while (!str.empty())
+				// {
+				// 	std::string label = read_word(str);
+				// 	auto label_num = parse_colonned_token(label);
+                //     auto temp = symbol_converter<InitialSymbol>(label_num.first);
 
-					// result.symbols[temp] = label_num.second;
-				}
+				// 	// result.symbols[temp] = label_num.second;
+				// }
 			}
 			else if ("States" == first_word)
 			{
@@ -267,10 +306,14 @@ static TreeAutomata parse_timbuk(const std::string& str)
 
 			size_t parens_begin_pos = lhs.find("(");
 			size_t parens_end_pos = lhs.find(")");
+            if (parens_begin_pos < lhs.find("]"))
+                parens_begin_pos = std::string::npos;
+            if (parens_end_pos < lhs.find("]"))
+                parens_end_pos = std::string::npos;
 			if (std::string::npos == parens_begin_pos)
 			{	// no tuple of states
 				if ((std::string::npos != parens_end_pos) ||
-					contains_whitespace(lhs) ||
+					(!std::is_same_v<InitialSymbol, PredicateAutomata::InitialSymbol> && contains_whitespace(lhs)) ||
 					lhs.empty())
 				{
 					throw std::runtime_error(invalid_trans_str);
@@ -278,8 +321,19 @@ static TreeAutomata parse_timbuk(const std::string& str)
 
 				// result.transitions.insert(TreeAutomata::Transition({}, lhs, rhs));
                 /*******************************************************************************************************************/
-                auto temp = symbol_converter(lhs);
-                result.transitions[temp][std::vector<TreeAutomata::State>()].insert(atoi(rhs.c_str())); //.stateNum.TranslateFwd(rhs));
+                if constexpr(std::is_same_v<InitialSymbol, TreeAutomata::InitialSymbol>) {
+                    auto temp = symbol_converter(lhs);
+                    result.transitions[temp][std::vector<TreeAutomata::State>()].insert(atoi(rhs.c_str())); //.stateNum.TranslateFwd(rhs));
+                } else if constexpr(std::is_same_v<InitialSymbol, PredicateAutomata::InitialSymbol>) {
+                    try {
+                        result.transitions[Predicate(boost::multiprecision::cpp_int(lhs.substr(1, lhs.size()-2)))][std::vector<TreeAutomata::State>()].insert(atoi(rhs.c_str())); //.stateNum.TranslateFwd(rhs));
+                    } catch (...) {
+                        result.transitions[Predicate(lhs.substr(1, lhs.size()-2).c_str())][std::vector<TreeAutomata::State>()].insert(atoi(rhs.c_str())); //.stateNum.TranslateFwd(rhs));
+                    }
+                } else {
+                    auto temp = symbol_converter2(lhs);
+                    result.transitions[temp][std::vector<SymbolicAutomata::State>()].insert(atoi(rhs.c_str())); //.stateNum.TranslateFwd(rhs));
+                }
                 /*******************************************************************************************************************/
 			}
 			else
@@ -302,7 +356,7 @@ static TreeAutomata parse_timbuk(const std::string& str)
 					parens_end_pos - parens_begin_pos - 1);
 
 				/********************************************/
-                std::vector<TreeAutomata::State> state_vector;
+                std::vector<typename Automata<InitialSymbol>::State> state_vector;
                 /********************************************/
                 std::vector<std::string> state_tuple = split_delim(str_state_tuple, ',');
 				for (std::string& state : state_tuple)
@@ -327,8 +381,19 @@ static TreeAutomata parse_timbuk(const std::string& str)
 
 				// result.transitions.insert(TreeAutomata::Transition(state_tuple, lab, rhs));
                 /*********************************************************************************************/
-                auto temp = symbol_converter(lab);
-                result.transitions[temp][state_vector].insert(atoi(rhs.c_str())); //result.stateNum.TranslateFwd(rhs));
+                if constexpr(std::is_same_v<InitialSymbol, TreeAutomata::InitialSymbol>) {
+                    auto temp = symbol_converter(lab);
+                    result.transitions[temp][state_vector].insert(atoi(rhs.c_str())); //result.stateNum.TranslateFwd(rhs));
+                } else if constexpr(std::is_same_v<InitialSymbol, PredicateAutomata::InitialSymbol>) {
+                    try {
+                        result.transitions[Predicate(boost::multiprecision::cpp_int(lab.substr(1, lab.size()-2)))][state_vector].insert(atoi(rhs.c_str())); //.stateNum.TranslateFwd(rhs));
+                    } catch (...) {
+                        result.transitions[Predicate(lab.substr(1, lab.size()-2).c_str())][state_vector].insert(atoi(rhs.c_str())); //result.stateNum.TranslateFwd(rhs));
+                    }
+                } else {
+                    auto temp = symbol_converter2(lab);
+                    result.transitions[temp][state_vector].insert(atoi(rhs.c_str())); //result.stateNum.TranslateFwd(rhs));
+                }
                 /*********************************************************************************************/
 			}
 		}
@@ -350,13 +415,14 @@ static TreeAutomata parse_timbuk(const std::string& str)
 	return result;
 }
 
-TreeAutomata TimbukParser::ParseString(const std::string& str)
+template <typename InitialSymbol>
+Automata<InitialSymbol> TimbukParser<InitialSymbol>::ParseString(const std::string& str)
 {
-	TreeAutomata timbukParse;
+	Automata<InitialSymbol> timbukParse;
 
 	try
 	{
-		timbukParse = parse_timbuk(str);
+		timbukParse = parse_timbuk<InitialSymbol>(str);
 	}
 	catch (std::exception& ex)
 	{
@@ -367,10 +433,16 @@ TreeAutomata TimbukParser::ParseString(const std::string& str)
 	return timbukParse;
 }
 
-TreeAutomata TimbukParser::FromFileToAutomata(const char* filepath)
+template <typename InitialSymbol>
+Automata<InitialSymbol> TimbukParser<InitialSymbol>::FromFileToAutomata(const char* filepath)
 {
     std::ifstream t(filepath);
     std::stringstream buffer;
     buffer << t.rdbuf();
     return ParseString(buffer.str());
 }
+
+// https://bytefreaks.net/programming-2/c/c-undefined-reference-to-templated-class-function
+template struct VATA::Parsing::TimbukParser<VATA::Util::Concrete>;
+template struct VATA::Parsing::TimbukParser<VATA::Util::Symbolic>;
+template struct VATA::Parsing::TimbukParser<VATA::Util::Predicate>;

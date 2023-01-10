@@ -289,36 +289,36 @@ namespace { // anonymous namespace
     // VATA_DEBUG("After compact stateNum = " + Convert::ToString(aut.stateNum));
   }
 
-  std::string toString(std::chrono::steady_clock::duration tp)
-  {
-    using namespace std;
-    using namespace std::chrono;
-    nanoseconds ns = duration_cast<nanoseconds>(tp);
-    typedef duration<int, ratio<86400>> days;
-    std::stringstream ss;
-    char fill = ss.fill();
-    ss.fill('0');
-    auto d = duration_cast<days>(ns);
-    ns -= d;
-    auto h = duration_cast<hours>(ns);
-    ns -= h;
-    auto m = duration_cast<minutes>(ns);
-    ns -= m;
-    auto s = duration_cast<seconds>(ns);
-    ns -= s;
-    auto ms = duration_cast<milliseconds>(ns);
-    // auto s = duration<float, std::ratio<1, 1>>(ns);
-    if (d.count() > 0 || h.count() > 0)
-        ss << "TOO_LONG & ";
-    else if (m.count() == 0 && s.count() < 10) {
-        ss << s.count() << '.' << ms.count() / 100 << "s";
-    } else {
-        if (m.count() > 0) ss << m.count() << 'm';
-        ss << s.count() << 's';// << " & ";
-    }
-    ss.fill(fill);
-    return ss.str();
-  }
+//   std::string toString(std::chrono::steady_clock::duration tp)
+//   {
+//     using namespace std;
+//     using namespace std::chrono;
+//     nanoseconds ns = duration_cast<nanoseconds>(tp);
+//     typedef duration<int, ratio<86400>> days;
+//     std::stringstream ss;
+//     char fill = ss.fill();
+//     ss.fill('0');
+//     auto d = duration_cast<days>(ns);
+//     ns -= d;
+//     auto h = duration_cast<hours>(ns);
+//     ns -= h;
+//     auto m = duration_cast<minutes>(ns);
+//     ns -= m;
+//     auto s = duration_cast<seconds>(ns);
+//     ns -= s;
+//     auto ms = duration_cast<milliseconds>(ns);
+//     // auto s = duration<float, std::ratio<1, 1>>(ns);
+//     if (d.count() > 0 || h.count() > 0)
+//         ss << "TOO_LONG & ";
+//     else if (m.count() == 0 && s.count() < 10) {
+//         ss << s.count() << '.' << ms.count() / 100 << "s";
+//     } else {
+//         if (m.count() > 0) ss << m.count() << 'm';
+//         ss << s.count() << 's';// << " & ";
+//     }
+//     ss.fill(fill);
+//     return ss.str();
+//   }
 } // anonymous namespace
 
 
@@ -1650,14 +1650,17 @@ void VATA::Util::Automata<InitialSymbol>::execute(const char *filename) {
 //     return result;
 // }
 bool VATA::Util::check_validity(const Constraint &C, const PredicateAutomata::InitialSymbol &ps, const SymbolicAutomata::InitialSymbol &te) {
-    std::string result;
-    std::regex e("\\$"); // example: z3 <(echo '(declare-fun x () Int)(declare-fun z () Int)(assert (= z (+ x 3)))(check-sat)')
-    std::string smt_input = "bash -c \"z3 <(echo '" + C + "(assert (not " + std::regex_replace(ps, e, C.to_expr(te)) + "))(check-sat)')\"";
-    std::cout << smt_input << "\n";
-    ShellCmd(smt_input, result);
-    std::cout << result;
-    if (result == "unsat\n") return true;
-    else if (result == "sat\n") return false;
+    std::string str(ps);
+    auto expr = C.to_exprs(te);
+    std::vector<std::regex> reg{std::regex("\\$a"), std::regex("\\$b"), std::regex("\\$c"), std::regex("\\$d")};
+    for (int i=0; i<4; i++) // example: z3 <(echo '(declare-fun x () Int)(declare-fun z () Int)(assert (= z (+ x 3)))(check-sat)')
+        str = std::regex_replace(str, reg.at(i), expr.at(i));
+    std::string smt_input = "bash -c \"z3 <(echo '" + C + "(assert (not " + str + "))(check-sat)')\"";
+    // std::cout << smt_input << "\n";
+    ShellCmd(smt_input, str);
+    // std::cout << str;
+    if (str == "unsat\n") return true;
+    else if (str == "sat\n") return false;
     else throw std::runtime_error("z3 error");
 }
 bool VATA::Util::is_spec_satisfied(const Constraint &C, const SymbolicAutomata &Ae, const PredicateAutomata &As) {
@@ -1698,7 +1701,7 @@ bool VATA::Util::is_spec_satisfied(const Constraint &C, const SymbolicAutomata &
                         do {
                             // Assume Ae and As have the same internal symbols!
                             StateSet Hs;
-                            for (const auto &in_out : As.transitions.at({VATA::Util::Predicate(alpha.initial_symbol().at(0).at(0)), {}})) {
+                            for (const auto &in_out : As.transitions.at({VATA::Util::Predicate(alpha.initial_symbol().at(0).at("1")), {}})) {
                                 assert(in_out.first.size() == 2);
                                 if (qeUs1.second.find(in_out.first[0]) != qeUs1.second.end()
                                     && qeUs2.second.find(in_out.first[1]) != qeUs2.second.end()) {

@@ -22,7 +22,8 @@ namespace VATA
 {
 	namespace Parsing
 	{
-		class TimbukParser;
+		template <typename InitialSymbol>
+        class TimbukParser;
 	}
 }
 
@@ -32,6 +33,7 @@ namespace VATA
  *
  * This class is a parser for automata in the Timbuk format.
  */
+template <typename InitialSymbol>
 class VATA::Parsing::TimbukParser //:
 	// public VATA::Parsing::AbstrParser
 {
@@ -40,8 +42,8 @@ public:   // methods
 	/**
 	 * @copydoc  VATA::Parsing::AbstrParser::ParseString
 	 */
-	static VATA::Util::TreeAutomata ParseString(const std::string& str);
-    static VATA::Util::TreeAutomata FromFileToAutomata(const char* filepath);
+	static VATA::Util::Automata<InitialSymbol> ParseString(const std::string& str);
+    static VATA::Util::Automata<InitialSymbol> FromFileToAutomata(const char* filepath);
 
 	/**
 	 * @copydoc  VATA::Parsing::AbstrParser::~AbstrParser
