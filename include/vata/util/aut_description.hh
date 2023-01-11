@@ -208,6 +208,8 @@ public:
     static bool check_equal(const std::string& lhsPath, const std::string& rhsPath);
     static bool check_equal_aut(Automata lhs, Automata rhs);
     static bool check_inclusion(const std::string& lhsPath, const std::string& rhsPath);
+
+    void execute(const char *filename);
 };
 
 // Concrete initial symbol

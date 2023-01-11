@@ -1543,6 +1543,100 @@ int VATA::Util::Automata<InitialSymbol>::transition_size() {
     return answer;
 }
 
+template <typename InitialSymbol>
+void VATA::Util::Automata<InitialSymbol>::execute(const char *filename) {
+    std::ifstream qasm(filename);
+    const std::regex digit("\\d+");
+    const std::regex_iterator<std::string::iterator> END;
+    if (!qasm.is_open()) throw std::runtime_error("The circuit cannot be opened!");
+    std::string line;
+    while (getline(qasm, line)) {
+        if (line.find("OPENQASM") == 0 || line.find("include ") == 0|| line.find("//") == 0) continue;
+        if (line.find("qreg ") == 0) {
+            std::regex_iterator<std::string::iterator> it(line.begin(), line.end(), digit);
+            while (it != END) {
+                if (atoi(it->str().c_str()) != qubitNum)
+                    throw std::exception();
+                ++it;
+            }
+        } else if (line.find("x ") == 0) {
+            std::smatch match_pieces;
+            if (std::regex_search(line, match_pieces, digit))
+                X(1 + atoi(match_pieces[0].str().c_str()));
+        } else if (line.find("y ") == 0) {
+            std::smatch match_pieces;
+            if (std::regex_search(line, match_pieces, digit))
+                Y(1 + atoi(match_pieces[0].str().c_str()));
+        } else if (line.find("z ") == 0) {
+            std::smatch match_pieces;
+            if (std::regex_search(line, match_pieces, digit))
+                Z(1 + atoi(match_pieces[0].str().c_str()));
+        } else if (line.find("h ") == 0) {
+            std::smatch match_pieces;
+            if (std::regex_search(line, match_pieces, digit))
+                H(1 + atoi(match_pieces[0].str().c_str()));
+        } else if (line.find("s ") == 0) {
+            std::smatch match_pieces;
+            if (std::regex_search(line, match_pieces, digit))
+                S(1 + atoi(match_pieces[0].str().c_str()));
+        } else if (line.find("sdg ") == 0) {
+            std::smatch match_pieces;
+            if (std::regex_search(line, match_pieces, digit))
+                Sdg(1 + atoi(match_pieces[0].str().c_str()));
+        } else if (line.find("t ") == 0) {
+            std::smatch match_pieces;
+            if (std::regex_search(line, match_pieces, digit))
+                T(1 + atoi(match_pieces[0].str().c_str()));
+        } else if (line.find("tdg ") == 0) {
+            std::smatch match_pieces;
+            if (std::regex_search(line, match_pieces, digit))
+                Tdg(1 + atoi(match_pieces[0].str().c_str()));
+        } else if (line.find("rx(pi/2) ") == 0 || line.find("rx(pi / 2)") == 0) {
+            std::smatch match_pieces;
+            if (std::regex_search(line, match_pieces, digit))
+                Rx(1 + atoi(match_pieces[0].str().c_str()));
+        } else if (line.find("ry(pi/2) ") == 0 || line.find("ry(pi / 2)") == 0) {
+            std::smatch match_pieces;
+            if (std::regex_search(line, match_pieces, digit))
+                Ry(1 + atoi(match_pieces[0].str().c_str()));
+        } else if (line.find("cx ") == 0 || line.find("CX ") == 0 ) {
+            std::regex_iterator<std::string::iterator> it(line.begin(), line.end(), digit);
+            std::vector<int> pos;
+            while (it != END) {
+                pos.push_back(1 + atoi(it->str().c_str()));
+                ++it;
+            }
+            CNOT(pos[0], pos[1]);
+        } else if (line.find("cz ") == 0) {
+            std::regex_iterator<std::string::iterator> it(line.begin(), line.end(), digit);
+            std::vector<int> pos;
+            while (it != END) {
+                pos.push_back(1 + atoi(it->str().c_str()));
+                ++it;
+            }
+            CZ(pos[0], pos[1]);
+        } else if (line.find("ccx ") == 0) {
+            std::regex_iterator<std::string::iterator> it(line.begin(), line.end(), digit);
+            std::vector<int> pos;
+            while (it != END) {
+                pos.push_back(1 + atoi(it->str().c_str()));
+                ++it;
+            }
+            Toffoli(pos[0], pos[1], pos[2]);
+        } else if (line.find("swap ") == 0) {
+            std::regex_iterator<std::string::iterator> it(line.begin(), line.end(), digit);
+            std::vector<int> pos;
+            while (it != END) {
+                pos.push_back(1 + atoi(it->str().c_str()));
+                ++it;
+            }
+            swap(pos[0], pos[1]);
+        } else if (line.length() > 0)
+            throw std::runtime_error("Unsupported gate: " + line);
+    }
+    qasm.close();
+}
+
 // std::string exec(const char* cmd) {
 //     std::array<char, 128> buffer;
 //     std::string result;
