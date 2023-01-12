@@ -1,0 +1,7 @@
+Automaton Zero
+States 0 1 2
+Final States 0 
+Transitions
+[1](1, 2) -> 0
+[(and (= $a (/ a (^ 2 2))) (= $b (/ b (^ 2 2))) (= $c (/ c (^ 2 2))) (= $d (/ d (^ 2 2))))] -> 1
+[(and (= $a (/ e (^ 2 2))) (= $b (/ f (^ 2 2))) (= $c (/ g (^ 2 2))) (= $d (/ h (^ 2 2))))] -> 2
