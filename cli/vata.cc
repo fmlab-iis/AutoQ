@@ -28,7 +28,22 @@ void produce_MOGrover_post();
 void produce_MCToffoli_pre_and_post();
 
 int main(int argc, char **argv) {
-    VATA::Util::TreeAutomata aut = VATA::Parsing::TimbukParser<VATA::Util::TreeAutomata::InitialSymbol>::FromFileToAutomata(argv[1]);
+#if 1
+    VATA::Util::SymbolicAutomata aut = VATA::Parsing::TimbukParser<VATA::Util::Symbolic>::FromFileToAutomata(argv[1]);
+    aut.execute(argv[2]);
+    aut.fraction_simplification();
+
+    VATA::Util::PredicateAutomata spec = VATA::Parsing::TimbukParser<VATA::Util::Predicate>::FromFileToAutomata(argv[3]);
+
+    std::ifstream t(argv[4]);
+    std::stringstream buffer;
+    buffer << t.rdbuf();
+    VATA::Util::Constraint C(buffer.str().c_str());
+    std::cout << VATA::Util::is_spec_satisfied(C, aut, spec) << "\n";
+    return 0;
+
+#else
+    VATA::Util::TreeAutomata aut = VATA::Parsing::TimbukParser::FromFileToAutomata(argv[1]);
     int stateBefore = aut.stateNum, transitionBefore = aut.transition_size();
     auto startSim = chrono::steady_clock::now();
     aut.execute(argv[2]);
@@ -57,6 +72,7 @@ int main(int argc, char **argv) {
         << " & " << transitionBefore << " & " << aut.transition_size()
         << " & " << toString(durationSim) << " & " << toString(durationVer);
     return 0;
+#endif
 }
 
 int rand_gen() {
