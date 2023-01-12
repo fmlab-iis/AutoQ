@@ -1,0 +1,57 @@
+OPENQASM 2.0;
+include "qelib1.inc";
+qreg qubits[6];
+x qubits[5];
+h qubits[0];
+h qubits[1];
+h qubits[3];
+
+x qubits[3];
+x qubits[0];
+ccx qubits[0], qubits[1], qubits[2];
+cz qubits[2], qubits[3];
+ccx qubits[0], qubits[1], qubits[2];
+x qubits[3];
+x qubits[0];
+
+h qubits[0];
+h qubits[1];
+h qubits[3];
+x qubits[0];
+x qubits[1];
+x qubits[3];
+ccx qubits[0], qubits[1], qubits[2];
+cz qubits[2], qubits[3];
+ccx qubits[0], qubits[1], qubits[2];
+x qubits[0];
+x qubits[1];
+x qubits[3];
+h qubits[0];
+h qubits[1];
+h qubits[3];
+z qubits[5];
+
+x qubits[3];
+x qubits[0];
+ccx qubits[0], qubits[1], qubits[2];
+cz qubits[2], qubits[3];
+ccx qubits[0], qubits[1], qubits[2];
+x qubits[3];
+x qubits[0];
+
+h qubits[0];
+h qubits[1];
+h qubits[3];
+x qubits[0];
+x qubits[1];
+x qubits[3];
+ccx qubits[0], qubits[1], qubits[2];
+cz qubits[2], qubits[3];
+ccx qubits[0], qubits[1], qubits[2];
+x qubits[0];
+x qubits[1];
+x qubits[3];
+h qubits[0];
+h qubits[1];
+h qubits[3];
+z qubits[5];
