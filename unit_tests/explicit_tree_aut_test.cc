@@ -671,3 +671,25 @@ BOOST_AUTO_TEST_CASE(Grover_Search_only_one_oracle)
     }
     /************************************************************************************/
 }
+
+#include <filesystem>
+namespace fs = std::filesystem;
+BOOST_AUTO_TEST_CASE(Symbolic_into_Predicates)
+{
+    std::string path = "../../benchmarks/SymbolicGrover/";
+    for (const auto & entry : fs::directory_iterator(path)) {
+        // std::cout << entry.path() << std::endl;
+        VATA::Util::SymbolicAutomata aut = VATA::Parsing::TimbukParser<VATA::Util::Symbolic>::FromFileToAutomata((std::string(entry.path()) + std::string("/pre.aut")).c_str());
+        aut.execute((std::string(entry.path()) + std::string("/circuit.qasm")).c_str());
+        aut.fraction_simplification();
+
+        VATA::Util::PredicateAutomata spec = VATA::Parsing::TimbukParser<VATA::Util::Predicate>::FromFileToAutomata((std::string(entry.path()) + std::string("/spec.aut")).c_str());
+
+        std::ifstream t(std::string(entry.path()) + std::string("/constraint.txt"));
+        std::stringstream buffer;
+        buffer << t.rdbuf();
+        VATA::Util::Constraint C(buffer.str().c_str());
+
+        BOOST_REQUIRE_MESSAGE(VATA::Util::is_spec_satisfied(C, aut, spec), entry.path());
+    }
+}
