@@ -12,6 +12,7 @@
 #define _VATA_AUT_DESCRIPTION_HH_
 
 // VATA headers
+#include <regex>
 #include <chrono>
 #include <algorithm>
 #include <vata/vata.hh>
@@ -410,9 +411,11 @@ struct VATA::Util::Predicate : std::string {
     boost::multiprecision::cpp_int qubit() const { return is_leaf() ? 0 : boost::multiprecision::cpp_int(*this); }
 };
 
-struct VATA::Util::Constraint : std::string {
-    using std::string::string;
-    std::vector<std::string> to_exprs(Symbolic s) const {
+struct VATA::Util::Constraint {
+    std::string content;
+    Constraint(const std::string &s) : content(s) {}
+    operator std::string() const { return content; }
+    std::vector<std::string> to_exprs(Symbolic s) {
         assert(s.size() == 5);
         std::vector<std::string> result;
         for (int i=0; i<4; i++) {
@@ -420,9 +423,11 @@ struct VATA::Util::Constraint : std::string {
             for (const auto &kv : s.at(i)) {
                 expr = "(+ " + expr + " (* " + kv.second.str() + " " + kv.first + "))";
             }
-            expr = "(/ " + expr + " " + std::to_string(std::pow(2, static_cast<double>(s.at(4)["1"])/2)) + ")";
+            expr = "(/ " + expr + " (pow_sqrt2_k " + s.at(4)["1"].str() + "))";
             result.push_back(expr);
+            content.append(std::regex_replace("(assert (= (^ 2 $) (* (pow_sqrt2_k $) (pow_sqrt2_k $))))(assert (>= (pow_sqrt2_k $) 0))", std::regex("\\$"), s.at(4)["1"].str()));
         }
+        content = "(declare-fun pow_sqrt2_k (Int) Real)" + content;
         return result;
     }
 };
@@ -430,7 +435,7 @@ struct VATA::Util::Constraint : std::string {
 namespace VATA {
 	namespace Util {
         bool is_spec_satisfied(const Constraint &C, const SymbolicAutomata &Ae, const PredicateAutomata &As);
-        bool check_validity(const Constraint &C, const PredicateAutomata::InitialSymbol &ps, const SymbolicAutomata::InitialSymbol &te);
+        bool check_validity(Constraint C, const PredicateAutomata::InitialSymbol &ps, const SymbolicAutomata::InitialSymbol &te);
     }
 }
 

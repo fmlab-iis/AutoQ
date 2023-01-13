@@ -1649,13 +1649,13 @@ void VATA::Util::Automata<InitialSymbol>::execute(const char *filename) {
 //     }
 //     return result;
 // }
-bool VATA::Util::check_validity(const Constraint &C, const PredicateAutomata::InitialSymbol &ps, const SymbolicAutomata::InitialSymbol &te) {
+bool VATA::Util::check_validity(Constraint C, const PredicateAutomata::InitialSymbol &ps, const SymbolicAutomata::InitialSymbol &te) {
     std::string str(ps);
     auto expr = C.to_exprs(te);
     std::vector<std::regex> reg{std::regex("\\$a"), std::regex("\\$b"), std::regex("\\$c"), std::regex("\\$d")};
     for (int i=0; i<4; i++) // example: z3 <(echo '(declare-fun x () Int)(declare-fun z () Int)(assert (= z (+ x 3)))(check-sat)')
         str = std::regex_replace(str, reg.at(i), expr.at(i));
-    std::string smt_input = "bash -c \"z3 <(echo '" + C + "(assert (not " + str + "))(check-sat)')\"";
+    std::string smt_input = "bash -c \"z3 <(echo '" + std::string(C) + "(assert (not " + str + "))(check-sat)')\"";
     // std::cout << smt_input << "\n";
     ShellCmd(smt_input, str);
     // std::cout << str;

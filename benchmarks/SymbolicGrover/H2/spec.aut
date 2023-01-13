@@ -3,5 +3,5 @@ States 0 1 2
 Final States 0 
 Transitions
 [1](1, 2) -> 0
-[(and (= $a (/ a (^ 2 2))) (= $b (/ b (^ 2 2))) (= $c (/ c (^ 2 2))) (= $d (/ d (^ 2 2))))] -> 1
-[(and (= $a (/ e (^ 2 2))) (= $b (/ f (^ 2 2))) (= $c (/ g (^ 2 2))) (= $d (/ h (^ 2 2))))] -> 2
+[(and (= (* $a (pow_sqrt2_k 3)) a) (= (* $b (pow_sqrt2_k 3)) b) (= (* $c (pow_sqrt2_k 3)) c) (= (* $d (pow_sqrt2_k 3)) d))] -> 1
+[(and (= (* $a (pow_sqrt2_k 3)) e) (= (* $b (pow_sqrt2_k 3)) f) (= (* $c (pow_sqrt2_k 3)) g) (= (* $d (pow_sqrt2_k 3)) h))] -> 2
