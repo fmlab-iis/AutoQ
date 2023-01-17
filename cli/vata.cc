@@ -28,51 +28,42 @@ void produce_MOGrover_post();
 void produce_MCToffoli_pre_and_post();
 
 int main(int argc, char **argv) {
-#if 1
-    VATA::Util::SymbolicAutomata aut = VATA::Parsing::TimbukParser<VATA::Util::Symbolic>::FromFileToAutomata(argv[1]);
-    aut.execute(argv[2]);
-    aut.fraction_simplification();
-
-    VATA::Util::PredicateAutomata spec = VATA::Parsing::TimbukParser<VATA::Util::Predicate>::FromFileToAutomata(argv[3]);
-
-    std::ifstream t(argv[4]);
-    std::stringstream buffer;
-    buffer << t.rdbuf();
-    VATA::Util::Constraint C(buffer.str().c_str());
-    std::cout << VATA::Util::is_spec_satisfied(C, aut, spec) << "\n";
-    return 0;
-
-#else
-    VATA::Util::TreeAutomata aut = VATA::Parsing::TimbukParser::FromFileToAutomata(argv[1]);
-    int stateBefore = aut.stateNum, transitionBefore = aut.transition_size();
-    auto startSim = chrono::steady_clock::now();
-    aut.execute(argv[2]);
-    auto durationSim = chrono::steady_clock::now() - startSim;
-    
-    auto durationVer = durationSim; // just borrow its type!
-    std::ofstream fileLhs(argv[3]);
-    aut.fraction_simplification();
-    fileLhs << VATA::Serialization::TimbukSerializer::Serialize(aut);
-    fileLhs.close(); // Notice that we assume fractions in argv[4] are already simplified.
-    auto startVer = chrono::steady_clock::now();
-    if (argc >= 5) {
-        if (!VATA::Util::TreeAutomata::check_inclusion(argv[3], argv[4])) {
-            // throw std::runtime_error("Does not satisfy the postcondition!");
+    if (argc < 5) {
+        VATA::Util::TreeAutomata aut = VATA::Parsing::TimbukParser<VATA::Util::Concrete>::FromFileToAutomata(argv[1]);
+        int stateBefore = aut.stateNum, transitionBefore = aut.transition_size();
+        auto startSim = chrono::steady_clock::now();
+        aut.execute(argv[2]);
+        auto durationSim = chrono::steady_clock::now() - startSim;
+        auto durationVer = durationSim; // just borrow its type!
+        aut.fraction_simplification();
+        auto startVer = chrono::steady_clock::now();
+        if (argc >= 4) {
+            if (!VATA::Util::TreeAutomata::check_inclusion(aut, argv[3])) {
+                // throw std::runtime_error("Does not satisfy the postcondition!");
+                std::cout << VATA::Util::Convert::ToString(aut.qubitNum) << " & " << VATA::Util::TreeAutomata::gateCount
+                << " & " << stateBefore << " & " << aut.stateNum
+                << " & " << transitionBefore << " & " << aut.transition_size()
+                << " & " << toString(durationSim) << " & V";
+            }
+        } else {
+            durationVer = chrono::steady_clock::now() - startVer;
             std::cout << VATA::Util::Convert::ToString(aut.qubitNum) << " & " << VATA::Util::TreeAutomata::gateCount
-            << " & " << stateBefore << " & " << aut.stateNum
-            << " & " << transitionBefore << " & " << aut.transition_size()
-            << " & " << toString(durationSim) << " & V";
-            return 0;
+                << " & " << stateBefore << " & " << aut.stateNum
+                << " & " << transitionBefore << " & " << aut.transition_size()
+                << " & " << toString(durationSim) << " & " << toString(durationVer);
         }
+    } else { // argc >= 5
+        VATA::Util::SymbolicAutomata aut = VATA::Parsing::TimbukParser<VATA::Util::Symbolic>::FromFileToAutomata(argv[1]);
+        aut.execute(argv[2]);
+        aut.fraction_simplification();
+        VATA::Util::PredicateAutomata spec = VATA::Parsing::TimbukParser<VATA::Util::Predicate>::FromFileToAutomata(argv[3]);
+        std::ifstream t(argv[4]);
+        std::stringstream buffer;
+        buffer << t.rdbuf();
+        VATA::Util::Constraint C(buffer.str().c_str());
+        std::cout << VATA::Util::is_spec_satisfied(C, aut, spec) << "\n";
     }
-    durationVer = chrono::steady_clock::now() - startVer;
-    
-    std::cout << VATA::Util::Convert::ToString(aut.qubitNum) << " & " << VATA::Util::TreeAutomata::gateCount
-        << " & " << stateBefore << " & " << aut.stateNum
-        << " & " << transitionBefore << " & " << aut.transition_size()
-        << " & " << toString(durationSim) << " & " << toString(durationVer);
     return 0;
-#endif
 }
 
 int rand_gen() {
