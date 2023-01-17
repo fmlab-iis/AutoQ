@@ -12,6 +12,7 @@
 
 using namespace VATA;
 using namespace VATA::Util;
+using VATA::Serialization::TimbukSerializer;
 
 // using State                   = TreeAutomata::State;
 // using StateSet                = TreeAutomata::StateSet;
@@ -1258,9 +1259,33 @@ void VATA::Util::Automata<InitialSymbol>::fraction_simplification() {
     return (aux == "1\n");
   }
 
+  template <typename InitialSymbol>
+  bool VATA::Util::Automata<InitialSymbol>::check_inclusion(const Automata<InitialSymbol>& lhsPath, const std::string& rhsPath)
+  {
+    std::string aux;
+    VATA::Util::ShellCmd(get_vata_path() + " incl2 '" + TimbukSerializer::Serialize(lhsPath) + "' " + rhsPath, aux);
+    return (aux == "1\n");
+  }
+
+  template <typename InitialSymbol>
+  bool VATA::Util::Automata<InitialSymbol>::check_inclusion(const std::string& lhsPath, const Automata<InitialSymbol>& rhsPath)
+  {
+    std::string aux;
+    VATA::Util::ShellCmd(get_vata_path() + " incl3 " + lhsPath + " '" + TimbukSerializer::Serialize(rhsPath) + "'", aux);
+    return (aux == "1\n");
+  }
+
+  template <typename InitialSymbol>
+  bool VATA::Util::Automata<InitialSymbol>::check_inclusion(const Automata<InitialSymbol>& lhsPath, const Automata<InitialSymbol>& rhsPath)
+  {
+    std::string aux;
+    VATA::Util::ShellCmd(get_vata_path() + " incl4 '" + TimbukSerializer::Serialize(lhsPath) + "' '" + TimbukSerializer::Serialize(rhsPath) + "'", aux);
+    return (aux == "1\n");
+  }
+
   /** checks language equivalence of two TAs */
   template <typename InitialSymbol>
-  bool VATA::Util::Automata<InitialSymbol>::check_equal(const std::string& lhsPath, const std::string& rhsPath)
+  bool VATA::Util::Automata<InitialSymbol>::check_equal(const Automata<InitialSymbol>& lhsPath, const Automata<InitialSymbol>& rhsPath)
   {
     return check_inclusion(lhsPath, rhsPath) && check_inclusion(rhsPath, lhsPath);
   }
@@ -1270,17 +1295,9 @@ void VATA::Util::Automata<InitialSymbol>::fraction_simplification() {
       VATA::Util::TreeAutomata lhs,
       VATA::Util::TreeAutomata rhs)
   {
-	std::ofstream fileLhs("/tmp/automata1.txt");
     lhs.fraction_simplification();
-	fileLhs << VATA::Serialization::TimbukSerializer::Serialize(lhs);
-	fileLhs.close();
-
-	std::ofstream fileRhs("/tmp/automata2.txt");
     rhs.fraction_simplification();
-	fileRhs << VATA::Serialization::TimbukSerializer::Serialize(rhs);
-	fileRhs.close();
-
-	return check_equal("/tmp/automata1.txt", "/tmp/automata2.txt");
+	return check_equal(lhs, rhs);
   }
 // } // anonymous namespace
 /******************************************************/
