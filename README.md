@@ -1,7 +1,8 @@
 # AutoQ: An automata-based C++ tool for quantum circuit verification
 <!-- [![Build Status](https://travis-ci.org/ondrik/libvata.svg?branch=master)](https://travis-ci.org/ondrik/libvata)-->
 
-## About
+---
+
 AutoQ is a (highly optimized?) command-line utility written in C++ for Hoare-style quantum circuit verification based on non-deterministic finite tree automata. The following figure is an example illustrating how we use a tree to represent a quantum state, so an automaton can, of course, be used to encode a set of quantum states. The symbol in each internal transition should be a positive integer $n$ indicating the $n$-th qubit, and the symbol in each leaf transition is a 5-tuple of integers describing the probability amplitude of some computational basis state.
 
 <放 paper 的圖>
@@ -9,6 +10,8 @@ AutoQ is a (highly optimized?) command-line utility written in C++ for Hoare-sty
 As for Hoare-style verification, there are three main components: `pre.aut`, `circuit.qasm` and `post.aut`. The first file `pre.aut` describes an automaton that encodes a set $P$ of quantum states. The second file `circuit.qasm` describes a quantum circuit $C$ in QASM format. Notice that this format is not able to initialize the initial quantum state. The last file `post.aut` describes an automaton that encodes another set $Q$ of quantum states. Finally this tool tries to check whether for each state $s$ in $P$, the output state $C(s)$ lies in the set $Q$. If the result is true, we say the specified property is correct.
 
 This tool can also be generalized to support "symbolic" quantum states. In this case, we simply replace some entries of leaf transitions in `pre.aut` with fresh variables. File `constraint.txt` is responsible for imposing constraints on all fresh variables used in `pre.aut`. Let the output automaton from input automaton `pre.aut` through the quantum circuit be `post.aut`. Then file `spec.aut`, which is used to verify `post.aut`, has predicates as symbols in leaf transitions. Each predicate has five variables $\\\$a$, $\\\$b$, $\\\$c$, $\\\$d$ and $\\\$k$. When the predicate's truth value is evaluated for some leaf transition in `post.aut`, these variables will be replaced in order with the computed expressions in the 5-tuple of that leaf transition. We say the predicate is "true" for some leaf transition if it is always true under the constraint specified in `constraint.txt`; otherwise the predicate is "false." Similarly, this tool tries to check whether for each symbolic state $s$ in $P$, the output state $C(s)$ matches some tree in $Q$ such that all predicates in the tree are always true under `constraint.txt`. If the result is true, we say the specified property is correct.
+
+---
 
 ## Prerequisites
 <!-- In order to compile the library and the command-line interface to the library
@@ -22,6 +25,8 @@ the following packages need to be installed on your system:
   libboost-system-dev (>= 1.54.0)
   libboost-test-dev (>= 1.54.0)
 ``` -->
+
+---
 
 ## Compiling
 For compiling the source code of the library and the command-line
@@ -49,30 +54,39 @@ It is recommended to run
 from the repository's root directory after compiling the code to run several
 unit tests and check that the compiled code passes them all.
 
+---
+
 ## Command-Line Interface
 The compiled command-line interface is located in
 
 ```
-  build/cli/vata
+$ ./build/cli/vata
 ```
+
+There are three modes: concrete probability amplitudes without specification, concrete probability amplitudes with specification, and symbolic probability amplitudes with specification. The program switches to one of this mode according to `argc`, the number of arguments.
+
+1. Concrete probability amplitudes without specification.
+```
+$ ./build/cli/vata benchmarks/Grover/02/pre.aut benchmarks/Grover/02/circuit.qasm
+```
+
+2. Concrete probability amplitudes with specification.
+```
+$ VATA_PATH=/home/alan23273850/libvata/build/cli/vata ./build/cli/vata benchmarks/Grover/02/pre.aut benchmarks/Grover/02/circuit.qasm benchmarks/Grover/02/post.aut
+```
+Notice that in this case environment variable `VATA_PATH` locating the binary built from [this commit](https://github.com/alan23273850/libvata/commit/22ce24661a4c4b1e684961330aa54288f7eda7ca) should be provided in order for AutoQ to run the inclusion checking algorithm.
+
+3. Symbolic probability amplitudes with specification.
+```
+$ ./build/cli/vata benchmarks/SymbolicGrover/03/pre.aut benchmarks/SymbolicGrover/03/circuit.qasm benchmarks/SymbolicGrover/03/spec.aut benchmarks/SymbolicGrover/03/constraint.txt
+```
+In this case `VATA_PATH` is no longer required since the inclusion checking algorithm for symbolic automata is different from that for concrete automata.
+
+---
 
 ## Examples
 
-<!-- ### Loading an automaton
-In order to load and dump (to, e.g., check that the format of an
-input file is correct) automaton in file 'aut_file', run
-
-```
-  $ ./vata load aut_file
-```
-
-### Union of automata
-To create an automaton that accepts a language which is the union of languages
-of automata from files 'aut_file1' and 'aut_file2', run
-
-```
-  $ ./vata union 'aut_file1' 'aut_file2'
-``` -->
+---
 
 ## Input Format
 <!-- AutoQ so far supports only the Timbuk format of tree automata. The format is
@@ -114,11 +128,15 @@ c(q1, q1) -> q2
 c(q2, q2) -> q2
 ``` -->
 
+---
+
 ## Acknowledgement
 <!-- This work was supported by the Czech Science Foundation (within projects
 P103/10/0306 and 102/09/H042), the Czech Ministry of Education (projects COST
 OC10009 and MSM 0021630528), and the EU/Czech IT4Innovations Centre of
 Excellence project CZ.1.05/1.1.00/02.0070. -->
+
+---
 
 ## Contact
 <!-- If you have further questions, do not hesitate to contact the authors:
