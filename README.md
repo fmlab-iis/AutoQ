@@ -86,6 +86,16 @@ In this case `VATA_PATH` is no longer required since the inclusion checking algo
 
 ## Examples
 
+1. TODO: Concrete probability amplitude.
+
+2. One iteration of 2-qubit Grover's algorithm increases the probability amplitude of
+the solution state, decreases the probability amplitude of other computational basis
+states, and maintains the bottom ancilla qubit.
+
+The [initial automaton](https://github.com/alan23273850/AutoQ/blob/main/benchmarks/SymbolicGrover/02/pre.aut) contains exactly one quantum state whose marked amplitude is $a_H$ and unmarked amplitudes are $a_L$. The result automaton after we run the [circuit](https://github.com/alan23273850/AutoQ/blob/main/benchmarks/SymbolicGrover/02/circuit.qasm) should also contain exactly one quantum state whose marked amplitude is $a_H' = (3a_L+a_H)/2$ and unmarked amplitudes are $a_L' = (a_L-a_H)/2$. The prespecified [constraint](https://github.com/alan23273850/AutoQ/blob/main/benchmarks/SymbolicGrover/02/constraint.txt) guarantees that $a_H' > a_H$ and $a_L' < a_L$. Note that the ancilla qubit remains the same. So the [specification](https://github.com/alan23273850/AutoQ/blob/main/benchmarks/SymbolicGrover/02/spec.aut) is responsible for verifying this property.
+
+<用套件補印 automata 和 circuit 的圖>
+
 ---
 
 ## Input Format
