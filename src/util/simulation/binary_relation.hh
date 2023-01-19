@@ -1,5 +1,5 @@
 /*****************************************************************************
- *  VATA Tree Automata Library
+ *  AUTOQ Tree Automata Library
  *
  *  Copyright (c) 2011  Jiri Simacek <isimacek@fit.vutbr.cz>
  *
@@ -8,13 +8,13 @@
  *
  *****************************************************************************/
 
-#ifndef _VATA_BINARY_RELATION_HH_
-#define _VATA_BINARY_RELATION_HH_
+#ifndef _AUTOQ_BINARY_RELATION_HH_
+#define _AUTOQ_BINARY_RELATION_HH_
 
-// VATA headers
-#include <vata/vata.hh>
-#include <vata/util/convert.hh>
-#include <vata/util/two_way_dict.hh>
+// AUTOQ headers
+#include <autoq/autoq.hh>
+#include <autoq/util/convert.hh>
+#include <autoq/util/two_way_dict.hh>
 #include "transl_weak.hh"
 
 // Standard library headers
@@ -22,7 +22,7 @@
 #include <algorithm>
 #include <unordered_map>
 
-namespace VATA
+namespace AUTOQ
 {
 	namespace Util
 	{
@@ -40,7 +40,7 @@ namespace VATA
  *
  * A binary relation addressed from indices from 0 to @p size_ - 1
  */
-class VATA::Util::BinaryRelation
+class AUTOQ::Util::BinaryRelation
 {
 	std::vector<bool> data_;
 	size_t rowSize_;
@@ -467,7 +467,7 @@ public:
 	}
 };
 
-class VATA::Util::Identity
+class AUTOQ::Util::Identity
 {
 private:  // data members
 
@@ -607,15 +607,15 @@ public:
  * @brief  A binary relation with discontinuous indexing
  */
 template <class T>
-class VATA::Util::DiscontBinaryRelation
+class AUTOQ::Util::DiscontBinaryRelation
 {
 public:   // data types
 
 	using IndexType    = std::unordered_map<size_t, std::vector<size_t>>;
 	// using DictType     = std::unordered_map<size_t, size_t>;
-	using DictType     = VATA::Util::TwoWayDict<T, size_t,
+	using DictType     = AUTOQ::Util::TwoWayDict<T, size_t,
 		std::unordered_map<T, size_t>, std::unordered_map<size_t, T>>;
-	using TranslType   = VATA::Util::TranslatorWeak<DictType>;
+	using TranslType   = AUTOQ::Util::TranslatorWeak<DictType>;
 
 private:  // data members
 

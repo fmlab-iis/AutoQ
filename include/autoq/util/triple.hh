@@ -1,5 +1,5 @@
 /*****************************************************************************
- *  VATA Tree Automata Library
+ *  AUTOQ Tree Automata Library
  *
  *  Copyright (c) 2011  Ondra Lengal <ilengal@fit.vutbr.cz>
  *
@@ -8,18 +8,18 @@
  *
  *****************************************************************************/
 
-#ifndef _VATA_TRIPLE_HH_
-#define _VATA_TRIPLE_HH_
+#ifndef _AUTOQ_TRIPLE_HH_
+#define _AUTOQ_TRIPLE_HH_
 
-// VATA headers
-#include	<vata/vata.hh>
-#include	<vata/util/convert.hh>
+// AUTOQ headers
+#include	<autoq/autoq.hh>
+#include	<autoq/util/convert.hh>
 
 // Boost library headers
 #include <boost/functional/hash.hpp>
 
 
-namespace VATA
+namespace AUTOQ
 {
 	namespace Util
 	{
@@ -38,7 +38,7 @@ template <
 	typename T2,
 	typename T3
 >
-struct VATA::Util::Triple
+struct AUTOQ::Util::Triple
 {
 	T1 first;
 	T2 second;
@@ -86,15 +86,15 @@ struct VATA::Util::Triple
 	friend std::ostream& operator<<(std::ostream& os, const Triple& trip)
 	{
 		os << "(" <<
-			VATA::Util::Convert::ToString(trip.first)  << ", " <<
-			VATA::Util::Convert::ToString(trip.second) << ", " <<
-			VATA::Util::Convert::ToString(trip.third)  << ")";
+			AUTOQ::Util::Convert::ToString(trip.first)  << ", " <<
+			AUTOQ::Util::Convert::ToString(trip.second) << ", " <<
+			AUTOQ::Util::Convert::ToString(trip.third)  << ")";
 
 		return os;
 	}
 };
 
-namespace VATA
+namespace AUTOQ
 {
 	namespace Util
 	{

@@ -3,9 +3,9 @@ cmake_minimum_required(VERSION 3.0.0)
 set(CMAKE_COLOR_MAKEFILE ON)
 #set(CMAKE_VERBOSE_MAKEFILE ON)
 
-project(vata)
+project(autoq)
 
-set(vata_compiler_add_flags_list
+set(autoq_compiler_add_flags_list
   -std=c++17
   -pedantic-errors
 #  -DOPT_AC
@@ -24,8 +24,8 @@ set(vata_compiler_add_flags_list
   # -march=native
 )
 
-foreach(param ${vata_compiler_add_flags_list})
-  set(vata_compiler_flags "${vata_compiler_flags} ${param}")
+foreach(param ${autoq_compiler_add_flags_list})
+  set(autoq_compiler_flags "${autoq_compiler_flags} ${param}")
 endforeach(param)
 
 # uncomment for profiling
@@ -38,23 +38,23 @@ include_directories(../include)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/version.cc.in
    ${CMAKE_CURRENT_BINARY_DIR}/version.cc @ONLY)
 
-add_executable(vata
-  vata.cc
+add_executable(autoq
+  autoq.cc
 #   parse_args.cc
   ${CMAKE_CURRENT_BINARY_DIR}/version.cc
 )
 
-if (MAKE_STATIC_VATA)
+if (MAKE_STATIC_AUTOQ)
   SET(CMAKE_CXX_LINK_EXECUTABLE "${CMAKE_CXX_LINK_EXECUTABLE} -static")
 endif()
 
-get_target_property(vata_sources vata SOURCES)
+get_target_property(autoq_sources autoq SOURCES)
 
-foreach(src ${vata_sources})
+foreach(src ${autoq_sources})
 
   set_source_files_properties(
-    ${src} PROPERTIES COMPILE_FLAGS ${vata_compiler_flags})
+    ${src} PROPERTIES COMPILE_FLAGS ${autoq_compiler_flags})
 
 endforeach()
 
-target_link_libraries(vata libvata)
+target_link_libraries(autoq libautoq)

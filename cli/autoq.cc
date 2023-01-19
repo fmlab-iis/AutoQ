@@ -1,9 +1,9 @@
 #include <fstream>
 #include <iostream>
-#include <vata/parsing/timbuk_parser.hh>
-#include <vata/serialization/timbuk_serializer.hh>
-#include <vata/util/aut_description.hh>
-#include <vata/util/util.hh>
+#include <autoq/parsing/timbuk_parser.hh>
+#include <autoq/serialization/timbuk_serializer.hh>
+#include <autoq/util/aut_description.hh>
+#include <autoq/util/util.hh>
 #include <sys/wait.h>
 #include <unistd.h>
 
@@ -12,9 +12,9 @@
 #include <regex>
 
 using namespace std;
-using VATA::Util::TreeAutomata;
-using VATA::Util::ShellCmd;
-using VATA::Util::ReadFile;
+using AUTOQ::Util::TreeAutomata;
+using AUTOQ::Util::ShellCmd;
+using AUTOQ::Util::ReadFile;
 
 int type, n;
 
@@ -29,7 +29,7 @@ void produce_MCToffoli_pre_and_post();
 
 int main(int argc, char **argv) {
     if (argc < 5) {
-        VATA::Util::TreeAutomata aut = VATA::Parsing::TimbukParser<VATA::Util::Concrete>::FromFileToAutomata(argv[1]);
+        AUTOQ::Util::TreeAutomata aut = AUTOQ::Parsing::TimbukParser<AUTOQ::Util::Concrete>::FromFileToAutomata(argv[1]);
         int stateBefore = aut.stateNum, transitionBefore = aut.transition_size();
         auto startSim = chrono::steady_clock::now();
         aut.execute(argv[2]);
@@ -38,30 +38,30 @@ int main(int argc, char **argv) {
         aut.fraction_simplification();
         auto startVer = chrono::steady_clock::now();
         if (argc >= 4) {
-            if (!VATA::Util::TreeAutomata::check_inclusion(aut, argv[3])) {
+            if (!AUTOQ::Util::TreeAutomata::check_inclusion(aut, argv[3])) {
                 // throw std::runtime_error("Does not satisfy the postcondition!");
-                std::cout << VATA::Util::Convert::ToString(aut.qubitNum) << " & " << VATA::Util::TreeAutomata::gateCount
+                std::cout << AUTOQ::Util::Convert::ToString(aut.qubitNum) << " & " << AUTOQ::Util::TreeAutomata::gateCount
                 << " & " << stateBefore << " & " << aut.stateNum
                 << " & " << transitionBefore << " & " << aut.transition_size()
                 << " & " << toString(durationSim) << " & V";
             }
         } else {
             durationVer = chrono::steady_clock::now() - startVer;
-            std::cout << VATA::Util::Convert::ToString(aut.qubitNum) << " & " << VATA::Util::TreeAutomata::gateCount
+            std::cout << AUTOQ::Util::Convert::ToString(aut.qubitNum) << " & " << AUTOQ::Util::TreeAutomata::gateCount
                 << " & " << stateBefore << " & " << aut.stateNum
                 << " & " << transitionBefore << " & " << aut.transition_size()
                 << " & " << toString(durationSim) << " & " << toString(durationVer);
         }
     } else { // argc >= 5
-        VATA::Util::SymbolicAutomata aut = VATA::Parsing::TimbukParser<VATA::Util::Symbolic>::FromFileToAutomata(argv[1]);
+        AUTOQ::Util::SymbolicAutomata aut = AUTOQ::Parsing::TimbukParser<AUTOQ::Util::Symbolic>::FromFileToAutomata(argv[1]);
         aut.execute(argv[2]);
         aut.fraction_simplification();
-        VATA::Util::PredicateAutomata spec = VATA::Parsing::TimbukParser<VATA::Util::Predicate>::FromFileToAutomata(argv[3]);
+        AUTOQ::Util::PredicateAutomata spec = AUTOQ::Parsing::TimbukParser<AUTOQ::Util::Predicate>::FromFileToAutomata(argv[3]);
         std::ifstream t(argv[4]);
         std::stringstream buffer;
         buffer << t.rdbuf();
-        VATA::Util::Constraint C(buffer.str().c_str());
-        std::cout << VATA::Util::is_spec_satisfied(C, aut, spec) << "\n";
+        AUTOQ::Util::Constraint C(buffer.str().c_str());
+        std::cout << AUTOQ::Util::is_spec_satisfied(C, aut, spec) << "\n";
     }
     return 0;
 }
@@ -137,7 +137,7 @@ std::string toString(std::chrono::steady_clock::duration tp) {
 
 void produce_BernsteinVazirani_post() {
     for (int n=1; n<=99; n++) {
-        VATA::Util::TreeAutomata ans;
+        AUTOQ::Util::TreeAutomata ans;
         ans.name = "Bernstein-Vazirani";
         ans.qubitNum = n+1;
         assert(ans.qubitNum >= 2);
@@ -159,7 +159,7 @@ void produce_BernsteinVazirani_post() {
         ans.stateNum = 2*(n+1) + 1;
 
         std::ofstream of("/tmp/automaton.aut");
-        of << VATA::Serialization::TimbukSerializer::Serialize(ans);
+        of << AUTOQ::Serialization::TimbukSerializer::Serialize(ans);
         of.close();
         if (n < 10)
             system(("/home/alan23273850/libvata/build/cli/vata red /tmp/automaton.aut > benchmarks/BernsteinVazirani/0" + std::to_string(n) + "/post.aut").c_str());
@@ -219,7 +219,7 @@ TreeAutomata::Symbol Grover_large_amplitude(int n) {
 }
 void produce_Grover_post() {
     for (int n=3; n<=21; n++) {
-        VATA::Util::TreeAutomata ans;
+        AUTOQ::Util::TreeAutomata ans;
         ans.qubitNum = 2*n;
         ans.finalStates.push_back(0);
         //
@@ -251,7 +251,7 @@ void produce_Grover_post() {
         ans.stateNum = 3*ans.qubitNum - 1;
 
         std::ofstream of("/tmp/automaton.aut");
-        of << VATA::Serialization::TimbukSerializer::Serialize(ans);
+        of << AUTOQ::Serialization::TimbukSerializer::Serialize(ans);
         of.close();
         if (n < 10)
             system(("/home/alan23273850/libvata/build/cli/vata red /tmp/automaton.aut > benchmarks/Grover/0" + std::to_string(n) + "/post.aut").c_str());
@@ -263,7 +263,7 @@ void produce_Grover_post() {
 
 void produce_MCToffoli_pre_and_post() {
     for (int n=3; n<=99; n++) {
-        VATA::Util::TreeAutomata ans;
+        AUTOQ::Util::TreeAutomata ans;
         ans.qubitNum = 2*n;
         ans.finalStates.push_back(0);
         //
@@ -288,7 +288,7 @@ void produce_MCToffoli_pre_and_post() {
         ans.stateNum = 2*ans.qubitNum + 1;
 
         std::ofstream of("/tmp/automaton.aut");
-        of << VATA::Serialization::TimbukSerializer::Serialize(ans);
+        of << AUTOQ::Serialization::TimbukSerializer::Serialize(ans);
         of.close();
         if (n < 10) {
             system(("cp /tmp/automaton.aut benchmarks/MCToffoli/0" + std::to_string(n) + "/pre.aut").c_str());
@@ -304,11 +304,11 @@ void produce_MCToffoli_pre_and_post() {
 
 void produce_MOGrover_post() {
     for (int n=3; n<=12; n++) {
-        VATA::Util::TreeAutomata ans;
+        AUTOQ::Util::TreeAutomata ans;
         ans.qubitNum = 3*n;
         int pow2n = 1 << n;
         for (int z=0; z<pow2n; z++) {
-            VATA::Util::TreeAutomata single;
+            AUTOQ::Util::TreeAutomata single;
             single.qubitNum = 3*n;
             single.finalStates.push_back(0);
             // solution qubits
@@ -357,7 +357,7 @@ void produce_MOGrover_post() {
             // ans.reduce();
         }
         std::ofstream of("/tmp/automaton.aut");
-        of << VATA::Serialization::TimbukSerializer::Serialize(ans);
+        of << AUTOQ::Serialization::TimbukSerializer::Serialize(ans);
         of.close();
         if (n < 10)
             system(("/home/alan23273850/libvata/build/cli/vata red /tmp/automaton.aut > benchmarks/MOGrover/0" + std::to_string(n) + "/post.aut").c_str());

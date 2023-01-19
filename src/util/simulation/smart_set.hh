@@ -1,5 +1,5 @@
 /*****************************************************************************
- *  VATA Tree Automata Library
+ *  AUTOQ Tree Automata Library
  *
  *  Copyright (c) 2011  Jiri Simacek <isimacek@fit.vutbr.cz>
  *
@@ -8,19 +8,19 @@
  *
  *****************************************************************************/
 
-#ifndef _VATA_SMART_SET_HH_
-#define _VATA_SMART_SET_HH_
+#ifndef _AUTOQ_SMART_SET_HH_
+#define _AUTOQ_SMART_SET_HH_
 
-// VATA headers
-#include <vata/vata.hh>
-#include <vata/util/convert.hh>
+// AUTOQ headers
+#include <autoq/autoq.hh>
+#include <autoq/util/convert.hh>
 
 // Standard library headers
 #include <algorithm>
 #include <ostream>
 #include <vector>
 
-namespace VATA
+namespace AUTOQ
 {
 	namespace Util
 	{
@@ -28,7 +28,7 @@ namespace VATA
 	}
 }
 
-class VATA::Util::SmartSet
+class AUTOQ::Util::SmartSet
 {
 public:
 

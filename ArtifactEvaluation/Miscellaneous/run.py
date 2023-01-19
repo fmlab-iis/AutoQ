@@ -73,7 +73,7 @@ while len(process_pool_large) > 0:
             process_pool_large.pop(i)
             break
 
-os.system('pkill -9 -f permutation; pkill -9 -f composition; pkill -9 -f feynver; pkill -9 -f vata')
+os.system('pkill -9 -f permutation; pkill -9 -f composition; pkill -9 -f feynver; pkill -9 -f autoq')
 os.system('git clean -f')
 
 f = open(name, 'w')

@@ -1,5 +1,5 @@
 /*****************************************************************************
- *  VATA Tree Automata Library
+ *  AUTOQ Tree Automata Library
  *
  *  Copyright (c) 2011  Jiri Simacek <isimacek@fit.vutbr.cz>
  *
@@ -20,11 +20,11 @@
 #include <cstddef>
 
 
-// VATA headers
+// AUTOQ headers
 #include "explicit_lts.hh"
 #include "binary_relation.hh"
 #include "smart_set.hh"
-#include <vata/util/convert.hh>
+#include <autoq/util/convert.hh>
 
 
 #include "caching_allocator.hh"
@@ -33,13 +33,13 @@
 #include "splitting_relation.hh"
 
 
-using VATA::Util::BinaryRelation;
-using VATA::Util::SplittingRelation;
-using VATA::Util::SmartSet;
-using VATA::Util::CachingAllocator;
-using VATA::Util::SharedList;
-using VATA::Util::SharedCounter;
-using VATA::Util::Convert;
+using AUTOQ::Util::BinaryRelation;
+using AUTOQ::Util::SplittingRelation;
+using AUTOQ::Util::SmartSet;
+using AUTOQ::Util::CachingAllocator;
+using AUTOQ::Util::SharedList;
+using AUTOQ::Util::SharedCounter;
+using AUTOQ::Util::Convert;
 
 typedef CachingAllocator<std::vector<size_t>> VectorAllocator;
 
@@ -102,7 +102,7 @@ protected:
 public:
 
 	Block(
-		const VATA::ExplicitLTS&         lts,
+		const AUTOQ::ExplicitLTS&         lts,
 		size_t                           index,
 		StateListElem*                   states,
 		size_t                           size,
@@ -132,7 +132,7 @@ public:
 	}
 
 	Block(
-		const VATA::ExplicitLTS&   lts,
+		const AUTOQ::ExplicitLTS&   lts,
 		Block&                     parent,
 		StateListElem*             states,
 		size_t                     size,
@@ -521,7 +521,7 @@ protected:
 			{
 				if (mask[q])
 				{
-					VATA_INFO("state " << q << " appears in more than one block");
+					AUTOQ_INFO("state " << q << " appears in more than one block");
 
 					return false;
 				}
@@ -534,7 +534,7 @@ protected:
 		{
 			if (!mask[i])
 			{
-				VATA_INFO("state " << i << " does not appear anywhere");
+				AUTOQ_INFO("state " << i << " does not appear anywhere");
 
 				return false;
 			}
@@ -549,7 +549,7 @@ protected:
 	{
 		if (part.size() != rel.size())
 		{
-			VATA_INFO("partition and relation sizes differ");
+			AUTOQ_INFO("partition and relation sizes differ");
 
 			return false;
 		}
@@ -558,7 +558,7 @@ protected:
 		{
 			if (!rel.get(i, i))
 			{
-				VATA_INFO("relation is not reflexive");
+				AUTOQ_INFO("relation is not reflexive");
 
 				return false;
 			}
@@ -569,7 +569,7 @@ protected:
 
 private:
 
-	const VATA::ExplicitLTS& lts_;
+	const AUTOQ::ExplicitLTS& lts_;
 
 	size_t rowSize_;
 
@@ -606,7 +606,7 @@ private:
 public:
 
 	SimulationEngine(
-		const VATA::ExplicitLTS& lts) :
+		const AUTOQ::ExplicitLTS& lts) :
 		lts_(lts),
 		rowSize_(SimulationEngine::getRowSize(lts.states())),
 		vectorAllocator_(),
@@ -867,7 +867,7 @@ public:
 	}
 };
 
-BinaryRelation VATA::ExplicitLTS::computeSimulation(
+BinaryRelation AUTOQ::ExplicitLTS::computeSimulation(
 	const std::vector<std::vector<size_t>>&   partition,
 	const BinaryRelation&                     relation,
 	size_t                                    outputSize)
@@ -890,7 +890,7 @@ BinaryRelation VATA::ExplicitLTS::computeSimulation(
 }
 
 
-BinaryRelation VATA::ExplicitLTS::computeSimulation(
+BinaryRelation AUTOQ::ExplicitLTS::computeSimulation(
 	size_t   outputSize)
 {
 	std::vector<std::vector<size_t>> partition(1);
@@ -906,13 +906,13 @@ BinaryRelation VATA::ExplicitLTS::computeSimulation(
 }
 
 
-BinaryRelation VATA::ExplicitLTS::computeSimulation()
+BinaryRelation AUTOQ::ExplicitLTS::computeSimulation()
 {
 	return this->computeSimulation(this->states_);
 }
 
 
-void VATA::ExplicitLTS::addTransition(
+void AUTOQ::ExplicitLTS::addTransition(
 	size_t   q,
 	size_t   a,
 	size_t   r)

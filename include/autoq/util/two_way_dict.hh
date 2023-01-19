@@ -1,5 +1,5 @@
 /*****************************************************************************
- *  VATA Tree Automata Library
+ *  AUTOQ Tree Automata Library
  *
  *  Copyright (c) 2011  Ondra Lengal <ilengal@fit.vutbr.cz>
  *
@@ -8,18 +8,18 @@
  *
  *****************************************************************************/
 
-#ifndef _VATA_TWO_WAY_DICT_
-#define _VATA_TWO_WAY_DICT_
+#ifndef _AUTOQ_TWO_WAY_DICT_
+#define _AUTOQ_TWO_WAY_DICT_
 
-// VATA headers
-#include <vata/vata.hh>
-#include <vata/util/convert.hh>
+// AUTOQ headers
+#include <autoq/autoq.hh>
+#include <autoq/util/convert.hh>
 
 // Standard library headers
 #include <map>
 
 
-namespace VATA
+namespace AUTOQ
 {
 	namespace Util
 	{
@@ -51,7 +51,7 @@ template
 	class Cont1 = std::map<T1, T2>,
 	class Cont2 = std::map<T2, T1>
 >
-class VATA::Util::TwoWayDict
+class AUTOQ::Util::TwoWayDict
 {
 public:   // Public data types
 
@@ -208,7 +208,7 @@ public:   // Public methods
 
 		if (!(bwdMap_.insert(std::make_pair(value.second, value.first)).second))
 		{	// in case there is already some backward mapping for given value
-			VATA_ERROR("backward mapping for "
+			AUTOQ_ERROR("backward mapping for "
 				<< Convert::ToString(value.second)
 				<< " already found: "
 				<< Convert::ToString(bwdMap_.find(value.second)->second));

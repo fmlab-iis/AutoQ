@@ -14,7 +14,7 @@ set(CMAKE_COLOR_MAKEFILE ON)
 ##############################################################################
 
 # Avoid dynamic linking of libraries?
-OPTION(MAKE_STATIC_VATA "make static library" OFF)
+OPTION(MAKE_STATIC_AUTOQ "make static library" OFF)
 
 # The default C++ compiler
 set(DEFAULT_CXX_COMPILER "g++") 
@@ -139,7 +139,7 @@ endif()
 #                                 PROJECT
 ##############################################################################
 
-project(libvata)
+project(libautoq)
 
 # Include CTest so that sophisticated testing can be done now
 include(CTest)

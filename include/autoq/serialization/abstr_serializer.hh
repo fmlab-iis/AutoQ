@@ -1,5 +1,5 @@
 /*****************************************************************************
- *  VATA Tree Automata Library
+ *  AUTOQ Tree Automata Library
  *
  *  Copyright (c) 2011  Ondra Lengal <ilengal@fit.vutbr.cz>
  *
@@ -8,15 +8,15 @@
  *
  *****************************************************************************/
 
-#ifndef _VATA_ABSTR_SERIALIZER_HH_
-#define _VATA_ABSTR_SERIALIZER_HH_
+#ifndef _AUTOQ_ABSTR_SERIALIZER_HH_
+#define _AUTOQ_ABSTR_SERIALIZER_HH_
 
-// VATA headers
-#include <vata/vata.hh>
-#include <vata/util/aut_description.hh>
+// AUTOQ headers
+#include <autoq/autoq.hh>
+#include <autoq/util/aut_description.hh>
 
 
-namespace VATA
+namespace AUTOQ
 {
 	namespace Serialization
 	{
@@ -25,11 +25,11 @@ namespace VATA
 }
 
 
-class VATA::Serialization::AbstrSerializer
+class AUTOQ::Serialization::AbstrSerializer
 {
 public:   // data types
 
-	typedef VATA::Util::TreeAutomata TreeAutomata;
+	typedef AUTOQ::Util::TreeAutomata TreeAutomata;
 
 public:   // methods
 

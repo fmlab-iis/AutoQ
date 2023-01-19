@@ -1,5 +1,5 @@
 /*****************************************************************************
- *  VATA Tree Automata Library
+ *  AUTOQ Tree Automata Library
  *
  *  Copyright (c) 2011  Ondra Lengal <ilengal@fit.vutbr.cz>
  *
@@ -8,14 +8,14 @@
  *
  *****************************************************************************/
 
-#ifndef _VATA_TIMBUK_SERIALIZER_HH_
-#define _VATA_TIMBUK_SERIALIZER_HH_
+#ifndef _AUTOQ_TIMBUK_SERIALIZER_HH_
+#define _AUTOQ_TIMBUK_SERIALIZER_HH_
 
-// VATA headers
-#include <vata/vata.hh>
-#include <vata/serialization/abstr_serializer.hh>
+// AUTOQ headers
+#include <autoq/autoq.hh>
+#include <autoq/serialization/abstr_serializer.hh>
 
-namespace VATA
+namespace AUTOQ
 {
 	namespace Serialization
 	{
@@ -28,8 +28,8 @@ namespace VATA
  *
  * This class is a serializer of automata into the Timbuk format.
  */
-class VATA::Serialization::TimbukSerializer //:
-	// public VATA::Serialization::AbstrSerializer
+class AUTOQ::Serialization::TimbukSerializer //:
+	// public AUTOQ::Serialization::AbstrSerializer
 {
 public:   // data types
 
@@ -50,7 +50,7 @@ public:   // methods
 	// }
 
 	template <typename InitialSymbol>
-    static std::string Serialize(const VATA::Util::Automata<InitialSymbol>& desc);
+    static std::string Serialize(const AUTOQ::Util::Automata<InitialSymbol>& desc);
 };
 
 #endif

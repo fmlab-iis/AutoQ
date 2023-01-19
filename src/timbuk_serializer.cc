@@ -1,5 +1,5 @@
 /*****************************************************************************
- *  VATA Tree Automata Library
+ *  AUTOQ Tree Automata Library
  *
  *  Copyright (c) 2011  Ondra Lengal <ilengal@fit.vutbr.cz>
  *
@@ -8,16 +8,16 @@
  *
  *****************************************************************************/
 
-// VATA headers
-#include <vata/vata.hh>
-#include <vata/serialization/timbuk_serializer.hh>
+// AUTOQ headers
+#include <autoq/autoq.hh>
+#include <autoq/serialization/timbuk_serializer.hh>
 
-using VATA::Util::Convert;
-using VATA::Util::Automata;
-using VATA::Util::TreeAutomata;
-using VATA::Util::SymbolicAutomata;
-using VATA::Util::PredicateAutomata;
-using VATA::Serialization::TimbukSerializer;
+using AUTOQ::Util::Convert;
+using AUTOQ::Util::Automata;
+using AUTOQ::Util::TreeAutomata;
+using AUTOQ::Util::SymbolicAutomata;
+using AUTOQ::Util::PredicateAutomata;
+using AUTOQ::Serialization::TimbukSerializer;
 
 // Standard library headers
 #include <algorithm>
@@ -34,11 +34,11 @@ std::string TimbukSerializer::Serialize(const Automata<InitialSymbol>& desc)
 		itSymb != desc.transitions.cend(); ++itSymb)
 	{
         if (std::is_convertible_v<InitialSymbol, std::string>)
-            result += "[" + VATA::Util::Convert::ToString(itSymb->first) + "]:" +
-			    VATA::Util::Convert::ToString(itSymb->second.begin()->first.size()) + " ";
+            result += "[" + AUTOQ::Util::Convert::ToString(itSymb->first) + "]:" +
+			    AUTOQ::Util::Convert::ToString(itSymb->second.begin()->first.size()) + " ";
         else
-		    result += VATA::Util::Convert::ToString(itSymb->first) + ":" +
-			    VATA::Util::Convert::ToString(itSymb->second.begin()->first.size()) + " ";
+		    result += AUTOQ::Util::Convert::ToString(itSymb->first) + ":" +
+			    AUTOQ::Util::Convert::ToString(itSymb->second.begin()->first.size()) + " ";
 	}
 
 	result += "\n";

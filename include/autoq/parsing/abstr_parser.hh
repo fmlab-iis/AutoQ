@@ -1,5 +1,5 @@
 /*****************************************************************************
- *  VATA Tree Automata Library
+ *  AUTOQ Tree Automata Library
  *
  *  Copyright (c) 2011  Ondra Lengal <ilengal@fit.vutbr.cz>
  *
@@ -8,16 +8,16 @@
  *
  *****************************************************************************/
 
-#ifndef _VATA_ABSTR_PARSER_HH_
-#define _VATA_ABSTR_PARSER_HH_
+#ifndef _AUTOQ_ABSTR_PARSER_HH_
+#define _AUTOQ_ABSTR_PARSER_HH_
 
-// VATA headers
-#include <vata/vata.hh>
-#include <vata/util/aut_description.hh>
-#include <vata/util/triple.hh>
+// AUTOQ headers
+#include <autoq/autoq.hh>
+#include <autoq/util/aut_description.hh>
+#include <autoq/util/triple.hh>
 
 
-namespace VATA
+namespace AUTOQ
 {
 	namespace Parsing
 	{
@@ -26,11 +26,11 @@ namespace VATA
 }
 
 
-class VATA::Parsing::AbstrParser
+class AUTOQ::Parsing::AbstrParser
 {
 public:   // data types
 
-	typedef VATA::Util::TreeAutomata TreeAutomata;
+	typedef AUTOQ::Util::TreeAutomata TreeAutomata;
 
 public:   // methods
 

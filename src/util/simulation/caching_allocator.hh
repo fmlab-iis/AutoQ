@@ -1,5 +1,5 @@
 /*****************************************************************************
- *  VATA Tree Automata Library
+ *  AUTOQ Tree Automata Library
  *
  *  Copyright (c) 2011  Jiri Simacek <isimacek@fit.vutbr.cz>
  *
@@ -8,8 +8,8 @@
  *
  *****************************************************************************/
 
-#ifndef _VATA_CACHING_ALLOCATOR_HH_
-#define _VATA_CACHING_ALLOCATOR_HH_
+#ifndef _AUTOQ_CACHING_ALLOCATOR_HH_
+#define _AUTOQ_CACHING_ALLOCATOR_HH_
 
 #include <cstdlib>
 
@@ -19,7 +19,7 @@
 #include <unordered_set>
 
 // insert class to proper namespace
-namespace VATA {
+namespace AUTOQ {
 	namespace Util {
 		template <class T, class Initializer = std::function<void(T*)>> class CachingAllocator;
 		template <class T, class Initializer = std::function<void(T*)>> class CachingArrayAllocator;
@@ -27,7 +27,7 @@ namespace VATA {
 }
 
 template <class T, class Initializer>
-class VATA::Util::CachingAllocator {
+class AUTOQ::Util::CachingAllocator {
 
 public:
 
@@ -81,7 +81,7 @@ public:
 };
 
 template <class T, class Initializer>
-class VATA::Util::CachingArrayAllocator {
+class AUTOQ::Util::CachingArrayAllocator {
 
 public:
 

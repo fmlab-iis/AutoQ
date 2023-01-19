@@ -60,25 +60,25 @@ unit tests and check that the compiled code passes them all.
 The compiled command-line interface is located in
 
 ```
-$ ./build/cli/vata
+$ ./build/cli/autoq
 ```
 
 There are three modes: concrete probability amplitudes without specification, concrete probability amplitudes with specification, and symbolic probability amplitudes with specification. The program switches to one of this mode according to `argc`, the number of arguments.
 
 1. Concrete probability amplitudes without specification.
 ```
-$ ./build/cli/vata benchmarks/Grover/02/pre.aut benchmarks/Grover/02/circuit.qasm
+$ ./build/cli/autoq benchmarks/Grover/02/pre.aut benchmarks/Grover/02/circuit.qasm
 ```
 
 2. Concrete probability amplitudes with specification.
 ```
-$ VATA_PATH=/home/alan23273850/libvata/build/cli/vata ./build/cli/vata benchmarks/Grover/02/pre.aut benchmarks/Grover/02/circuit.qasm benchmarks/Grover/02/post.aut
+$ VATA_PATH=/home/alan23273850/libvata/build/cli/vata ./build/cli/autoq benchmarks/Grover/02/pre.aut benchmarks/Grover/02/circuit.qasm benchmarks/Grover/02/post.aut
 ```
 Notice that in this case environment variable `VATA_PATH` locating the binary built from [this commit](https://github.com/alan23273850/libvata/commit/22ce24661a4c4b1e684961330aa54288f7eda7ca) should be provided in order for AutoQ to run the inclusion checking algorithm.
 
 3. Symbolic probability amplitudes with specification.
 ```
-$ ./build/cli/vata benchmarks/SymbolicGrover/03/pre.aut benchmarks/SymbolicGrover/03/circuit.qasm benchmarks/SymbolicGrover/03/spec.aut benchmarks/SymbolicGrover/03/constraint.txt
+$ ./build/cli/autoq benchmarks/SymbolicGrover/03/pre.aut benchmarks/SymbolicGrover/03/circuit.qasm benchmarks/SymbolicGrover/03/spec.aut benchmarks/SymbolicGrover/03/constraint.txt
 ```
 In this case `VATA_PATH` is no longer required since the inclusion checking algorithm for symbolic automata is different from that for concrete automata.
 

@@ -1,5 +1,5 @@
 /*****************************************************************************
- *  VATA Tree Automata Library
+ *  AUTOQ Tree Automata Library
  *
  *  Copyright (c) 2011  Jiri Simacek <isimacek@fit.vutbr.cz>
  *
@@ -8,18 +8,18 @@
  *
  *****************************************************************************/
 
-#ifndef _VATA_SPLITTING_RELATION_HH_
-#define _VATA_SPLITTING_RELATION_HH_
+#ifndef _AUTOQ_SPLITTING_RELATION_HH_
+#define _AUTOQ_SPLITTING_RELATION_HH_
 
 // Standard library headers
 #include <vector>
 
-// VATA headers
-#include <vata/vata.hh>
+// AUTOQ headers
+#include <autoq/autoq.hh>
 
 #include "caching_allocator.hh"
 
-namespace VATA
+namespace AUTOQ
 {
 	namespace Util
 	{
@@ -27,7 +27,7 @@ namespace VATA
 	}
 }
 
-class VATA::Util::SplittingRelation {
+class AUTOQ::Util::SplittingRelation {
 
 	struct Element {
 

@@ -1,5 +1,5 @@
 /*****************************************************************************
- *  VATA Tree Automata Library
+ *  AUTOQ Tree Automata Library
  *
  *  Copyright (c) 2011  Jiri Simacek <isimacek@fit.vutbr.cz>
  *
@@ -8,19 +8,19 @@
  *
  *****************************************************************************/
 
-#ifndef _VATA_SHARED_COUNTER_HH_
-#define _VATA_SHARED_COUNTER_HH_
+#ifndef _AUTOQ_SHARED_COUNTER_HH_
+#define _AUTOQ_SHARED_COUNTER_HH_
 
 #include <cstring>
 #include <vector>
 
 #include "caching_allocator.hh"
 
-namespace VATA { namespace Util {
+namespace AUTOQ { namespace Util {
 	class SharedCounter;
 }}
 
-class VATA::Util::SharedCounter
+class AUTOQ::Util::SharedCounter
 {
 public:
 

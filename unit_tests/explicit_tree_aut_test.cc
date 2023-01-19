@@ -1,5 +1,5 @@
 /*****************************************************************************
- *  VATA Tree Automata Library
+ *  AUTOQ Tree Automata Library
  *
  *  Copyright (c) 2011  Ondra Lengal <ilengal@fit.vutbr.cz>
  *
@@ -8,14 +8,14 @@
  *
  *****************************************************************************/
 
-// VATA headers
+// AUTOQ headers
 #include <cmath>
 #include <fstream>
-#include <vata/vata.hh>
-#include <vata/util/util.hh>
-#include <vata/util/aut_description.hh>
-#include <vata/parsing/timbuk_parser.hh>
-#include <vata/serialization/timbuk_serializer.hh>
+#include <autoq/autoq.hh>
+#include <autoq/util/util.hh>
+#include <autoq/util/aut_description.hh>
+#include <autoq/parsing/timbuk_parser.hh>
+#include <autoq/serialization/timbuk_serializer.hh>
 
 #define BOOST_TEST_DYN_LINK
 #define BOOST_TEST_MODULE AutType
@@ -26,21 +26,21 @@ int size = 7; // the number of qubits.
 BOOST_AUTO_TEST_CASE(X_gate_twice_to_identity)
 {
     int n = size;
-    for (const auto &before : {VATA::Util::TreeAutomata::uniform(n),
-                               VATA::Util::TreeAutomata::basis(n),
-                               VATA::Util::TreeAutomata::random(n)}) {
+    for (const auto &before : {AUTOQ::Util::TreeAutomata::uniform(n),
+                               AUTOQ::Util::TreeAutomata::basis(n),
+                               AUTOQ::Util::TreeAutomata::random(n)}) {
         int loop = 2;
         for (auto t : {1, n/2+1, n}) {
-            VATA::Util::TreeAutomata after = before;
+            AUTOQ::Util::TreeAutomata after = before;
             for (int i=0; i<loop; i++) {
                 after.X(t);
 
                 if (i < loop-1) {
                     if (before.name == "Random")
-                        BOOST_REQUIRE_MESSAGE(!VATA::Util::TreeAutomata::check_equal_aut(before, after), "");
+                        BOOST_REQUIRE_MESSAGE(!AUTOQ::Util::TreeAutomata::check_equal_aut(before, after), "");
                 }
                 else {
-                    BOOST_REQUIRE_MESSAGE(VATA::Util::TreeAutomata::check_equal_aut(before, after), "");
+                    BOOST_REQUIRE_MESSAGE(AUTOQ::Util::TreeAutomata::check_equal_aut(before, after), "");
 				}
             }
         }
@@ -50,18 +50,18 @@ BOOST_AUTO_TEST_CASE(X_gate_twice_to_identity)
 BOOST_AUTO_TEST_CASE(Y_gate_twice_to_identity)
 {
     int n = size;
-    for (const auto &before : {VATA::Util::TreeAutomata::uniform(n), VATA::Util::TreeAutomata::basis(n)}) {
+    for (const auto &before : {AUTOQ::Util::TreeAutomata::uniform(n), AUTOQ::Util::TreeAutomata::basis(n)}) {
         int loop = 2;
         for (auto t : {1, n/2+1, n}) {
-            VATA::Util::TreeAutomata after = before;
+            AUTOQ::Util::TreeAutomata after = before;
             for (int i=0; i<loop; i++) {
                 after.Y(t);
 
                 if (i < loop-1) {
-                    BOOST_REQUIRE_MESSAGE(!VATA::Util::TreeAutomata::check_equal_aut(before, after), "");
+                    BOOST_REQUIRE_MESSAGE(!AUTOQ::Util::TreeAutomata::check_equal_aut(before, after), "");
 				}
                 else {
-                    BOOST_REQUIRE_MESSAGE(VATA::Util::TreeAutomata::check_equal_aut(before, after), "");
+                    BOOST_REQUIRE_MESSAGE(AUTOQ::Util::TreeAutomata::check_equal_aut(before, after), "");
 				}
             }
         }
@@ -70,17 +70,17 @@ BOOST_AUTO_TEST_CASE(Y_gate_twice_to_identity)
 
 BOOST_AUTO_TEST_CASE(Z_gate_twice_to_identity)
 {
-    for (const auto &before : {VATA::Util::TreeAutomata::uniform(size), VATA::Util::TreeAutomata::basis(size)}) {
-        VATA::Util::TreeAutomata after = before;
+    for (const auto &before : {AUTOQ::Util::TreeAutomata::uniform(size), AUTOQ::Util::TreeAutomata::basis(size)}) {
+        AUTOQ::Util::TreeAutomata after = before;
         int loop = 2;
         for (int i=0; i<loop; i++) {
             after.Z(size/2);
 
             if (i < loop-1) {
-                BOOST_REQUIRE_MESSAGE(!VATA::Util::TreeAutomata::check_equal_aut(before, after), "");
+                BOOST_REQUIRE_MESSAGE(!AUTOQ::Util::TreeAutomata::check_equal_aut(before, after), "");
 			}
             else {
-                BOOST_REQUIRE_MESSAGE(VATA::Util::TreeAutomata::check_equal_aut(before, after), "");
+                BOOST_REQUIRE_MESSAGE(AUTOQ::Util::TreeAutomata::check_equal_aut(before, after), "");
 			}
         }
     }
@@ -89,18 +89,18 @@ BOOST_AUTO_TEST_CASE(Z_gate_twice_to_identity)
 BOOST_AUTO_TEST_CASE(H_gate_twice_to_identity)
 {
     int n = size;
-    for (const auto &before : {VATA::Util::TreeAutomata::uniform(n), VATA::Util::TreeAutomata::basis(n)}) {
+    for (const auto &before : {AUTOQ::Util::TreeAutomata::uniform(n), AUTOQ::Util::TreeAutomata::basis(n)}) {
         int loop = 2;
         for (auto t : {1, n/2+1, n}) {
-            VATA::Util::TreeAutomata after = before;
+            AUTOQ::Util::TreeAutomata after = before;
             for (int i=0; i<loop; i++) {
                 after.H(t);
 
                 if (i < loop-1) {
-                    BOOST_REQUIRE_MESSAGE(!VATA::Util::TreeAutomata::check_equal_aut(before, after), "");
+                    BOOST_REQUIRE_MESSAGE(!AUTOQ::Util::TreeAutomata::check_equal_aut(before, after), "");
                 }
                 else {
-                    BOOST_REQUIRE_MESSAGE(VATA::Util::TreeAutomata::check_equal_aut(before, after), "");
+                    BOOST_REQUIRE_MESSAGE(AUTOQ::Util::TreeAutomata::check_equal_aut(before, after), "");
                 }
             }
         }
@@ -109,16 +109,16 @@ BOOST_AUTO_TEST_CASE(H_gate_twice_to_identity)
 
 BOOST_AUTO_TEST_CASE(S_gate_fourth_to_identity)
 {
-    for (const auto &before : {VATA::Util::TreeAutomata::uniform(size), VATA::Util::TreeAutomata::basis(size)}) {
-        VATA::Util::TreeAutomata after = before;
+    for (const auto &before : {AUTOQ::Util::TreeAutomata::uniform(size), AUTOQ::Util::TreeAutomata::basis(size)}) {
+        AUTOQ::Util::TreeAutomata after = before;
         int loop = 4;
         for (int i=0; i<loop; i++) {
             after.S(size/2);
 
             if (i < loop-1) {
-                BOOST_REQUIRE_MESSAGE(!VATA::Util::TreeAutomata::check_equal_aut(before, after), "");
+                BOOST_REQUIRE_MESSAGE(!AUTOQ::Util::TreeAutomata::check_equal_aut(before, after), "");
             } else {
-                BOOST_REQUIRE_MESSAGE(VATA::Util::TreeAutomata::check_equal_aut(before, after), "");
+                BOOST_REQUIRE_MESSAGE(AUTOQ::Util::TreeAutomata::check_equal_aut(before, after), "");
             }
         }
     }
@@ -126,32 +126,32 @@ BOOST_AUTO_TEST_CASE(S_gate_fourth_to_identity)
 
 BOOST_AUTO_TEST_CASE(Sdg_gate_equal_to_S_three_times)
 {
-    for (const auto &before : {VATA::Util::TreeAutomata::uniform(size),
-                                VATA::Util::TreeAutomata::basis(size),
-                                VATA::Util::TreeAutomata::random(size),
-                                VATA::Util::TreeAutomata::zero(size),
-                                VATA::Util::TreeAutomata::basis_zero_one_zero(size),
-                                VATA::Util::TreeAutomata::zero_zero_one_zero(size),
-                                VATA::Util::TreeAutomata::zero_one_zero(size)}) {
-        VATA::Util::TreeAutomata after1 = before, after2 = before;
+    for (const auto &before : {AUTOQ::Util::TreeAutomata::uniform(size),
+                                AUTOQ::Util::TreeAutomata::basis(size),
+                                AUTOQ::Util::TreeAutomata::random(size),
+                                AUTOQ::Util::TreeAutomata::zero(size),
+                                AUTOQ::Util::TreeAutomata::basis_zero_one_zero(size),
+                                AUTOQ::Util::TreeAutomata::zero_zero_one_zero(size),
+                                AUTOQ::Util::TreeAutomata::zero_one_zero(size)}) {
+        AUTOQ::Util::TreeAutomata after1 = before, after2 = before;
         for (int i=0; i<3; i++) after1.S(size/2);
         after2.Sdg(size/2);
-        BOOST_REQUIRE_MESSAGE(VATA::Util::TreeAutomata::check_equal_aut(after1, after2), "");
+        BOOST_REQUIRE_MESSAGE(AUTOQ::Util::TreeAutomata::check_equal_aut(after1, after2), "");
     }
 }
 
 BOOST_AUTO_TEST_CASE(T_gate_eighth_to_identity)
 {
-    for (const auto &before : {VATA::Util::TreeAutomata::uniform(size), VATA::Util::TreeAutomata::basis(size)}) {
-        VATA::Util::TreeAutomata after = before;
+    for (const auto &before : {AUTOQ::Util::TreeAutomata::uniform(size), AUTOQ::Util::TreeAutomata::basis(size)}) {
+        AUTOQ::Util::TreeAutomata after = before;
         int loop = 8;
         for (int i=0; i<loop; i++) {
             after.T(size/2);
 
             if (i < loop-1) {
-                BOOST_REQUIRE_MESSAGE(!VATA::Util::TreeAutomata::check_equal_aut(before, after), "");
+                BOOST_REQUIRE_MESSAGE(!AUTOQ::Util::TreeAutomata::check_equal_aut(before, after), "");
             } else {
-                BOOST_REQUIRE_MESSAGE(VATA::Util::TreeAutomata::check_equal_aut(before, after), "");
+                BOOST_REQUIRE_MESSAGE(AUTOQ::Util::TreeAutomata::check_equal_aut(before, after), "");
             }
         }
     }
@@ -159,50 +159,50 @@ BOOST_AUTO_TEST_CASE(T_gate_eighth_to_identity)
 
 BOOST_AUTO_TEST_CASE(Tdg_gate_equal_to_T_seven_times)
 {
-    for (const auto &before : {VATA::Util::TreeAutomata::uniform(size),
-                                VATA::Util::TreeAutomata::basis(size),
-                                VATA::Util::TreeAutomata::random(size),
-                                VATA::Util::TreeAutomata::zero(size),
-                                VATA::Util::TreeAutomata::basis_zero_one_zero(size),
-                                VATA::Util::TreeAutomata::zero_zero_one_zero(size),
-                                VATA::Util::TreeAutomata::zero_one_zero(size)}) {
-        VATA::Util::TreeAutomata after1 = before, after2 = before;
+    for (const auto &before : {AUTOQ::Util::TreeAutomata::uniform(size),
+                                AUTOQ::Util::TreeAutomata::basis(size),
+                                AUTOQ::Util::TreeAutomata::random(size),
+                                AUTOQ::Util::TreeAutomata::zero(size),
+                                AUTOQ::Util::TreeAutomata::basis_zero_one_zero(size),
+                                AUTOQ::Util::TreeAutomata::zero_zero_one_zero(size),
+                                AUTOQ::Util::TreeAutomata::zero_one_zero(size)}) {
+        AUTOQ::Util::TreeAutomata after1 = before, after2 = before;
         for (int i=0; i<7; i++) after1.T(size/2);
         after2.Tdg(size/2);
-        BOOST_REQUIRE_MESSAGE(VATA::Util::TreeAutomata::check_equal_aut(after1, after2), "");
+        BOOST_REQUIRE_MESSAGE(AUTOQ::Util::TreeAutomata::check_equal_aut(after1, after2), "");
     }
 }
 
 BOOST_AUTO_TEST_CASE(swap_gate_simply_exchanges_basis)
 {
-    for (const auto &before : {VATA::Util::TreeAutomata::uniform(size),
-                                VATA::Util::TreeAutomata::basis(size),
-                                // VATA::Util::TreeAutomata::random(size),
-                                VATA::Util::TreeAutomata::zero(size),
-                                VATA::Util::TreeAutomata::basis_zero_one_zero(size),
-                                VATA::Util::TreeAutomata::zero_zero_one_zero(size),
-                                VATA::Util::TreeAutomata::zero_one_zero(size)}) {
-        VATA::Util::TreeAutomata after = before;
+    for (const auto &before : {AUTOQ::Util::TreeAutomata::uniform(size),
+                                AUTOQ::Util::TreeAutomata::basis(size),
+                                // AUTOQ::Util::TreeAutomata::random(size),
+                                AUTOQ::Util::TreeAutomata::zero(size),
+                                AUTOQ::Util::TreeAutomata::basis_zero_one_zero(size),
+                                AUTOQ::Util::TreeAutomata::zero_zero_one_zero(size),
+                                AUTOQ::Util::TreeAutomata::zero_one_zero(size)}) {
+        AUTOQ::Util::TreeAutomata after = before;
         after.swap(size*1/3, size*2/3);
-        BOOST_REQUIRE_MESSAGE(VATA::Util::TreeAutomata::check_equal_aut(before, after), "");
+        BOOST_REQUIRE_MESSAGE(AUTOQ::Util::TreeAutomata::check_equal_aut(before, after), "");
     }
 }
 
 BOOST_AUTO_TEST_CASE(Rx_gate_eighth_to_identity)
 {
     int n = size;
-    for (const auto &before : {VATA::Util::TreeAutomata::uniform(n), VATA::Util::TreeAutomata::basis(n)}) {
+    for (const auto &before : {AUTOQ::Util::TreeAutomata::uniform(n), AUTOQ::Util::TreeAutomata::basis(n)}) {
         int loop = 8;
         for (auto t : {1, n/2+1, n}) {
-            VATA::Util::TreeAutomata after = before;
+            AUTOQ::Util::TreeAutomata after = before;
             for (int i=0; i<loop; i++) {
                 after.Rx(t);
 
                 if (i < loop-1) {
-                    BOOST_REQUIRE_MESSAGE(!VATA::Util::TreeAutomata::check_equal_aut(before, after), "");
+                    BOOST_REQUIRE_MESSAGE(!AUTOQ::Util::TreeAutomata::check_equal_aut(before, after), "");
                 }
                 else {
-                    BOOST_REQUIRE_MESSAGE(VATA::Util::TreeAutomata::check_equal_aut(before, after), "");
+                    BOOST_REQUIRE_MESSAGE(AUTOQ::Util::TreeAutomata::check_equal_aut(before, after), "");
 				}
             }
         }
@@ -212,18 +212,18 @@ BOOST_AUTO_TEST_CASE(Rx_gate_eighth_to_identity)
 BOOST_AUTO_TEST_CASE(Ry_gate_eighth_to_identity)
 {
     int n = size;
-    for (const auto &before : {VATA::Util::TreeAutomata::uniform(n), VATA::Util::TreeAutomata::basis(n)}) {
+    for (const auto &before : {AUTOQ::Util::TreeAutomata::uniform(n), AUTOQ::Util::TreeAutomata::basis(n)}) {
         int loop = 8;
         for (auto t : {1, n/2+1, n}) {
-            VATA::Util::TreeAutomata after = before;
+            AUTOQ::Util::TreeAutomata after = before;
             for (int i=0; i<loop; i++) {
                 after.Ry(t);
 
                 if (i < loop-1) {
-                    BOOST_REQUIRE_MESSAGE(!VATA::Util::TreeAutomata::check_equal_aut(before, after), "");
+                    BOOST_REQUIRE_MESSAGE(!AUTOQ::Util::TreeAutomata::check_equal_aut(before, after), "");
                 }
                 else {
-                    BOOST_REQUIRE_MESSAGE(VATA::Util::TreeAutomata::check_equal_aut(before, after), "");
+                    BOOST_REQUIRE_MESSAGE(AUTOQ::Util::TreeAutomata::check_equal_aut(before, after), "");
 				}
             }
         }
@@ -233,19 +233,19 @@ BOOST_AUTO_TEST_CASE(Ry_gate_eighth_to_identity)
 BOOST_AUTO_TEST_CASE(CNOT_gate_twice_to_identity)
 {
     int n = size;
-    for (const auto &before : {VATA::Util::TreeAutomata::uniform(n),
-                               VATA::Util::TreeAutomata::basis(n),
-                               VATA::Util::TreeAutomata::random(n)}) {
-        VATA::Util::TreeAutomata after = before;
+    for (const auto &before : {AUTOQ::Util::TreeAutomata::uniform(n),
+                               AUTOQ::Util::TreeAutomata::basis(n),
+                               AUTOQ::Util::TreeAutomata::random(n)}) {
+        AUTOQ::Util::TreeAutomata after = before;
         int loop = 2;
         for (int i=0; i<loop; i++) {
             after.CNOT(n*2/3, n/3);
 
             if (i < loop-1) {
                 if (before.name == "Random")
-                    BOOST_REQUIRE_MESSAGE(!VATA::Util::TreeAutomata::check_equal_aut(before, after), "");
+                    BOOST_REQUIRE_MESSAGE(!AUTOQ::Util::TreeAutomata::check_equal_aut(before, after), "");
             } else {
-                BOOST_REQUIRE_MESSAGE(VATA::Util::TreeAutomata::check_equal_aut(before, after), "");
+                BOOST_REQUIRE_MESSAGE(AUTOQ::Util::TreeAutomata::check_equal_aut(before, after), "");
             }
         }
     }
@@ -253,16 +253,16 @@ BOOST_AUTO_TEST_CASE(CNOT_gate_twice_to_identity)
 
 BOOST_AUTO_TEST_CASE(CZ_gate_twice_to_identity)
 {
-    for (const auto &before : {VATA::Util::TreeAutomata::uniform(size), VATA::Util::TreeAutomata::basis(size)}) {
-        VATA::Util::TreeAutomata after = before;
+    for (const auto &before : {AUTOQ::Util::TreeAutomata::uniform(size), AUTOQ::Util::TreeAutomata::basis(size)}) {
+        AUTOQ::Util::TreeAutomata after = before;
         int loop = 2;
         for (int i=0; i<loop; i++) {
             after.CZ(size*2/3, size/3);
 
             if (i < loop-1) {
-                BOOST_REQUIRE_MESSAGE(!VATA::Util::TreeAutomata::check_equal_aut(before, after), "");
+                BOOST_REQUIRE_MESSAGE(!AUTOQ::Util::TreeAutomata::check_equal_aut(before, after), "");
             } else {
-                BOOST_REQUIRE_MESSAGE(VATA::Util::TreeAutomata::check_equal_aut(before, after), "");
+                BOOST_REQUIRE_MESSAGE(AUTOQ::Util::TreeAutomata::check_equal_aut(before, after), "");
             }
         }
     }
@@ -270,21 +270,21 @@ BOOST_AUTO_TEST_CASE(CZ_gate_twice_to_identity)
 
 BOOST_AUTO_TEST_CASE(Toffoli_gate_twice_to_identity)
 {
-    for (const auto &before : {VATA::Util::TreeAutomata::uniform(3),
-                               VATA::Util::TreeAutomata::basis(3),
-                               VATA::Util::TreeAutomata::random(3)}) {
+    for (const auto &before : {AUTOQ::Util::TreeAutomata::uniform(3),
+                               AUTOQ::Util::TreeAutomata::basis(3),
+                               AUTOQ::Util::TreeAutomata::random(3)}) {
         int v[] = {1,2,3};
         do {
-            VATA::Util::TreeAutomata after = before;
+            AUTOQ::Util::TreeAutomata after = before;
             int loop = 2;
             for (int i=0; i<loop; i++) {
                 after.Toffoli(v[0], v[1], v[2]);
 
                 if (i < loop-1) {
                     if (before.name == "Random")
-                        BOOST_REQUIRE_MESSAGE(!VATA::Util::TreeAutomata::check_equal_aut(before, after), "");
+                        BOOST_REQUIRE_MESSAGE(!AUTOQ::Util::TreeAutomata::check_equal_aut(before, after), "");
                 } else {
-                    BOOST_REQUIRE_MESSAGE(VATA::Util::TreeAutomata::check_equal_aut(before, after), "");
+                    BOOST_REQUIRE_MESSAGE(AUTOQ::Util::TreeAutomata::check_equal_aut(before, after), "");
                 }
             }
         } while (std::next_permutation(v, v+3));
@@ -293,21 +293,21 @@ BOOST_AUTO_TEST_CASE(Toffoli_gate_twice_to_identity)
 
 // BOOST_AUTO_TEST_CASE(Fredkin_gate_twice_to_identity)
 // {
-//     for (const auto &before : {VATA::Util::TreeAutomata::uniform(3),
-//                                VATA::Util::TreeAutomata::basis(3),
-//                                VATA::Util::TreeAutomata::random(3)}) {
+//     for (const auto &before : {AUTOQ::Util::TreeAutomata::uniform(3),
+//                                AUTOQ::Util::TreeAutomata::basis(3),
+//                                AUTOQ::Util::TreeAutomata::random(3)}) {
 //         int v[] = {1,2,3};
 //         do {
-//             VATA::Util::TreeAutomata after = before;
+//             AUTOQ::Util::TreeAutomata after = before;
 //             int loop = 2;
 //             for (int i=0; i<loop; i++) {
 //                 after.Fredkin(v[0], v[1], v[2]);
 
 //                 if (i < loop-1) {
 //                     if (before.name == "Random")
-//                         BOOST_REQUIRE_MESSAGE(!VATA::Util::TreeAutomata::check_equal_aut(before, after), "a");
+//                         BOOST_REQUIRE_MESSAGE(!AUTOQ::Util::TreeAutomata::check_equal_aut(before, after), "a");
 //                 } else {
-//                     BOOST_REQUIRE_MESSAGE(VATA::Util::TreeAutomata::check_equal_aut(before, after), "b");
+//                     BOOST_REQUIRE_MESSAGE(AUTOQ::Util::TreeAutomata::check_equal_aut(before, after), "b");
 //                 }
 //             }
 //         } while (std::next_permutation(v, v+3));
@@ -317,7 +317,7 @@ BOOST_AUTO_TEST_CASE(Toffoli_gate_twice_to_identity)
 BOOST_AUTO_TEST_CASE(Bernstein_Vazirani)
 {
     int n = size;
-    auto aut = VATA::Util::TreeAutomata::zero(n+1);
+    auto aut = AUTOQ::Util::TreeAutomata::zero(n+1);
 
     for (int i=1; i<=n+1; i++) {
         aut.H(i);
@@ -332,7 +332,7 @@ BOOST_AUTO_TEST_CASE(Bernstein_Vazirani)
         aut.H(i);
     }
 
-    VATA::Util::TreeAutomata ans;
+    AUTOQ::Util::TreeAutomata ans;
     ans.name = "Bernstein-Vazirani";
     ans.qubitNum = n+1;
     assert(ans.qubitNum >= 2);
@@ -347,21 +347,21 @@ BOOST_AUTO_TEST_CASE(Bernstein_Vazirani)
     ans.transitions[{0,0,0,0,0}][{}] = {ans.stateNum++};
     ans.transitions[{1,0,0,0,1}][{}] = {ans.stateNum++};
     ans.transitions[{-1,0,0,0,1}][{}] = {ans.stateNum++};
-    ans.transitions[{ans.qubitNum}][{ans.stateNum - 3, ans.stateNum - 3}] = {static_cast<VATA::Util::TreeAutomata::State>(2*(ans.qubitNum-1) - 1)};
-    ans.transitions[{ans.qubitNum}][{ans.stateNum - 2, ans.stateNum - 1}] = {static_cast<VATA::Util::TreeAutomata::State>(2*(ans.qubitNum-1))};
+    ans.transitions[{ans.qubitNum}][{ans.stateNum - 3, ans.stateNum - 3}] = {static_cast<AUTOQ::Util::TreeAutomata::State>(2*(ans.qubitNum-1) - 1)};
+    ans.transitions[{ans.qubitNum}][{ans.stateNum - 2, ans.stateNum - 1}] = {static_cast<AUTOQ::Util::TreeAutomata::State>(2*(ans.qubitNum-1))};
 
     // std::ofstream fileRhs("reference_answers/Bernstein_Vazirani" + std::to_string(n) + ".txt");
-	// fileRhs << VATA::Serialization::TimbukSerializer::Serialize(ans);
+	// fileRhs << AUTOQ::Serialization::TimbukSerializer::Serialize(ans);
 	// fileRhs.close();
 
-    BOOST_REQUIRE_MESSAGE(VATA::Util::TreeAutomata::check_equal_aut(aut, ans), "");
+    BOOST_REQUIRE_MESSAGE(AUTOQ::Util::TreeAutomata::check_equal_aut(aut, ans), "");
 }
 
-void dfs(const std::map<VATA::Util::TreeAutomata::State, VATA::Util::TreeAutomata::StateVector> &edge,
-         const std::map<VATA::Util::TreeAutomata::State, VATA::Util::TreeAutomata::Symbol> &leaf,
-         const VATA::Util::TreeAutomata::StateVector &layer,
+void dfs(const std::map<AUTOQ::Util::TreeAutomata::State, AUTOQ::Util::TreeAutomata::StateVector> &edge,
+         const std::map<AUTOQ::Util::TreeAutomata::State, AUTOQ::Util::TreeAutomata::Symbol> &leaf,
+         const AUTOQ::Util::TreeAutomata::StateVector &layer,
          std::vector<double> &prob) {
-    for (const VATA::Util::TreeAutomata::State &s : layer) {
+    for (const AUTOQ::Util::TreeAutomata::State &s : layer) {
         const auto &new_layer = edge.at(s);
         if (!new_layer.empty()) {
             dfs(edge, leaf, new_layer, prob);
@@ -381,8 +381,8 @@ void dfs(const std::map<VATA::Util::TreeAutomata::State, VATA::Util::TreeAutomat
 
 // BOOST_AUTO_TEST_CASE(NOW)
 // {
-//     std::cout << VATA::Util::Convert::ToString(std::numeric_limits<__int128_t>::max()) << "\n";
-//     std::cout << VATA::Util::Convert::ToString(std::numeric_limits<__int128_t>::min()) << "\n";
+//     std::cout << AUTOQ::Util::Convert::ToString(std::numeric_limits<__int128_t>::max()) << "\n";
+//     std::cout << AUTOQ::Util::Convert::ToString(std::numeric_limits<__int128_t>::min()) << "\n";
 // }
 
 // Ref: https://demonstrations.wolfram.com/QuantumCircuitImplementingGroversSearchAlgorithm
@@ -391,7 +391,7 @@ BOOST_AUTO_TEST_CASE(Grover_Search)
 {
     int n = 4;
     assert(n >= 2);
-    auto aut = VATA::Util::TreeAutomata::basis_zero_one_zero(n);
+    auto aut = AUTOQ::Util::TreeAutomata::basis_zero_one_zero(n);
 
     /********************************/
     for (int i=1; i<=n; i++) aut.X(i);
@@ -450,7 +450,7 @@ BOOST_AUTO_TEST_CASE(Grover_Search)
 
     // std::ofstream fileRhs("reference_answers/Grover" + std::to_string(n) + ".txt");
     // aut.fraction_simplification();
-	// fileRhs << VATA::Serialization::TimbukSerializer::Serialize(aut);
+	// fileRhs << AUTOQ::Serialization::TimbukSerializer::Serialize(aut);
 	// fileRhs.close();
 
     // char cwd[PATH_MAX];
@@ -463,15 +463,15 @@ BOOST_AUTO_TEST_CASE(Grover_Search)
     std::ifstream t("../../reference_answers/Grover" + std::to_string(n) + ".txt");
     std::stringstream buffer;
     buffer << t.rdbuf();
-    auto ans = VATA::Parsing::TimbukParser<VATA::Util::TreeAutomata::InitialSymbol>::ParseString(buffer.str());
+    auto ans = AUTOQ::Parsing::TimbukParser<AUTOQ::Util::TreeAutomata::InitialSymbol>::ParseString(buffer.str());
     // int n = (aut.qubitNum + 1) / 3;
     // aut.print();
 
     /******************************** Answer Validation *********************************/
-    BOOST_REQUIRE_MESSAGE(VATA::Util::TreeAutomata::check_equal_aut(aut, ans), "");
-    // std::map<VATA::Util::TreeAutomata::State, VATA::Util::TreeAutomata::StateVector> edge;
-    // std::map<VATA::Util::TreeAutomata::State, VATA::Util::TreeAutomata::Symbol> leaf;
-    // std::vector<VATA::Util::TreeAutomata::StateVector> first_layers;
+    BOOST_REQUIRE_MESSAGE(AUTOQ::Util::TreeAutomata::check_equal_aut(aut, ans), "");
+    // std::map<AUTOQ::Util::TreeAutomata::State, AUTOQ::Util::TreeAutomata::StateVector> edge;
+    // std::map<AUTOQ::Util::TreeAutomata::State, AUTOQ::Util::TreeAutomata::Symbol> leaf;
+    // std::vector<AUTOQ::Util::TreeAutomata::StateVector> first_layers;
     // for (const auto &t : aut.transitions) {
     //     for (const auto &in_out : t.second) {
     //         const auto &in = in_out.first;
@@ -498,7 +498,7 @@ BOOST_AUTO_TEST_CASE(Grover_Search)
     // for (const auto &fl : first_layers) {
     //     std::vector<double> prob;
     //     dfs(edge, leaf, fl, prob);
-    //     // std::cout << VATA::Util::Convert::ToString(prob) << "\n";
+    //     // std::cout << AUTOQ::Util::Convert::ToString(prob) << "\n";
     //     unsigned ans = UINT_MAX / 2;
     //     for (unsigned i=0; i<prob.size(); i++) {
     //         if (prob[i] > 0) { /* in fact check != (make the compiler not complain) */
@@ -544,7 +544,7 @@ BOOST_AUTO_TEST_CASE(Grover_Search_only_one_oracle)
 {
     int n = 4;
     assert(n >= 2);
-    auto aut = VATA::Util::TreeAutomata::zero_one_zero(n);
+    auto aut = AUTOQ::Util::TreeAutomata::zero_one_zero(n);
 
     /***********************/
     unsigned ans = 0;
@@ -611,9 +611,9 @@ BOOST_AUTO_TEST_CASE(Grover_Search_only_one_oracle)
     }
 
     /******************************** Answer Validation *********************************/
-    std::map<VATA::Util::TreeAutomata::State, VATA::Util::TreeAutomata::StateVector> edge;
-    std::map<VATA::Util::TreeAutomata::State, VATA::Util::TreeAutomata::Symbol> leaf;
-    std::vector<VATA::Util::TreeAutomata::StateVector> first_layers;
+    std::map<AUTOQ::Util::TreeAutomata::State, AUTOQ::Util::TreeAutomata::StateVector> edge;
+    std::map<AUTOQ::Util::TreeAutomata::State, AUTOQ::Util::TreeAutomata::Symbol> leaf;
+    std::vector<AUTOQ::Util::TreeAutomata::StateVector> first_layers;
     for (const auto &t : aut.transitions) {
         const auto &symbol = t.first;
         for (const auto &in_out : t.second) {
@@ -644,7 +644,7 @@ BOOST_AUTO_TEST_CASE(Grover_Search_only_one_oracle)
     for (const auto &fl : first_layers) {
         std::vector<double> prob;
         dfs(edge, leaf, fl, prob);
-        // std::cout << prob.size() << VATA::Util::Convert::ToString(prob) << "\n";
+        // std::cout << prob.size() << AUTOQ::Util::Convert::ToString(prob) << "\n";
         std::vector<double> nonzero;
         for (unsigned i=0; i<prob.size(); i++) {
             if (i % two_n_minus_one != 0) {
@@ -679,17 +679,17 @@ BOOST_AUTO_TEST_CASE(Symbolic_into_Predicates)
     std::string path = "../../benchmarks/SymbolicGrover/";
     for (const auto & entry : fs::directory_iterator(path)) {
         // std::cout << entry.path() << std::endl;
-        VATA::Util::SymbolicAutomata aut = VATA::Parsing::TimbukParser<VATA::Util::Symbolic>::FromFileToAutomata((std::string(entry.path()) + std::string("/pre.aut")).c_str());
+        AUTOQ::Util::SymbolicAutomata aut = AUTOQ::Parsing::TimbukParser<AUTOQ::Util::Symbolic>::FromFileToAutomata((std::string(entry.path()) + std::string("/pre.aut")).c_str());
         aut.execute((std::string(entry.path()) + std::string("/circuit.qasm")).c_str());
         aut.fraction_simplification();
 
-        VATA::Util::PredicateAutomata spec = VATA::Parsing::TimbukParser<VATA::Util::Predicate>::FromFileToAutomata((std::string(entry.path()) + std::string("/spec.aut")).c_str());
+        AUTOQ::Util::PredicateAutomata spec = AUTOQ::Parsing::TimbukParser<AUTOQ::Util::Predicate>::FromFileToAutomata((std::string(entry.path()) + std::string("/spec.aut")).c_str());
 
         std::ifstream t(std::string(entry.path()) + std::string("/constraint.txt"));
         std::stringstream buffer;
         buffer << t.rdbuf();
-        VATA::Util::Constraint C(buffer.str().c_str());
+        AUTOQ::Util::Constraint C(buffer.str().c_str());
 
-        BOOST_REQUIRE_MESSAGE(VATA::Util::is_spec_satisfied(C, aut, spec), entry.path());
+        BOOST_REQUIRE_MESSAGE(AUTOQ::Util::is_spec_satisfied(C, aut, spec), entry.path());
     }
 }

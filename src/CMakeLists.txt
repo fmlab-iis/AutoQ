@@ -3,13 +3,13 @@ cmake_minimum_required(VERSION 3.0.0)
 set(CMAKE_COLOR_MAKEFILE ON)
 #set(CMAKE_VERBOSE_MAKEFILE ON)
 
-project(vata)
+project(autoq)
 
 # Export compile commands to be used with YouCompleteMe
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-# Flags for VATA
-set(vata_cxx_compiler_flags
+# Flags for AUTOQ
+set(autoq_cxx_compiler_flags
   -pedantic-errors
   -Wextra
   -Wall
@@ -23,7 +23,7 @@ set(vata_cxx_compiler_flags
   -Wold-style-cast
 )
 
-foreach(flag ${vata_cxx_compiler_flags})
+foreach(flag ${autoq_cxx_compiler_flags})
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${flag}")
 endforeach()
 
@@ -33,7 +33,7 @@ endforeach()
 
 include_directories(../include)
 
-add_library(libvata STATIC
+add_library(libautoq STATIC
 	# aut_base.cc
 	# explicit_tree_aut_core.cc
 	# explicit_tree_comp_down.cc
@@ -62,7 +62,7 @@ add_library(libvata STATIC
 	util/gate_operation.cc
 )
 
-set_target_properties(libvata PROPERTIES
-  OUTPUT_NAME vata
+set_target_properties(libautoq PROPERTIES
+  OUTPUT_NAME autoq
   CLEAN_DIRECT_OUTPUT 1
 )

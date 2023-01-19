@@ -1,5 +1,5 @@
 /*****************************************************************************
- *  VATA Tree Automata Library
+ *  AUTOQ Tree Automata Library
  *
  *  Copyright (c) 2011  Ondra Lengal <ilengal@fit.vutbr.cz>
  *
@@ -8,17 +8,17 @@
  *
  *****************************************************************************/
 
-#ifndef _VATA_TIMBUK_PARSER_HH_
-#define _VATA_TIMBUK_PARSER_HH_
+#ifndef _AUTOQ_TIMBUK_PARSER_HH_
+#define _AUTOQ_TIMBUK_PARSER_HH_
 
-// VATA headers
-#include <vata/vata.hh>
-#include <vata/parsing/abstr_parser.hh>
-#include <vata/util/convert.hh>
-#include <vata/util/triple.hh>
-#include <vata/util/aut_description.hh>
+// AUTOQ headers
+#include <autoq/autoq.hh>
+#include <autoq/parsing/abstr_parser.hh>
+#include <autoq/util/convert.hh>
+#include <autoq/util/triple.hh>
+#include <autoq/util/aut_description.hh>
 
-namespace VATA
+namespace AUTOQ
 {
 	namespace Parsing
 	{
@@ -34,19 +34,19 @@ namespace VATA
  * This class is a parser for automata in the Timbuk format.
  */
 template <typename InitialSymbol>
-class VATA::Parsing::TimbukParser //:
-	// public VATA::Parsing::AbstrParser
+class AUTOQ::Parsing::TimbukParser //:
+	// public AUTOQ::Parsing::AbstrParser
 {
 public:   // methods
 
 	/**
-	 * @copydoc  VATA::Parsing::AbstrParser::ParseString
+	 * @copydoc  AUTOQ::Parsing::AbstrParser::ParseString
 	 */
-	static VATA::Util::Automata<InitialSymbol> ParseString(const std::string& str);
-    static VATA::Util::Automata<InitialSymbol> FromFileToAutomata(const char* filepath);
+	static AUTOQ::Util::Automata<InitialSymbol> ParseString(const std::string& str);
+    static AUTOQ::Util::Automata<InitialSymbol> FromFileToAutomata(const char* filepath);
 
 	/**
-	 * @copydoc  VATA::Parsing::AbstrParser::~AbstrParser
+	 * @copydoc  AUTOQ::Parsing::AbstrParser::~AbstrParser
 	 */
 	virtual ~TimbukParser()
 	{ }

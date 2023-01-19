@@ -1,5 +1,5 @@
 /*****************************************************************************
- *  VATA Tree Automata Library
+ *  AUTOQ Tree Automata Library
  *
  *  Copyright (c) 2011  Ondra Lengal <ilengal@fit.vutbr.cz>
  *
@@ -12,19 +12,19 @@
 #include <regex>
 #include <fstream>
 
-// VATA headers
-#include <vata/vata.hh>
-#include <vata/parsing/timbuk_parser.hh>
-#include <vata/util/aut_description.hh>
+// AUTOQ headers
+#include <autoq/autoq.hh>
+#include <autoq/parsing/timbuk_parser.hh>
+#include <autoq/util/aut_description.hh>
 
-using VATA::Parsing::AbstrParser;
-using VATA::Parsing::TimbukParser;
-using VATA::Util::Predicate;
-using VATA::Util::Automata;
-using VATA::Util::TreeAutomata;
-using VATA::Util::SymbolicAutomata;
-using VATA::Util::PredicateAutomata;
-using VATA::Util::Convert;
+using AUTOQ::Parsing::AbstrParser;
+using AUTOQ::Parsing::TimbukParser;
+using AUTOQ::Util::Predicate;
+using AUTOQ::Util::Automata;
+using AUTOQ::Util::TreeAutomata;
+using AUTOQ::Util::SymbolicAutomata;
+using AUTOQ::Util::PredicateAutomata;
+using AUTOQ::Util::Convert;
 
 
 /**
@@ -149,7 +149,7 @@ SymbolicAutomata::Symbol symbol_converter2(const std::string& str)
             try {
                 auto v = boost::lexical_cast<SymbolicAutomata::InitialSymbol::Entry>(str.substr(i, j-i).c_str());
                 if (v == 0)
-                    temp.push_back(VATA::Util::Symbolic::Map());
+                    temp.push_back(AUTOQ::Util::Symbolic::Map());
                 else
                     temp.push_back({{"1", v}});
             } catch (boost::bad_lexical_cast& e) {
@@ -161,7 +161,7 @@ SymbolicAutomata::Symbol symbol_converter2(const std::string& str)
         try {
             auto v = boost::lexical_cast<SymbolicAutomata::InitialSymbol::Entry>(str.c_str());
             if (v == 0)
-                temp.push_back(VATA::Util::Symbolic::Map());
+                temp.push_back(AUTOQ::Util::Symbolic::Map());
             else
                 temp.push_back({{"1", v}});
         } catch (boost::bad_lexical_cast& e) {
@@ -443,6 +443,6 @@ Automata<InitialSymbol> TimbukParser<InitialSymbol>::FromFileToAutomata(const ch
 }
 
 // https://bytefreaks.net/programming-2/c/c-undefined-reference-to-templated-class-function
-template struct VATA::Parsing::TimbukParser<VATA::Util::Concrete>;
-template struct VATA::Parsing::TimbukParser<VATA::Util::Symbolic>;
-template struct VATA::Parsing::TimbukParser<VATA::Util::Predicate>;
+template struct AUTOQ::Parsing::TimbukParser<AUTOQ::Util::Concrete>;
+template struct AUTOQ::Parsing::TimbukParser<AUTOQ::Util::Symbolic>;
+template struct AUTOQ::Parsing::TimbukParser<AUTOQ::Util::Predicate>;

@@ -1,5 +1,5 @@
 /*****************************************************************************
- *  VATA Tree Automata Library
+ *  AUTOQ Tree Automata Library
  *
  *  Copyright (c) 2011  Ondra Lengal <ilengal@fit.vutbr.cz>
  *
@@ -8,14 +8,14 @@
  *
  *****************************************************************************/
 
-// VATA headers
-#include <vata/vata.hh>
-#include <vata/util/util.hh>
+// AUTOQ headers
+#include <autoq/autoq.hh>
+#include <autoq/util/util.hh>
 
 // Standard library headers
 #include <fstream>
 
-std::string VATA::Util::ReadFile(const std::string& fileName)
+std::string AUTOQ::Util::ReadFile(const std::string& fileName)
 {
 	std::ifstream t(fileName);
 	if (!t)
@@ -35,7 +35,7 @@ std::string VATA::Util::ReadFile(const std::string& fileName)
 	return str;
 }
 
-bool VATA::Util::ShellCmd(const std::string &cmd, std::string &result) {
+bool AUTOQ::Util::ShellCmd(const std::string &cmd, std::string &result) {
     char buffer[512];
     result = "";
 
@@ -56,12 +56,12 @@ bool VATA::Util::ShellCmd(const std::string &cmd, std::string &result) {
     return true;
 }
 
-// VATA::AutBase::StateDict VATA::Util::CreateProductStringToStateMap(
-// 	const VATA::AutBase::StateDict& lhsCont,
-// 	const VATA::AutBase::StateDict& rhsCont,
+// AUTOQ::AutBase::StateDict AUTOQ::Util::CreateProductStringToStateMap(
+// 	const AUTOQ::AutBase::StateDict& lhsCont,
+// 	const AUTOQ::AutBase::StateDict& rhsCont,
 // 	const AutBase::ProductTranslMap& translMap)
 // {
-// 	typedef VATA::AutBase::StateDict StateDict;
+// 	typedef AUTOQ::AutBase::StateDict StateDict;
 
 // 	StateDict result;
 
@@ -90,15 +90,15 @@ bool VATA::Util::ShellCmd(const std::string &cmd, std::string &result) {
 // }
 
 
-// VATA::AutBase::StateDict VATA::Util::CreateUnionStringToStateMap(
-// 	const VATA::AutBase::StateDict& lhsCont,
-// 	const VATA::AutBase::StateDict& rhsCont,
+// AUTOQ::AutBase::StateDict AUTOQ::Util::CreateUnionStringToStateMap(
+// 	const AUTOQ::AutBase::StateDict& lhsCont,
+// 	const AUTOQ::AutBase::StateDict& rhsCont,
 // 	const AutBase::StateToStateMap* translMapLhs,
 // 	const AutBase::StateToStateMap* translMapRhs)
 // {
-// 	typedef VATA::AutBase::StateType StateType;
-// 	typedef VATA::AutBase::StateToStateMap StateToStateMap;
-// 	typedef VATA::AutBase::StateDict StateDict;
+// 	typedef AUTOQ::AutBase::StateType StateType;
+// 	typedef AUTOQ::AutBase::StateToStateMap StateToStateMap;
+// 	typedef AUTOQ::AutBase::StateDict StateDict;
 
 // 	StateDict result;
 

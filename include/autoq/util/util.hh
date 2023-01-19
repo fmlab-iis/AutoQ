@@ -1,5 +1,5 @@
 /*****************************************************************************
- *  VATA Tree Automata Library
+ *  AUTOQ Tree Automata Library
  *
  *  Copyright (c) 2011  Ondra Lengal <ilengal@fit.vutbr.cz>
  *
@@ -8,16 +8,16 @@
  *
  *****************************************************************************/
 
-#ifndef _VATA_UTIL_HH_
-#define _VATA_UTIL_HH_
+#ifndef _AUTOQ_UTIL_HH_
+#define _AUTOQ_UTIL_HH_
 
 #include <vector>
 
-// VATA headers
-#include <vata/vata.hh>
-// #include <vata/aut_base.hh>
+// AUTOQ headers
+#include <autoq/autoq.hh>
+// #include <autoq/aut_base.hh>
 
-namespace VATA
+namespace AUTOQ
 {
 	namespace Util
 	{
@@ -33,16 +33,16 @@ namespace VATA
 		// template <class Container1, class T, class Translator>
 		// void RebindMap2(Container1& dst, const std::vector<T>& src, const Translator& transl);
 
-		// VATA::AutBase::StateDict CreateProductStringToStateMap(
-		// 	const VATA::AutBase::StateDict& lhsCont,
-		// 	const VATA::AutBase::StateDict& rhsCont,
-		// 	const VATA::AutBase::ProductTranslMap& translMap);
+		// AUTOQ::AutBase::StateDict CreateProductStringToStateMap(
+		// 	const AUTOQ::AutBase::StateDict& lhsCont,
+		// 	const AUTOQ::AutBase::StateDict& rhsCont,
+		// 	const AUTOQ::AutBase::ProductTranslMap& translMap);
 
-		// VATA::AutBase::StateDict CreateUnionStringToStateMap(
-		// 	const VATA::AutBase::StateDict& lhsCont,
-		// 	const VATA::AutBase::StateDict& rhsCont,
-		// 	const VATA::AutBase::StateToStateMap* translMapLhs = nullptr,
-		// 	const VATA::AutBase::StateToStateMap* translMapRhs = nullptr);
+		// AUTOQ::AutBase::StateDict CreateUnionStringToStateMap(
+		// 	const AUTOQ::AutBase::StateDict& lhsCont,
+		// 	const AUTOQ::AutBase::StateDict& rhsCont,
+		// 	const AUTOQ::AutBase::StateToStateMap* translMapLhs = nullptr,
+		// 	const AUTOQ::AutBase::StateToStateMap* translMapRhs = nullptr);
 
 		// constexpr inline size_t IntExp2(size_t val)
 		// {
@@ -52,7 +52,7 @@ namespace VATA
 }
 
 // template <class Container, class Translator>
-// Container VATA::Util::RebindMap(const Container& container,
+// Container AUTOQ::Util::RebindMap(const Container& container,
 // 	const Translator& transl)
 // {
 // 	Container result;
@@ -76,7 +76,7 @@ namespace VATA
 // 	class Container1,
 // 	class Container2,
 // 	class Translator>
-// void VATA::Util::RebindMap2(
+// void AUTOQ::Util::RebindMap2(
 // 	Container1&            dst,
 // 	const Container2&      src,
 // 	const Translator&      transl)
@@ -91,7 +91,7 @@ namespace VATA
 // 	class Container1,
 // 	class T,
 // 	class Translator>
-// void VATA::Util::RebindMap2(
+// void AUTOQ::Util::RebindMap2(
 // 	Container1&               dst,
 // 	const std::vector<T>&     src,
 // 	const Translator&         transl)

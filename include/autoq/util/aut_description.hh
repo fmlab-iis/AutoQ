@@ -1,5 +1,5 @@
 /*****************************************************************************
- *  VATA Tree Automata Library
+ *  AUTOQ Tree Automata Library
  *
  *  Copyright (c) 2011  Ondra Lengal <ilengal@fit.vutbr.cz>
  *
@@ -8,20 +8,20 @@
  *
  *****************************************************************************/
 
-#ifndef _VATA_AUT_DESCRIPTION_HH_
-#define _VATA_AUT_DESCRIPTION_HH_
+#ifndef _AUTOQ_AUT_DESCRIPTION_HH_
+#define _AUTOQ_AUT_DESCRIPTION_HH_
 
-// VATA headers
+// AUTOQ headers
 #include <regex>
 #include <chrono>
 #include <algorithm>
-#include <vata/vata.hh>
-#include <vata/util/triple.hh>
-#include <vata/util/two_way_dict.hh>
+#include <autoq/autoq.hh>
+#include <autoq/util/triple.hh>
+#include <autoq/util/two_way_dict.hh>
 
 #include <boost/multiprecision/cpp_int.hpp>
 
-namespace VATA
+namespace AUTOQ
 {
 	namespace Util
 	{
@@ -37,7 +37,7 @@ namespace VATA
 }
 
 template <typename TT>
-struct VATA::Util::Automata
+struct AUTOQ::Util::Automata
 {
 public:   // data types
     typedef TT InitialSymbol;
@@ -218,9 +218,9 @@ public:
 
 // Concrete initial symbol
 typedef std::vector<boost::multiprecision::cpp_int> stdvectorboostmultiprecisioncpp_int;
-struct VATA::Util::Concrete : stdvectorboostmultiprecisioncpp_int {
+struct AUTOQ::Util::Concrete : stdvectorboostmultiprecisioncpp_int {
     using stdvectorboostmultiprecisioncpp_int::stdvectorboostmultiprecisioncpp_int;
-    typedef typename VATA::Util::Concrete::value_type Entry;
+    typedef typename AUTOQ::Util::Concrete::value_type Entry;
     // Notice that if we do not use is_convertible_v, type int will not be accepted in this case.
     template <typename T, typename = std::enable_if_t<std::is_convertible_v<T, Entry>>>
         Concrete(T qubit) : stdvectorboostmultiprecisioncpp_int({qubit}) {} 
@@ -229,7 +229,7 @@ struct VATA::Util::Concrete : stdvectorboostmultiprecisioncpp_int {
     bool is_internal() const { return size() < 5; }
     void back_to_zero() { at(0) = at(1) = at(2) = at(3) = 0; }
     friend std::ostream& operator<<(std::ostream& os, const Concrete& obj) {
-        os << VATA::Util::Convert::ToString(static_cast<stdvectorboostmultiprecisioncpp_int>(obj));
+        os << AUTOQ::Util::Convert::ToString(static_cast<stdvectorboostmultiprecisioncpp_int>(obj));
         return os;
     }
     Concrete operator+(const Concrete &o) const { return binary_operation(o, true); }
@@ -298,11 +298,11 @@ struct VATA::Util::Concrete : stdvectorboostmultiprecisioncpp_int {
 
 // Symbolic initial symbol
 typedef std::vector<std::map<std::string, boost::multiprecision::cpp_int>> stdvectorstdmapstdstringboostmultiprecisioncpp_int;
-struct VATA::Util::Symbolic : stdvectorstdmapstdstringboostmultiprecisioncpp_int {
+struct AUTOQ::Util::Symbolic : stdvectorstdmapstdstringboostmultiprecisioncpp_int {
     using stdvectorstdmapstdstringboostmultiprecisioncpp_int::stdvectorstdmapstdstringboostmultiprecisioncpp_int;
-    typedef typename VATA::Util::Symbolic::value_type Map;
-    typedef typename VATA::Util::Symbolic::value_type::value_type Pair;
-    typedef typename VATA::Util::Symbolic::value_type::mapped_type Entry;
+    typedef typename AUTOQ::Util::Symbolic::value_type Map;
+    typedef typename AUTOQ::Util::Symbolic::value_type::value_type Pair;
+    typedef typename AUTOQ::Util::Symbolic::value_type::mapped_type Entry;
     template <typename T, typename = std::enable_if_t<std::is_convertible_v<T, Entry>>>
         Symbolic(T qubit) : stdvectorstdmapstdstringboostmultiprecisioncpp_int({Map{{"1", qubit}}}) {}
     Entry qubit() const { return is_leaf() ? 0 : at(0).at("1"); }
@@ -312,7 +312,7 @@ struct VATA::Util::Symbolic : stdvectorstdmapstdstringboostmultiprecisioncpp_int
         std::fill(begin(), begin()+4, Map());
     }
     friend std::ostream& operator<<(std::ostream& os, const Symbolic& obj) {
-        os << VATA::Util::Convert::ToString(static_cast<stdvectorstdmapstdstringboostmultiprecisioncpp_int>(obj));
+        os << AUTOQ::Util::Convert::ToString(static_cast<stdvectorstdmapstdstringboostmultiprecisioncpp_int>(obj));
         return os;
     }
     Symbolic operator+(const Symbolic &o) const { return binary_operation(o, true); }
@@ -404,7 +404,7 @@ struct VATA::Util::Symbolic : stdvectorstdmapstdstringboostmultiprecisioncpp_int
     }
 };
 
-struct VATA::Util::Predicate : std::string {
+struct AUTOQ::Util::Predicate : std::string {
     using std::string::string;
     bool is_leaf_v = true;
     template <typename T, typename = std::enable_if_t<std::is_convertible_v<T, boost::multiprecision::cpp_int>>>
@@ -414,7 +414,7 @@ struct VATA::Util::Predicate : std::string {
     boost::multiprecision::cpp_int qubit() const { return is_leaf() ? 0 : boost::multiprecision::cpp_int(*this); }
 };
 
-struct VATA::Util::Constraint {
+struct AUTOQ::Util::Constraint {
     std::string content;
     Constraint(const std::string &s) : content(s) {}
     operator std::string() const { return content; }
@@ -435,7 +435,7 @@ struct VATA::Util::Constraint {
     }
 };
 
-namespace VATA {
+namespace AUTOQ {
 	namespace Util {
         bool is_spec_satisfied(const Constraint &C, const SymbolicAutomata &Ae, const PredicateAutomata &As);
         bool check_validity(Constraint C, const PredicateAutomata::InitialSymbol &ps, const SymbolicAutomata::InitialSymbol &te);
@@ -458,16 +458,16 @@ namespace std {
 //             return std::hash<__uint64_t>{}(static_cast<__uint64_t>(var) ^ static_cast<__uint64_t>(var >> 64));
 //         }
 //     };
-    template <> struct hash<typename VATA::Util::TreeAutomata::Symbol> {
-        size_t operator()(const VATA::Util::TreeAutomata::Symbol& obj) const {
+    template <> struct hash<typename AUTOQ::Util::TreeAutomata::Symbol> {
+        size_t operator()(const AUTOQ::Util::TreeAutomata::Symbol& obj) const {
             std::size_t seed = 0;
             boost::hash_combine(seed, obj.first);
             boost::hash_combine(seed, obj.second);
             return seed;
         }
     };
-    template <> struct hash<typename VATA::Util::SymbolicAutomata::Symbol> {
-        size_t operator()(const VATA::Util::SymbolicAutomata::Symbol& obj) const {
+    template <> struct hash<typename AUTOQ::Util::SymbolicAutomata::Symbol> {
+        size_t operator()(const AUTOQ::Util::SymbolicAutomata::Symbol& obj) const {
             std::size_t seed = 0;
             boost::hash_combine(seed, obj.first);
             boost::hash_combine(seed, obj.second);

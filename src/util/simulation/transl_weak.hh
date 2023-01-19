@@ -1,5 +1,5 @@
 /*****************************************************************************
- *  VATA Tree Automata Library
+ *  AUTOQ Tree Automata Library
  *
  *  Copyright (c) 2011  Ondra Lengal <ilengal@fit.vutbr.cz>
  *
@@ -8,17 +8,17 @@
  *
  *****************************************************************************/
 
-#ifndef _VATA_TRANSL_WEAK_HH_
-#define _VATA_TRANSL_WEAK_HH_
+#ifndef _AUTOQ_TRANSL_WEAK_HH_
+#define _AUTOQ_TRANSL_WEAK_HH_
 
 #include <functional>
 
-// VATA headers
-#include <vata/vata.hh>
+// AUTOQ headers
+#include <autoq/autoq.hh>
 #include "abstract_transl.hh"
 
 
-namespace VATA
+namespace AUTOQ
 {
 	namespace Util
 	{
@@ -38,7 +38,7 @@ namespace VATA
  */
 template <
 	class Cont>
-class VATA::Util::TranslatorWeak :
+class AUTOQ::Util::TranslatorWeak :
 	public AbstractTranslator<typename Cont::key_type, typename Cont::mapped_type>
 {
 private:  // data types
@@ -117,7 +117,7 @@ template
 <
 	class Cont
 >
-class VATA::Util::TranslatorWeak2 :
+class AUTOQ::Util::TranslatorWeak2 :
 	public AbstractTranslator<typename Cont::key_type, typename Cont::mapped_type>
 {
 private:  // data types

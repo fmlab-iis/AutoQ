@@ -1,5 +1,5 @@
 /*****************************************************************************
- *  VATA Tree Automata Library
+ *  AUTOQ Tree Automata Library
  *
  *  Copyright (c) 2011  Ondra Lengal <ilengal@fit.vutbr.cz>
  *
@@ -10,8 +10,8 @@
  *
  *****************************************************************************/
 
-#ifndef _VATA_VATA_HH_
-#define _VATA_VATA_HH_
+#ifndef _AUTOQ_AUTOQ_HH_
+#define _AUTOQ_AUTOQ_HH_
 
 // Standard library headers
 #include <cassert>
@@ -23,19 +23,19 @@
 	#define DEBUG 0
 #endif
 
-#define VATA_LOG_PREFIX (std::string(__FILE__ ":" + VATA::Util::Convert::ToString(__LINE__) + ": "))
+#define AUTOQ_LOG_PREFIX (std::string(__FILE__ ":" + AUTOQ::Util::Convert::ToString(__LINE__) + ": "))
 
 /// @todo: maybe change logging to something like Boost::Log or Google's logging stuff?
-#define VATA_LOG_MESSAGE(severity, msg) (std::clog << #severity << ": " << (VATA_LOG_PREFIX) << msg << "\n")
+#define AUTOQ_LOG_MESSAGE(severity, msg) (std::clog << #severity << ": " << (AUTOQ_LOG_PREFIX) << msg << "\n")
 
-#define VATA_DEBUG(msg)    (VATA_LOG_MESSAGE(debug, msg))
-#define VATA_INFO(msg)     (VATA_LOG_MESSAGE(info, msg))
-#define VATA_NOTICE(msg)   (VATA_LOG_MESSAGE(notice, msg))
-#define VATA_WARN(msg)     (VATA_LOG_MESSAGE(warning, msg))
-#define VATA_ERROR(msg)    (VATA_LOG_MESSAGE(error, msg))
-#define VATA_CRIT(msg)     (VATA_LOG_MESSAGE(critical, msg))
-#define VATA_ALERT(msg)    (VATA_LOG_MESSAGE(alert, msg))
-#define VATA_FATAL(msg)    (VATA_LOG_MESSAGE(fatal, msg))
+#define AUTOQ_DEBUG(msg)    (AUTOQ_LOG_MESSAGE(debug, msg))
+#define AUTOQ_INFO(msg)     (AUTOQ_LOG_MESSAGE(info, msg))
+#define AUTOQ_NOTICE(msg)   (AUTOQ_LOG_MESSAGE(notice, msg))
+#define AUTOQ_WARN(msg)     (AUTOQ_LOG_MESSAGE(warning, msg))
+#define AUTOQ_ERROR(msg)    (AUTOQ_LOG_MESSAGE(error, msg))
+#define AUTOQ_CRIT(msg)     (AUTOQ_LOG_MESSAGE(critical, msg))
+#define AUTOQ_ALERT(msg)    (AUTOQ_LOG_MESSAGE(alert, msg))
+#define AUTOQ_FATAL(msg)    (AUTOQ_LOG_MESSAGE(fatal, msg))
 
 #if defined(__GNUC__) && !defined(__clang__)
 	#if ((__GNUC__ * 100) + __GNUC_MINOR__) >= 402

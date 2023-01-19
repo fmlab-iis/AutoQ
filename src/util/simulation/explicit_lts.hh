@@ -1,5 +1,5 @@
 /*****************************************************************************
- *  VATA Tree Automata Library
+ *  AUTOQ Tree Automata Library
  *
  *  Copyright (c) 2011  Jiri Simacek <isimacek@fit.vutbr.cz>
  *
@@ -8,8 +8,8 @@
  *
  *****************************************************************************/
 
-#ifndef _VATA_EXPLICIT_LTS_HH_
-#define _VATA_EXPLICIT_LTS_HH_
+#ifndef _AUTOQ_EXPLICIT_LTS_HH_
+#define _AUTOQ_EXPLICIT_LTS_HH_
 
 #include <vector>
 
@@ -17,9 +17,9 @@
 #include "smart_set.hh"
 
 
-namespace VATA { class ExplicitLTS; }
+namespace AUTOQ { class ExplicitLTS; }
 
-class VATA::ExplicitLTS {
+class AUTOQ::ExplicitLTS {
 
 	size_t states_;
 	size_t transitions_;

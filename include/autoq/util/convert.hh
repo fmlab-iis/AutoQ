@@ -1,5 +1,5 @@
 /*****************************************************************************
- *  VATA Tree Automata Library
+ *  AUTOQ Tree Automata Library
  *
  *  Copyright (c) 2011  Ondra Lengal <ilengal@fit.vutbr.cz>
  *
@@ -8,11 +8,11 @@
  *
  *****************************************************************************/
 
-#ifndef _VATA_CONVERT_HH_
-#define _VATA_CONVERT_HH_
+#ifndef _AUTOQ_CONVERT_HH_
+#define _AUTOQ_CONVERT_HH_
 
-// VATA headers
-#include <vata/vata.hh>
+// AUTOQ headers
+#include <autoq/autoq.hh>
 
 // Standard library headers
 #include <cassert>
@@ -29,7 +29,7 @@
 
 
 // insert class to proper namespace
-namespace VATA { namespace Util {	class Convert; } }
+namespace AUTOQ { namespace Util {	class Convert; } }
 
 
 /**
@@ -38,7 +38,7 @@ namespace VATA { namespace Util {	class Convert; } }
  *  This is a static class that constains useful methods for various
  *  conversions.
  */
-class VATA::Util::Convert
+class AUTOQ::Util::Convert
 {
 private:
 
@@ -563,7 +563,7 @@ public:
 };
 
 
-namespace VATA
+namespace AUTOQ
 {
 	namespace Util
 	{

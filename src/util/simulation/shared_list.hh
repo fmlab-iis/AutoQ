@@ -1,5 +1,5 @@
 /*****************************************************************************
- *  VATA Tree Automata Library
+ *  AUTOQ Tree Automata Library
  *
  *  Copyright (c) 2011  Jiri Simacek <isimacek@fit.vutbr.cz>
  *
@@ -8,11 +8,11 @@
  *
  *****************************************************************************/
 
-#ifndef _VATA_SHARED_LIST_HH_
-#define _VATA_SHARED_LIST_HH_
+#ifndef _AUTOQ_SHARED_LIST_HH_
+#define _AUTOQ_SHARED_LIST_HH_
 
 // insert class to proper namespace
-namespace VATA {
+namespace AUTOQ {
 	namespace Util {
 		template <class T> class SharedList;
 	}
@@ -24,7 +24,7 @@ namespace VATA {
  * A shared list with a reference counter
  */
 template <class T>
-class VATA::Util::SharedList {
+class AUTOQ::Util::SharedList {
 
 private:
 

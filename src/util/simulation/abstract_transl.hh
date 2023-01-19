@@ -1,5 +1,5 @@
 /*****************************************************************************
- *  VATA Tree Automata Library
+ *  AUTOQ Tree Automata Library
  *
  *  Copyright (c) 2011  Ondra Lengal <ilengal@fit.vutbr.cz>
  *
@@ -8,10 +8,10 @@
  *
  *****************************************************************************/
 
-#ifndef _VATA_ABSTRACT_TRANSL_HH_
-#define _VATA_ABSTRACT_TRANSL_HH_
+#ifndef _AUTOQ_ABSTRACT_TRANSL_HH_
+#define _AUTOQ_ABSTRACT_TRANSL_HH_
 
-namespace VATA
+namespace AUTOQ
 {
 	namespace Util
 	{

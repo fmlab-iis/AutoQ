@@ -1,4 +1,4 @@
-#include <vata/util/aut_description.hh>
+#include <autoq/util/aut_description.hh>
 
 // #define TO_QASM
 #define QASM_FILENAME "circuit.qasm"
@@ -39,7 +39,7 @@ namespace {
 }
 
 template <typename InitialSymbol>
-int VATA::Util::Automata<InitialSymbol>::count_transitions() {
+int AUTOQ::Util::Automata<InitialSymbol>::count_transitions() {
     int count = 0;
     for (const auto &t : transitions)
         for (const auto &in_outs : t.second) {
@@ -49,7 +49,7 @@ int VATA::Util::Automata<InitialSymbol>::count_transitions() {
 }
 
 template <typename InitialSymbol>
-void VATA::Util::Automata<InitialSymbol>::X(int k) {
+void AUTOQ::Util::Automata<InitialSymbol>::X(int k) {
     #ifdef TO_QASM
         system(("echo 'x qubits[" + std::to_string(k-1) + "];' >> " + QASM_FILENAME).c_str());
         return;
@@ -72,7 +72,7 @@ void VATA::Util::Automata<InitialSymbol>::X(int k) {
 }
 
 template <typename InitialSymbol>
-void VATA::Util::Automata<InitialSymbol>::Y(int k) {
+void AUTOQ::Util::Automata<InitialSymbol>::Y(int k) {
     #ifdef TO_QASM
         system(("echo 'y qubits[" + std::to_string(k-1) + "];' >> " + QASM_FILENAME).c_str());
         return;
@@ -112,7 +112,7 @@ void VATA::Util::Automata<InitialSymbol>::Y(int k) {
 }
 
 template <typename InitialSymbol>
-void VATA::Util::Automata<InitialSymbol>::Z(int t) {
+void AUTOQ::Util::Automata<InitialSymbol>::Z(int t) {
     #ifdef TO_QASM
         system(("echo 'z qubits[" + std::to_string(t-1) + "];' >> " + QASM_FILENAME).c_str());
         return;
@@ -151,7 +151,7 @@ void VATA::Util::Automata<InitialSymbol>::Z(int t) {
 }
 
 template <typename InitialSymbol>
-void VATA::Util::Automata<InitialSymbol>::H(int t) {
+void AUTOQ::Util::Automata<InitialSymbol>::H(int t) {
     #ifdef TO_QASM
         system(("echo 'h qubits[" + std::to_string(t-1) + "];' >> " + QASM_FILENAME).c_str());
         return;
@@ -174,7 +174,7 @@ void VATA::Util::Automata<InitialSymbol>::H(int t) {
 }
 
 template <typename InitialSymbol>
-void VATA::Util::Automata<InitialSymbol>::S(int t) {
+void AUTOQ::Util::Automata<InitialSymbol>::S(int t) {
     #ifdef TO_QASM
         system(("echo 's qubits[" + std::to_string(t-1) + "];' >> " + QASM_FILENAME).c_str());
         return;
@@ -213,7 +213,7 @@ void VATA::Util::Automata<InitialSymbol>::S(int t) {
 }
 
 template <typename InitialSymbol>
-void VATA::Util::Automata<InitialSymbol>::T(int t) {
+void AUTOQ::Util::Automata<InitialSymbol>::T(int t) {
     #ifdef TO_QASM
         system(("echo 't qubits[" + std::to_string(t-1) + "];' >> " + QASM_FILENAME).c_str());
         return;
@@ -252,7 +252,7 @@ void VATA::Util::Automata<InitialSymbol>::T(int t) {
 }
 
 template <typename InitialSymbol>
-void VATA::Util::Automata<InitialSymbol>::Rx(int t) {
+void AUTOQ::Util::Automata<InitialSymbol>::Rx(int t) {
     #ifdef TO_QASM
         system(("echo 'rx(pi/2) qubits[" + std::to_string(t-1) + "];' >> " + QASM_FILENAME).c_str());
         return;
@@ -277,7 +277,7 @@ void VATA::Util::Automata<InitialSymbol>::Rx(int t) {
 }
 
 template <typename InitialSymbol>
-void VATA::Util::Automata<InitialSymbol>::Ry(int t) {
+void AUTOQ::Util::Automata<InitialSymbol>::Ry(int t) {
     #ifdef TO_QASM
         system(("echo 'ry(pi/2) qubits[" + std::to_string(t-1) + "];' >> " + QASM_FILENAME).c_str());
         return;
@@ -300,7 +300,7 @@ void VATA::Util::Automata<InitialSymbol>::Ry(int t) {
 }
 
 template <typename InitialSymbol>
-void VATA::Util::Automata<InitialSymbol>::CNOT(int c, int t, bool opt) {
+void AUTOQ::Util::Automata<InitialSymbol>::CNOT(int c, int t, bool opt) {
     #ifdef TO_QASM
         system(("echo 'cx qubits[" + std::to_string(c-1) + "], qubits[" + std::to_string(t-1) + "];' >> " + QASM_FILENAME).c_str());
         return;
@@ -357,7 +357,7 @@ void VATA::Util::Automata<InitialSymbol>::CNOT(int c, int t, bool opt) {
 }
 
 template <typename InitialSymbol>
-void VATA::Util::Automata<InitialSymbol>::CZ(int c, int t) {
+void AUTOQ::Util::Automata<InitialSymbol>::CZ(int c, int t) {
     #ifdef TO_QASM
         system(("echo 'cz qubits[" + std::to_string(c-1) + "], qubits[" + std::to_string(t-1) + "];' >> " + QASM_FILENAME).c_str());
         return;
@@ -419,7 +419,7 @@ void VATA::Util::Automata<InitialSymbol>::CZ(int c, int t) {
 }
 
 template <typename InitialSymbol>
-void VATA::Util::Automata<InitialSymbol>::Toffoli(int c, int c2, int t) {
+void AUTOQ::Util::Automata<InitialSymbol>::Toffoli(int c, int c2, int t) {
     #ifdef TO_QASM
         system(("echo 'ccx qubits[" + std::to_string(c-1) + "], qubits[" + std::to_string(c2-1) + "], qubits[" + std::to_string(t-1) + "];' >> " + QASM_FILENAME).c_str());
         return;
@@ -480,7 +480,7 @@ void VATA::Util::Automata<InitialSymbol>::Toffoli(int c, int c2, int t) {
 }
 
 template <typename InitialSymbol>
-void VATA::Util::Automata<InitialSymbol>::Tdg(int t) {
+void AUTOQ::Util::Automata<InitialSymbol>::Tdg(int t) {
     // #ifdef TO_QASM
     //     system(("echo 'tdg qubits[" + std::to_string(t-1) + "];' >> " + QASM_FILENAME).c_str());
     //     return;
@@ -532,7 +532,7 @@ void VATA::Util::Automata<InitialSymbol>::Tdg(int t) {
 }
 
 template <typename InitialSymbol>
-void VATA::Util::Automata<InitialSymbol>::Sdg(int t) {
+void AUTOQ::Util::Automata<InitialSymbol>::Sdg(int t) {
     // #ifdef TO_QASM
     //     system(("echo 'sdg qubits[" + std::to_string(t-1) + "];' >> " + QASM_FILENAME).c_str());
     //     return;
@@ -584,7 +584,7 @@ void VATA::Util::Automata<InitialSymbol>::Sdg(int t) {
 }
 
 template <typename InitialSymbol>
-void VATA::Util::Automata<InitialSymbol>::swap(int t1, int t2) {
+void AUTOQ::Util::Automata<InitialSymbol>::swap(int t1, int t2) {
     // #ifdef TO_QASM
     //     system(("echo 'swap qubits[" + std::to_string(t1-1) + "], qubits[" + std::to_string(t2-1) + "];' >> " + QASM_FILENAME).c_str());
     //     return;
@@ -598,7 +598,7 @@ void VATA::Util::Automata<InitialSymbol>::swap(int t1, int t2) {
     if (gateLog) std::cout << "swap" << t1 << "," << t2 << "：" << stateNum << " states " << count_transitions() << " transitions " << toString(duration) << "\n";
 }
 
-// void VATA::Util::Automata<InitialSymbol>::Fredkin(int c, int t, int t2) {
+// void AUTOQ::Util::Automata<InitialSymbol>::Fredkin(int c, int t, int t2) {
 //     auto start = std::chrono::steady_clock::now();
 //     assert(c != t && t != t2 && t2 != c);
 //     this->semi_determinize();
@@ -629,7 +629,7 @@ void VATA::Util::Automata<InitialSymbol>::swap(int t1, int t2) {
 // }
 
 template <typename InitialSymbol>
-void VATA::Util::Automata<InitialSymbol>::randG(int G, int A, int B, int C) {
+void AUTOQ::Util::Automata<InitialSymbol>::randG(int G, int A, int B, int C) {
     int g, a, b, c;
     do { 
         g = rand() % 11;
@@ -663,5 +663,5 @@ void VATA::Util::Automata<InitialSymbol>::randG(int G, int A, int B, int C) {
 }
 
 // https://bytefreaks.net/programming-2/c/c-undefined-reference-to-templated-class-function
-template struct VATA::Util::Automata<VATA::Util::Concrete>;
-template struct VATA::Util::Automata<VATA::Util::Symbolic>;
+template struct AUTOQ::Util::Automata<AUTOQ::Util::Concrete>;
+template struct AUTOQ::Util::Automata<AUTOQ::Util::Symbolic>;
