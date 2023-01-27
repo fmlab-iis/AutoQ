@@ -37,20 +37,23 @@ int main(int argc, char **argv) {
         auto durationVer = durationSim; // just borrow its type!
         aut.fraction_simplification();
         auto startVer = chrono::steady_clock::now();
+        aut.print();
         if (argc >= 4) {
             if (!AUTOQ::Util::TreeAutomata::check_inclusion(aut, argv[3])) {
+                std::cout << "-\n0\n";
                 // throw std::runtime_error("Does not satisfy the postcondition!");
-                std::cout << AUTOQ::Util::Convert::ToString(aut.qubitNum) << " & " << AUTOQ::Util::TreeAutomata::gateCount
-                << " & " << stateBefore << " & " << aut.stateNum
-                << " & " << transitionBefore << " & " << aut.transition_size()
-                << " & " << toString(durationSim) << " & V";
-            }
+                // std::cout << AUTOQ::Util::Convert::ToString(aut.qubitNum) << " & " << AUTOQ::Util::TreeAutomata::gateCount
+                // << " & " << stateBefore << " & " << aut.stateNum
+                // << " & " << transitionBefore << " & " << aut.transition_size()
+                // << " & " << toString(durationSim) << " & V";
+            } else
+                std::cout << "-\n1\n";
         } else {
             durationVer = chrono::steady_clock::now() - startVer;
-            std::cout << AUTOQ::Util::Convert::ToString(aut.qubitNum) << " & " << AUTOQ::Util::TreeAutomata::gateCount
-                << " & " << stateBefore << " & " << aut.stateNum
-                << " & " << transitionBefore << " & " << aut.transition_size()
-                << " & " << toString(durationSim) << " & " << toString(durationVer);
+            // std::cout << AUTOQ::Util::Convert::ToString(aut.qubitNum) << " & " << AUTOQ::Util::TreeAutomata::gateCount
+            //     << " & " << stateBefore << " & " << aut.stateNum
+            //     << " & " << transitionBefore << " & " << aut.transition_size()
+            //     << " & " << toString(durationSim) << " & " << toString(durationVer);
         }
     } else { // argc >= 5
         AUTOQ::Util::SymbolicAutomata aut = AUTOQ::Parsing::TimbukParser<AUTOQ::Util::Symbolic>::FromFileToAutomata(argv[1]);
@@ -61,7 +64,8 @@ int main(int argc, char **argv) {
         std::stringstream buffer;
         buffer << t.rdbuf();
         AUTOQ::Util::Constraint C(buffer.str().c_str());
-        std::cout << AUTOQ::Util::is_spec_satisfied(C, aut, spec) << "\n";
+        aut.print();
+        std::cout << "-\n" << AUTOQ::Util::is_spec_satisfied(C, aut, spec) << "\n";
     }
     return 0;
 }

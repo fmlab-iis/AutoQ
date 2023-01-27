@@ -67,20 +67,74 @@ There are three modes: concrete probability amplitudes without specification, co
 
 1. Concrete probability amplitudes without specification.
 ```
-$ ./build/cli/autoq benchmarks/Grover/02/pre.aut benchmarks/Grover/02/circuit.qasm
+$ ./build/cli/autoq benchmarks/BernsteinVazirani/02/pre.aut benchmarks/BernsteinVazirani/02/circuit.qasm
+Ops [1]:2 [2]:2 [3]:2 [0,0,0,0,0]:0 [1,0,0,0,0]:0 
+Automaton Zero
+States 0 1 2 3 4 5 6 
+Final States 0 
+Transitions
+[1](1, 2) -> 0
+[2](3, 3) -> 1
+[2](4, 3) -> 2
+[3](5, 5) -> 3
+[3](5, 6) -> 4
+[0,0,0,0,0] -> 5
+[1,0,0,0,0] -> 6
 ```
+The program simply prints the resulting concrete automaton.
 
 2. Concrete probability amplitudes with specification.
 ```
 $ VATA_PATH=/home/alan23273850/libvata/build/cli/vata ./build/cli/autoq benchmarks/Grover/02/pre.aut benchmarks/Grover/02/circuit.qasm benchmarks/Grover/02/post.aut
+Ops [1]:2 [2]:2 [3]:2 [-1,0,0,0,0]:0 [0,0,0,0,0]:0 
+Automaton Zero
+States 0 1 2 3 4 5 6 
+Final States 0 
+Transitions
+[1](1, 2) -> 0
+[2](3, 3) -> 2
+[2](3, 4) -> 1
+[3](5, 5) -> 3
+[3](5, 6) -> 4
+[-1,0,0,0,0] -> 6
+[0,0,0,0,0] -> 5
+-
+0
 ```
-Notice that in this case environment variable `VATA_PATH` locating the binary built from [this commit](https://github.com/alan23273850/libvata/commit/22ce24661a4c4b1e684961330aa54288f7eda7ca) should be provided in order for AutoQ to run the inclusion checking algorithm.
+```
+VATA_PATH=/home/alan23273850/libvata/build/cli/vata ./build/cli/autoq benchmarks/BernsteinVazirani/02/pre.aut benchmarks/BernsteinVazirani/02/circuit.qasm benchmarks/BernsteinVazirani/02/post.aut
+Ops [1]:2 [2]:2 [3]:2 [0,0,0,0,0]:0 [1,0,0,0,0]:0 
+Automaton Zero
+States 0 1 2 3 4 5 6 
+Final States 0 
+Transitions
+[1](1, 2) -> 0
+[2](3, 3) -> 1
+[2](4, 3) -> 2
+[3](5, 5) -> 3
+[3](5, 6) -> 4
+[0,0,0,0,0] -> 5
+[1,0,0,0,0] -> 6
+-
+1
+```
+The program first prints the resulting concrete automaton, and then the verification result, where `1` indicates $C(P)\subseteq Q$ and `0` otherwise. We can observe that the old file `benchmarks/Grover/02/post.aut` in fact does not meet the circuit's output. Notice that in this case environment variable `VATA_PATH` locating the binary built from [this commit](https://github.com/alan23273850/libvata/commit/22ce24661a4c4b1e684961330aa54288f7eda7ca) should be provided in order for AutoQ to run the inclusion checking algorithm.
 
 3. Symbolic probability amplitudes with specification.
 ```
-$ ./build/cli/autoq benchmarks/SymbolicGrover/03/pre.aut benchmarks/SymbolicGrover/03/circuit.qasm benchmarks/SymbolicGrover/03/spec.aut benchmarks/SymbolicGrover/03/constraint.txt
+$ ./build/cli/autoq benchmarks/SymbolicGrover/H2/pre.aut benchmarks/SymbolicGrover/H2/circuit.qasm benchmarks/SymbolicGrover/H2/spec.aut benchmarks/SymbolicGrover/H2/constraint.txt
+Ops [[1 -> 1]]:2 [[a -> 0, e -> 1],[b -> 0, f -> 1],[c -> 0, g -> 1],[d -> 0, h -> 1],[1 -> 3]]:0 [[a -> 1, e -> 0],[b -> 1, f -> 0],[c -> 1, g -> 0],[d -> 1, h -> 0],[1 -> 3]]:0 
+Automaton Zero
+States 0 1 2 
+Final States 0 
+Transitions
+[[1 -> 1]](1, 2) -> 0
+[[a -> 0, e -> 1],[b -> 0, f -> 1],[c -> 0, g -> 1],[d -> 0, h -> 1],[1 -> 3]] -> 2
+[[a -> 1, e -> 0],[b -> 1, f -> 0],[c -> 1, g -> 0],[d -> 1, h -> 0],[1 -> 3]] -> 1
+-
+1
 ```
-In this case `VATA_PATH` is no longer required since the inclusion checking algorithm for symbolic automata is different from that for concrete automata.
+The program first prints the resulting symbolic automaton, where `v -> c` denotes the linear combination contains the term `c * v`, and then the verification result, where `1` indicates that the inclusion checking algorithm returns `true` and `0` indicates `false`. In this case `VATA_PATH` is no longer required since the inclusion checking algorithm for symbolic automata is different from that for concrete automata.
 
 ---
 
@@ -95,57 +149,3 @@ The [initial automaton](https://github.com/alan23273850/AutoQ/blob/main/benchmar
 The [initial automaton](https://github.com/alan23273850/AutoQ/blob/main/benchmarks/SymbolicGrover/H2/pre.aut) contains an arbitrary quantum state $(a,b,c,d,3)|0\rangle + (e,f,g,h,3)|1\rangle$. Since it uses 8 variables, we should declare them in the [constraint](https://github.com/alan23273850/AutoQ/blob/main/benchmarks/SymbolicGrover/H2/constraint.txt). In this case, values of these variables are arbitrary, so no additional constraint is needed. The result automaton should also contain exactly one original quantum state $(a/\sqrt2^3,b/\sqrt2^3,c/\sqrt2^3,d/\sqrt2^3)|0\rangle$ $+$ $(e/\sqrt2^3,f/\sqrt2^3,g/\sqrt2^3,h/\sqrt2^3)|1\rangle$, so the [specification](https://github.com/alan23273850/AutoQ/blob/main/benchmarks/SymbolicGrover/H2/spec.aut) about $|0\rangle$ should be $\\$a*\sqrt2^3=a$, $\\$b*\sqrt2^3=b$, $\\$c*\sqrt2^3=c$ and $\\$d*\sqrt2^3=d$, and the [specification](https://github.com/alan23273850/AutoQ/blob/main/benchmarks/SymbolicGrover/H2/spec.aut) about $|1\rangle$ should be $\\$a*\sqrt2^3=e$, $\\$b*\sqrt2^3=f$, $\\$c*\sqrt2^3=g$ and $\\$d*\sqrt2^3=h$. Notice that I've implemented the function `pow_sqrt2_k n` in SMT so that a user can directly compute $\sqrt2^n$ with it.
 
 A careful reader may have noticed that the above probability amplitudes may not satisfy $|(a,b,c,d,3)|^2 + |(e,f,g,h,3)|^2 = 1$, but it does not matter since the original constraint still contains all valid quantum states, so the verified property is still true under the real quantum world.
-
-<!--## Input Format
- AutoQ so far supports only the Timbuk format of tree automata. The format is
-specified by the following grammar with the start symbol:
-
-```
-  <file>            : 'Ops' <label_list> <automaton>
-
-  <label_list>      : <label_decl> <label_decl> ... // a list of label declarations
-
-  <label_decl>      : string ':' int // a symbol declaration (the name and the arity)
-
-  <automaton>       : 'Automaton' string 'States' <state_list> 'Final States' <state_list> 'Transitions' <transition_list>
-
-  <state_list>      : <state> <state> ... // a list of states
-
-  <state>           : string // the name of a state
-
-  <transition_list> : <transition> <transition> ... // a list of transitions
-
-  <transition>      : <label> '(' <state> ',' <state> ',' ... ')' '->' <state> // a transition
-
-  <label>           : string // the name of a label
-```
-
-An example could look like this:
-
-```
-Ops a:0 b:1 c:2
-
-Automaton A
-States q0 q1 q2
-Final States q2 
-Transitions
-a() -> q0
-b(q0) -> q1
-c(q1, q1) -> q1
-c(q1, q1) -> q2
-c(q2, q2) -> q2
-``` -->
-
-<!-- ## Acknowledgement
-This work was supported by the Czech Science Foundation (within projects
-P103/10/0306 and 102/09/H042), the Czech Ministry of Education (projects COST
-OC10009 and MSM 0021630528), and the EU/Czech IT4Innovations Centre of
-Excellence project CZ.1.05/1.1.00/02.0070. -->
-
-<!-- ## Contact
-If you have further questions, do not hesitate to contact the authors:
-  * Ondrej Lengal  <lengal@fit.vutbr.cz> (corresponding author)
-  * Jiri Simacek   <simacek@fit.vutbr.cz>
-  * Tomas Vojnar   <vojnar@fit.vutbr.cz>
-  * Martin Hruska  <ihruska@fit.vutbr.cz>
-  * Lukas Holik    <holik@fit.vutbr.cz> -->
