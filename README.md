@@ -118,7 +118,7 @@ Transitions
 -
 1
 ```
-The program first prints the resulting concrete automaton, and then the verification result, where `1` indicates $C(P)\subseteq Q$ and `0` otherwise. We can observe that the old file `benchmarks/Grover/02/post.aut` in fact does not meet the circuit's output. Notice that in this case environment variable `VATA_PATH` locating the binary built from [this commit](https://github.com/alan23273850/libvata/commit/22ce24661a4c4b1e684961330aa54288f7eda7ca) should be provided in order for AutoQ to run the inclusion checking algorithm.
+The program first prints the resulting concrete automaton, and then the verification result, where `1` indicates $C(P)\subseteq Q$ and `0` otherwise. We can observe that the old file `benchmarks/Grover/02/post.aut` in fact does not meet the circuit's output. Notice that in this case environment variable `VATA_PATH` locating the binary built from [this commit](https://github.com/alan23273850/libvata/commit/22ce24661a4c4b1e684961330aa54288f7eda7ca) should be provided in order for AutoQ to run the inclusion checking algorithm. I've also provided [one](https://github.com/alan23273850/AutoQ/blob/main/vata) in the project root directory.
 
 3. Symbolic probability amplitudes with specification.
 ```
