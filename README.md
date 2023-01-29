@@ -102,7 +102,7 @@ Transitions
 0
 ```
 ```
-VATA_PATH=/home/alan23273850/libvata/build/cli/vata ./build/cli/autoq benchmarks/BernsteinVazirani/02/pre.aut benchmarks/BernsteinVazirani/02/circuit.qasm benchmarks/BernsteinVazirani/02/post.aut
+$ VATA_PATH=/home/alan23273850/libvata/build/cli/vata ./build/cli/autoq benchmarks/BernsteinVazirani/02/pre.aut benchmarks/BernsteinVazirani/02/circuit.qasm benchmarks/BernsteinVazirani/02/post.aut
 Ops [1]:2 [2]:2 [3]:2 [0,0,0,0,0]:0 [1,0,0,0,0]:0 
 Automaton Zero
 States 0 1 2 3 4 5 6 
@@ -122,15 +122,15 @@ The program first prints the resulting concrete automaton, and then the verifica
 
 3. Symbolic probability amplitudes with specification.
 ```
-$ ./build/cli/autoq benchmarks/SymbolicGrover/H2/pre.aut benchmarks/SymbolicGrover/H2/circuit.qasm benchmarks/SymbolicGrover/H2/spec.aut benchmarks/SymbolicGrover/H2/constraint.txt
-Ops [[1 -> 1]]:2 [[a -> 0, e -> 1],[b -> 0, f -> 1],[c -> 0, g -> 1],[d -> 0, h -> 1],[1 -> 3]]:0 [[a -> 1, e -> 0],[b -> 1, f -> 0],[c -> 1, g -> 0],[d -> 1, h -> 0],[1 -> 3]]:0 
+$ ./build/cli/autoq benchmarks/Symbolic/H2/pre.aut benchmarks/Symbolic/H2/circuit.qasm benchmarks/Symbolic/H2/spec.aut benchmarks/Symbolic/H2/constraint.txt
+Ops [[1 -> 1]]:2 [[a -> 1],[b -> 1],[c -> 1],[d -> 1],[1 -> 3]]:0 [[e -> 1],[f -> 1],[g -> 1],[h -> 1],[1 -> 3]]:0 
 Automaton Zero
 States 0 1 2 
 Final States 0 
 Transitions
 [[1 -> 1]](1, 2) -> 0
-[[a -> 0, e -> 1],[b -> 0, f -> 1],[c -> 0, g -> 1],[d -> 0, h -> 1],[1 -> 3]] -> 2
-[[a -> 1, e -> 0],[b -> 1, f -> 0],[c -> 1, g -> 0],[d -> 1, h -> 0],[1 -> 3]] -> 1
+[[a -> 1],[b -> 1],[c -> 1],[d -> 1],[1 -> 3]] -> 1
+[[e -> 1],[f -> 1],[g -> 1],[h -> 1],[1 -> 3]] -> 2
 -
 1
 ```
@@ -144,8 +144,8 @@ The program first prints the resulting symbolic automaton, where `v -> c` denote
 
 The [initial automaton](https://github.com/alan23273850/AutoQ/blob/main/benchmarks/BernsteinVazirani/01/pre.aut) contains an initial $|00\rangle$ quantum state. Since the hidden string is $1$ (and the other qubit is auxiliary), so the [result automaton](https://github.com/alan23273850/AutoQ/blob/main/benchmarks/BernsteinVazirani/01/post.aut) should contain exactly one quantum state $|11\rangle$.
 
-2. [Two consecutive Hadamard gates together](https://github.com/alan23273850/AutoQ/blob/main/benchmarks/SymbolicGrover/H2/circuit.qasm) acts as an identity transformation.
+2. [Two consecutive Hadamard gates together](https://github.com/alan23273850/AutoQ/blob/main/benchmarks/Symbolic/H2/circuit.qasm) acts as an identity transformation.
 
-The [initial automaton](https://github.com/alan23273850/AutoQ/blob/main/benchmarks/SymbolicGrover/H2/pre.aut) contains an arbitrary quantum state $(a,b,c,d,3)|0\rangle + (e,f,g,h,3)|1\rangle$. *Please be careful that in symbolic verification all k's in symbols of all leaf transitions must be the same.* Since it uses 8 variables, we should declare them in the [constraint](https://github.com/alan23273850/AutoQ/blob/main/benchmarks/SymbolicGrover/H2/constraint.txt). In this case, values of these variables are arbitrary, so no additional constraint is needed. The result automaton should also contain exactly one original quantum state $(a/\sqrt2^3,b/\sqrt2^3,c/\sqrt2^3,d/\sqrt2^3)|0\rangle$ $+$ $(e/\sqrt2^3,f/\sqrt2^3,g/\sqrt2^3,h/\sqrt2^3)|1\rangle$, so the [specification](https://github.com/alan23273850/AutoQ/blob/main/benchmarks/SymbolicGrover/H2/spec.aut) about $|0\rangle$ should be $\\$a*\sqrt2^3=a$, $\\$b*\sqrt2^3=b$, $\\$c*\sqrt2^3=c$ and $\\$d*\sqrt2^3=d$, and the [specification](https://github.com/alan23273850/AutoQ/blob/main/benchmarks/SymbolicGrover/H2/spec.aut) about $|1\rangle$ should be $\\$a*\sqrt2^3=e$, $\\$b*\sqrt2^3=f$, $\\$c*\sqrt2^3=g$ and $\\$d*\sqrt2^3=h$. Notice that I've implemented the function `pow_sqrt2_k n` in SMT so that a user can directly compute $\sqrt2^n$ with it.
+The [initial automaton](https://github.com/alan23273850/AutoQ/blob/main/benchmarks/Symbolic/H2/pre.aut) contains an arbitrary quantum state $(a,b,c,d,3)|0\rangle + (e,f,g,h,3)|1\rangle$. *Please be careful that in symbolic verification all k's in symbols of all leaf transitions must be the same.* Since it uses 8 variables, we should declare them in the [constraint](https://github.com/alan23273850/AutoQ/blob/main/benchmarks/Symbolic/H2/constraint.txt). In this case, values of these variables are arbitrary, so no additional constraint is needed. The result automaton should also contain exactly one original quantum state $(a/\sqrt2^3,b/\sqrt2^3,c/\sqrt2^3,d/\sqrt2^3)|0\rangle$ $+$ $(e/\sqrt2^3,f/\sqrt2^3,g/\sqrt2^3,h/\sqrt2^3)|1\rangle$, so the [specification](https://github.com/alan23273850/AutoQ/blob/main/benchmarks/Symbolic/H2/spec.aut) about $|0\rangle$ should be $\\$a*\sqrt2^3=a$, $\\$b*\sqrt2^3=b$, $\\$c*\sqrt2^3=c$ and $\\$d*\sqrt2^3=d$, and the [specification](https://github.com/alan23273850/AutoQ/blob/main/benchmarks/Symbolic/H2/spec.aut) about $|1\rangle$ should be $\\$a*\sqrt2^3=e$, $\\$b*\sqrt2^3=f$, $\\$c*\sqrt2^3=g$ and $\\$d*\sqrt2^3=h$. Notice that I've implemented the function `pow_sqrt2_k n` in SMT so that a user can directly compute $\sqrt2^n$ with it.
 
 A careful reader may have noticed that the above probability amplitudes may not satisfy $|(a,b,c,d,3)|^2 + |(e,f,g,h,3)|^2 = 1$, but it does not matter since the original constraint still contains all valid quantum states, so the verified property is still true under the real quantum world.
