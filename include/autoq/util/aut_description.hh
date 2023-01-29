@@ -344,18 +344,21 @@ struct AUTOQ::Util::Symbolic : stdvectorstdmapstdstringboostmultiprecisioncpp_in
         return symbol;
     }
     void fraction_simplification() {
+        while (std::all_of(begin(), begin()+4, [](const Map &m) {
+            return std::all_of(m.begin(), m.end(), [](const auto &p) { return (p.second&1)==0; });
+        }) && at(4).at("1") >= 2) { // Notice the parentheses enclosing i&1 are very important!
+            for (int i=0; i<4; i++) {
+                std::for_each(at(i).begin(), at(i).end(), [](auto &p) { p.second /= 2; });
+                for (auto it = at(i).begin(); it != at(i).end(); )
+                    if (it->second == 0)
+                        it = at(i).erase(it);
+                    else
+                        ++it;
+            }
+            at(4).at("1") -= 2;
+        }
         if (std::all_of(begin(), begin()+4, [](const Map &m) { return m.empty(); }))
             at(4).clear();
-        else {
-            while (std::all_of(begin(), begin()+4, [](const Map &m) {
-                return std::all_of(m.begin(), m.end(), [](const auto &p) { return (p.second&1)==0; });
-            }) && at(4).at("1") >= 2) { // Notice the parentheses enclosing i&1 are very important!
-                for (int i=0; i<4; i++) {
-                    std::for_each(at(i).begin(), at(i).end(), [](auto &p) { p.second /= 2; });
-                }
-                at(4).at("1") -= 2;
-            }
-        }
     }
     void omega_multiplication(int rotation=1) {
         int r = rotation;

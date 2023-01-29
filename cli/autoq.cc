@@ -59,6 +59,7 @@ int main(int argc, char **argv) {
         AUTOQ::Util::SymbolicAutomata aut = AUTOQ::Parsing::TimbukParser<AUTOQ::Util::Symbolic>::FromFileToAutomata(argv[1]);
         aut.execute(argv[2]);
         aut.fraction_simplification();
+        aut.reduce();
         AUTOQ::Util::PredicateAutomata spec = AUTOQ::Parsing::TimbukParser<AUTOQ::Util::Predicate>::FromFileToAutomata(argv[3]);
         std::ifstream t(argv[4]);
         std::stringstream buffer;
