@@ -676,7 +676,7 @@ BOOST_AUTO_TEST_CASE(Grover_Search_only_one_oracle)
 namespace fs = std::filesystem;
 BOOST_AUTO_TEST_CASE(Symbolic_into_Predicates)
 {
-    std::string path = "../../benchmarks/SymbolicGrover/";
+    std::string path = "../../benchmarks/Symbolic/";
     for (const auto & entry : fs::directory_iterator(path)) {
         // std::cout << entry.path() << std::endl;
         AUTOQ::Util::SymbolicAutomata aut = AUTOQ::Parsing::TimbukParser<AUTOQ::Util::Symbolic>::FromFileToAutomata((std::string(entry.path()) + std::string("/pre.aut")).c_str());
