@@ -14,24 +14,32 @@ This tool can also be generalized to support "symbolic" quantum states. In this 
 ---
 
 ## Prerequisites
-<!-- In order to compile the library and the command-line interface to the library
-the following packages need to be installed on your system:
-
+In order to compile the library and the command-line interface to the library,<br>
+the following commands need to be executed:
 ```
-  git (>= 1.6.0.0)
-  cmake (>= 2.8.2)
-  gcc (>= 4.8.0)
-  libboost-filesystem-dev (>= 1.54.0)
-  libboost-system-dev (>= 1.54.0)
-  libboost-test-dev (>= 1.54.0)
-``` -->
+$ sudo apt install git
+$ sudo apt install make
+$ sudo apt install cmake
+$ sudo apt install g++
+$ sudo apt install libboost-filesystem-dev
+$ sudo apt install libboost-test-dev
+$ sudo apt install z3
+```
+
+Then in the project root directory, execute:
+```
+$ mkdir build
+```
+
+This project has also been tested on Ubuntu 20.04.5 LTS and Ubuntu 22.04.1 LTS.<br>
+It should work on other Linux distributions as well.
 
 ---
 
 ## Compiling
 For compiling the source code of the library and the command-line
 interface with compiler optimizations turned on, issue the following command
-in the root directory of the library:
+in the root directory of this project:
 
 ```
   $ make release
