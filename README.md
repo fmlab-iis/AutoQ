@@ -93,7 +93,7 @@ The program simply prints the resulting concrete automaton.
 
 2. Concrete probability amplitudes with specification.
 ```
-$ VATA_PATH=/home/alan23273850/libvata/build/cli/vata ./build/cli/autoq benchmarks/Grover/02/pre.aut benchmarks/Grover/02/circuit.qasm benchmarks/Grover/02/post.aut
+$ VATA_PATH=$PWD/vata ./build/cli/autoq benchmarks/Grover/02/pre.aut benchmarks/Grover/02/circuit.qasm benchmarks/Grover/02/post.aut
 Ops [1]:2 [2]:2 [3]:2 [-1,0,0,0,0]:0 [0,0,0,0,0]:0 
 Automaton Zero
 States 0 1 2 3 4 5 6 
@@ -110,7 +110,7 @@ Transitions
 0
 ```
 ```
-$ VATA_PATH=/home/alan23273850/libvata/build/cli/vata ./build/cli/autoq benchmarks/BernsteinVazirani/02/pre.aut benchmarks/BernsteinVazirani/02/circuit.qasm benchmarks/BernsteinVazirani/02/post.aut
+$ VATA_PATH=$PWD/vata ./build/cli/autoq benchmarks/BernsteinVazirani/02/pre.aut benchmarks/BernsteinVazirani/02/circuit.qasm benchmarks/BernsteinVazirani/02/post.aut
 Ops [1]:2 [2]:2 [3]:2 [0,0,0,0,0]:0 [1,0,0,0,0]:0 
 Automaton Zero
 States 0 1 2 3 4 5 6 
