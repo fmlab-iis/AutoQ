@@ -696,3 +696,22 @@ BOOST_AUTO_TEST_CASE(Symbolic_into_Predicates)
         BOOST_REQUIRE_MESSAGE(AUTOQ::Util::is_spec_satisfied(C, aut, spec), entry.path());
     }
 }
+
+BOOST_AUTO_TEST_CASE(Symbolic_into_Predicates_bug)
+{
+    std::string path = "../../benchmarks/Symbolic-bug/";
+    for (const auto & entry : fs::directory_iterator(path)) {
+        AUTOQ::Util::SymbolicAutomata aut = AUTOQ::Parsing::TimbukParser<AUTOQ::Util::Symbolic>::FromFileToAutomata((std::string(entry.path()) + std::string("/pre.aut")).c_str());
+        aut.execute((std::string(entry.path()) + std::string("/circuit.qasm")).c_str());
+        aut.fraction_simplification();
+
+        AUTOQ::Util::PredicateAutomata spec = AUTOQ::Parsing::TimbukParser<AUTOQ::Util::Predicate>::FromFileToAutomata((std::string(entry.path()) + std::string("/spec.aut")).c_str());
+
+        std::ifstream t(std::string(entry.path()) + std::string("/constraint.txt"));
+        std::stringstream buffer;
+        buffer << t.rdbuf();
+        AUTOQ::Util::Constraint C(buffer.str().c_str());
+
+        BOOST_REQUIRE_MESSAGE(!AUTOQ::Util::is_spec_satisfied(C, aut, spec), entry.path());
+    }
+}
