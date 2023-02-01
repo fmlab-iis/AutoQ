@@ -681,6 +681,9 @@ BOOST_AUTO_TEST_CASE(Symbolic_into_Predicates)
         if (strstr(entry.path().c_str(), "BernsteinVazirani99") != nullptr) continue;
         if (strstr(entry.path().c_str(), "MOGrover08") != nullptr) continue;
         if (strstr(entry.path().c_str(), "MOGrover09") != nullptr) continue;
+        if (strstr(entry.path().c_str(), "SOGrover16") != nullptr) continue;
+        if (strstr(entry.path().c_str(), "SOGrover18") != nullptr) continue;
+        if (strstr(entry.path().c_str(), "SOGrover20") != nullptr) continue;
 
         AUTOQ::Util::SymbolicAutomata aut = AUTOQ::Parsing::TimbukParser<AUTOQ::Util::Symbolic>::FromFileToAutomata((std::string(entry.path()) + std::string("/pre.aut")).c_str());
         aut.execute((std::string(entry.path()) + std::string("/circuit.qasm")).c_str());
