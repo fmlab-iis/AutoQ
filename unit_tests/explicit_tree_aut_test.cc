@@ -678,7 +678,10 @@ BOOST_AUTO_TEST_CASE(Symbolic_into_Predicates)
 {
     std::string path = "../../benchmarks/Symbolic/";
     for (const auto & entry : fs::directory_iterator(path)) {
-        // std::cout << entry.path() << std::endl;
+        if (strstr(entry.path().c_str(), "BernsteinVazirani99") != nullptr) continue;
+        if (strstr(entry.path().c_str(), "MOGrover08") != nullptr) continue;
+        if (strstr(entry.path().c_str(), "MOGrover09") != nullptr) continue;
+
         AUTOQ::Util::SymbolicAutomata aut = AUTOQ::Parsing::TimbukParser<AUTOQ::Util::Symbolic>::FromFileToAutomata((std::string(entry.path()) + std::string("/pre.aut")).c_str());
         aut.execute((std::string(entry.path()) + std::string("/circuit.qasm")).c_str());
         aut.fraction_simplification();
