@@ -1673,12 +1673,14 @@ bool AUTOQ::Util::check_validity(Constraint C, const PredicateAutomata::InitialS
     for (int i=0; i<4; i++) // example: z3 <(echo '(declare-fun x () Int)(declare-fun z () Int)(assert (= z (+ x 3)))(check-sat)')
         str = std::regex_replace(str, reg.at(i), expr.at(i));
     std::string smt_input = "bash -c \"z3 <(echo '" + std::string(C) + "(assert (not " + str + "))(check-sat)')\"";
-    // std::cout << smt_input << "\n";
     ShellCmd(smt_input, str);
-    // std::cout << str;
     if (str == "unsat\n") return true;
     else if (str == "sat\n") return false;
-    else throw std::runtime_error("z3 error");
+    else {
+        std::cout << smt_input << "\n";
+        std::cout << str;
+        throw std::runtime_error("z3 error");
+    }
 }
 bool AUTOQ::Util::is_spec_satisfied(const Constraint &C, const SymbolicAutomata &Ae, const PredicateAutomata &As) {
     using State = SymbolicAutomata::State;

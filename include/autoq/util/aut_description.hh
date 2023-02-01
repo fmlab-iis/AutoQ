@@ -431,7 +431,9 @@ struct AUTOQ::Util::Constraint {
             }
             expr = "(/ " + expr + " (pow_sqrt2_k " + s.at(4)["1"].str() + "))";
             result.push_back(expr);
-            content.append(std::regex_replace("(assert (= (^ 2 $) (* (pow_sqrt2_k $) (pow_sqrt2_k $))))(assert (>= (pow_sqrt2_k $) 0))", std::regex("\\$"), s.at(4)["1"].str()));
+            content.append("(assert (= ");
+            content.append(boost::multiprecision::pow(boost::multiprecision::cpp_int(2), static_cast<int>(s.at(4)["1"])).convert_to<std::string>());
+            content.append(std::regex_replace(" (* (pow_sqrt2_k $) (pow_sqrt2_k $))))(assert (>= (pow_sqrt2_k $) 0))", std::regex("\\$"), s.at(4)["1"].str()));
         }
         content = "(declare-fun pow_sqrt2_k (Int) Real)" + content;
         return result;
