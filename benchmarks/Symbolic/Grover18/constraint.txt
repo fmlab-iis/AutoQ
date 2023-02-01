@@ -1,0 +1,1 @@
+(declare-fun a () Int)(declare-fun b () Int)(assert (> (* 131071 a) b))(assert (> (+ a b) 0))
