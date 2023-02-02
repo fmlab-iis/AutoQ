@@ -157,3 +157,44 @@ The [initial automaton](https://github.com/alan23273850/AutoQ/blob/main/benchmar
 The [initial automaton](https://github.com/alan23273850/AutoQ/blob/main/benchmarks/Symbolic/H2/pre.aut) contains an arbitrary quantum state $(a,b,c,d,3)|0\rangle + (e,f,g,h,3)|1\rangle$. *Please be careful that in symbolic verification all k's in symbols of all leaf transitions must be the same.* Since it uses 8 variables, we should declare them in the [constraint](https://github.com/alan23273850/AutoQ/blob/main/benchmarks/Symbolic/H2/constraint.txt). In this case, values of these variables are arbitrary, so no additional constraint is needed. The result automaton should also contain exactly one original quantum state $(a/\sqrt2^3,b/\sqrt2^3,c/\sqrt2^3,d/\sqrt2^3)|0\rangle$ $+$ $(e/\sqrt2^3,f/\sqrt2^3,g/\sqrt2^3,h/\sqrt2^3)|1\rangle$, so the [specification](https://github.com/alan23273850/AutoQ/blob/main/benchmarks/Symbolic/H2/spec.aut) about $|0\rangle$ should be $\\$a*\sqrt2^3=a$, $\\$b*\sqrt2^3=b$, $\\$c*\sqrt2^3=c$ and $\\$d*\sqrt2^3=d$, and the [specification](https://github.com/alan23273850/AutoQ/blob/main/benchmarks/Symbolic/H2/spec.aut) about $|1\rangle$ should be $\\$a*\sqrt2^3=e$, $\\$b*\sqrt2^3=f$, $\\$c*\sqrt2^3=g$ and $\\$d*\sqrt2^3=h$. Notice that I've implemented the function `pow_sqrt2_k n` in SMT so that a user can directly compute $\sqrt2^n$ with it.
 
 A careful reader may have noticed that the above probability amplitudes may not satisfy $|(a,b,c,d,3)|^2 + |(e,f,g,h,3)|^2 = 1$, but it does not matter since the original constraint still contains all valid quantum states, so the verified property is still true under the real quantum world.
+
+---
+
+## Automata Format
+AutoQ so far supports only the Timbuk format of tree automata. The format is
+specified by the following grammar with the start symbol \<file\>:
+
+```
+  <file>            : 'Final States' <state_list> 'Transitions' <transition_list>
+
+  <state_list>      : <state> <state> ... // a list of states
+
+  <state>           : a nonnegative int // the name of a state
+
+  <transition_list> : <transition> <transition> ... // a list of transitions
+
+  <transition>      : <label> '(' <state> ',' <state> ',' ... ')' '->' <state> // a transition
+
+  <label>           : [a positive int] | [int,int,int,int,int] // the name of a label
+```
+
+Only final states and transitions are sufficient. In this repository some automaton files may have
+other information, but in fact they are no longer required. Also notice that there are two formats
+of \<label\>. The first format [n] indicates n-th qubit (counting from 1) of the circuit. It is an
+internal transition and must have two child states. The second format [a,b,c,d,k] indicates the
+probability amplitude $(a+b\omega+c\omega^2+d\omega^3) / \sqrt2^k$ of some computational basis state,
+where $w = \cos(\pi/4) + i\sin(\pi/4)$. It is a leaf transition and must have no any child state.
+In the whole file, all [\_,\_,\_,\_,k]'s of leaf transitions must be the same!
+
+An example could look like this:
+```
+Final States 0 
+Transitions
+[1](1, 2) -> 0
+[2](3, 3) -> 1
+[2](4, 3) -> 2
+[3](5, 5) -> 3
+[3](5, 6) -> 4
+[0,0,0,0,0] -> 5
+[1,0,0,0,0] -> 6
+```
