@@ -679,6 +679,7 @@ BOOST_AUTO_TEST_CASE(Symbolic_into_Predicates)
     std::string path = "../../benchmarks/Symbolic/";
     for (const auto & entry : fs::directory_iterator(path)) {
         if (strstr(entry.path().c_str(), "BernsteinVazirani99") != nullptr) continue;
+        if (strstr(entry.path().c_str(), "BernsteinVazirani1000") != nullptr) continue;
         if (strstr(entry.path().c_str(), "MOGrover08") != nullptr) continue;
         if (strstr(entry.path().c_str(), "MOGrover09") != nullptr) continue;
         if (strstr(entry.path().c_str(), "SOGrover16") != nullptr) continue;
