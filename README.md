@@ -3,7 +3,7 @@
 
 ---
 
-AutoQ is a (highly optimized?) command-line utility written in C++ for Hoare-style quantum circuit verification based on non-deterministic finite tree automata. The following figure demonstrates how we use a tree to represent a 3-qubit quantum state, so an automaton can, of course, be used to encode a set of quantum states. The symbol of each internal transition should be a positive integer $n$ indicating the $n$-th qubit, and the symbol of each leaf transition is a 5-tuple of integers $(a,b,c,d,k)$ describing the probability amplitude $(a+b\omega+c\omega^2+d\omega^3) / \sqrt2^k$ of some computational basis state, where $w = \cos(\pi/4) + i\sin(\pi/4)$.
+AutoQ is a command-line utility written in C++ for Hoare-style quantum circuit verification based on non-deterministic finite tree automata. The following figure demonstrates how we use a tree to represent a 3-qubit quantum state, so an automaton can be used to encode a set of quantum states. The symbol of each internal transition should be a positive integer $n$ indicating the $n$-th qubit, and the symbol of each leaf transition is a 5-tuple of integers $(a,b,c,d,k)$ describing the probability amplitude $(a+b\omega+c\omega^2+d\omega^3) / \sqrt2^k$ of some computational basis state, where $w = \cos(\pi/4) + i\sin(\pi/4)$.
 
 <img width="412" alt="image" src="https://user-images.githubusercontent.com/10044077/214999182-7e3882d2-47cf-49cb-aa3e-45295072b3f8.png">
 
