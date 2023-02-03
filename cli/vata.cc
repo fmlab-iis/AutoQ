@@ -122,11 +122,11 @@ std::string toString(std::chrono::steady_clock::duration tp)
 // }
 
 int main(int argc, char **argv) {
-    for (int n=20; n<=30; n+=2) {
+    for (int n=20; n<=20; n+=2) {
         system(("mkdir /home/alan23273850/AutoQ/benchmarks/Grover/" + std::to_string(n)).c_str());
 
         /* Algorithm 9 - Grover's Search with only one oracle */
-        auto aut = VATA::Util::TreeAutomata::classical_zero_interleave_one_zero(n);
+        auto aut = VATA::Util::TreeAutomata::zero(2*n);
         std::ofstream pre("/home/alan23273850/AutoQ/benchmarks/Grover/" + std::to_string(n) + "/pre.aut");
         aut.fraction_simplication();
         pre << VATA::Serialization::TimbukSerializer::Serialize(aut);
@@ -137,48 +137,51 @@ int main(int argc, char **argv) {
         qasm << "include \"qelib1.inc\";\n";
         qasm << "qreg qubits[" + std::to_string(aut.qubitNum) + "];\n";
         qasm.close();
-        // aut.X(2*n+1); // for preparing the initial state
+        aut.X(n+1); // for preparing the initial state
         system(("echo '' >> /home/alan23273850/AutoQ/benchmarks/Grover/" + std::to_string(n) + "/circuit.qasm").c_str());
 
         auto start = chrono::steady_clock::now();
         int stateBefore = aut.stateNum, transitionBefore = aut.transition_size();
-        for (int i=1; i<=2*n; i++) {
-            if (i % 2 == 1) aut.X(i);
-            else aut.H(i);
+        for (int i=1; i<=n; i++) {
+            aut.H(i);
         }
-        // aut.H(2*n+1);
+        // aut.H(n+1);
         for (int iter=1; iter <= 1; iter++) {
-            for (int i=1; i<2*n; i+=2) aut.CNOT(i, i+1);
-            if (n >= 3) {
-                aut.Toffoli(2, 4, 2*n+2);
-                for (int i=3; i<n; i++) // Note that < does not include n!
-                    aut.Toffoli(2*i, 2*n+i-1, 2*n+i);
-                aut.CZ(3*n-1, 2*n);
-                for (int i=n-1; i>=3; i--)
-                    aut.Toffoli(2*i, 2*n+i-1, 2*n+i);
-                aut.Toffoli(2, 4, 2*n+2);
-            } else {
-                assert(n == 2);
-                aut.CZ(2, 4);
+            for (int i=1; i<=n; i++) {
+                if (i % 2)
+                    aut.X(i);
             }
-            for (int i=1; i<2*n; i+=2) aut.CNOT(i, i+1);
-            for (int i=1; i<=n; i++) aut.H(2*i);
-            for (int i=1; i<=n; i++) aut.X(2*i);
             if (n >= 3) {
-                aut.Toffoli(2, 4, 2*n+2);
+                aut.Toffoli(1, 2, n+2);
                 for (int i=3; i<n; i++) // Note that < does not include n!
-                    aut.Toffoli(2*i, 2*n+i-1, 2*n+i);
-                aut.CZ(3*n-1, 2*n);
+                    aut.Toffoli(i, n+i-1, n+i);
+                aut.CZ(2*n-1, n);
                 for (int i=n-1; i>=3; i--)
-                    aut.Toffoli(2*i, 2*n+i-1, 2*n+i);
-                aut.Toffoli(2, 4, 2*n+2);
+                    aut.Toffoli(i, n+i-1, n+i);
+                aut.Toffoli(1, 2, n+2);
             } else {
-                assert(n == 2);
-                aut.CZ(2, 4);
+                std::runtime_error("");
             }
-            for (int i=1; i<=n; i++) aut.X(2*i);
-            for (int i=1; i<=n; i++) aut.H(2*i);
-            aut.Z(2*n+1);
+            for (int i=1; i<=n; i++) {
+                if (i % 2)
+                    aut.X(i);
+            }
+            for (int i=1; i<=n; i++) aut.H(i);
+            for (int i=1; i<=n; i++) aut.X(i);
+            if (n >= 3) {
+                aut.Toffoli(1, 2, n+2);
+                for (int i=3; i<n; i++) // Note that < does not include n!
+                    aut.Toffoli(i, n+i-1, n+i);
+                aut.CZ(2*n-1, n);
+                for (int i=n-1; i>=3; i--)
+                    aut.Toffoli(i, n+i-1, n+i);
+                aut.Toffoli(1, 2, n+2);
+            } else {
+                std::runtime_error("");
+            }
+            for (int i=1; i<=n; i++) aut.X(i);
+            for (int i=1; i<=n; i++) aut.H(i);
+            aut.Z(n+1);
         }
 
         std::ofstream fileLhs("/home/alan23273850/AutoQ/benchmarks/Grover/" + std::to_string(n) + "/post.aut");

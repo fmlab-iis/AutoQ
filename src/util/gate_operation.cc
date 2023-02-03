@@ -1,7 +1,7 @@
 #include <vata/util/aut_description.hh>
 
 #define TO_QASM
-#define QASM_FILENAME "/home/alan23273850/AutoQ/benchmarks/Grover/" + std::to_string((qubitNum)/3) + "/circuit.qasm"
+#define QASM_FILENAME "/home/alan23273850/AutoQ/benchmarks/Grover/" + std::to_string((qubitNum+1)/2) + "/circuit.qasm"
 // OPENQASM 2.0;
 // include "qelib1.inc";
 // qreg qubits[?];
@@ -50,7 +50,7 @@ int VATA::Util::TreeAutomata::count_transitions() {
 void VATA::Util::TreeAutomata::X(int k) {
     #ifdef TO_QASM
         system(("echo 'x qubits[" + std::to_string(k-1) + "];' >> " + QASM_FILENAME).c_str());
-        // return;
+        return;
     #endif
     auto start = std::chrono::steady_clock::now();
     auto transitions_copy = transitions;
@@ -71,7 +71,7 @@ void VATA::Util::TreeAutomata::X(int k) {
 void VATA::Util::TreeAutomata::Y(int k) {
     #ifdef TO_QASM
         system(("echo 'y qubits[" + std::to_string(k-1) + "];' >> " + QASM_FILENAME).c_str());
-        // return;
+        return;
     #endif
     auto start = std::chrono::steady_clock::now();
     TransitionMap transitions_copy = transitions;
@@ -113,7 +113,7 @@ void VATA::Util::TreeAutomata::Y(int k) {
 void VATA::Util::TreeAutomata::Z(int t) {
     #ifdef TO_QASM
         system(("echo 'z qubits[" + std::to_string(t-1) + "];' >> " + QASM_FILENAME).c_str());
-        // return;
+        return;
     #endif
     auto start = std::chrono::steady_clock::now();
     TransitionMap transitions_copy = transitions;
@@ -154,7 +154,7 @@ void VATA::Util::TreeAutomata::Z(int t) {
 void VATA::Util::TreeAutomata::H(int t) {
     #ifdef TO_QASM
         system(("echo 'h qubits[" + std::to_string(t-1) + "];' >> " + QASM_FILENAME).c_str());
-        // return;
+        return;
     #endif
     auto start = std::chrono::steady_clock::now();
     this->semi_determinize();
@@ -176,7 +176,7 @@ void VATA::Util::TreeAutomata::H(int t) {
 void VATA::Util::TreeAutomata::S(int t) {
     #ifdef TO_QASM
         system(("echo 's qubits[" + std::to_string(t-1) + "];' >> " + QASM_FILENAME).c_str());
-        // return;
+        return;
     #endif
     auto start = std::chrono::steady_clock::now();
     auto aut2 = *this;
@@ -213,7 +213,7 @@ void VATA::Util::TreeAutomata::S(int t) {
 void VATA::Util::TreeAutomata::T(int t) {
     #ifdef TO_QASM
         system(("echo 't qubits[" + std::to_string(t-1) + "];' >> " + QASM_FILENAME).c_str());
-        // return;
+        return;
     #endif
     auto start = std::chrono::steady_clock::now();
     auto aut2 = *this;
@@ -250,7 +250,7 @@ void VATA::Util::TreeAutomata::T(int t) {
 void VATA::Util::TreeAutomata::Rx(int t) {
     #ifdef TO_QASM
         system(("echo 'rx(pi/2) qubits[" + std::to_string(t-1) + "];' >> " + QASM_FILENAME).c_str());
-        // return;
+        return;
     #endif
     auto start = std::chrono::steady_clock::now();
     this->semi_determinize();
@@ -274,7 +274,7 @@ void VATA::Util::TreeAutomata::Rx(int t) {
 void VATA::Util::TreeAutomata::Ry(int t) {
     #ifdef TO_QASM
         system(("echo 'ry(pi/2) qubits[" + std::to_string(t-1) + "];' >> " + QASM_FILENAME).c_str());
-        // return;
+        return;
     #endif
     auto start = std::chrono::steady_clock::now();
     this->semi_determinize();
@@ -296,7 +296,7 @@ void VATA::Util::TreeAutomata::Ry(int t) {
 void VATA::Util::TreeAutomata::CNOT(int c, int t, bool opt) {
     #ifdef TO_QASM
         system(("echo 'cx qubits[" + std::to_string(c-1) + "], qubits[" + std::to_string(t-1) + "];' >> " + QASM_FILENAME).c_str());
-        // return;
+        return;
     #endif
     auto start = std::chrono::steady_clock::now();
     assert(c != t);
@@ -351,7 +351,7 @@ void VATA::Util::TreeAutomata::CNOT(int c, int t, bool opt) {
 void VATA::Util::TreeAutomata::CZ(int c, int t) {
     #ifdef TO_QASM
         system(("echo 'cz qubits[" + std::to_string(c-1) + "], qubits[" + std::to_string(t-1) + "];' >> " + QASM_FILENAME).c_str());
-        // return;
+        return;
     #endif
     auto start = std::chrono::steady_clock::now();
     assert(c != t);
@@ -414,7 +414,7 @@ void VATA::Util::TreeAutomata::CZ(int c, int t) {
 void VATA::Util::TreeAutomata::Toffoli(int c, int c2, int t) {
     #ifdef TO_QASM
         system(("echo 'ccx qubits[" + std::to_string(c-1) + "], qubits[" + std::to_string(c2-1) + "], qubits[" + std::to_string(t-1) + "];' >> " + QASM_FILENAME).c_str());
-        // return;
+        return;
     #endif
     auto start = std::chrono::steady_clock::now();
     assert(c != c2 && c2 != t && t != c);
