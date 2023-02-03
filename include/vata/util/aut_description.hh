@@ -189,6 +189,7 @@ public:
     static TreeAutomata basis_zero_one_zero(int n);
     static TreeAutomata zero_zero_one_zero(int n);
     static TreeAutomata zero_one_zero(int n);
+    static TreeAutomata classical_zero_interleave_one_zero(int n);
 
     /* Equivalence Checking */
     static bool check_equal(const std::string& lhsPath, const std::string& rhsPath);

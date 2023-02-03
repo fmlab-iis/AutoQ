@@ -294,6 +294,48 @@ namespace { // anonymous namespace
   }
 } // anonymous namespace
 
+VATA::Util::TreeAutomata VATA::Util::TreeAutomata::classical_zero_interleave_one_zero(int n) {
+    TreeAutomata aut;
+    assert(n >= 2);
+    aut.name = "Classical_Zero_Interleave_One_Zero";
+    aut.qubitNum = n + (n+1) + (n>=3) * (n-1);
+
+    for (int level=1; level<=n; level++) {
+        if (level >= 2) {
+            aut.transitions[{2*level - 1}][{2*level - 1, 2*level - 1}] = {2*n + 2*level - 3};
+            aut.transitions[{2*level - 1}][{2*level - 1, 2*level}] = {2*n + 2*level - 2};
+            aut.transitions[{2*level - 1}][{2*level, 2*level - 1}] = {2*n + 2*level - 2};
+        } else {
+            aut.transitions[{2*level - 1}][{2*level - 1, 2*level}] = {2*level - 2};
+            aut.transitions[{2*level - 1}][{2*level, 2*level - 1}] = {2*level - 2};
+        }
+        /***************************************************************/
+        aut.transitions[{2*level}][{2*n + 2*level-1, 2*n + 2*level-1}] = {2*level - 1};
+        aut.transitions[{2*level}][{2*n + 2*level, 2*n + 2*level-1}] = {2*level};
+    }
+    aut.transitions[{n + (n+1)}][{2*n + 2*(n+1)-1, 2*n + 2*(n+1)-1}] = {2*n + 2*(n+1)-3};
+    aut.transitions[{n + (n+1)}][{2*n + 2*(n+1)-1, 2*n + 2*(n+1)}] = {2*n + 2*(n+1)-2};
+    if (n >= 3) {
+        for (int level=n+2; level<=2*n; level++) {
+            aut.transitions[{n + level}][{2*n + 2*level-1, 2*n + 2*level-1}] = {2*n + 2*level-3};
+            aut.transitions[{n + level}][{2*n + 2*level, 2*n + 2*level-1}] = {2*n + 2*level-2};
+        }
+        aut.transitions[{1,0,0,0,0}][{}] = {6*n};
+        aut.transitions[{0,0,0,0,0}][{}] = {6*n - 1};
+        aut.stateNum = 6*n + 1;
+    } else {
+        assert(n == 2);
+        aut.transitions[{1,0,0,0,0}][{}] = {4*n + 2};
+        aut.transitions[{0,0,0,0,0}][{}] = {4*n + 1};
+        aut.stateNum = 4*n + 3;
+    }
+	aut.finalStates.push_back(0);
+    aut.print();
+    // pause();
+    // exit(EXIT_SUCCESS);
+    return aut;
+}
+
 
 void VATA::Util::TreeAutomata::remove_useless(bool only_bottom_up) {
     auto start = std::chrono::steady_clock::now();

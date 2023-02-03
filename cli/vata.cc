@@ -122,82 +122,72 @@ std::string toString(std::chrono::steady_clock::duration tp)
 // }
 
 int main(int argc, char **argv) {
-    for (int n=2; n<=22; n++) {
+    for (int n=20; n<=30; n+=2) {
+        system(("mkdir /home/alan23273850/AutoQ/benchmarks/Grover/" + std::to_string(n)).c_str());
+
         /* Algorithm 9 - Grover's Search with only one oracle */
-        VATA::Util::TreeAutomata aut = VATA::Util::TreeAutomata::zero((n+1) + (n>=3) * (n-1));
-        std::ofstream pre("/home/alan23273850/libvata2/benchmarks/Grover/" + std::to_string(n) + "/pre.aut");
+        auto aut = VATA::Util::TreeAutomata::classical_zero_interleave_one_zero(n);
+        std::ofstream pre("/home/alan23273850/AutoQ/benchmarks/Grover/" + std::to_string(n) + "/pre.aut");
         aut.fraction_simplication();
         pre << VATA::Serialization::TimbukSerializer::Serialize(aut);
         pre.close();
 
-        // std::ofstream qasm("/home/alan23273850/libvata2/benchmarks/Grover/" + std::to_string(n) + "/circuit.qasm");
-        // qasm << "OPENQASM 2.0;\n";
-        // qasm << "include \"qelib1.inc\";\n";
-        // qasm << "qreg qubits[" + std::to_string(aut.qubitNum) + "];\n";
-        // qasm.close();
-        aut.X(n+1); // for preparing the initial state
-        // system(("echo '' >> /home/alan23273850/libvata2/benchmarks/Grover/" + std::to_string(n) + "/circuit.qasm").c_str());
+        std::ofstream qasm("/home/alan23273850/AutoQ/benchmarks/Grover/" + std::to_string(n) + "/circuit.qasm");
+        qasm << "OPENQASM 2.0;\n";
+        qasm << "include \"qelib1.inc\";\n";
+        qasm << "qreg qubits[" + std::to_string(aut.qubitNum) + "];\n";
+        qasm.close();
+        // aut.X(2*n+1); // for preparing the initial state
+        system(("echo '' >> /home/alan23273850/AutoQ/benchmarks/Grover/" + std::to_string(n) + "/circuit.qasm").c_str());
 
         auto start = chrono::steady_clock::now();
         int stateBefore = aut.stateNum, transitionBefore = aut.transition_size();
-        unsigned ans = 0;
-        for (int i=0; i<n; i++) {
-            ans <<= 1;
-            ans |= (i&1);
+        for (int i=1; i<=2*n; i++) {
+            if (i % 2 == 1) aut.X(i);
+            else aut.H(i);
         }
-        for (int i=1; i<=n+1; i++) aut.H(i);
-        for (int iter=1; iter <= M_PI / (4 * asin(1 / pow(2, n/2.0))); iter++) {
-            for (int i=1; i<=n; i++) {
-                if ((ans & (1 << (i-1))) == 0)
-                    aut.X(n+1-i);
-            }
-            /* multi-controlled NOT gate */
+        // aut.H(2*n+1);
+        for (int iter=1; iter <= 1; iter++) {
+            for (int i=1; i<2*n; i+=2) aut.CNOT(i, i+1);
             if (n >= 3) {
-                aut.Toffoli(1, 2, n+2);
-                for (int i=3; i<=n; i++)
-                    aut.Toffoli(i, n+i-1, n+i);
-                aut.CNOT(2*n, n+1);
-                for (int i=n; i>=3; i--)
-                    aut.Toffoli(i, n+i-1, n+i);
-                aut.Toffoli(1, 2, n+2);
-            } else {
-                assert(n == 2);
-                aut.Toffoli(1, 2, 3);
-            }
-            for (int i=1; i<=n; i++) {
-                if ((ans & (1 << (i-1))) == 0)
-                    aut.X(n+1-i);
-            }
-            for (int i=1; i<=n; i++) aut.H(i);
-            for (int i=1; i<=n; i++) aut.X(i);
-            /* multi-controlled Z gate */
-            if (n >= 3) {
-                aut.Toffoli(1, 2, n+2);
+                aut.Toffoli(2, 4, 2*n+2);
                 for (int i=3; i<n; i++) // Note that < does not include n!
-                    aut.Toffoli(i, n+i-1, n+i);
-                aut.CZ(2*n-1, n);
+                    aut.Toffoli(2*i, 2*n+i-1, 2*n+i);
+                aut.CZ(3*n-1, 2*n);
                 for (int i=n-1; i>=3; i--)
-                    aut.Toffoli(i, n+i-1, n+i);
-                aut.Toffoli(1, 2, n+2);
-            // } else if (n == 3) {
-            //     aut.H(2*n);
-            //     aut.Toffoli(4, 5, 6);
-            //     aut.H(2*n);
+                    aut.Toffoli(2*i, 2*n+i-1, 2*n+i);
+                aut.Toffoli(2, 4, 2*n+2);
             } else {
                 assert(n == 2);
-                aut.CZ(1, 2);
+                aut.CZ(2, 4);
             }
-            for (int i=1; i<=n; i++) aut.X(i);
-            for (int i=1; i<=n; i++) aut.H(i);
+            for (int i=1; i<2*n; i+=2) aut.CNOT(i, i+1);
+            for (int i=1; i<=n; i++) aut.H(2*i);
+            for (int i=1; i<=n; i++) aut.X(2*i);
+            if (n >= 3) {
+                aut.Toffoli(2, 4, 2*n+2);
+                for (int i=3; i<n; i++) // Note that < does not include n!
+                    aut.Toffoli(2*i, 2*n+i-1, 2*n+i);
+                aut.CZ(3*n-1, 2*n);
+                for (int i=n-1; i>=3; i--)
+                    aut.Toffoli(2*i, 2*n+i-1, 2*n+i);
+                aut.Toffoli(2, 4, 2*n+2);
+            } else {
+                assert(n == 2);
+                aut.CZ(2, 4);
+            }
+            for (int i=1; i<=n; i++) aut.X(2*i);
+            for (int i=1; i<=n; i++) aut.H(2*i);
+            aut.Z(2*n+1);
         }
 
-        std::ofstream fileLhs("/home/alan23273850/libvata2/benchmarks/Grover/" + std::to_string(n) + "/post.aut");
+        std::ofstream fileLhs("/home/alan23273850/AutoQ/benchmarks/Grover/" + std::to_string(n) + "/post.aut");
         aut.fraction_simplication();
         fileLhs << VATA::Serialization::TimbukSerializer::Serialize(aut);
         fileLhs.close();
-        if (!VATA::Util::TreeAutomata::check_equal("/home/alan23273850/libvata2/benchmarks/Grover/" + std::to_string(n) + "/post.aut", "/home/alan23273850/libvata2/benchmarks/Grover/" + std::to_string(n) + "/post.aut")) {
-            throw std::exception();
-        }
+        // if (!VATA::Util::TreeAutomata::check_equal("/home/alan23273850/AutoQ/benchmarks/Grover/" + std::to_string(n) + "/post.aut", "/home/alan23273850/AutoQ/benchmarks/Grover/" + std::to_string(n) + "/post.aut")) {
+        //     throw std::exception();
+        // }
 
         auto end = chrono::steady_clock::now();
         auto duration = end - start;
