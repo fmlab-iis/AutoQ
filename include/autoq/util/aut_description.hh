@@ -247,6 +247,15 @@ struct AUTOQ::Util::Concrete : stdvectorboostmultiprecisioncpp_int {
         symbol.push_back(this->at(4)); // remember to push k
         return symbol;
     }
+    Concrete operator*(const Concrete &o) const {
+        Concrete symbol;
+        symbol.push_back(at(0)*o.at(0) - at(1)*o.at(3) - at(2)*o.at(2) - at(3)*o.at(1));
+        symbol.push_back(at(0)*o.at(1) + at(1)*o.at(0) - at(2)*o.at(3) - at(3)*o.at(2));
+        symbol.push_back(at(0)*o.at(2) + at(1)*o.at(1) + at(2)*o.at(0) - at(3)*o.at(3));
+        symbol.push_back(at(0)*o.at(3) + at(1)*o.at(2) + at(2)*o.at(1) + at(3)*o.at(0));
+        symbol.push_back(at(4) + o.at(4)); // remember to push k
+        return symbol;
+    }
     void fraction_simplification() {
         if (at(0)==0 && at(1)==0 && at(2)==0 && at(3)==0) at(4) = 0;
         else {
