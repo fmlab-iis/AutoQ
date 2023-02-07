@@ -222,7 +222,7 @@ struct AUTOQ::Util::Concrete : stdvectorboostmultiprecisioncpp_int {
     using stdvectorboostmultiprecisioncpp_int::stdvectorboostmultiprecisioncpp_int;
     typedef typename AUTOQ::Util::Concrete::value_type Entry;
     // Notice that if we do not use is_convertible_v, type int will not be accepted in this case.
-    template <typename T, typename = std::enable_if_t<std::is_convertible_v<T, Entry>>>
+    template <typename T, typename = std::enable_if_t<std::is_convertible<T, Entry>::value>>
         Concrete(T qubit) : stdvectorboostmultiprecisioncpp_int({qubit}) {} 
     Entry qubit() const { return is_leaf() ? 0 : at(0); }
     bool is_leaf() const { return size() == 5; }
@@ -312,7 +312,7 @@ struct AUTOQ::Util::Symbolic : stdvectorstdmapstdstringboostmultiprecisioncpp_in
     typedef typename AUTOQ::Util::Symbolic::value_type Map;
     typedef typename AUTOQ::Util::Symbolic::value_type::value_type Pair;
     typedef typename AUTOQ::Util::Symbolic::value_type::mapped_type Entry;
-    template <typename T, typename = std::enable_if_t<std::is_convertible_v<T, Entry>>>
+    template <typename T, typename = std::enable_if_t<std::is_convertible<T, Entry>::value>>
         Symbolic(T qubit) : stdvectorstdmapstdstringboostmultiprecisioncpp_int({Map{{"1", qubit}}}) {}
     Entry qubit() const { return is_leaf() ? 0 : at(0).at("1"); }
     bool is_leaf() const { return size() == 5; }
@@ -419,7 +419,7 @@ struct AUTOQ::Util::Symbolic : stdvectorstdmapstdstringboostmultiprecisioncpp_in
 struct AUTOQ::Util::Predicate : std::string {
     using std::string::string;
     bool is_leaf_v = true;
-    template <typename T, typename = std::enable_if_t<std::is_convertible_v<T, boost::multiprecision::cpp_int>>>
+    template <typename T, typename = std::enable_if_t<std::is_convertible<T, boost::multiprecision::cpp_int>::value>>
         Predicate(T qubit) : std::string(static_cast<boost::multiprecision::cpp_int>(qubit).str()) { is_leaf_v = false; }
     bool is_leaf() const { return is_leaf_v; }
     bool is_internal() const { return !is_leaf_v; }
