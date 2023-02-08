@@ -6,45 +6,45 @@ using AUTOQ::Util::TreeAutomata;
 TreeAutomata from_string_to_automaton(std::string tree) {
     TreeAutomata aut;
     std::istringstream iss(tree);
-    std::vector<TreeAutomata::InitialSymbol> states_probs;
+    std::map<TreeAutomata::State, TreeAutomata::InitialSymbol> states_probs;
     TreeAutomata::InitialSymbol default_prob;
     for (std::string state_prob; iss >> state_prob;) {
         std::istringstream iss2(state_prob);
         std::string state;
         std::getline(iss2, state, ':');
-        if (states_probs.empty()) {
+        if (states_probs.empty())
             aut.qubitNum = state.length();
-            states_probs.resize(pow(2, state.length()));
-        }
         std::string t;
         if (state == "*") {
             while (std::getline(iss2, t, ',')) {
-                default_prob.push_back(std::atoi(t.c_str()));
+                default_prob.push_back(boost::lexical_cast<TreeAutomata::InitialSymbol::Entry>(t.c_str()));
             }
         } else {
-            int s = std::stoi(state, nullptr, 2);
+            TreeAutomata::State s = std::stoll(state, nullptr, 2);
+            auto &sps = states_probs[s];
             while (std::getline(iss2, t, ',')) {
-                states_probs[s].push_back(std::atoi(t.c_str()));
+                sps.push_back(boost::lexical_cast<TreeAutomata::InitialSymbol::Entry>(t.c_str()));
             }
         }
     }
-    int pow_of_two = 1;
+    TreeAutomata::State pow_of_two = 1;
     TreeAutomata::State state_counter = 0;
     for (int level=1; level<=aut.qubitNum; level++) {
-        for (int i=0; i<pow_of_two; i++) {
-            aut.transitions[{level}][{state_counter*2+1, state_counter*2+2}] = {state_counter};
+        for (TreeAutomata::State i=0; i<pow_of_two; i++) {
+            aut.transitions[{level}][{(state_counter<<1)+1, (state_counter<<1)+2}] = {state_counter};
             state_counter++;
         }
-        pow_of_two *= 2;
+        pow_of_two <<= 1;
     }
-    for (TreeAutomata::State i=state_counter; i<=state_counter*2; i++) {
-        if (states_probs[i-state_counter].empty())
+    for (TreeAutomata::State i=state_counter; i<=(state_counter<<1); i++) {
+        auto spf = states_probs.find(i-state_counter);
+        if (spf == states_probs.end())
             aut.transitions[default_prob][{}].insert(i);
         else
-            aut.transitions[states_probs[i-state_counter]][{}].insert(i);
+            aut.transitions[spf->second][{}].insert(i);
     }
     aut.finalStates.push_back(0);
-    aut.stateNum = state_counter*2 + 1;
+    aut.stateNum = (state_counter<<1) + 1;
     aut.reduce();
 
     return aut;
@@ -115,7 +115,7 @@ int main(int argc, char **argv) {
     }
     aut_final.fraction_simplification();
     aut_final.reduce();
-    std::cout << std::endl;
+    std::cout << std::endl << std::endl;
     aut_final.print();
     return 0;
 }
