@@ -142,7 +142,7 @@ Transitions
 -
 1
 ```
-The program first prints the resulting symbolic automaton, where `v -> c` denotes the linear combination contains the term `c * v`, and then the verification result, where `1` indicates that the inclusion checking algorithm returns `true` and `0` indicates `false`. In this case `VATA_PATH` is no longer required since the inclusion checking algorithm for symbolic automata is different from that for concrete automata.
+The program first prints the resulting symbolic automaton, where `v -> c` denotes the linear combination contains the term `c * v`, and then the verification result, where `1` indicates that the inclusion checking algorithm returns `true` and `0` indicates `false`. In this case `VATA_PATH` is no longer required since we use another inclusion checking algorithm for symbolic automata.
 
 ---
 
