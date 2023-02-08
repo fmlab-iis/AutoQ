@@ -9,6 +9,7 @@
 #include <chrono>
 #include <queue>
 #include <regex>
+#include <boost/dynamic_bitset.hpp>
 
 using namespace AUTOQ;
 using namespace AUTOQ::Util;
@@ -1759,20 +1760,22 @@ bool AUTOQ::Util::is_spec_satisfied(const Constraint &C, const SymbolicAutomata 
 }
 
 template <typename InitialSymbol>
-std::vector<std::string> AUTOQ::Util::Automata<InitialSymbol>::print(const std::map<typename AUTOQ::Util::Automata<InitialSymbol>::State, typename AUTOQ::Util::Automata<InitialSymbol>::InitialSymbol> &leafSymbolMap, int qubit, typename AUTOQ::Util::Automata<InitialSymbol>::State state) {
+std::vector<std::vector<std::string>> AUTOQ::Util::Automata<InitialSymbol>::print(const std::map<typename AUTOQ::Util::Automata<InitialSymbol>::State, typename AUTOQ::Util::Automata<InitialSymbol>::InitialSymbol> &leafSymbolMap, int qubit, typename AUTOQ::Util::Automata<InitialSymbol>::State state) {
     if (qubit == qubitNum + 1) {
         std::stringstream ss;
         ss << leafSymbolMap.at(state);
-        return {ss.str()};
+        return {{ss.str()}};
     }
-    std::vector<std::string> ans;
+    std::vector<std::vector<std::string>> ans;
     for (const auto &in_outs : transitions.at({qubit})) {
         if (in_outs.second.find(state) != in_outs.second.end()) {
             auto v1 = print(leafSymbolMap, qubit + 1, in_outs.first.at(0));
             auto v2 = print(leafSymbolMap, qubit + 1, in_outs.first.at(1));
             for (const auto &s1 : v1) {
                 for (const auto &s2 : v2) {
-                    ans.push_back(s1 + " " + s2);
+                    auto v = s1;
+                    v.insert(v.end(), s2.begin(), s2.end());
+                    ans.push_back(v);
                 }
             }
         }
@@ -1793,7 +1796,17 @@ void AUTOQ::Util::Automata<InitialSymbol>::print_language() {
     for (const auto &s : finalStates) {
         auto v = print(leafSymbolMap, 1, s);
         for (const auto &s : v) {
-            std::cout << s << std::endl;
+            std::map<std::string, int> count;
+            for (unsigned i=0; i<s.size(); i++)
+                count[s[i]]++;
+            auto ptr = std::max_element(count.begin(), count.end(), [](const auto &x, const auto &y) {
+                return x.second < y.second;
+            });
+            for (unsigned i=0; i<s.size(); i++) {
+                if (s[i] != (ptr->first))
+                    std::cout << boost::dynamic_bitset(qubitNum, i) << ":" << s[i] << " ";
+            }
+            std::cout << "*:" << (ptr->first) << std::endl;
         }
     }
 }

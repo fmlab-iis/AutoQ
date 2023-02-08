@@ -18,7 +18,6 @@
 #include <autoq/autoq.hh>
 #include <autoq/util/triple.hh>
 #include <autoq/util/two_way_dict.hh>
-
 #include <boost/multiprecision/cpp_int.hpp>
 
 namespace AUTOQ
@@ -215,7 +214,7 @@ public:
 
     void execute(const char *filename);
     void print_language();
-    std::vector<std::string> print(const std::map<typename AUTOQ::Util::Automata<InitialSymbol>::State, typename AUTOQ::Util::Automata<InitialSymbol>::InitialSymbol> &leafSymbolMap, int qubit, typename AUTOQ::Util::Automata<InitialSymbol>::State state);
+    std::vector<std::vector<std::string>> print(const std::map<typename AUTOQ::Util::Automata<InitialSymbol>::State, typename AUTOQ::Util::Automata<InitialSymbol>::InitialSymbol> &leafSymbolMap, int qubit, typename AUTOQ::Util::Automata<InitialSymbol>::State state);
 };
 
 // Concrete initial symbol
