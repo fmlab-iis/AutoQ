@@ -49,6 +49,11 @@ add_executable(auto_from_states
   ${CMAKE_CURRENT_BINARY_DIR}/version.cc
 )
 
+add_executable(print_language
+  print_language.cc
+  ${CMAKE_CURRENT_BINARY_DIR}/version.cc
+)
+
 if (MAKE_STATIC_AUTOQ)
   SET(CMAKE_CXX_LINK_EXECUTABLE "${CMAKE_CXX_LINK_EXECUTABLE} -static")
 endif()
@@ -64,3 +69,4 @@ endforeach()
 
 target_link_libraries(autoq libautoq)
 target_link_libraries(auto_from_states libautoq)
+target_link_libraries(print_language libautoq)

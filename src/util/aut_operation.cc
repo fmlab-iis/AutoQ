@@ -1758,6 +1758,46 @@ bool AUTOQ::Util::is_spec_satisfied(const Constraint &C, const SymbolicAutomata 
     return true;
 }
 
+template <typename InitialSymbol>
+std::vector<std::string> AUTOQ::Util::Automata<InitialSymbol>::print(const std::map<typename AUTOQ::Util::Automata<InitialSymbol>::State, typename AUTOQ::Util::Automata<InitialSymbol>::InitialSymbol> &leafSymbolMap, int qubit, typename AUTOQ::Util::Automata<InitialSymbol>::State state) {
+    if (qubit == qubitNum + 1) {
+        std::stringstream ss;
+        ss << leafSymbolMap.at(state);
+        return {ss.str()};
+    }
+    std::vector<std::string> ans;
+    for (const auto &in_outs : transitions.at({qubit})) {
+        if (in_outs.second.find(state) != in_outs.second.end()) {
+            auto v1 = print(leafSymbolMap, qubit + 1, in_outs.first.at(0));
+            auto v2 = print(leafSymbolMap, qubit + 1, in_outs.first.at(1));
+            for (const auto &s1 : v1) {
+                for (const auto &s2 : v2) {
+                    ans.push_back(s1 + " " + s2);
+                }
+            }
+        }
+    }
+    return ans;
+}
+
+template <typename InitialSymbol>
+void AUTOQ::Util::Automata<InitialSymbol>::print_language() {
+    std::map<typename AUTOQ::Util::Automata<InitialSymbol>::State, typename AUTOQ::Util::Automata<InitialSymbol>::InitialSymbol> leafSymbolMap;
+    for (const auto &t : transitions) { // construct the map from state to leaf symbol
+        if (t.first.is_leaf()) {
+            for (const auto &s : t.second.at({})) {
+                leafSymbolMap[s] = t.first.initial_symbol(); // assume each state only maps to one leaf symbol
+            }
+        }
+    }
+    for (const auto &s : finalStates) {
+        auto v = print(leafSymbolMap, 1, s);
+        for (const auto &s : v) {
+            std::cout << s << std::endl;
+        }
+    }
+}
+
 // https://bytefreaks.net/programming-2/c/c-undefined-reference-to-templated-class-function
 template struct AUTOQ::Util::Automata<AUTOQ::Util::Concrete>;
 template struct AUTOQ::Util::Automata<AUTOQ::Util::Symbolic>;

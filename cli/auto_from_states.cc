@@ -113,7 +113,7 @@ TreeAutomata from_line_to_automaton(std::string line) {
 int main(int argc, char **argv) {
     TreeAutomata aut_final;
     std::string line;
-    while (std::cout << "> " && std::getline(std::cin, line)) {
+    while (std::getline(std::cin, line)) {
         if (line.substr(0, 4) == "|i|=") { // if startswith "|i|="
             std::istringstream iss(line);
             std::string length; iss >> length; length = length.substr(4);

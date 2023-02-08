@@ -214,6 +214,8 @@ public:
     static bool check_inclusion(const Automata& lhsPath, const Automata& rhsPath);
 
     void execute(const char *filename);
+    void print_language();
+    std::vector<std::string> print(const std::map<typename AUTOQ::Util::Automata<InitialSymbol>::State, typename AUTOQ::Util::Automata<InitialSymbol>::InitialSymbol> &leafSymbolMap, int qubit, typename AUTOQ::Util::Automata<InitialSymbol>::State state);
 };
 
 // Concrete initial symbol
