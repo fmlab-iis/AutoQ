@@ -44,8 +44,13 @@ add_executable(autoq
   ${CMAKE_CURRENT_BINARY_DIR}/version.cc
 )
 
-add_executable(auto_from_states
-  auto_from_states.cc
+add_executable(caut_from_states
+  caut_from_states.cc
+  ${CMAKE_CURRENT_BINARY_DIR}/version.cc
+)
+
+add_executable(saut_from_states
+  saut_from_states.cc
   ${CMAKE_CURRENT_BINARY_DIR}/version.cc
 )
 
@@ -68,5 +73,6 @@ foreach(src ${autoq_sources})
 endforeach()
 
 target_link_libraries(autoq libautoq)
-target_link_libraries(auto_from_states libautoq)
+target_link_libraries(caut_from_states libautoq)
+target_link_libraries(saut_from_states libautoq)
 target_link_libraries(print_language libautoq)
