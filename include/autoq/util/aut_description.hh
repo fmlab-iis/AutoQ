@@ -32,6 +32,7 @@ namespace AUTOQ
         struct Predicate;
         typedef Automata<Predicate> PredicateAutomata;
         struct Constraint;
+        struct linear_combination;
 	}
 }
 
@@ -307,7 +308,49 @@ struct AUTOQ::Util::Concrete : stdvectorboostmultiprecisioncpp_int {
 };
 
 // Symbolic initial symbol
-typedef std::vector<std::map<std::string, boost::multiprecision::cpp_int>> stdvectorstdmapstdstringboostmultiprecisioncpp_int;
+typedef std::map<std::string, boost::multiprecision::cpp_int> stdmapstdstringboostmultiprecisioncpp_int;
+struct AUTOQ::Util::linear_combination : std::map<std::string, boost::multiprecision::cpp_int> {
+    using stdmapstdstringboostmultiprecisioncpp_int::stdmapstdstringboostmultiprecisioncpp_int;
+    linear_combination operator+(linear_combination b) const {
+        for (const auto &kv : *this) {
+            auto k = kv.first;
+            auto v = kv.second;
+            b[k] += v;
+        }
+        return b;
+    }
+    linear_combination operator-(const linear_combination &b) const {
+        auto a = *this; // copy!
+        for (const auto &kv : b) {
+            auto k = kv.first;
+            auto v = kv.second;
+            a[k] -= v;
+        }
+        return a;
+    }
+    linear_combination operator*(const linear_combination &b) const {
+        linear_combination ans;
+        for (const auto &kv1 : *this) {
+            for (const auto &kv2 : b) {
+                if (kv1.first == "1") {
+                    ans[kv2.first] += kv1.second * kv2.second;
+                } else if (kv2.first == "1") {
+                    ans[kv1.first] += kv1.second * kv2.second;
+                } else if (kv1.first < kv2.first) {
+                    ans[kv1.first + "*" + kv2.first] += kv1.second * kv2.second;
+                } else {
+                    ans[kv2.first + "*" + kv1.first] += kv1.second * kv2.second;
+                }
+            }
+        }
+        return ans;
+    }
+    friend std::ostream& operator<<(std::ostream& os, const linear_combination& obj) {
+        os << AUTOQ::Util::Convert::ToString(static_cast<stdmapstdstringboostmultiprecisioncpp_int>(obj));
+        return os;
+    }
+};
+typedef std::vector<AUTOQ::Util::linear_combination> stdvectorstdmapstdstringboostmultiprecisioncpp_int;
 struct AUTOQ::Util::Symbolic : stdvectorstdmapstdstringboostmultiprecisioncpp_int {
     using stdvectorstdmapstdstringboostmultiprecisioncpp_int::stdvectorstdmapstdstringboostmultiprecisioncpp_int;
     typedef typename AUTOQ::Util::Symbolic::value_type Map;
@@ -331,32 +374,27 @@ struct AUTOQ::Util::Symbolic : stdvectorstdmapstdstringboostmultiprecisioncpp_in
         assert(this->at(4) == o.at(4)); // Two k's must be the same.
         Symbolic symbol;
         for (int i=0; i<4; i++) { // We do not change k here.
-            if (add) {
-                auto &m = o.at(i);
-                for (const auto &kv : this->at(i)) {
-                    auto k = kv.first;
-                    auto v = kv.second;
-                    m[k] += v;
-                }
-                symbol.push_back(m);
-            }
-            else {
-                auto m = at(i); // DO NOT use reference here, or the original map would be modified!
-                for (const auto &kv : o.at(i)) {
-                    auto k = kv.first;
-                    auto v = kv.second;
-                    m[k] -= v;
-                }
-                symbol.push_back(m);
-            }
+            if (add)
+                symbol.push_back(at(i) + o.at(i));
+            else
+                symbol.push_back(at(i) - o.at(i));
         }
         symbol.push_back(this->at(4)); // remember to push k
+        return symbol;
+    }
+    Symbolic operator*(const Symbolic &o) const {
+        Symbolic symbol;
+        symbol.push_back(at(0)*o.at(0) - at(1)*o.at(3) - at(2)*o.at(2) - at(3)*o.at(1));
+        symbol.push_back(at(0)*o.at(1) + at(1)*o.at(0) - at(2)*o.at(3) - at(3)*o.at(2));
+        symbol.push_back(at(0)*o.at(2) + at(1)*o.at(1) + at(2)*o.at(0) - at(3)*o.at(3));
+        symbol.push_back(at(0)*o.at(3) + at(1)*o.at(2) + at(2)*o.at(1) + at(3)*o.at(0));
+        symbol.push_back(at(4) + o.at(4)); // remember to push k
         return symbol;
     }
     void fraction_simplification() {
         while (std::all_of(begin(), begin()+4, [](const Map &m) {
             return std::all_of(m.begin(), m.end(), [](const auto &p) { return (p.second&1)==0; });
-        }) && at(4).at("1") >= 2) { // Notice the parentheses enclosing i&1 are very important!
+        }) && at(4).find("1")!=at(4).end() && at(4).at("1") >= 2) { // Notice the parentheses enclosing i&1 are very important!
             for (int i=0; i<4; i++) {
                 std::for_each(at(i).begin(), at(i).end(), [](auto &p) { p.second /= 2; });
                 for (auto it = at(i).begin(); it != at(i).end(); )

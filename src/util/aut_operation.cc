@@ -774,6 +774,8 @@ AUTOQ::Util::Automata<InitialSymbol> AUTOQ::Util::Automata<InitialSymbol>::binar
 
 template <typename InitialSymbol>
 AUTOQ::Util::Automata<InitialSymbol> AUTOQ::Util::Automata<InitialSymbol>::Union(const Automata<InitialSymbol> &o) {
+    if (*this == Automata<InitialSymbol>()) return o;
+
     Automata<InitialSymbol> result;
     result = *this;
     result.name = "Union";
