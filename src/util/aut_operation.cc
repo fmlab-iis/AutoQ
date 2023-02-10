@@ -1816,3 +1816,61 @@ void AUTOQ::Util::Automata<InitialSymbol>::print_language() {
 // https://bytefreaks.net/programming-2/c/c-undefined-reference-to-templated-class-function
 template struct AUTOQ::Util::Automata<AUTOQ::Util::Concrete>;
 template struct AUTOQ::Util::Automata<AUTOQ::Util::Symbolic>;
+template <> int AUTOQ::Util::Automata<Predicate>::count_transitions() {
+    int count = 0;
+    for (const auto &t : transitions)
+        for (const auto &in_outs : t.second) {
+            count += in_outs.second.size();
+        }
+    return count;
+}
+template <> void AUTOQ::Util::Automata<Predicate>::reduce() {
+    auto start = std::chrono::steady_clock::now();
+    // AUTOQ_DEBUG("before light_reduce_down: " + Convert::ToString(count_aut_states(*this)));
+    // this->sim_reduce();
+    this->light_reduce_up_iter();
+
+    Automata old = *this;
+    this->light_reduce_down_iter();
+    // AUTOQ_DEBUG("after light_reduce_down: " + Convert::ToString(count_aut_states(*this)));
+
+    compact_aut(*this);
+    // assert(check_equal_aut(old, *this));
+
+    auto duration = std::chrono::steady_clock::now() - start;
+    if (opLog) std::cout << __FUNCTION__ << "：" << stateNum << " states " << count_transitions() << " transitions\n";
+}
+template <> AUTOQ::Util::Automata<Predicate> AUTOQ::Util::Automata<Predicate>::Union(const Automata<Predicate> &o) {
+    if (*this == Automata<Predicate>()) return o;
+
+    Automata<Predicate> result;
+    result = *this;
+    result.name = "Union";
+    assert(result.qubitNum == o.qubitNum);
+    result.stateNum += o.stateNum;
+
+    for (const auto &t : o.transitions) {
+        auto &container = result.transitions[t.first];
+        for (const auto &in_outs : t.second) {
+            auto in = in_outs.first;
+            for (unsigned i=0; i<in.size(); i++) {
+                in[i] += this->stateNum;
+            }
+            auto &container_out = container[in];
+            const auto &outs = in_outs.second;
+            for (const auto &s : outs) {
+                container_out.insert(s + this->stateNum);
+            }
+        }
+    }
+    result.finalStates.reserve(finalStates.size() + o.finalStates.size()); // TODO: Can we set the initial capacity?
+    for (const auto &s : o.finalStates) {
+        result.finalStates.push_back(s + this->stateNum);
+    }
+    result.reduce();
+    if (opLog) std::cout << __FUNCTION__ << "：" << stateNum << " states " << count_transitions() << " transitions\n";
+    return result;
+}
+template <> void AUTOQ::Util::Automata<Predicate>::print() {
+    std::cout << AUTOQ::Serialization::TimbukSerializer::Serialize(*this);
+}

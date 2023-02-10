@@ -478,6 +478,12 @@ struct AUTOQ::Util::Predicate : std::string {
     bool is_leaf() const { return is_leaf_v; }
     bool is_internal() const { return !is_leaf_v; }
     boost::multiprecision::cpp_int qubit() const { return is_leaf() ? 0 : boost::multiprecision::cpp_int(*this); }
+    Predicate operator*(const Predicate &o) const {
+        if (*this == "true") return o;
+        if (o == "true") return *this;
+        if (*this == "false" || o == "false") return "false";
+        return Predicate(std::string("(and " + *this + " " + o + ")").c_str());
+    }
 };
 
 struct AUTOQ::Util::Constraint {
