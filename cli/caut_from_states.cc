@@ -150,7 +150,7 @@ int main(int argc, char **argv) {
     }
     aut_final.fraction_simplification();
     aut_final.reduce();
-    std::cout << std::endl << std::endl;
+    std::cout << std::endl;
     aut_final.print();
     return 0;
 }
