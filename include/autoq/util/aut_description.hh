@@ -346,7 +346,22 @@ struct AUTOQ::Util::linear_combination : std::map<std::string, boost::multipreci
         return ans;
     }
     friend std::ostream& operator<<(std::ostream& os, const linear_combination& obj) {
-        os << AUTOQ::Util::Convert::ToString(static_cast<stdmapstdstringboostmultiprecisioncpp_int>(obj));
+        // os << AUTOQ::Util::Convert::ToString(static_cast<stdmapstdstringboostmultiprecisioncpp_int>(obj));
+        if (obj.empty()) {
+            os << "0";
+            return os;
+        }
+        for (auto kv = obj.begin(); kv != obj.end(); ++kv) {
+            if (kv->first == "1")
+                os << kv->second;
+            else {
+                if (kv->second != 1)
+                    os << kv->second;
+                os << kv->first;
+            }
+            if (std::next(kv) != obj.end())
+                os << ' ';
+        }
         return os;
     }
 };
