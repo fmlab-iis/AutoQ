@@ -159,8 +159,8 @@ public:
     void value_restriction(int k, bool branch);
     void semi_determinize();
     void semi_undeterminize();
-    Automata operator+(const Automata &o) { return binary_operation(o, true); }
-    Automata operator-(const Automata &o) { return binary_operation(o, false); }
+    Automata operator+(const Automata &o);
+    Automata operator-(const Automata &o);
     Automata Union(const Automata &o); // U is in uppercase since "union" is a reserved keyword.
     void print();
     int transition_size();

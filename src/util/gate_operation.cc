@@ -39,16 +39,6 @@ namespace {
 }
 
 template <typename InitialSymbol>
-int AUTOQ::Util::Automata<InitialSymbol>::count_transitions() {
-    int count = 0;
-    for (const auto &t : transitions)
-        for (const auto &in_outs : t.second) {
-            count += in_outs.second.size();
-        }
-    return count;
-}
-
-template <typename InitialSymbol>
 void AUTOQ::Util::Automata<InitialSymbol>::X(int k) {
     #ifdef TO_QASM
         system(("echo 'x qubits[" + std::to_string(k-1) + "];' >> " + QASM_FILENAME).c_str());
