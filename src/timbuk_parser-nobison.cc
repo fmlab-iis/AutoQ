@@ -122,7 +122,7 @@ static std::pair<std::string, int> parse_colonned_token(std::string str)
 /**
  * @brief  Parse a string with Timbuk definition of an automaton
  */
-TreeAutomata::Symbol symbol_converter(const std::string& str)
+TreeAutomata::InitialSymbol from_string_to_Concrete(const std::string& str)
 {
 	TreeAutomata::InitialSymbol temp;
     if (str[0] == '[') {
@@ -139,7 +139,7 @@ TreeAutomata::Symbol symbol_converter(const std::string& str)
     return temp;
 }
 
-SymbolicAutomata::Symbol symbol_converter2(const std::string& str)
+SymbolicAutomata::InitialSymbol from_string_to_Symbolic(const std::string& str)
 {
 	SymbolicAutomata::InitialSymbol temp;
     if (str[0] == '[') {
@@ -170,6 +170,15 @@ SymbolicAutomata::Symbol symbol_converter2(const std::string& str)
     }
     assert(temp.size() == 1 || temp.size() == 5);
     return temp;
+}
+
+PredicateAutomata::InitialSymbol from_string_to_Predicate(const std::string& lhs)
+{
+    try {
+        return Predicate(boost::multiprecision::cpp_int(lhs.substr(1, lhs.size()-2)));
+    } catch (...) {
+        return Predicate(lhs.substr(1, lhs.size()-2).c_str());
+    }
 }
 
 template <typename InitialSymbol>
@@ -326,16 +335,13 @@ static Automata<InitialSymbol> parse_timbuk(const std::string& str)
                 int t = atoi(rhs.c_str());
                 if (t > result.stateNum) result.stateNum = t;
                 if constexpr(std::is_same_v<InitialSymbol, TreeAutomata::InitialSymbol>) {
-                    auto temp = symbol_converter(lhs);
+                    auto temp = from_string_to_Concrete(lhs);
                     result.transitions[temp][std::vector<TreeAutomata::State>()].insert(t); //.stateNum.TranslateFwd(rhs));
                 } else if constexpr(std::is_same_v<InitialSymbol, PredicateAutomata::InitialSymbol>) {
-                    try {
-                        result.transitions[Predicate(boost::multiprecision::cpp_int(lhs.substr(1, lhs.size()-2)))][std::vector<TreeAutomata::State>()].insert(t); //.stateNum.TranslateFwd(rhs));
-                    } catch (...) {
-                        result.transitions[Predicate(lhs.substr(1, lhs.size()-2).c_str())][std::vector<TreeAutomata::State>()].insert(t); //.stateNum.TranslateFwd(rhs));
-                    }
+                    auto temp = from_string_to_Predicate(lhs);
+                    result.transitions[temp][std::vector<TreeAutomata::State>()].insert(t); //.stateNum.TranslateFwd(rhs));
                 } else {
-                    auto temp = symbol_converter2(lhs);
+                    auto temp = from_string_to_Symbolic(lhs);
                     result.transitions[temp][std::vector<SymbolicAutomata::State>()].insert(t); //.stateNum.TranslateFwd(rhs));
                 }
                 /*******************************************************************************************************************/
@@ -391,16 +397,13 @@ static Automata<InitialSymbol> parse_timbuk(const std::string& str)
                 int t = atoi(rhs.c_str());
                 if (t > result.stateNum) result.stateNum = t;
                 if constexpr(std::is_same_v<InitialSymbol, TreeAutomata::InitialSymbol>) {
-                    auto temp = symbol_converter(lab);
+                    auto temp = from_string_to_Concrete(lab);
                     result.transitions[temp][state_vector].insert(t); //result.stateNum.TranslateFwd(rhs));
                 } else if constexpr(std::is_same_v<InitialSymbol, PredicateAutomata::InitialSymbol>) {
-                    try {
-                        result.transitions[Predicate(boost::multiprecision::cpp_int(lab.substr(1, lab.size()-2)))][state_vector].insert(t); //.stateNum.TranslateFwd(rhs));
-                    } catch (...) {
-                        result.transitions[Predicate(lab.substr(1, lab.size()-2).c_str())][state_vector].insert(t); //result.stateNum.TranslateFwd(rhs));
-                    }
+                    auto temp = from_string_to_Predicate(lab);
+                    result.transitions[temp][state_vector].insert(t); //.stateNum.TranslateFwd(rhs));
                 } else {
-                    auto temp = symbol_converter2(lab);
+                    auto temp = from_string_to_Symbolic(lab);
                     result.transitions[temp][state_vector].insert(t); //result.stateNum.TranslateFwd(rhs));
                 }
                 /*********************************************************************************************/
