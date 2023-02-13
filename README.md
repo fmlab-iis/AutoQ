@@ -318,3 +318,20 @@ Transitions
 [vH,0,0,0,0] -> 48
 [vL,0,0,0,0] -> 49
 ```
+
+Finally we have `build/cli/paut_from_states` for "predicate" probability amplitude. The concept is a little different from the previous two kinds of amplitudes. Each "predicate" amplitude is a predicate in SMT-LIB form. It is used to check whether all probability amplitudes in a symbolic automaton satisfy the probability amplitudes described in the predicate automaton under some constraint. Each `./benchmarks/Symbolic/*/spec.aut` is a predicate automaton.
+
+For the convenience of parsing, each `{prob}:{ampl}` must be enclosed with `[` and `]`. That is, `[{prob}:{ampl}]`. The following is an example illustrating how to construct `./benchmarks/Symbolic/H2/spec.aut`.
+```
+$ build/cli/paut_from_states
+[0:(and (= (* $a (pow_sqrt2_k 3)) a) (= (* $b (pow_sqrt2_k 3)) b) (= (* $c (pow_sqrt2_k 3)) c) (= (* $d (pow_sqrt2_k 3)) d))] [1:(and (= (* $a (pow_sqrt2_k 3)) e) (= (* $b (pow_sqrt2_k 3)) f) (= (* $c (pow_sqrt2_k 3)) g) (= (* $d (pow_sqrt2_k 3)) h))]
+
+Ops [1]:2 [(and (= (* $a (pow_sqrt2_k 3)) a) (= (* $b (pow_sqrt2_k 3)) b) (= (* $c (pow_sqrt2_k 3)) c) (= (* $d (pow_sqrt2_k 3)) d))]:0 [(and (= (* $a (pow_sqrt2_k 3)) e) (= (* $b (pow_sqrt2_k 3)) f) (= (* $c (pow_sqrt2_k 3)) g) (= (* $d (pow_sqrt2_k 3)) h))]:0 
+Automaton anonymous
+States 0 1 2 
+Final States 0 
+Transitions
+[1](1, 2) -> 0
+[(and (= (* $a (pow_sqrt2_k 3)) a) (= (* $b (pow_sqrt2_k 3)) b) (= (* $c (pow_sqrt2_k 3)) c) (= (* $d (pow_sqrt2_k 3)) d))] -> 1
+[(and (= (* $a (pow_sqrt2_k 3)) e) (= (* $b (pow_sqrt2_k 3)) f) (= (* $c (pow_sqrt2_k 3)) g) (= (* $d (pow_sqrt2_k 3)) h))] -> 2
+```
