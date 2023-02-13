@@ -125,7 +125,7 @@ int main(int argc, char **argv) {
             std::string i(std::atoi(length.c_str()), '1');
             bool reach_all_zero;
             do {
-                auto aut = from_line_to_automaton(std::regex_replace(line, std::regex("i"), i));
+                auto aut = from_line_to_automaton(std::regex_replace(line, std::regex("i:"), i + ":"));
                 aut_final = aut_final.Union(aut);
                 aut_final.reduce();
 
