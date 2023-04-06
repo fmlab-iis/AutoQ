@@ -55,6 +55,7 @@ add_library(libautoq STATIC
 	timbuk_parser-nobison.cc
 	timbuk_serializer.cc
 	util.cc
+    memory_usage.cpp
 	# sym_var_asgn.cc
 	# symbolic_tree_aut_base_core.cc
 	util/simulation/explicit_lts_sim.cc
