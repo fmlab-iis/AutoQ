@@ -26,7 +26,7 @@ namespace {
         auto ms = duration_cast<milliseconds>(ns);
         // auto s = duration<float, std::ratio<1, 1>>(ns);
         if (d.count() > 0 || h.count() > 0)
-            ss << "TOO_LONG & ";
+            ss << d.count() << 'd' << h.count() << 'h' << m.count() << 'm' << s.count() << 's';
         else if (m.count() == 0 && s.count() < 10) {
             ss << s.count() << '.' << ms.count() / 100 << "s";
         } else {
