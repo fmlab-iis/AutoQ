@@ -481,6 +481,17 @@ void AUTOQ::Util::Automata<InitialSymbol>::print() {
     std::cout << AUTOQ::Serialization::TimbukSerializer::Serialize(*this);
 }
 
+template <typename InitialSymbol>
+int AUTOQ::Util::Automata<InitialSymbol>::transition_size() {
+    int answer = 0;
+    for (const auto &t : transitions) {
+        for (const auto &in_out : t.second) {
+            answer += in_out.second.size();
+        }
+    }
+    return answer;
+}
+
 // https://bytefreaks.net/programming-2/c/c-undefined-reference-to-templated-class-function
 template struct AUTOQ::Util::Automata<AUTOQ::Util::Concrete>;
 template struct AUTOQ::Util::Automata<AUTOQ::Util::Symbolic>;

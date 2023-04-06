@@ -1062,17 +1062,6 @@ void AUTOQ::Util::Automata<InitialSymbol>::fraction_simplification() {
 // }
 
 template <typename InitialSymbol>
-int AUTOQ::Util::Automata<InitialSymbol>::transition_size() {
-    int answer = 0;
-    for (const auto &t : transitions) {
-        for (const auto &in_out : t.second) {
-            answer += in_out.second.size();
-        }
-    }
-    return answer;
-}
-
-template <typename InitialSymbol>
 void AUTOQ::Util::Automata<InitialSymbol>::execute(const char *filename) {
     std::ifstream qasm(filename);
     const std::regex digit("\\d+");
