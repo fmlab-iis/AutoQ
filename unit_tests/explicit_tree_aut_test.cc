@@ -678,31 +678,33 @@ BOOST_AUTO_TEST_CASE(Symbolic_into_Predicates)
 {
     std::string path = "../../benchmarks/Symbolic/";
     for (const auto & entry : fs::directory_iterator(path)) {
-        if (strstr(entry.path().c_str(), "BernsteinVazirani99") != nullptr) continue;
-        if (strstr(entry.path().c_str(), "BernsteinVazirani1000") != nullptr) continue;
-        if (strstr(entry.path().c_str(), "MOGrover08") != nullptr) continue;
-        if (strstr(entry.path().c_str(), "MOGrover09") != nullptr) continue;
-        if (strstr(entry.path().c_str(), "SOGrover16") != nullptr) continue;
-        if (strstr(entry.path().c_str(), "SOGrover18") != nullptr) continue;
-        if (strstr(entry.path().c_str(), "SOGrover20") != nullptr) continue;
-        if (strstr(entry.path().c_str(), "OEGrover20") != nullptr) continue;
-        if (strstr(entry.path().c_str(), "OEGrover30") != nullptr) continue;
-        if (strstr(entry.path().c_str(), "OEGrover50") != nullptr) continue;
-        if (strstr(entry.path().c_str(), "OEGrover75") != nullptr) continue;
-        if (strstr(entry.path().c_str(), "OEGrover100") != nullptr) continue;
+        if (entry.is_directory()) {
+            if (strstr(entry.path().c_str(), "BernsteinVazirani99") != nullptr) continue;
+            if (strstr(entry.path().c_str(), "BernsteinVazirani1000") != nullptr) continue;
+            if (strstr(entry.path().c_str(), "MOGrover08") != nullptr) continue;
+            if (strstr(entry.path().c_str(), "MOGrover09") != nullptr) continue;
+            if (strstr(entry.path().c_str(), "SOGrover16") != nullptr) continue;
+            if (strstr(entry.path().c_str(), "SOGrover18") != nullptr) continue;
+            if (strstr(entry.path().c_str(), "SOGrover20") != nullptr) continue;
+            if (strstr(entry.path().c_str(), "OEGrover20") != nullptr) continue;
+            if (strstr(entry.path().c_str(), "OEGrover30") != nullptr) continue;
+            if (strstr(entry.path().c_str(), "OEGrover50") != nullptr) continue;
+            if (strstr(entry.path().c_str(), "OEGrover75") != nullptr) continue;
+            if (strstr(entry.path().c_str(), "OEGrover100") != nullptr) continue;
 
-        AUTOQ::Util::SymbolicAutomata aut = AUTOQ::Parsing::TimbukParser<AUTOQ::Util::Symbolic>::FromFileToAutomata((std::string(entry.path()) + std::string("/pre.aut")).c_str());
-        aut.execute((std::string(entry.path()) + std::string("/circuit.qasm")).c_str());
-        aut.fraction_simplification();
+            AUTOQ::Util::SymbolicAutomata aut = AUTOQ::Parsing::TimbukParser<AUTOQ::Util::Symbolic>::FromFileToAutomata((std::string(entry.path()) + std::string("/pre.aut")).c_str());
+            aut.execute((std::string(entry.path()) + std::string("/circuit.qasm")).c_str());
+            aut.fraction_simplification();
 
-        AUTOQ::Util::PredicateAutomata spec = AUTOQ::Parsing::TimbukParser<AUTOQ::Util::Predicate>::FromFileToAutomata((std::string(entry.path()) + std::string("/spec.aut")).c_str());
+            AUTOQ::Util::PredicateAutomata spec = AUTOQ::Parsing::TimbukParser<AUTOQ::Util::Predicate>::FromFileToAutomata((std::string(entry.path()) + std::string("/spec.aut")).c_str());
 
-        std::ifstream t(std::string(entry.path()) + std::string("/constraint.txt"));
-        std::stringstream buffer;
-        buffer << t.rdbuf();
-        AUTOQ::Util::Constraint C(buffer.str().c_str());
+            std::ifstream t(std::string(entry.path()) + std::string("/constraint.txt"));
+            std::stringstream buffer;
+            buffer << t.rdbuf();
+            AUTOQ::Util::Constraint C(buffer.str().c_str());
 
-        BOOST_REQUIRE_MESSAGE(AUTOQ::Util::is_spec_satisfied(C, aut, spec), entry.path());
+            BOOST_REQUIRE_MESSAGE(AUTOQ::Util::is_spec_satisfied(C, aut, spec), entry.path());
+        }
     }
 }
 
@@ -710,17 +712,19 @@ BOOST_AUTO_TEST_CASE(Symbolic_into_Predicates_bug)
 {
     std::string path = "../../benchmarks/Symbolic-bug/";
     for (const auto & entry : fs::directory_iterator(path)) {
-        AUTOQ::Util::SymbolicAutomata aut = AUTOQ::Parsing::TimbukParser<AUTOQ::Util::Symbolic>::FromFileToAutomata((std::string(entry.path()) + std::string("/pre.aut")).c_str());
-        aut.execute((std::string(entry.path()) + std::string("/circuit.qasm")).c_str());
-        aut.fraction_simplification();
+        if (entry.is_directory()) {
+            AUTOQ::Util::SymbolicAutomata aut = AUTOQ::Parsing::TimbukParser<AUTOQ::Util::Symbolic>::FromFileToAutomata((std::string(entry.path()) + std::string("/pre.aut")).c_str());
+            aut.execute((std::string(entry.path()) + std::string("/circuit.qasm")).c_str());
+            aut.fraction_simplification();
 
-        AUTOQ::Util::PredicateAutomata spec = AUTOQ::Parsing::TimbukParser<AUTOQ::Util::Predicate>::FromFileToAutomata((std::string(entry.path()) + std::string("/spec.aut")).c_str());
+            AUTOQ::Util::PredicateAutomata spec = AUTOQ::Parsing::TimbukParser<AUTOQ::Util::Predicate>::FromFileToAutomata((std::string(entry.path()) + std::string("/spec.aut")).c_str());
 
-        std::ifstream t(std::string(entry.path()) + std::string("/constraint.txt"));
-        std::stringstream buffer;
-        buffer << t.rdbuf();
-        AUTOQ::Util::Constraint C(buffer.str().c_str());
+            std::ifstream t(std::string(entry.path()) + std::string("/constraint.txt"));
+            std::stringstream buffer;
+            buffer << t.rdbuf();
+            AUTOQ::Util::Constraint C(buffer.str().c_str());
 
-        BOOST_REQUIRE_MESSAGE(!AUTOQ::Util::is_spec_satisfied(C, aut, spec), entry.path());
+            BOOST_REQUIRE_MESSAGE(!AUTOQ::Util::is_spec_satisfied(C, aut, spec), entry.path());
+        }
     }
 }
