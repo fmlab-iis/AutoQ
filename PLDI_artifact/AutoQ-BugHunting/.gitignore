@@ -1,0 +1,17 @@
+# anything that was built
+build/*
+# Vim swap files
+**.swp
+# Doxygen generated documentation
+/html
+doxygen_sqlite3.db
+# ctags tags
+tags
+# YouCompleteMe dust
+.ycm_extra_conf.pyc
+# documentation
+doc/*
+# Python cache
+python_interface/__pycache__
+
+.vscode/*
