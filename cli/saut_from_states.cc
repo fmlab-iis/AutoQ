@@ -95,7 +95,7 @@ SymbolicAutomata from_line_to_automaton(std::string line) {
         for (const auto &t : aut_leaves) {
             for (const auto &t2 : aut2.transitions) {
                 if (t2.first.is_internal()) { // if the to-be-appended transition is internal, then
-                    auto Q = aut.qubitNum + t2.first.initial_symbol().at(0).at("1"); // we need to shift the qubit number
+                    auto Q = aut.qubitNum + t2.first.initial_symbol().qubit(); // we need to shift the qubit number
                     for (const auto &kv : t2.second) { // for each pair of vec_in -> set_out
                         auto k = kv.first;
                         for (int i=0; i<k.size(); i++)
