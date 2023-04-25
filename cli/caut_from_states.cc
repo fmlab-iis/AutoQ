@@ -1,5 +1,7 @@
 #include <autoq/util/util.hh>
 #include <autoq/util/aut_description.hh>
+#include <istream>
+#include <fstream>
 
 using namespace std;
 using AUTOQ::Util::TreeAutomata;
@@ -114,7 +116,13 @@ TreeAutomata from_line_to_automaton(std::string line) {
 int main(int argc, char **argv) {
     TreeAutomata aut_final;
     std::string line;
-    while (std::getline(std::cin, line)) {
+    std::istream *in = &std::cin;
+    std::ifstream file;
+    if (argc >= 2){
+        file.open(argv[1]);
+        in = &file;
+    }
+    while (std::getline(*in, line)) {
         line = AUTOQ::Util::trim(line);
         if (line.substr(0, 4) == "|i|=") { // if startswith "|i|="
             std::istringstream iss(line);
