@@ -13,7 +13,26 @@
 #include <autoq/util/util.hh>
 
 // Standard library headers
+#include <regex>
 #include <fstream>
+
+/**
+ * @brief  Trim whitespaces from a string (both left and right)
+ */
+std::string AUTOQ::Util::trim(const std::string& str)
+{
+	std::string result = str;
+
+	// trim from start
+	result.erase(result.begin(), std::find_if(result.begin(), result.end(),
+		[](int ch) {return !std::isspace(ch);}));
+
+	// trim from end
+	result.erase(std::find_if(result.rbegin(), result.rend(),
+		[](int ch) {return !std::isspace(ch);}).base(), result.end());
+
+	return result;
+}
 
 std::string AUTOQ::Util::ReadFile(const std::string& fileName)
 {

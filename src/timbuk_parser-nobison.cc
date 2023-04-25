@@ -14,6 +14,7 @@
 
 // AUTOQ headers
 #include <autoq/autoq.hh>
+#include <autoq/util/util.hh>
 #include <autoq/parsing/timbuk_parser.hh>
 #include <autoq/util/aut_description.hh>
 
@@ -25,26 +26,7 @@ using AUTOQ::Util::TreeAutomata;
 using AUTOQ::Util::SymbolicAutomata;
 using AUTOQ::Util::PredicateAutomata;
 using AUTOQ::Util::Convert;
-
-
-/**
- * @brief  Trim whitespaces from a string (both left and right)
- */
-static std::string trim(const std::string& str)
-{
-	std::string result = str;
-
-	// trim from start
-	result.erase(result.begin(), std::find_if(result.begin(), result.end(),
-		[](int ch) {return !std::isspace(ch);}));
-
-	// trim from end
-	result.erase(std::find_if(result.rbegin(), result.rend(),
-		[](int ch) {return !std::isspace(ch);}).base(), result.end());
-
-	return result;
-}
-
+using AUTOQ::Util::trim;
 
 /**
  * @brief  Split a string at a delimiter

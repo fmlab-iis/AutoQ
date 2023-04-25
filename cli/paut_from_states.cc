@@ -1,3 +1,4 @@
+#include <autoq/util/util.hh>
 #include <autoq/util/aut_description.hh>
 
 using namespace std;
@@ -116,6 +117,7 @@ int main(int argc, char **argv) {
     PredicateAutomata aut_final;
     std::string line;
     while (std::getline(std::cin, line)) {
+        line = AUTOQ::Util::trim(line);
         if (line.substr(0, 4) == "|i|=") { // if startswith "|i|="
             std::istringstream iss(line);
             std::string length; iss >> length; length = length.substr(4);
