@@ -40,11 +40,11 @@ template <typename TT>
 struct AUTOQ::Util::Automata
 {
 public:   // data types
-    typedef TT InitialSymbol;
     typedef int64_t State; // TODO: will make the program slightly slower. We wish to make another dynamic type.
 	typedef std::vector<State> StateVector;
 	typedef std::set<State> StateSet;
 
+    typedef TT InitialSymbol;
 	typedef std::vector<int> Tag;
     typedef std::pair<InitialSymbol, Tag> stdpairInitialSymbolTag;
     struct Symbol : stdpairInitialSymbolTag {

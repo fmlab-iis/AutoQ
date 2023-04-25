@@ -4,6 +4,7 @@
 #include <autoq/serialization/timbuk_serializer.hh>
 #include <autoq/util/aut_description.hh>
 #include <autoq/util/util.hh>
+#include <util_sim.h>
 #include <sys/wait.h>
 #include <unistd.h>
 
@@ -56,6 +57,7 @@ int main(int argc, char **argv) {
             //     << " & " << toString(durationSim) << " & " << toString(durationVer);
         }
     } else { // argc >= 5
+        auto startVer = chrono::steady_clock::now();
         AUTOQ::Util::SymbolicAutomata aut = AUTOQ::Parsing::TimbukParser<AUTOQ::Util::Symbolic>::FromFileToAutomata(argv[1]);
         aut.execute(argv[2]);
         aut.fraction_simplification();
@@ -66,7 +68,7 @@ int main(int argc, char **argv) {
         buffer << t.rdbuf();
         AUTOQ::Util::Constraint C(buffer.str().c_str());
         aut.print();
-        std::cout << "-\n" << AUTOQ::Util::is_spec_satisfied(C, aut, spec) << "\n";
+        std::cout << "-\n" << AUTOQ::Util::is_spec_satisfied(C, aut, spec) << " " << toString(chrono::steady_clock::now() - startVer) << " " << getPeakRSS() / 1024 / 1024 << "MB\n";
     }
     return 0;
 }
@@ -128,8 +130,10 @@ std::string toString(std::chrono::steady_clock::duration tp) {
     ns -= s;
     auto ms = duration_cast<milliseconds>(ns);
     // auto s = duration<float, std::ratio<1, 1>>(ns);
-    if (d.count() > 0 || h.count() > 0)
+    if (d.count() > 0)
         ss << d.count() << 'd' << h.count() << 'h' << m.count() << 'm' << s.count() << 's';
+    else if (h.count() > 0)
+        ss << h.count() << 'h' << m.count() << 'm' << s.count() << 's';
     else if (m.count() == 0 && s.count() < 10) {
         ss << s.count() << '.' << ms.count() / 100 << "s";
     } else {
