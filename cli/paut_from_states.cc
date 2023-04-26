@@ -116,6 +116,19 @@ PredicateAutomata from_line_to_automaton(std::string line) {
 }
 
 int main(int argc, char **argv) {
+    if (argc >= 2 && ((strcmp(argv[1], "-h")==0) || (strcmp(argv[1], "--help")==0))) {
+        std::cout << R"(usage: ./paut_from_states [-h] [input.txt]
+
+positional arguments:
+  input.txt             the input high-level specification language
+                        If this file is not provided, the user should provide the language
+                        via stdin.
+
+
+optional arguments:
+  -h, --help            show this help message and exit)" << std::endl;
+        return 0;
+    }
     PredicateAutomata aut_final;
     std::string line;
     std::istream *in = &std::cin;
