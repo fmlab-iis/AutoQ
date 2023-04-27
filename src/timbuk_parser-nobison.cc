@@ -634,7 +634,7 @@ Automata<InitialSymbol> TimbukParser<InitialSymbol>::FromFileToAutomata(const ch
         std::stringstream buffer;
         buffer << t.rdbuf();
         return ParseString(buffer.str());
-    } else if (boost::algorithm::ends_with(filepath, ".hls")) {
+    } else if (boost::algorithm::ends_with(filepath, ".hsl")) {
         Automata<InitialSymbol> aut_final;
         std::string line;
         std::ifstream file(filepath);

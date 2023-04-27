@@ -30,23 +30,23 @@ void produce_MCToffoli_pre_and_post();
 
 int main(int argc, char **argv) {
     if (argc < 3 || argc >= 2 && ((strcmp(argv[1], "-h")==0) || (strcmp(argv[1], "--help")==0))) {
-        std::cout << R"(usage: ./autoq [-h] pre.{aut|hls} circuit.qasm [spec.{aut|hls}] [constraint.txt]
+        std::cout << R"(usage: ./autoq [-h] pre.{aut|hsl} circuit.qasm [spec.{aut|hsl}] [constraint.txt]
 
 positional arguments:
-  pre.{aut|hls}         the input automaton
+  pre.{aut|hsl}         the input automaton
 
                         The extension "aut" implies the Timbuk format of tree automata.
-                        The extension "hls" implies the high-level specification language.
+                        The extension "hsl" implies the high-level specification language.
 
   circuit.qasm          the quantum circuit in OpenQASM 2.0.
 
-  spec.{aut|hls}        the specification automaton we expect to include the output automaton produced by
+  spec.{aut|hsl}        the specification automaton we expect to include the output automaton produced by
                         the input automaton passing through the circuit
                         This file can be omitted when the probability amplitudes are all concrete. In this
                         case, the program only prints the output automaton without checking inclusion.
 
                         The extension "aut" implies the Timbuk format of tree automata.
-                        The extension "hls" implies the high-level specification language.
+                        The extension "hsl" implies the high-level specification language.
 
   constraint.txt        the SMT-LIB file declaring all variables used in the automaton and their constraints
                         This file is required when the verification is performed under the symbolic mode.
