@@ -631,6 +631,8 @@ Automata<InitialSymbol> TimbukParser<InitialSymbol>::FromFileToAutomata(const ch
 {
     if (boost::algorithm::ends_with(filepath, ".aut")) {
         std::ifstream t(filepath);
+        if (!t) // in case the file could not be open
+            throw std::runtime_error("Error opening file " + std::string(filepath));
         std::stringstream buffer;
         buffer << t.rdbuf();
         return ParseString(buffer.str());
@@ -638,6 +640,8 @@ Automata<InitialSymbol> TimbukParser<InitialSymbol>::FromFileToAutomata(const ch
         Automata<InitialSymbol> aut_final;
         std::string line;
         std::ifstream file(filepath);
+        if (!file) // in case the file could not be open
+            throw std::runtime_error("Error opening file " + std::string(filepath));
         while (std::getline(file, line)) {
             line = AUTOQ::Util::trim(line);
             if (line.substr(0, 4) == "|i|=") { // if startswith "|i|="

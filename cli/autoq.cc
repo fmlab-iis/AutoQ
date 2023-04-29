@@ -29,6 +29,7 @@ void produce_MOGrover_post();
 void produce_MCToffoli_pre_and_post();
 
 int main(int argc, char **argv) {
+try {
     if (argc < 3 || argc >= 2 && ((strcmp(argv[1], "-h")==0) || (strcmp(argv[1], "--help")==0))) {
         std::cout << R"(usage: ./autoq [-h] pre.{aut|hsl} circuit.qasm [spec.{aut|hsl}] [constraint.smt]
 
@@ -92,6 +93,8 @@ optional arguments:
         aut.reduce();
         AUTOQ::Util::PredicateAutomata spec = AUTOQ::Parsing::TimbukParser<AUTOQ::Util::Predicate>::FromFileToAutomata(argv[3]);
         std::ifstream t(argv[4]);
+        if (!t) // in case the file could not be open
+            throw std::runtime_error("Error opening file " + std::string(argv[4]));
         std::stringstream buffer;
         buffer << t.rdbuf();
         AUTOQ::Util::Constraint C(buffer.str().c_str());
@@ -99,6 +102,10 @@ optional arguments:
         std::cout << "-\n" << AUTOQ::Util::is_spec_satisfied(C, aut, spec) << " " << toString(chrono::steady_clock::now() - startVer) << " " << getPeakRSS() / 1024 / 1024 << "MB\n";
     }
     return 0;
+} catch (std::exception &e) {
+    std::cout << e.what() << std::endl;
+    return 0;
+}
 }
 
 int rand_gen() {

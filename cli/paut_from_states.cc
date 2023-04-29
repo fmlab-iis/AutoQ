@@ -116,6 +116,7 @@ PredicateAutomata from_line_to_automaton(std::string line) {
 }
 
 int main(int argc, char **argv) {
+try {
     if (argc >= 2 && ((strcmp(argv[1], "-h")==0) || (strcmp(argv[1], "--help")==0))) {
         std::cout << R"(usage: ./paut_from_states [-h] [input.txt]
 
@@ -135,6 +136,8 @@ optional arguments:
     std::ifstream file;
     if (argc >= 2){
         file.open(argv[1]);
+        if (!file) // in case the file could not be open
+            throw std::runtime_error("Error opening file " + std::string(argv[1]));
         in = &file;
     }
     while (std::getline(*in, line)) {
@@ -177,4 +180,8 @@ optional arguments:
     std::cout << std::endl;
     aut_final.print();
     return 0;
+} catch (std::exception &e) {
+    std::cout << e.what() << std::endl;
+    return 0;
+}
 }
