@@ -23,7 +23,14 @@ $ sudo apt install cmake
 $ sudo apt install g++
 $ sudo apt install libboost-filesystem-dev
 $ sudo apt install libboost-test-dev
-$ sudo apt install z3
+```
+
+Also notice that the installed Z3 via `$ sudo apt install z3` may not be the latest one.  
+To resolve this issue, we use the following commands instead.  
+```
+$ wget https://github.com/Z3Prover/z3/releases/download/z3-4.12.1/z3-4.12.1-x64-glibc-2.35.zip
+$ unzip z3-4.12.1-x64-glibc-2.35.zip
+$ sudo cp z3-4.12.1-x64-glibc-2.35/bin/z3 /usr/bin/
 ```
 
 Then in the project root directory, execute:
@@ -56,7 +63,7 @@ following command:
 It is recommended to run
 
 ```
-  $ make test
+  $ VATA_PATH=$PWD/vata make test
 ```
 
 from the repository's root directory after compiling the code to run several
