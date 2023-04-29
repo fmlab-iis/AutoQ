@@ -698,7 +698,7 @@ BOOST_AUTO_TEST_CASE(Symbolic_into_Predicates)
 
             AUTOQ::Util::PredicateAutomata spec = AUTOQ::Parsing::TimbukParser<AUTOQ::Util::Predicate>::FromFileToAutomata((std::string(entry.path()) + std::string("/spec.aut")).c_str());
 
-            std::ifstream t(std::string(entry.path()) + std::string("/constraint.txt"));
+            std::ifstream t(std::string(entry.path()) + std::string("/constraint.smt"));
             std::stringstream buffer;
             buffer << t.rdbuf();
             AUTOQ::Util::Constraint C(buffer.str().c_str());
@@ -719,7 +719,7 @@ BOOST_AUTO_TEST_CASE(Symbolic_into_Predicates_bug)
 
             AUTOQ::Util::PredicateAutomata spec = AUTOQ::Parsing::TimbukParser<AUTOQ::Util::Predicate>::FromFileToAutomata((std::string(entry.path()) + std::string("/spec.aut")).c_str());
 
-            std::ifstream t(std::string(entry.path()) + std::string("/constraint.txt"));
+            std::ifstream t(std::string(entry.path()) + std::string("/constraint.smt"));
             std::stringstream buffer;
             buffer << t.rdbuf();
             AUTOQ::Util::Constraint C(buffer.str().c_str());

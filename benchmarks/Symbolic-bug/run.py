@@ -13,7 +13,7 @@ def AutoQ(root, stR, semaphore, lock, counter):
         q = p.stdout.splitlines()[0].decode('utf-8')
         p = subprocess.run(f'grep -P ".*(x |y |z |h |s |t |rx\(pi/2\) |ry\(pi/2\) |cx |cz |ccx |tdg |sdg |swap ).*\[\d+\];" {root}/circuit.qasm | wc -l', shell=True, capture_output=True, executable='/bin/bash')
         G = p.stdout.splitlines()[0].decode('utf-8')
-        p = subprocess.run(f'timeout {TIMEOUT} ../../build/cli/autoq {root}/pre.aut {root}/circuit.qasm {root}/spec.aut {root}/constraint.txt', shell=True, capture_output=True, executable='/bin/bash')
+        p = subprocess.run(f'timeout {TIMEOUT} ../../build/cli/autoq {root}/pre.aut {root}/circuit.qasm {root}/spec.aut {root}/constraint.smt', shell=True, capture_output=True, executable='/bin/bash')
         ret = p.returncode
         if ret == 0:
             stR.value = p.stdout.splitlines()[-1].decode('utf-8')

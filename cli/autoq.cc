@@ -30,7 +30,7 @@ void produce_MCToffoli_pre_and_post();
 
 int main(int argc, char **argv) {
     if (argc < 3 || argc >= 2 && ((strcmp(argv[1], "-h")==0) || (strcmp(argv[1], "--help")==0))) {
-        std::cout << R"(usage: ./autoq [-h] pre.{aut|hsl} circuit.qasm [spec.{aut|hsl}] [constraint.txt]
+        std::cout << R"(usage: ./autoq [-h] pre.{aut|hsl} circuit.qasm [spec.{aut|hsl}] [constraint.smt]
 
 positional arguments:
   pre.{aut|hsl}         the input automaton
@@ -48,7 +48,7 @@ positional arguments:
                         The extension "aut" implies the Timbuk format of tree automata.
                         The extension "hsl" implies the high-level specification language.
 
-  constraint.txt        the SMT-LIB file declaring all variables used in the automaton and their constraints
+  constraint.smt        the SMT-LIB file declaring all variables used in the automaton and their constraints
                         This file is required when the verification is performed under the symbolic mode.
 
 
