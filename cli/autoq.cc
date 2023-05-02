@@ -55,6 +55,11 @@ optional arguments:
     }
 
     if (argc < 5) {
+        if (argc >= 4) { // Check VATA_PATH first!
+            if (std::getenv("VATA_PATH") == nullptr) {
+                throw std::runtime_error("[ERROR] The environment variable VATA_PATH is not found!");
+            }
+        }
         AUTOQ::Util::TreeAutomata aut = AUTOQ::Parsing::TimbukParser<AUTOQ::Util::Concrete>::FromFileToAutomata(argv[1]);
         int stateBefore = aut.stateNum, transitionBefore = aut.transition_size();
         auto startSim = chrono::steady_clock::now();
