@@ -68,7 +68,10 @@ optional arguments:
         auto durationVer = durationSim; // just borrow its type!
         aut.fraction_simplification();
         auto startVer = chrono::steady_clock::now();
+        std::cout << "OUTPUT AUTOMATON:\n";
+        std::cout << "=================\n";
         aut.print();
+        std::cout << "=================\n";
         if (argc >= 4) {
             if (!AUTOQ::Util::TreeAutomata::check_inclusion(aut, argv[3])) {
                 std::cout << "-\n0\n";
@@ -99,7 +102,10 @@ optional arguments:
         std::stringstream buffer;
         buffer << t.rdbuf();
         AUTOQ::Util::Constraint C(buffer.str().c_str());
+        std::cout << "OUTPUT AUTOMATON:\n";
+        std::cout << "=================\n";
         aut.print();
+        std::cout << "=================\n";
         std::cout << "-\n" << AUTOQ::Util::is_spec_satisfied(C, aut, spec) << " " << toString(chrono::steady_clock::now() - startVer) << " " << getPeakRSS() / 1024 / 1024 << "MB\n";
     }
     return 0;

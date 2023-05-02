@@ -1214,8 +1214,8 @@ bool AUTOQ::Util::check_validity(Constraint C, const PredicateAutomata::InitialS
     else if (str == "sat\n") return false;
     else {
         std::cout << smt_input << "\n";
-        std::cout << str;
-        throw std::runtime_error("[ERROR] The solver Z3 does not return SAT or UNSAT.");
+        std::cout << str << "-\n";
+        throw std::runtime_error("[ERROR] The solver Z3 did not correctly return SAT or UNSAT.\nIt's probably because the specification automaton is NOT a predicate automaton.");
     }
 }
 bool AUTOQ::Util::is_spec_satisfied(const Constraint &C, const SymbolicAutomata &Ae, const PredicateAutomata &As) {
