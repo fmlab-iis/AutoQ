@@ -257,7 +257,7 @@ void AUTOQ::Util::Automata<InitialSymbol>::branch_restriction(int k, bool positi
     auto start = std::chrono::steady_clock::now();
     State num_of_states = stateNum;
     if (stateNum > std::numeric_limits<State>::max() / 2)
-        throw std::overflow_error("");
+        throw std::overflow_error("[ERROR] The number of states is too large.");
     stateNum *= 2;
 
     TransitionMap transitions_copy = transitions;
@@ -381,7 +381,7 @@ AUTOQ::Util::Automata<InitialSymbol> AUTOQ::Util::Automata<InitialSymbol>::binar
     if (!overflow)
         result.finalStates.reserve(finalStates.size() * o.finalStates.size()); // TODO: Can we set the initial capacity?
     else
-        throw std::overflow_error("");
+        throw std::overflow_error("[ERROR] The number of states after multiplication is too large.");
 
     for (const auto &fs1 : finalStates)
         for (const auto &fs2 : o.finalStates) {
@@ -974,7 +974,7 @@ void AUTOQ::Util::Automata<InitialSymbol>::fraction_simplification() {
     // not cached, get it from ENV
     const char* path = std::getenv("VATA_PATH");
     if (nullptr == path) {
-      throw std::runtime_error("Cannot find environment variable VATA_PATH");
+      throw std::runtime_error("[ERROR] The environment variable VATA_PATH is not found!");
     }
 
     gpath_to_VATA = path;
@@ -1066,7 +1066,7 @@ void AUTOQ::Util::Automata<InitialSymbol>::execute(const char *filename) {
     std::ifstream qasm(filename);
     const std::regex digit("\\d+");
     const std::regex_iterator<std::string::iterator> END;
-    if (!qasm.is_open()) throw std::runtime_error("The circuit cannot be opened!");
+    if (!qasm.is_open()) throw std::runtime_error("[ERROR] Failed to open file " + std::string(filename) + ".");
     std::string line;
     while (getline(qasm, line)) {
         if (line.find("OPENQASM") == 0 || line.find("include ") == 0|| line.find("//") == 0) continue;
@@ -1074,7 +1074,7 @@ void AUTOQ::Util::Automata<InitialSymbol>::execute(const char *filename) {
             std::regex_iterator<std::string::iterator> it(line.begin(), line.end(), digit);
             while (it != END) {
                 if (atoi(it->str().c_str()) != qubitNum)
-                    throw std::exception();
+                    throw std::runtime_error("[ERROR] The number of qubits in the automaton does not match the number of qubits in the circuit.");
                 ++it;
             }
         } else if (line.find("x ") == 0) {
@@ -1150,7 +1150,7 @@ void AUTOQ::Util::Automata<InitialSymbol>::execute(const char *filename) {
             }
             swap(pos[0], pos[1]);
         } else if (line.length() > 0)
-            throw std::runtime_error("Unsupported gate: " + line);
+            throw std::runtime_error("[ERROR] unsupported gate: " + line + ".");
     }
     qasm.close();
 }
@@ -1215,7 +1215,7 @@ bool AUTOQ::Util::check_validity(Constraint C, const PredicateAutomata::InitialS
     else {
         std::cout << smt_input << "\n";
         std::cout << str;
-        throw std::runtime_error("z3 error");
+        throw std::runtime_error("[ERROR] The solver Z3 does not return SAT or UNSAT.");
     }
 }
 bool AUTOQ::Util::is_spec_satisfied(const Constraint &C, const SymbolicAutomata &Ae, const PredicateAutomata &As) {

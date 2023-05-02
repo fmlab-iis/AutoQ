@@ -178,7 +178,7 @@ namespace { // anonymous namespace
           if (arr[i] == item)
               return i;
       }
-      std::__throw_out_of_range("findIndex");
+      std::__throw_out_of_range("[ERROR] findIndex: item not found.");
   }
 
   /// Checks that a state is at most once on the right-hand (parent) side of

@@ -90,7 +90,7 @@ optional arguments:
         AUTOQ::Util::PredicateAutomata spec = AUTOQ::Parsing::TimbukParser<AUTOQ::Util::Predicate>::FromFileToAutomata(argv[3]);
         std::ifstream t(argv[4]);
         if (!t) // in case the file could not be open
-            throw std::runtime_error("Error opening file " + std::string(argv[4]));
+            throw std::runtime_error("[ERROR] Failed to open file " + std::string(argv[4]) + ".");
         std::stringstream buffer;
         buffer << t.rdbuf();
         AUTOQ::Util::Constraint C(buffer.str().c_str());

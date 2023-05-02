@@ -193,7 +193,7 @@ static Automata<InitialSymbol> parse_timbuk(const std::string& str)
 			{
 				if (aut_parsed)
 				{
-					throw std::runtime_error(std::string(__FUNCTION__) + "Automaton already parsed!");
+					throw std::runtime_error(std::string(__FUNCTION__) + ": Automaton already parsed!");
 				}
 
 				aut_parsed = true;
@@ -202,8 +202,8 @@ static Automata<InitialSymbol> parse_timbuk(const std::string& str)
 
 				if (!str.empty())
 				{
-					throw std::runtime_error(std::string(__FUNCTION__) + ": line \"" + line +
-						"\" has an unexpected string");
+					throw std::runtime_error(std::string(__FUNCTION__) + ": Line \"" + line +
+						"\" has an unexpected string.");
 				}
 			}
 			else if ("Ops" == first_word)
@@ -228,7 +228,7 @@ static Automata<InitialSymbol> parse_timbuk(const std::string& str)
 			{
 				if (states_parsed)
 				{
-					throw std::runtime_error(std::string(__FUNCTION__) + "States already parsed!");
+					throw std::runtime_error(std::string(__FUNCTION__) + ": States already parsed!");
 				}
 
 				states_parsed = true;
@@ -249,13 +249,13 @@ static Automata<InitialSymbol> parse_timbuk(const std::string& str)
 				std::string str_states = read_word(str);
 				if ("States" != str_states)
 				{
-					throw std::runtime_error(std::string(__FUNCTION__) + ": line \"" + line +
-						"\" contains an unexpected string");
+					throw std::runtime_error(std::string(__FUNCTION__) + ": Line \"" + line +
+						"\" contains an unexpected string.");
 				}
 
 				if (final_parsed)
 				{
-					throw std::runtime_error(std::string(__FUNCTION__) + "Final States already parsed!");
+					throw std::runtime_error(std::string(__FUNCTION__) + ": Final States already parsed!");
 				}
 
 				final_parsed = true;
@@ -274,14 +274,14 @@ static Automata<InitialSymbol> parse_timbuk(const std::string& str)
 			}
 			else
 			{	// guard
-				throw std::runtime_error(std::string(__FUNCTION__) + ": line \"" + line +
-					"\" contains an unexpected string");
+				throw std::runtime_error(std::string(__FUNCTION__) + ": Line \"" + line +
+					"\" contains an unexpected string.");
 			}
 		}
 		else
 		{	// processing transitions
 			std::string invalid_trans_str = std::string(__FUNCTION__) +
-				": invalid transition \"" + line + "\"";
+				": Invalid transition \"" + line + "\".";
 
 			size_t arrow_pos = str.find("->");
 			if (std::string::npos == arrow_pos)
@@ -396,13 +396,13 @@ static Automata<InitialSymbol> parse_timbuk(const std::string& str)
 
 	if (!are_transitions)
 	{
-		throw std::runtime_error(std::string(__FUNCTION__) + ": Transitions not specified");
+		throw std::runtime_error(std::string(__FUNCTION__) + ": Transitions not specified.");
 	}
 
     for (const auto &kv : result.transitions) {
         if (kv.first.is_internal()) {
             if (kv.first.initial_symbol().qubit() > INT_MAX)
-                throw std::overflow_error("");
+                throw std::overflow_error("[ERROR] The number of qubits is too large!");
             result.qubitNum = std::max(result.qubitNum, static_cast<int>(kv.first.initial_symbol().qubit()));
         }
     }
@@ -421,8 +421,8 @@ Automata<InitialSymbol> TimbukParser<InitialSymbol>::ParseString(const std::stri
 	}
 	catch (std::exception& ex)
 	{
-		throw std::runtime_error("Error: \'" + std::string(ex.what()) +
-			"\' while parsing \n" + str);
+		throw std::runtime_error("[ERROR] \'" + std::string(ex.what()) +
+			"\'\nwhile parsing the following automaton.\n\n>>>>>>>>>>>>>>>>>>>>\n" + str + "\n<<<<<<<<<<<<<<<<<<<<");
 	}
 
 	return timbukParse;
@@ -632,7 +632,7 @@ Automata<InitialSymbol> TimbukParser<InitialSymbol>::FromFileToAutomata(const ch
     if (boost::algorithm::ends_with(filepath, ".aut")) {
         std::ifstream t(filepath);
         if (!t) // in case the file could not be open
-            throw std::runtime_error("Error opening file " + std::string(filepath));
+            throw std::runtime_error("[ERROR] Failed to open file " + std::string(filepath) + ".");
         std::stringstream buffer;
         buffer << t.rdbuf();
         return ParseString(buffer.str());
@@ -641,7 +641,7 @@ Automata<InitialSymbol> TimbukParser<InitialSymbol>::FromFileToAutomata(const ch
         std::string line;
         std::ifstream file(filepath);
         if (!file) // in case the file could not be open
-            throw std::runtime_error("Error opening file " + std::string(filepath));
+            throw std::runtime_error("[ERROR] Failed to open file " + std::string(filepath) + ".");
         while (std::getline(file, line)) {
             line = AUTOQ::Util::trim(line);
             if (line.substr(0, 4) == "|i|=") { // if startswith "|i|="
@@ -682,7 +682,7 @@ Automata<InitialSymbol> TimbukParser<InitialSymbol>::FromFileToAutomata(const ch
         // and in this case all k's must be the same.
         return aut_final;
     } else {
-        throw std::runtime_error(std::string(__FUNCTION__) + ": the filename extension not supported");
+        throw std::runtime_error("[ERROR] " + std::string(__FUNCTION__) + ": The filename extension is not supported.");
     }
 }
 
