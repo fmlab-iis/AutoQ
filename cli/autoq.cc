@@ -2,7 +2,8 @@
 #include <iostream>
 #include <autoq/parsing/timbuk_parser.hh>
 #include <autoq/serialization/timbuk_serializer.hh>
-#include <autoq/util/aut_description.hh>
+#include <autoq/aut_description.hh>
+#include <autoq/inclusion.hh>
 #include <autoq/util/util.hh>
 #include <util_sim.h>
 #include <sys/wait.h>
@@ -13,7 +14,7 @@
 #include <regex>
 
 using namespace std;
-using AUTOQ::Util::TreeAutomata;
+using AUTOQ::TreeAutomata;
 using AUTOQ::Util::ShellCmd;
 using AUTOQ::Util::ReadFile;
 
@@ -60,7 +61,7 @@ optional arguments:
                 throw std::runtime_error("[ERROR] The environment variable VATA_PATH is not found!");
             }
         }
-        AUTOQ::Util::TreeAutomata aut = AUTOQ::Parsing::TimbukParser<AUTOQ::Util::Concrete>::FromFileToAutomata(argv[1]);
+        AUTOQ::TreeAutomata aut = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Concrete>::FromFileToAutomata(argv[1]);
         int stateBefore = aut.stateNum, transitionBefore = aut.transition_size();
         auto startSim = chrono::steady_clock::now();
         aut.execute(argv[2]);
@@ -73,10 +74,10 @@ optional arguments:
         aut.print();
         std::cout << "=================\n";
         if (argc >= 4) {
-            if (!AUTOQ::Util::TreeAutomata::check_inclusion(aut, argv[3])) {
+            if (!AUTOQ::TreeAutomata::check_inclusion(aut, argv[3])) {
                 std::cout << "-\n0\n";
                 // throw std::runtime_error("Does not satisfy the postcondition!");
-                // std::cout << AUTOQ::Util::Convert::ToString(aut.qubitNum) << " & " << AUTOQ::Util::TreeAutomata::gateCount
+                // std::cout << AUTOQ::Util::Convert::ToString(aut.qubitNum) << " & " << AUTOQ::TreeAutomata::gateCount
                 // << " & " << stateBefore << " & " << aut.stateNum
                 // << " & " << transitionBefore << " & " << aut.transition_size()
                 // << " & " << toString(durationSim) << " & V";
@@ -84,29 +85,29 @@ optional arguments:
                 std::cout << "-\n1\n";
         } else {
             durationVer = chrono::steady_clock::now() - startVer;
-            // std::cout << AUTOQ::Util::Convert::ToString(aut.qubitNum) << " & " << AUTOQ::Util::TreeAutomata::gateCount
+            // std::cout << AUTOQ::Util::Convert::ToString(aut.qubitNum) << " & " << AUTOQ::TreeAutomata::gateCount
             //     << " & " << stateBefore << " & " << aut.stateNum
             //     << " & " << transitionBefore << " & " << aut.transition_size()
             //     << " & " << toString(durationSim) << " & " << toString(durationVer);
         }
     } else { // argc >= 5
         auto startVer = chrono::steady_clock::now();
-        AUTOQ::Util::SymbolicAutomata aut = AUTOQ::Parsing::TimbukParser<AUTOQ::Util::Symbolic>::FromFileToAutomata(argv[1]);
+        AUTOQ::SymbolicAutomata aut = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Symbolic>::FromFileToAutomata(argv[1]);
         aut.execute(argv[2]);
         aut.fraction_simplification();
         aut.reduce();
-        AUTOQ::Util::PredicateAutomata spec = AUTOQ::Parsing::TimbukParser<AUTOQ::Util::Predicate>::FromFileToAutomata(argv[3]);
+        AUTOQ::PredicateAutomata spec = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Predicate>::FromFileToAutomata(argv[3]);
         std::ifstream t(argv[4]);
         if (!t) // in case the file could not be open
             throw std::runtime_error("[ERROR] Failed to open file " + std::string(argv[4]) + ".");
         std::stringstream buffer;
         buffer << t.rdbuf();
-        AUTOQ::Util::Constraint C(buffer.str().c_str());
+        AUTOQ::Constraint C(buffer.str().c_str());
         std::cout << "OUTPUT AUTOMATON:\n";
         std::cout << "=================\n";
         aut.print();
         std::cout << "=================\n";
-        std::cout << "-\n" << AUTOQ::Util::is_spec_satisfied(C, aut, spec) << " " << toString(chrono::steady_clock::now() - startVer) << " " << getPeakRSS() / 1024 / 1024 << "MB\n";
+        std::cout << "-\n" << AUTOQ::is_spec_satisfied(C, aut, spec) << " " << toString(chrono::steady_clock::now() - startVer) << " " << getPeakRSS() / 1024 / 1024 << "MB\n";
     }
     return 0;
 } catch (std::exception &e) {

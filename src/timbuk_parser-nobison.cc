@@ -15,17 +15,20 @@
 // AUTOQ headers
 #include <autoq/autoq.hh>
 #include <autoq/util/util.hh>
+#include <autoq/symbol/fivetuple.hh>
+#include <autoq/symbol/symbolic.hh>
+#include <autoq/symbol/predicate.hh>
 #include <autoq/parsing/timbuk_parser.hh>
-#include <autoq/util/aut_description.hh>
+#include <autoq/aut_description.hh>
 #include <boost/algorithm/string/predicate.hpp>
 
 using AUTOQ::Parsing::AbstrParser;
 using AUTOQ::Parsing::TimbukParser;
-using AUTOQ::Util::Predicate;
-using AUTOQ::Util::Automata;
-using AUTOQ::Util::TreeAutomata;
-using AUTOQ::Util::SymbolicAutomata;
-using AUTOQ::Util::PredicateAutomata;
+using AUTOQ::Symbol::Predicate;
+using AUTOQ::Automata;
+using AUTOQ::TreeAutomata;
+using AUTOQ::SymbolicAutomata;
+using AUTOQ::PredicateAutomata;
 using AUTOQ::Util::Convert;
 using AUTOQ::Util::trim;
 
@@ -105,7 +108,7 @@ static std::pair<std::string, int> parse_colonned_token(std::string str)
 /**
  * @brief  Parse a string with Timbuk definition of an automaton
  */
-TreeAutomata::InitialSymbol from_string_to_Concrete(const std::string& str)
+typename TreeAutomata::InitialSymbol from_string_to_Concrete(const std::string& str)
 {
 	TreeAutomata::InitialSymbol temp;
     if (str[0] == '[') {
@@ -140,7 +143,7 @@ SymbolicAutomata::InitialSymbol from_string_to_Symbolic(const std::string& str)
             try {
                 auto v = boost::lexical_cast<SymbolicAutomata::InitialSymbol::Entry>(str.substr(i, j-i).c_str());
                 if (v == 0)
-                    temp.push_back(AUTOQ::Util::Symbolic::Map());
+                    temp.push_back(AUTOQ::Symbol::Symbolic::Map());
                 else
                     temp.push_back({{"1", v}});
             } catch (boost::bad_lexical_cast& e) {
@@ -152,7 +155,7 @@ SymbolicAutomata::InitialSymbol from_string_to_Symbolic(const std::string& str)
         try {
             auto v = boost::lexical_cast<SymbolicAutomata::InitialSymbol::Entry>(str.c_str());
             if (v == 0)
-                temp.push_back(AUTOQ::Util::Symbolic::Map());
+                temp.push_back(AUTOQ::Symbol::Symbolic::Map());
             else
                 temp.push_back({{"1", v}});
         } catch (boost::bad_lexical_cast& e) {
@@ -556,7 +559,7 @@ Automata<InitialSymbol> TimbukParser<InitialSymbol>::from_tree_to_automaton(std:
                     try {
                         auto v = boost::lexical_cast<SymbolicAutomata::InitialSymbol::Entry>(t.c_str());
                         if (v == 0)
-                            default_prob.push_back(AUTOQ::Util::Symbolic::Map());
+                            default_prob.push_back(AUTOQ::Symbol::Symbolic::Map());
                         else
                             default_prob.push_back({{"1", v}});
                     } catch (boost::bad_lexical_cast& e) {
@@ -578,7 +581,7 @@ Automata<InitialSymbol> TimbukParser<InitialSymbol>::from_tree_to_automaton(std:
                     try {
                         auto v = boost::lexical_cast<SymbolicAutomata::InitialSymbol::Entry>(t.c_str());
                         if (v == 0)
-                            sps.push_back(AUTOQ::Util::Symbolic::Map());
+                            sps.push_back(AUTOQ::Symbol::Symbolic::Map());
                         else
                             sps.push_back({{"1", v}});
                     } catch (boost::bad_lexical_cast& e) {
@@ -754,6 +757,6 @@ Automata<InitialSymbol> TimbukParser<InitialSymbol>::FromFileToAutomata(const ch
 }
 
 // https://bytefreaks.net/programming-2/c/c-undefined-reference-to-templated-class-function
-template struct AUTOQ::Parsing::TimbukParser<AUTOQ::Util::Concrete>;
-template struct AUTOQ::Parsing::TimbukParser<AUTOQ::Util::Symbolic>;
-template struct AUTOQ::Parsing::TimbukParser<AUTOQ::Util::Predicate>;
+template struct AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Concrete>;
+template struct AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Symbolic>;
+template struct AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Predicate>;

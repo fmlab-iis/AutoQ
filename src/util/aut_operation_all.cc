@@ -1,4 +1,7 @@
-#include <autoq/util/aut_description.hh>
+#include <autoq/symbol/fivetuple.hh>
+#include <autoq/symbol/symbolic.hh>
+#include <autoq/symbol/predicate.hh>
+#include <autoq/aut_description.hh>
 #include <autoq/serialization/timbuk_serializer.hh>
 
 #include "simulation/explicit_lts.hh"
@@ -83,7 +86,7 @@ namespace { // anonymous namespace
   }
 
   template <typename InitialSymbol>
-  size_t count_aut_states(const AUTOQ::Util::Automata<InitialSymbol>& aut)
+  size_t count_aut_states(const AUTOQ::Automata<InitialSymbol>& aut)
   {
     using State = typename Automata<InitialSymbol>::State;
 
@@ -105,7 +108,7 @@ namespace { // anonymous namespace
   }
 
   template <typename InitialSymbol>
-  typename Util::DiscontBinaryRelation<typename Automata<InitialSymbol>::State> compute_down_sim(const AUTOQ::Util::Automata<InitialSymbol>& aut)
+  typename Util::DiscontBinaryRelation<typename Automata<InitialSymbol>::State> compute_down_sim(const AUTOQ::Automata<InitialSymbol>& aut)
   {
     using State = typename Automata<InitialSymbol>::State;
     using StateToIndexMap = typename std::unordered_map<State, size_t>;
@@ -221,7 +224,7 @@ namespace { // anonymous namespace
 } // anonymous namespace
 
 template <typename InitialSymbol>
-bool AUTOQ::Util::Automata<InitialSymbol>::light_reduce_up()
+bool AUTOQ::Automata<InitialSymbol>::light_reduce_up()
 {
   using State = typename Automata<InitialSymbol>::State;
   using StateToStateMap = typename std::unordered_map<State, State>;
@@ -257,7 +260,7 @@ bool AUTOQ::Util::Automata<InitialSymbol>::light_reduce_up()
 }
 
 template <typename InitialSymbol>
-bool AUTOQ::Util::Automata<InitialSymbol>::light_reduce_up_iter()
+bool AUTOQ::Automata<InitialSymbol>::light_reduce_up_iter()
 {
   size_t iterations = 0;
   bool changed = true;
@@ -270,7 +273,7 @@ bool AUTOQ::Util::Automata<InitialSymbol>::light_reduce_up_iter()
 }
 
 template <typename InitialSymbol>
-bool AUTOQ::Util::Automata<InitialSymbol>::light_reduce_down()
+bool AUTOQ::Automata<InitialSymbol>::light_reduce_down()
 {
   using State = typename Automata<InitialSymbol>::State;
   using StateToStateMap = typename std::unordered_map<State, State>;
@@ -403,7 +406,7 @@ bool AUTOQ::Util::Automata<InitialSymbol>::light_reduce_down()
 }
 
 template <typename InitialSymbol>
-bool AUTOQ::Util::Automata<InitialSymbol>::light_reduce_down_iter()
+bool AUTOQ::Automata<InitialSymbol>::light_reduce_down_iter()
 {
   size_t iterations = 0;
   bool changed = true;
@@ -416,7 +419,7 @@ bool AUTOQ::Util::Automata<InitialSymbol>::light_reduce_down_iter()
 }
 
 template <typename InitialSymbol>
-int AUTOQ::Util::Automata<InitialSymbol>::count_transitions() {
+int AUTOQ::Automata<InitialSymbol>::count_transitions() {
     int count = 0;
     for (const auto &t : transitions)
         for (const auto &in_outs : t.second) {
@@ -426,7 +429,7 @@ int AUTOQ::Util::Automata<InitialSymbol>::count_transitions() {
 }
 
 template <typename InitialSymbol>
-void AUTOQ::Util::Automata<InitialSymbol>::reduce() {
+void AUTOQ::Automata<InitialSymbol>::reduce() {
     auto start = std::chrono::steady_clock::now();
     // AUTOQ_DEBUG("before light_reduce_down: " + Convert::ToString(count_aut_states(*this)));
     // this->sim_reduce();
@@ -444,7 +447,7 @@ void AUTOQ::Util::Automata<InitialSymbol>::reduce() {
 }
 
 template <typename InitialSymbol>
-AUTOQ::Util::Automata<InitialSymbol> AUTOQ::Util::Automata<InitialSymbol>::Union(const Automata<InitialSymbol> &o) {
+AUTOQ::Automata<InitialSymbol> AUTOQ::Automata<InitialSymbol>::Union(const Automata<InitialSymbol> &o) {
     if (*this == Automata<InitialSymbol>()) return o;
 
     Automata<InitialSymbol> result;
@@ -480,12 +483,12 @@ AUTOQ::Util::Automata<InitialSymbol> AUTOQ::Util::Automata<InitialSymbol>::Union
 }
 
 template <typename InitialSymbol>
-void AUTOQ::Util::Automata<InitialSymbol>::print() {
+void AUTOQ::Automata<InitialSymbol>::print() {
     std::cout << AUTOQ::Serialization::TimbukSerializer::Serialize(*this);
 }
 
 template <typename InitialSymbol>
-int AUTOQ::Util::Automata<InitialSymbol>::transition_size() {
+int AUTOQ::Automata<InitialSymbol>::transition_size() {
     int answer = 0;
     for (const auto &t : transitions) {
         for (const auto &in_out : t.second) {
@@ -496,6 +499,6 @@ int AUTOQ::Util::Automata<InitialSymbol>::transition_size() {
 }
 
 // https://bytefreaks.net/programming-2/c/c-undefined-reference-to-templated-class-function
-template struct AUTOQ::Util::Automata<AUTOQ::Util::Concrete>;
-template struct AUTOQ::Util::Automata<AUTOQ::Util::Symbolic>;
-template struct AUTOQ::Util::Automata<AUTOQ::Util::Predicate>;
+template struct AUTOQ::Automata<AUTOQ::Symbol::Concrete>;
+template struct AUTOQ::Automata<AUTOQ::Symbol::Symbolic>;
+template struct AUTOQ::Automata<AUTOQ::Symbol::Predicate>;

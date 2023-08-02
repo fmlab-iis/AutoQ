@@ -16,7 +16,7 @@
 #include <autoq/parsing/abstr_parser.hh>
 #include <autoq/util/convert.hh>
 #include <autoq/util/triple.hh>
-#include <autoq/util/aut_description.hh>
+#include <autoq/aut_description.hh>
 
 namespace AUTOQ
 {
@@ -42,10 +42,10 @@ public:   // methods
 	/**
 	 * @copydoc  AUTOQ::Parsing::AbstrParser::ParseString
 	 */
-	static AUTOQ::Util::Automata<InitialSymbol> ParseString(const std::string& str);
-    static AUTOQ::Util::Automata<InitialSymbol> FromFileToAutomata(const char* filepath);
-    static AUTOQ::Util::Automata<InitialSymbol> from_tree_to_automaton(std::string tree);
-    static AUTOQ::Util::Automata<InitialSymbol> from_line_to_automaton(std::string line);
+	static AUTOQ::Automata<InitialSymbol> ParseString(const std::string& str);
+    static AUTOQ::Automata<InitialSymbol> FromFileToAutomata(const char* filepath);
+    static AUTOQ::Automata<InitialSymbol> from_tree_to_automaton(std::string tree);
+    static AUTOQ::Automata<InitialSymbol> from_line_to_automaton(std::string line);
 
 	/**
 	 * @copydoc  AUTOQ::Parsing::AbstrParser::~AbstrParser

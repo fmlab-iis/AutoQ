@@ -13,7 +13,7 @@
 
 // AUTOQ headers
 #include <autoq/autoq.hh>
-#include <autoq/util/aut_description.hh>
+#include <autoq/aut_description.hh>
 #include <autoq/util/triple.hh>
 
 
@@ -30,7 +30,7 @@ class AUTOQ::Parsing::AbstrParser
 {
 public:   // data types
 
-	typedef AUTOQ::Util::TreeAutomata TreeAutomata;
+	typedef AUTOQ::TreeAutomata TreeAutomata;
 
 public:   // methods
 

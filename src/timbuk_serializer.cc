@@ -10,13 +10,16 @@
 
 // AUTOQ headers
 #include <autoq/autoq.hh>
+#include <autoq/symbol/fivetuple.hh>
+#include <autoq/symbol/symbolic.hh>
+#include <autoq/symbol/predicate.hh>
 #include <autoq/serialization/timbuk_serializer.hh>
 
 using AUTOQ::Util::Convert;
-using AUTOQ::Util::Automata;
-using AUTOQ::Util::TreeAutomata;
-using AUTOQ::Util::SymbolicAutomata;
-using AUTOQ::Util::PredicateAutomata;
+using AUTOQ::Automata;
+using AUTOQ::TreeAutomata;
+using AUTOQ::SymbolicAutomata;
+using AUTOQ::PredicateAutomata;
 using AUTOQ::Serialization::TimbukSerializer;
 
 // Standard library headers

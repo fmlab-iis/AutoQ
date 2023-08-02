@@ -1,12 +1,13 @@
 #include <autoq/util/util.hh>
-#include <autoq/util/aut_description.hh>
+#include <autoq/aut_description.hh>
 #include <autoq/parsing/timbuk_parser.hh>
 #include <istream>
 #include <fstream>
+#include <regex>
 
 using namespace std;
 using AUTOQ::Parsing::TimbukParser;
-using AUTOQ::Util::PredicateAutomata;
+using AUTOQ::PredicateAutomata;
 
 int main(int argc, char **argv) {
 try {

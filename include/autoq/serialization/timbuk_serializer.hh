@@ -50,7 +50,7 @@ public:   // methods
 	// }
 
 	template <typename InitialSymbol>
-    static std::string Serialize(const AUTOQ::Util::Automata<InitialSymbol>& desc);
+    static std::string Serialize(const AUTOQ::Automata<InitialSymbol>& desc);
 };
 
 #endif

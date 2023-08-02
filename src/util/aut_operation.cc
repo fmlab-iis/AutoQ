@@ -1,5 +1,9 @@
-#include <autoq/util/aut_description.hh>
+#include <autoq/aut_description.hh>
+#include <autoq/symbol/fivetuple.hh>
+#include <autoq/symbol/symbolic.hh>
+#include <autoq/symbol/predicate.hh>
 #include <autoq/util/util.hh>
+#include <autoq/inclusion.hh>
 #include <autoq/serialization/timbuk_serializer.hh>
 
 #include "simulation/explicit_lts.hh"
@@ -79,7 +83,7 @@ namespace std
 } // namespace std
 
 template <typename InitialSymbol>
-void AUTOQ::Util::Automata<InitialSymbol>::remove_useless(bool only_bottom_up) {
+void AUTOQ::Automata<InitialSymbol>::remove_useless(bool only_bottom_up) {
     auto start = std::chrono::steady_clock::now();
     bool changed;
     std::vector<bool> traversed(stateNum, false);
@@ -212,7 +216,7 @@ void AUTOQ::Util::Automata<InitialSymbol>::remove_useless(bool only_bottom_up) {
 }
 
 template <typename InitialSymbol>
-void AUTOQ::Util::Automata<InitialSymbol>::omega_multiplication(int rotation) {
+void AUTOQ::Automata<InitialSymbol>::omega_multiplication(int rotation) {
     TransitionMap transitions_new;
     for (const auto &t_old : transitions) {
         const Symbol &symbol = t_old.first;
@@ -232,7 +236,7 @@ void AUTOQ::Util::Automata<InitialSymbol>::omega_multiplication(int rotation) {
 }
 
 template <typename InitialSymbol>
-void AUTOQ::Util::Automata<InitialSymbol>::divide_by_the_square_root_of_two() {
+void AUTOQ::Automata<InitialSymbol>::divide_by_the_square_root_of_two() {
     std::vector<Symbol> to_be_removed;
     TransitionMap to_be_inserted;
     for (const auto &t : transitions) {
@@ -253,7 +257,7 @@ void AUTOQ::Util::Automata<InitialSymbol>::divide_by_the_square_root_of_two() {
 }
 
 template <typename InitialSymbol>
-void AUTOQ::Util::Automata<InitialSymbol>::branch_restriction(int k, bool positive_has_value) {
+void AUTOQ::Automata<InitialSymbol>::branch_restriction(int k, bool positive_has_value) {
     auto start = std::chrono::steady_clock::now();
     State num_of_states = stateNum;
     if (stateNum > std::numeric_limits<State>::max() / 2)
@@ -315,7 +319,7 @@ void AUTOQ::Util::Automata<InitialSymbol>::branch_restriction(int k, bool positi
 }
 
 template <typename InitialSymbol>
-void AUTOQ::Util::Automata<InitialSymbol>::semi_determinize() {
+void AUTOQ::Automata<InitialSymbol>::semi_determinize() {
     if (isTopdownDeterministic) return;
     TransitionMap transitions_copy = transitions;
     for (const auto &t : transitions_copy) {
@@ -340,7 +344,7 @@ void AUTOQ::Util::Automata<InitialSymbol>::semi_determinize() {
 }
 
 template <typename InitialSymbol>
-void AUTOQ::Util::Automata<InitialSymbol>::semi_undeterminize() {
+void AUTOQ::Automata<InitialSymbol>::semi_undeterminize() {
     if (isTopdownDeterministic) return;
     TransitionMap transitions_copy = transitions;
     for (const auto &t : transitions_copy) {
@@ -369,9 +373,9 @@ void AUTOQ::Util::Automata<InitialSymbol>::semi_undeterminize() {
         else i = it->second; \
     } else i = a * o.stateNum + b;
 template <typename InitialSymbol>
-AUTOQ::Util::Automata<InitialSymbol> AUTOQ::Util::Automata<InitialSymbol>::binary_operation(const Automata<InitialSymbol> &o, bool add) {
+AUTOQ::Automata<InitialSymbol> AUTOQ::Automata<InitialSymbol>::binary_operation(const Automata<InitialSymbol> &o, bool add) {
     auto start = std::chrono::steady_clock::now();
-    AUTOQ::Util::Automata<InitialSymbol> result;
+    AUTOQ::Automata<InitialSymbol> result;
     result.name = name;
     result.qubitNum = qubitNum;
     result.isTopdownDeterministic = isTopdownDeterministic; // IMPORTANT: Avoid missing copying new fields afterwards.
@@ -526,16 +530,16 @@ AUTOQ::Util::Automata<InitialSymbol> AUTOQ::Util::Automata<InitialSymbol>::binar
     return result;
 }
 template <typename InitialSymbol>
-AUTOQ::Util::Automata<InitialSymbol> Automata<InitialSymbol>::operator+(const Automata &o) {
+AUTOQ::Automata<InitialSymbol> Automata<InitialSymbol>::operator+(const Automata &o) {
     return binary_operation(o, true);
 }
 template <typename InitialSymbol>
-AUTOQ::Util::Automata<InitialSymbol> Automata<InitialSymbol>::operator-(const Automata &o) {
+AUTOQ::Automata<InitialSymbol> Automata<InitialSymbol>::operator-(const Automata &o) {
     return binary_operation(o, false);
 }
 
 template <>
-AUTOQ::Util::TreeAutomata AUTOQ::Util::TreeAutomata::uniform(int n) {
+AUTOQ::TreeAutomata AUTOQ::TreeAutomata::uniform(int n) {
     TreeAutomata aut;
     aut.name = "Uniform";
     aut.qubitNum = n;
@@ -561,7 +565,7 @@ AUTOQ::Util::TreeAutomata AUTOQ::Util::TreeAutomata::uniform(int n) {
 }
 
 template <>
-AUTOQ::Util::TreeAutomata AUTOQ::Util::TreeAutomata::basis(int n) {
+AUTOQ::TreeAutomata AUTOQ::TreeAutomata::basis(int n) {
     TreeAutomata aut;
     aut.name = "Classical";
     aut.qubitNum = n;
@@ -582,7 +586,7 @@ AUTOQ::Util::TreeAutomata AUTOQ::Util::TreeAutomata::basis(int n) {
 }
 
 template <>
-AUTOQ::Util::TreeAutomata AUTOQ::Util::TreeAutomata::random(int n) {
+AUTOQ::TreeAutomata AUTOQ::TreeAutomata::random(int n) {
     TreeAutomata aut;
     aut.name = "Random";
     aut.qubitNum = n;
@@ -607,7 +611,7 @@ AUTOQ::Util::TreeAutomata AUTOQ::Util::TreeAutomata::random(int n) {
 }
 
 template <>
-AUTOQ::Util::TreeAutomata AUTOQ::Util::TreeAutomata::zero(int n) {
+AUTOQ::TreeAutomata AUTOQ::TreeAutomata::zero(int n) {
     /* Example of n = 6:
         Final States 0
         Transitions
@@ -644,7 +648,7 @@ AUTOQ::Util::TreeAutomata AUTOQ::Util::TreeAutomata::zero(int n) {
 }
 
 template <>
-AUTOQ::Util::TreeAutomata AUTOQ::Util::TreeAutomata::basis_zero_one_zero(int n) {
+AUTOQ::TreeAutomata AUTOQ::TreeAutomata::basis_zero_one_zero(int n) {
     TreeAutomata aut;
     assert(n >= 2);
     aut.name = "Classical_Zero_One_Zero";
@@ -681,7 +685,7 @@ AUTOQ::Util::TreeAutomata AUTOQ::Util::TreeAutomata::basis_zero_one_zero(int n) 
 }
 
 template <>
-AUTOQ::Util::TreeAutomata AUTOQ::Util::TreeAutomata::zero_zero_one_zero(int n) {
+AUTOQ::TreeAutomata AUTOQ::TreeAutomata::zero_zero_one_zero(int n) {
     TreeAutomata aut;
     assert(n >= 2);
     aut.name = "Zero_Zero_One_Zero";
@@ -718,7 +722,7 @@ AUTOQ::Util::TreeAutomata AUTOQ::Util::TreeAutomata::zero_zero_one_zero(int n) {
 }
 
 template <>
-AUTOQ::Util::TreeAutomata AUTOQ::Util::TreeAutomata::zero_one_zero(int n) {
+AUTOQ::TreeAutomata AUTOQ::TreeAutomata::zero_one_zero(int n) {
     TreeAutomata aut;
     assert(n >= 2);
     aut.name = "Zero_One_Zero";
@@ -751,7 +755,7 @@ AUTOQ::Util::TreeAutomata AUTOQ::Util::TreeAutomata::zero_one_zero(int n) {
 }
 
 template <typename InitialSymbol>
-void AUTOQ::Util::Automata<InitialSymbol>::swap_forward(const int k) {
+void AUTOQ::Automata<InitialSymbol>::swap_forward(const int k) {
     if (isTopdownDeterministic) return;
     for (int next_k=k+1; next_k<=qubitNum; next_k++) {
         std::map<State, std::vector<std::pair<Symbol, StateVector>>> svsv;
@@ -824,7 +828,7 @@ void AUTOQ::Util::Automata<InitialSymbol>::swap_forward(const int k) {
 }
 
 template <typename InitialSymbol>
-void AUTOQ::Util::Automata<InitialSymbol>::swap_backward(const int k) {
+void AUTOQ::Automata<InitialSymbol>::swap_backward(const int k) {
     if (isTopdownDeterministic) return;
     for (int next_k=qubitNum; next_k>k; next_k--) {
       std::map<State, std::vector<std::pair<Symbol, StateVector>>> svsv;
@@ -903,7 +907,7 @@ void AUTOQ::Util::Automata<InitialSymbol>::swap_backward(const int k) {
 }
 
 template <typename InitialSymbol>
-void AUTOQ::Util::Automata<InitialSymbol>::value_restriction(int k, bool branch) {
+void AUTOQ::Automata<InitialSymbol>::value_restriction(int k, bool branch) {
     auto start = std::chrono::steady_clock::now();
     swap_forward(k);
     TransitionMap to_be_inserted;
@@ -937,7 +941,7 @@ void AUTOQ::Util::Automata<InitialSymbol>::value_restriction(int k, bool branch)
 }
 
 template <typename InitialSymbol>
-void AUTOQ::Util::Automata<InitialSymbol>::fraction_simplification() {
+void AUTOQ::Automata<InitialSymbol>::fraction_simplification() {
     std::vector<Symbol> to_be_removed;
     TransitionMap to_be_inserted;
     for (const auto &t : transitions) {
@@ -984,7 +988,7 @@ void AUTOQ::Util::Automata<InitialSymbol>::fraction_simplification() {
 
   /** checks inclusion of two TAs */
   template <typename InitialSymbol>
-  bool AUTOQ::Util::Automata<InitialSymbol>::check_inclusion(const std::string& lhsPath, const std::string& rhsPath)
+  bool AUTOQ::Automata<InitialSymbol>::check_inclusion(const std::string& lhsPath, const std::string& rhsPath)
   {
     std::string aux;
     AUTOQ::Util::ShellCmd(get_vata_path() + " incl " + lhsPath + " " + rhsPath, aux);
@@ -992,7 +996,7 @@ void AUTOQ::Util::Automata<InitialSymbol>::fraction_simplification() {
   }
 
   template <typename InitialSymbol>
-  bool AUTOQ::Util::Automata<InitialSymbol>::check_inclusion(const Automata<InitialSymbol>& lhsPath, const std::string& rhsPath)
+  bool AUTOQ::Automata<InitialSymbol>::check_inclusion(const Automata<InitialSymbol>& lhsPath, const std::string& rhsPath)
   {
     std::string aux;
     AUTOQ::Util::ShellCmd(get_vata_path() + " incl2 '" + TimbukSerializer::Serialize(lhsPath) + "' " + rhsPath, aux);
@@ -1000,7 +1004,7 @@ void AUTOQ::Util::Automata<InitialSymbol>::fraction_simplification() {
   }
 
   template <typename InitialSymbol>
-  bool AUTOQ::Util::Automata<InitialSymbol>::check_inclusion(const std::string& lhsPath, const Automata<InitialSymbol>& rhsPath)
+  bool AUTOQ::Automata<InitialSymbol>::check_inclusion(const std::string& lhsPath, const Automata<InitialSymbol>& rhsPath)
   {
     std::string aux;
     AUTOQ::Util::ShellCmd(get_vata_path() + " incl3 " + lhsPath + " '" + TimbukSerializer::Serialize(rhsPath) + "'", aux);
@@ -1008,7 +1012,7 @@ void AUTOQ::Util::Automata<InitialSymbol>::fraction_simplification() {
   }
 
   template <typename InitialSymbol>
-  bool AUTOQ::Util::Automata<InitialSymbol>::check_inclusion(const Automata<InitialSymbol>& lhsPath, const Automata<InitialSymbol>& rhsPath)
+  bool AUTOQ::Automata<InitialSymbol>::check_inclusion(const Automata<InitialSymbol>& lhsPath, const Automata<InitialSymbol>& rhsPath)
   {
     std::string aux;
     AUTOQ::Util::ShellCmd(get_vata_path() + " incl4 '" + TimbukSerializer::Serialize(lhsPath) + "' '" + TimbukSerializer::Serialize(rhsPath) + "'", aux);
@@ -1017,15 +1021,15 @@ void AUTOQ::Util::Automata<InitialSymbol>::fraction_simplification() {
 
   /** checks language equivalence of two TAs */
   template <typename InitialSymbol>
-  bool AUTOQ::Util::Automata<InitialSymbol>::check_equal(const Automata<InitialSymbol>& lhsPath, const Automata<InitialSymbol>& rhsPath)
+  bool AUTOQ::Automata<InitialSymbol>::check_equal(const Automata<InitialSymbol>& lhsPath, const Automata<InitialSymbol>& rhsPath)
   {
     return check_inclusion(lhsPath, rhsPath) && check_inclusion(rhsPath, lhsPath);
   }
 
   template <>
-  bool AUTOQ::Util::TreeAutomata::check_equal_aut(
-      AUTOQ::Util::TreeAutomata lhs,
-      AUTOQ::Util::TreeAutomata rhs)
+  bool AUTOQ::TreeAutomata::check_equal_aut(
+      AUTOQ::TreeAutomata lhs,
+      AUTOQ::TreeAutomata rhs)
   {
     lhs.fraction_simplification();
     rhs.fraction_simplification();
@@ -1035,7 +1039,7 @@ void AUTOQ::Util::Automata<InitialSymbol>::fraction_simplification() {
 /******************************************************/
 
 // template <typename InitialSymbol>
-// void AUTOQ::Util::Automata<InitialSymbol>::sim_reduce()
+// void AUTOQ::Automata<InitialSymbol>::sim_reduce()
 // {
 //   using State = typename Automata<InitialSymbol>::State;
 //   using DiscontBinaryRelOnStates = typename Util::DiscontBinaryRelation<State>;
@@ -1062,7 +1066,7 @@ void AUTOQ::Util::Automata<InitialSymbol>::fraction_simplification() {
 // }
 
 template <typename InitialSymbol>
-void AUTOQ::Util::Automata<InitialSymbol>::execute(const char *filename) {
+void AUTOQ::Automata<InitialSymbol>::execute(const char *filename) {
     std::ifstream qasm(filename);
     const std::regex digit("\\d+");
     const std::regex_iterator<std::string::iterator> END;
@@ -1198,7 +1202,7 @@ std::string toString2(std::chrono::steady_clock::duration tp) {
     ss.fill(fill);
     return ss.str();
 }
-bool AUTOQ::Util::check_validity(Constraint C, const PredicateAutomata::InitialSymbol &ps, const SymbolicAutomata::InitialSymbol &te) {
+bool AUTOQ::check_validity(Constraint C, const PredicateAutomata::InitialSymbol &ps, const SymbolicAutomata::InitialSymbol &te) {
     std::string str(ps);
     auto expr = C.to_exprs(te);
     std::vector<std::regex> reg{std::regex("\\$a"), std::regex("\\$b"), std::regex("\\$c"), std::regex("\\$d")};
@@ -1218,7 +1222,7 @@ bool AUTOQ::Util::check_validity(Constraint C, const PredicateAutomata::InitialS
         throw std::runtime_error("[ERROR] The solver Z3 did not correctly return SAT or UNSAT.\nIt's probably because the specification automaton is NOT a predicate automaton.");
     }
 }
-bool AUTOQ::Util::is_spec_satisfied(const Constraint &C, const SymbolicAutomata &Ae, const PredicateAutomata &As) {
+bool AUTOQ::is_spec_satisfied(const Constraint &C, const SymbolicAutomata &Ae, const PredicateAutomata &As) {
     using State = SymbolicAutomata::State;
     using StateSet = SymbolicAutomata::StateSet;
     using StateVector = SymbolicAutomata::StateVector;
@@ -1256,7 +1260,7 @@ bool AUTOQ::Util::is_spec_satisfied(const Constraint &C, const SymbolicAutomata 
                         do {
                             // Assume Ae and As have the same internal symbols!
                             StateSet Hs;
-                            for (const auto &in_out : As.transitions.at({AUTOQ::Util::Predicate(alpha.initial_symbol().at(0).at("1")), {}})) {
+                            for (const auto &in_out : As.transitions.at({AUTOQ::Symbol::Predicate(alpha.initial_symbol().at(0).at("1")), {}})) {
                                 assert(in_out.first.size() == 2);
                                 if (qeUs1.second.find(in_out.first[0]) != qeUs1.second.end()
                                     && qeUs2.second.find(in_out.first[1]) != qeUs2.second.end()) {
@@ -1295,7 +1299,7 @@ bool AUTOQ::Util::is_spec_satisfied(const Constraint &C, const SymbolicAutomata 
 }
 
 template <typename InitialSymbol>
-std::vector<std::vector<std::string>> AUTOQ::Util::Automata<InitialSymbol>::print(const std::map<typename AUTOQ::Util::Automata<InitialSymbol>::State, typename AUTOQ::Util::Automata<InitialSymbol>::InitialSymbol> &leafSymbolMap, int qubit, typename AUTOQ::Util::Automata<InitialSymbol>::State state) {
+std::vector<std::vector<std::string>> AUTOQ::Automata<InitialSymbol>::print(const std::map<typename AUTOQ::Automata<InitialSymbol>::State, typename AUTOQ::Automata<InitialSymbol>::InitialSymbol> &leafSymbolMap, int qubit, typename AUTOQ::Automata<InitialSymbol>::State state) {
     if (qubit == qubitNum + 1) {
         std::stringstream ss;
         ss << leafSymbolMap.at(state);
@@ -1319,8 +1323,8 @@ std::vector<std::vector<std::string>> AUTOQ::Util::Automata<InitialSymbol>::prin
 }
 
 template <typename InitialSymbol>
-void AUTOQ::Util::Automata<InitialSymbol>::print_language() {
-    std::map<typename AUTOQ::Util::Automata<InitialSymbol>::State, typename AUTOQ::Util::Automata<InitialSymbol>::InitialSymbol> leafSymbolMap;
+void AUTOQ::Automata<InitialSymbol>::print_language() {
+    std::map<typename AUTOQ::Automata<InitialSymbol>::State, typename AUTOQ::Automata<InitialSymbol>::InitialSymbol> leafSymbolMap;
     for (const auto &t : transitions) { // construct the map from state to leaf symbol
         if (t.first.is_leaf()) {
             for (const auto &s : t.second.at({})) {
@@ -1347,5 +1351,5 @@ void AUTOQ::Util::Automata<InitialSymbol>::print_language() {
 }
 
 // https://bytefreaks.net/programming-2/c/c-undefined-reference-to-templated-class-function
-template struct AUTOQ::Util::Automata<AUTOQ::Util::Concrete>;
-template struct AUTOQ::Util::Automata<AUTOQ::Util::Symbolic>;
+template struct AUTOQ::Automata<AUTOQ::Symbol::Concrete>;
+template struct AUTOQ::Automata<AUTOQ::Symbol::Symbolic>;
