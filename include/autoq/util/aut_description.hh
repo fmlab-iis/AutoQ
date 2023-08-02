@@ -26,7 +26,8 @@ namespace AUTOQ
 	{
         template <typename TT> struct Automata;
         struct FiveTuple;
-		typedef Automata<FiveTuple> TreeAutomata;
+        using Concrete = FiveTuple;
+		typedef Automata<Concrete> TreeAutomata;
         struct Symbolic;
 		typedef Automata<Symbolic> SymbolicAutomata;
         struct Predicate;
@@ -217,6 +218,20 @@ public:
     void print_language();
     std::vector<std::vector<std::string>> print(const std::map<typename AUTOQ::Util::Automata<InitialSymbol>::State, typename AUTOQ::Util::Automata<InitialSymbol>::InitialSymbol> &leafSymbolMap, int qubit, typename AUTOQ::Util::Automata<InitialSymbol>::State state);
 };
+
+// struct AUTOQ::Util::Concrete {
+//     bool is_leaf();
+//     bool is_internal();
+//     void back_to_zero();
+//     Concrete operator+(const Concrete &o);
+//     Concrete operator-(const Concrete &o);
+//     Concrete operator*(const Concrete &o);
+//     void omega_multiplication(int rotation=1);
+//     void divide_by_the_square_root_of_two();
+//     void Y();
+//     void Tdg();
+//     void Sdg();
+// };
 
 // Concrete initial symbol
 typedef std::vector<boost::multiprecision::cpp_int> stdvectorboostmultiprecisioncpp_int;

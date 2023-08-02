@@ -754,6 +754,6 @@ Automata<InitialSymbol> TimbukParser<InitialSymbol>::FromFileToAutomata(const ch
 }
 
 // https://bytefreaks.net/programming-2/c/c-undefined-reference-to-templated-class-function
-template struct AUTOQ::Parsing::TimbukParser<AUTOQ::Util::FiveTuple>;
+template struct AUTOQ::Parsing::TimbukParser<AUTOQ::Util::Concrete>;
 template struct AUTOQ::Parsing::TimbukParser<AUTOQ::Util::Symbolic>;
 template struct AUTOQ::Parsing::TimbukParser<AUTOQ::Util::Predicate>;
