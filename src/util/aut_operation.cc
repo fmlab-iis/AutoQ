@@ -97,7 +97,7 @@ void AUTOQ::Automata<InitialSymbol>::remove_useless(bool only_bottom_up) {
         changed = false;
         transitions_mother = transitions_remaining;
         for (const auto &t : transitions_mother) {
-            const auto &symbol = t.first;
+            const auto &symbol_tag = t.first;
             for (const auto &in_out : t.second) {
                 const auto &in = in_out.first;
                 const auto &outs = in_out.second;
@@ -110,20 +110,20 @@ void AUTOQ::Automata<InitialSymbol>::remove_useless(bool only_bottom_up) {
                 if (input_traversed) {
                     for (const auto &s : outs)
                         traversed[s] = true;
-                    transitions_remaining.at(symbol).erase(in);
+                    transitions_remaining.at(symbol_tag).erase(in);
                     changed = true;
                 }
             }
-            if (transitions_remaining.at(symbol).empty())
-                transitions_remaining.erase(symbol);
+            if (transitions_remaining.at(symbol_tag).empty())
+                transitions_remaining.erase(symbol_tag);
         }
     } while(changed);
     for (const auto &t : transitions_remaining) {
-        const auto &symbol = t.first;
+        const auto &symbol_tag = t.first;
         for (const auto &in_out : t.second)
-            transitions.at(symbol).erase(in_out.first);
-        if (transitions.at(symbol).empty())
-            transitions.erase(symbol);
+            transitions.at(symbol_tag).erase(in_out.first);
+        if (transitions.at(symbol_tag).empty())
+            transitions.erase(symbol_tag);
     }
 
     /******************
@@ -138,7 +138,7 @@ void AUTOQ::Automata<InitialSymbol>::remove_useless(bool only_bottom_up) {
             changed = false;
             transitions_mother = transitions_remaining;
             for (const auto &t : transitions_mother) {
-                const auto &symbol = t.first;
+                const auto &symbol_tag = t.first;
                 for (const auto &in_out : t.second) {
                     const auto &in = in_out.first;
                     const auto &outs = in_out.second;
@@ -146,27 +146,27 @@ void AUTOQ::Automata<InitialSymbol>::remove_useless(bool only_bottom_up) {
                         if (traversed[s]) {
                             for (const auto &v : in)
                                 traversed[v] = true;
-                            transitions_remaining.at(symbol).at(in).erase(s);
+                            transitions_remaining.at(symbol_tag).at(in).erase(s);
                             changed = true;
                         }
                     }
-                    if (transitions_remaining.at(symbol).at(in).empty())
-                        transitions_remaining.at(symbol).erase(in);
+                    if (transitions_remaining.at(symbol_tag).at(in).empty())
+                        transitions_remaining.at(symbol_tag).erase(in);
                 }
-                if (transitions_remaining.at(symbol).empty())
-                    transitions_remaining.erase(symbol);
+                if (transitions_remaining.at(symbol_tag).empty())
+                    transitions_remaining.erase(symbol_tag);
             }
         } while(changed);
         for (const auto &t : transitions_remaining) {
-            const auto &symbol = t.first;
+            const auto &symbol_tag = t.first;
             for (const auto &in_out : t.second) {
                 for (const auto &s : in_out.second)
-                    transitions.at(symbol).at(in_out.first).erase(s);
-                if (transitions.at(symbol).at(in_out.first).empty())
-                    transitions.at(symbol).erase(in_out.first);
+                    transitions.at(symbol_tag).at(in_out.first).erase(s);
+                if (transitions.at(symbol_tag).at(in_out.first).empty())
+                    transitions.at(symbol_tag).erase(in_out.first);
             }
-            if (transitions.at(symbol).empty())
-                transitions.erase(symbol);
+            if (transitions.at(symbol_tag).empty())
+                transitions.erase(symbol_tag);
         }
     }
     /*********************
@@ -219,14 +219,14 @@ template <typename InitialSymbol>
 void AUTOQ::Automata<InitialSymbol>::omega_multiplication(int rotation) {
     TransitionMap transitions_new;
     for (const auto &t_old : transitions) {
-        const SymbolTag &symbol = t_old.first;
-        if (symbol.is_leaf()) {
-            SymbolTag s = symbol;
+        const SymbolTag &symbol_tag = t_old.first;
+        if (symbol_tag.is_leaf()) {
+            SymbolTag s = symbol_tag;
             /************************** rotation **************************/
             s.initial_symbol().omega_multiplication(rotation);
             transitions_new[s] = t_old.second;
         } else {
-            assert(symbol.tag().size() <= 1);
+            assert(symbol_tag.tag().size() <= 1);
             transitions_new.insert(t_old);
         }
     }
@@ -240,10 +240,10 @@ void AUTOQ::Automata<InitialSymbol>::divide_by_the_square_root_of_two() {
     std::vector<SymbolTag> to_be_removed;
     TransitionMap to_be_inserted;
     for (const auto &t : transitions) {
-        const SymbolTag &symbol = t.first;
-        if (symbol.is_leaf()) {
-            to_be_removed.push_back(symbol);
-            SymbolTag s = symbol;
+        const SymbolTag &symbol_tag = t.first;
+        if (symbol_tag.is_leaf()) {
+            to_be_removed.push_back(symbol_tag);
+            SymbolTag s = symbol_tag;
             s.initial_symbol().divide_by_the_square_root_of_two();
             to_be_inserted[s] = t.second;
         }
@@ -266,9 +266,9 @@ void AUTOQ::Automata<InitialSymbol>::branch_restriction(int k, bool positive_has
 
     TransitionMap transitions_copy = transitions;
     for (const auto &t : transitions_copy) {
-        const SymbolTag &symbol = t.first;
-        if (symbol.is_internal()) { // x_i + determinized number
-            auto &in_outs_dest = transitions.at(symbol);
+        const SymbolTag &symbol_tag = t.first;
+        if (symbol_tag.is_internal()) { // x_i + determinized number
+            auto &in_outs_dest = transitions.at(symbol_tag);
             for (const auto &in_out : t.second) {
                 StateVector in;
                 assert(in_out.first.size() == 2);
@@ -280,11 +280,11 @@ void AUTOQ::Automata<InitialSymbol>::branch_restriction(int k, bool positive_has
                 in_outs_dest.insert(make_pair(in, out)); // duplicate this internal transition
             }
         } else { // (a,b,c,d,k)
-            assert(symbol.is_leaf());
+            assert(symbol_tag.is_leaf());
             for (const auto &in_out : t.second) {
                 assert(in_out.first.empty());
                 for (const auto &n : in_out.second) { // Note we do not change k.
-                    SymbolTag s = symbol;
+                    SymbolTag s = symbol_tag;
                     s.initial_symbol().back_to_zero();
                     transitions[s][{}].insert(n + num_of_states); // duplicate this leaf transition
                 }
@@ -294,9 +294,9 @@ void AUTOQ::Automata<InitialSymbol>::branch_restriction(int k, bool positive_has
 
     transitions_copy = transitions;
     for (const auto &t : transitions_copy) {
-        const SymbolTag &symbol = t.first;
-        if (symbol.is_internal() && symbol.initial_symbol().qubit() == k) { // x_i + determinized number
-            auto &in_outs_dest = transitions.at(symbol);
+        const SymbolTag &symbol_tag = t.first;
+        if (symbol_tag.is_internal() && symbol_tag.initial_symbol().qubit() == k) { // x_i + determinized number
+            auto &in_outs_dest = transitions.at(symbol_tag);
             for (const auto &in_out : t.second) {
                 assert(in_out.first.size() == 2);
                 StateVector sv = in_out.first;
@@ -323,13 +323,13 @@ void AUTOQ::Automata<InitialSymbol>::semi_determinize() {
     if (isTopdownDeterministic) return;
     TransitionMap transitions_copy = transitions;
     for (const auto &t : transitions_copy) {
-        const SymbolTag &symbol = t.first;
-        if (symbol.is_internal()) { // x_i not determinized yet
-            assert(!symbol.is_tagged()); // not determinized yet
-            transitions.erase(symbol); // modify
+        const SymbolTag &symbol_tag = t.first;
+        if (symbol_tag.is_internal()) { // x_i not determinized yet
+            assert(!symbol_tag.is_tagged()); // not determinized yet
+            transitions.erase(symbol_tag); // modify
             int counter = 0;
             SymbolTag new_symbol;
-            new_symbol.initial_symbol() = symbol.initial_symbol();
+            new_symbol.initial_symbol() = symbol_tag.initial_symbol();
             for (const auto &in_out : t.second) {
                 new_symbol.tag().push_back(counter++);
                 std::map<StateVector, StateSet> value;
@@ -348,13 +348,13 @@ void AUTOQ::Automata<InitialSymbol>::semi_undeterminize() {
     if (isTopdownDeterministic) return;
     TransitionMap transitions_copy = transitions;
     for (const auto &t : transitions_copy) {
-        const SymbolTag &symbol = t.first;
-        if (symbol.is_internal()) { // pick all determinized x_i's
-            assert(symbol.is_tagged()); // determinized
-            transitions.erase(symbol); // modify
+        const SymbolTag &symbol_tag = t.first;
+        if (symbol_tag.is_internal()) { // pick all determinized x_i's
+            assert(symbol_tag.is_tagged()); // determinized
+            transitions.erase(symbol_tag); // modify
             for (const auto &in_out : t.second) {
                 for (const auto &v : in_out.second)
-                    transitions[symbol.initial_symbol()][in_out.first].insert(v); // modify
+                    transitions[symbol_tag.initial_symbol()][in_out.first].insert(v); // modify
             }
         }
     }
@@ -760,65 +760,65 @@ void AUTOQ::Automata<InitialSymbol>::swap_forward(const int k) {
     for (int next_k=k+1; next_k<=qubitNum; next_k++) {
         std::map<State, std::vector<std::pair<SymbolTag, StateVector>>> svsv;
         for (const auto &t : transitions) {
-            const auto &symbol = t.first;
+            const auto &symbol_tag = t.first;
             const auto &in_outs = t.second;
-            if (symbol.is_internal() && symbol.initial_symbol().qubit() == next_k) {
-                assert(symbol.tag().size() <= 1);
+            if (symbol_tag.is_internal() && symbol_tag.initial_symbol().qubit() == next_k) {
+                assert(symbol_tag.tag().size() <= 1);
                 for (const auto &in_out : in_outs) {
                     for (const auto &s : in_out.second)
-                        svsv[s].push_back(make_pair(symbol, in_out.first));
+                        svsv[s].push_back(make_pair(symbol_tag, in_out.first));
                 }
             }
         }
         std::vector<SymbolTag> to_be_removed2;
         TransitionMap to_be_removed, to_be_inserted;
         for (const auto &t : transitions) {
-            const SymbolTag &symbol = t.first;
-            if (symbol.is_internal() && symbol.initial_symbol().qubit() == k) {
+            const SymbolTag &symbol_tag = t.first;
+            if (symbol_tag.is_internal() && symbol_tag.initial_symbol().qubit() == k) {
                 for (const auto &in_out : t.second) {
                     assert(in_out.first.size() == 2);
                     for (const auto &ssv1 : svsv[in_out.first[0]]) {
                         for (const auto &ssv2 : svsv[in_out.first[1]]) {
                             to_be_removed[ssv1.first][ssv1.second].insert(in_out.first[0]);
                             to_be_removed[ssv2.first][ssv2.second].insert(in_out.first[1]);
-                            if (to_be_inserted[symbol][{ssv1.second[0], ssv2.second[0]}].empty()) {
-                                if (transitions[symbol][{ssv1.second[0], ssv2.second[0]}].empty())
-                                    to_be_inserted[symbol][{ssv1.second[0], ssv2.second[0]}].insert(stateNum++);
+                            if (to_be_inserted[symbol_tag][{ssv1.second[0], ssv2.second[0]}].empty()) {
+                                if (transitions[symbol_tag][{ssv1.second[0], ssv2.second[0]}].empty())
+                                    to_be_inserted[symbol_tag][{ssv1.second[0], ssv2.second[0]}].insert(stateNum++);
                                 else
-                                    to_be_inserted[symbol][{ssv1.second[0], ssv2.second[0]}].insert(*(transitions[symbol][{ssv1.second[0], ssv2.second[0]}].begin()));
+                                    to_be_inserted[symbol_tag][{ssv1.second[0], ssv2.second[0]}].insert(*(transitions[symbol_tag][{ssv1.second[0], ssv2.second[0]}].begin()));
                             }
-                            if (to_be_inserted[symbol][{ssv1.second[1], ssv2.second[1]}].empty()) {
-                                if (transitions[symbol][{ssv1.second[1], ssv2.second[1]}].empty())
-                                    to_be_inserted[symbol][{ssv1.second[1], ssv2.second[1]}].insert(stateNum++);
+                            if (to_be_inserted[symbol_tag][{ssv1.second[1], ssv2.second[1]}].empty()) {
+                                if (transitions[symbol_tag][{ssv1.second[1], ssv2.second[1]}].empty())
+                                    to_be_inserted[symbol_tag][{ssv1.second[1], ssv2.second[1]}].insert(stateNum++);
                                 else
-                                    to_be_inserted[symbol][{ssv1.second[1], ssv2.second[1]}].insert(*(transitions[symbol][{ssv1.second[1], ssv2.second[1]}].begin()));
+                                    to_be_inserted[symbol_tag][{ssv1.second[1], ssv2.second[1]}].insert(*(transitions[symbol_tag][{ssv1.second[1], ssv2.second[1]}].begin()));
                             }
                             for (const auto &s : in_out.second)
-                                to_be_inserted[{InitialSymbol(next_k), {ssv1.first.tag(0), ssv2.first.tag(0)}}][{*(to_be_inserted[symbol][{ssv1.second[0], ssv2.second[0]}].begin()), *(to_be_inserted[symbol][{ssv1.second[1], ssv2.second[1]}].begin())}].insert(s);
+                                to_be_inserted[{InitialSymbol(next_k), {ssv1.first.tag(0), ssv2.first.tag(0)}}][{*(to_be_inserted[symbol_tag][{ssv1.second[0], ssv2.second[0]}].begin()), *(to_be_inserted[symbol_tag][{ssv1.second[1], ssv2.second[1]}].begin())}].insert(s);
                         }
                     }
                 }
-                to_be_removed2.push_back(symbol);
+                to_be_removed2.push_back(symbol_tag);
             }
         }
         for (const auto &v : to_be_removed2)
             transitions.erase(v);
         for (const auto &t : to_be_removed) {
-            const SymbolTag &symbol = t.first;
+            const SymbolTag &symbol_tag = t.first;
             for (const auto &in_out : t.second) {
                 for (const auto &s : in_out.second)
-                    transitions[symbol][in_out.first].erase(s);
-                if (transitions[symbol][in_out.first].empty())
-                    transitions[symbol].erase(in_out.first);
-                if (transitions[symbol].empty())
-                    transitions.erase(symbol);
+                    transitions[symbol_tag][in_out.first].erase(s);
+                if (transitions[symbol_tag][in_out.first].empty())
+                    transitions[symbol_tag].erase(in_out.first);
+                if (transitions[symbol_tag].empty())
+                    transitions.erase(symbol_tag);
             }
         }
         for (const auto &t : to_be_inserted) {
-            const SymbolTag &symbol = t.first;
+            const SymbolTag &symbol_tag = t.first;
             for (const auto &in_out : t.second) {
                 for (const auto &s : in_out.second) {
-                    transitions[symbol][in_out.first].insert(s);
+                    transitions[symbol_tag][in_out.first].insert(s);
                 }
             }
         }
@@ -833,22 +833,22 @@ void AUTOQ::Automata<InitialSymbol>::swap_backward(const int k) {
     for (int next_k=qubitNum; next_k>k; next_k--) {
       std::map<State, std::vector<std::pair<SymbolTag, StateVector>>> svsv;
         for (const auto &t : transitions) {
-            const auto &symbol = t.first;
+            const auto &symbol_tag = t.first;
             const auto &in_outs = t.second;
-            if (symbol.is_internal() && symbol.initial_symbol().qubit() == k) {
-                assert(symbol.tag().size() == 1);
+            if (symbol_tag.is_internal() && symbol_tag.initial_symbol().qubit() == k) {
+                assert(symbol_tag.tag().size() == 1);
                 for (const auto &in_out : in_outs) {
                     for (const auto &s : in_out.second)
-                        svsv[s].push_back(make_pair(symbol, in_out.first));
+                        svsv[s].push_back(make_pair(symbol_tag, in_out.first));
                 }
             }
         }
         std::vector<SymbolTag> to_be_removed2;
         TransitionMap to_be_removed, to_be_inserted;
         for (const auto &t : transitions) {
-            const SymbolTag &symbol = t.first;
-            if (symbol.is_internal() && symbol.initial_symbol().qubit() == next_k) {
-                assert(symbol.tag().size() == 2);
+            const SymbolTag &symbol_tag = t.first;
+            if (symbol_tag.is_internal() && symbol_tag.initial_symbol().qubit() == next_k) {
+                assert(symbol_tag.tag().size() == 2);
                 for (const auto &in_out : t.second) {
                     assert(in_out.first.size() == 2);
                     for (const auto &ssv1 : svsv[in_out.first[0]]) {
@@ -856,14 +856,14 @@ void AUTOQ::Automata<InitialSymbol>::swap_backward(const int k) {
                             if (ssv1.first == ssv2.first) {
                                 to_be_removed[ssv1.first][ssv1.second].insert(in_out.first[0]);
                                 to_be_removed[ssv2.first][ssv2.second].insert(in_out.first[1]);
-                                SymbolTag t1 = {symbol.initial_symbol(), {symbol.tag(0)}};
+                                SymbolTag t1 = {symbol_tag.initial_symbol(), {symbol_tag.tag(0)}};
                                 if (to_be_inserted[t1][{ssv1.second[0], ssv2.second[0]}].empty()) {
                                     if (transitions[t1][{ssv1.second[0], ssv2.second[0]}].empty())
                                         to_be_inserted[t1][{ssv1.second[0], ssv2.second[0]}].insert(stateNum++);
                                     else
                                         to_be_inserted[t1][{ssv1.second[0], ssv2.second[0]}].insert(*(transitions[t1][{ssv1.second[0], ssv2.second[0]}].begin()));
                                 }
-                                SymbolTag t2 = {symbol.initial_symbol(), {symbol.tag(1)}};
+                                SymbolTag t2 = {symbol_tag.initial_symbol(), {symbol_tag.tag(1)}};
                                 if (to_be_inserted[t2][{ssv1.second[1], ssv2.second[1]}].empty()) {
                                     if (transitions[t2][{ssv1.second[1], ssv2.second[1]}].empty())
                                         to_be_inserted[t2][{ssv1.second[1], ssv2.second[1]}].insert(stateNum++);
@@ -877,27 +877,27 @@ void AUTOQ::Automata<InitialSymbol>::swap_backward(const int k) {
                         }
                     }
                 }
-                to_be_removed2.push_back(symbol);
+                to_be_removed2.push_back(symbol_tag);
             }
         }
         for (const auto &v : to_be_removed2)
             transitions.erase(v);
         for (const auto &t : to_be_removed) {
-            const SymbolTag &symbol = t.first;
+            const SymbolTag &symbol_tag = t.first;
             for (const auto &in_out : t.second) {
                 for (const auto &s : in_out.second)
-                    transitions[symbol][in_out.first].erase(s);
-                if (transitions[symbol][in_out.first].empty())
-                    transitions[symbol].erase(in_out.first);
-                if (transitions[symbol].empty())
-                    transitions.erase(symbol);
+                    transitions[symbol_tag][in_out.first].erase(s);
+                if (transitions[symbol_tag][in_out.first].empty())
+                    transitions[symbol_tag].erase(in_out.first);
+                if (transitions[symbol_tag].empty())
+                    transitions.erase(symbol_tag);
             }
         }
         for (const auto &t : to_be_inserted) {
-            const SymbolTag &symbol = t.first;
+            const SymbolTag &symbol_tag = t.first;
             for (const auto &in_out : t.second) {
                 for (const auto &s : in_out.second) {
-                    transitions[symbol][in_out.first].insert(s);
+                    transitions[symbol_tag][in_out.first].insert(s);
                 }
             }
         }
@@ -913,16 +913,16 @@ void AUTOQ::Automata<InitialSymbol>::value_restriction(int k, bool branch) {
     TransitionMap to_be_inserted;
     std::vector<SymbolTag> to_be_removed;
     for (const auto &t : transitions) {
-        const SymbolTag &symbol = t.first;
-        if (symbol.is_internal() && symbol.initial_symbol().qubit() == k) {
-            to_be_removed.push_back(symbol);
+        const SymbolTag &symbol_tag = t.first;
+        if (symbol_tag.is_internal() && symbol_tag.initial_symbol().qubit() == k) {
+            to_be_removed.push_back(symbol_tag);
             for (const auto &in_out : t.second) {
                 assert(in_out.first.size() == 2);
                 for (const auto &s : in_out.second) {
                     if (branch)
-                        to_be_inserted[symbol][{in_out.first[1], in_out.first[1]}].insert(s);
+                        to_be_inserted[symbol_tag][{in_out.first[1], in_out.first[1]}].insert(s);
                     else
-                        to_be_inserted[symbol][{in_out.first[0], in_out.first[0]}].insert(s);
+                        to_be_inserted[symbol_tag][{in_out.first[0], in_out.first[0]}].insert(s);
                 }
             }
         }
@@ -947,13 +947,13 @@ void AUTOQ::Automata<InitialSymbol>::fraction_simplification() {
     for (const auto &t : transitions) {
         const SymbolTag &s = t.first;
         if (s.is_leaf()) {
-            SymbolTag symbol = s;
-            symbol.initial_symbol().fraction_simplification();
-            if (t.first != symbol) {
+            SymbolTag symbol_tag = s;
+            symbol_tag.initial_symbol().fraction_simplification();
+            if (t.first != symbol_tag) {
                 to_be_removed.push_back(t.first);
                 for (const auto &in_out : t.second) {
                     for (const auto &s : in_out.second) {
-                        to_be_inserted[symbol][in_out.first].insert(s);
+                        to_be_inserted[symbol_tag][in_out.first].insert(s);
                     }
                 }
             }

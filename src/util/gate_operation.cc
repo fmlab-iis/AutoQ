@@ -47,12 +47,12 @@ void AUTOQ::Automata<InitialSymbol>::X(int k) {
     auto start = std::chrono::steady_clock::now();
     auto transitions_copy = transitions;
     for (const auto &t : transitions_copy) {
-        const auto &symbol = t.first;
-        if (symbol.is_internal() && symbol.initial_symbol().qubit() == k) {
-            transitions.erase(symbol);
+        const auto &symbol_tag = t.first;
+        if (symbol_tag.is_internal() && symbol_tag.initial_symbol().qubit() == k) {
+            transitions.erase(symbol_tag);
             for (const auto &in_out : t.second) {
                 assert(in_out.first.size() == 2);
-                transitions[symbol][{in_out.first[1], in_out.first[0]}] = in_out.second;
+                transitions[symbol_tag][{in_out.first[1], in_out.first[0]}] = in_out.second;
             }
         }
     }
@@ -70,16 +70,16 @@ void AUTOQ::Automata<InitialSymbol>::Y(int k) {
     auto start = std::chrono::steady_clock::now();
     TransitionMap transitions_copy = transitions;
     for (const auto &t : transitions_copy) {
-        SymbolTag symbol = t.first;
-        if (symbol.is_leaf())
-            symbol.initial_symbol().Y();
-        if (!(symbol.is_internal() && symbol.initial_symbol().qubit() <= k)) {
+        SymbolTag symbol_tag = t.first;
+        if (symbol_tag.is_leaf())
+            symbol_tag.initial_symbol().Y();
+        if (!(symbol_tag.is_internal() && symbol_tag.initial_symbol().qubit() <= k)) {
             for (const auto &in_out : t.second) {
                 StateVector in;
                 for (const auto &s : in_out.first)
                     in.push_back(s+stateNum);
                 for (const auto &s : in_out.second)
-                    transitions[symbol][in].insert(s+stateNum);
+                    transitions[symbol_tag][in].insert(s+stateNum);
             }
         }
     } 
@@ -110,16 +110,16 @@ void AUTOQ::Automata<InitialSymbol>::Z(int t) {
     auto start = std::chrono::steady_clock::now();
     TransitionMap transitions_copy = transitions;
     for (const auto &tr : transitions_copy) {
-        SymbolTag symbol = tr.first;
-        if (symbol.is_leaf())
-            symbol.initial_symbol().Y();
-        if (!(symbol.is_internal() && symbol.initial_symbol().qubit() <= t)) {
+        SymbolTag symbol_tag = tr.first;
+        if (symbol_tag.is_leaf())
+            symbol_tag.initial_symbol().Y();
+        if (!(symbol_tag.is_internal() && symbol_tag.initial_symbol().qubit() <= t)) {
             for (const auto &in_out : tr.second) {
                 StateVector in;
                 for (const auto &s : in_out.first)
                     in.push_back(s+stateNum);
                 for (const auto &s : in_out.second)
-                    transitions[symbol][in].insert(s+stateNum);
+                    transitions[symbol_tag][in].insert(s+stateNum);
             }
         }
     } 
@@ -173,9 +173,9 @@ void AUTOQ::Automata<InitialSymbol>::S(int t) {
     auto aut2 = *this;
     aut2.omega_multiplication(2);
     for (const auto &tr : aut2.transitions) {
-        const SymbolTag &symbol = tr.first;
-        if (!(symbol.is_internal() && symbol.initial_symbol().qubit() <= t)) {
-            auto &ttf = transitions[symbol];
+        const SymbolTag &symbol_tag = tr.first;
+        if (!(symbol_tag.is_internal() && symbol_tag.initial_symbol().qubit() <= t)) {
+            auto &ttf = transitions[symbol_tag];
             for (const auto &in_out : tr.second) {
                 StateVector in;
                 for (const auto &s : in_out.first)
@@ -212,9 +212,9 @@ void AUTOQ::Automata<InitialSymbol>::T(int t) {
     auto aut2 = *this;
     aut2.omega_multiplication();
     for (const auto &tr : aut2.transitions) {
-        const SymbolTag &symbol = tr.first;
-        if (!(symbol.is_internal() && symbol.initial_symbol().qubit() <= t)) {
-            auto &ttf = transitions[symbol];
+        const SymbolTag &symbol_tag = tr.first;
+        if (!(symbol_tag.is_internal() && symbol_tag.initial_symbol().qubit() <= t)) {
+            auto &ttf = transitions[symbol_tag];
             for (const auto &in_out : tr.second) {
                 StateVector in;
                 for (const auto &s : in_out.first)
@@ -314,9 +314,9 @@ void AUTOQ::Automata<InitialSymbol>::CNOT(int c, int t, bool opt) {
         auto aut2 = *this;
         aut2.X(t); gateCount--; // prevent repeated counting
         for (const auto &tr : aut2.transitions) {
-            const SymbolTag &symbol = tr.first;
-            if (!(symbol.is_internal() && symbol.initial_symbol().qubit() <= c)) {
-                auto &ttf = transitions[symbol];
+            const SymbolTag &symbol_tag = tr.first;
+            if (!(symbol_tag.is_internal() && symbol_tag.initial_symbol().qubit() <= c)) {
+                auto &ttf = transitions[symbol_tag];
                 for (const auto &in_out : tr.second) {
                     StateVector in;
                     for (const auto &s : in_out.first)
@@ -357,16 +357,16 @@ void AUTOQ::Automata<InitialSymbol>::CZ(int c, int t) {
     if (c > t) std::swap(c, t);
     auto aut2 = *this;
     for (const auto &tr : transitions) {
-        SymbolTag symbol = tr.first;
-        if (symbol.is_leaf())
-            symbol.initial_symbol().Y();
-        if (!(symbol.is_internal() && symbol.initial_symbol().qubit() <= t)) {
+        SymbolTag symbol_tag = tr.first;
+        if (symbol_tag.is_leaf())
+            symbol_tag.initial_symbol().Y();
+        if (!(symbol_tag.is_internal() && symbol_tag.initial_symbol().qubit() <= t)) {
             for (const auto &in_out : tr.second) {
                 StateVector in;
                 for (const auto &s : in_out.first)
                     in.push_back(s+stateNum);
                 for (const auto &s : in_out.second)
-                    aut2.transitions[symbol][in].insert(s+stateNum);
+                    aut2.transitions[symbol_tag][in].insert(s+stateNum);
             }
         }
     } 
@@ -380,14 +380,14 @@ void AUTOQ::Automata<InitialSymbol>::CZ(int c, int t) {
         }
     }
     for (const auto &tr : aut2.transitions) {
-        const SymbolTag &symbol = tr.first;
-        if (!(symbol.is_internal() && symbol.initial_symbol().qubit() <= c)) {
+        const SymbolTag &symbol_tag = tr.first;
+        if (!(symbol_tag.is_internal() && symbol_tag.initial_symbol().qubit() <= c)) {
             for (const auto &in_out : tr.second) {
                 StateVector in;
                 for (const auto &s : in_out.first)
                     in.push_back(s+stateNum);
                 for (const auto &s : in_out.second)
-                    transitions[symbol][in].insert(s+stateNum);
+                    transitions[symbol_tag][in].insert(s+stateNum);
             }
         }
     } 
@@ -421,9 +421,9 @@ void AUTOQ::Automata<InitialSymbol>::Toffoli(int c, int c2, int t) {
         auto aut2 = *this;
         aut2.CNOT(c2, t, false); gateCount--; // prevent repeated counting
         for (const auto &tr : aut2.transitions) {
-            const SymbolTag &symbol = tr.first;
-            if (!(symbol.is_internal() && symbol.initial_symbol().qubit() <= c)) {
-                auto &ttf = transitions[symbol];
+            const SymbolTag &symbol_tag = tr.first;
+            if (!(symbol_tag.is_internal() && symbol_tag.initial_symbol().qubit() <= c)) {
+                auto &ttf = transitions[symbol_tag];
                 for (const auto &in_out : tr.second) {
                     StateVector in;
                     for (const auto &s : in_out.first)
@@ -479,22 +479,22 @@ void AUTOQ::Automata<InitialSymbol>::Tdg(int t) {
     auto aut2 = *this;
     TransitionMap transitions_new;
     for (const auto &t_old : aut2.transitions) {
-        const SymbolTag &symbol = t_old.first;
-        if (symbol.is_leaf()) {
-            SymbolTag s = symbol;
+        const SymbolTag &symbol_tag = t_old.first;
+        if (symbol_tag.is_leaf()) {
+            SymbolTag s = symbol_tag;
             s.initial_symbol().Tdg();
             transitions_new[s] = t_old.second;
         } else {
-            assert(symbol.tag().size() <= 1);
+            assert(symbol_tag.tag().size() <= 1);
             transitions_new.insert(t_old);
         }
     }
     aut2.transitions = transitions_new;
     /******************************/
     for (const auto &tr : aut2.transitions) {
-        const SymbolTag &symbol = tr.first;
-        if (!(symbol.is_internal() && symbol.initial_symbol().qubit() <= t)) {
-            auto &ttf = transitions[symbol];
+        const SymbolTag &symbol_tag = tr.first;
+        if (!(symbol_tag.is_internal() && symbol_tag.initial_symbol().qubit() <= t)) {
+            auto &ttf = transitions[symbol_tag];
             for (const auto &in_out : tr.second) {
                 StateVector in;
                 for (const auto &s : in_out.first)
@@ -531,22 +531,22 @@ void AUTOQ::Automata<InitialSymbol>::Sdg(int t) {
     auto aut2 = *this;
     TransitionMap transitions_new;
     for (const auto &t_old : aut2.transitions) {
-        const SymbolTag &symbol = t_old.first;
-        if (symbol.is_leaf()) {
-            SymbolTag s = symbol;
+        const SymbolTag &symbol_tag = t_old.first;
+        if (symbol_tag.is_leaf()) {
+            SymbolTag s = symbol_tag;
             s.initial_symbol().Sdg();
             transitions_new[s] = t_old.second;
         } else {
-            assert(symbol.tag().size() <= 1);
+            assert(symbol_tag.tag().size() <= 1);
             transitions_new.insert(t_old);
         }
     }
     aut2.transitions = transitions_new;
     /******************************/
     for (const auto &tr : aut2.transitions) {
-        const SymbolTag &symbol = tr.first;
-        if (!(symbol.is_internal() && symbol.initial_symbol().qubit() <= t)) {
-            auto &ttf = transitions[symbol];
+        const SymbolTag &symbol_tag = tr.first;
+        if (!(symbol_tag.is_internal() && symbol_tag.initial_symbol().qubit() <= t)) {
+            auto &ttf = transitions[symbol_tag];
             for (const auto &in_out : tr.second) {
                 StateVector in;
                 for (const auto &s : in_out.first)

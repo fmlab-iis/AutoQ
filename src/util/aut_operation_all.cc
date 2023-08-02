@@ -145,7 +145,7 @@ namespace { // anonymous namespace
 
     // Iterate through all transitions and add reindex everything
     for (const auto& symMap : aut.transitions) {
-      const auto& symbol = symMap.first;
+      const auto& symbol_tag = symMap.first;
 
       std::map<StateVector, StateSet> newMap;
 
@@ -168,7 +168,7 @@ namespace { // anonymous namespace
         }
       }
 
-      newTrans.insert({symbol, newMap});
+      newTrans.insert({symbol_tag, newMap});
     }
 
     aut.finalStates = newFinal;

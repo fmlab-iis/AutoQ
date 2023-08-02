@@ -616,15 +616,15 @@ BOOST_AUTO_TEST_CASE(Grover_Search_only_one_oracle)
     std::map<AUTOQ::TreeAutomata::State, AUTOQ::TreeAutomata::SymbolTag> leaf;
     std::vector<AUTOQ::TreeAutomata::StateVector> first_layers;
     for (const auto &t : aut.transitions) {
-        const auto &symbol = t.first;
+        const auto &symbol_tag = t.first;
         for (const auto &in_out : t.second) {
             const auto &in = in_out.first;
             for (const auto &s : in_out.second) {
                 if (in.empty()) { // is leaf transition
-                    assert(symbol.is_leaf());
-                    leaf[s] = symbol;
+                    assert(symbol_tag.is_leaf());
+                    leaf[s] = symbol_tag;
                 }
-                if (symbol.is_internal() && symbol.initial_symbol().qubit() == 1) {
+                if (symbol_tag.is_internal() && symbol_tag.initial_symbol().qubit() == 1) {
                     first_layers.push_back(in);
                 } else {
                     assert(edge[s].empty());
