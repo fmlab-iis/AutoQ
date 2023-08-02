@@ -49,8 +49,8 @@ public:   // methods
 	// 	name_ = name;
 	// }
 
-	template <typename InitialSymbol>
-    static std::string Serialize(const AUTOQ::Automata<InitialSymbol>& desc);
+	template <typename Symbol>
+    static std::string Serialize(const AUTOQ::Automata<Symbol>& desc);
 };
 
 #endif

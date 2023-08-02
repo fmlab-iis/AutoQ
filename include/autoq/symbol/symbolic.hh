@@ -14,7 +14,7 @@ namespace AUTOQ
 	}
 }
 
-// Symbolic initial symbol
+// Symbolic symbol
 typedef std::map<std::string, boost::multiprecision::cpp_int> stdmapstdstringboostmultiprecisioncpp_int;
 struct AUTOQ::Symbol::linear_combination : std::map<std::string, boost::multiprecision::cpp_int> {
     using stdmapstdstringboostmultiprecisioncpp_int::stdmapstdstringboostmultiprecisioncpp_int;

@@ -13,7 +13,7 @@ namespace AUTOQ
 	}
 }
 
-// Concrete initial symbol
+// Concrete symbol
 typedef std::vector<boost::multiprecision::cpp_int> stdvectorboostmultiprecisioncpp_int;
 struct AUTOQ::Symbol::FiveTuple : stdvectorboostmultiprecisioncpp_int {
     using stdvectorboostmultiprecisioncpp_int::stdvectorboostmultiprecisioncpp_int;

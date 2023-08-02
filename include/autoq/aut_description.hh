@@ -45,27 +45,27 @@ public:   // data types
 	typedef std::vector<State> StateVector;
 	typedef std::set<State> StateSet;
 
-    typedef TT InitialSymbol;
+    typedef TT Symbol;
 	typedef std::vector<int> Tag;
-    typedef std::pair<InitialSymbol, Tag> stdpairInitialSymbolTag;
-    struct SymbolTag : stdpairInitialSymbolTag {
-        using stdpairInitialSymbolTag::stdpairInitialSymbolTag; // inherit parent constructors
-        template<typename... Args> SymbolTag(Args... args) : stdpairInitialSymbolTag({args...}, {}) {}
+    typedef std::pair<Symbol, Tag> stdpairSymbolTag;
+    struct SymbolTag : stdpairSymbolTag {
+        using stdpairSymbolTag::stdpairSymbolTag; // inherit parent constructors
+        template<typename... Args> SymbolTag(Args... args) : stdpairSymbolTag({args...}, {}) {}
         // Reference: https://stackoverflow.com/a/32595916/11550178
-        InitialSymbol& initial_symbol() & { return this->first; }
-        const InitialSymbol& initial_symbol() const & { return this->first; }
+        Symbol& symbol() & { return this->first; }
+        const Symbol& symbol() const & { return this->first; }
         Tag& tag() & { return this->second; }
         const Tag& tag() const & { return this->second; }
         int& tag(int index) & { return this->second.at(index); }
         const int& tag(int index) const & { return this->second.at(index); }
         /*********************************************************/
-        bool is_internal() const { return initial_symbol().is_internal(); }
-        bool is_leaf() const { return initial_symbol().is_leaf(); }
+        bool is_internal() const { return symbol().is_internal(); }
+        bool is_leaf() const { return symbol().is_leaf(); }
         bool is_tagged() const { return !tag().empty(); }
         bool operator<(const SymbolTag &rhs) const {
             if (is_internal() && rhs.is_leaf()) return true;
             else if (is_leaf() && rhs.is_internal()) return false;
-            else if (initial_symbol() == rhs.initial_symbol()) { // if symbol content is the same, compare tag
+            else if (symbol() == rhs.symbol()) { // if symbol content is the same, compare tag
                 // TODO: I still don't understand why "tag size" should also be compared first.
                 if (tag().size() < rhs.tag().size())
                     return true;
@@ -74,10 +74,10 @@ public:   // data types
                 else
                     return tag() < rhs.tag();
             } // compare symbol content first
-            else return initial_symbol() < rhs.initial_symbol();
+            else return symbol() < rhs.symbol();
         }
         friend std::ostream& operator<<(std::ostream& os, const SymbolTag& obj) {
-            os << obj.initial_symbol(); // print only the initial symbol
+            os << obj.symbol(); // print only the symbol part without the tag
             return os;
         }
     };
@@ -216,7 +216,7 @@ public:
 
     void execute(const char *filename);
     void print_language();
-    std::vector<std::vector<std::string>> print(const std::map<typename AUTOQ::Automata<InitialSymbol>::State, typename AUTOQ::Automata<InitialSymbol>::InitialSymbol> &leafSymbolMap, int qubit, typename AUTOQ::Automata<InitialSymbol>::State state);
+    std::vector<std::vector<std::string>> print(const std::map<typename AUTOQ::Automata<Symbol>::State, typename AUTOQ::Automata<Symbol>::Symbol> &leafSymbolMap, int qubit, typename AUTOQ::Automata<Symbol>::State state);
 };
 
 // struct AUTOQ::Symbol::Concrete {

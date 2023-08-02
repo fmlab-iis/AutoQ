@@ -27,8 +27,8 @@ using AUTOQ::Serialization::TimbukSerializer;
 
 using std::for_each;
 
-template <typename InitialSymbol>
-std::string TimbukSerializer::Serialize(const Automata<InitialSymbol>& desc)
+template <typename Symbol>
+std::string TimbukSerializer::Serialize(const Automata<Symbol>& desc)
 {
 	std::string result;
 
@@ -36,7 +36,7 @@ std::string TimbukSerializer::Serialize(const Automata<InitialSymbol>& desc)
 	for (auto itSymb = desc.transitions.cbegin();
 		itSymb != desc.transitions.cend(); ++itSymb)
 	{
-        if (std::is_convertible<InitialSymbol, std::string>::value)
+        if (std::is_convertible<Symbol, std::string>::value)
             result += "[" + AUTOQ::Util::Convert::ToString(itSymb->first) + "]:" +
 			    AUTOQ::Util::Convert::ToString(itSymb->second.begin()->first.size()) + " ";
         else
@@ -71,7 +71,7 @@ std::string TimbukSerializer::Serialize(const Automata<InitialSymbol>& desc)
     for (const auto &t : desc.transitions) {
         for (const auto &t2 : t.second) {
             for (const auto &finalSet : t2.second) {
-                if (std::is_convertible<InitialSymbol, std::string>::value)
+                if (std::is_convertible<Symbol, std::string>::value)
                     result += "[" + Convert::ToString(t.first) + "]";
                 else
                     result += Convert::ToString(t.first);

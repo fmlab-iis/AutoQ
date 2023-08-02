@@ -108,15 +108,15 @@ static std::pair<std::string, int> parse_colonned_token(std::string str)
 /**
  * @brief  Parse a string with Timbuk definition of an automaton
  */
-typename TreeAutomata::InitialSymbol from_string_to_Concrete(const std::string& str)
+typename TreeAutomata::Symbol from_string_to_Concrete(const std::string& str)
 {
-	TreeAutomata::InitialSymbol temp;
+	TreeAutomata::Symbol temp;
     if (str[0] == '[') {
         for (int i=1; i<static_cast<int>(str.length()); i++) {
             size_t j = str.find(',', i);
             if (j == std::string::npos) j = str.length()-1;
             try {
-                temp.push_back(boost::lexical_cast<TreeAutomata::InitialSymbol::Entry>(str.substr(i, j-i).c_str()));
+                temp.push_back(boost::lexical_cast<TreeAutomata::Symbol::Entry>(str.substr(i, j-i).c_str()));
             } catch (...) {
                 throw std::runtime_error("[ERROR] The input entry \"" + str.substr(i, j-i) + "\" is not an integer!");
             }
@@ -124,7 +124,7 @@ typename TreeAutomata::InitialSymbol from_string_to_Concrete(const std::string& 
         }
     } else {
         try {
-            temp.push_back(boost::lexical_cast<TreeAutomata::InitialSymbol::Entry>(str.c_str()));
+            temp.push_back(boost::lexical_cast<TreeAutomata::Symbol::Entry>(str.c_str()));
         } catch (...) {
             throw std::runtime_error("[ERROR] The input entry \"" + str + "\" is not an integer!");
         }
@@ -133,15 +133,15 @@ typename TreeAutomata::InitialSymbol from_string_to_Concrete(const std::string& 
     return temp;
 }
 
-SymbolicAutomata::InitialSymbol from_string_to_Symbolic(const std::string& str)
+SymbolicAutomata::Symbol from_string_to_Symbolic(const std::string& str)
 {
-	SymbolicAutomata::InitialSymbol temp;
+	SymbolicAutomata::Symbol temp;
     if (str[0] == '[') {
         for (int i=1; i<static_cast<int>(str.length()); i++) {
             size_t j = str.find(',', i);
             if (j == std::string::npos) j = str.length()-1;
             try {
-                auto v = boost::lexical_cast<SymbolicAutomata::InitialSymbol::Entry>(str.substr(i, j-i).c_str());
+                auto v = boost::lexical_cast<SymbolicAutomata::Symbol::Entry>(str.substr(i, j-i).c_str());
                 if (v == 0)
                     temp.push_back(AUTOQ::Symbol::Symbolic::Map());
                 else
@@ -153,7 +153,7 @@ SymbolicAutomata::InitialSymbol from_string_to_Symbolic(const std::string& str)
         }
     } else {
         try {
-            auto v = boost::lexical_cast<SymbolicAutomata::InitialSymbol::Entry>(str.c_str());
+            auto v = boost::lexical_cast<SymbolicAutomata::Symbol::Entry>(str.c_str());
             if (v == 0)
                 temp.push_back(AUTOQ::Symbol::Symbolic::Map());
             else
@@ -166,7 +166,7 @@ SymbolicAutomata::InitialSymbol from_string_to_Symbolic(const std::string& str)
     return temp;
 }
 
-PredicateAutomata::InitialSymbol from_string_to_Predicate(const std::string& lhs)
+PredicateAutomata::Symbol from_string_to_Predicate(const std::string& lhs)
 {
     try {
         return Predicate(boost::multiprecision::cpp_int(lhs.substr(1, lhs.size()-2)));
@@ -175,10 +175,10 @@ PredicateAutomata::InitialSymbol from_string_to_Predicate(const std::string& lhs
     }
 }
 
-template <typename InitialSymbol>
-Automata<InitialSymbol> parse_timbuk(const std::string& str)
+template <typename Symbol>
+Automata<Symbol> parse_timbuk(const std::string& str)
 {
-	Automata<InitialSymbol> result;
+	Automata<Symbol> result;
 
 	bool are_transitions = false;
 	bool aut_parsed = false;
@@ -230,7 +230,7 @@ Automata<InitialSymbol> parse_timbuk(const std::string& str)
 				// {
 				// 	std::string label = read_word(str);
 				// 	auto label_num = parse_colonned_token(label);
-                //     auto temp = symbol_converter<InitialSymbol>(label_num.first);
+                //     auto temp = symbol_converter<Symbol>(label_num.first);
 
 				// 	// result.symbols[temp] = label_num.second;
 				// }
@@ -318,7 +318,7 @@ Automata<InitialSymbol> parse_timbuk(const std::string& str)
 			if (std::string::npos == parens_begin_pos)
 			{	// no tuple of states
 				if ((std::string::npos != parens_end_pos) ||
-					(!std::is_same_v<InitialSymbol, PredicateAutomata::InitialSymbol> && contains_whitespace(lhs)) ||
+					(!std::is_same_v<Symbol, PredicateAutomata::Symbol> && contains_whitespace(lhs)) ||
 					lhs.empty())
 				{
 					throw std::runtime_error(invalid_trans_str);
@@ -328,10 +328,10 @@ Automata<InitialSymbol> parse_timbuk(const std::string& str)
                 /*******************************************************************************************************************/
                 int t = atoi(rhs.c_str());
                 if (t > result.stateNum) result.stateNum = t;
-                if constexpr(std::is_same_v<InitialSymbol, TreeAutomata::InitialSymbol>) {
+                if constexpr(std::is_same_v<Symbol, TreeAutomata::Symbol>) {
                     auto temp = from_string_to_Concrete(lhs);
                     result.transitions[temp][std::vector<TreeAutomata::State>()].insert(t); //.stateNum.TranslateFwd(rhs));
-                } else if constexpr(std::is_same_v<InitialSymbol, PredicateAutomata::InitialSymbol>) {
+                } else if constexpr(std::is_same_v<Symbol, PredicateAutomata::Symbol>) {
                     auto temp = from_string_to_Predicate(lhs);
                     result.transitions[temp][std::vector<TreeAutomata::State>()].insert(t); //.stateNum.TranslateFwd(rhs));
                 } else {
@@ -360,7 +360,7 @@ Automata<InitialSymbol> parse_timbuk(const std::string& str)
 					parens_end_pos - parens_begin_pos - 1);
 
 				/********************************************/
-                std::vector<typename Automata<InitialSymbol>::State> state_vector;
+                std::vector<typename Automata<Symbol>::State> state_vector;
                 /********************************************/
                 std::vector<std::string> state_tuple = split_delim(str_state_tuple, ',');
 				for (std::string& state : state_tuple)
@@ -390,10 +390,10 @@ Automata<InitialSymbol> parse_timbuk(const std::string& str)
                 /*********************************************************************************************/
                 int t = atoi(rhs.c_str());
                 if (t > result.stateNum) result.stateNum = t;
-                if constexpr(std::is_same_v<InitialSymbol, TreeAutomata::InitialSymbol>) {
+                if constexpr(std::is_same_v<Symbol, TreeAutomata::Symbol>) {
                     auto temp = from_string_to_Concrete(lab);
                     result.transitions[temp][state_vector].insert(t); //result.stateNum.TranslateFwd(rhs));
-                } else if constexpr(std::is_same_v<InitialSymbol, PredicateAutomata::InitialSymbol>) {
+                } else if constexpr(std::is_same_v<Symbol, PredicateAutomata::Symbol>) {
                     auto temp = from_string_to_Predicate(lab);
                     result.transitions[temp][state_vector].insert(t); //.stateNum.TranslateFwd(rhs));
                 } else {
@@ -413,16 +413,16 @@ Automata<InitialSymbol> parse_timbuk(const std::string& str)
     boost::multiprecision::cpp_int k = -1;
     for (const auto &kv : result.transitions) {
         if (kv.first.is_internal()) {
-            if (kv.first.initial_symbol().qubit() > INT_MAX)
+            if (kv.first.symbol().qubit() > INT_MAX)
                 throw std::overflow_error("[ERROR] The number of qubits is too large!");
-            result.qubitNum = std::max(result.qubitNum, static_cast<int>(kv.first.initial_symbol().qubit()));
+            result.qubitNum = std::max(result.qubitNum, static_cast<int>(kv.first.symbol().qubit()));
         } else { // leaf transitions
             if (k == -1) {
-                k = kv.first.initial_symbol().k();
+                k = kv.first.symbol().k();
                 if (k < 0)
                     throw std::runtime_error("[ERROR] The k value cannot be less than 0.");
             }
-            else if (k != kv.first.initial_symbol().k()) {
+            else if (k != kv.first.symbol().k()) {
                 throw std::runtime_error("[ERROR] All k's in the automaton must be the same!");
             }
         }
@@ -431,14 +431,14 @@ Automata<InitialSymbol> parse_timbuk(const std::string& str)
 	return result;
 }
 
-template <typename InitialSymbol>
-Automata<InitialSymbol> TimbukParser<InitialSymbol>::ParseString(const std::string& str)
+template <typename Symbol>
+Automata<Symbol> TimbukParser<Symbol>::ParseString(const std::string& str)
 {
-	Automata<InitialSymbol> timbukParse;
+	Automata<Symbol> timbukParse;
 
 	try
 	{
-		timbukParse = parse_timbuk<InitialSymbol>(str);
+		timbukParse = parse_timbuk<Symbol>(str);
 	}
 	catch (std::exception& ex)
 	{
@@ -452,8 +452,8 @@ Automata<InitialSymbol> TimbukParser<InitialSymbol>::ParseString(const std::stri
 template <> // The loop reading part is different from other types, so we have to specialize this type.
 PredicateAutomata TimbukParser<Predicate>::from_tree_to_automaton(std::string tree) {
     PredicateAutomata aut;
-    std::map<PredicateAutomata::State, PredicateAutomata::InitialSymbol> states_probs;
-    PredicateAutomata::InitialSymbol default_prob;
+    std::map<PredicateAutomata::State, PredicateAutomata::Symbol> states_probs;
+    PredicateAutomata::Symbol default_prob;
     std::smatch match;
     while (std::regex_search(tree, match, std::regex("\\[.*?\\]"))) {
         std::string state_prob = match.str();
@@ -487,7 +487,7 @@ PredicateAutomata TimbukParser<Predicate>::from_tree_to_automaton(std::string tr
     for (PredicateAutomata::State i=state_counter; i<=(state_counter<<1); i++) {
         auto spf = states_probs.find(i-state_counter);
         if (spf == states_probs.end()) {
-            if (default_prob == PredicateAutomata::InitialSymbol())
+            if (default_prob == PredicateAutomata::Symbol())
                 throw std::runtime_error("[ERROR] The default amplitude is not specified!");
             aut.transitions[default_prob][{}].insert(i);
         }
@@ -501,12 +501,12 @@ PredicateAutomata TimbukParser<Predicate>::from_tree_to_automaton(std::string tr
     return aut;
 }
 
-template <typename InitialSymbol>
-Automata<InitialSymbol> TimbukParser<InitialSymbol>::from_tree_to_automaton(std::string tree) {
-    Automata<InitialSymbol> aut;
+template <typename Symbol>
+Automata<Symbol> TimbukParser<Symbol>::from_tree_to_automaton(std::string tree) {
+    Automata<Symbol> aut;
     std::istringstream iss(tree);
-    std::map<typename Automata<InitialSymbol>::State, InitialSymbol> states_probs;
-    InitialSymbol default_prob;
+    std::map<typename Automata<Symbol>::State, Symbol> states_probs;
+    Symbol default_prob;
     boost::multiprecision::cpp_int k = -1;
     for (std::string state_prob; iss >> state_prob;) {
         std::istringstream iss2(state_prob);
@@ -517,11 +517,11 @@ Automata<InitialSymbol> TimbukParser<InitialSymbol>::from_tree_to_automaton(std:
         else if (aut.qubitNum != state.length())
             throw std::runtime_error("[ERROR] The numbers of qubits are not the same in all basis states!");
         std::string t;
-        if constexpr(std::is_same_v<InitialSymbol, TreeAutomata::InitialSymbol>) {
+        if constexpr(std::is_same_v<Symbol, TreeAutomata::Symbol>) {
             if (state == "*") {
                 while (std::getline(iss2, t, ',')) {
                     try {
-                        default_prob.push_back(boost::lexical_cast<TreeAutomata::InitialSymbol::Entry>(t.c_str()));
+                        default_prob.push_back(boost::lexical_cast<TreeAutomata::Symbol::Entry>(t.c_str()));
                     } catch (...) {
                         throw std::runtime_error("[ERROR] The input entry \"" + t + "\" is not an integer!");
                     }
@@ -539,7 +539,7 @@ Automata<InitialSymbol> TimbukParser<InitialSymbol>::from_tree_to_automaton(std:
                 auto &sps = states_probs[s];
                 while (std::getline(iss2, t, ',')) {
                     try {
-                        sps.push_back(boost::lexical_cast<TreeAutomata::InitialSymbol::Entry>(t.c_str()));
+                        sps.push_back(boost::lexical_cast<TreeAutomata::Symbol::Entry>(t.c_str()));
                     } catch (...) {
                         throw std::runtime_error("[ERROR] The input entry \"" + t + "\" is not an integer!");
                     }
@@ -553,11 +553,11 @@ Automata<InitialSymbol> TimbukParser<InitialSymbol>::from_tree_to_automaton(std:
                     throw std::runtime_error("[ERROR] All k's in the automaton must be the same!");
                 }
             }
-        } else if constexpr(std::is_same_v<InitialSymbol, SymbolicAutomata::InitialSymbol>) {
+        } else if constexpr(std::is_same_v<Symbol, SymbolicAutomata::Symbol>) {
             if (state == "*") {
                 while (std::getline(iss2, t, ',')) {
                     try {
-                        auto v = boost::lexical_cast<SymbolicAutomata::InitialSymbol::Entry>(t.c_str());
+                        auto v = boost::lexical_cast<SymbolicAutomata::Symbol::Entry>(t.c_str());
                         if (v == 0)
                             default_prob.push_back(AUTOQ::Symbol::Symbolic::Map());
                         else
@@ -579,7 +579,7 @@ Automata<InitialSymbol> TimbukParser<InitialSymbol>::from_tree_to_automaton(std:
                 auto &sps = states_probs[s];
                 while (std::getline(iss2, t, ',')) {
                     try {
-                        auto v = boost::lexical_cast<SymbolicAutomata::InitialSymbol::Entry>(t.c_str());
+                        auto v = boost::lexical_cast<SymbolicAutomata::Symbol::Entry>(t.c_str());
                         if (v == 0)
                             sps.push_back(AUTOQ::Symbol::Symbolic::Map());
                         else
@@ -609,19 +609,19 @@ Automata<InitialSymbol> TimbukParser<InitialSymbol>::from_tree_to_automaton(std:
             }
         }
     }
-    typename Automata<InitialSymbol>::State pow_of_two = 1;
-    typename Automata<InitialSymbol>::State state_counter = 0;
+    typename Automata<Symbol>::State pow_of_two = 1;
+    typename Automata<Symbol>::State state_counter = 0;
     for (int level=1; level<=aut.qubitNum; level++) {
-        for (typename Automata<InitialSymbol>::State i=0; i<pow_of_two; i++) {
-            aut.transitions[InitialSymbol(level)][{(state_counter<<1)+1, (state_counter<<1)+2}] = {state_counter};
+        for (typename Automata<Symbol>::State i=0; i<pow_of_two; i++) {
+            aut.transitions[Symbol(level)][{(state_counter<<1)+1, (state_counter<<1)+2}] = {state_counter};
             state_counter++;
         }
         pow_of_two <<= 1;
     }
-    for (typename Automata<InitialSymbol>::State i=state_counter; i<=(state_counter<<1); i++) {
+    for (typename Automata<Symbol>::State i=state_counter; i<=(state_counter<<1); i++) {
         auto spf = states_probs.find(i-state_counter);
         if (spf == states_probs.end()) {
-            if (default_prob == InitialSymbol())
+            if (default_prob == Symbol())
                 throw std::runtime_error("[ERROR] The default amplitude is not specified!");
             aut.transitions[default_prob][{}].insert(i);
         }
@@ -635,8 +635,8 @@ Automata<InitialSymbol> TimbukParser<InitialSymbol>::from_tree_to_automaton(std:
     return aut;
 }
 
-template <typename InitialSymbol>
-Automata<InitialSymbol> TimbukParser<InitialSymbol>::from_line_to_automaton(std::string line) {
+template <typename Symbol>
+Automata<Symbol> TimbukParser<Symbol>::from_line_to_automaton(std::string line) {
     std::istringstream iss_tensor(line);
     std::string tree;
     std::getline(iss_tensor, tree, '#');
@@ -648,7 +648,7 @@ Automata<InitialSymbol> TimbukParser<InitialSymbol>::from_line_to_automaton(std:
         auto aut2 = from_tree_to_automaton(tree);
 
         // let aut2 be tensor producted with aut here
-        typename Automata<InitialSymbol>::TransitionMap aut_leaves;
+        typename Automata<Symbol>::TransitionMap aut_leaves;
         for (const auto &t : aut.transitions) {
             if (t.first.is_leaf()) {
                 aut_leaves[t.first] = t.second;
@@ -662,7 +662,7 @@ Automata<InitialSymbol> TimbukParser<InitialSymbol>::from_line_to_automaton(std:
         for (const auto &t : aut_leaves) {
             for (const auto &t2 : aut2.transitions) {
                 if (t2.first.is_internal()) { // if the to-be-appended transition is internal, then
-                    auto Q = aut.qubitNum + t2.first.initial_symbol().qubit(); // we need to shift the qubit number
+                    auto Q = aut.qubitNum + t2.first.symbol().qubit(); // we need to shift the qubit number
                     for (const auto &kv : t2.second) { // for each pair of vec_in -> set_out
                         auto k = kv.first;
                         for (int i=0; i<k.size(); i++)
@@ -683,7 +683,7 @@ Automata<InitialSymbol> TimbukParser<InitialSymbol>::from_line_to_automaton(std:
                         for (int i=0; i<k.size(); i++)
                             k.at(i) += aut.stateNum;
                         for (const auto &s : kv.second) {
-                            aut.transitions[t.first.initial_symbol() * t2.first.initial_symbol()][k].insert(s + aut.stateNum);
+                            aut.transitions[t.first.symbol() * t2.first.symbol()][k].insert(s + aut.stateNum);
                         }
                     }
                 }
@@ -696,8 +696,8 @@ Automata<InitialSymbol> TimbukParser<InitialSymbol>::from_line_to_automaton(std:
     return aut;
 }
 
-template <typename InitialSymbol>
-Automata<InitialSymbol> TimbukParser<InitialSymbol>::FromFileToAutomata(const char* filepath)
+template <typename Symbol>
+Automata<Symbol> TimbukParser<Symbol>::FromFileToAutomata(const char* filepath)
 {
     if (boost::algorithm::ends_with(filepath, ".aut")) {
         std::ifstream t(filepath);
@@ -707,7 +707,7 @@ Automata<InitialSymbol> TimbukParser<InitialSymbol>::FromFileToAutomata(const ch
         buffer << t.rdbuf();
         return ParseString(buffer.str());
     } else if (boost::algorithm::ends_with(filepath, ".hsl")) {
-        Automata<InitialSymbol> aut_final;
+        Automata<Symbol> aut_final;
         std::string line;
         std::ifstream file(filepath);
         if (!file) // in case the file could not be open

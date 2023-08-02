@@ -38,8 +38,8 @@ namespace {
     }
 }
 
-template <typename InitialSymbol>
-void AUTOQ::Automata<InitialSymbol>::X(int k) {
+template <typename Symbol>
+void AUTOQ::Automata<Symbol>::X(int k) {
     #ifdef TO_QASM
         system(("echo 'x qubits[" + std::to_string(k-1) + "];' >> " + QASM_FILENAME).c_str());
         return;
@@ -48,7 +48,7 @@ void AUTOQ::Automata<InitialSymbol>::X(int k) {
     auto transitions_copy = transitions;
     for (const auto &t : transitions_copy) {
         const auto &symbol_tag = t.first;
-        if (symbol_tag.is_internal() && symbol_tag.initial_symbol().qubit() == k) {
+        if (symbol_tag.is_internal() && symbol_tag.symbol().qubit() == k) {
             transitions.erase(symbol_tag);
             for (const auto &in_out : t.second) {
                 assert(in_out.first.size() == 2);
@@ -61,8 +61,8 @@ void AUTOQ::Automata<InitialSymbol>::X(int k) {
     if (gateLog) std::cout << "X" << k << "：" << stateNum << " states " << count_transitions() << " transitions " << toString(duration) << "\n";
 }
 
-template <typename InitialSymbol>
-void AUTOQ::Automata<InitialSymbol>::Y(int k) {
+template <typename Symbol>
+void AUTOQ::Automata<Symbol>::Y(int k) {
     #ifdef TO_QASM
         system(("echo 'y qubits[" + std::to_string(k-1) + "];' >> " + QASM_FILENAME).c_str());
         return;
@@ -72,8 +72,8 @@ void AUTOQ::Automata<InitialSymbol>::Y(int k) {
     for (const auto &t : transitions_copy) {
         SymbolTag symbol_tag = t.first;
         if (symbol_tag.is_leaf())
-            symbol_tag.initial_symbol().Y();
-        if (!(symbol_tag.is_internal() && symbol_tag.initial_symbol().qubit() <= k)) {
+            symbol_tag.symbol().Y();
+        if (!(symbol_tag.is_internal() && symbol_tag.symbol().qubit() <= k)) {
             for (const auto &in_out : t.second) {
                 StateVector in;
                 for (const auto &s : in_out.first)
@@ -101,8 +101,8 @@ void AUTOQ::Automata<InitialSymbol>::Y(int k) {
     if (gateLog) std::cout << "Y" << k << "：" << stateNum << " states " << count_transitions() << " transitions " << toString(duration) << "\n";
 }
 
-template <typename InitialSymbol>
-void AUTOQ::Automata<InitialSymbol>::Z(int t) {
+template <typename Symbol>
+void AUTOQ::Automata<Symbol>::Z(int t) {
     #ifdef TO_QASM
         system(("echo 'z qubits[" + std::to_string(t-1) + "];' >> " + QASM_FILENAME).c_str());
         return;
@@ -112,8 +112,8 @@ void AUTOQ::Automata<InitialSymbol>::Z(int t) {
     for (const auto &tr : transitions_copy) {
         SymbolTag symbol_tag = tr.first;
         if (symbol_tag.is_leaf())
-            symbol_tag.initial_symbol().Y();
-        if (!(symbol_tag.is_internal() && symbol_tag.initial_symbol().qubit() <= t)) {
+            symbol_tag.symbol().Y();
+        if (!(symbol_tag.is_internal() && symbol_tag.symbol().qubit() <= t)) {
             for (const auto &in_out : tr.second) {
                 StateVector in;
                 for (const auto &s : in_out.first)
@@ -140,8 +140,8 @@ void AUTOQ::Automata<InitialSymbol>::Z(int t) {
     if (gateLog) std::cout << "Z" << t << "：" << stateNum << " states " << count_transitions() << " transitions " << toString(duration) << "\n";
 }
 
-template <typename InitialSymbol>
-void AUTOQ::Automata<InitialSymbol>::H(int t) {
+template <typename Symbol>
+void AUTOQ::Automata<Symbol>::H(int t) {
     #ifdef TO_QASM
         system(("echo 'h qubits[" + std::to_string(t-1) + "];' >> " + QASM_FILENAME).c_str());
         return;
@@ -163,8 +163,8 @@ void AUTOQ::Automata<InitialSymbol>::H(int t) {
     if (gateLog) std::cout << "H" << t << "：" << stateNum << " states " << count_transitions() << " transitions " << toString(duration) << "\n";
 }
 
-template <typename InitialSymbol>
-void AUTOQ::Automata<InitialSymbol>::S(int t) {
+template <typename Symbol>
+void AUTOQ::Automata<Symbol>::S(int t) {
     #ifdef TO_QASM
         system(("echo 's qubits[" + std::to_string(t-1) + "];' >> " + QASM_FILENAME).c_str());
         return;
@@ -174,7 +174,7 @@ void AUTOQ::Automata<InitialSymbol>::S(int t) {
     aut2.omega_multiplication(2);
     for (const auto &tr : aut2.transitions) {
         const SymbolTag &symbol_tag = tr.first;
-        if (!(symbol_tag.is_internal() && symbol_tag.initial_symbol().qubit() <= t)) {
+        if (!(symbol_tag.is_internal() && symbol_tag.symbol().qubit() <= t)) {
             auto &ttf = transitions[symbol_tag];
             for (const auto &in_out : tr.second) {
                 StateVector in;
@@ -202,8 +202,8 @@ void AUTOQ::Automata<InitialSymbol>::S(int t) {
     if (gateLog) std::cout << "S" << t << "：" << stateNum << " states " << count_transitions() << " transitions " << toString(duration) << "\n";
 }
 
-template <typename InitialSymbol>
-void AUTOQ::Automata<InitialSymbol>::T(int t) {
+template <typename Symbol>
+void AUTOQ::Automata<Symbol>::T(int t) {
     #ifdef TO_QASM
         system(("echo 't qubits[" + std::to_string(t-1) + "];' >> " + QASM_FILENAME).c_str());
         return;
@@ -213,7 +213,7 @@ void AUTOQ::Automata<InitialSymbol>::T(int t) {
     aut2.omega_multiplication();
     for (const auto &tr : aut2.transitions) {
         const SymbolTag &symbol_tag = tr.first;
-        if (!(symbol_tag.is_internal() && symbol_tag.initial_symbol().qubit() <= t)) {
+        if (!(symbol_tag.is_internal() && symbol_tag.symbol().qubit() <= t)) {
             auto &ttf = transitions[symbol_tag];
             for (const auto &in_out : tr.second) {
                 StateVector in;
@@ -241,8 +241,8 @@ void AUTOQ::Automata<InitialSymbol>::T(int t) {
     if (gateLog) std::cout << "T" << t << "：" << stateNum << " states " << count_transitions() << " transitions " << toString(duration) << "\n";
 }
 
-template <typename InitialSymbol>
-void AUTOQ::Automata<InitialSymbol>::Rx(int t) {
+template <typename Symbol>
+void AUTOQ::Automata<Symbol>::Rx(int t) {
     #ifdef TO_QASM
         system(("echo 'rx(pi/2) qubits[" + std::to_string(t-1) + "];' >> " + QASM_FILENAME).c_str());
         return;
@@ -266,8 +266,8 @@ void AUTOQ::Automata<InitialSymbol>::Rx(int t) {
     if (gateLog) std::cout << "Rx" << t << "：" << stateNum << " states " << count_transitions() << " transitions " << toString(duration) << "\n";
 }
 
-template <typename InitialSymbol>
-void AUTOQ::Automata<InitialSymbol>::Ry(int t) {
+template <typename Symbol>
+void AUTOQ::Automata<Symbol>::Ry(int t) {
     #ifdef TO_QASM
         system(("echo 'ry(pi/2) qubits[" + std::to_string(t-1) + "];' >> " + QASM_FILENAME).c_str());
         return;
@@ -289,8 +289,8 @@ void AUTOQ::Automata<InitialSymbol>::Ry(int t) {
     if (gateLog) std::cout << "Ry" << t << "：" << stateNum << " states " << count_transitions() << " transitions " << toString(duration) << "\n";
 }
 
-template <typename InitialSymbol>
-void AUTOQ::Automata<InitialSymbol>::CNOT(int c, int t, bool opt) {
+template <typename Symbol>
+void AUTOQ::Automata<Symbol>::CNOT(int c, int t, bool opt) {
     #ifdef TO_QASM
         system(("echo 'cx qubits[" + std::to_string(c-1) + "], qubits[" + std::to_string(t-1) + "];' >> " + QASM_FILENAME).c_str());
         return;
@@ -315,7 +315,7 @@ void AUTOQ::Automata<InitialSymbol>::CNOT(int c, int t, bool opt) {
         aut2.X(t); gateCount--; // prevent repeated counting
         for (const auto &tr : aut2.transitions) {
             const SymbolTag &symbol_tag = tr.first;
-            if (!(symbol_tag.is_internal() && symbol_tag.initial_symbol().qubit() <= c)) {
+            if (!(symbol_tag.is_internal() && symbol_tag.symbol().qubit() <= c)) {
                 auto &ttf = transitions[symbol_tag];
                 for (const auto &in_out : tr.second) {
                     StateVector in;
@@ -346,8 +346,8 @@ void AUTOQ::Automata<InitialSymbol>::CNOT(int c, int t, bool opt) {
     if (gateLog) std::cout << "CNOT" << c << "," << t << "：" << stateNum << " states " << count_transitions() << " transitions " << toString(duration) << "\n";
 }
 
-template <typename InitialSymbol>
-void AUTOQ::Automata<InitialSymbol>::CZ(int c, int t) {
+template <typename Symbol>
+void AUTOQ::Automata<Symbol>::CZ(int c, int t) {
     #ifdef TO_QASM
         system(("echo 'cz qubits[" + std::to_string(c-1) + "], qubits[" + std::to_string(t-1) + "];' >> " + QASM_FILENAME).c_str());
         return;
@@ -359,8 +359,8 @@ void AUTOQ::Automata<InitialSymbol>::CZ(int c, int t) {
     for (const auto &tr : transitions) {
         SymbolTag symbol_tag = tr.first;
         if (symbol_tag.is_leaf())
-            symbol_tag.initial_symbol().Y();
-        if (!(symbol_tag.is_internal() && symbol_tag.initial_symbol().qubit() <= t)) {
+            symbol_tag.symbol().Y();
+        if (!(symbol_tag.is_internal() && symbol_tag.symbol().qubit() <= t)) {
             for (const auto &in_out : tr.second) {
                 StateVector in;
                 for (const auto &s : in_out.first)
@@ -381,7 +381,7 @@ void AUTOQ::Automata<InitialSymbol>::CZ(int c, int t) {
     }
     for (const auto &tr : aut2.transitions) {
         const SymbolTag &symbol_tag = tr.first;
-        if (!(symbol_tag.is_internal() && symbol_tag.initial_symbol().qubit() <= c)) {
+        if (!(symbol_tag.is_internal() && symbol_tag.symbol().qubit() <= c)) {
             for (const auto &in_out : tr.second) {
                 StateVector in;
                 for (const auto &s : in_out.first)
@@ -408,8 +408,8 @@ void AUTOQ::Automata<InitialSymbol>::CZ(int c, int t) {
     if (gateLog) std::cout << "CZ" << c << "," << t << "：" << stateNum << " states " << count_transitions() << " transitions " << toString(duration) << "\n";
 }
 
-template <typename InitialSymbol>
-void AUTOQ::Automata<InitialSymbol>::Toffoli(int c, int c2, int t) {
+template <typename Symbol>
+void AUTOQ::Automata<Symbol>::Toffoli(int c, int c2, int t) {
     #ifdef TO_QASM
         system(("echo 'ccx qubits[" + std::to_string(c-1) + "], qubits[" + std::to_string(c2-1) + "], qubits[" + std::to_string(t-1) + "];' >> " + QASM_FILENAME).c_str());
         return;
@@ -422,7 +422,7 @@ void AUTOQ::Automata<InitialSymbol>::Toffoli(int c, int c2, int t) {
         aut2.CNOT(c2, t, false); gateCount--; // prevent repeated counting
         for (const auto &tr : aut2.transitions) {
             const SymbolTag &symbol_tag = tr.first;
-            if (!(symbol_tag.is_internal() && symbol_tag.initial_symbol().qubit() <= c)) {
+            if (!(symbol_tag.is_internal() && symbol_tag.symbol().qubit() <= c)) {
                 auto &ttf = transitions[symbol_tag];
                 for (const auto &in_out : tr.second) {
                     StateVector in;
@@ -469,8 +469,8 @@ void AUTOQ::Automata<InitialSymbol>::Toffoli(int c, int c2, int t) {
     if (gateLog) std::cout << "Toffoli" << c << "," << c2 << "," << t << "：" << stateNum << " states " << count_transitions() << " transitions " << toString(duration) << "\n";
 }
 
-template <typename InitialSymbol>
-void AUTOQ::Automata<InitialSymbol>::Tdg(int t) {
+template <typename Symbol>
+void AUTOQ::Automata<Symbol>::Tdg(int t) {
     // #ifdef TO_QASM
     //     system(("echo 'tdg qubits[" + std::to_string(t-1) + "];' >> " + QASM_FILENAME).c_str());
     //     return;
@@ -482,7 +482,7 @@ void AUTOQ::Automata<InitialSymbol>::Tdg(int t) {
         const SymbolTag &symbol_tag = t_old.first;
         if (symbol_tag.is_leaf()) {
             SymbolTag s = symbol_tag;
-            s.initial_symbol().Tdg();
+            s.symbol().Tdg();
             transitions_new[s] = t_old.second;
         } else {
             assert(symbol_tag.tag().size() <= 1);
@@ -493,7 +493,7 @@ void AUTOQ::Automata<InitialSymbol>::Tdg(int t) {
     /******************************/
     for (const auto &tr : aut2.transitions) {
         const SymbolTag &symbol_tag = tr.first;
-        if (!(symbol_tag.is_internal() && symbol_tag.initial_symbol().qubit() <= t)) {
+        if (!(symbol_tag.is_internal() && symbol_tag.symbol().qubit() <= t)) {
             auto &ttf = transitions[symbol_tag];
             for (const auto &in_out : tr.second) {
                 StateVector in;
@@ -521,8 +521,8 @@ void AUTOQ::Automata<InitialSymbol>::Tdg(int t) {
     if (gateLog) std::cout << "Tdg" << t << "：" << stateNum << " states " << count_transitions() << " transitions " << toString(duration) << "\n";
 }
 
-template <typename InitialSymbol>
-void AUTOQ::Automata<InitialSymbol>::Sdg(int t) {
+template <typename Symbol>
+void AUTOQ::Automata<Symbol>::Sdg(int t) {
     // #ifdef TO_QASM
     //     system(("echo 'sdg qubits[" + std::to_string(t-1) + "];' >> " + QASM_FILENAME).c_str());
     //     return;
@@ -534,7 +534,7 @@ void AUTOQ::Automata<InitialSymbol>::Sdg(int t) {
         const SymbolTag &symbol_tag = t_old.first;
         if (symbol_tag.is_leaf()) {
             SymbolTag s = symbol_tag;
-            s.initial_symbol().Sdg();
+            s.symbol().Sdg();
             transitions_new[s] = t_old.second;
         } else {
             assert(symbol_tag.tag().size() <= 1);
@@ -545,7 +545,7 @@ void AUTOQ::Automata<InitialSymbol>::Sdg(int t) {
     /******************************/
     for (const auto &tr : aut2.transitions) {
         const SymbolTag &symbol_tag = tr.first;
-        if (!(symbol_tag.is_internal() && symbol_tag.initial_symbol().qubit() <= t)) {
+        if (!(symbol_tag.is_internal() && symbol_tag.symbol().qubit() <= t)) {
             auto &ttf = transitions[symbol_tag];
             for (const auto &in_out : tr.second) {
                 StateVector in;
@@ -573,8 +573,8 @@ void AUTOQ::Automata<InitialSymbol>::Sdg(int t) {
     if (gateLog) std::cout << "Sdg" << t << "：" << stateNum << " states " << count_transitions() << " transitions " << toString(duration) << "\n";
 }
 
-template <typename InitialSymbol>
-void AUTOQ::Automata<InitialSymbol>::swap(int t1, int t2) {
+template <typename Symbol>
+void AUTOQ::Automata<Symbol>::swap(int t1, int t2) {
     // #ifdef TO_QASM
     //     system(("echo 'swap qubits[" + std::to_string(t1-1) + "], qubits[" + std::to_string(t2-1) + "];' >> " + QASM_FILENAME).c_str());
     //     return;
@@ -588,7 +588,7 @@ void AUTOQ::Automata<InitialSymbol>::swap(int t1, int t2) {
     if (gateLog) std::cout << "swap" << t1 << "," << t2 << "：" << stateNum << " states " << count_transitions() << " transitions " << toString(duration) << "\n";
 }
 
-// void AUTOQ::Automata<InitialSymbol>::Fredkin(int c, int t, int t2) {
+// void AUTOQ::Automata<Symbol>::Fredkin(int c, int t, int t2) {
 //     auto start = std::chrono::steady_clock::now();
 //     assert(c != t && t != t2 && t2 != c);
 //     this->semi_determinize();
@@ -618,8 +618,8 @@ void AUTOQ::Automata<InitialSymbol>::swap(int t1, int t2) {
 //     if (gateLog) std::cout << "Fredkin" << c << "," << t << "," << t2 << "：" << stateNum << " states " << count_transitions() << " transitions " << toString(duration) << "\n";
 // }
 
-template <typename InitialSymbol>
-void AUTOQ::Automata<InitialSymbol>::randG(int G, int A, int B, int C) {
+template <typename Symbol>
+void AUTOQ::Automata<Symbol>::randG(int G, int A, int B, int C) {
     int g, a, b, c;
     do { 
         g = rand() % 11;

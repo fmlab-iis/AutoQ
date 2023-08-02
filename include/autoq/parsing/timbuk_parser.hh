@@ -22,7 +22,7 @@ namespace AUTOQ
 {
 	namespace Parsing
 	{
-		template <typename InitialSymbol>
+		template <typename Symbol>
         class TimbukParser;
 	}
 }
@@ -33,7 +33,7 @@ namespace AUTOQ
  *
  * This class is a parser for automata in the Timbuk format.
  */
-template <typename InitialSymbol>
+template <typename Symbol>
 class AUTOQ::Parsing::TimbukParser //:
 	// public AUTOQ::Parsing::AbstrParser
 {
@@ -42,10 +42,10 @@ public:   // methods
 	/**
 	 * @copydoc  AUTOQ::Parsing::AbstrParser::ParseString
 	 */
-	static AUTOQ::Automata<InitialSymbol> ParseString(const std::string& str);
-    static AUTOQ::Automata<InitialSymbol> FromFileToAutomata(const char* filepath);
-    static AUTOQ::Automata<InitialSymbol> from_tree_to_automaton(std::string tree);
-    static AUTOQ::Automata<InitialSymbol> from_line_to_automaton(std::string line);
+	static AUTOQ::Automata<Symbol> ParseString(const std::string& str);
+    static AUTOQ::Automata<Symbol> FromFileToAutomata(const char* filepath);
+    static AUTOQ::Automata<Symbol> from_tree_to_automaton(std::string tree);
+    static AUTOQ::Automata<Symbol> from_line_to_automaton(std::string line);
 
 	/**
 	 * @copydoc  AUTOQ::Parsing::AbstrParser::~AbstrParser

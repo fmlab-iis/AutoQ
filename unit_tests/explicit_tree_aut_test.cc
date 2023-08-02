@@ -367,7 +367,7 @@ void dfs(const std::map<AUTOQ::TreeAutomata::State, AUTOQ::TreeAutomata::StateVe
         if (!new_layer.empty()) {
             dfs(edge, leaf, new_layer, prob);
         } else {
-            const auto &symbol = leaf.at(s).initial_symbol();
+            const auto &symbol = leaf.at(s).symbol();
             assert(symbol.size() == 5);
             double a = static_cast<double>(symbol[0]) / pow(2, static_cast<double>(symbol[4])/2.0);
             double b = static_cast<double>(symbol[1]) / pow(2, static_cast<double>(symbol[4])/2.0);
@@ -464,7 +464,7 @@ BOOST_AUTO_TEST_CASE(Grover_Search)
     std::ifstream t("../../reference_answers/Grover" + std::to_string(n) + ".txt");
     std::stringstream buffer;
     buffer << t.rdbuf();
-    auto ans = AUTOQ::Parsing::TimbukParser<AUTOQ::TreeAutomata::InitialSymbol>::ParseString(buffer.str());
+    auto ans = AUTOQ::Parsing::TimbukParser<AUTOQ::TreeAutomata::Symbol>::ParseString(buffer.str());
     // int n = (aut.qubitNum + 1) / 3;
     // aut.print();
 
@@ -624,7 +624,7 @@ BOOST_AUTO_TEST_CASE(Grover_Search_only_one_oracle)
                     assert(symbol_tag.is_leaf());
                     leaf[s] = symbol_tag;
                 }
-                if (symbol_tag.is_internal() && symbol_tag.initial_symbol().qubit() == 1) {
+                if (symbol_tag.is_internal() && symbol_tag.symbol().qubit() == 1) {
                     first_layers.push_back(in);
                 } else {
                     assert(edge[s].empty());

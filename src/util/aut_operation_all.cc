@@ -12,15 +12,15 @@ using AUTOQ::Serialization::TimbukSerializer;
 
 namespace { // anonymous namespace
 
-  template <class Index, typename InitialSymbol>
+  template <class Index, typename Symbol>
   ExplicitLTS translate_to_lts_downward(
-    const Automata<InitialSymbol>& aut,
+    const Automata<Symbol>& aut,
     size_t              numStates,
     Index&              stateIndex)
   {
-    using State = typename Automata<InitialSymbol>::State;
-    using SymbolTag = typename Automata<InitialSymbol>::SymbolTag;
-    using StateVector = typename Automata<InitialSymbol>::StateVector;
+    using State = typename Automata<Symbol>::State;
+    using SymbolTag = typename Automata<Symbol>::SymbolTag;
+    using StateVector = typename Automata<Symbol>::StateVector;
 
     std::unordered_map<SymbolTag, size_t> symbolMap;
     std::unordered_map<const StateVector*, size_t> lhsMap;
@@ -85,10 +85,10 @@ namespace { // anonymous namespace
     return result;
   }
 
-  template <typename InitialSymbol>
-  size_t count_aut_states(const AUTOQ::Automata<InitialSymbol>& aut)
+  template <typename Symbol>
+  size_t count_aut_states(const AUTOQ::Automata<Symbol>& aut)
   {
-    using State = typename Automata<InitialSymbol>::State;
+    using State = typename Automata<Symbol>::State;
 
     std::set<State> states;
     for (const auto& state : aut.finalStates) {
@@ -107,10 +107,10 @@ namespace { // anonymous namespace
     return states.size();
   }
 
-  template <typename InitialSymbol>
-  typename Util::DiscontBinaryRelation<typename Automata<InitialSymbol>::State> compute_down_sim(const AUTOQ::Automata<InitialSymbol>& aut)
+  template <typename Symbol>
+  typename Util::DiscontBinaryRelation<typename Automata<Symbol>::State> compute_down_sim(const AUTOQ::Automata<Symbol>& aut)
   {
-    using State = typename Automata<InitialSymbol>::State;
+    using State = typename Automata<Symbol>::State;
     using StateToIndexMap = typename std::unordered_map<State, size_t>;
     using StateToIndexTranslWeak = typename Util::TranslatorWeak<StateToIndexMap>;
     using DiscontBinaryRelOnStates = typename Util::DiscontBinaryRelation<State>;
@@ -126,13 +126,13 @@ namespace { // anonymous namespace
     return DiscontBinaryRelOnStates(ltsSim, translMap);
   }
 
-  template <class Index, typename InitialSymbol>
-  void reindex_aut_states(Automata<InitialSymbol>& aut, Index& index)
+  template <class Index, typename Symbol>
+  void reindex_aut_states(Automata<Symbol>& aut, Index& index)
   {
-    using State = typename Automata<InitialSymbol>::State;
-    using StateSet = typename Automata<InitialSymbol>::StateSet;
-    using StateVector = typename Automata<InitialSymbol>::StateVector;
-    using TransitionMap = typename Automata<InitialSymbol>::TransitionMap;
+    using State = typename Automata<Symbol>::State;
+    using StateSet = typename Automata<Symbol>::StateSet;
+    using StateVector = typename Automata<Symbol>::StateVector;
+    using TransitionMap = typename Automata<Symbol>::TransitionMap;
 
     StateVector newFinal;
     TransitionMap newTrans;
@@ -186,10 +186,10 @@ namespace { // anonymous namespace
 
   /// Checks that a state is at most once on the right-hand (parent) side of
   /// any rule.
-  template <typename InitialSymbol>
-  bool aut_is_single_occurrence(const Automata<InitialSymbol>& aut)
+  template <typename Symbol>
+  bool aut_is_single_occurrence(const Automata<Symbol>& aut)
   {
-    using State = typename Automata<InitialSymbol>::State;
+    using State = typename Automata<Symbol>::State;
 
     std::set<State> occurrences;
     for (auto symbMapPair : aut.transitions) {
@@ -205,10 +205,10 @@ namespace { // anonymous namespace
   }
 
   // Makes a TA compact (states are renumbered to start from 0 and go consecutively up
-  template <typename InitialSymbol>
-  void compact_aut(Automata<InitialSymbol>& aut)
+  template <typename Symbol>
+  void compact_aut(Automata<Symbol>& aut)
   {
-    using State = typename Automata<InitialSymbol>::State;
+    using State = typename Automata<Symbol>::State;
     using StateToStateMap = typename std::unordered_map<State, State>;
     using StateToStateTranslWeak = typename Util::TranslatorWeak<StateToStateMap>;
     StateToStateMap translMap;
@@ -223,10 +223,10 @@ namespace { // anonymous namespace
   }
 } // anonymous namespace
 
-template <typename InitialSymbol>
-bool AUTOQ::Automata<InitialSymbol>::light_reduce_up()
+template <typename Symbol>
+bool AUTOQ::Automata<Symbol>::light_reduce_up()
 {
-  using State = typename Automata<InitialSymbol>::State;
+  using State = typename Automata<Symbol>::State;
   using StateToStateMap = typename std::unordered_map<State, State>;
 
   StateToStateMap index;
@@ -259,8 +259,8 @@ bool AUTOQ::Automata<InitialSymbol>::light_reduce_up()
   return changed;
 }
 
-template <typename InitialSymbol>
-bool AUTOQ::Automata<InitialSymbol>::light_reduce_up_iter()
+template <typename Symbol>
+bool AUTOQ::Automata<Symbol>::light_reduce_up_iter()
 {
   size_t iterations = 0;
   bool changed = true;
@@ -272,10 +272,10 @@ bool AUTOQ::Automata<InitialSymbol>::light_reduce_up_iter()
   return 1 == iterations;
 }
 
-template <typename InitialSymbol>
-bool AUTOQ::Automata<InitialSymbol>::light_reduce_down()
+template <typename Symbol>
+bool AUTOQ::Automata<Symbol>::light_reduce_down()
 {
-  using State = typename Automata<InitialSymbol>::State;
+  using State = typename Automata<Symbol>::State;
   using StateToStateMap = typename std::unordered_map<State, State>;
   using StateToStateTranslWeak = typename Util::TranslatorWeak<StateToStateMap>;
 
@@ -405,8 +405,8 @@ bool AUTOQ::Automata<InitialSymbol>::light_reduce_down()
   return false;
 }
 
-template <typename InitialSymbol>
-bool AUTOQ::Automata<InitialSymbol>::light_reduce_down_iter()
+template <typename Symbol>
+bool AUTOQ::Automata<Symbol>::light_reduce_down_iter()
 {
   size_t iterations = 0;
   bool changed = true;
@@ -418,8 +418,8 @@ bool AUTOQ::Automata<InitialSymbol>::light_reduce_down_iter()
   return 1 == iterations;
 }
 
-template <typename InitialSymbol>
-int AUTOQ::Automata<InitialSymbol>::count_transitions() {
+template <typename Symbol>
+int AUTOQ::Automata<Symbol>::count_transitions() {
     int count = 0;
     for (const auto &t : transitions)
         for (const auto &in_outs : t.second) {
@@ -428,8 +428,8 @@ int AUTOQ::Automata<InitialSymbol>::count_transitions() {
     return count;
 }
 
-template <typename InitialSymbol>
-void AUTOQ::Automata<InitialSymbol>::reduce() {
+template <typename Symbol>
+void AUTOQ::Automata<Symbol>::reduce() {
     auto start = std::chrono::steady_clock::now();
     // AUTOQ_DEBUG("before light_reduce_down: " + Convert::ToString(count_aut_states(*this)));
     // this->sim_reduce();
@@ -446,11 +446,11 @@ void AUTOQ::Automata<InitialSymbol>::reduce() {
     if (opLog) std::cout << __FUNCTION__ << "：" << stateNum << " states " << count_transitions() << " transitions\n";
 }
 
-template <typename InitialSymbol>
-AUTOQ::Automata<InitialSymbol> AUTOQ::Automata<InitialSymbol>::Union(const Automata<InitialSymbol> &o) {
-    if (*this == Automata<InitialSymbol>()) return o;
+template <typename Symbol>
+AUTOQ::Automata<Symbol> AUTOQ::Automata<Symbol>::Union(const Automata<Symbol> &o) {
+    if (*this == Automata<Symbol>()) return o;
 
-    Automata<InitialSymbol> result;
+    Automata<Symbol> result;
     result = *this;
     result.name = "Union";
     if (result.qubitNum != o.qubitNum) {
@@ -482,13 +482,13 @@ AUTOQ::Automata<InitialSymbol> AUTOQ::Automata<InitialSymbol>::Union(const Autom
     return result;
 }
 
-template <typename InitialSymbol>
-void AUTOQ::Automata<InitialSymbol>::print() {
+template <typename Symbol>
+void AUTOQ::Automata<Symbol>::print() {
     std::cout << AUTOQ::Serialization::TimbukSerializer::Serialize(*this);
 }
 
-template <typename InitialSymbol>
-int AUTOQ::Automata<InitialSymbol>::transition_size() {
+template <typename Symbol>
+int AUTOQ::Automata<Symbol>::transition_size() {
     int answer = 0;
     for (const auto &t : transitions) {
         for (const auto &in_out : t.second) {
