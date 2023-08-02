@@ -25,8 +25,8 @@ namespace AUTOQ
 	namespace Util
 	{
         template <typename TT> struct Automata;
-        struct Concrete;
-		typedef Automata<Concrete> TreeAutomata;
+        struct FiveTuple;
+		typedef Automata<FiveTuple> TreeAutomata;
         struct Symbolic;
 		typedef Automata<Symbolic> SymbolicAutomata;
         struct Predicate;
@@ -220,26 +220,26 @@ public:
 
 // Concrete initial symbol
 typedef std::vector<boost::multiprecision::cpp_int> stdvectorboostmultiprecisioncpp_int;
-struct AUTOQ::Util::Concrete : stdvectorboostmultiprecisioncpp_int {
+struct AUTOQ::Util::FiveTuple : stdvectorboostmultiprecisioncpp_int {
     using stdvectorboostmultiprecisioncpp_int::stdvectorboostmultiprecisioncpp_int;
-    typedef typename AUTOQ::Util::Concrete::value_type Entry;
+    typedef typename AUTOQ::Util::FiveTuple::value_type Entry;
     // Notice that if we do not use is_convertible_v, type int will not be accepted in this case.
     template <typename T, typename = std::enable_if_t<std::is_convertible<T, Entry>::value>>
-        Concrete(T qubit) : stdvectorboostmultiprecisioncpp_int({qubit}) {} 
+        FiveTuple(T qubit) : stdvectorboostmultiprecisioncpp_int({qubit}) {} 
     Entry qubit() const { return is_internal() ? at(0) : 0; }
     Entry k() const { return is_leaf() ? at(4) : -1; }
     bool is_leaf() const { return size() == 5; }
     bool is_internal() const { return size() < 5; }
     void back_to_zero() { at(0) = at(1) = at(2) = at(3) = 0; }
-    friend std::ostream& operator<<(std::ostream& os, const Concrete& obj) {
+    friend std::ostream& operator<<(std::ostream& os, const FiveTuple& obj) {
         os << AUTOQ::Util::Convert::ToString(static_cast<stdvectorboostmultiprecisioncpp_int>(obj));
         return os;
     }
-    Concrete operator+(const Concrete &o) const { return binary_operation(o, true); }
-    Concrete operator-(const Concrete &o) const { return binary_operation(o, false); }
-    Concrete binary_operation(const Concrete &o, bool add) const {
+    FiveTuple operator+(const FiveTuple &o) const { return binary_operation(o, true); }
+    FiveTuple operator-(const FiveTuple &o) const { return binary_operation(o, false); }
+    FiveTuple binary_operation(const FiveTuple &o, bool add) const {
         assert(this->at(4) == o.at(4)); // Two k's must be the same.
-        Concrete symbol;
+        FiveTuple symbol;
         for (int i=0; i<4; i++) { // We do not change k here.
             if (add) symbol.push_back(this->at(i) + o.at(i));
             else symbol.push_back(this->at(i) - o.at(i));
@@ -250,8 +250,8 @@ struct AUTOQ::Util::Concrete : stdvectorboostmultiprecisioncpp_int {
         symbol.push_back(this->at(4)); // remember to push k
         return symbol;
     }
-    Concrete operator*(const Concrete &o) const {
-        Concrete symbol;
+    FiveTuple operator*(const FiveTuple &o) const {
+        FiveTuple symbol;
         symbol.push_back(at(0)*o.at(0) - at(1)*o.at(3) - at(2)*o.at(2) - at(3)*o.at(1));
         symbol.push_back(at(0)*o.at(1) + at(1)*o.at(0) - at(2)*o.at(3) - at(3)*o.at(2));
         symbol.push_back(at(0)*o.at(2) + at(1)*o.at(1) + at(2)*o.at(0) - at(3)*o.at(3));

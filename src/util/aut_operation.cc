@@ -1347,5 +1347,5 @@ void AUTOQ::Util::Automata<InitialSymbol>::print_language() {
 }
 
 // https://bytefreaks.net/programming-2/c/c-undefined-reference-to-templated-class-function
-template struct AUTOQ::Util::Automata<AUTOQ::Util::Concrete>;
+template struct AUTOQ::Util::Automata<AUTOQ::Util::FiveTuple>;
 template struct AUTOQ::Util::Automata<AUTOQ::Util::Symbolic>;

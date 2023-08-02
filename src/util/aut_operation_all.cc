@@ -496,6 +496,6 @@ int AUTOQ::Util::Automata<InitialSymbol>::transition_size() {
 }
 
 // https://bytefreaks.net/programming-2/c/c-undefined-reference-to-templated-class-function
-template struct AUTOQ::Util::Automata<AUTOQ::Util::Concrete>;
+template struct AUTOQ::Util::Automata<AUTOQ::Util::FiveTuple>;
 template struct AUTOQ::Util::Automata<AUTOQ::Util::Symbolic>;
 template struct AUTOQ::Util::Automata<AUTOQ::Util::Predicate>;

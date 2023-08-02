@@ -653,5 +653,5 @@ void AUTOQ::Util::Automata<InitialSymbol>::randG(int G, int A, int B, int C) {
 }
 
 // https://bytefreaks.net/programming-2/c/c-undefined-reference-to-templated-class-function
-template struct AUTOQ::Util::Automata<AUTOQ::Util::Concrete>;
+template struct AUTOQ::Util::Automata<AUTOQ::Util::FiveTuple>;
 template struct AUTOQ::Util::Automata<AUTOQ::Util::Symbolic>;

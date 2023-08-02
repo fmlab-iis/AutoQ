@@ -60,7 +60,7 @@ optional arguments:
                 throw std::runtime_error("[ERROR] The environment variable VATA_PATH is not found!");
             }
         }
-        AUTOQ::Util::TreeAutomata aut = AUTOQ::Parsing::TimbukParser<AUTOQ::Util::Concrete>::FromFileToAutomata(argv[1]);
+        AUTOQ::Util::TreeAutomata aut = AUTOQ::Parsing::TimbukParser<AUTOQ::Util::FiveTuple>::FromFileToAutomata(argv[1]);
         int stateBefore = aut.stateNum, transitionBefore = aut.transition_size();
         auto startSim = chrono::steady_clock::now();
         aut.execute(argv[2]);
