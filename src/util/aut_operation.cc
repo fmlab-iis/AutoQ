@@ -22,7 +22,7 @@ using AUTOQ::Serialization::TimbukSerializer;
 // using State                   = TreeAutomata::State;
 // using StateSet                = TreeAutomata::StateSet;
 // using StateVector             = TreeAutomata::StateVector;
-// using Symbol                  = TreeAutomata::Symbol;
+// using SymbolTag                  = TreeAutomata::SymbolTag;
 // using TransitionMap           = TreeAutomata::TransitionMap;
 
 // using DiscontBinaryRelOnStates= DiscontBinaryRelation<State>;
@@ -219,9 +219,9 @@ template <typename InitialSymbol>
 void AUTOQ::Automata<InitialSymbol>::omega_multiplication(int rotation) {
     TransitionMap transitions_new;
     for (const auto &t_old : transitions) {
-        const Symbol &symbol = t_old.first;
+        const SymbolTag &symbol = t_old.first;
         if (symbol.is_leaf()) {
-            Symbol s = symbol;
+            SymbolTag s = symbol;
             /************************** rotation **************************/
             s.initial_symbol().omega_multiplication(rotation);
             transitions_new[s] = t_old.second;
@@ -237,13 +237,13 @@ void AUTOQ::Automata<InitialSymbol>::omega_multiplication(int rotation) {
 
 template <typename InitialSymbol>
 void AUTOQ::Automata<InitialSymbol>::divide_by_the_square_root_of_two() {
-    std::vector<Symbol> to_be_removed;
+    std::vector<SymbolTag> to_be_removed;
     TransitionMap to_be_inserted;
     for (const auto &t : transitions) {
-        const Symbol &symbol = t.first;
+        const SymbolTag &symbol = t.first;
         if (symbol.is_leaf()) {
             to_be_removed.push_back(symbol);
-            Symbol s = symbol;
+            SymbolTag s = symbol;
             s.initial_symbol().divide_by_the_square_root_of_two();
             to_be_inserted[s] = t.second;
         }
@@ -266,7 +266,7 @@ void AUTOQ::Automata<InitialSymbol>::branch_restriction(int k, bool positive_has
 
     TransitionMap transitions_copy = transitions;
     for (const auto &t : transitions_copy) {
-        const Symbol &symbol = t.first;
+        const SymbolTag &symbol = t.first;
         if (symbol.is_internal()) { // x_i + determinized number
             auto &in_outs_dest = transitions.at(symbol);
             for (const auto &in_out : t.second) {
@@ -284,7 +284,7 @@ void AUTOQ::Automata<InitialSymbol>::branch_restriction(int k, bool positive_has
             for (const auto &in_out : t.second) {
                 assert(in_out.first.empty());
                 for (const auto &n : in_out.second) { // Note we do not change k.
-                    Symbol s = symbol;
+                    SymbolTag s = symbol;
                     s.initial_symbol().back_to_zero();
                     transitions[s][{}].insert(n + num_of_states); // duplicate this leaf transition
                 }
@@ -294,7 +294,7 @@ void AUTOQ::Automata<InitialSymbol>::branch_restriction(int k, bool positive_has
 
     transitions_copy = transitions;
     for (const auto &t : transitions_copy) {
-        const Symbol &symbol = t.first;
+        const SymbolTag &symbol = t.first;
         if (symbol.is_internal() && symbol.initial_symbol().qubit() == k) { // x_i + determinized number
             auto &in_outs_dest = transitions.at(symbol);
             for (const auto &in_out : t.second) {
@@ -323,12 +323,12 @@ void AUTOQ::Automata<InitialSymbol>::semi_determinize() {
     if (isTopdownDeterministic) return;
     TransitionMap transitions_copy = transitions;
     for (const auto &t : transitions_copy) {
-        const Symbol &symbol = t.first;
+        const SymbolTag &symbol = t.first;
         if (symbol.is_internal()) { // x_i not determinized yet
             assert(!symbol.is_tagged()); // not determinized yet
             transitions.erase(symbol); // modify
             int counter = 0;
-            Symbol new_symbol;
+            SymbolTag new_symbol;
             new_symbol.initial_symbol() = symbol.initial_symbol();
             for (const auto &in_out : t.second) {
                 new_symbol.tag().push_back(counter++);
@@ -348,7 +348,7 @@ void AUTOQ::Automata<InitialSymbol>::semi_undeterminize() {
     if (isTopdownDeterministic) return;
     TransitionMap transitions_copy = transitions;
     for (const auto &t : transitions_copy) {
-        const Symbol &symbol = t.first;
+        const SymbolTag &symbol = t.first;
         if (symbol.is_internal()) { // pick all determinized x_i's
             assert(symbol.is_tagged()); // determinized
             transitions.erase(symbol); // modify
@@ -758,7 +758,7 @@ template <typename InitialSymbol>
 void AUTOQ::Automata<InitialSymbol>::swap_forward(const int k) {
     if (isTopdownDeterministic) return;
     for (int next_k=k+1; next_k<=qubitNum; next_k++) {
-        std::map<State, std::vector<std::pair<Symbol, StateVector>>> svsv;
+        std::map<State, std::vector<std::pair<SymbolTag, StateVector>>> svsv;
         for (const auto &t : transitions) {
             const auto &symbol = t.first;
             const auto &in_outs = t.second;
@@ -770,10 +770,10 @@ void AUTOQ::Automata<InitialSymbol>::swap_forward(const int k) {
                 }
             }
         }
-        std::vector<Symbol> to_be_removed2;
+        std::vector<SymbolTag> to_be_removed2;
         TransitionMap to_be_removed, to_be_inserted;
         for (const auto &t : transitions) {
-            const Symbol &symbol = t.first;
+            const SymbolTag &symbol = t.first;
             if (symbol.is_internal() && symbol.initial_symbol().qubit() == k) {
                 for (const auto &in_out : t.second) {
                     assert(in_out.first.size() == 2);
@@ -804,7 +804,7 @@ void AUTOQ::Automata<InitialSymbol>::swap_forward(const int k) {
         for (const auto &v : to_be_removed2)
             transitions.erase(v);
         for (const auto &t : to_be_removed) {
-            const Symbol &symbol = t.first;
+            const SymbolTag &symbol = t.first;
             for (const auto &in_out : t.second) {
                 for (const auto &s : in_out.second)
                     transitions[symbol][in_out.first].erase(s);
@@ -815,7 +815,7 @@ void AUTOQ::Automata<InitialSymbol>::swap_forward(const int k) {
             }
         }
         for (const auto &t : to_be_inserted) {
-            const Symbol &symbol = t.first;
+            const SymbolTag &symbol = t.first;
             for (const auto &in_out : t.second) {
                 for (const auto &s : in_out.second) {
                     transitions[symbol][in_out.first].insert(s);
@@ -831,7 +831,7 @@ template <typename InitialSymbol>
 void AUTOQ::Automata<InitialSymbol>::swap_backward(const int k) {
     if (isTopdownDeterministic) return;
     for (int next_k=qubitNum; next_k>k; next_k--) {
-      std::map<State, std::vector<std::pair<Symbol, StateVector>>> svsv;
+      std::map<State, std::vector<std::pair<SymbolTag, StateVector>>> svsv;
         for (const auto &t : transitions) {
             const auto &symbol = t.first;
             const auto &in_outs = t.second;
@@ -843,10 +843,10 @@ void AUTOQ::Automata<InitialSymbol>::swap_backward(const int k) {
                 }
             }
         }
-        std::vector<Symbol> to_be_removed2;
+        std::vector<SymbolTag> to_be_removed2;
         TransitionMap to_be_removed, to_be_inserted;
         for (const auto &t : transitions) {
-            const Symbol &symbol = t.first;
+            const SymbolTag &symbol = t.first;
             if (symbol.is_internal() && symbol.initial_symbol().qubit() == next_k) {
                 assert(symbol.tag().size() == 2);
                 for (const auto &in_out : t.second) {
@@ -856,14 +856,14 @@ void AUTOQ::Automata<InitialSymbol>::swap_backward(const int k) {
                             if (ssv1.first == ssv2.first) {
                                 to_be_removed[ssv1.first][ssv1.second].insert(in_out.first[0]);
                                 to_be_removed[ssv2.first][ssv2.second].insert(in_out.first[1]);
-                                Symbol t1 = {symbol.initial_symbol(), {symbol.tag(0)}};
+                                SymbolTag t1 = {symbol.initial_symbol(), {symbol.tag(0)}};
                                 if (to_be_inserted[t1][{ssv1.second[0], ssv2.second[0]}].empty()) {
                                     if (transitions[t1][{ssv1.second[0], ssv2.second[0]}].empty())
                                         to_be_inserted[t1][{ssv1.second[0], ssv2.second[0]}].insert(stateNum++);
                                     else
                                         to_be_inserted[t1][{ssv1.second[0], ssv2.second[0]}].insert(*(transitions[t1][{ssv1.second[0], ssv2.second[0]}].begin()));
                                 }
-                                Symbol t2 = {symbol.initial_symbol(), {symbol.tag(1)}};
+                                SymbolTag t2 = {symbol.initial_symbol(), {symbol.tag(1)}};
                                 if (to_be_inserted[t2][{ssv1.second[1], ssv2.second[1]}].empty()) {
                                     if (transitions[t2][{ssv1.second[1], ssv2.second[1]}].empty())
                                         to_be_inserted[t2][{ssv1.second[1], ssv2.second[1]}].insert(stateNum++);
@@ -883,7 +883,7 @@ void AUTOQ::Automata<InitialSymbol>::swap_backward(const int k) {
         for (const auto &v : to_be_removed2)
             transitions.erase(v);
         for (const auto &t : to_be_removed) {
-            const Symbol &symbol = t.first;
+            const SymbolTag &symbol = t.first;
             for (const auto &in_out : t.second) {
                 for (const auto &s : in_out.second)
                     transitions[symbol][in_out.first].erase(s);
@@ -894,7 +894,7 @@ void AUTOQ::Automata<InitialSymbol>::swap_backward(const int k) {
             }
         }
         for (const auto &t : to_be_inserted) {
-            const Symbol &symbol = t.first;
+            const SymbolTag &symbol = t.first;
             for (const auto &in_out : t.second) {
                 for (const auto &s : in_out.second) {
                     transitions[symbol][in_out.first].insert(s);
@@ -911,9 +911,9 @@ void AUTOQ::Automata<InitialSymbol>::value_restriction(int k, bool branch) {
     auto start = std::chrono::steady_clock::now();
     swap_forward(k);
     TransitionMap to_be_inserted;
-    std::vector<Symbol> to_be_removed;
+    std::vector<SymbolTag> to_be_removed;
     for (const auto &t : transitions) {
-        const Symbol &symbol = t.first;
+        const SymbolTag &symbol = t.first;
         if (symbol.is_internal() && symbol.initial_symbol().qubit() == k) {
             to_be_removed.push_back(symbol);
             for (const auto &in_out : t.second) {
@@ -942,12 +942,12 @@ void AUTOQ::Automata<InitialSymbol>::value_restriction(int k, bool branch) {
 
 template <typename InitialSymbol>
 void AUTOQ::Automata<InitialSymbol>::fraction_simplification() {
-    std::vector<Symbol> to_be_removed;
+    std::vector<SymbolTag> to_be_removed;
     TransitionMap to_be_inserted;
     for (const auto &t : transitions) {
-        const Symbol &s = t.first;
+        const SymbolTag &s = t.first;
         if (s.is_leaf()) {
-            Symbol symbol = s;
+            SymbolTag symbol = s;
             symbol.initial_symbol().fraction_simplification();
             if (t.first != symbol) {
                 to_be_removed.push_back(t.first);

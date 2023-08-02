@@ -48,9 +48,9 @@ public:   // data types
     typedef TT InitialSymbol;
 	typedef std::vector<int> Tag;
     typedef std::pair<InitialSymbol, Tag> stdpairInitialSymbolTag;
-    struct Symbol : stdpairInitialSymbolTag {
+    struct SymbolTag : stdpairInitialSymbolTag {
         using stdpairInitialSymbolTag::stdpairInitialSymbolTag; // inherit parent constructors
-        template<typename... Args> Symbol(Args... args) : stdpairInitialSymbolTag({args...}, {}) {}
+        template<typename... Args> SymbolTag(Args... args) : stdpairInitialSymbolTag({args...}, {}) {}
         // Reference: https://stackoverflow.com/a/32595916/11550178
         InitialSymbol& initial_symbol() & { return this->first; }
         const InitialSymbol& initial_symbol() const & { return this->first; }
@@ -62,7 +62,7 @@ public:   // data types
         bool is_internal() const { return initial_symbol().is_internal(); }
         bool is_leaf() const { return initial_symbol().is_leaf(); }
         bool is_tagged() const { return !tag().empty(); }
-        bool operator<(const Symbol &rhs) const {
+        bool operator<(const SymbolTag &rhs) const {
             if (is_internal() && rhs.is_leaf()) return true;
             else if (is_leaf() && rhs.is_internal()) return false;
             else if (initial_symbol() == rhs.initial_symbol()) { // if symbol content is the same, compare tag
@@ -76,12 +76,12 @@ public:   // data types
             } // compare symbol content first
             else return initial_symbol() < rhs.initial_symbol();
         }
-        friend std::ostream& operator<<(std::ostream& os, const Symbol& obj) {
+        friend std::ostream& operator<<(std::ostream& os, const SymbolTag& obj) {
             os << obj.initial_symbol(); // print only the initial symbol
             return os;
         }
     };
-    typedef std::map<Symbol, std::map<StateVector, StateSet>> TransitionMap;
+    typedef std::map<SymbolTag, std::map<StateVector, StateSet>> TransitionMap;
 
 public:   // data members
 	std::string name;
@@ -249,16 +249,16 @@ namespace std {
 //             return std::hash<__uint64_t>{}(static_cast<__uint64_t>(var) ^ static_cast<__uint64_t>(var >> 64));
 //         }
 //     };
-    template <> struct hash<typename AUTOQ::TreeAutomata::Symbol> {
-        size_t operator()(const AUTOQ::TreeAutomata::Symbol& obj) const {
+    template <> struct hash<typename AUTOQ::TreeAutomata::SymbolTag> {
+        size_t operator()(const AUTOQ::TreeAutomata::SymbolTag& obj) const {
             std::size_t seed = 0;
             boost::hash_combine(seed, obj.first);
             boost::hash_combine(seed, obj.second);
             return seed;
         }
     };
-    template <> struct hash<typename AUTOQ::SymbolicAutomata::Symbol> {
-        size_t operator()(const AUTOQ::SymbolicAutomata::Symbol& obj) const {
+    template <> struct hash<typename AUTOQ::SymbolicAutomata::SymbolTag> {
+        size_t operator()(const AUTOQ::SymbolicAutomata::SymbolTag& obj) const {
             std::size_t seed = 0;
             boost::hash_combine(seed, obj.first);
             boost::hash_combine(seed, obj.second);

@@ -19,15 +19,15 @@ namespace { // anonymous namespace
     Index&              stateIndex)
   {
     using State = typename Automata<InitialSymbol>::State;
-    using Symbol = typename Automata<InitialSymbol>::Symbol;
+    using SymbolTag = typename Automata<InitialSymbol>::SymbolTag;
     using StateVector = typename Automata<InitialSymbol>::StateVector;
 
-    std::unordered_map<Symbol, size_t> symbolMap;
+    std::unordered_map<SymbolTag, size_t> symbolMap;
     std::unordered_map<const StateVector*, size_t> lhsMap;
 
     size_t symbolCnt = 0;
-    Util::TranslatorWeak2<std::unordered_map<Symbol, size_t>>
-      symbolTranslator(symbolMap, [&symbolCnt](const Symbol&){ return symbolCnt++; });
+    Util::TranslatorWeak2<std::unordered_map<SymbolTag, size_t>>
+      symbolTranslator(symbolMap, [&symbolCnt](const SymbolTag&){ return symbolCnt++; });
 
     size_t lhsCnt = numStates;
     Util::TranslatorWeak2<std::unordered_map<const StateVector*, size_t>>

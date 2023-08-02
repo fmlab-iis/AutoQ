@@ -359,7 +359,7 @@ BOOST_AUTO_TEST_CASE(Bernstein_Vazirani)
 }
 
 void dfs(const std::map<AUTOQ::TreeAutomata::State, AUTOQ::TreeAutomata::StateVector> &edge,
-         const std::map<AUTOQ::TreeAutomata::State, AUTOQ::TreeAutomata::Symbol> &leaf,
+         const std::map<AUTOQ::TreeAutomata::State, AUTOQ::TreeAutomata::SymbolTag> &leaf,
          const AUTOQ::TreeAutomata::StateVector &layer,
          std::vector<double> &prob) {
     for (const AUTOQ::TreeAutomata::State &s : layer) {
@@ -613,7 +613,7 @@ BOOST_AUTO_TEST_CASE(Grover_Search_only_one_oracle)
 
     /******************************** Answer Validation *********************************/
     std::map<AUTOQ::TreeAutomata::State, AUTOQ::TreeAutomata::StateVector> edge;
-    std::map<AUTOQ::TreeAutomata::State, AUTOQ::TreeAutomata::Symbol> leaf;
+    std::map<AUTOQ::TreeAutomata::State, AUTOQ::TreeAutomata::SymbolTag> leaf;
     std::vector<AUTOQ::TreeAutomata::StateVector> first_layers;
     for (const auto &t : aut.transitions) {
         const auto &symbol = t.first;
