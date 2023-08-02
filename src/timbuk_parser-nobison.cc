@@ -14,8 +14,10 @@
 
 // AUTOQ headers
 #include <autoq/autoq.hh>
+#include <autoq/util/util.hh>
 #include <autoq/parsing/timbuk_parser.hh>
 #include <autoq/util/aut_description.hh>
+#include <boost/algorithm/string/predicate.hpp>
 
 using AUTOQ::Parsing::AbstrParser;
 using AUTOQ::Parsing::TimbukParser;
@@ -25,26 +27,7 @@ using AUTOQ::Util::TreeAutomata;
 using AUTOQ::Util::SymbolicAutomata;
 using AUTOQ::Util::PredicateAutomata;
 using AUTOQ::Util::Convert;
-
-
-/**
- * @brief  Trim whitespaces from a string (both left and right)
- */
-static std::string trim(const std::string& str)
-{
-	std::string result = str;
-
-	// trim from start
-	result.erase(result.begin(), std::find_if(result.begin(), result.end(),
-		[](int ch) {return !std::isspace(ch);}));
-
-	// trim from end
-	result.erase(std::find_if(result.rbegin(), result.rend(),
-		[](int ch) {return !std::isspace(ch);}).base(), result.end());
-
-	return result;
-}
-
+using AUTOQ::Util::trim;
 
 /**
  * @brief  Split a string at a delimiter
@@ -129,11 +112,19 @@ TreeAutomata::InitialSymbol from_string_to_Concrete(const std::string& str)
         for (int i=1; i<static_cast<int>(str.length()); i++) {
             size_t j = str.find(',', i);
             if (j == std::string::npos) j = str.length()-1;
-            temp.push_back(boost::lexical_cast<TreeAutomata::InitialSymbol::Entry>(str.substr(i, j-i).c_str()));
+            try {
+                temp.push_back(boost::lexical_cast<TreeAutomata::InitialSymbol::Entry>(str.substr(i, j-i).c_str()));
+            } catch (...) {
+                throw std::runtime_error("[ERROR] The input entry \"" + str.substr(i, j-i) + "\" is not an integer!");
+            }
             i = j;
         }
     } else {
-        temp.push_back(boost::lexical_cast<TreeAutomata::InitialSymbol::Entry>(str.c_str()));
+        try {
+            temp.push_back(boost::lexical_cast<TreeAutomata::InitialSymbol::Entry>(str.c_str()));
+        } catch (...) {
+            throw std::runtime_error("[ERROR] The input entry \"" + str + "\" is not an integer!");
+        }
     }
     assert(temp.size() == 1 || temp.size() == 5);
     return temp;
@@ -182,7 +173,7 @@ PredicateAutomata::InitialSymbol from_string_to_Predicate(const std::string& lhs
 }
 
 template <typename InitialSymbol>
-static Automata<InitialSymbol> parse_timbuk(const std::string& str)
+Automata<InitialSymbol> parse_timbuk(const std::string& str)
 {
 	Automata<InitialSymbol> result;
 
@@ -210,7 +201,7 @@ static Automata<InitialSymbol> parse_timbuk(const std::string& str)
 			{
 				if (aut_parsed)
 				{
-					throw std::runtime_error(std::string(__FUNCTION__) + "Automaton already parsed!");
+					throw std::runtime_error(std::string(__FUNCTION__) + ": Automaton already parsed!");
 				}
 
 				aut_parsed = true;
@@ -219,8 +210,8 @@ static Automata<InitialSymbol> parse_timbuk(const std::string& str)
 
 				if (!str.empty())
 				{
-					throw std::runtime_error(std::string(__FUNCTION__) + ": line \"" + line +
-						"\" has an unexpected string");
+					throw std::runtime_error(std::string(__FUNCTION__) + ": Line \"" + line +
+						"\" has an unexpected string.");
 				}
 			}
 			else if ("Ops" == first_word)
@@ -245,7 +236,7 @@ static Automata<InitialSymbol> parse_timbuk(const std::string& str)
 			{
 				if (states_parsed)
 				{
-					throw std::runtime_error(std::string(__FUNCTION__) + "States already parsed!");
+					throw std::runtime_error(std::string(__FUNCTION__) + ": States already parsed!");
 				}
 
 				states_parsed = true;
@@ -266,13 +257,13 @@ static Automata<InitialSymbol> parse_timbuk(const std::string& str)
 				std::string str_states = read_word(str);
 				if ("States" != str_states)
 				{
-					throw std::runtime_error(std::string(__FUNCTION__) + ": line \"" + line +
-						"\" contains an unexpected string");
+					throw std::runtime_error(std::string(__FUNCTION__) + ": Line \"" + line +
+						"\" contains an unexpected string.");
 				}
 
 				if (final_parsed)
 				{
-					throw std::runtime_error(std::string(__FUNCTION__) + "Final States already parsed!");
+					throw std::runtime_error(std::string(__FUNCTION__) + ": Final States already parsed!");
 				}
 
 				final_parsed = true;
@@ -291,14 +282,14 @@ static Automata<InitialSymbol> parse_timbuk(const std::string& str)
 			}
 			else
 			{	// guard
-				throw std::runtime_error(std::string(__FUNCTION__) + ": line \"" + line +
-					"\" contains an unexpected string");
+				throw std::runtime_error(std::string(__FUNCTION__) + ": Line \"" + line +
+					"\" contains an unexpected string.");
 			}
 		}
 		else
 		{	// processing transitions
 			std::string invalid_trans_str = std::string(__FUNCTION__) +
-				": invalid transition \"" + line + "\"";
+				": Invalid transition \"" + line + "\".";
 
 			size_t arrow_pos = str.find("->");
 			if (std::string::npos == arrow_pos)
@@ -413,14 +404,24 @@ static Automata<InitialSymbol> parse_timbuk(const std::string& str)
 
 	if (!are_transitions)
 	{
-		throw std::runtime_error(std::string(__FUNCTION__) + ": Transitions not specified");
+		throw std::runtime_error(std::string(__FUNCTION__) + ": Transitions not specified.");
 	}
 
+    boost::multiprecision::cpp_int k = -1;
     for (const auto &kv : result.transitions) {
         if (kv.first.is_internal()) {
             if (kv.first.initial_symbol().qubit() > INT_MAX)
-                throw std::overflow_error("");
+                throw std::overflow_error("[ERROR] The number of qubits is too large!");
             result.qubitNum = std::max(result.qubitNum, static_cast<int>(kv.first.initial_symbol().qubit()));
+        } else { // leaf transitions
+            if (k == -1) {
+                k = kv.first.initial_symbol().k();
+                if (k < 0)
+                    throw std::runtime_error("[ERROR] The k value cannot be less than 0.");
+            }
+            else if (k != kv.first.initial_symbol().k()) {
+                throw std::runtime_error("[ERROR] All k's in the automaton must be the same!");
+            }
         }
     }
     result.stateNum++;
@@ -438,20 +439,318 @@ Automata<InitialSymbol> TimbukParser<InitialSymbol>::ParseString(const std::stri
 	}
 	catch (std::exception& ex)
 	{
-		throw std::runtime_error("Error: \'" + std::string(ex.what()) +
-			"\' while parsing \n" + str);
+		throw std::runtime_error("[ERROR] \'" + std::string(ex.what()) +
+			"\'\nwhile parsing the following automaton.\n\n>>>>>>>>>>>>>>>>>>>>\n" + str + "\n<<<<<<<<<<<<<<<<<<<<");
 	}
 
 	return timbukParse;
 }
 
+template <> // The loop reading part is different from other types, so we have to specialize this type.
+PredicateAutomata TimbukParser<Predicate>::from_tree_to_automaton(std::string tree) {
+    PredicateAutomata aut;
+    std::map<PredicateAutomata::State, PredicateAutomata::InitialSymbol> states_probs;
+    PredicateAutomata::InitialSymbol default_prob;
+    std::smatch match;
+    while (std::regex_search(tree, match, std::regex("\\[.*?\\]"))) {
+        std::string state_prob = match.str();
+        tree = match.suffix().str(); // notice that the order of this line and the above line cannot be reversed!
+        state_prob = state_prob.substr(1, state_prob.size()-2);
+        std::istringstream iss2(state_prob);
+        std::string state;
+        std::getline(iss2, state, ':');
+        if (states_probs.empty())
+            aut.qubitNum = state.length();
+        std::string t;
+        if (state == "*") {
+            std::getline(iss2, t);
+            default_prob = Predicate(t.c_str());
+        } else {
+            PredicateAutomata::State s = std::stoll(state, nullptr, 2);
+            auto &sps = states_probs[s];
+            std::getline(iss2, t);
+            sps = Predicate(t.c_str());
+        }
+    }
+    PredicateAutomata::State pow_of_two = 1;
+    PredicateAutomata::State state_counter = 0;
+    for (int level=1; level<=aut.qubitNum; level++) {
+        for (PredicateAutomata::State i=0; i<pow_of_two; i++) {
+            aut.transitions[Predicate(level)][{(state_counter<<1)+1, (state_counter<<1)+2}] = {state_counter};
+            state_counter++;
+        }
+        pow_of_two <<= 1;
+    }
+    for (PredicateAutomata::State i=state_counter; i<=(state_counter<<1); i++) {
+        auto spf = states_probs.find(i-state_counter);
+        if (spf == states_probs.end()) {
+            if (default_prob == PredicateAutomata::InitialSymbol())
+                throw std::runtime_error("[ERROR] The default amplitude is not specified!");
+            aut.transitions[default_prob][{}].insert(i);
+        }
+        else
+            aut.transitions[spf->second][{}].insert(i);
+    }
+    aut.finalStates.push_back(0);
+    aut.stateNum = (state_counter<<1) + 1;
+    aut.reduce();
+
+    return aut;
+}
+
+template <typename InitialSymbol>
+Automata<InitialSymbol> TimbukParser<InitialSymbol>::from_tree_to_automaton(std::string tree) {
+    Automata<InitialSymbol> aut;
+    std::istringstream iss(tree);
+    std::map<typename Automata<InitialSymbol>::State, InitialSymbol> states_probs;
+    InitialSymbol default_prob;
+    boost::multiprecision::cpp_int k = -1;
+    for (std::string state_prob; iss >> state_prob;) {
+        std::istringstream iss2(state_prob);
+        std::string state;
+        std::getline(iss2, state, ':');
+        if (states_probs.empty())
+            aut.qubitNum = state.length();
+        else if (aut.qubitNum != state.length())
+            throw std::runtime_error("[ERROR] The numbers of qubits are not the same in all basis states!");
+        std::string t;
+        if constexpr(std::is_same_v<InitialSymbol, TreeAutomata::InitialSymbol>) {
+            if (state == "*") {
+                while (std::getline(iss2, t, ',')) {
+                    try {
+                        default_prob.push_back(boost::lexical_cast<TreeAutomata::InitialSymbol::Entry>(t.c_str()));
+                    } catch (...) {
+                        throw std::runtime_error("[ERROR] The input entry \"" + t + "\" is not an integer!");
+                    }
+                }
+                if (k == -1) {
+                    k = default_prob.k();
+                    if (k < 0)
+                        throw std::runtime_error("[ERROR] The k value cannot be less than 0.");
+                }
+                else if (k != default_prob.k()) {
+                    throw std::runtime_error("[ERROR] All k's in the automaton must be the same!");
+                }
+            } else {
+                TreeAutomata::State s = std::stoll(state, nullptr, 2);
+                auto &sps = states_probs[s];
+                while (std::getline(iss2, t, ',')) {
+                    try {
+                        sps.push_back(boost::lexical_cast<TreeAutomata::InitialSymbol::Entry>(t.c_str()));
+                    } catch (...) {
+                        throw std::runtime_error("[ERROR] The input entry \"" + t + "\" is not an integer!");
+                    }
+                }
+                if (k == -1) {
+                    k = sps.k();
+                    if (k < 0)
+                        throw std::runtime_error("[ERROR] The k value cannot be less than 0.");
+                }
+                else if (k != sps.k()) {
+                    throw std::runtime_error("[ERROR] All k's in the automaton must be the same!");
+                }
+            }
+        } else if constexpr(std::is_same_v<InitialSymbol, SymbolicAutomata::InitialSymbol>) {
+            if (state == "*") {
+                while (std::getline(iss2, t, ',')) {
+                    try {
+                        auto v = boost::lexical_cast<SymbolicAutomata::InitialSymbol::Entry>(t.c_str());
+                        if (v == 0)
+                            default_prob.push_back(AUTOQ::Util::Symbolic::Map());
+                        else
+                            default_prob.push_back({{"1", v}});
+                    } catch (boost::bad_lexical_cast& e) {
+                        default_prob.push_back({{t.c_str(), 1}});
+                    }
+                }
+                if (k == -1) {
+                    k = default_prob.k();
+                    if (k < 0)
+                        throw std::runtime_error("[ERROR] The k value cannot be less than 0.");
+                }
+                else if (k != default_prob.k()) {
+                    throw std::runtime_error("[ERROR] All k's in the automaton must be the same!");
+                }
+            } else {
+                SymbolicAutomata::State s = std::stoll(state, nullptr, 2);
+                auto &sps = states_probs[s];
+                while (std::getline(iss2, t, ',')) {
+                    try {
+                        auto v = boost::lexical_cast<SymbolicAutomata::InitialSymbol::Entry>(t.c_str());
+                        if (v == 0)
+                            sps.push_back(AUTOQ::Util::Symbolic::Map());
+                        else
+                            sps.push_back({{"1", v}});
+                    } catch (boost::bad_lexical_cast& e) {
+                        sps.push_back({{t.c_str(), 1}});
+                    }
+                }
+                if (k == -1) {
+                    k = sps.k();
+                    if (k < 0)
+                        throw std::runtime_error("[ERROR] The k value cannot be less than 0.");
+                }
+                else if (k != sps.k()) {
+                    throw std::runtime_error("[ERROR] All k's in the automaton must be the same!");
+                }
+            }
+        } else {
+            if (state == "*") {
+                std::getline(iss2, t);
+                default_prob = Predicate(t.c_str());
+            } else {
+                PredicateAutomata::State s = std::stoll(state, nullptr, 2);
+                auto &sps = states_probs[s];
+                std::getline(iss2, t);
+                sps = Predicate(t.c_str());
+            }
+        }
+    }
+    typename Automata<InitialSymbol>::State pow_of_two = 1;
+    typename Automata<InitialSymbol>::State state_counter = 0;
+    for (int level=1; level<=aut.qubitNum; level++) {
+        for (typename Automata<InitialSymbol>::State i=0; i<pow_of_two; i++) {
+            aut.transitions[InitialSymbol(level)][{(state_counter<<1)+1, (state_counter<<1)+2}] = {state_counter};
+            state_counter++;
+        }
+        pow_of_two <<= 1;
+    }
+    for (typename Automata<InitialSymbol>::State i=state_counter; i<=(state_counter<<1); i++) {
+        auto spf = states_probs.find(i-state_counter);
+        if (spf == states_probs.end()) {
+            if (default_prob == InitialSymbol())
+                throw std::runtime_error("[ERROR] The default amplitude is not specified!");
+            aut.transitions[default_prob][{}].insert(i);
+        }
+        else
+            aut.transitions[spf->second][{}].insert(i);
+    }
+    aut.finalStates.push_back(0);
+    aut.stateNum = (state_counter<<1) + 1;
+    aut.reduce();
+
+    return aut;
+}
+
+template <typename InitialSymbol>
+Automata<InitialSymbol> TimbukParser<InitialSymbol>::from_line_to_automaton(std::string line) {
+    std::istringstream iss_tensor(line);
+    std::string tree;
+    std::getline(iss_tensor, tree, '#');
+
+    auto aut = from_tree_to_automaton(tree); // the first automata to be tensor producted
+
+    // to tensor product with the rest of the automata
+    while (std::getline(iss_tensor, tree, '#')) {
+        auto aut2 = from_tree_to_automaton(tree);
+
+        // let aut2 be tensor producted with aut here
+        typename Automata<InitialSymbol>::TransitionMap aut_leaves;
+        for (const auto &t : aut.transitions) {
+            if (t.first.is_leaf()) {
+                aut_leaves[t.first] = t.second;
+            }
+        }
+        for (const auto &t : aut_leaves) {
+            aut.transitions.erase(t.first);
+        }
+
+        // append aut2 to each leaf transition of aut
+        for (const auto &t : aut_leaves) {
+            for (const auto &t2 : aut2.transitions) {
+                if (t2.first.is_internal()) { // if the to-be-appended transition is internal, then
+                    auto Q = aut.qubitNum + t2.first.initial_symbol().qubit(); // we need to shift the qubit number
+                    for (const auto &kv : t2.second) { // for each pair of vec_in -> set_out
+                        auto k = kv.first;
+                        for (int i=0; i<k.size(); i++)
+                            k.at(i) += aut.stateNum;
+                        // above shift the state number of vec_in first,
+                        for (const auto &s : kv.second) {
+                            if (s == 0) { // if to be connected to leaf states of aut, then
+                                for (const auto &s2 : t.second.at({})) // simply apply these states
+                                    aut.transitions[{Q}][k].insert(s2);
+                            }
+                            else // and then shift the state number of set_out
+                                aut.transitions[{Q}][k].insert(s + aut.stateNum);
+                        }
+                    }
+                } else {
+                    for (const auto &kv : t2.second) {
+                        auto k = kv.first;
+                        for (int i=0; i<k.size(); i++)
+                            k.at(i) += aut.stateNum;
+                        for (const auto &s : kv.second) {
+                            aut.transitions[t.first.initial_symbol() * t2.first.initial_symbol()][k].insert(s + aut.stateNum);
+                        }
+                    }
+                }
+            }
+            aut.stateNum += aut2.stateNum;
+        }
+        aut.qubitNum += aut2.qubitNum;
+        aut.reduce();
+    }
+    return aut;
+}
+
 template <typename InitialSymbol>
 Automata<InitialSymbol> TimbukParser<InitialSymbol>::FromFileToAutomata(const char* filepath)
 {
-    std::ifstream t(filepath);
-    std::stringstream buffer;
-    buffer << t.rdbuf();
-    return ParseString(buffer.str());
+    if (boost::algorithm::ends_with(filepath, ".aut")) {
+        std::ifstream t(filepath);
+        if (!t) // in case the file could not be open
+            throw std::runtime_error("[ERROR] Failed to open file " + std::string(filepath) + ".");
+        std::stringstream buffer;
+        buffer << t.rdbuf();
+        return ParseString(buffer.str());
+    } else if (boost::algorithm::ends_with(filepath, ".hsl")) {
+        Automata<InitialSymbol> aut_final;
+        std::string line;
+        std::ifstream file(filepath);
+        if (!file) // in case the file could not be open
+            throw std::runtime_error("[ERROR] Failed to open file " + std::string(filepath) + ".");
+        while (std::getline(file, line)) {
+            line = AUTOQ::Util::trim(line);
+            if (line.substr(0, 4) == "|i|=") { // if startswith "|i|="
+                std::istringstream iss(line);
+                std::string length; iss >> length; length = length.substr(4);
+                line.clear();
+                for (std::string t; iss >> t;)
+                    line += t + ' ';
+                std::string i(std::atoi(length.c_str()), '1');
+                bool reach_all_zero;
+                do {
+                    auto aut = from_line_to_automaton(std::regex_replace(line, std::regex("i:"), i + ":"));
+                    aut_final = aut_final.Union(aut);
+                    aut_final.reduce();
+
+                    // the following performs -1 on the binary string i
+                    reach_all_zero = false;
+                    for (int j=i.size()-1; j>=0; j--) {
+                        if (i.at(j) == '0') {
+                            if (j == 0) {
+                                reach_all_zero = true;
+                                break;
+                            }
+                            i.at(j) = '1';
+                        } else {
+                            i.at(j) = '0';
+                            break;
+                        }
+                    }
+                } while (!reach_all_zero);
+            } else {
+                auto aut = from_line_to_automaton(line);
+                aut_final = aut_final.Union(aut);
+                aut_final.reduce();
+            }
+        }
+        // DO NOT fraction_simplification() here since the resulting automaton may be used as pre.aut
+        // and in this case all k's must be the same.
+        return aut_final;
+    } else {
+        throw std::runtime_error("[ERROR] " + std::string(__FUNCTION__) + ": The filename extension is not supported.");
+    }
 }
 
 // https://bytefreaks.net/programming-2/c/c-undefined-reference-to-templated-class-function

@@ -44,6 +44,8 @@ public:   // methods
 	 */
 	static AUTOQ::Util::Automata<InitialSymbol> ParseString(const std::string& str);
     static AUTOQ::Util::Automata<InitialSymbol> FromFileToAutomata(const char* filepath);
+    static AUTOQ::Util::Automata<InitialSymbol> from_tree_to_automaton(std::string tree);
+    static AUTOQ::Util::Automata<InitialSymbol> from_line_to_automaton(std::string line);
 
 	/**
 	 * @copydoc  AUTOQ::Parsing::AbstrParser::~AbstrParser

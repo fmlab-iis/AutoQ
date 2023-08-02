@@ -40,11 +40,11 @@ template <typename TT>
 struct AUTOQ::Util::Automata
 {
 public:   // data types
-    typedef TT InitialSymbol;
     typedef int64_t State; // TODO: will make the program slightly slower. We wish to make another dynamic type.
 	typedef std::vector<State> StateVector;
 	typedef std::set<State> StateSet;
 
+    typedef TT InitialSymbol;
 	typedef std::vector<int> Tag;
     typedef std::pair<InitialSymbol, Tag> stdpairInitialSymbolTag;
     struct Symbol : stdpairInitialSymbolTag {
@@ -226,7 +226,8 @@ struct AUTOQ::Util::Concrete : stdvectorboostmultiprecisioncpp_int {
     // Notice that if we do not use is_convertible_v, type int will not be accepted in this case.
     template <typename T, typename = std::enable_if_t<std::is_convertible<T, Entry>::value>>
         Concrete(T qubit) : stdvectorboostmultiprecisioncpp_int({qubit}) {} 
-    Entry qubit() const { return is_leaf() ? 0 : at(0); }
+    Entry qubit() const { return is_internal() ? at(0) : 0; }
+    Entry k() const { return is_leaf() ? at(4) : -1; }
     bool is_leaf() const { return size() == 5; }
     bool is_internal() const { return size() < 5; }
     void back_to_zero() { at(0) = at(1) = at(2) = at(3) = 0; }
@@ -373,7 +374,17 @@ struct AUTOQ::Util::Symbolic : stdvectorstdmapstdstringboostmultiprecisioncpp_in
     typedef typename AUTOQ::Util::Symbolic::value_type::mapped_type Entry;
     template <typename T, typename = std::enable_if_t<std::is_convertible<T, Entry>::value>>
         Symbolic(T qubit) : stdvectorstdmapstdstringboostmultiprecisioncpp_int({Map{{"1", qubit}}}) {}
-    Entry qubit() const { return is_leaf() ? 0 : at(0).at("1"); }
+    Entry qubit() const { return is_internal() ? at(0).at("1") : 0; }
+    Entry k() const { 
+        if (is_internal()) return -1;
+        if (at(4).empty()) return 0;
+        auto ptr = at(4).find("1");
+        if (ptr == at(4).end()) {
+            throw std::runtime_error("[ERROR] Each k must be a constant!");
+        } else {
+            return ptr->second;
+        }
+    }
     bool is_leaf() const { return size() == 5; }
     bool is_internal() const { return size() < 5; }
     void back_to_zero() {
@@ -475,6 +486,7 @@ struct AUTOQ::Util::Predicate : std::string {
     bool is_leaf_v = true;
     template <typename T, typename = std::enable_if_t<std::is_convertible<T, boost::multiprecision::cpp_int>::value>>
         Predicate(T qubit) : std::string(static_cast<boost::multiprecision::cpp_int>(qubit).str()) { is_leaf_v = false; }
+    boost::multiprecision::cpp_int k() const { return 0; } // for complying with the other two types in parse_timbuk
     bool is_leaf() const { return is_leaf_v; }
     bool is_internal() const { return !is_leaf_v; }
     boost::multiprecision::cpp_int qubit() const { return is_leaf() ? 0 : boost::multiprecision::cpp_int(*this); }

@@ -178,7 +178,7 @@ namespace { // anonymous namespace
           if (arr[i] == item)
               return i;
       }
-      std::__throw_out_of_range("findIndex");
+      std::__throw_out_of_range("[ERROR] findIndex: item not found.");
   }
 
   /// Checks that a state is at most once on the right-hand (parent) side of
@@ -450,8 +450,11 @@ AUTOQ::Util::Automata<InitialSymbol> AUTOQ::Util::Automata<InitialSymbol>::Union
     Automata<InitialSymbol> result;
     result = *this;
     result.name = "Union";
-    assert(result.qubitNum == o.qubitNum);
+    if (result.qubitNum != o.qubitNum) {
+        throw std::runtime_error("Two automata of different numbers of qubits cannot be unioned together.");
+    }
     result.stateNum += o.stateNum;
+    // TODO: How to check if the two input automata have different k's?
 
     for (const auto &t : o.transitions) {
         auto &container = result.transitions[t.first];
