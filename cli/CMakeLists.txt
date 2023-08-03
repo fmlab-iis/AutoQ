@@ -6,7 +6,7 @@ set(CMAKE_COLOR_MAKEFILE ON)
 project(autoq)
 
 set(autoq_compiler_add_flags_list
-  -std=c++17
+  -std=c++20
   -pedantic-errors
 #  -DOPT_AC
   -DCACHE_AC

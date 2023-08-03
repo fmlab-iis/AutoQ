@@ -15,7 +15,7 @@ set(autoq_cxx_compiler_flags
   -Wall
   -Wfloat-equal
   -fdiagnostics-show-option
-  -std=c++17
+  -std=c++20
   -Wctor-dtor-privacy
   -Weffc++
   -fPIC

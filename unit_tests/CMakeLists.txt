@@ -4,7 +4,7 @@ cmake_minimum_required(VERSION 3.0.0)
 project(unit_tests)
 
 set(compiler_flags_list
-  -std=c++17
+  -std=c++20
   -pedantic-errors
   -Wextra
   -Wall

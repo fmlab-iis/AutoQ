@@ -135,6 +135,10 @@ if (DEBUG_INFO_FOR_RELEASE)
 	message("-- Enabling debug information for RELEASE builds")
 endif()
 
+# for the use of "concept" and "std::same_as"
+set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -std=c++20")
+set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -std=c++20")
+
 ##############################################################################
 #                                 PROJECT
 ##############################################################################
