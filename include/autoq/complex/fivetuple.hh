@@ -28,7 +28,7 @@ struct AUTOQ::Complex::FiveTuple : stdvectorboostmultiprecisioncpp_int {
     Entry k() const { return is_leaf() ? at(4) : -1; }
     bool is_leaf() const { return size() == 5; }
     bool is_internal() const { return size() < 5; }
-    void back_to_zero() { at(0) = at(1) = at(2) = at(3) = 0; }
+    void reset() { at(0) = at(1) = at(2) = at(3) = 0; }
     friend std::ostream& operator<<(std::ostream& os, const FiveTuple& obj) {
         os << AUTOQ::Util::Convert::ToString(static_cast<stdvectorboostmultiprecisioncpp_int>(obj));
         return os;

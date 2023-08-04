@@ -372,7 +372,7 @@ void dfs(const std::map<AUTOQ::TreeAutomata::State, AUTOQ::TreeAutomata::StateVe
         if (!new_layer.empty()) {
             dfs(edge, leaf, new_layer, prob);
         } else {
-            const auto &symbol = leaf.at(s).symbol();
+            const auto &symbol = leaf.at(s).symbol().complex;
             assert(symbol.size() == 5);
             double a = static_cast<double>(symbol[0]) / pow(2, static_cast<double>(symbol[4])/2.0);
             double b = static_cast<double>(symbol[1]) / pow(2, static_cast<double>(symbol[4])/2.0);
