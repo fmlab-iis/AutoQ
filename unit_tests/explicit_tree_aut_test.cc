@@ -14,6 +14,8 @@
 #include <autoq/autoq.hh>
 #include <autoq/inclusion.hh>
 #include <autoq/util/util.hh>
+#include <autoq/complex/complex.hh>
+#include <autoq/symbol/concrete.hh>
 #include <autoq/aut_description.hh>
 #include <autoq/parsing/timbuk_parser.hh>
 #include <autoq/serialization/timbuk_serializer.hh>
@@ -21,6 +23,9 @@
 #define BOOST_TEST_DYN_LINK
 #define BOOST_TEST_MODULE AutType
 #include <boost/test/unit_test.hpp>
+
+using AUTOQ::Complex::Complex;
+using AUTOQ::Symbol::Concrete;
 
 int size = 7; // the number of qubits.
 
@@ -345,9 +350,9 @@ BOOST_AUTO_TEST_CASE(Bernstein_Vazirani)
         ans.transitions[{level}][{2*level, 2*level - 1}] = {2*level - 2};
     }
     ans.stateNum = 2*(ans.qubitNum-1) + 1;
-    ans.transitions[{0,0,0,0,0}][{}] = {ans.stateNum++};
-    ans.transitions[{1,0,0,0,1}][{}] = {ans.stateNum++};
-    ans.transitions[{-1,0,0,0,1}][{}] = {ans.stateNum++};
+    ans.transitions[Concrete(Complex::Zero())][{}] = {ans.stateNum++};
+    ans.transitions[Concrete(Complex::One().divide_by_the_square_root_of_two())][{}] = {ans.stateNum++};
+    ans.transitions[Concrete(Complex::One().negate().divide_by_the_square_root_of_two())][{}] = {ans.stateNum++};
     ans.transitions[{ans.qubitNum}][{ans.stateNum - 3, ans.stateNum - 3}] = {static_cast<AUTOQ::TreeAutomata::State>(2*(ans.qubitNum-1) - 1)};
     ans.transitions[{ans.qubitNum}][{ans.stateNum - 2, ans.stateNum - 1}] = {static_cast<AUTOQ::TreeAutomata::State>(2*(ans.qubitNum-1))};
 

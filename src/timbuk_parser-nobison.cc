@@ -15,7 +15,8 @@
 // AUTOQ headers
 #include <autoq/autoq.hh>
 #include <autoq/util/util.hh>
-#include <autoq/symbol/fivetuple.hh>
+#include <autoq/complex/complex.hh>
+#include <autoq/symbol/concrete.hh>
 #include <autoq/symbol/symbolic.hh>
 #include <autoq/symbol/predicate.hh>
 #include <autoq/parsing/timbuk_parser.hh>
@@ -24,6 +25,7 @@
 
 using AUTOQ::Parsing::AbstrParser;
 using AUTOQ::Parsing::TimbukParser;
+using AUTOQ::Symbol::Concrete;
 using AUTOQ::Symbol::Predicate;
 using AUTOQ::Automata;
 using AUTOQ::TreeAutomata;
@@ -31,6 +33,7 @@ using AUTOQ::SymbolicAutomata;
 using AUTOQ::PredicateAutomata;
 using AUTOQ::Util::Convert;
 using AUTOQ::Util::trim;
+using AUTOQ::Complex::Complex;
 
 /**
  * @brief  Split a string at a delimiter
@@ -110,13 +113,13 @@ static std::pair<std::string, int> parse_colonned_token(std::string str)
  */
 typename TreeAutomata::Symbol from_string_to_Concrete(const std::string& str)
 {
-	TreeAutomata::Symbol temp;
+	Complex temp;
     if (str[0] == '[') {
         for (int i=1; i<static_cast<int>(str.length()); i++) {
             size_t j = str.find(',', i);
             if (j == std::string::npos) j = str.length()-1;
             try {
-                temp.push_back(boost::lexical_cast<TreeAutomata::Symbol::Entry>(str.substr(i, j-i).c_str()));
+                temp.push_back(boost::lexical_cast<boost::multiprecision::cpp_int>(str.substr(i, j-i).c_str()));
             } catch (...) {
                 throw std::runtime_error("[ERROR] The input entry \"" + str.substr(i, j-i) + "\" is not an integer!");
             }
@@ -124,13 +127,13 @@ typename TreeAutomata::Symbol from_string_to_Concrete(const std::string& str)
         }
     } else {
         try {
-            temp.push_back(boost::lexical_cast<TreeAutomata::Symbol::Entry>(str.c_str()));
+            temp.push_back(boost::lexical_cast<boost::multiprecision::cpp_int>(str.c_str()));
         } catch (...) {
             throw std::runtime_error("[ERROR] The input entry \"" + str + "\" is not an integer!");
         }
     }
     assert(temp.size() == 1 || temp.size() == 5);
-    return temp;
+    return TreeAutomata::Symbol(temp);
 }
 
 SymbolicAutomata::Symbol from_string_to_Symbolic(const std::string& str)
@@ -417,13 +420,24 @@ Automata<Symbol> parse_timbuk(const std::string& str)
                 throw std::overflow_error("[ERROR] The number of qubits is too large!");
             result.qubitNum = std::max(result.qubitNum, static_cast<int>(kv.first.symbol().qubit()));
         } else { // leaf transitions
-            if (k == -1) {
-                k = kv.first.symbol().k();
-                if (k < 0)
-                    throw std::runtime_error("[ERROR] The k value cannot be less than 0.");
-            }
-            else if (k != kv.first.symbol().k()) {
-                throw std::runtime_error("[ERROR] All k's in the automaton must be the same!");
+            if constexpr(std::is_same_v<Symbol, Concrete>) {
+                if (k == -1) {
+                    k = kv.first.symbol().k();
+                    if (k < 0)
+                        throw std::runtime_error("[ERROR] The k value cannot be less than 0.");
+                }
+                else if (k != kv.first.symbol().k()) {
+                    throw std::runtime_error("[ERROR] All k's in the automaton must be the same!");
+                }
+            } else {
+                if (k == -1) {
+                    k = kv.first.symbol().k();
+                    if (k < 0)
+                        throw std::runtime_error("[ERROR] The k value cannot be less than 0.");
+                }
+                else if (k != kv.first.symbol().k()) {
+                    throw std::runtime_error("[ERROR] All k's in the automaton must be the same!");
+                }
             }
         }
     }
@@ -501,6 +515,87 @@ PredicateAutomata TimbukParser<Predicate>::from_tree_to_automaton(std::string tr
     return aut;
 }
 
+template <>
+Automata<Concrete> TimbukParser<Concrete>::from_tree_to_automaton(std::string tree) {
+    Automata<Concrete> aut;
+    std::istringstream iss(tree);
+    std::map<typename Automata<Concrete>::State, Concrete> states_probs;
+    Complex::Complex default_prob;
+    boost::multiprecision::cpp_int k = -1;
+    for (std::string state_prob; iss >> state_prob;) {
+        std::istringstream iss2(state_prob);
+        std::string state;
+        std::getline(iss2, state, ':');
+        if (states_probs.empty())
+            aut.qubitNum = state.length();
+        else if (aut.qubitNum != state.length())
+            throw std::runtime_error("[ERROR] The numbers of qubits are not the same in all basis states!");
+        std::string t;
+        if (state == "*") {
+            while (std::getline(iss2, t, ',')) {
+                try {
+                    default_prob.push_back(boost::lexical_cast<boost::multiprecision::cpp_int>(t.c_str()));
+                } catch (...) {
+                    throw std::runtime_error("[ERROR] The input entry \"" + t + "\" is not an integer!");
+                }
+            }
+            if (k == -1) {
+                k = default_prob.k();
+                if (k < 0)
+                    throw std::runtime_error("[ERROR] The k value cannot be less than 0.");
+            }
+            else if (k != default_prob.k()) {
+                throw std::runtime_error("[ERROR] All k's in the automaton must be the same!");
+            }
+        } else {
+            TreeAutomata::State s = std::stoll(state, nullptr, 2);
+            auto &sps = states_probs[s];
+            while (std::getline(iss2, t, ',')) {
+                try {
+                    sps.push_back(boost::lexical_cast<boost::multiprecision::cpp_int>(t.c_str()));
+                } catch (...) {
+                    throw std::runtime_error("[ERROR] The input entry \"" + t + "\" is not an integer!");
+                }
+            }
+            if (k == -1) {
+                k = sps.k();
+                if (k < 0)
+                    throw std::runtime_error("[ERROR] The k value cannot be less than 0.");
+            }
+            else if (k != sps.k()) {
+                throw std::runtime_error("[ERROR] All k's in the automaton must be the same!");
+            }
+        }
+    }
+    typename Automata<Concrete>::State pow_of_two = 1;
+    typename Automata<Concrete>::State state_counter = 0;
+    for (int level=1; level<=aut.qubitNum; level++) {
+        for (typename Automata<Concrete>::State i=0; i<pow_of_two; i++) {
+            aut.transitions[Concrete(level)][{(state_counter<<1)+1, (state_counter<<1)+2}] = {state_counter};
+            state_counter++;
+        }
+        pow_of_two <<= 1;
+    }
+    for (typename Automata<Concrete>::State i=state_counter; i<=(state_counter<<1); i++) {
+        auto spf = states_probs.find(i-state_counter);
+        if (spf == states_probs.end()) {
+            if (default_prob == Complex::Complex())
+                throw std::runtime_error("[ERROR] The default amplitude is not specified!");
+            if (default_prob.size() == 5)
+                aut.transitions[Concrete(default_prob)][{}].insert(i);
+            else
+                aut.transitions[Concrete(default_prob.at(0))][{}].insert(i);
+        }
+        else
+            aut.transitions[spf->second][{}].insert(i);
+    }
+    aut.finalStates.push_back(0);
+    aut.stateNum = (state_counter<<1) + 1;
+    aut.reduce();
+
+    return aut;
+}
+
 template <typename Symbol>
 Automata<Symbol> TimbukParser<Symbol>::from_tree_to_automaton(std::string tree) {
     Automata<Symbol> aut;
@@ -521,7 +616,7 @@ Automata<Symbol> TimbukParser<Symbol>::from_tree_to_automaton(std::string tree) 
             if (state == "*") {
                 while (std::getline(iss2, t, ',')) {
                     try {
-                        default_prob.push_back(boost::lexical_cast<TreeAutomata::Symbol::Entry>(t.c_str()));
+                        default_prob.push_back(boost::lexical_cast<boost::multiprecision::cpp_int>(t.c_str()));
                     } catch (...) {
                         throw std::runtime_error("[ERROR] The input entry \"" + t + "\" is not an integer!");
                     }
@@ -539,7 +634,7 @@ Automata<Symbol> TimbukParser<Symbol>::from_tree_to_automaton(std::string tree) 
                 auto &sps = states_probs[s];
                 while (std::getline(iss2, t, ',')) {
                     try {
-                        sps.push_back(boost::lexical_cast<TreeAutomata::Symbol::Entry>(t.c_str()));
+                        sps.push_back(boost::lexical_cast<boost::multiprecision::cpp_int>(t.c_str()));
                     } catch (...) {
                         throw std::runtime_error("[ERROR] The input entry \"" + t + "\" is not an integer!");
                     }

@@ -15,7 +15,7 @@
 #include <chrono>
 #include <algorithm>
 #include <autoq/autoq.hh>
-#include <autoq/symbol/fivetuple.hh>
+#include <autoq/symbol/concrete.hh>
 #include <autoq/symbol/symbolic.hh>
 #include <autoq/symbol/predicate.hh>
 #include <autoq/util/triple.hh>
@@ -26,8 +26,7 @@ namespace AUTOQ
 {
     namespace Symbol
     {
-        struct FiveTuple;
-        using Concrete = FiveTuple;
+        struct Concrete;
         struct Symbolic;
         struct Predicate;
     }
@@ -163,7 +162,7 @@ public:
     Automata operator+(const Automata &o);
     Automata operator-(const Automata &o);
     Automata Union(const Automata &o); // U is in uppercase since "union" is a reserved keyword.
-    void print();
+    void print() const;
     int transition_size();
 
     /// simulation-based reduction
@@ -219,19 +218,6 @@ public:
     std::vector<std::vector<std::string>> print(const std::map<typename AUTOQ::Automata<Symbol>::State, typename AUTOQ::Automata<Symbol>::Symbol> &leafSymbolMap, int qubit, typename AUTOQ::Automata<Symbol>::State state);
 };
 
-// struct AUTOQ::Symbol::Concrete {
-//     bool is_leaf();
-//     bool is_internal();
-//     void back_to_zero();
-//     Concrete operator+(const Concrete &o);
-//     Concrete operator-(const Concrete &o);
-//     Concrete operator*(const Concrete &o);
-//     void omega_multiplication(int rotation=1);
-//     void divide_by_the_square_root_of_two();
-//     void Y();
-//     void Tdg();
-//     void Sdg();
-// };
 
 namespace std {
 //     template<> class numeric_limits<__int128_t> {

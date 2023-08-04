@@ -1,4 +1,4 @@
-#include <autoq/symbol/fivetuple.hh>
+#include <autoq/symbol/concrete.hh>
 #include <autoq/symbol/symbolic.hh>
 #include <autoq/symbol/predicate.hh>
 #include <autoq/aut_description.hh>
@@ -483,7 +483,7 @@ AUTOQ::Automata<Symbol> AUTOQ::Automata<Symbol>::Union(const Automata<Symbol> &o
 }
 
 template <typename Symbol>
-void AUTOQ::Automata<Symbol>::print() {
+void AUTOQ::Automata<Symbol>::print() const {
     std::cout << AUTOQ::Serialization::TimbukSerializer::Serialize(*this);
 }
 

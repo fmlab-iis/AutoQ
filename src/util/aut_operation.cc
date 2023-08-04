@@ -1,5 +1,6 @@
 #include <autoq/aut_description.hh>
-#include <autoq/symbol/fivetuple.hh>
+#include <autoq/complex/complex.hh>
+#include <autoq/symbol/concrete.hh>
 #include <autoq/symbol/symbolic.hh>
 #include <autoq/symbol/predicate.hh>
 #include <autoq/util/util.hh>
@@ -17,6 +18,7 @@
 
 using namespace AUTOQ;
 using namespace AUTOQ::Util;
+using AUTOQ::Symbol::Concrete;
 using AUTOQ::Serialization::TimbukSerializer;
 
 // using State                   = TreeAutomata::State;
@@ -555,7 +557,7 @@ AUTOQ::TreeAutomata AUTOQ::TreeAutomata::uniform(int n) {
         }
         pow_of_two *= 2;
     }
-    aut.transitions[{1,0,0,0,n}][{}] = {pow_of_two-1};
+    aut.transitions[Concrete(Complex::Complex::One().divide_by_the_square_root_of_two(n))][{}] = {pow_of_two-1};
     aut.finalStates.push_back(0);
     aut.stateNum = pow_of_two;
 
@@ -576,8 +578,8 @@ AUTOQ::TreeAutomata AUTOQ::TreeAutomata::basis(int n) {
         aut.transitions[{level}][{2*level - 1, 2*level}] = {2*level - 2};
         aut.transitions[{level}][{2*level, 2*level - 1}] = {2*level - 2};
     }
-    aut.transitions[{1,0,0,0,0}][{}] = {2*n};
-    aut.transitions[{0,0,0,0,0}][{}] = {2*n - 1};
+    aut.transitions[Concrete(Complex::Complex::One())][{}] = {2*n};
+    aut.transitions[Concrete(Complex::Complex::Zero())][{}] = {2*n - 1};
     aut.finalStates.push_back(0);
     aut.stateNum = 2*n + 1;
 
@@ -600,7 +602,7 @@ AUTOQ::TreeAutomata AUTOQ::TreeAutomata::random(int n) {
         pow_of_two *= 2;
     }
     for (State i=state_counter; i<=state_counter*2; i++) {
-        aut.transitions[{rand()%5, rand()%5, rand()%5, rand()%5, 0}][{}].insert(i);
+        aut.transitions[Concrete(Complex::Complex::Rand())][{}].insert(i);
     }
     aut.finalStates.push_back(0);
     aut.stateNum = state_counter*2 + 1;
@@ -638,8 +640,8 @@ AUTOQ::TreeAutomata AUTOQ::TreeAutomata::zero(int n) {
         aut.transitions[{level}][{level*2-1, level*2-1}] = {level*2-3};
         aut.transitions[{level}][{level*2, level*2-1}] = {level*2-2};
     }
-    aut.transitions[{0,0,0,0,0}][{}].insert(n*2-1);
-    aut.transitions[{1,0,0,0,0}][{}].insert(n*2);
+    aut.transitions[Concrete(Complex::Complex::Zero())][{}].insert(n*2-1);
+    aut.transitions[Concrete(Complex::Complex::One())][{}].insert(n*2);
     aut.stateNum = n*2 + 1;
 
     // aut.minimize();
@@ -671,13 +673,13 @@ AUTOQ::TreeAutomata AUTOQ::TreeAutomata::basis_zero_one_zero(int n) {
             aut.transitions[{n + level}][{2*n + 2*level-1, 2*n + 2*level-1}] = {2*n + 2*level-3};
             aut.transitions[{n + level}][{2*n + 2*level, 2*n + 2*level-1}] = {2*n + 2*level-2};
         }
-        aut.transitions[{1,0,0,0,0}][{}] = {6*n};
-        aut.transitions[{0,0,0,0,0}][{}] = {6*n - 1};
+        aut.transitions[Concrete(Complex::Complex::One())][{}] = {6*n};
+        aut.transitions[Concrete(Complex::Complex::Zero())][{}] = {6*n - 1};
         aut.stateNum = 6*n + 1;
     } else {
         assert(n == 2);
-        aut.transitions[{1,0,0,0,0}][{}] = {4*n + 2};
-        aut.transitions[{0,0,0,0,0}][{}] = {4*n + 1};
+        aut.transitions[Concrete(Complex::Complex::One())][{}] = {4*n + 2};
+        aut.transitions[Concrete(Complex::Complex::Zero())][{}] = {4*n + 1};
         aut.stateNum = 4*n + 3;
     }
 	aut.finalStates.push_back(0);
@@ -707,13 +709,13 @@ AUTOQ::TreeAutomata AUTOQ::TreeAutomata::zero_zero_one_zero(int n) {
             aut.transitions[{n + level}][{2*n + 2*level-1, 2*n + 2*level-1}] = {2*n + 2*level-3};
             aut.transitions[{n + level}][{2*n + 2*level, 2*n + 2*level-1}] = {2*n + 2*level-2};
         }
-        aut.transitions[{1,0,0,0,0}][{}] = {6*n};
-        aut.transitions[{0,0,0,0,0}][{}] = {6*n - 1};
+        aut.transitions[Concrete(Complex::Complex::One())][{}] = {6*n};
+        aut.transitions[Concrete(Complex::Complex::Zero())][{}] = {6*n - 1};
         aut.stateNum = 6*n + 1;
     } else {
         assert(n == 2);
-        aut.transitions[{1,0,0,0,0}][{}] = {4*n + 2};
-        aut.transitions[{0,0,0,0,0}][{}] = {4*n + 1};
+        aut.transitions[Concrete(Complex::Complex::One())][{}] = {4*n + 2};
+        aut.transitions[Concrete(Complex::Complex::Zero())][{}] = {4*n + 1};
         aut.stateNum = 4*n + 3;
     }
 	aut.finalStates.push_back(0);
@@ -740,13 +742,13 @@ AUTOQ::TreeAutomata AUTOQ::TreeAutomata::zero_one_zero(int n) {
             aut.transitions[{level}][{2*level-1, 2*level-1}] = {2*(level-1)-1};
             aut.transitions[{level}][{2*level, 2*level-1}] = {2*(level-1)};
         }
-        aut.transitions[{1,0,0,0,0}][{}] = {4*n};
-        aut.transitions[{0,0,0,0,0}][{}] = {4*n - 1};
+        aut.transitions[Concrete(Complex::Complex::One())][{}] = {4*n};
+        aut.transitions[Concrete(Complex::Complex::Zero())][{}] = {4*n - 1};
         aut.stateNum = 4*n + 1;
     } else {
         assert(n == 2);
-        aut.transitions[{1,0,0,0,0}][{}] = {2*n + 2};
-        aut.transitions[{0,0,0,0,0}][{}] = {2*n + 1};
+        aut.transitions[Concrete(Complex::Complex::One())][{}] = {2*n + 2};
+        aut.transitions[Concrete(Complex::Complex::Zero())][{}] = {2*n + 1};
         aut.stateNum = 2*n + 3;
     }
 	aut.finalStates.push_back(0);

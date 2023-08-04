@@ -10,7 +10,7 @@
 
 // AUTOQ headers
 #include <autoq/autoq.hh>
-#include <autoq/symbol/fivetuple.hh>
+#include <autoq/symbol/concrete.hh>
 #include <autoq/symbol/symbolic.hh>
 #include <autoq/symbol/predicate.hh>
 #include <autoq/serialization/timbuk_serializer.hh>
