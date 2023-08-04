@@ -41,23 +41,15 @@ struct AUTOQ::Symbol::Concrete : Complex::Complex{
 //     bool operator==(const Concrete &o) const { return complex == o.complex; }
 //     bool operator<(const Concrete &o) const { return complex < o.complex; }
 //     // bool operator>(const Concrete &o) const { return complex > o.complex; }
-//     void omega_multiplication(int rotation=1) {
-//         int r = rotation;
-//         while (r != 0) {
-//             if (r > 0) {
-//                 complex.counterclockwise(1);
-//                 r--;
-//             } else {
-//                 complex.clockwise(1);
-//                 r++;
-//             }
-//         }
-//     }
+    void omega_multiplication(int rotation=1) {
+        if (rotation > 0) counterclockwise(rotation);
+        if (rotation < 0) clockwise(rotation);
+    }
 //     void fraction_simplification() { complex.fraction_simplification(); }
 //     void divide_by_the_square_root_of_two() { complex.divide_by_the_square_root_of_two(); }
-//     void Y() { complex.negate(); }
-//     void Tdg() { complex.clockwise(1); }
-//     void Sdg() { complex.clockwise(2); }
+//     void negate() { negate(); }
+    void degree45() { clockwise(1); }
+    void degree90() { clockwise(2); }
 };
 
 namespace boost {

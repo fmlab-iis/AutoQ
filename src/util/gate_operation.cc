@@ -72,7 +72,7 @@ void AUTOQ::Automata<Symbol>::Y(int k) {
     for (const auto &t : transitions_copy) {
         SymbolTag symbol_tag = t.first;
         if (symbol_tag.is_leaf())
-            symbol_tag.symbol().Y();
+            symbol_tag.symbol().negate();
         if (!(symbol_tag.is_internal() && symbol_tag.symbol().qubit() <= k)) {
             for (const auto &in_out : t.second) {
                 StateVector in;
@@ -112,7 +112,7 @@ void AUTOQ::Automata<Symbol>::Z(int t) {
     for (const auto &tr : transitions_copy) {
         SymbolTag symbol_tag = tr.first;
         if (symbol_tag.is_leaf())
-            symbol_tag.symbol().Y();
+            symbol_tag.symbol().negate();
         if (!(symbol_tag.is_internal() && symbol_tag.symbol().qubit() <= t)) {
             for (const auto &in_out : tr.second) {
                 StateVector in;
@@ -359,7 +359,7 @@ void AUTOQ::Automata<Symbol>::CZ(int c, int t) {
     for (const auto &tr : transitions) {
         SymbolTag symbol_tag = tr.first;
         if (symbol_tag.is_leaf())
-            symbol_tag.symbol().Y();
+            symbol_tag.symbol().negate();
         if (!(symbol_tag.is_internal() && symbol_tag.symbol().qubit() <= t)) {
             for (const auto &in_out : tr.second) {
                 StateVector in;
@@ -482,7 +482,7 @@ void AUTOQ::Automata<Symbol>::Tdg(int t) {
         const SymbolTag &symbol_tag = t_old.first;
         if (symbol_tag.is_leaf()) {
             SymbolTag s = symbol_tag;
-            s.symbol().Tdg();
+            s.symbol().degree45();
             transitions_new[s] = t_old.second;
         } else {
             assert(symbol_tag.tag().size() <= 1);
@@ -534,7 +534,7 @@ void AUTOQ::Automata<Symbol>::Sdg(int t) {
         const SymbolTag &symbol_tag = t_old.first;
         if (symbol_tag.is_leaf()) {
             SymbolTag s = symbol_tag;
-            s.symbol().Sdg();
+            s.symbol().degree90();
             transitions_new[s] = t_old.second;
         } else {
             assert(symbol_tag.tag().size() <= 1);

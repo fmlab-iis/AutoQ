@@ -165,11 +165,11 @@ struct AUTOQ::Symbol::Symbolic : stdvectorstdmapstdstringboostmultiprecisioncpp_
     void divide_by_the_square_root_of_two() {
         at(4)["1"]++; // use [] instead of () in case the original map is empty.
     }
-    void Y() {
+    void negate() {
         for (int i=0; i<4; i++)
             std::for_each(at(i).begin(), at(i).end(), [](auto &p) { p.second = -p.second; });
     }
-    void Tdg() {
+    void degree45() {
         auto t = at(0);
         for (int i=0; i<3; i++) {
             at(i) = at(i+1);
@@ -177,7 +177,7 @@ struct AUTOQ::Symbol::Symbolic : stdvectorstdmapstdstringboostmultiprecisioncpp_
         std::for_each(t.begin(), t.end(), [](auto &p) { p.second = -p.second; });
         at(3) = t;
     }
-    void Sdg() {
+    void degree90() {
         auto a=at(2), b=at(3), c=at(0), d=at(1);
         at(0)=a; at(1)=b;
         std::for_each(c.begin(), c.end(), [](auto &p) { p.second = -p.second; });
