@@ -28,8 +28,11 @@ using AUTOQ::Serialization::TimbukSerializer;
 using std::for_each;
 
 template <typename Symbol>
-std::string TimbukSerializer::Serialize(const Automata<Symbol>& desc)
+std::string TimbukSerializer::Serialize(Automata<Symbol> desc)
 {
+    if constexpr(!std::is_same_v<Symbol, AUTOQ::Symbol::Predicate>)
+        desc.fraction_simplification();
+
 	std::string result;
 
 	result += "Ops ";
@@ -95,6 +98,6 @@ std::string TimbukSerializer::Serialize(const Automata<Symbol>& desc)
 }
 
 // https://bytefreaks.net/programming-2/c/c-undefined-reference-to-templated-class-function
-template std::string TimbukSerializer::Serialize(const TreeAutomata& desc);
-template std::string TimbukSerializer::Serialize(const SymbolicAutomata& desc);
-template std::string TimbukSerializer::Serialize(const PredicateAutomata& desc);
+template std::string TimbukSerializer::Serialize(TreeAutomata desc);
+template std::string TimbukSerializer::Serialize(SymbolicAutomata desc);
+template std::string TimbukSerializer::Serialize(PredicateAutomata desc);

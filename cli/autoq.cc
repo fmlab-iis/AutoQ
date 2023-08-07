@@ -67,7 +67,7 @@ optional arguments:
         aut.execute(argv[2]);
         auto durationSim = chrono::steady_clock::now() - startSim;
         auto durationVer = durationSim; // just borrow its type!
-        aut.fraction_simplification();
+        // aut.fraction_simplification();
         auto startVer = chrono::steady_clock::now();
         std::cout << "OUTPUT AUTOMATON:\n";
         std::cout << "=================\n";
@@ -94,7 +94,7 @@ optional arguments:
         auto startVer = chrono::steady_clock::now();
         AUTOQ::SymbolicAutomata aut = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Symbolic>::FromFileToAutomata(argv[1]);
         aut.execute(argv[2]);
-        aut.fraction_simplification();
+        // aut.fraction_simplification();
         aut.reduce();
         AUTOQ::PredicateAutomata spec = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Predicate>::FromFileToAutomata(argv[3]);
         std::ifstream t(argv[4]);

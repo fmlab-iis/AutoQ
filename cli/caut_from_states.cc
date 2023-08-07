@@ -71,7 +71,7 @@ optional arguments:
             aut_final.reduce();
         }
     }
-    aut_final.fraction_simplification();
+    // aut_final.fraction_simplification();
     aut_final.reduce();
     std::cout << std::endl;
     aut_final.print();

@@ -27,24 +27,46 @@ struct AUTOQ::Complex::FiveTuple : stdvectorboostmultiprecisioncpp_int {
     Entry qubit() const { return is_internal() ? at(0) : 0; }
     bool is_leaf() const { return size() == 5; }
     bool is_internal() const { return size() < 5; }
-    void reset() { at(0) = at(1) = at(2) = at(3) = 0; }
     friend std::ostream& operator<<(std::ostream& os, const FiveTuple& obj) {
         os << AUTOQ::Util::Convert::ToString(static_cast<stdvectorboostmultiprecisioncpp_int>(obj));
         return os;
     }
+    // bool operator==(const FiveTuple &o) const {
+    //     if (size() != o.size()) return false;
+    //     if (size() != 5) return static_cast<stdvectorboostmultiprecisioncpp_int>(*this) == static_cast<stdvectorboostmultiprecisioncpp_int>(o);
+    //     if (at(0)==0 && at(1)==0 && at(2)==0 && at(3)==0 &&
+    //         o.at(0)==0 && o.at(1)==0 && o.at(2)==0 && o.at(3)==0)
+    //         return true;
+    //     else {
+    //         if ((at(4)&1) != (o.at(4)&1)) return false;
+    //         auto min_d = min(at(4), o.at(4));
+    //         return (at(0) << static_cast<int>((o.at(4)-min_d)/2)) == (o.at(0) << static_cast<int>((at(4)-min_d)/2))
+    //             && (at(1) << static_cast<int>((o.at(4)-min_d)/2)) == (o.at(1) << static_cast<int>((at(4)-min_d)/2))
+    //             && (at(2) << static_cast<int>((o.at(4)-min_d)/2)) == (o.at(2) << static_cast<int>((at(4)-min_d)/2))
+    //             && (at(3) << static_cast<int>((o.at(4)-min_d)/2)) == (o.at(3) << static_cast<int>((at(4)-min_d)/2));
+    //     }
+    // }
     FiveTuple operator+(const FiveTuple &o) const { return binary_operation(o, true); }
     FiveTuple operator-(const FiveTuple &o) const { return binary_operation(o, false); }
     FiveTuple binary_operation(const FiveTuple &o, bool add) const {
-        assert(this->at(4) == o.at(4)); // Two k's must be the same.
+        auto at4 = at(4);
+        auto oat4 = o.at(4);
+        if (at(0)==0 && at(1)==0 && at(2)==0 && at(3)==0) at4 = oat4 % 2;
+        if (o.at(0)==0 && o.at(1)==0 && o.at(2)==0 && o.at(3)==0) oat4 = at4 % 2;
+        auto max_d = max(at4, oat4);
+        assert((max_d - at4) % 2 == 0);
+        assert((max_d - oat4) % 2 == 0);
+        int d1 = static_cast<int>(max_d - at4) / 2;
+        int d2 = static_cast<int>(max_d - oat4) / 2;
         FiveTuple symbol;
-        for (int i=0; i<4; i++) { // We do not change k here.
-            if (add) symbol.push_back(this->at(i) + o.at(i));
-            else symbol.push_back(this->at(i) - o.at(i));
+        for (int i=0; i<4; i++) {
+            if (add) symbol.push_back((at(i) << d1) + (o.at(i) << d2));
+            else symbol.push_back((at(i) << d1) - (o.at(i) << d2));
             // if ((a>=0 && b>=0 && a>std::numeric_limits<Entry>::max()-b)
             //  || (a<0 && b<0 && a<std::numeric_limits<Entry>::min()-b))
             //     throw std::overflow_error("");
         }
-        symbol.push_back(this->at(4)); // remember to push k
+        symbol.push_back(max_d); // remember to push k
         return symbol;
     }
     FiveTuple operator*(const FiveTuple &o) const {

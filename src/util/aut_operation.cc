@@ -1033,8 +1033,6 @@ void AUTOQ::Automata<Symbol>::fraction_simplification() {
       AUTOQ::TreeAutomata lhs,
       AUTOQ::TreeAutomata rhs)
   {
-    lhs.fraction_simplification();
-    rhs.fraction_simplification();
 	return check_equal(lhs, rhs);
   }
 // } // anonymous namespace

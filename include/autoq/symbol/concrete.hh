@@ -30,7 +30,7 @@ struct AUTOQ::Symbol::Concrete {
     bool is_internal() const { return complex.is_internal(); } //Is_internal; }
     bool is_leaf() const { return complex.is_leaf(); } //!Is_internal; }
     auto qubit() const { return complex.qubit(); } //Is_internal ? complex.real() : 0; }
-    void back_to_zero() { complex.reset(); } // for now we don't change k
+    void back_to_zero() { complex = Complex::Complex::Zero(); }
     friend std::ostream& operator<<(std::ostream& os, const Concrete& obj) {
         os << obj.complex;
         return os;
