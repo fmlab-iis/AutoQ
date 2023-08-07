@@ -25,7 +25,6 @@ struct AUTOQ::Complex::FiveTuple : stdvectorboostmultiprecisioncpp_int {
     static FiveTuple Zero() { return FiveTuple({0,0,0,0,0}); }
     static FiveTuple Rand() { return FiveTuple({rand()%5, rand()%5, rand()%5, rand()%5, 0}); }
     Entry qubit() const { return is_internal() ? at(0) : 0; }
-    Entry k() const { return is_leaf() ? at(4) : -1; }
     bool is_leaf() const { return size() == 5; }
     bool is_internal() const { return size() < 5; }
     void reset() { at(0) = at(1) = at(2) = at(3) = 0; }

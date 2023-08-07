@@ -413,32 +413,11 @@ Automata<Symbol> parse_timbuk(const std::string& str)
 		throw std::runtime_error(std::string(__FUNCTION__) + ": Transitions not specified.");
 	}
 
-    boost::multiprecision::cpp_int k = -1;
     for (const auto &kv : result.transitions) {
         if (kv.first.is_internal()) {
             if (kv.first.symbol().qubit() > INT_MAX)
                 throw std::overflow_error("[ERROR] The number of qubits is too large!");
             result.qubitNum = std::max(result.qubitNum, static_cast<int>(kv.first.symbol().qubit()));
-        } else { // leaf transitions
-            if constexpr(std::is_same_v<Symbol, Concrete>) {
-                if (k == -1) {
-                    k = kv.first.symbol().k();
-                    if (k < 0)
-                        throw std::runtime_error("[ERROR] The k value cannot be less than 0.");
-                }
-                else if (k != kv.first.symbol().k()) {
-                    throw std::runtime_error("[ERROR] All k's in the automaton must be the same!");
-                }
-            } else {
-                if (k == -1) {
-                    k = kv.first.symbol().k();
-                    if (k < 0)
-                        throw std::runtime_error("[ERROR] The k value cannot be less than 0.");
-                }
-                else if (k != kv.first.symbol().k()) {
-                    throw std::runtime_error("[ERROR] All k's in the automaton must be the same!");
-                }
-            }
         }
     }
     result.stateNum++;
@@ -521,7 +500,6 @@ Automata<Concrete> TimbukParser<Concrete>::from_tree_to_automaton(std::string tr
     std::istringstream iss(tree);
     std::map<typename Automata<Concrete>::State, Concrete> states_probs;
     Complex::Complex default_prob;
-    boost::multiprecision::cpp_int k = -1;
     for (std::string state_prob; iss >> state_prob;) {
         std::istringstream iss2(state_prob);
         std::string state;
@@ -539,14 +517,6 @@ Automata<Concrete> TimbukParser<Concrete>::from_tree_to_automaton(std::string tr
                     throw std::runtime_error("[ERROR] The input entry \"" + t + "\" is not an integer!");
                 }
             }
-            if (k == -1) {
-                k = default_prob.k();
-                if (k < 0)
-                    throw std::runtime_error("[ERROR] The k value cannot be less than 0.");
-            }
-            else if (k != default_prob.k()) {
-                throw std::runtime_error("[ERROR] All k's in the automaton must be the same!");
-            }
         } else {
             TreeAutomata::State s = std::stoll(state, nullptr, 2);
             auto &sps = states_probs[s].complex;
@@ -556,14 +526,6 @@ Automata<Concrete> TimbukParser<Concrete>::from_tree_to_automaton(std::string tr
                 } catch (...) {
                     throw std::runtime_error("[ERROR] The input entry \"" + t + "\" is not an integer!");
                 }
-            }
-            if (k == -1) {
-                k = sps.k();
-                if (k < 0)
-                    throw std::runtime_error("[ERROR] The k value cannot be less than 0.");
-            }
-            else if (k != sps.k()) {
-                throw std::runtime_error("[ERROR] All k's in the automaton must be the same!");
             }
         }
     }
@@ -602,7 +564,6 @@ Automata<Symbol> TimbukParser<Symbol>::from_tree_to_automaton(std::string tree) 
     std::istringstream iss(tree);
     std::map<typename Automata<Symbol>::State, Symbol> states_probs;
     Symbol default_prob;
-    boost::multiprecision::cpp_int k = -1;
     for (std::string state_prob; iss >> state_prob;) {
         std::istringstream iss2(state_prob);
         std::string state;
@@ -621,14 +582,6 @@ Automata<Symbol> TimbukParser<Symbol>::from_tree_to_automaton(std::string tree) 
                         throw std::runtime_error("[ERROR] The input entry \"" + t + "\" is not an integer!");
                     }
                 }
-                if (k == -1) {
-                    k = default_prob.k();
-                    if (k < 0)
-                        throw std::runtime_error("[ERROR] The k value cannot be less than 0.");
-                }
-                else if (k != default_prob.k()) {
-                    throw std::runtime_error("[ERROR] All k's in the automaton must be the same!");
-                }
             } else {
                 TreeAutomata::State s = std::stoll(state, nullptr, 2);
                 auto &sps = states_probs[s];
@@ -638,14 +591,6 @@ Automata<Symbol> TimbukParser<Symbol>::from_tree_to_automaton(std::string tree) 
                     } catch (...) {
                         throw std::runtime_error("[ERROR] The input entry \"" + t + "\" is not an integer!");
                     }
-                }
-                if (k == -1) {
-                    k = sps.k();
-                    if (k < 0)
-                        throw std::runtime_error("[ERROR] The k value cannot be less than 0.");
-                }
-                else if (k != sps.k()) {
-                    throw std::runtime_error("[ERROR] All k's in the automaton must be the same!");
                 }
             }
         } else if constexpr(std::is_same_v<Symbol, SymbolicAutomata::Symbol>) {
@@ -661,14 +606,6 @@ Automata<Symbol> TimbukParser<Symbol>::from_tree_to_automaton(std::string tree) 
                         default_prob.push_back({{t.c_str(), 1}});
                     }
                 }
-                if (k == -1) {
-                    k = default_prob.k();
-                    if (k < 0)
-                        throw std::runtime_error("[ERROR] The k value cannot be less than 0.");
-                }
-                else if (k != default_prob.k()) {
-                    throw std::runtime_error("[ERROR] All k's in the automaton must be the same!");
-                }
             } else {
                 SymbolicAutomata::State s = std::stoll(state, nullptr, 2);
                 auto &sps = states_probs[s];
@@ -682,14 +619,6 @@ Automata<Symbol> TimbukParser<Symbol>::from_tree_to_automaton(std::string tree) 
                     } catch (boost::bad_lexical_cast& e) {
                         sps.push_back({{t.c_str(), 1}});
                     }
-                }
-                if (k == -1) {
-                    k = sps.k();
-                    if (k < 0)
-                        throw std::runtime_error("[ERROR] The k value cannot be less than 0.");
-                }
-                else if (k != sps.k()) {
-                    throw std::runtime_error("[ERROR] All k's in the automaton must be the same!");
                 }
             }
         } else {
