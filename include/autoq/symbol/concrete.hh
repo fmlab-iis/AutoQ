@@ -48,14 +48,14 @@ public:
         return complex < o.complex;
     }
     void omega_multiplication(int rotation=1) {
-        if (rotation > 0) complex.counterclockwise(rotation);
-        if (rotation < 0) complex.clockwise(rotation);
+        if (rotation > 0) complex.counterclockwise(boost::rational<boost::multiprecision::cpp_int>(rotation, 8));
+        if (rotation < 0) complex.clockwise(boost::rational<boost::multiprecision::cpp_int>(rotation, 8));
     }
     void fraction_simplification() { complex.fraction_simplification(); }
     void divide_by_the_square_root_of_two() { complex.divide_by_the_square_root_of_two(); }
-    void negate() { complex.negate(); }
-    void degree45() { complex.clockwise(1); }
-    void degree90() { complex.clockwise(2); }
+    void negate() { complex = complex * (-1); }
+    void degree45cw() { complex.clockwise(boost::rational<boost::multiprecision::cpp_int>(1, 8)); }
+    void degree90cw() { complex.clockwise(boost::rational<boost::multiprecision::cpp_int>(1, 4)); }
 };
 
 namespace boost {

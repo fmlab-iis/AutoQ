@@ -482,7 +482,7 @@ void AUTOQ::Automata<Symbol>::Tdg(int t) {
         const SymbolTag &symbol_tag = t_old.first;
         if (symbol_tag.is_leaf()) {
             SymbolTag s = symbol_tag;
-            s.symbol().degree45();
+            s.symbol().degree45cw();
             transitions_new[s] = t_old.second;
         } else {
             assert(symbol_tag.tag().size() <= 1);
@@ -534,7 +534,7 @@ void AUTOQ::Automata<Symbol>::Sdg(int t) {
         const SymbolTag &symbol_tag = t_old.first;
         if (symbol_tag.is_leaf()) {
             SymbolTag s = symbol_tag;
-            s.symbol().degree90();
+            s.symbol().degree90cw();
             transitions_new[s] = t_old.second;
         } else {
             assert(symbol_tag.tag().size() <= 1);

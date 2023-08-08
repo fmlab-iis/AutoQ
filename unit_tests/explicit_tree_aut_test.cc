@@ -352,7 +352,7 @@ BOOST_AUTO_TEST_CASE(Bernstein_Vazirani)
     ans.stateNum = 2*(ans.qubitNum-1) + 1;
     ans.transitions[Concrete(Complex::Zero())][{}] = {ans.stateNum++};
     ans.transitions[Concrete(Complex::One().divide_by_the_square_root_of_two())][{}] = {ans.stateNum++};
-    ans.transitions[Concrete(Complex::One().negate().divide_by_the_square_root_of_two())][{}] = {ans.stateNum++};
+    ans.transitions[Concrete(Complex::One().divide_by_the_square_root_of_two() * (-1))][{}] = {ans.stateNum++};
     ans.transitions[{ans.qubitNum}][{ans.stateNum - 3, ans.stateNum - 3}] = {static_cast<AUTOQ::TreeAutomata::State>(2*(ans.qubitNum-1) - 1)};
     ans.transitions[{ans.qubitNum}][{ans.stateNum - 2, ans.stateNum - 1}] = {static_cast<AUTOQ::TreeAutomata::State>(2*(ans.qubitNum-1))};
 
