@@ -2,6 +2,7 @@
 #define _AUTOQ_FIVETUPLE_HH_
 
 #include <vector>
+#include <boost/rational.hpp>
 #include <autoq/util/convert.hh>
 #include <boost/multiprecision/cpp_int.hpp>
 
@@ -21,10 +22,38 @@ struct AUTOQ::Complex::FiveTuple : stdvectorboostmultiprecisioncpp_int {
     // Notice that if we do not use is_convertible_v, type int will not be accepted in this case.
     template <typename T, typename = std::enable_if_t<std::is_convertible<T, Entry>::value>>
         FiveTuple(T qubit) : stdvectorboostmultiprecisioncpp_int({qubit}) {} 
+    template <typename T, typename U, typename = std::enable_if_t<std::is_convertible<T, Entry>::value && std::is_convertible<U, Entry>::value>>
+        FiveTuple(T in1, U in2) {
+            boost::rational<boost::multiprecision::cpp_int> r(in1, in2);
+            stdvectorboostmultiprecisioncpp_int({0,0,0,0,0});
+            auto d = r.denominator();
+            while (d > 0 && d % 2 == 0) {
+                at(4) += 2;
+                d /= 2;
+            }
+            assert(d == 1); // Assume the denominator is a power of 2!
+            at(0) = r.numerator();
+        }
+    static FiveTuple Angle(boost::rational<boost::multiprecision::cpp_int> theta) {
+        theta -= theta.numerator() / theta.denominator();
+        while (theta >= 1)
+            theta -= 1;
+        while (theta < 0)
+            theta += 1;
+        if (theta.numerator() == 0) return {1,0,0,0,0};
+        if (theta == boost::rational<boost::multiprecision::cpp_int>(1, 8)) return {0,1,0,0,0};
+        if (theta == boost::rational<boost::multiprecision::cpp_int>(2, 8)) return {0,0,1,0,0};
+        if (theta == boost::rational<boost::multiprecision::cpp_int>(3, 8)) return {0,0,0,1,0};
+        if (theta == boost::rational<boost::multiprecision::cpp_int>(4, 8)) return {-1,0,0,0,0};
+        if (theta == boost::rational<boost::multiprecision::cpp_int>(5, 8)) return {0,-1,0,0,0};
+        if (theta == boost::rational<boost::multiprecision::cpp_int>(6, 8)) return {0,0,-1,0,0};
+        if (theta == boost::rational<boost::multiprecision::cpp_int>(7, 8)) return {0,0,0,-1,0};
+        throw std::runtime_error("Angle not supported!");
+    }
     static FiveTuple One() { return FiveTuple({1,0,0,0,0}); }
     static FiveTuple Zero() { return FiveTuple({0,0,0,0,0}); }
     static FiveTuple Rand() { return FiveTuple({rand()%5, rand()%5, rand()%5, rand()%5, 0}); }
-    Entry qubit() const { return is_internal() ? at(0) : 0; }
+    static FiveTuple sqrt2() { return FiveTuple({1,0,0,0,-1}); }
     bool is_leaf() const { return size() == 5; }
     bool is_internal() const { return size() < 5; }
     friend std::ostream& operator<<(std::ostream& os, const FiveTuple& obj) {
@@ -116,6 +145,9 @@ struct AUTOQ::Complex::FiveTuple : stdvectorboostmultiprecisioncpp_int {
         for (int i=0; i<4; i++)
             at(i) = -at(i);
         return *this;
+    }
+    boost::rational<boost::multiprecision::cpp_int> real() const { // fake solution
+        return boost::rational<boost::multiprecision::cpp_int>(at(0), 1); //boost::multiprecision::pow(boost::multiprecision::cpp_int(2), static_cast<int>(at(4)/2)));
     }
 };
 
