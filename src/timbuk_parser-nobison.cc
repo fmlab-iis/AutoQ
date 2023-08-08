@@ -133,7 +133,8 @@ typename TreeAutomata::Symbol from_string_to_Concrete(const std::string& str)
         }
     }
     assert(temp.size() == 1 || temp.size() == 5);
-    return TreeAutomata::Symbol(temp);
+    if (temp.size() == 1) return TreeAutomata::Symbol(temp.at(0));
+    if (temp.size() == 5) return TreeAutomata::Symbol(temp);
 }
 
 SymbolicAutomata::Symbol from_string_to_Symbolic(const std::string& str)

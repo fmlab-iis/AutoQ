@@ -16,20 +16,23 @@ namespace AUTOQ
 
 // Concrete symbol
 struct AUTOQ::Symbol::Concrete {
-// private:
-//     // bool Is_internal;
-// public:
+private:
+    bool internal;
+public:
     Complex::Complex complex;
 
-//     // Notice that if we do not use is_convertible_v, type int will not be accepted in this case.
-//     template <typename T, typename = std::enable_if_t<std::is_convertible<T, int>::value>>
-//         Concrete(T qubit) : complex(qubit) {} //, Is_internal(true) {}
-//     Concrete(const Complex::Complex &c) : complex(c) {} //, Is_internal(false) {}
-//     Concrete() : complex() {} //, Is_internal(false) {}
-
-    bool is_internal() const { return complex.is_internal(); } //Is_internal; }
-    bool is_leaf() const { return complex.is_leaf(); } //!Is_internal; }
-    auto qubit() const { return complex.real().numerator(); }
+    // Notice that if we do not use is_convertible_v, type int will not be accepted in this case.
+    template <typename T, typename = std::enable_if_t<std::is_convertible<T, int>::value>>
+        Concrete(T qubit) : complex(qubit), internal(true) {}
+    Concrete(const Complex::Complex &c) : complex(c), internal(false) {}
+    Concrete() {} // prevent the compiler from complaining about the lack of default constructor
+    bool is_internal() const { return internal; }
+    bool is_leaf() const { return !internal; }
+    boost::multiprecision::cpp_int qubit() const {
+        assert(internal);
+        assert(complex.real().denominator() == 1);
+        return complex.real().numerator();
+    }
     void back_to_zero() { complex = Complex::Complex::Zero(); }
     friend std::ostream& operator<<(std::ostream& os, const Concrete& obj) {
         os << obj.complex;
@@ -38,8 +41,12 @@ struct AUTOQ::Symbol::Concrete {
     Concrete operator+(const Concrete &o) const { return Concrete(complex.operator+(o.complex)); }
     Concrete operator-(const Concrete &o) const { return Concrete(complex.operator-(o.complex)); }
     Concrete operator*(const Concrete &o) const { return Concrete(complex.operator*(o.complex)); }
-    bool operator==(const Concrete &o) const { return complex == o.complex; }
-    bool operator<(const Concrete &o) const { return complex < o.complex; }
+    bool operator==(const Concrete &o) const { return internal == o.internal && complex == o.complex; }
+    bool operator<(const Concrete &o) const {
+        if (internal && !o.internal) return true;
+        if (o.internal && !internal) return false;
+        return complex < o.complex;
+    }
     void omega_multiplication(int rotation=1) {
         if (rotation > 0) complex.counterclockwise(rotation);
         if (rotation < 0) complex.clockwise(rotation);
@@ -55,8 +62,8 @@ namespace boost {
     template <> struct hash<AUTOQ::Symbol::Concrete> {
         size_t operator()(const AUTOQ::Symbol::Concrete& obj) const {
             std::size_t seed = 0;
-            // boost::hash_combine(seed, obj.is_internal());
-            boost::hash_combine(seed, obj);
+            boost::hash_combine(seed, obj.is_internal());
+            boost::hash_combine(seed, obj.complex);
             return seed;
         }
     };

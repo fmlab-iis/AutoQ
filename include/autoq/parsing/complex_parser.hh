@@ -65,7 +65,7 @@ private:
                         // assert(right.imag() == 0);
                         assert(right.real().denominator() == 1);
                         auto n = right.real().numerator();
-                        while (n > 0) {
+                        while (n > 1) {
                             assert(n % 2 == 0); // Assume the denominator is a power of two.
                             left.divide_by_the_square_root_of_two(2);
                             n /= 2;
@@ -130,12 +130,13 @@ private:
                     if (index_ >= input_.length() || !std::isdigit(input_[index_]) && input_[index_] != '-') {
                         throw std::runtime_error("Invalid argument for A function");
                     }
-                    auto x = parseNumber();
+                    auto x = parseExpression();
                     if (index_ >= input_.length() || input_[index_] != ')') {
                         throw std::runtime_error("Missing closing parenthesis for A function");
                     }
                     index_++;
-                    return Complex::Angle(x);
+                    // assert(x.imag() == 0);
+                    return Complex::Angle(x.real());
                 } else {
                     throw std::runtime_error("Invalid syntax for A function");
                 }
@@ -165,24 +166,15 @@ private:
                 break; // assume only one decimal point
             }
         }
+        if (numStr.at(0) == '-') {
+            while (numStr.at(1) == '0' && numStr.length() >= 3)
+                numStr.erase(1, 1);
+        } else {
+            while (numStr.at(0) == '0' && numStr.length() >= 2)
+                numStr.erase(0, 1);
+        }
         return boost::rational<boost::multiprecision::cpp_int>(boost::multiprecision::cpp_int(numStr), boost::multiprecision::pow(boost::multiprecision::cpp_int(10), d));
     }
 };
-
-int main() {
-    std::string expression("3 + 2 * (A(0.5) * 4 + V2^6) + 7/2");
-    std::cout << "Enter an arithmetic expression: ";
-    // std::getline(std::cin, expression);
-
-    StringParser parser(expression);
-    try {
-        Complex result = parser.parse();
-        std::cout << "Result: " << result << std::endl;
-    } catch (const std::exception& e) {
-        std::cerr << "Error: " << e.what() << std::endl;
-    }
-
-    return 0;
-}
 
 #endif

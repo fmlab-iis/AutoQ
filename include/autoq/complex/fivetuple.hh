@@ -20,12 +20,9 @@ struct AUTOQ::Complex::FiveTuple : stdvectorboostmultiprecisioncpp_int {
     using stdvectorboostmultiprecisioncpp_int::stdvectorboostmultiprecisioncpp_int;
     typedef typename AUTOQ::Complex::FiveTuple::value_type Entry;
     // Notice that if we do not use is_convertible_v, type int will not be accepted in this case.
-    template <typename T, typename = std::enable_if_t<std::is_convertible<T, Entry>::value>>
-        FiveTuple(T qubit) : stdvectorboostmultiprecisioncpp_int({qubit}) {} 
-    template <typename T, typename U, typename = std::enable_if_t<std::is_convertible<T, Entry>::value && std::is_convertible<U, Entry>::value>>
-        FiveTuple(T in1, U in2) {
-            boost::rational<boost::multiprecision::cpp_int> r(in1, in2);
-            stdvectorboostmultiprecisioncpp_int({0,0,0,0,0});
+    template <typename T, typename = std::enable_if_t<std::is_convertible<T, boost::rational<Entry>>::value>>
+        FiveTuple(T in) : stdvectorboostmultiprecisioncpp_int({0,0,0,0,0}) {
+            boost::rational<boost::multiprecision::cpp_int> r = in;
             auto d = r.denominator();
             while (d > 0 && d % 2 == 0) {
                 at(4) += 2;
@@ -54,8 +51,6 @@ struct AUTOQ::Complex::FiveTuple : stdvectorboostmultiprecisioncpp_int {
     static FiveTuple Zero() { return FiveTuple({0,0,0,0,0}); }
     static FiveTuple Rand() { return FiveTuple({rand()%5, rand()%5, rand()%5, rand()%5, 0}); }
     static FiveTuple sqrt2() { return FiveTuple({1,0,0,0,-1}); }
-    bool is_leaf() const { return size() == 5; }
-    bool is_internal() const { return size() < 5; }
     friend std::ostream& operator<<(std::ostream& os, const FiveTuple& obj) {
         os << AUTOQ::Util::Convert::ToString(static_cast<stdvectorboostmultiprecisioncpp_int>(obj));
         return os;
@@ -146,8 +141,8 @@ struct AUTOQ::Complex::FiveTuple : stdvectorboostmultiprecisioncpp_int {
             at(i) = -at(i);
         return *this;
     }
-    boost::rational<boost::multiprecision::cpp_int> real() const { // fake solution
-        return boost::rational<boost::multiprecision::cpp_int>(at(0), 1); //boost::multiprecision::pow(boost::multiprecision::cpp_int(2), static_cast<int>(at(4)/2)));
+    boost::rational<boost::multiprecision::cpp_int> real() const { // TODO: fake solution
+        return boost::rational<boost::multiprecision::cpp_int>(at(0), boost::multiprecision::pow(boost::multiprecision::cpp_int(2), static_cast<int>(at(4)/2)));
     }
 };
 
