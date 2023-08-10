@@ -22,7 +22,7 @@ public:
     Complex::Complex complex;
 
     // Notice that if we do not use is_convertible_v, type int will not be accepted in this case.
-    template <typename T, typename = std::enable_if_t<std::is_convertible<T, int>::value>>
+    template <typename T, typename = std::enable_if_t<std::is_convertible<T, boost::multiprecision::cpp_int>::value>>
         Concrete(T qubit) : complex(qubit), internal(true) {}
     Concrete(const Complex::Complex &c) : complex(c), internal(false) {}
     Concrete() {} // prevent the compiler from complaining about the lack of default constructor
