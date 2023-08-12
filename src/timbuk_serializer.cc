@@ -30,11 +30,11 @@ using std::for_each;
 template <typename Symbol>
 std::string TimbukSerializer::Serialize(Automata<Symbol> desc)
 {
-    if constexpr(!std::is_same_v<Symbol, AUTOQ::Symbol::Predicate>)
+    if constexpr(!std::is_same_v<Symbol, AUTOQ::Symbol::Predicate>) {
         desc.fraction_simplification();
+    }
 
 	std::string result;
-
 	result += "Ops ";
 	for (auto itSymb = desc.transitions.cbegin();
 		itSymb != desc.transitions.cend(); ++itSymb)

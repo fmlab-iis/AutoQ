@@ -759,7 +759,7 @@ AUTOQ::TreeAutomata AUTOQ::TreeAutomata::zero_one_zero(int n) {
 template <typename Symbol>
 void AUTOQ::Automata<Symbol>::swap_forward(const int k) {
     if (isTopdownDeterministic) return;
-    for (int next_k=k+1; next_k<=qubitNum; next_k++) {
+    for (unsigned next_k=k+1; next_k<=qubitNum; next_k++) {
         std::map<State, std::vector<std::pair<SymbolTag, StateVector>>> svsv;
         for (const auto &t : transitions) {
             const auto &symbol_tag = t.first;
@@ -1077,7 +1077,7 @@ void AUTOQ::Automata<Symbol>::execute(const char *filename) {
         if (line.find("qreg ") == 0) {
             std::regex_iterator<std::string::iterator> it(line.begin(), line.end(), digit);
             while (it != END) {
-                if (atoi(it->str().c_str()) != qubitNum)
+                if (atoi(it->str().c_str()) != static_cast<int>(qubitNum))
                     throw std::runtime_error("[ERROR] The number of qubits in the automaton does not match the number of qubits in the circuit.");
                 ++it;
             }
@@ -1204,10 +1204,9 @@ std::string toString2(std::chrono::steady_clock::duration tp) {
 }
 bool AUTOQ::check_validity(Constraint C, const PredicateAutomata::Symbol &ps, const SymbolicAutomata::Symbol &te) {
     std::string str(ps);
-    auto expr = C.to_exprs(te);
-    std::vector<std::regex> reg{std::regex("\\$a"), std::regex("\\$b"), std::regex("\\$c"), std::regex("\\$d")};
-    for (int i=0; i<4; i++) // example: z3 <(echo '(declare-fun x () Int)(declare-fun z () Int)(assert (= z (+ x 3)))(check-sat)')
-        str = std::regex_replace(str, reg.at(i), expr.at(i));
+    auto regToExpr = C.to_exprs(te);
+    for (const auto &kv : regToExpr) // example: z3 <(echo '(declare-fun x () Int)(declare-fun z () Int)(assert (= z (+ x 3)))(check-sat)')
+        str = std::regex_replace(str, std::regex(kv.first), kv.second);
     // std::cout << std::string(C) + "(assert (not " + str + "))(check-sat)\n";
     std::string smt_input = "bash -c \"z3 <(echo '" + std::string(C) + "(assert (not " + str + "))(check-sat)')\"";
     // auto startSim = chrono::steady_clock::now();
@@ -1260,7 +1259,7 @@ bool AUTOQ::is_spec_satisfied(const Constraint &C, const SymbolicAutomata &Ae, c
                         do {
                             // Assume Ae and As have the same internal symbols!
                             StateSet Hs;
-                            for (const auto &in_out : As.transitions.at({AUTOQ::Symbol::Predicate(alpha.symbol().at(0).at("1")), {}})) {
+                            for (const auto &in_out : As.transitions.at({AUTOQ::Symbol::Predicate(alpha.symbol().complex.at(Complex::Complex::One()).at("1")), {}})) {
                                 assert(in_out.first.size() == 2);
                                 if (qeUs1.second.find(in_out.first[0]) != qeUs1.second.end()
                                     && qeUs2.second.find(in_out.first[1]) != qeUs2.second.end()) {
@@ -1300,7 +1299,7 @@ bool AUTOQ::is_spec_satisfied(const Constraint &C, const SymbolicAutomata &Ae, c
 
 template <typename Symbol>
 std::vector<std::vector<std::string>> AUTOQ::Automata<Symbol>::print(const std::map<typename AUTOQ::Automata<Symbol>::State, typename AUTOQ::Automata<Symbol>::Symbol> &leafSymbolMap, int qubit, typename AUTOQ::Automata<Symbol>::State state) {
-    if (qubit == qubitNum + 1) {
+    if (qubit == static_cast<int>(qubitNum + 1)) {
         std::stringstream ss;
         ss << leafSymbolMap.at(state);
         return {{ss.str()}};

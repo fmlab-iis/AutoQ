@@ -27,7 +27,7 @@ std::string toString(std::chrono::steady_clock::duration tp);
 
 int main(int argc, char **argv) {
 try {
-    if (argc < 3 || argc >= 2 && ((strcmp(argv[1], "-h")==0) || (strcmp(argv[1], "--help")==0))) {
+    if (argc < 3 || (argc >= 2 && ((strcmp(argv[1], "-h")==0) || (strcmp(argv[1], "--help")==0)))) {
         std::cout << R"(usage: ./autoq [-h] pre.{aut|hsl} circuit.qasm [spec.{aut|hsl}] [constraint.smt]
 
 positional arguments:
@@ -62,7 +62,7 @@ optional arguments:
             }
         }
         AUTOQ::TreeAutomata aut = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Concrete>::FromFileToAutomata(argv[1]);
-        int stateBefore = aut.stateNum, transitionBefore = aut.transition_size();
+        // int stateBefore = aut.stateNum, transitionBefore = aut.transition_size();
         auto startSim = chrono::steady_clock::now();
         aut.execute(argv[2]);
         auto durationSim = chrono::steady_clock::now() - startSim;

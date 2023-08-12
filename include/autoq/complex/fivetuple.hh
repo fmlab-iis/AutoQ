@@ -1,6 +1,7 @@
 #ifndef _AUTOQ_FIVETUPLE_HH_
 #define _AUTOQ_FIVETUPLE_HH_
 
+#include <cmath>
 #include <vector>
 #include <boost/rational.hpp>
 #include <autoq/util/convert.hh>
@@ -91,6 +92,22 @@ struct AUTOQ::Complex::FiveTuple : stdvectorboostmultiprecisioncpp_int {
     }
     boost::rational<boost::multiprecision::cpp_int> real() const { // TODO: fake solution
         return boost::rational<boost::multiprecision::cpp_int>(at(0), boost::multiprecision::pow(boost::multiprecision::cpp_int(2), static_cast<int>(at(4)/2)));
+    }
+    std::string realToSMT() const {
+        std::string result = "(/ (+ ";
+        result += at(0).str();
+        result += " (* " + std::to_string(std::sqrt(2.0) / 2.0) + " " + at(1).str() + ")";
+        result += " (* (- " + std::to_string(std::sqrt(2.0) / 2.0) + ") " + at(3).str() + ")";
+        result += ") " + std::to_string(std::pow(std::sqrt(2.0), static_cast<int>(at(4)))) + ")";
+        return result;
+    }
+    std::string imagToSMT() const {
+        std::string result = "(/ (+";
+        result += " (* " + std::to_string(std::sqrt(2.0) / 2.0) + " " + at(1).str() + ") ";
+        result += at(2).str();
+        result += " (* " + std::to_string(std::sqrt(2.0) / 2.0) + " " + at(3).str() + ")";
+        result += ") " + std::to_string(std::pow(std::sqrt(2.0), static_cast<int>(at(4)))) + ")";
+        return result;
     }
 
 private:

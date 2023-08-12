@@ -1,1 +1,2 @@
-(declare-fun a () Int)(declare-fun b () Int)(declare-fun c () Int)(declare-fun d () Int)(declare-fun e () Int)(declare-fun f () Int)(declare-fun g () Int)(declare-fun h () Int)
+(declare-fun xR () Real)(declare-fun xI () Real)
+(declare-fun yR () Real)(declare-fun yI () Real)

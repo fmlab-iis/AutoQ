@@ -72,7 +72,7 @@ size_t getPeakRSS()
 #if defined(__APPLE__) && defined(__MACH__)
     return (size_t)rusage.ru_maxrss;
 #else
-    return (size_t)(rusage.ru_maxrss * 1024L);
+    return static_cast<size_t>(rusage.ru_maxrss * 1024L);
 #endif
 
 #else
@@ -111,14 +111,14 @@ size_t getCurrentRSS()
     long rss = 0L;
     FILE* fp = NULL;
     if ( (fp = fopen( "/proc/self/statm", "r" )) == NULL )
-        return (size_t)0L;      /* Can't open? */
+        return static_cast<size_t>(0L);      /* Can't open? */
     if ( fscanf( fp, "%*s%ld", &rss ) != 1 )
     {
         fclose( fp );
-        return (size_t)0L;      /* Can't read? */
+        return static_cast<size_t>(0L);      /* Can't read? */
     }
     fclose( fp );
-    return (size_t)rss * (size_t)sysconf( _SC_PAGESIZE);
+    return static_cast<size_t>(rss) * static_cast<size_t>(sysconf( _SC_PAGESIZE));
 
 #else
     /* AIX, BSD, Solaris, and Unknown OS ------------------------ */

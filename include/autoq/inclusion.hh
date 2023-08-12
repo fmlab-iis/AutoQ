@@ -4,6 +4,7 @@
 #include <regex>
 #include <string>
 #include <vector>
+#include <autoq/complex/complex.hh>
 #include <autoq/symbol/symbolic.hh>
 #include <autoq/aut_description.hh>
 
@@ -16,21 +17,27 @@ struct AUTOQ::Constraint {
     std::string content;
     Constraint(const std::string &s) : content(s) {}
     operator std::string() const { return content; }
-    std::vector<std::string> to_exprs(Symbol::Symbolic s) {
-        assert(s.size() == 5);
-        std::vector<std::string> result;
-        for (int i=0; i<4; i++) {
-            std::string expr = "0";
-            for (const auto &kv : s.at(i)) {
-                expr = "(+ " + expr + " (* " + kv.second.str() + " " + kv.first + "))";
+    auto to_exprs(const Symbol::Symbolic &s) {
+        assert(!s.is_internal());
+        std::map<std::string, std::string> result;
+        result["\\$R"] = "0";
+        result["\\$I"] = "0";
+        for (const auto &cl : s.complex) { // cl: complex -> linear combination
+            std::string exprR = "0";
+            std::string exprI = "0";
+            for (const auto &kv : cl.second) { // kv: variable -> integer
+                if (kv.first == std::string("1"))
+                    exprR = "(+ " + exprR + " (* " + kv.second.str() + " " + kv.first + "))";
+                else {
+                    exprR = "(+ " + exprR + " (* " + kv.second.str() + " " + kv.first + "R))";
+                    exprI = "(+ " + exprI + " (* " + kv.second.str() + " " + kv.first + "I))";
+                }
             }
-            expr = "(/ " + expr + " (pow_sqrt2_k " + s.at(4)["1"].str() + "))";
-            result.push_back(expr);
-            content.append("(assert (= ");
-            content.append(boost::multiprecision::pow(boost::multiprecision::cpp_int(2), static_cast<int>(s.at(4)["1"])).convert_to<std::string>());
-            content.append(std::regex_replace(" (* (pow_sqrt2_k $) (pow_sqrt2_k $))))(assert (>= (pow_sqrt2_k $) 0))", std::regex("\\$"), s.at(4)["1"].str()));
+            result["\\$R"] = "(+ " + result["\\$R"] + " (* " + cl.first.realToSMT() + " " + exprR + "))";
+            result["\\$R"] = "(- " + result["\\$R"] + " (* " + cl.first.imagToSMT() + " " + exprI + "))";
+            result["\\$I"] = "(+ " + result["\\$I"] + " (* " + cl.first.realToSMT() + " " + exprI + "))";
+            result["\\$I"] = "(+ " + result["\\$I"] + " (* " + cl.first.imagToSMT() + " " + exprR + "))";
         }
-        content = "(declare-fun pow_sqrt2_k (Int) Real)" + content;
         return result;
     }
 };

@@ -72,119 +72,136 @@ struct AUTOQ::Symbol::linear_combination : std::map<std::string, boost::multipre
         return os;
     }
 };
-typedef std::vector<AUTOQ::Symbol::linear_combination> stdvectorstdmapstdstringboostmultiprecisioncpp_int;
-struct AUTOQ::Symbol::Symbolic : stdvectorstdmapstdstringboostmultiprecisioncpp_int {
-    using stdvectorstdmapstdstringboostmultiprecisioncpp_int::stdvectorstdmapstdstringboostmultiprecisioncpp_int;
-    typedef typename AUTOQ::Symbol::Symbolic::value_type Map;
-    typedef typename AUTOQ::Symbol::Symbolic::value_type::value_type Pair;
-    typedef typename AUTOQ::Symbol::Symbolic::value_type::mapped_type Entry;
-    template <typename T, typename = std::enable_if_t<std::is_convertible<T, Entry>::value>>
-        Symbolic(T qubit) : stdvectorstdmapstdstringboostmultiprecisioncpp_int({Map{{"1", qubit}}}) {}
-    Entry qubit() const { return is_internal() ? at(0).at("1") : 0; }
-    Entry k() const { 
-        if (is_internal()) return -1;
-        if (at(4).empty()) return 0;
-        auto ptr = at(4).find("1");
-        if (ptr == at(4).end()) {
-            throw std::runtime_error("[ERROR] Each k must be a constant!");
-        } else {
-            return ptr->second;
-        }
-    }
-    bool is_leaf() const { return size() == 5; }
-    bool is_internal() const { return size() < 5; }
-    void back_to_zero() {
-        std::fill(begin(), begin()+4, Map());
-    }
+struct AUTOQ::Symbol::Symbolic {
+private:
+    bool internal;
+public:
+    std::map<Complex::Complex, AUTOQ::Symbol::linear_combination> complex;
+
+    // Notice that if we do not use is_convertible_v, type int will not be accepted in this case.
+    template <typename T, typename = std::enable_if_t<std::is_convertible<T, boost::multiprecision::cpp_int>::value>>
+        Symbolic(T qubit) : internal(true), complex({{Complex::Complex::One(), AUTOQ::Symbol::linear_combination({{"1", qubit}})}}) {}
+    Symbolic(const std::map<Complex::Complex, AUTOQ::Symbol::linear_combination> &c) : internal(false), complex(c) {}
+    Symbolic() : internal(), complex() {} // prevent the compiler from complaining about the lack of default constructor
+    bool is_internal() const { return internal; }
+    bool is_leaf() const { return !internal; }
+    boost::multiprecision::cpp_int qubit() const {
+        assert(internal);
+        // assert(complex.imag() == 0);
+        return complex.at(Complex::Complex::One()).at("1");
+    }    
+    void back_to_zero() { complex.clear(); }
     friend std::ostream& operator<<(std::ostream& os, const Symbolic& obj) {
-        os << AUTOQ::Util::Convert::ToString(static_cast<stdvectorstdmapstdstringboostmultiprecisioncpp_int>(obj));
+        os << AUTOQ::Util::Convert::ToString(obj.complex);
         return os;
+    }
+    bool operator==(const Symbolic &o) const { return internal == o.internal && complex == o.complex; }
+    bool operator<(const Symbolic &o) const {
+        if (internal && !o.internal) return true;
+        if (o.internal && !internal) return false;
+        return complex < o.complex;
     }
     Symbolic operator+(const Symbolic &o) const { return binary_operation(o, true); }
     Symbolic operator-(const Symbolic &o) const { return binary_operation(o, false); }
     Symbolic binary_operation(Symbolic o, bool add) const {
-        assert(this->at(4) == o.at(4)); // Two k's must be the same.
-        Symbolic symbol;
-        for (int i=0; i<4; i++) { // We do not change k here.
+        auto complex2 = complex;
+        for (const auto &kv2 : o.complex) {
             if (add)
-                symbol.push_back(at(i) + o.at(i));
+                complex2[kv2.first] = complex2[kv2.first] + kv2.second;
             else
-                symbol.push_back(at(i) - o.at(i));
+                complex2[kv2.first] = complex2[kv2.first] - kv2.second;
         }
-        symbol.push_back(this->at(4)); // remember to push k
-        return symbol;
+        return Symbolic(complex2);
     }
     Symbolic operator*(const Symbolic &o) const {
-        Symbolic symbol;
-        symbol.push_back(at(0)*o.at(0) - at(1)*o.at(3) - at(2)*o.at(2) - at(3)*o.at(1));
-        symbol.push_back(at(0)*o.at(1) + at(1)*o.at(0) - at(2)*o.at(3) - at(3)*o.at(2));
-        symbol.push_back(at(0)*o.at(2) + at(1)*o.at(1) + at(2)*o.at(0) - at(3)*o.at(3));
-        symbol.push_back(at(0)*o.at(3) + at(1)*o.at(2) + at(2)*o.at(1) + at(3)*o.at(0));
-        symbol.push_back(at(4) + o.at(4)); // remember to push k
-        return symbol;
+        std::map<Complex::Complex, AUTOQ::Symbol::linear_combination> complex2;
+        for (const auto &kv1 : complex) {
+            for (const auto &kv2 : o.complex) {
+                complex2[kv1.first * kv2.first] = kv1.second * kv2.second;
+            }
+        }
+        return Symbolic(complex2);
+        /* This operator also explains why our number is a mapping
+        from "complex" to "linear combination" instead of a mapping
+        from "variable" to "complex". If we adopt the latter mapping,
+        the multiplication of two variables cannot be a "variable" anymore. */
     }
     void fraction_simplification() {
-        while (std::all_of(begin(), begin()+4, [](const Map &m) {
-            return std::all_of(m.begin(), m.end(), [](const auto &p) { return (p.second&1)==0; });
-        }) && at(4).find("1")!=at(4).end() && at(4).at("1") >= 2) { // Notice the parentheses enclosing i&1 are very important!
-            for (int i=0; i<4; i++) {
-                std::for_each(at(i).begin(), at(i).end(), [](auto &p) { p.second /= 2; });
-                for (auto it = at(i).begin(); it != at(i).end(); )
-                    if (it->second == 0)
-                        it = at(i).erase(it);
-                    else
-                        ++it;
-            }
-            at(4).at("1") -= 2;
-        }
-        if (std::all_of(begin(), begin()+4, [](const Map &m) { return m.empty(); }))
-            at(4).clear();
+        // std::map<Complex::Complex, AUTOQ::Symbol::linear_combination> complex2;
+        // for (const auto &kv : complex) {
+        //     auto k = kv.first;
+        //     auto v = kv.second;
+        //     complex2[k.fraction_simplification()] = v;
+        // }
+        // complex = complex2;
     }
     void omega_multiplication(int rotation=1) {
-        int r = rotation;
-        while (r != 0) {
-            if (r > 0) {
-                auto temp = at(3);
-                for (int i=3; i>=1; i--) { // exclude "k"
-                    at(i) = at(i-1);
-                }
-                std::for_each(temp.begin(), temp.end(), [](auto &p) { p.second = -p.second; });
-                at(0) = temp;
-                r--;
-            } else {
-                auto temp = at(0);
-                for (int i=0; i<=2; i++) { // exclude "k"
-                    at(i) = at(i+1);
-                }
-                std::for_each(temp.begin(), temp.end(), [](auto &p) { p.second = -p.second; });
-                at(3) = temp;
-                r++;
+        if (rotation > 0) {
+            std::map<Complex::Complex, AUTOQ::Symbol::linear_combination> complex2;
+            for (const auto &kv : complex) {
+                auto k = kv.first;
+                auto v = kv.second;
+                complex2[k.counterclockwise(boost::rational<boost::multiprecision::cpp_int>(rotation, 8))] = v;
             }
+            complex = complex2;
+        }
+        if (rotation < 0) {
+            std::map<Complex::Complex, AUTOQ::Symbol::linear_combination> complex2;
+            for (const auto &kv : complex) {
+                auto k = kv.first;
+                auto v = kv.second;
+                complex2[k.clockwise(boost::rational<boost::multiprecision::cpp_int>(rotation, 8))] = v;
+            }
+            complex = complex2;
         }
     }
     void divide_by_the_square_root_of_two() {
-        at(4)["1"]++; // use [] instead of () in case the original map is empty.
+        std::map<Complex::Complex, AUTOQ::Symbol::linear_combination> complex2;
+        for (const auto &kv : complex) {
+            auto k = kv.first;
+            auto v = kv.second;
+            complex2[k.divide_by_the_square_root_of_two()] = v;
+        }
+        complex = complex2;
     }
     void negate() {
-        for (int i=0; i<4; i++)
-            std::for_each(at(i).begin(), at(i).end(), [](auto &p) { p.second = -p.second; });
+        std::map<Complex::Complex, AUTOQ::Symbol::linear_combination> complex2;
+        for (const auto &kv : complex) {
+            auto k = kv.first;
+            auto v = kv.second;
+            complex2[k * (-1)] = v;
+        }
+        complex = complex2;
     }
     void degree45cw() {
-        auto t = at(0);
-        for (int i=0; i<3; i++) {
-            at(i) = at(i+1);
+        std::map<Complex::Complex, AUTOQ::Symbol::linear_combination> complex2;
+        for (const auto &kv : complex) {
+            auto k = kv.first;
+            auto v = kv.second;
+            complex2[k.clockwise(boost::rational<boost::multiprecision::cpp_int>(1, 8))] = v;
         }
-        std::for_each(t.begin(), t.end(), [](auto &p) { p.second = -p.second; });
-        at(3) = t;
+        complex = complex2;
     }
     void degree90cw() {
-        auto a=at(2), b=at(3), c=at(0), d=at(1);
-        at(0)=a; at(1)=b;
-        std::for_each(c.begin(), c.end(), [](auto &p) { p.second = -p.second; });
-        at(2)=c;
-        std::for_each(d.begin(), d.end(), [](auto &p) { p.second = -p.second; });
-        at(3)=d;
+        std::map<Complex::Complex, AUTOQ::Symbol::linear_combination> complex2;
+        for (const auto &kv : complex) {
+            auto k = kv.first;
+            auto v = kv.second;
+            complex2[k.clockwise(boost::rational<boost::multiprecision::cpp_int>(1, 4))] = v;
+        }
+        complex = complex2;
     }
 };
+
+namespace boost {
+    template <> struct hash<AUTOQ::Symbol::Symbolic> {
+        size_t operator()(const AUTOQ::Symbol::Symbolic& obj) const {
+            std::size_t seed = 0;
+            boost::hash_combine(seed, obj.is_internal());
+            boost::hash_combine(seed, obj.complex);
+            return seed;
+        }
+    };
+}
 
 #endif

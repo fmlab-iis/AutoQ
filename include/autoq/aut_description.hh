@@ -86,7 +86,7 @@ public:   // data members
 	std::string name;
     StateVector finalStates;
     State stateNum;
-    int qubitNum;
+    unsigned qubitNum;
 	TransitionMap transitions;
     bool isTopdownDeterministic;
     inline static int gateCount;

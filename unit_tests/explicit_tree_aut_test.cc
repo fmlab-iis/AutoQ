@@ -343,7 +343,7 @@ BOOST_AUTO_TEST_CASE(Bernstein_Vazirani)
     ans.qubitNum = n+1;
     assert(ans.qubitNum >= 2);
     ans.finalStates.push_back(0);
-    for (int level=1; level<ans.qubitNum; level++) { /* Note that < does not include ans.qubitNum! */
+    for (unsigned level=1; level<ans.qubitNum; level++) { /* Note that < does not include ans.qubitNum! */
         if (level >= 2)
             ans.transitions[{level}][{2*level - 1, 2*level - 1}] = {2*level - 3};
         ans.transitions[{level}][{2*level - 1, 2*level}] = {2*level - 2};
