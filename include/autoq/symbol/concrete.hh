@@ -35,7 +35,10 @@ public:
     }
     void back_to_zero() { complex = Complex::Complex::Zero(); }
     friend std::ostream& operator<<(std::ostream& os, const Concrete& obj) {
-        os << obj.complex;
+        if (obj.internal)
+            os << "[" + obj.qubit().str() + "]";
+        else
+            os << obj.complex;
         return os;
     }
     Concrete operator+(const Concrete &o) const { return Concrete(complex.operator+(o.complex)); }

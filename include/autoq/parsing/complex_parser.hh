@@ -10,9 +10,9 @@
 
 using AUTOQ::Complex::Complex;
 
-class StringParser {
+class ComplexParser {
 public:
-    StringParser(const std::string& input) : input_(input), index_(0) {}
+    ComplexParser(const std::string& input) : input_(input), index_(0) {}
 
     Complex parse() {
         skipWhitespace();
@@ -127,7 +127,7 @@ private:
                 if (index_ < input_.length() && input_[index_] == '(') {
                     index_++;
                     skipWhitespace();
-                    if (index_ >= input_.length() || !std::isdigit(input_[index_]) && input_[index_] != '-') {
+                    if (index_ >= input_.length() || (!std::isdigit(input_[index_]) && input_[index_] != '-')) {
                         throw std::runtime_error("Invalid argument for A function");
                     }
                     auto x = parseExpression();

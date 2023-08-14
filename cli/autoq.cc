@@ -74,7 +74,8 @@ optional arguments:
         aut.print();
         std::cout << "=================\n";
         if (argc >= 4) {
-            if (!AUTOQ::TreeAutomata::check_inclusion(aut, argv[3])) {
+            auto aut2 = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Concrete>::FromFileToAutomata(argv[3]);
+            if (!AUTOQ::TreeAutomata::check_inclusion(aut, aut2)) {
                 std::cout << "-\n0\n";
                 // throw std::runtime_error("Does not satisfy the postcondition!");
                 // std::cout << AUTOQ::Util::Convert::ToString(aut.qubitNum) << " & " << AUTOQ::TreeAutomata::gateCount
