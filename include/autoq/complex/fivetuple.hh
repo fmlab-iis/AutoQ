@@ -15,7 +15,6 @@ namespace AUTOQ
 	}
 }
 
-// Concrete symbol
 typedef std::vector<boost::multiprecision::cpp_int> stdvectorboostmultiprecisioncpp_int;
 struct AUTOQ::Complex::FiveTuple : stdvectorboostmultiprecisioncpp_int {
     using stdvectorboostmultiprecisioncpp_int::stdvectorboostmultiprecisioncpp_int;
@@ -83,12 +82,61 @@ struct AUTOQ::Complex::FiveTuple : stdvectorboostmultiprecisioncpp_int {
         return *this;
     }
     FiveTuple& clockwise(boost::rational<boost::multiprecision::cpp_int> theta) {
-        *this = FiveTuple::operator*(FiveTuple::Angle(-theta));
+        theta -= theta.numerator() / theta.denominator();
+        while (theta >= 1)
+            theta -= 1;
+        while (theta < 0)
+            theta += 1;
+        assert((8 * theta).denominator() == 1);
+        int r = static_cast<int>(-8 * theta.numerator() / theta.denominator());
+        while (r != 0) {
+            if (r > 0) {
+                auto temp = at(3);
+                for (int i=3; i>=1; i--) { // exclude "k"
+                    at(i) = at(i-1);
+                }
+                at(0) = -temp;
+                r--;
+            } else {
+                auto temp = at(0);
+                for (int i=0; i<=2; i++) { // exclude "k"
+                    at(i) = at(i+1);
+                }
+                at(3) = -temp;
+                r++;
+            }
+        }
         return *this;
     }
     FiveTuple& counterclockwise(boost::rational<boost::multiprecision::cpp_int> theta) {
-        *this = FiveTuple::operator*(FiveTuple::Angle(theta));
+        theta -= theta.numerator() / theta.denominator();
+        while (theta >= 1)
+            theta -= 1;
+        while (theta < 0)
+            theta += 1;
+        assert((8 * theta).denominator() == 1);
+        int r = static_cast<int>(8 * theta.numerator() / theta.denominator());
+        while (r != 0) {
+            if (r > 0) {
+                auto temp = at(3);
+                for (int i=3; i>=1; i--) { // exclude "k"
+                    at(i) = at(i-1);
+                }
+                at(0) = -temp;
+                r--;
+            } else {
+                auto temp = at(0);
+                for (int i=0; i<=2; i++) { // exclude "k"
+                    at(i) = at(i+1);
+                }
+                at(3) = -temp;
+                r++;
+            }
+        }
         return *this;
+    }
+    boost::multiprecision::cpp_int toInt() const { // TODO: fake solution
+        return at(0);
     }
     boost::rational<boost::multiprecision::cpp_int> real() const { // TODO: fake solution
         return boost::rational<boost::multiprecision::cpp_int>(at(0), boost::multiprecision::pow(boost::multiprecision::cpp_int(2), static_cast<int>(at(4)/2)));
@@ -108,6 +156,14 @@ struct AUTOQ::Complex::FiveTuple : stdvectorboostmultiprecisioncpp_int {
         result += " (* " + std::to_string(std::sqrt(2.0) / 2.0) + " " + at(3).str() + ")";
         result += ") " + std::to_string(std::pow(std::sqrt(2.0), static_cast<int>(at(4)))) + ")";
         return result;
+    }
+    double abs2() const {
+        double a = static_cast<double>(at(0)) / pow(2, static_cast<double>(at(4))/2.0);
+        double b = static_cast<double>(at(1)) / pow(2, static_cast<double>(at(4))/2.0);
+        double c = static_cast<double>(at(2)) / pow(2, static_cast<double>(at(4))/2.0);
+        double d = static_cast<double>(at(3)) / pow(2, static_cast<double>(at(4))/2.0);
+        return static_cast<double>(pow(a, 2) + pow(b, 2) + pow(c, 2) + pow(d, 2))
+            + pow(2, 0.5) * static_cast<double>(a * (b - d) + c * (b + d));
     }
 
 private:

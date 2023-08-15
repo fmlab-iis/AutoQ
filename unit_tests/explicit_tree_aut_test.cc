@@ -345,16 +345,16 @@ BOOST_AUTO_TEST_CASE(Bernstein_Vazirani)
     ans.finalStates.push_back(0);
     for (unsigned level=1; level<ans.qubitNum; level++) { /* Note that < does not include ans.qubitNum! */
         if (level >= 2)
-            ans.transitions[{level}][{2*level - 1, 2*level - 1}] = {2*level - 3};
-        ans.transitions[{level}][{2*level - 1, 2*level}] = {2*level - 2};
-        ans.transitions[{level}][{2*level, 2*level - 1}] = {2*level - 2};
+            ans.transitions[Concrete(level)][{2*level - 1, 2*level - 1}] = {2*level - 3};
+        ans.transitions[Concrete(level)][{2*level - 1, 2*level}] = {2*level - 2};
+        ans.transitions[Concrete(level)][{2*level, 2*level - 1}] = {2*level - 2};
     }
     ans.stateNum = 2*(ans.qubitNum-1) + 1;
     ans.transitions[Concrete(Complex::Zero())][{}] = {ans.stateNum++};
     ans.transitions[Concrete(Complex::One().divide_by_the_square_root_of_two())][{}] = {ans.stateNum++};
     ans.transitions[Concrete(Complex::One().divide_by_the_square_root_of_two() * (-1))][{}] = {ans.stateNum++};
-    ans.transitions[{ans.qubitNum}][{ans.stateNum - 3, ans.stateNum - 3}] = {static_cast<AUTOQ::TreeAutomata::State>(2*(ans.qubitNum-1) - 1)};
-    ans.transitions[{ans.qubitNum}][{ans.stateNum - 2, ans.stateNum - 1}] = {static_cast<AUTOQ::TreeAutomata::State>(2*(ans.qubitNum-1))};
+    ans.transitions[Concrete(ans.qubitNum)][{ans.stateNum - 3, ans.stateNum - 3}] = {static_cast<AUTOQ::TreeAutomata::State>(2*(ans.qubitNum-1) - 1)};
+    ans.transitions[Concrete(ans.qubitNum)][{ans.stateNum - 2, ans.stateNum - 1}] = {static_cast<AUTOQ::TreeAutomata::State>(2*(ans.qubitNum-1))};
 
     // std::ofstream fileRhs("reference_answers/Bernstein_Vazirani" + std::to_string(n) + ".txt");
 	// fileRhs << AUTOQ::Serialization::TimbukSerializer::Serialize(ans);
@@ -373,14 +373,7 @@ void dfs(const std::map<AUTOQ::TreeAutomata::State, AUTOQ::TreeAutomata::StateVe
             dfs(edge, leaf, new_layer, prob);
         } else {
             const auto &symbol = leaf.at(s).symbol().complex;
-            assert(symbol.size() == 5);
-            double a = static_cast<double>(symbol[0]) / pow(2, static_cast<double>(symbol[4])/2.0);
-            double b = static_cast<double>(symbol[1]) / pow(2, static_cast<double>(symbol[4])/2.0);
-            double c = static_cast<double>(symbol[2]) / pow(2, static_cast<double>(symbol[4])/2.0);
-            double d = static_cast<double>(symbol[3]) / pow(2, static_cast<double>(symbol[4])/2.0);
-            prob.push_back(static_cast<double>(pow(a, 2) + pow(b, 2) + pow(c, 2) + pow(d, 2))
-                          + pow(2, 0.5) * static_cast<double>(a * (b - d) + c * (b + d)));// / pow(2, static_cast<int>(symbol[4])));
-                // pow(symbol[0] / pow(2, symbol[4]/2.0), 2));
+            prob.push_back(symbol.abs2());
         }
     }
 }

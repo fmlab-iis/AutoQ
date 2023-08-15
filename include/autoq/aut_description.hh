@@ -49,8 +49,9 @@ public:   // data types
     typedef std::pair<Symbol, Tag> stdpairSymbolTag;
     struct SymbolTag : stdpairSymbolTag {
         using stdpairSymbolTag::stdpairSymbolTag; // inherit parent constructors
-        template<typename... Args> SymbolTag(Args... args) : stdpairSymbolTag({args...}, {}) {}
+        // template<typename... Args> SymbolTag(Args... args) : stdpairSymbolTag({args...}, {}) {}
         // Reference: https://stackoverflow.com/a/32595916/11550178
+        SymbolTag(const Symbol &sym) : stdpairSymbolTag(sym, {}) {}
         Symbol& symbol() & { return this->first; }
         const Symbol& symbol() const & { return this->first; }
         Tag& tag() & { return this->second; }

@@ -63,8 +63,8 @@ private:
                 } else {
                     if (right != Complex(0)) {
                         // assert(right.imag() == 0);
-                        assert(right.real().denominator() == 1);
-                        auto n = right.real().numerator();
+                        // assert(right.real().denominator() == 1);
+                        auto n = right.toInt(); //.numerator();
                         while (n > 1) {
                             assert(n % 2 == 0); // Assume the denominator is a power of two.
                             left.divide_by_the_square_root_of_two(2);
@@ -98,8 +98,8 @@ private:
             index_++;
             Complex exponent = parseFactor();
             // assert(exponent.imag() == 0); // Assume the exponent must be an integer.
-            assert(exponent.real().denominator() == 1);
-            return fastPower(base, static_cast<int>(exponent.real().numerator()));
+            // assert(exponent.real().denominator() == 1);
+            return fastPower(base, static_cast<int>(exponent.toInt())); //.numerator()));
         }
         return base;
     }
@@ -136,7 +136,8 @@ private:
                     }
                     index_++;
                     // assert(x.imag() == 0);
-                    return Complex::Angle(x.real());
+                    auto xreal = x.real();
+                    return Complex::Angle(xreal);
                 } else {
                     throw std::runtime_error("Invalid syntax for A function");
                 }

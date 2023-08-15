@@ -30,8 +30,8 @@ public:
     bool is_leaf() const { return !internal; }
     boost::multiprecision::cpp_int qubit() const {
         assert(internal);
-        assert(complex.real().denominator() == 1);
-        return complex.real().numerator();
+        // assert(complex.real().denominator() == 1);
+        return complex.toInt(); //.numerator();
     }
     void back_to_zero() { complex = Complex::Complex::Zero(); }
     friend std::ostream& operator<<(std::ostream& os, const Concrete& obj) {
