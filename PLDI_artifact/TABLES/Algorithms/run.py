@@ -5,7 +5,7 @@ from multiprocessing import Manager, Process, Semaphore, Lock
 
 name = 'Table2.tex'
 TIMEOUT = 720
-NUM_OF_THREADS = 4 #80
+NUM_OF_THREADS = 80
 
 def AutoQ_permutation(root, stR, semaphore, lock, counter):
     with semaphore:
@@ -14,7 +14,7 @@ def AutoQ_permutation(root, stR, semaphore, lock, counter):
         q = p.stdout.splitlines()[0].decode('utf-8')
         p = subprocess.run(f'grep -P ".*(x |y |z |h |s |t |rx\(pi/2\) |ry\(pi/2\) |cx |cz |ccx |tdg |sdg |swap ).*\[\d+\];" {root}/circuit.qasm | wc -l', shell=True, capture_output=True, executable='/bin/bash')
         G = p.stdout.splitlines()[0].decode('utf-8')
-        p = subprocess.run(f'VATA_PATH=../vata timeout {TIMEOUT} ./permutation_af2b8852fd02393800ca61a25087b4f71559c2cd {root}/pre.aut {root}/circuit.qasm /tmp/{another}.aut {root}/post.aut', shell=True, capture_output=True, executable='/bin/bash')
+        p = subprocess.run(f'VATA_PATH=../vata timeout {TIMEOUT} ../../../build/cli/autoq_pldi {root}/pre.aut {root}/circuit.qasm {root}/post.aut', shell=True, capture_output=True, executable='/bin/bash')
         ret = p.returncode
         if ret == 0:
             stR.value = p.stdout.splitlines()[0].decode('utf-8')
@@ -28,52 +28,55 @@ def AutoQ_permutation(root, stR, semaphore, lock, counter):
         counter.value+=1; print(counter.value, '/ 80')
         lock.release()
 def AutoQ_composition(root, stR, semaphore, lock, counter):
-    with semaphore:
-        another = root.replace('.', '').replace('/', '') + 'composition'
-        p = subprocess.run(f'VATA_PATH=../vata timeout {TIMEOUT} ./composition_3e0cd35efc2b8963615c9ebff543c2d70e63df14 {root}/pre.aut {root}/circuit.qasm /tmp/{another}.aut {root}/post.aut', shell=True, capture_output=True, executable='/bin/bash')
-        ret = p.returncode
-        if ret == 0:
-            stR.value = p.stdout.splitlines()[0].decode('utf-8')
-        elif ret == 124:
-            stR.value = r'\multicolumn{6}{c}{\timeout}'
-        else:
-            stR.value = r'\multicolumn{6}{c}{error}'
-        if os.path.exists(f'/tmp/{another}.aut'):
-            os.system(f'rm /tmp/{another}.aut')
-        lock.acquire()
-        counter.value+=1; print(counter.value, '/ 80')
-        lock.release()
+    pass
+    # with semaphore:
+    #     another = root.replace('.', '').replace('/', '') + 'composition'
+    #     p = subprocess.run(f'VATA_PATH=../vata timeout {TIMEOUT} ./composition_3e0cd35efc2b8963615c9ebff543c2d70e63df14 {root}/pre.aut {root}/circuit.qasm /tmp/{another}.aut {root}/post.aut', shell=True, capture_output=True, executable='/bin/bash')
+    #     ret = p.returncode
+    #     if ret == 0:
+    #         stR.value = p.stdout.splitlines()[0].decode('utf-8')
+    #     elif ret == 124:
+    #         stR.value = r'\multicolumn{6}{c}{\timeout}'
+    #     else:
+    #         stR.value = r'\multicolumn{6}{c}{error}'
+    #     if os.path.exists(f'/tmp/{another}.aut'):
+    #         os.system(f'rm /tmp/{another}.aut')
+    #     lock.acquire()
+    #     counter.value+=1; print(counter.value, '/ 16')
+    #     lock.release()
 def SliQSim(root, stR, semaphore, lock, counter):
-    with semaphore:
-        p = subprocess.run(f'timeout {TIMEOUT} ./test_SliQSim.py {root}', shell=True, capture_output=True, executable='/bin/bash')
-        ret = p.returncode
-        if ret == 124:
-            stR.value = 'timeout'
-        elif ret != 0:
-            stR.value = 'error'
-        else:
-            stR.value = p.stdout.splitlines()[0].decode('utf-8').strip()
-        lock.acquire()
-        counter.value+=1; print(counter.value, '/ 80')
-        lock.release()
+    pass
+    # with semaphore:
+    #     p = subprocess.run(f'timeout {TIMEOUT} ./test_SliQSim.py {root}', shell=True, capture_output=True, executable='/bin/bash')
+    #     ret = p.returncode
+    #     if ret == 124:
+    #         stR.value = 'timeout'
+    #     elif ret != 0:
+    #         stR.value = 'error'
+    #     else:
+    #         stR.value = p.stdout.splitlines()[0].decode('utf-8').strip()
+    #     lock.acquire()
+    #     counter.value+=1; print(counter.value, '/ 16')
+    #     lock.release()
 def Feynman(root, stR, semaphore, lock, counter):
-    with semaphore:
-        p = subprocess.run(f'timeout {TIMEOUT} ../feynver {root}/circuit.qc {root}/opt.qc', shell=True, capture_output=True, executable='/bin/bash')
-        ret = p.returncode
-        if ret == 124:
-            stR.value = r'\multicolumn{2}{c}{\timeout}'
-        elif ret != 0:
-            stR.value = r'\multicolumn{2}{c}{error}'
-        else:
-            tmp = p.stdout.splitlines()[0].decode('utf-8')
-            ts = tmp.split(' (took ')[1].split(')')[0]
-            time_in_seconds = float(ts[:-1])
-            rounded_time = round(time_in_seconds, 1)
-            ts = f"{rounded_time}s"
-            stR.value = tmp.split(' (took ')[0] + ' & ' + ts
-        lock.acquire()
-        counter.value+=1; print(counter.value, '/ 80')
-        lock.release()
+    pass
+    # with semaphore:
+    #     p = subprocess.run(f'timeout {TIMEOUT} ../feynver {root}/circuit.qc {root}/opt.qc', shell=True, capture_output=True, executable='/bin/bash')
+    #     ret = p.returncode
+    #     if ret == 124:
+    #         stR.value = r'\multicolumn{2}{c}{\timeout}'
+    #     elif ret != 0:
+    #         stR.value = r'\multicolumn{2}{c}{error}'
+    #     else:
+    #         tmp = p.stdout.splitlines()[0].decode('utf-8')
+    #         ts = tmp.split(' (took ')[1].split(')')[0]
+    #         time_in_seconds = float(ts[:-1])
+    #         rounded_time = round(time_in_seconds, 1)
+    #         ts = f"{rounded_time}s"
+    #         stR.value = tmp.split(' (took ')[0] + ' & ' + ts
+    #     lock.acquire()
+    #     counter.value+=1; print(counter.value, '/ 16')
+    #     lock.release()
 
 semaphore = Semaphore(NUM_OF_THREADS)
 manager = Manager()
