@@ -356,7 +356,7 @@ BOOST_AUTO_TEST_CASE(Bernstein_Vazirani)
     ans.transitions[Concrete(ans.qubitNum)][{ans.stateNum - 3, ans.stateNum - 3}] = {static_cast<AUTOQ::TreeAutomata::State>(2*(ans.qubitNum-1) - 1)};
     ans.transitions[Concrete(ans.qubitNum)][{ans.stateNum - 2, ans.stateNum - 1}] = {static_cast<AUTOQ::TreeAutomata::State>(2*(ans.qubitNum-1))};
 
-    // std::ofstream fileRhs("reference_answers/Bernstein_Vazirani" + std::to_string(n) + ".txt");
+    // std::ofstream fileRhs("reference_answers/Bernstein_Vazirani" + std::to_string(n) + ".aut");
 	// fileRhs << AUTOQ::Serialization::TimbukSerializer::Serialize(ans);
 	// fileRhs.close();
 
@@ -447,7 +447,7 @@ BOOST_AUTO_TEST_CASE(Grover_Search)
     for (int i=1; i<=n; i++) aut.X(i);
     /********************************/
 
-    // std::ofstream fileRhs("reference_answers/Grover" + std::to_string(n) + ".txt");
+    // std::ofstream fileRhs("reference_answers/Grover" + std::to_string(n) + ".aut");
     // aut.fraction_simplification();
 	// fileRhs << AUTOQ::Serialization::TimbukSerializer::Serialize(aut);
 	// fileRhs.close();
@@ -459,7 +459,7 @@ BOOST_AUTO_TEST_CASE(Grover_Search)
     //     perror("getcwd() error");
     // }
 
-    std::ifstream t("../../reference_answers/Grover" + std::to_string(n) + ".txt");
+    std::ifstream t("../../reference_answers/Grover" + std::to_string(n) + ".aut");
     std::stringstream buffer;
     buffer << t.rdbuf();
     auto ans = AUTOQ::Parsing::TimbukParser<AUTOQ::TreeAutomata::Symbol>::ParseString(buffer.str());
