@@ -16,6 +16,7 @@
 #include <autoq/autoq.hh>
 #include <autoq/util/util.hh>
 #include <autoq/complex/complex.hh>
+#include <autoq/complex/fivetuple.hh>
 #include <autoq/symbol/concrete.hh>
 #include <autoq/symbol/symbolic.hh>
 #include <autoq/symbol/predicate.hh>
@@ -497,6 +498,27 @@ Automata<Symbol> parse_automaton(const std::string& str)
 			}
             numbers[lhs] = ComplexParser(rhs).parse();
         } else {	// processing transitions
+            // Unify k's for all complex numbers if 5-tuple is used
+            // for speeding up binary operations.
+            boost::multiprecision::cpp_int max_k = INT_MIN;
+            if constexpr(std::is_same_v<Complex, AUTOQ::Complex::FiveTuple>) {
+                for (const auto &kv : numbers) {
+                    if (kv.second.at(0)!=0 || kv.second.at(1)!=0 || kv.second.at(2)!=0 || kv.second.at(3)!=0)
+                        if (max_k < kv.second.at(4))
+                            max_k = kv.second.at(4);
+                }
+                if (max_k == INT_MIN) max_k = 0; // IMPORTANT: if not modified, resume to 0.
+                for (auto &kv : numbers) {
+                    if (kv.second.at(0)==0 && kv.second.at(1)==0 && kv.second.at(2)==0 && kv.second.at(3)==0)
+                        kv.second.at(4) = max_k;
+                    else {
+                        for (int i=0; i<4; i++)
+                            kv.second.at(i) <<= static_cast<int>((max_k - kv.second.at(4)) / 2);
+                        kv.second.at(4) = max_k;
+                    }
+                }
+            }
+
 			std::string invalid_trans_str = std::string(__FUNCTION__) +
 				": Invalid transition \"" + line + "\".";
 
@@ -530,7 +552,7 @@ Automata<Symbol> parse_automaton(const std::string& str)
                 if (t > result.stateNum) result.stateNum = t;
                 if constexpr(std::is_same_v<Symbol, TreeAutomata::Symbol>) {
                     try {
-                        result.transitions[Symbol(boost::lexical_cast<boost::multiprecision::cpp_int>(lhs.c_str()))][std::vector<TreeAutomata::State>()].insert(t);
+                        result.transitions[Symbol(boost::lexical_cast<int>(lhs.c_str()))][std::vector<TreeAutomata::State>()].insert(t);
                     } catch (...) {
                         result.transitions[Symbol(numbers.at(lhs))][std::vector<TreeAutomata::State>()].insert(t);
                     }
@@ -577,7 +599,7 @@ Automata<Symbol> parse_automaton(const std::string& str)
                 int t = atoi(rhs.c_str());
                 if (t > result.stateNum) result.stateNum = t;
                 if constexpr(std::is_same_v<Symbol, TreeAutomata::Symbol>) {
-                    result.transitions[Symbol(boost::lexical_cast<boost::multiprecision::cpp_int>(symbol.substr(1, symbol.length()-2)))][state_vector].insert(t);
+                    result.transitions[Symbol(boost::lexical_cast<int>(symbol.substr(1, symbol.length()-2)))][state_vector].insert(t);
                 } else if constexpr(std::is_same_v<Symbol, PredicateAutomata::Symbol>) {
                     auto temp = from_string_to_Predicate(symbol);
                     result.transitions[temp][state_vector].insert(t);
@@ -831,7 +853,7 @@ Automata<Symbol> TimbukParser<Symbol>::from_line_to_automaton(std::string line) 
         for (const auto &t : aut_leaves) {
             for (const auto &t2 : aut2.transitions) {
                 if (t2.first.is_internal()) { // if the to-be-appended transition is internal, then
-                    auto Q = aut.qubitNum + t2.first.symbol().qubit(); // we need to shift the qubit number
+                    int Q = aut.qubitNum + t2.first.symbol().qubit(); // we need to shift the qubit number
                     for (const auto &kv : t2.second) { // for each pair of vec_in -> set_out
                         auto k = kv.first;
                         for (unsigned i=0; i<k.size(); i++)

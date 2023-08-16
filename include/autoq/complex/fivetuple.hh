@@ -168,24 +168,15 @@ struct AUTOQ::Complex::FiveTuple : stdvectorboostmultiprecisioncpp_int {
 
 private:
     FiveTuple binary_operation(const FiveTuple &o, bool add) const {
-        auto at4 = at(4);
-        auto oat4 = o.at(4);
-        if (at(0)==0 && at(1)==0 && at(2)==0 && at(3)==0) at4 = oat4 % 2;
-        if (o.at(0)==0 && o.at(1)==0 && o.at(2)==0 && o.at(3)==0) oat4 = at4 % 2;
-        auto max_d = max(at4, oat4);
-        assert((max_d - at4) % 2 == 0);
-        assert((max_d - oat4) % 2 == 0);
-        int d1 = static_cast<int>(max_d - at4) / 2;
-        int d2 = static_cast<int>(max_d - oat4) / 2;
+        assert((at(4) == o.at(4)) ||
+            (at(0)==0 && at(1)==0 && at(2)==0 && at(3)==0 && at(4)<=o.at(4)) ||
+            (o.at(0)==0 && o.at(1)==0 && o.at(2)==0 && o.at(3)==0 && at(4)>=o.at(4)));
         FiveTuple symbol;
         for (int i=0; i<4; i++) {
-            if (add) symbol.push_back((at(i) << d1) + (o.at(i) << d2));
-            else symbol.push_back((at(i) << d1) - (o.at(i) << d2));
-            // if ((a>=0 && b>=0 && a>std::numeric_limits<Entry>::max()-b)
-            //  || (a<0 && b<0 && a<std::numeric_limits<Entry>::min()-b))
-            //     throw std::overflow_error("");
+            if (add) symbol.push_back(at(i) + o.at(i));
+            else symbol.push_back(at(i) - o.at(i));
         }
-        symbol.push_back(max_d); // remember to push k
+        symbol.push_back(std::max(at(4), o.at(4))); // remember to push k
         return symbol;
     }
     // bool operator==(const FiveTuple &o) const {

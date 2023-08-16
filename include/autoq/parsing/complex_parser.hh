@@ -104,6 +104,13 @@ private:
         return base;
     }
 
+    template <typename T>
+    boost::rational<boost::multiprecision::cpp_int> others_to_rational(const T &in) {
+        if constexpr(std::is_same_v<T, boost::rational<boost::multiprecision::cpp_int>>)
+            return in;
+        else // temporary conversion for double, may need additional enhancements
+            return boost::rational<boost::multiprecision::cpp_int>(in * 1000000, 1000000);
+    }
     Complex parsePrimary() {
         skipWhitespace();
         if (index_ >= input_.length()) {
@@ -137,7 +144,7 @@ private:
                     index_++;
                     // assert(x.imag() == 0);
                     auto xreal = x.real();
-                    return Complex::Angle(xreal);
+                    return Complex::Angle(others_to_rational(xreal));
                 } else {
                     throw std::runtime_error("Invalid syntax for A function");
                 }
