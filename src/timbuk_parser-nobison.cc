@@ -497,6 +497,7 @@ Automata<Symbol> parse_automaton(const std::string& str)
 				throw std::runtime_error(invalid_number_str);
 			}
             numbers[lhs] = ComplexParser(rhs).parse();
+            // std::cout << lhs << " " << numbers[lhs] << "\n";
         } else {	// processing transitions
             // Unify k's for all complex numbers if 5-tuple is used
             // for speeding up binary operations.

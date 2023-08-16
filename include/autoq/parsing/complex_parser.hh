@@ -61,15 +61,8 @@ private:
                 if (op == '*') {
                     left = left * right;
                 } else {
-                    if (right != Complex(0)) {
-                        // assert(right.imag() == 0);
-                        // assert(right.real().denominator() == 1);
-                        auto n = right.toInt(); //.numerator();
-                        while (n > 1) {
-                            assert(n % 2 == 0); // Assume the denominator is a power of two.
-                            left.divide_by_the_square_root_of_two(2);
-                            n /= 2;
-                        }
+                    if (!right.isZero()) {
+                        left = left / right;
                     } else {
                         throw std::runtime_error("Division by zero");
                     }
@@ -93,15 +86,19 @@ private:
         }
     }
     Complex parseFactor() {
-        Complex base = parsePrimary();
-        if (index_ < input_.length() && input_[index_] == '^') {
-            index_++;
-            Complex exponent = parseFactor();
-            // assert(exponent.imag() == 0); // Assume the exponent must be an integer.
-            // assert(exponent.real().denominator() == 1);
-            return fastPower(base, static_cast<int>(exponent.toInt())); //.numerator()));
+        Complex left = parsePrimary();
+        while (index_ < input_.length()) {
+            skipWhitespace();
+            char op = input_[index_];
+            if (op == '^') {
+                index_++;
+                Complex right = parsePrimary();
+                return fastPower(left, static_cast<int>(right.toInt()));
+            } else {
+                break;
+            }
         }
-        return base;
+        return left;
     }
 
     template <typename T>

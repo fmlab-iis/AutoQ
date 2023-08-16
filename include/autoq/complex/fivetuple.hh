@@ -5,6 +5,7 @@
 #include <vector>
 #include <boost/rational.hpp>
 #include <autoq/util/convert.hh>
+#include <boost/integer/common_factor.hpp>
 #include <boost/multiprecision/cpp_int.hpp>
 
 namespace AUTOQ
@@ -65,6 +66,30 @@ struct AUTOQ::Complex::FiveTuple : stdvectorboostmultiprecisioncpp_int {
         symbol.push_back(at(0)*o.at(3) + at(1)*o.at(2) + at(2)*o.at(1) + at(3)*o.at(0));
         symbol.push_back(at(4) + o.at(4)); // remember to push k
         return symbol;
+    }
+    FiveTuple operator/(FiveTuple o) const {
+        // std::cout << *this << o;
+        auto a = o.at(0);
+        auto b = o.at(1);
+        auto c = o.at(2);
+        auto d = o.at(3);
+        o.at(0) = a*a*a + 2*a*b*d + a*c*c + c*d*d - b*b*c;
+        o.at(1) = -a*a*b - b*b*d + b*c*c - d*d*d - 2*a*c*d;
+        o.at(2) = -a*a*c + 2*b*c*d - c*c*c - a*d*d + a*b*b;
+        o.at(3) = -b*d*d + 2*a*b*c - b*b*b - a*a*d + c*c*d;
+        o.at(4) = -o.at(4);
+        o = (*this) * o;
+        boost::multiprecision::cpp_int dd = (a*a + 2*b*d - c*c) * (a*a + 2*b*d - c*c) + (d*d + 2*a*c - b*b) * (d*d + 2*a*c - b*b);
+        boost::multiprecision::cpp_int cf = boost::integer::gcd(boost::integer::gcd(boost::integer::gcd(boost::integer::gcd(o.at(0), o.at(1)), o.at(2)), o.at(3)), dd);
+        for (int i=0; i<4; i++) o.at(i) /= cf;
+        dd /= cf;
+        while ((dd & 1) == 0) {
+            o.at(4) += 2;
+            dd >>= 1;
+        }
+        assert(dd == 1); // Assume the denominator is a power of 2!
+        // std::cout << o << std::endl;
+        return o;
     }
     FiveTuple& fraction_simplification() { // TODO: still necessary for inclusion checking
         if (at(0)==0 && at(1)==0 && at(2)==0 && at(3)==0) at(4) = 0;
@@ -164,6 +189,9 @@ struct AUTOQ::Complex::FiveTuple : stdvectorboostmultiprecisioncpp_int {
         double d = static_cast<double>(at(3)) / pow(2, static_cast<double>(at(4))/2.0);
         return static_cast<double>(pow(a, 2) + pow(b, 2) + pow(c, 2) + pow(d, 2))
             + pow(2, 0.5) * static_cast<double>(a * (b - d) + c * (b + d));
+    }
+    bool isZero() const {
+        return at(0)==0 && at(1)==0 && at(2)==0 && at(3)==0;
     }
 
 private:
