@@ -462,6 +462,7 @@ Automata<Symbol> parse_automaton(const std::string& str)
     bool start_transitions = false;
     Automata<Symbol> result;
     std::map<std::string, Complex> numbers;
+    std::map<std::string, std::string> predicates;
 
 	std::vector<std::string> lines = split_delim(str, '\n');
 	for (const std::string& line : lines) {
@@ -470,34 +471,45 @@ Automata<Symbol> parse_automaton(const std::string& str)
 
 		if (!start_numbers) {
 			std::string first_word = read_word(str);
-			if ("Numbers" == first_word) {
-				start_numbers = true;
-				continue;
-			} else {	// guard
-				throw std::runtime_error(std::string(__FUNCTION__) + ": Line \"" + line +
-					"\" contains an unexpected string.");
-			}
+            if constexpr(std::is_same_v<Symbol, Predicate>) {
+                if ("Predicates" == first_word) {
+                    start_numbers = true;
+                    continue;
+                } else {	// guard
+                    throw std::runtime_error(std::string(__FUNCTION__) + ": Line \"" + line +
+                        "\" contains an unexpected string.");
+                }
+            } else {
+                if ("Numbers" == first_word) {
+                    start_numbers = true;
+                    continue;
+                } else {	// guard
+                    throw std::runtime_error(std::string(__FUNCTION__) + ": Line \"" + line +
+                        "\" contains an unexpected string.");
+                }
+            }
 		} else if (!start_transitions) {	// processing numbers
             if (str == "Transitions") {
                 start_transitions = true;
                 continue;
             }
 
-			std::string invalid_number_str = std::string(__FUNCTION__) +
-				": Invalid number \"" + line + "\".";
-
             size_t arrow_pos = str.find(":=");
-			if (std::string::npos == arrow_pos) {
-				throw std::runtime_error(invalid_number_str);
-			}
-
-            std::string lhs = trim(str.substr(0, arrow_pos));
-			std::string rhs = trim(str.substr(arrow_pos + 2));
-			if (lhs.empty() || rhs.empty()) {
-				throw std::runtime_error(invalid_number_str);
-			}
-            numbers[lhs] = ComplexParser(rhs).parse();
-            // std::cout << lhs << " " << numbers[lhs] << "\n";
+			if (std::string::npos != arrow_pos) { // Variables may appear without values in the symbolic case.
+                std::string lhs = trim(str.substr(0, arrow_pos));
+                std::string rhs = trim(str.substr(arrow_pos + 2));
+                if (lhs.empty() || rhs.empty()) {
+                    if constexpr(std::is_same_v<Symbol, Predicate>)
+                        throw std::runtime_error(std::string(__FUNCTION__) + ": Invalid predicate \"" + line + "\".");
+                    else
+                        throw std::runtime_error(std::string(__FUNCTION__) + ": Invalid number \"" + line + "\".");
+                }
+                if constexpr(!std::is_same_v<Symbol, Predicate>) {
+                    numbers[lhs] = ComplexParser(rhs).parse();
+                    // std::cout << lhs << " " << numbers[lhs] << "\n";
+                } else
+                    predicates[lhs] = rhs;
+            }
         } else {	// processing transitions
             // Unify k's for all complex numbers if 5-tuple is used
             // for speeding up binary operations.
@@ -540,7 +552,7 @@ Automata<Symbol> parse_automaton(const std::string& str)
                 parens_begin_pos = std::string::npos;
             if (parens_end_pos < lhs.find("]"))
                 parens_end_pos = std::string::npos;
-			if (std::string::npos == parens_begin_pos) {	// no tuple of states
+			if (std::string::npos == parens_begin_pos) {	// no tuple of states -> leaf
 				if ((std::string::npos != parens_end_pos) ||
 					(!std::is_same_v<Symbol, PredicateAutomata::Symbol> && contains_whitespace(lhs)) ||
 					lhs.empty()) {
@@ -553,19 +565,29 @@ Automata<Symbol> parse_automaton(const std::string& str)
                 if (t > result.stateNum) result.stateNum = t;
                 if constexpr(std::is_same_v<Symbol, TreeAutomata::Symbol>) {
                     try {
-                        result.transitions[Symbol(boost::lexical_cast<int>(lhs.c_str()))][std::vector<TreeAutomata::State>()].insert(t);
+                        result.transitions[Symbol(boost::lexical_cast<int>(lhs))][std::vector<TreeAutomata::State>()].insert(t);
                     } catch (...) {
                         result.transitions[Symbol(numbers.at(lhs))][std::vector<TreeAutomata::State>()].insert(t);
                     }
                 } else if constexpr(std::is_same_v<Symbol, PredicateAutomata::Symbol>) {
-                    auto temp = from_string_to_Predicate(lhs);
-                    result.transitions[temp][std::vector<TreeAutomata::State>()].insert(t); //.stateNum.TranslateFwd(rhs));
+                    try {
+                        result.transitions[Symbol(boost::lexical_cast<int>(lhs))][std::vector<TreeAutomata::State>()].insert(t);
+                    } catch (...) {
+                        result.transitions[Symbol(predicates.at(lhs).c_str())][std::vector<TreeAutomata::State>()].insert(t);
+                    }
                 } else {
-                    auto temp = from_string_to_Symbolic(lhs);
-                    result.transitions[temp][std::vector<SymbolicAutomata::State>()].insert(t); //.stateNum.TranslateFwd(rhs));
+                    try {
+                        result.transitions[Symbol(boost::lexical_cast<int>(lhs))][std::vector<SymbolicAutomata::State>()].insert(t);
+                    } catch (...) {
+                        try {
+                            result.transitions[Symbol({{numbers.at(lhs), {{"1", 1}}}})][std::vector<SymbolicAutomata::State>()].insert(t);
+                        } catch (...) {
+                            result.transitions[Symbol({{Complex::One(), {{lhs, 1}}}})][std::vector<SymbolicAutomata::State>()].insert(t);
+                        }
+                    }
                 }
                 /*******************************************************************************************************************/
-			} else {	// contains a tuple of states
+			} else {	// contains a tuple of states -> internal
 				if ((std::string::npos == parens_end_pos) ||
 					(parens_begin_pos > parens_end_pos) ||
 					(parens_end_pos != lhs.length() - 1)) {
