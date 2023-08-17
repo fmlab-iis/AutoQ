@@ -1,7 +1,7 @@
-Automaton Zero
-States 0 1 2
-Final States 0 
+Predicates
+p1 := (and (= xR $R) (= xI $I))
+p2 := (and (= yR $R) (= yI $I))
 Transitions
 [1](1, 2) -> 0
-[(and (= xR $R) (= xI $I))] -> 1
-[(and (= yR $R) (= yI $I))] -> 2
+[p1] -> 1
+[p2] -> 2

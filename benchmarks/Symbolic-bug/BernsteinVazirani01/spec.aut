@@ -1,10 +1,8 @@
-Ops [0,0,0,0,0]:0 [1,0,0,0,0]:0 [1]:2 [2]:2 
-Automaton anonymous
-States 0 1 2 3 4 
-Final States 0 
+Predicates
+p1 := (= $I 0)
 Transitions
-[(= $I 0)] -> 3
-[(= $I 0)] -> 4
+[p1] -> 3
+[p1] -> 4
 [1](1, 2) -> 0
 [2](3, 3) -> 1
 [2](3, 4) -> 2

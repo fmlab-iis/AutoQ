@@ -1,6 +1,6 @@
-Automaton Zero
-States 0 1 2 3 4 5 6 7 8 9 10 
-Final States 0 
+Predicates
+p1 := true
+p2 := (and (< $a (/ 1 2)) (= $b 0) (= $c 0) (= $d 0))
 Transitions
 [1](1, 2) -> 0
 [2](3, 4) -> 1
@@ -8,8 +8,8 @@ Transitions
 [3](6, 7) -> 5
 [3](8, 9) -> 4
 [3](10, 7) -> 3
-[true] -> 6
-[true] -> 8
-[true] -> 9
-[(and (< $a (/ 1 2)) (= $b 0) (= $c 0) (= $d 0))] -> 10
-[true] -> 7
+[p1] -> 6
+[p1] -> 8
+[p1] -> 9
+[p2] -> 10
+[p1] -> 7
