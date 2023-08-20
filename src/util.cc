@@ -15,6 +15,8 @@
 // Standard library headers
 #include <regex>
 #include <fstream>
+#include <sys/types.h>
+#include <sys/wait.h>
 
 /**
  * @brief  Trim whitespaces from a string (both left and right)
@@ -72,6 +74,52 @@ bool AUTOQ::Util::ShellCmd(const std::string &cmd, std::string &result) {
     }
 
     pclose(pipe);
+    return true;
+}
+bool AUTOQ::Util::ShellCmd(const std::vector<std::string> &cmd, std::string &result) {
+    int pipefd[2];
+    if (pipe(pipefd) == -1) {
+        std::cerr << "[ERROR] Failed to create pipe." << std::endl;
+        return false;
+    }
+
+    pid_t pid = fork();
+    if (pid == -1) {
+        std::cerr << "[ERROR] Failed to fork." << std::endl;
+        return false;
+    } else if (pid == 0) { // Child process
+        close(pipefd[0]); // Close unused read end
+        // Redirect standard output to the write end of the pipe
+        dup2(pipefd[1], STDOUT_FILENO);
+
+        // Execute the command with the provided arguments
+        // const char* args[] = {"ls", "-l", nullptr};  // Replace with your desired arguments
+        // Create an array of const char* to hold the converted arguments
+        const char** args = new const char*[cmd.size() + 1]; // +1 for the terminating nullptr
+        for (size_t i = 0; i < cmd.size(); ++i)
+            args[i] = cmd[i].c_str();
+        args[cmd.size()] = nullptr; // Terminating nullptr
+        // for (size_t i = 0; i < cmd.size(); ++i)
+        //     std::cout << "args" << i << ": " << args[i] << "\n";
+        execvp(args[0], const_cast<char**>(args));
+        // If execvp() fails, this block will be executed
+        delete[] args; // Free the array itself
+        std::cerr << "[ERROR] Failed to execute command." << std::endl;
+        exit(1);
+    } else { // Parent process
+        close(pipefd[1]); // Close unused write end
+
+        char buffer[256];
+        ssize_t bytesRead;
+        while ((bytesRead = read(pipefd[0], buffer, sizeof(buffer))) > 0) {
+            // Process and print the data read from the command's output
+            // std::cout.write(buffer, bytesRead);
+        }
+        result = std::string(buffer);
+
+        close(pipefd[0]);
+        waitpid(pid, nullptr, 0); // Wait for the child process to finish
+    }
     return true;
 }
 

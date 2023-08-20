@@ -987,6 +987,7 @@ void AUTOQ::Automata<Symbol>::fraction_simplification() {
     return gpath_to_VATA;
   }
 
+  const int MAX_ARG_STRLEN = 131070; // in fact is 131072 on the Internet
 
   /** checks inclusion of two TAs */
   template <typename Symbol>
@@ -1001,7 +1002,9 @@ void AUTOQ::Automata<Symbol>::fraction_simplification() {
   bool AUTOQ::Automata<Symbol>::check_inclusion(const Automata<Symbol>& lhsPath, const std::string& rhsPath)
   {
     std::string aux;
-    AUTOQ::Util::ShellCmd(get_vata_path() + " incl2 '" + TimbukSerializer::Serialize(lhsPath) + "' " + rhsPath, aux);
+    std::string aut1 = TimbukSerializer::Serialize(lhsPath);
+    assert(aut1.length() <= MAX_ARG_STRLEN);
+    AUTOQ::Util::ShellCmd(get_vata_path() + " incl2 '" + aut1 + "' " + rhsPath, aux);
     return (aux == "1\n");
   }
 
@@ -1009,15 +1012,30 @@ void AUTOQ::Automata<Symbol>::fraction_simplification() {
   bool AUTOQ::Automata<Symbol>::check_inclusion(const std::string& lhsPath, const Automata<Symbol>& rhsPath)
   {
     std::string aux;
-    AUTOQ::Util::ShellCmd(get_vata_path() + " incl3 " + lhsPath + " '" + TimbukSerializer::Serialize(rhsPath) + "'", aux);
+    std::string aut2 = TimbukSerializer::Serialize(rhsPath);
+    assert(aut2.length() <= MAX_ARG_STRLEN);
+    AUTOQ::Util::ShellCmd(get_vata_path() + " incl3 " + lhsPath + " '" + aut2 + "'", aux);
     return (aux == "1\n");
   }
 
   template <typename Symbol>
   bool AUTOQ::Automata<Symbol>::check_inclusion(const Automata<Symbol>& lhsPath, const Automata<Symbol>& rhsPath)
   {
+    std::string input = TimbukSerializer::Serialize(lhsPath);
+    std::vector<std::string> args{get_vata_path(), "incl4"};
+    int length = input.length();
+    for (int i=0; i<length; i+=MAX_ARG_STRLEN) {
+        args.push_back(input.substr(i, MAX_ARG_STRLEN));
+    }
+    input = TimbukSerializer::Serialize(rhsPath);
+    length = input.length();    
+    for (int i=0; i<length; i+=MAX_ARG_STRLEN) {
+        args.push_back(input.substr(i, MAX_ARG_STRLEN));
+    }
     std::string aux;
-    AUTOQ::Util::ShellCmd(get_vata_path() + " incl4 '" + TimbukSerializer::Serialize(lhsPath) + "' '" + TimbukSerializer::Serialize(rhsPath) + "'", aux);
+    if (!AUTOQ::Util::ShellCmd(args, aux)) {
+        throw std::runtime_error("[ERROR] Failed to execute VATA.");
+    }
     return (aux == "1\n");
   }
 
