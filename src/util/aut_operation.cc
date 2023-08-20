@@ -986,6 +986,7 @@ void AUTOQ::Util::Automata<InitialSymbol>::fraction_simplification() {
     return gpath_to_VATA;
   }
 
+  const int MAX_ARG_STRLEN = 131070; // in fact is 131072 on the Internet
 
   /** checks inclusion of two TAs */
   template <typename InitialSymbol>
@@ -1007,9 +1008,11 @@ void AUTOQ::Util::Automata<InitialSymbol>::fraction_simplification() {
   template <typename InitialSymbol>
   bool AUTOQ::Util::Automata<InitialSymbol>::check_inclusion(const Automata<InitialSymbol>& lhsPath, const std::string& rhsPath)
   {
+    std::string aut1 = TimbukSerializer::Serialize(lhsPath);
+    assert(aut1.length() <= MAX_ARG_STRLEN);
     auto start_include = std::chrono::steady_clock::now();
     std::string aux;
-    AUTOQ::Util::ShellCmd(get_vata_path() + " incl2 '" + TimbukSerializer::Serialize(lhsPath) + "' " + rhsPath, aux);
+    AUTOQ::Util::ShellCmd(get_vata_path() + " incl2 '" + aut1 + "' " + rhsPath, aux);
     auto stop_include = std::chrono::steady_clock::now();
     bool result = (aux == "1\n");
     if (result) {
@@ -1023,9 +1026,11 @@ void AUTOQ::Util::Automata<InitialSymbol>::fraction_simplification() {
   template <typename InitialSymbol>
   bool AUTOQ::Util::Automata<InitialSymbol>::check_inclusion(const std::string& lhsPath, const Automata<InitialSymbol>& rhsPath)
   {
+    std::string aut2 = TimbukSerializer::Serialize(rhsPath);
+    assert(aut2.length() <= MAX_ARG_STRLEN);
     auto start_include = std::chrono::steady_clock::now();
     std::string aux;
-    AUTOQ::Util::ShellCmd(get_vata_path() + " incl3 " + lhsPath + " '" + TimbukSerializer::Serialize(rhsPath) + "'", aux);
+    AUTOQ::Util::ShellCmd(get_vata_path() + " incl3 " + lhsPath + " '" + aut2 + "'", aux);
     auto stop_include = std::chrono::steady_clock::now();
     bool result = (aux == "1\n");
     if (result) {
@@ -1039,9 +1044,22 @@ void AUTOQ::Util::Automata<InitialSymbol>::fraction_simplification() {
   template <typename InitialSymbol>
   bool AUTOQ::Util::Automata<InitialSymbol>::check_inclusion(const Automata<InitialSymbol>& lhsPath, const Automata<InitialSymbol>& rhsPath)
   {
+    std::string input = TimbukSerializer::Serialize(lhsPath);
+    std::vector<std::string> args{get_vata_path(), "incl4"};
+    int length = input.length();
+    for (int i=0; i<length; i+=MAX_ARG_STRLEN) {
+        args.push_back(input.substr(i, MAX_ARG_STRLEN));
+    }
+    input = TimbukSerializer::Serialize(rhsPath);
+    length = input.length();
+    for (int i=0; i<length; i+=MAX_ARG_STRLEN) {
+        args.push_back(input.substr(i, MAX_ARG_STRLEN));
+    }
     auto start_include = std::chrono::steady_clock::now();
     std::string aux;
-    AUTOQ::Util::ShellCmd(get_vata_path() + " incl4 '" + TimbukSerializer::Serialize(lhsPath) + "' '" + TimbukSerializer::Serialize(rhsPath) + "'", aux);
+    if (!AUTOQ::Util::ShellCmd(args, aux)) {
+        throw std::runtime_error("[ERROR] Failed to execute VATA.");
+    }
     auto stop_include = std::chrono::steady_clock::now();
     bool result = (aux == "1\n");
     if (result) {

@@ -70,6 +70,10 @@
         "concepts": "cpp",
         "numbers": "cpp",
         "semaphore": "cpp",
-        "stop_token": "cpp"
-    }
+        "stop_token": "cpp",
+        "csignal": "cpp",
+        "any": "cpp",
+        "future": "cpp"
+    },
+    "cmake.configureOnOpen": false
 }

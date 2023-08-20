@@ -23,6 +23,8 @@ namespace AUTOQ
 	{
 		std::string ReadFile(const std::string& fileName);
         bool ShellCmd(const std::string &cmd, std::string &result);
+        bool ShellCmd(const std::vector<std::string> &cmd, std::string &result);
+        std::string trim(const std::string& str);
 
 		// template <class Container, class Translator>
 		// Container RebindMap(const Container& container, const Translator& transl);
