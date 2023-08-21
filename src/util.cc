@@ -110,12 +110,13 @@ bool AUTOQ::Util::ShellCmd(const std::vector<std::string> &cmd, std::string &res
         close(pipefd[1]); // Close unused write end
 
         char buffer[256];
-        ssize_t bytesRead;
+        ssize_t bytes, bytesRead;
         while ((bytesRead = read(pipefd[0], buffer, sizeof(buffer))) > 0) {
             // Process and print the data read from the command's output
             // std::cout.write(buffer, bytesRead);
+            bytes = bytesRead;
         }
-        result = std::string(buffer);
+        result = std::string(buffer, bytes); // avoid garbage data due to the lack of initialization
 
         close(pipefd[0]);
         waitpid(pid, nullptr, 0); // Wait for the child process to finish
