@@ -8,14 +8,14 @@ timeout3 = 'XXX'
 timeout4 = 'XXX'
 
 for root, dirnames, filenames in sorted(os.walk('.')):
-    if len(dirnames) == 0 and 'post.aut' in filenames:
+    if len(dirnames) == 0 and 'post.spec' in filenames:
         print(root, end=' & ', flush=True)# , dirnames, filenames)
         ###################################
         # Tool 1 - AutoQ w.r.t. permutation
         if timeout1 in root:
             ret = 124
         else:
-            ret = os.system(f'VATA_PATH=/home/alan23273850/libvata/build/cli/vata timeout 720 ../build/cli/vata {root}/pre.aut {root}/circuit.qasm {root}/post.aut')
+            ret = os.system(f'VATA_PATH=/home/alan23273850/libvata/build/cli/vata timeout 720 ../build/cli/vata {root}/pre.spec {root}/circuit.qasm {root}/post.spec')
             ret = (ret >> 8) & 0xff
         if ret == 0:
             print('', end=' & ', flush=True)
@@ -30,7 +30,7 @@ for root, dirnames, filenames in sorted(os.walk('.')):
         if timeout2 in root:
             ret = 124
         else:
-            ret = os.system(f'VATA_PATH=/home/alan23273850/libvata/build/cli/vata timeout 720 ../composition {root}/pre.aut {root}/circuit.qasm {root}/post.aut')
+            ret = os.system(f'VATA_PATH=/home/alan23273850/libvata/build/cli/vata timeout 720 ../composition {root}/pre.spec {root}/circuit.qasm {root}/post.spec')
             ret = (ret >> 8) & 0xff
         if ret == 0:
             print('', end=' & ', flush=True)
