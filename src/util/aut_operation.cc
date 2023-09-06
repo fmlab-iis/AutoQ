@@ -1229,6 +1229,8 @@ bool AUTOQ::check_validity(Constraint C, const PredicateAutomata::Symbol &ps, co
     std::string smt_input = "bash -c \"z3 <(echo '" + std::string(C) + "(assert (not " + str + "))(check-sat)')\"";
     // auto startSim = chrono::steady_clock::now();
     ShellCmd(smt_input, str);
+    // std::cout << smt_input << "\n";
+    // std::cout << str << "\n";
     // auto durationSim = chrono::steady_clock::now() - startSim;
     // std::cout << toString2(durationSim) << "\n";
     if (str == "unsat\n") return true;
