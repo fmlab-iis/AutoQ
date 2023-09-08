@@ -511,6 +511,7 @@ Automata<Symbol> parse_automaton(const std::string& str)
                     predicates[lhs] = rhs;
             }
         } else {	// processing transitions
+            #if COMPLEX == 1
             // Unify k's for all complex numbers if 5-tuple is used
             // for speeding up binary operations.
             boost::multiprecision::cpp_int max_k = INT_MIN;
@@ -531,6 +532,7 @@ Automata<Symbol> parse_automaton(const std::string& str)
                     }
                 }
             }
+            #endif
 
 			std::string invalid_trans_str = std::string(__FUNCTION__) +
 				": Invalid transition \"" + line + "\".";

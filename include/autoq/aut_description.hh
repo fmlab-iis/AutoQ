@@ -163,7 +163,7 @@ public:
     Automata operator+(const Automata &o);
     Automata operator-(const Automata &o);
     Automata Union(const Automata &o); // U is in uppercase since "union" is a reserved keyword.
-    void print() const;
+    void print(const std::string &prompt="") const;
     int transition_size();
 
     /// simulation-based reduction

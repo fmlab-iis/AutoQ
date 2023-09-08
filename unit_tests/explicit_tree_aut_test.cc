@@ -418,7 +418,7 @@ BOOST_AUTO_TEST_CASE(Bernstein_Vazirani)
 void dfs(const std::map<AUTOQ::TreeAutomata::State, AUTOQ::TreeAutomata::StateVector> &edge,
          const std::map<AUTOQ::TreeAutomata::State, AUTOQ::TreeAutomata::SymbolTag> &leaf,
          const AUTOQ::TreeAutomata::StateVector &layer,
-         #if COMPLEX == 2
+         #if COMPLEX == 3
          std::vector<float128> &prob) {
          #else
          std::vector<double> &prob) {
@@ -761,7 +761,8 @@ BOOST_AUTO_TEST_CASE(Symbolic_into_Predicates)
 
             AUTOQ::Constraint C(constraint.c_str());
 
-            BOOST_REQUIRE_MESSAGE(AUTOQ::is_spec_satisfied(C, aut, spec), "\n" + 
+            BOOST_REQUIRE_MESSAGE(AUTOQ::is_spec_satisfied(C, aut, spec), "\n" +
+                        std::string(entry.path().c_str()) + "\n" + 
                         AUTOQ::Serialization::TimbukSerializer::Serialize(aut) +
                         AUTOQ::Serialization::TimbukSerializer::Serialize(spec));
         }

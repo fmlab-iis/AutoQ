@@ -103,10 +103,10 @@ private:
 
     template <typename T>
     boost::rational<boost::multiprecision::cpp_int> others_to_rational(const T &in) {
-        if constexpr(std::is_same_v<T, boost::rational<boost::multiprecision::cpp_int>>)
-            return in;
+        if constexpr(std::is_convertible_v<T, boost::rational<boost::multiprecision::cpp_int>>)
+            return boost::rational<boost::multiprecision::cpp_int>(in);
         else // temporary conversion for double, may need additional enhancements
-            return boost::rational<boost::multiprecision::cpp_int>(in * 1000000, 1000000);
+            return boost::rational<boost::multiprecision::cpp_int>(static_cast<boost::multiprecision::cpp_int>(in * 1000000), 1000000);
     }
     Complex parsePrimary() {
         skipWhitespace();

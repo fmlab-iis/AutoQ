@@ -483,7 +483,8 @@ AUTOQ::Automata<Symbol> AUTOQ::Automata<Symbol>::Union(const Automata<Symbol> &o
 }
 
 template <typename Symbol>
-void AUTOQ::Automata<Symbol>::print() const {
+void AUTOQ::Automata<Symbol>::print(const std::string &prompt) const {
+    std::cout << prompt;
     std::cout << AUTOQ::Serialization::TimbukSerializer::Serialize(*this);
 }
 

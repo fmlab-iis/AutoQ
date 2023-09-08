@@ -22,6 +22,7 @@ set(autoq_compiler_add_flags_list
   -Wold-style-cast
   -fdiagnostics-show-option
   # -march=native
+  -DCOMPLEX=2
 )
 
 foreach(param ${autoq_compiler_add_flags_list})
