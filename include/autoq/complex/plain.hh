@@ -67,8 +67,8 @@ struct AUTOQ::Complex::Plain : std::pair<double, double> {
     boost::multiprecision::cpp_int toInt() const { // TODO: fake solution
         return static_cast<boost::multiprecision::cpp_int>(first);
     }
-    double real() const { // TODO: fake solution
-        return first;
+    boost::rational<boost::multiprecision::cpp_int> to_rational() const { // TODO: fake solution
+        return boost::rational<boost::multiprecision::cpp_int>(static_cast<boost::multiprecision::cpp_int>(first * 1000000), 1000000);
     }
     std::string realToSMT() const {
         std::ostringstream stm;

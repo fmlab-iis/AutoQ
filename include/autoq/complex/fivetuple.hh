@@ -163,7 +163,7 @@ struct AUTOQ::Complex::FiveTuple : stdvectorboostmultiprecisioncpp_int {
     boost::multiprecision::cpp_int toInt() const { // TODO: fake solution
         return at(0);
     }
-    boost::rational<boost::multiprecision::cpp_int> real() const { // TODO: fake solution
+    boost::rational<boost::multiprecision::cpp_int> to_rational() const { // TODO: fake solution
         return boost::rational<boost::multiprecision::cpp_int>(at(0), boost::multiprecision::pow(boost::multiprecision::cpp_int(2), static_cast<int>(at(4)/2)));
     }
     std::string realToSMT() const {

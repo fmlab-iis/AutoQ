@@ -101,13 +101,13 @@ private:
         return left;
     }
 
-    template <typename T>
-    boost::rational<boost::multiprecision::cpp_int> others_to_rational(const T &in) {
-        if constexpr(std::is_convertible_v<T, boost::rational<boost::multiprecision::cpp_int>>)
-            return boost::rational<boost::multiprecision::cpp_int>(in);
-        else // temporary conversion for double, may need additional enhancements
-            return boost::rational<boost::multiprecision::cpp_int>(static_cast<boost::multiprecision::cpp_int>(in * 1000000), 1000000);
-    }
+    // template <typename T>
+    // boost::rational<boost::multiprecision::cpp_int> others_to_rational(const T &in) {
+    //     if constexpr(std::is_convertible_v<T, boost::rational<boost::multiprecision::cpp_int>>)
+    //         return boost::rational<boost::multiprecision::cpp_int>(in);
+    //     else // temporary conversion for double, may need additional enhancements
+    //         return boost::rational<boost::multiprecision::cpp_int>(static_cast<boost::multiprecision::cpp_int>(in * 1000000), 1000000);
+    // }
     Complex parsePrimary() {
         skipWhitespace();
         if (index_ >= input_.length()) {
@@ -140,8 +140,7 @@ private:
                     }
                     index_++;
                     // assert(x.imag() == 0);
-                    auto xreal = x.real();
-                    return Complex::Angle(others_to_rational(xreal));
+                    return Complex::Angle(x.to_rational());
                 } else {
                     throw std::runtime_error("Invalid syntax for A function");
                 }
