@@ -1,6 +1,6 @@
 
-#ifndef _AUTOQ_COMPLEX_HH_
-#define _AUTOQ_COMPLEX_HH_
+#ifndef _AUTOQ_NTUPLE_HH_
+#define _AUTOQ_NTUPLE_HH_
 
 
 #include <iostream>
