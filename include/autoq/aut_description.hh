@@ -45,39 +45,39 @@ public:   // data types
 	typedef std::set<State> StateSet;
 
     typedef TT Symbol;
-	typedef std::vector<int> Tag;
+	typedef unsigned Tag;
     typedef std::pair<Symbol, Tag> stdpairSymbolTag;
     struct SymbolTag : stdpairSymbolTag {
         using stdpairSymbolTag::stdpairSymbolTag; // inherit parent constructors
         // template<typename... Args> SymbolTag(Args... args) : stdpairSymbolTag({args...}, {}) {}
         // Reference: https://stackoverflow.com/a/32595916/11550178
-        SymbolTag(const Symbol &sym) : stdpairSymbolTag(sym, {}) {}
+        SymbolTag(const Symbol &sym) : stdpairSymbolTag(sym, 0) {}
         Symbol& symbol() & { return this->first; }
         const Symbol& symbol() const & { return this->first; }
         Tag& tag() & { return this->second; }
         const Tag& tag() const & { return this->second; }
-        int& tag(int index) & { return this->second.at(index); }
-        const int& tag(int index) const & { return this->second.at(index); }
+        // bool& tag(int index) & { return this->second[index]; }
+        bool tag(int index) const { return (this->second & (1<<index)) >> index; }
         /*********************************************************/
         bool is_internal() const { return symbol().is_internal(); }
         bool is_leaf() const { return symbol().is_leaf(); }
-        bool is_tagged() const { return !tag().empty(); }
+        // bool is_tagged() const { return !tag().empty(); }
         bool operator<(const SymbolTag &rhs) const {
             if (is_internal() && rhs.is_leaf()) return true;
             else if (is_leaf() && rhs.is_internal()) return false;
             else if (symbol() == rhs.symbol()) { // if symbol content is the same, compare tag
                 // TODO: I still don't understand why "tag size" should also be compared first.
-                if (tag().size() < rhs.tag().size())
-                    return true;
-                else if (tag().size() > rhs.tag().size())
-                    return false;
-                else
+                // if (tag().size() < rhs.tag().size())
+                //     return true;
+                // else if (tag().size() > rhs.tag().size())
+                //     return false;
+                // else
                     return tag() < rhs.tag();
             } // compare symbol content first
             else return symbol() < rhs.symbol();
         }
         friend std::ostream& operator<<(std::ostream& os, const SymbolTag& obj) {
-            os << obj.symbol(); // print only the symbol part without the tag
+            os << obj.symbol() << "[" << obj.tag() << "]"; // print only the symbol part without the tag
             return os;
         }
     };
@@ -149,21 +149,21 @@ public:   // methods
 private:
     void remove_useless(bool only_bottom_up=false);
     Automata binary_operation(const Automata &o, bool add);
-    void swap_forward(const int k);
-    void swap_backward(const int k);
+    // void swap_forward(const int k);
+    // void swap_backward(const int k);
 
 public:
     void fraction_simplification();
     void omega_multiplication(int rotation=1);
     void divide_by_the_square_root_of_two();
     void branch_restriction(int k, bool positive_has_value=true);
-    void value_restriction(int k, bool branch);
-    void semi_determinize();
-    void semi_undeterminize();
+    // void value_restriction(int k, bool branch);
+    // void semi_determinize();
+    // void semi_undeterminize();
     Automata operator+(const Automata &o);
     Automata operator-(const Automata &o);
     Automata Union(const Automata &o); // U is in uppercase since "union" is a reserved keyword.
-    void print() const;
+    void print(const char *str="") const;
     int transition_size();
 
     /// simulation-based reduction
@@ -215,8 +215,8 @@ public:
     static bool check_inclusion(const Automata& lhsPath, const Automata& rhsPath);
 
     void execute(const char *filename);
-    void print_language();
-    std::vector<std::vector<std::string>> print(const std::map<typename AUTOQ::Automata<Symbol>::State, typename AUTOQ::Automata<Symbol>::Symbol> &leafSymbolMap, int qubit, typename AUTOQ::Automata<Symbol>::State state);
+    void print_language(const char *str="") const;
+    std::vector<std::pair<std::map<int, unsigned>, std::vector<std::string>>> print(const std::map<typename AUTOQ::Automata<Symbol>::State, std::vector<typename AUTOQ::Automata<Symbol>::SymbolTag>> &leafSymbolTagsMap, std::map<int, std::map<std::pair<typename AUTOQ::Automata<Symbol>::State, typename AUTOQ::Automata<Symbol>::Symbol>, std::vector<unsigned>>> dqfCOL, int qubit, typename AUTOQ::Automata<Symbol>::State state) const;
 };
 
 

@@ -147,17 +147,111 @@ void AUTOQ::Automata<Symbol>::H(int t) {
         return;
     #endif
     auto start = std::chrono::steady_clock::now();
-    this->semi_determinize();
-    auto aut1 = *this;
-    aut1.value_restriction(t, false);
-    auto aut2 = *this;
-    aut2.value_restriction(t, true);
-    aut2.branch_restriction(t, false);
-    auto aut3 = *this;
-    aut3.branch_restriction(t, true);
-    *this = aut1 + aut2 - aut3;
-    divide_by_the_square_root_of_two();
-    this->semi_undeterminize();
+    AUTOQ::Automata<Symbol> result;
+    result.name = name;
+    result.qubitNum = qubitNum;
+    result.isTopdownDeterministic = isTopdownDeterministic; // IMPORTANT: Avoid missing copying new fields afterwards.
+    result.finalStates = finalStates;
+
+    bool overflow = (stateNum > (std::numeric_limits<State>::max()-stateNum) / stateNum / 2); // want: 2 * stateNum^2 + stateNum <= max
+    if (overflow)
+        throw std::overflow_error("[ERROR] The number of states after multiplication is too large.");
+    // s < stateNum -> s
+    // (s1, s2, +) -> stateNum + s1 * stateNum + s2
+    // (s1, s2, -) -> stateNum + stateNum^2 + s1 * stateNum + s2 -> max == 2 * stateNum^2 + stateNum
+
+    // We assume here transitions are ordered by symbols.
+    // x_i are placed in the beginning, and leaves are placed in the end.
+    // This traversal method is due to efficiency.
+
+    auto it = transitions.begin(); // global pointer
+    for (; it != transitions.end(); it++) { // iterate over all internal transitions of symbol < t
+        assert(it->first.is_internal());
+        if (it->first.symbol().qubit() >= t) break;
+        result.transitions.insert(*it);
+    }
+
+    assert(it->first.symbol().qubit() == t); // iterate over all internal transitions of symbol == t
+    for (; it != transitions.end(); it++) { 
+        if (it->first.is_leaf() || it->first.symbol().qubit() > t) break;
+        for (const auto &in_outs : it->second) {
+            assert(in_outs.first.size() == 2);
+            result.transitions[it->first][{stateNum + in_outs.first.at(0)*stateNum + in_outs.first.at(1),
+                       stateNum + stateNum*stateNum + in_outs.first.at(0)*stateNum + in_outs.first.at(1)}]
+                = in_outs.second;
+        }
+    }
+
+    auto head = it;
+    for (; it != transitions.end(); it++) { // iterate over all internal transitions of symbol > t
+        if (it->first.is_leaf()) break; // assert internal transition
+        assert(it->first.symbol().qubit() > t);
+        if (it->first.symbol().qubit() != head->first.symbol().qubit())
+            head = it;
+        for (auto it2=head; it2 != transitions.end(); it2++) {
+            if (it2->first.is_leaf()) break; // another internal transition
+            if (it2->first.symbol().qubit() != it->first.symbol().qubit()) break; // ensure that the two symbols have the same qubit.
+            assert(it->first.symbol() == it2->first.symbol());
+            for (const auto &in_out1 : it->second) {
+                assert(in_out1.first.size() == 2);
+                for (const auto &in_out2 : it2->second) {
+                    assert(in_out2.first.size() == 2);
+                    for (const auto &top1 : in_out1.second) {
+                        for (const auto &top2 : in_out2.second) {
+                            // nt is short for the new transition
+                            // std::cout << AUTOQ::Util::Convert::ToString(in_out1.first) << "A\n";
+                            // std::cout << AUTOQ::Util::Convert::ToString(in_out2.first) << "B\n";
+                            // std::cout << "(" << stateNum + in_out1.first.at(0)*stateNum + in_out2.first.at(0) << ")("
+                            //                  << stateNum + in_out1.first.at(1)*stateNum + in_out2.first.at(1) << ")("
+                            //                  << top1 << ")(" << top2 << ")(" << stateNum + top1*stateNum + top2 << ")\n";
+                            auto &nt = result.transitions[{it->first.symbol(), it->first.tag() | it2->first.tag()}];
+                            nt[{stateNum + in_out1.first.at(0)*stateNum + in_out2.first.at(0),
+                                stateNum + in_out1.first.at(1)*stateNum + in_out2.first.at(1)}]
+                                .insert(stateNum + top1*stateNum + top2); // (s1, s2, +) -> stateNum + s1 * stateNum + s2
+                            nt[{stateNum + stateNum*stateNum + in_out1.first.at(0)*stateNum + in_out2.first.at(0),
+                                stateNum + stateNum*stateNum + in_out1.first.at(1)*stateNum + in_out2.first.at(1)}]
+                                .insert(stateNum + stateNum*stateNum + top1*stateNum + top2); // (s1, s2, -) -> stateNum + stateNum^2 + s1 * stateNum + s2
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    head = it;
+    for (; it != transitions.end(); it++) { // iterate over all leaf transitions
+        assert(it->first.is_leaf()); // assert leaf transition
+        for (auto it2=head; it2 != transitions.end(); it2++) {
+            assert(it2->first.is_leaf()); // another leaf transition
+            for (const auto &in_out1 : it->second) {
+                assert(in_out1.first.size() == 0);
+                for (const auto &in_out2 : it2->second) {
+                    assert(in_out2.first.size() == 0);
+                    // std::cout << AUTOQ::Util::Convert::ToString(in_out1.second) << "++\n";
+                    for (const auto &top1 : in_out1.second) {
+                        // std::cout << AUTOQ::Util::Convert::ToString(in_out2.second) << "==\n";
+                        for (const auto &top2 : in_out2.second) {
+                            // std::cout << it->first << "A\n";
+                            // std::cout << it2->first << "B\n";
+                            // std::cout << (it->first.symbol() + it2->first.symbol()).divide_by_the_square_root_of_two() << "C\n";
+                            // std::cout << (it->first.symbol() - it2->first.symbol()).divide_by_the_square_root_of_two() << "D\n";
+                            // std::cout << "(" << stateNum << ")(" << top1 << ")(" << top2 << ")(" << stateNum + top1*stateNum + top2 << ")(" << stateNum + stateNum*stateNum + top1*stateNum + top2 << ")\n";
+                            result.transitions[{(it->first.symbol() + it2->first.symbol()).divide_by_the_square_root_of_two(),
+                                                it->first.tag() | it2->first.tag()}][{}]
+                                .insert(stateNum + top1*stateNum + top2); // (s1, s2, +) -> stateNum + s1 * stateNum + s2
+                            result.transitions[{(it->first.symbol() - it2->first.symbol()).divide_by_the_square_root_of_two(),
+                                                it->first.tag() | it2->first.tag()}][{}]
+                                .insert(stateNum + stateNum*stateNum + top1*stateNum + top2); // (s1, s2, -) -> stateNum + stateNum^2 + s1 * stateNum + s2
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    result.stateNum = 2 * stateNum * stateNum + stateNum;
+    result.remove_useless(); // otherwise, will out of memory (from the past binary operation)
+    *this = result;
     gateCount++;
     auto duration = std::chrono::steady_clock::now() - start;
     if (gateLog) std::cout << "H" << t << "：" << stateNum << " states " << count_transitions() << " transitions " << toString(duration) << "\n";
@@ -248,19 +342,20 @@ void AUTOQ::Automata<Symbol>::Rx(int t) {
         return;
     #endif
     auto start = std::chrono::steady_clock::now();
-    this->semi_determinize();
-    auto aut1 = *this;
-    auto aut2 = *this;
-    aut2.value_restriction(t, false);
-    aut2.branch_restriction(t, true);
-    auto aut3 = *this;
-    aut3.value_restriction(t, true);
-    aut3.branch_restriction(t, false);
-    aut2 = aut2 + aut3;
-    aut2.omega_multiplication(2);
-    *this = aut1 - aut2;
-    divide_by_the_square_root_of_two();
-    this->semi_undeterminize();
+    exit(1);
+    // this->semi_determinize();
+    // auto aut1 = *this;
+    // auto aut2 = *this;
+    // aut2.value_restriction(t, false);
+    // aut2.branch_restriction(t, true);
+    // auto aut3 = *this;
+    // aut3.value_restriction(t, true);
+    // aut3.branch_restriction(t, false);
+    // aut2 = aut2 + aut3;
+    // aut2.omega_multiplication(2);
+    // *this = aut1 - aut2;
+    // divide_by_the_square_root_of_two();
+    // this->semi_undeterminize();
     gateCount++;
     auto duration = std::chrono::steady_clock::now() - start;
     if (gateLog) std::cout << "Rx" << t << "：" << stateNum << " states " << count_transitions() << " transitions " << toString(duration) << "\n";
@@ -273,17 +368,18 @@ void AUTOQ::Automata<Symbol>::Ry(int t) {
         return;
     #endif
     auto start = std::chrono::steady_clock::now();
-    this->semi_determinize();
-    auto aut1 = *this;
-    aut1.value_restriction(t, false);
-    auto aut2 = *this;
-    aut2.branch_restriction(t, true);
-    auto aut3 = *this;
-    aut3.value_restriction(t, true);
-    aut3.branch_restriction(t, false);
-    *this = aut1 + aut2 - aut3;
-    divide_by_the_square_root_of_two();
-    this->semi_undeterminize();
+    exit(1);
+    // this->semi_determinize();
+    // auto aut1 = *this;
+    // aut1.value_restriction(t, false);
+    // auto aut2 = *this;
+    // aut2.branch_restriction(t, true);
+    // auto aut3 = *this;
+    // aut3.value_restriction(t, true);
+    // aut3.branch_restriction(t, false);
+    // *this = aut1 + aut2 - aut3;
+    // divide_by_the_square_root_of_two();
+    // this->semi_undeterminize();
     gateCount++;
     auto duration = std::chrono::steady_clock::now() - start;
     if (gateLog) std::cout << "Ry" << t << "：" << stateNum << " states " << count_transitions() << " transitions " << toString(duration) << "\n";
@@ -298,18 +394,19 @@ void AUTOQ::Automata<Symbol>::CNOT(int c, int t, bool opt) {
     auto start = std::chrono::steady_clock::now();
     assert(c != t);
     if (c > t) {
-        this->semi_determinize();
-        auto aut1 = *this;
-        aut1.branch_restriction(c, false);
-        auto aut2 = *this;
-        aut2.branch_restriction(c, true);
-        auto aut3 = aut2;
-        aut2.value_restriction(t, false);
-        aut2.branch_restriction(t, true);
-        aut3.value_restriction(t, true);
-        aut3.branch_restriction(t, false);
-        *this = aut1 + aut2 + aut3;
-        this->semi_undeterminize();
+        exit(1);
+        // this->semi_determinize();
+        // auto aut1 = *this;
+        // aut1.branch_restriction(c, false);
+        // auto aut2 = *this;
+        // aut2.branch_restriction(c, true);
+        // auto aut3 = aut2;
+        // aut2.value_restriction(t, false);
+        // aut2.branch_restriction(t, true);
+        // aut3.value_restriction(t, true);
+        // aut3.branch_restriction(t, false);
+        // *this = aut1 + aut2 + aut3;
+        // this->semi_undeterminize();
     } else {
         auto aut2 = *this;
         aut2.X(t); gateCount--; // prevent repeated counting
@@ -446,23 +543,24 @@ void AUTOQ::Automata<Symbol>::Toffoli(int c, int c2, int t) {
         remove_useless();
         reduce();
     } else {
-        this->semi_determinize();
-        auto aut1 = *this;
-        aut1.branch_restriction(c, false);
-        auto aut2 = *this;
-        aut2.branch_restriction(c2, false);
-        auto aut3 = aut2;
-        aut3.branch_restriction(c, false);
-        auto aut4 = *this;
-        aut4.branch_restriction(c, true);
-        aut4.branch_restriction(c2, true);
-        auto aut5 = aut4;
-        aut4.value_restriction(t, false);
-        aut4.branch_restriction(t, true);
-        aut5.value_restriction(t, true);
-        aut5.branch_restriction(t, false);
-        *this = aut1 + aut2 - aut3 + aut4 + aut5;
-        this->semi_undeterminize();
+        exit(1);
+        // this->semi_determinize();
+        // auto aut1 = *this;
+        // aut1.branch_restriction(c, false);
+        // auto aut2 = *this;
+        // aut2.branch_restriction(c2, false);
+        // auto aut3 = aut2;
+        // aut3.branch_restriction(c, false);
+        // auto aut4 = *this;
+        // aut4.branch_restriction(c, true);
+        // aut4.branch_restriction(c2, true);
+        // auto aut5 = aut4;
+        // aut4.value_restriction(t, false);
+        // aut4.branch_restriction(t, true);
+        // aut5.value_restriction(t, true);
+        // aut5.branch_restriction(t, false);
+        // *this = aut1 + aut2 - aut3 + aut4 + aut5;
+        // this->semi_undeterminize();
     }
     gateCount++;
     auto duration = std::chrono::steady_clock::now() - start;
@@ -485,7 +583,7 @@ void AUTOQ::Automata<Symbol>::Tdg(int t) {
             s.symbol().degree45cw();
             transitions_new[s] = t_old.second;
         } else {
-            assert(symbol_tag.tag().size() <= 1);
+            // assert(symbol_tag.tag().size() <= 1);
             transitions_new.insert(t_old);
         }
     }
@@ -537,7 +635,7 @@ void AUTOQ::Automata<Symbol>::Sdg(int t) {
             s.symbol().degree90cw();
             transitions_new[s] = t_old.second;
         } else {
-            assert(symbol_tag.tag().size() <= 1);
+            // assert(symbol_tag.tag().size() <= 1);
             transitions_new.insert(t_old);
         }
     }

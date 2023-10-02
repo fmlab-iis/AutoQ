@@ -55,7 +55,7 @@ public:
         if (rotation < 0) complex.clockwise(boost::rational<boost::multiprecision::cpp_int>(rotation, 8));
     }
     void fraction_simplification() { complex.fraction_simplification(); }
-    void divide_by_the_square_root_of_two() { complex.divide_by_the_square_root_of_two(); }
+    Concrete divide_by_the_square_root_of_two() { complex.divide_by_the_square_root_of_two(); return *this; }
     void negate() { complex = complex * (-1); }
     void degree45cw() { complex.clockwise(boost::rational<boost::multiprecision::cpp_int>(1, 8)); }
     void degree90cw() { complex.clockwise(boost::rational<boost::multiprecision::cpp_int>(1, 4)); }

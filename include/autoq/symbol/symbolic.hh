@@ -155,7 +155,7 @@ public:
             complex = complex2;
         }
     }
-    void divide_by_the_square_root_of_two() {
+    Symbolic divide_by_the_square_root_of_two() {
         std::map<Complex::Complex, AUTOQ::Symbol::linear_combination> complex2;
         for (const auto &kv : complex) {
             auto k = kv.first;
@@ -163,6 +163,7 @@ public:
             complex2[k.divide_by_the_square_root_of_two()] = v;
         }
         complex = complex2;
+        return *this;
     }
     void negate() {
         std::map<Complex::Complex, AUTOQ::Symbol::linear_combination> complex2;
