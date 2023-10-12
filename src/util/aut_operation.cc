@@ -1056,33 +1056,6 @@ void AUTOQ::Automata<Symbol>::fraction_simplification() {
 // } // anonymous namespace
 /******************************************************/
 
-// template <typename Symbol>
-// void AUTOQ::Automata<Symbol>::sim_reduce()
-// {
-//   using State = typename Automata<Symbol>::State;
-//   using DiscontBinaryRelOnStates = typename Util::DiscontBinaryRelation<State>;
-//   using StateToStateMap = typename std::unordered_map<State, State>;
-
-//   DiscontBinaryRelOnStates sim = compute_down_sim(*this);
-
-//   // TODO: this is probably not optimal, we could probably get the mapping of
-//   // states for collapsing in a faster way
-//   sim.RestrictToSymmetric();       // sim is now an equivalence relation
-
-//   StateToStateMap collapseMap;
-//   sim.GetQuotientProjection(collapseMap);
-
-//   // Automata old = *this;
-//   reindex_aut_states(*this, collapseMap);
-
-//   // if (!check_equal_aut(*this, old)) {
-//   //   AUTOQ_DEBUG("wrong simulation result!");
-//   //   AUTOQ_DEBUG("old: " + old.ToString());
-//   //   AUTOQ_DEBUG("new: " + this->ToString());
-//   //   AUTOQ_DEBUG("simulation: " + sim.ToString());
-//   // }
-// }
-
 template <typename Symbol>
 void AUTOQ::Automata<Symbol>::execute(const char *filename) {
     std::ifstream qasm(filename);
