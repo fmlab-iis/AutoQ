@@ -85,8 +85,61 @@ namespace std
 } // namespace std
 
 template <typename Symbol>
+void AUTOQ::Automata<Symbol>::remove_impossible_colors() {
+    std::map<Symbol, std::map<State, std::map<Tag, std::vector<StateVector>>>> fqci;
+    for (const auto &tr : transitions) {
+        auto &symbol_tag = tr.first;
+        auto &in_outs = tr.second;
+        for (const auto &in_out : in_outs) {
+            auto &in = in_out.first;
+            auto &outs = in_out.second;
+            for (const auto &out : outs) {
+                fqci[symbol_tag.symbol()][out][symbol_tag.tag()].push_back(in);
+            }
+        }
+    }
+
+    std::map<Symbol, std::map<State, std::vector<Tag>>> delete_colors;
+    for (const auto &f_ : fqci) {
+        for (const auto &q_ : f_.second) {
+            for (auto q_ptr = q_.second.rbegin(); q_ptr != q_.second.rend(); ++q_ptr) {
+                if (q_ptr->second.size() >= 2) {
+                    delete_colors[f_.first][q_.first].push_back(q_ptr->first);
+                }
+                else {
+                    for (auto q_ptr2 = q_.second.begin(); q_ptr2 != q_.second.end(); ++q_ptr2) {
+                        if (q_ptr2->first >= q_ptr->first) break;
+                        if ((q_ptr->first | q_ptr2->first) == q_ptr->first) {
+                            delete_colors[f_.first][q_.first].push_back(q_ptr->first);
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    for (const auto &f_ : delete_colors) {
+        for (const auto &q_ : f_.second) {
+            for (const auto &c : q_.second) {
+                std::vector<StateVector> to_be_deleted;
+                for (auto &in_outs : transitions[{f_.first, c}]) {
+                    in_outs.second.erase(q_.first);
+                    if (in_outs.second.empty())
+                        to_be_deleted.push_back(in_outs.first);
+                }
+                for (const auto &in : to_be_deleted)
+                    transitions[{f_.first, c}].erase(in);
+            }
+        }
+    }
+}
+
+template <typename Symbol>
 void AUTOQ::Automata<Symbol>::remove_useless(bool only_bottom_up) {
     auto start = std::chrono::steady_clock::now();
+    remove_impossible_colors();
+
     bool changed;
     std::vector<bool> traversed(stateNum, false);
     TransitionMap transitions_remaining = transitions;
