@@ -14,7 +14,7 @@ def AutoQ_permutation(root, stR, semaphore, lock, counter):
         q = p.stdout.splitlines()[0].decode('utf-8')
         p = subprocess.run(f'grep -P ".*(x |y |z |h |s |t |rx\(pi/2\) |ry\(pi/2\) |cx |cz |ccx |tdg |sdg |swap ).*\[\d+\];" {root}/circuit.qasm | wc -l', shell=True, capture_output=True, executable='/bin/bash')
         G = p.stdout.splitlines()[0].decode('utf-8')
-        p = subprocess.run(f'VATA_PATH=../vata timeout {TIMEOUT} ../../../build/cli/autoq_pldi {root}/pre.aut {root}/circuit.qasm {root}/post.aut', shell=True, capture_output=True, executable='/bin/bash')
+        p = subprocess.run(f'VATA_PATH=../vata timeout {TIMEOUT} ../../../build/cli/autoq_pldi {root}/pre.spec {root}/circuit.qasm {root}/post.spec', shell=True, capture_output=True, executable='/bin/bash')
         ret = p.returncode
         if ret == 0:
             stR.value = p.stdout.splitlines()[0].decode('utf-8')
@@ -85,7 +85,7 @@ process_pool_large = []
 string_pool_large = []
 lock = Lock()
 for root, dirnames, filenames in sorted(os.walk('.')):
-    if len(dirnames) == 0 and 'post.aut' in filenames:
+    if len(dirnames) == 0 and 'post.spec' in filenames:
         process_pool_small = []
         string_pool_small = [manager.Value(c_wchar_p, root)]
         for func in (AutoQ_permutation, AutoQ_composition, SliQSim, Feynman):
