@@ -251,6 +251,7 @@ void AUTOQ::Automata<Symbol>::H(int t) {
 
     result.stateNum = 2 * stateNum * stateNum + stateNum;
     result.remove_useless(); // otherwise, will out of memory (from the past binary operation)
+    result.sim_reduce();
     *this = result;
     gateCount++;
     auto duration = std::chrono::steady_clock::now() - start;
