@@ -544,21 +544,12 @@ AUTOQ::Util::TreeAutomata AUTOQ::Util::TreeAutomata::uniform(int n) {
     TreeAutomata aut;
     aut.name = "Uniform";
     aut.qubitNum = n;
-    int pow_of_two = 1;
-    State state_counter = 0;
     for (int level=1; level<=n; level++) {
-        for (int i=0; i<pow_of_two; i++) {
-            if (level < n)
-                aut.transitions[{level}][{state_counter*2+1, state_counter*2+2}] = {state_counter};
-            else
-                aut.transitions[{level}][{pow_of_two*2-1, pow_of_two*2-1}].insert(state_counter);
-            state_counter++;
-        }
-        pow_of_two *= 2;
+        aut.transitions[{level}][{level, level}].insert(level-1);
     }
-    aut.transitions[{1,0,0,0,n}][{}] = {pow_of_two-1};
+    aut.transitions[{1,0,0,0,n}][{}].insert(n);
     aut.finalStates.push_back(0);
-    aut.stateNum = pow_of_two;
+    aut.stateNum = n+1;
 
     // aut.minimize();
     // aut.isTopdownDeterministic = true;
