@@ -511,6 +511,7 @@ Automata<Symbol> parse_automaton(const std::string& str)
                     predicates[lhs] = rhs;
             }
         } else {	// processing transitions
+            #if COMPLEX == 1
             // Unify k's for all complex numbers if 5-tuple is used
             // for speeding up binary operations.
             boost::multiprecision::cpp_int max_k = INT_MIN;
@@ -531,6 +532,7 @@ Automata<Symbol> parse_automaton(const std::string& str)
                     }
                 }
             }
+            #endif
 
 			std::string invalid_trans_str = std::string(__FUNCTION__) +
 				": Invalid transition \"" + line + "\".";
@@ -913,7 +915,8 @@ Automata<Symbol> TimbukParser<Symbol>::from_line_to_automaton(std::string line) 
 template <typename Symbol>
 Automata<Symbol> TimbukParser<Symbol>::FromFileToAutomata(const char* filepath)
 {
-    if (boost::algorithm::ends_with(filepath, ".aut")) {
+    if (boost::algorithm::ends_with(filepath, ".aut")
+    || boost::algorithm::ends_with(filepath, ".spec")) {
         std::ifstream t(filepath);
         if (!t) // in case the file could not be open
             throw std::runtime_error("[ERROR] Failed to open file " + std::string(filepath) + ".");
@@ -962,12 +965,35 @@ Automata<Symbol> TimbukParser<Symbol>::FromFileToAutomata(const char* filepath)
                 aut_final.reduce();
             }
         }
-        // DO NOT fraction_simplification() here since the resulting automaton may be used as pre.aut
+        // DO NOT fraction_simplification() here since the resulting automaton may be used as pre.spec
         // and in this case all k's must be the same.
         return aut_final;
     } else {
         throw std::runtime_error("[ERROR] " + std::string(__FUNCTION__) + ": The filename extension is not supported.");
     }
+}
+
+template <typename Symbol>
+bool TimbukParser<Symbol>::findAndSplitSubstring(const std::string& filename, std::string& automaton, std::string& constraint) {
+    std::ifstream file(filename);
+    
+    if (!file.is_open()) {
+        std::cerr << "Error: Unable to open file." << std::endl;
+        return false;
+    }
+    
+    std::string fileContents((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
+    
+    file.close();
+
+    size_t found = fileContents.find("Constraints");
+    if (found != std::string::npos) {
+        automaton = fileContents.substr(0, found);
+        constraint = fileContents.substr(found + 11); // "Constraints".length()
+        return true;
+    }
+    
+    return false;
 }
 
 // https://bytefreaks.net/programming-2/c/c-undefined-reference-to-templated-class-function

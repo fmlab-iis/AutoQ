@@ -21,6 +21,7 @@ set(autoq_cxx_compiler_flags
   -fPIC
   -Woverloaded-virtual
   -Wold-style-cast
+  -DCOMPLEX=1
 )
 
 foreach(flag ${autoq_cxx_compiler_flags})

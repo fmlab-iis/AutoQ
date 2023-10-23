@@ -61,35 +61,53 @@ optional arguments:
                 throw std::runtime_error("[ERROR] The environment variable VATA_PATH is not found!");
             }
         }
-        AUTOQ::TreeAutomata aut = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Concrete>::FromFileToAutomata(argv[1]);
-        // int stateBefore = aut.stateNum, transitionBefore = aut.transition_size();
-        auto startSim = chrono::steady_clock::now();
-        aut.execute(argv[2]);
-        auto durationSim = chrono::steady_clock::now() - startSim;
-        auto durationVer = durationSim; // just borrow its type!
-        // aut.fraction_simplification();
-        auto startVer = chrono::steady_clock::now();
-        std::cout << "OUTPUT AUTOMATON:\n";
-        std::cout << "=================\n";
-        aut.print();
-        std::cout << "=================\n";
-        if (argc >= 4) {
-            auto aut2 = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Concrete>::FromFileToAutomata(argv[3]);
-            if (!AUTOQ::TreeAutomata::check_inclusion(aut, aut2)) {
-                std::cout << "-\n0\n";
-                // throw std::runtime_error("Does not satisfy the postcondition!");
-                // std::cout << AUTOQ::Util::Convert::ToString(aut.qubitNum) << " & " << AUTOQ::TreeAutomata::gateCount
-                // << " & " << stateBefore << " & " << aut.stateNum
-                // << " & " << transitionBefore << " & " << aut.transition_size()
-                // << " & " << toString(durationSim) << " & V";
-            } else
-                std::cout << "-\n1\n";
+
+        std::string automaton;
+        std::string constraint; // The following template argument does not matter.
+        if (AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Concrete>::findAndSplitSubstring(argv[1], automaton, constraint)) {
+            auto startVer = chrono::steady_clock::now();
+            AUTOQ::SymbolicAutomata aut = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Symbolic>::ParseString(automaton);
+            aut.execute(argv[2]);
+            // aut.fraction_simplification();
+            aut.reduce();
+            AUTOQ::PredicateAutomata spec = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Predicate>::FromFileToAutomata(argv[3]);
+            AUTOQ::Constraint C(constraint.c_str());
+            std::cout << "OUTPUT AUTOMATON:\n";
+            std::cout << "=================\n";
+            aut.print();
+            std::cout << "=================\n";
+            std::cout << "-\n" << AUTOQ::is_spec_satisfied(C, aut, spec) << " " << toString(chrono::steady_clock::now() - startVer) << " " << getPeakRSS() / 1024 / 1024 << "MB\n";
         } else {
-            durationVer = chrono::steady_clock::now() - startVer;
-            // std::cout << AUTOQ::Util::Convert::ToString(aut.qubitNum) << " & " << AUTOQ::TreeAutomata::gateCount
-            //     << " & " << stateBefore << " & " << aut.stateNum
-            //     << " & " << transitionBefore << " & " << aut.transition_size()
-            //     << " & " << toString(durationSim) << " & " << toString(durationVer);
+            AUTOQ::TreeAutomata aut = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Concrete>::FromFileToAutomata(argv[1]);
+            // int stateBefore = aut.stateNum, transitionBefore = aut.transition_size();
+            auto startSim = chrono::steady_clock::now();
+            aut.execute(argv[2]);
+            auto durationSim = chrono::steady_clock::now() - startSim;
+            auto durationVer = durationSim; // just borrow its type!
+            // aut.fraction_simplification();
+            auto startVer = chrono::steady_clock::now();
+            std::cout << "OUTPUT AUTOMATON:\n";
+            std::cout << "=================\n";
+            aut.print();
+            std::cout << "=================\n";
+            if (argc >= 4) {
+                auto aut2 = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Concrete>::FromFileToAutomata(argv[3]);
+                if (!AUTOQ::TreeAutomata::check_inclusion(aut, aut2)) {
+                    std::cout << "-\n0\n";
+                    // throw std::runtime_error("Does not satisfy the postcondition!");
+                    // std::cout << AUTOQ::Util::Convert::ToString(aut.qubitNum) << " & " << AUTOQ::TreeAutomata::gateCount
+                    // << " & " << stateBefore << " & " << aut.stateNum
+                    // << " & " << transitionBefore << " & " << aut.transition_size()
+                    // << " & " << toString(durationSim) << " & V";
+                } else
+                    std::cout << "-\n1\n";
+            } else {
+                durationVer = chrono::steady_clock::now() - startVer;
+                // std::cout << AUTOQ::Util::Convert::ToString(aut.qubitNum) << " & " << AUTOQ::TreeAutomata::gateCount
+                //     << " & " << stateBefore << " & " << aut.stateNum
+                //     << " & " << transitionBefore << " & " << aut.transition_size()
+                //     << " & " << toString(durationSim) << " & " << toString(durationVer);
+            }
         }
     } else { // argc >= 5
         auto startVer = chrono::steady_clock::now();

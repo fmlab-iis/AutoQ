@@ -42,6 +42,7 @@ public:   // methods
 	/**
 	 * @copydoc  AUTOQ::Parsing::AbstrParser::ParseString
 	 */
+    static bool findAndSplitSubstring(const std::string& filename, std::string& automaton, std::string& constraint);
 	static AUTOQ::Automata<Symbol> ParseString(const std::string& str);
     static AUTOQ::Automata<Symbol> FromFileToAutomata(const char* filepath);
     static AUTOQ::Automata<Symbol> from_tree_to_automaton(std::string tree);

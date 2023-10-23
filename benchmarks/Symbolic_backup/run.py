@@ -13,7 +13,7 @@ def AutoQ(root, stR, semaphore, lock, counter):
         q = p.stdout.splitlines()[0].decode('utf-8')
         p = subprocess.run(f'grep -P ".*(x |y |z |h |s |t |rx\(pi/2\) |ry\(pi/2\) |cx |cz |ccx |tdg |sdg |swap ).*\[\d+\];" {root}/circuit.qasm | wc -l', shell=True, capture_output=True, executable='/bin/bash')
         G = p.stdout.splitlines()[0].decode('utf-8')
-        p = subprocess.run(f'timeout {TIMEOUT} ../../build/cli/autoq {root}/pre.aut {root}/circuit.qasm {root}/spec.aut {root}/constraint.smt', shell=True, capture_output=False, executable='/bin/bash')
+        p = subprocess.run(f'timeout {TIMEOUT} ../../build/cli/autoq {root}/pre.spec {root}/circuit.qasm {root}/post.spec', shell=True, capture_output=False, executable='/bin/bash')
         ret = p.returncode
         if ret == 0:
             stR.value = p.stdout.splitlines()[-1].decode('utf-8')
@@ -21,8 +21,6 @@ def AutoQ(root, stR, semaphore, lock, counter):
             stR.value = q + ' & ' + G + ' & ' + r'\multicolumn{6}{c}{\timeout}'
         else:
             stR.value = q + ' & ' + G + ' & ' + r'\multicolumn{6}{c}{error}'
-        if os.path.exists(f'/tmp/{another}.aut'):
-            os.system(f'rm /tmp/{another}.aut')
         lock.acquire()
         counter.value+=1; print(root, stR.value, counter.value, '/ 16', flush=True)
         lock.release()
@@ -34,7 +32,7 @@ process_pool_large = []
 string_pool_large = []
 lock = Lock()
 for root, dirnames, filenames in sorted(os.walk('.')):
-    if len(dirnames) == 0 and 'spec.aut' in filenames:
+    if len(dirnames) == 0 and 'post.spec' in filenames:
         process_pool_small = []
         string_pool_small = [manager.Value(c_wchar_p, root)]
         for func in (AutoQ, ):

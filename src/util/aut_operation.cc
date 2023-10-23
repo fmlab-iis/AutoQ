@@ -579,6 +579,10 @@ AUTOQ::Automata<Symbol> AUTOQ::Automata<Symbol>::binary_operation(const Automata
     else
         result.stateNum = stateNum * o.stateNum;
     result.remove_useless(true); // otherwise, will out of memory
+    // Round several approximately equal floating points to the same value!
+    #if COMPLEX != 1
+        result.fraction_simplification();
+    #endif
     auto end = std::chrono::steady_clock::now();
     binop_time += end - start;
     if (opLog) std::cout << __FUNCTION__ << "：" << stateNum << " states " << count_transitions() << " transitions\n";
@@ -1006,7 +1010,13 @@ void AUTOQ::Automata<Symbol>::fraction_simplification() {
         }
     }
     for (const auto &t : to_be_removed) transitions.erase(t);
-    for (const auto &t : to_be_inserted) transitions.insert(t);
+    for (const auto &t : to_be_inserted) {
+        for (const auto &kv : t.second)
+            for (const auto &s : kv.second)
+                transitions[t.first][kv.first].insert(s);
+    }
+    // remove_useless();
+    // reduce();
     if (opLog) std::cout << __FUNCTION__ << "：" << stateNum << " states " << count_transitions() << " transitions\n";
 }
 
@@ -1246,6 +1256,8 @@ bool AUTOQ::check_validity(Constraint C, const PredicateAutomata::Symbol &ps, co
     std::string smt_input = "bash -c \"z3 <(echo '" + std::string(C) + "(assert (not " + str + "))(check-sat)')\"";
     // auto startSim = chrono::steady_clock::now();
     ShellCmd(smt_input, str);
+    // std::cout << smt_input << "\n";
+    // std::cout << str << "\n";
     // auto durationSim = chrono::steady_clock::now() - startSim;
     // std::cout << toString2(durationSim) << "\n";
     if (str == "unsat\n") return true;

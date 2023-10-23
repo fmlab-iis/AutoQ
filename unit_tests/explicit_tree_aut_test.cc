@@ -43,10 +43,14 @@ BOOST_AUTO_TEST_CASE(X_gate_twice_to_identity)
 
                 if (i < loop-1) {
                     if (before.name == "Random")
-                        BOOST_REQUIRE_MESSAGE(!AUTOQ::TreeAutomata::check_equal_aut(before, after), "");
+                        BOOST_REQUIRE_MESSAGE(!AUTOQ::TreeAutomata::check_equal_aut(before, after), "\n" + 
+                        AUTOQ::Serialization::TimbukSerializer::Serialize(before) +
+                        AUTOQ::Serialization::TimbukSerializer::Serialize(after));
                 }
                 else {
-                    BOOST_REQUIRE_MESSAGE(AUTOQ::TreeAutomata::check_equal_aut(before, after), "");
+                    BOOST_REQUIRE_MESSAGE(AUTOQ::TreeAutomata::check_equal_aut(before, after), "\n" + 
+                        AUTOQ::Serialization::TimbukSerializer::Serialize(before) +
+                        AUTOQ::Serialization::TimbukSerializer::Serialize(after));
 				}
             }
         }
@@ -64,10 +68,14 @@ BOOST_AUTO_TEST_CASE(Y_gate_twice_to_identity)
                 after.Y(t);
 
                 if (i < loop-1) {
-                    BOOST_REQUIRE_MESSAGE(!AUTOQ::TreeAutomata::check_equal_aut(before, after), "");
+                    BOOST_REQUIRE_MESSAGE(!AUTOQ::TreeAutomata::check_equal_aut(before, after), "\n" + 
+                        AUTOQ::Serialization::TimbukSerializer::Serialize(before) +
+                        AUTOQ::Serialization::TimbukSerializer::Serialize(after));
 				}
                 else {
-                    BOOST_REQUIRE_MESSAGE(AUTOQ::TreeAutomata::check_equal_aut(before, after), "");
+                    BOOST_REQUIRE_MESSAGE(AUTOQ::TreeAutomata::check_equal_aut(before, after), "\n" + 
+                        AUTOQ::Serialization::TimbukSerializer::Serialize(before) +
+                        AUTOQ::Serialization::TimbukSerializer::Serialize(after));
 				}
             }
         }
@@ -83,10 +91,14 @@ BOOST_AUTO_TEST_CASE(Z_gate_twice_to_identity)
             after.Z(size/2);
 
             if (i < loop-1) {
-                BOOST_REQUIRE_MESSAGE(!AUTOQ::TreeAutomata::check_equal_aut(before, after), "");
+                BOOST_REQUIRE_MESSAGE(!AUTOQ::TreeAutomata::check_equal_aut(before, after), "\n" + 
+                        AUTOQ::Serialization::TimbukSerializer::Serialize(before) +
+                        AUTOQ::Serialization::TimbukSerializer::Serialize(after));
 			}
             else {
-                BOOST_REQUIRE_MESSAGE(AUTOQ::TreeAutomata::check_equal_aut(before, after), "");
+                BOOST_REQUIRE_MESSAGE(AUTOQ::TreeAutomata::check_equal_aut(before, after), "\n" + 
+                        AUTOQ::Serialization::TimbukSerializer::Serialize(before) +
+                        AUTOQ::Serialization::TimbukSerializer::Serialize(after));
 			}
         }
     }
@@ -103,10 +115,14 @@ BOOST_AUTO_TEST_CASE(H_gate_twice_to_identity)
                 after.H(t);
 
                 if (i < loop-1) {
-                    BOOST_REQUIRE_MESSAGE(!AUTOQ::TreeAutomata::check_equal_aut(before, after), "");
+                    BOOST_REQUIRE_MESSAGE(!AUTOQ::TreeAutomata::check_equal_aut(before, after), "\n" + 
+                        AUTOQ::Serialization::TimbukSerializer::Serialize(before) +
+                        AUTOQ::Serialization::TimbukSerializer::Serialize(after));
                 }
                 else {
-                    BOOST_REQUIRE_MESSAGE(AUTOQ::TreeAutomata::check_equal_aut(before, after), "");
+                    BOOST_REQUIRE_MESSAGE(AUTOQ::TreeAutomata::check_equal_aut(before, after), "\n" + 
+                        AUTOQ::Serialization::TimbukSerializer::Serialize(before) +
+                        AUTOQ::Serialization::TimbukSerializer::Serialize(after));
                 }
             }
         }
@@ -122,9 +138,13 @@ BOOST_AUTO_TEST_CASE(S_gate_fourth_to_identity)
             after.S(size/2);
 
             if (i < loop-1) {
-                BOOST_REQUIRE_MESSAGE(!AUTOQ::TreeAutomata::check_equal_aut(before, after), "");
+                BOOST_REQUIRE_MESSAGE(!AUTOQ::TreeAutomata::check_equal_aut(before, after), "\n" + 
+                        AUTOQ::Serialization::TimbukSerializer::Serialize(before) +
+                        AUTOQ::Serialization::TimbukSerializer::Serialize(after));
             } else {
-                BOOST_REQUIRE_MESSAGE(AUTOQ::TreeAutomata::check_equal_aut(before, after), "");
+                BOOST_REQUIRE_MESSAGE(AUTOQ::TreeAutomata::check_equal_aut(before, after), "\n" + 
+                        AUTOQ::Serialization::TimbukSerializer::Serialize(before) +
+                        AUTOQ::Serialization::TimbukSerializer::Serialize(after));
             }
         }
     }
@@ -142,7 +162,9 @@ BOOST_AUTO_TEST_CASE(Sdg_gate_equal_to_S_three_times)
         AUTOQ::TreeAutomata after1 = before, after2 = before;
         for (int i=0; i<3; i++) after1.S(size/2);
         after2.Sdg(size/2);
-        BOOST_REQUIRE_MESSAGE(AUTOQ::TreeAutomata::check_equal_aut(after1, after2), "");
+        BOOST_REQUIRE_MESSAGE(AUTOQ::TreeAutomata::check_equal_aut(after1, after2), "\n" + 
+                        AUTOQ::Serialization::TimbukSerializer::Serialize(after1) +
+                        AUTOQ::Serialization::TimbukSerializer::Serialize(after2));
     }
 }
 
@@ -155,9 +177,13 @@ BOOST_AUTO_TEST_CASE(T_gate_eighth_to_identity)
             after.T(size/2);
 
             if (i < loop-1) {
-                BOOST_REQUIRE_MESSAGE(!AUTOQ::TreeAutomata::check_equal_aut(before, after), "");
+                BOOST_REQUIRE_MESSAGE(!AUTOQ::TreeAutomata::check_equal_aut(before, after), "\n" + 
+                        AUTOQ::Serialization::TimbukSerializer::Serialize(before) +
+                        AUTOQ::Serialization::TimbukSerializer::Serialize(after));
             } else {
-                BOOST_REQUIRE_MESSAGE(AUTOQ::TreeAutomata::check_equal_aut(before, after), "");
+                BOOST_REQUIRE_MESSAGE(AUTOQ::TreeAutomata::check_equal_aut(before, after), "\n" + 
+                        AUTOQ::Serialization::TimbukSerializer::Serialize(before) +
+                        AUTOQ::Serialization::TimbukSerializer::Serialize(after));
             }
         }
     }
@@ -175,7 +201,9 @@ BOOST_AUTO_TEST_CASE(Tdg_gate_equal_to_T_seven_times)
         AUTOQ::TreeAutomata after1 = before, after2 = before;
         for (int i=0; i<7; i++) after1.T(size/2);
         after2.Tdg(size/2);
-        BOOST_REQUIRE_MESSAGE(AUTOQ::TreeAutomata::check_equal_aut(after1, after2), "");
+        BOOST_REQUIRE_MESSAGE(AUTOQ::TreeAutomata::check_equal_aut(after1, after2), "\n" + 
+                        AUTOQ::Serialization::TimbukSerializer::Serialize(after1) +
+                        AUTOQ::Serialization::TimbukSerializer::Serialize(after2));
     }
 }
 
@@ -190,7 +218,9 @@ BOOST_AUTO_TEST_CASE(swap_gate_simply_exchanges_basis)
                                 AUTOQ::TreeAutomata::zero_one_zero(size)}) {
         AUTOQ::TreeAutomata after = before;
         after.swap(size*1/3, size*2/3);
-        BOOST_REQUIRE_MESSAGE(AUTOQ::TreeAutomata::check_equal_aut(before, after), "");
+        BOOST_REQUIRE_MESSAGE(AUTOQ::TreeAutomata::check_equal_aut(before, after), "\n" + 
+                        AUTOQ::Serialization::TimbukSerializer::Serialize(before) +
+                        AUTOQ::Serialization::TimbukSerializer::Serialize(after));
     }
 }
 
@@ -205,10 +235,14 @@ BOOST_AUTO_TEST_CASE(Rx_gate_eighth_to_identity)
                 after.Rx(t);
 
                 if (i < loop-1) {
-                    BOOST_REQUIRE_MESSAGE(!AUTOQ::TreeAutomata::check_equal_aut(before, after), "");
+                    BOOST_REQUIRE_MESSAGE(!AUTOQ::TreeAutomata::check_equal_aut(before, after), "\n" + 
+                        AUTOQ::Serialization::TimbukSerializer::Serialize(before) +
+                        AUTOQ::Serialization::TimbukSerializer::Serialize(after));
                 }
                 else {
-                    BOOST_REQUIRE_MESSAGE(AUTOQ::TreeAutomata::check_equal_aut(before, after), "");
+                    BOOST_REQUIRE_MESSAGE(AUTOQ::TreeAutomata::check_equal_aut(before, after), "\n" + 
+                        AUTOQ::Serialization::TimbukSerializer::Serialize(before) +
+                        AUTOQ::Serialization::TimbukSerializer::Serialize(after));
 				}
             }
         }
@@ -226,10 +260,14 @@ BOOST_AUTO_TEST_CASE(Ry_gate_eighth_to_identity)
                 after.Ry(t);
 
                 if (i < loop-1) {
-                    BOOST_REQUIRE_MESSAGE(!AUTOQ::TreeAutomata::check_equal_aut(before, after), "");
+                    BOOST_REQUIRE_MESSAGE(!AUTOQ::TreeAutomata::check_equal_aut(before, after), "\n" + 
+                        AUTOQ::Serialization::TimbukSerializer::Serialize(before) +
+                        AUTOQ::Serialization::TimbukSerializer::Serialize(after));
                 }
                 else {
-                    BOOST_REQUIRE_MESSAGE(AUTOQ::TreeAutomata::check_equal_aut(before, after), "");
+                    BOOST_REQUIRE_MESSAGE(AUTOQ::TreeAutomata::check_equal_aut(before, after), "\n" + 
+                        AUTOQ::Serialization::TimbukSerializer::Serialize(before) +
+                        AUTOQ::Serialization::TimbukSerializer::Serialize(after));
 				}
             }
         }
@@ -249,9 +287,13 @@ BOOST_AUTO_TEST_CASE(CNOT_gate_twice_to_identity)
 
             if (i < loop-1) {
                 if (before.name == "Random")
-                    BOOST_REQUIRE_MESSAGE(!AUTOQ::TreeAutomata::check_equal_aut(before, after), "");
+                    BOOST_REQUIRE_MESSAGE(!AUTOQ::TreeAutomata::check_equal_aut(before, after), "\n" + 
+                        AUTOQ::Serialization::TimbukSerializer::Serialize(before) +
+                        AUTOQ::Serialization::TimbukSerializer::Serialize(after));
             } else {
-                BOOST_REQUIRE_MESSAGE(AUTOQ::TreeAutomata::check_equal_aut(before, after), "");
+                BOOST_REQUIRE_MESSAGE(AUTOQ::TreeAutomata::check_equal_aut(before, after), "\n" + 
+                        AUTOQ::Serialization::TimbukSerializer::Serialize(before) +
+                        AUTOQ::Serialization::TimbukSerializer::Serialize(after));
             }
         }
     }
@@ -266,9 +308,13 @@ BOOST_AUTO_TEST_CASE(CZ_gate_twice_to_identity)
             after.CZ(size*2/3, size/3);
 
             if (i < loop-1) {
-                BOOST_REQUIRE_MESSAGE(!AUTOQ::TreeAutomata::check_equal_aut(before, after), "");
+                BOOST_REQUIRE_MESSAGE(!AUTOQ::TreeAutomata::check_equal_aut(before, after), "\n" + 
+                        AUTOQ::Serialization::TimbukSerializer::Serialize(before) +
+                        AUTOQ::Serialization::TimbukSerializer::Serialize(after));
             } else {
-                BOOST_REQUIRE_MESSAGE(AUTOQ::TreeAutomata::check_equal_aut(before, after), "");
+                BOOST_REQUIRE_MESSAGE(AUTOQ::TreeAutomata::check_equal_aut(before, after), "\n" + 
+                        AUTOQ::Serialization::TimbukSerializer::Serialize(before) +
+                        AUTOQ::Serialization::TimbukSerializer::Serialize(after));
             }
         }
     }
@@ -288,9 +334,13 @@ BOOST_AUTO_TEST_CASE(Toffoli_gate_twice_to_identity)
 
                 if (i < loop-1) {
                     if (before.name == "Random")
-                        BOOST_REQUIRE_MESSAGE(!AUTOQ::TreeAutomata::check_equal_aut(before, after), "");
+                        BOOST_REQUIRE_MESSAGE(!AUTOQ::TreeAutomata::check_equal_aut(before, after), "\n" + 
+                        AUTOQ::Serialization::TimbukSerializer::Serialize(before) +
+                        AUTOQ::Serialization::TimbukSerializer::Serialize(after));
                 } else {
-                    BOOST_REQUIRE_MESSAGE(AUTOQ::TreeAutomata::check_equal_aut(before, after), "");
+                    BOOST_REQUIRE_MESSAGE(AUTOQ::TreeAutomata::check_equal_aut(before, after), "\n" + 
+                        AUTOQ::Serialization::TimbukSerializer::Serialize(before) +
+                        AUTOQ::Serialization::TimbukSerializer::Serialize(after));
                 }
             }
         } while (std::next_permutation(v, v+3));
@@ -360,13 +410,19 @@ BOOST_AUTO_TEST_CASE(Bernstein_Vazirani)
 	// fileRhs << AUTOQ::Serialization::TimbukSerializer::Serialize(ans);
 	// fileRhs.close();
 
-    BOOST_REQUIRE_MESSAGE(AUTOQ::TreeAutomata::check_equal_aut(aut, ans), "");
+    BOOST_REQUIRE_MESSAGE(AUTOQ::TreeAutomata::check_equal_aut(aut, ans), "\n" + 
+                        AUTOQ::Serialization::TimbukSerializer::Serialize(aut) +
+                        AUTOQ::Serialization::TimbukSerializer::Serialize(ans));
 }
 
 void dfs(const std::map<AUTOQ::TreeAutomata::State, AUTOQ::TreeAutomata::StateVector> &edge,
          const std::map<AUTOQ::TreeAutomata::State, AUTOQ::TreeAutomata::SymbolTag> &leaf,
          const AUTOQ::TreeAutomata::StateVector &layer,
+         #if COMPLEX == 3
+         std::vector<float128> &prob) {
+         #else
          std::vector<double> &prob) {
+         #endif
     for (const AUTOQ::TreeAutomata::State &s : layer) {
         const auto &new_layer = edge.at(s);
         if (!new_layer.empty()) {
@@ -467,7 +523,9 @@ BOOST_AUTO_TEST_CASE(Grover_Search)
     // aut.print();
 
     /******************************** Answer Validation *********************************/
-    BOOST_REQUIRE_MESSAGE(AUTOQ::TreeAutomata::check_equal_aut(aut, ans), "");
+    BOOST_REQUIRE_MESSAGE(AUTOQ::TreeAutomata::check_equal_aut(aut, ans), "\n" + 
+                        AUTOQ::Serialization::TimbukSerializer::Serialize(aut) +
+                        AUTOQ::Serialization::TimbukSerializer::Serialize(ans));
     // std::map<AUTOQ::TreeAutomata::State, AUTOQ::TreeAutomata::StateVector> edge;
     // std::map<AUTOQ::TreeAutomata::State, AUTOQ::TreeAutomata::Symbol> leaf;
     // std::vector<AUTOQ::TreeAutomata::StateVector> first_layers;
@@ -691,18 +749,22 @@ BOOST_AUTO_TEST_CASE(Symbolic_into_Predicates)
             if (strstr(entry.path().c_str(), "OEGrover75") != nullptr) continue;
             if (strstr(entry.path().c_str(), "OEGrover100") != nullptr) continue;
 
-            AUTOQ::SymbolicAutomata aut = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Symbolic>::FromFileToAutomata((std::string(entry.path()) + std::string("/pre.aut")).c_str());
+            std::string automaton;
+            std::string constraint; // The following template argument does not matter.
+            AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Concrete>::findAndSplitSubstring(std::string(entry.path()) + std::string("/pre.spec"), automaton, constraint);
+
+            AUTOQ::SymbolicAutomata aut = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Symbolic>::ParseString(automaton);
             aut.execute((std::string(entry.path()) + std::string("/circuit.qasm")).c_str());
             aut.fraction_simplification();
 
-            AUTOQ::PredicateAutomata spec = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Predicate>::FromFileToAutomata((std::string(entry.path()) + std::string("/spec.aut")).c_str());
+            AUTOQ::PredicateAutomata spec = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Predicate>::FromFileToAutomata((std::string(entry.path()) + std::string("/post.spec")).c_str());
 
-            std::ifstream t(std::string(entry.path()) + std::string("/constraint.smt"));
-            std::stringstream buffer;
-            buffer << t.rdbuf();
-            AUTOQ::Constraint C(buffer.str().c_str());
+            AUTOQ::Constraint C(constraint.c_str());
 
-            BOOST_REQUIRE_MESSAGE(AUTOQ::is_spec_satisfied(C, aut, spec), entry.path());
+            BOOST_REQUIRE_MESSAGE(AUTOQ::is_spec_satisfied(C, aut, spec), "\n" +
+                        std::string(entry.path().c_str()) + "\n" + 
+                        AUTOQ::Serialization::TimbukSerializer::Serialize(aut) +
+                        AUTOQ::Serialization::TimbukSerializer::Serialize(spec));
         }
     }
 }
@@ -712,18 +774,21 @@ BOOST_AUTO_TEST_CASE(Symbolic_into_Predicates_bug)
     std::string path = "../../benchmarks/Symbolic-bug/";
     for (const auto & entry : fs::directory_iterator(path)) {
         if (entry.is_directory()) {
-            AUTOQ::SymbolicAutomata aut = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Symbolic>::FromFileToAutomata((std::string(entry.path()) + std::string("/pre.aut")).c_str());
+            std::string automaton;
+            std::string constraint; // The following template argument does not matter.
+            AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Concrete>::findAndSplitSubstring(std::string(entry.path()) + std::string("/pre.spec"), automaton, constraint);
+
+            AUTOQ::SymbolicAutomata aut = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Symbolic>::ParseString(automaton);
             aut.execute((std::string(entry.path()) + std::string("/circuit.qasm")).c_str());
             aut.fraction_simplification();
 
-            AUTOQ::PredicateAutomata spec = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Predicate>::FromFileToAutomata((std::string(entry.path()) + std::string("/spec.aut")).c_str());
+            AUTOQ::PredicateAutomata spec = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Predicate>::FromFileToAutomata((std::string(entry.path()) + std::string("/post.spec")).c_str());
 
-            std::ifstream t(std::string(entry.path()) + std::string("/constraint.smt"));
-            std::stringstream buffer;
-            buffer << t.rdbuf();
-            AUTOQ::Constraint C(buffer.str().c_str());
+            AUTOQ::Constraint C(constraint.c_str());
 
-            BOOST_REQUIRE_MESSAGE(!AUTOQ::is_spec_satisfied(C, aut, spec), entry.path());
+            BOOST_REQUIRE_MESSAGE(!AUTOQ::is_spec_satisfied(C, aut, spec), "\n" + 
+                        AUTOQ::Serialization::TimbukSerializer::Serialize(aut) +
+                        AUTOQ::Serialization::TimbukSerializer::Serialize(spec));
         }
     }
 }
