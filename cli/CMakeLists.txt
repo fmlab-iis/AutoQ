@@ -75,12 +75,39 @@ if (MAKE_STATIC_AUTOQ)
 endif()
 
 get_target_property(autoq_sources autoq SOURCES)
-
 foreach(src ${autoq_sources})
-
   set_source_files_properties(
     ${src} PROPERTIES COMPILE_FLAGS ${autoq_compiler_flags})
+endforeach()
 
+get_target_property(autoq_pldi_sources autoq_pldi SOURCES)
+foreach(src ${autoq_pldi_sources})
+  set_source_files_properties(
+    ${src} PROPERTIES COMPILE_FLAGS ${autoq_compiler_flags})
+endforeach()
+
+get_target_property(caut_from_states_sources caut_from_states SOURCES)
+foreach(src ${caut_from_states_sources})
+  set_source_files_properties(
+    ${src} PROPERTIES COMPILE_FLAGS ${autoq_compiler_flags})
+endforeach()
+
+get_target_property(saut_from_states_sources saut_from_states SOURCES)
+foreach(src ${saut_from_states_sources})
+  set_source_files_properties(
+    ${src} PROPERTIES COMPILE_FLAGS ${autoq_compiler_flags})
+endforeach()
+
+get_target_property(paut_from_states_sources paut_from_states SOURCES)
+foreach(src ${paut_from_states_sources})
+  set_source_files_properties(
+    ${src} PROPERTIES COMPILE_FLAGS ${autoq_compiler_flags})
+endforeach()
+
+get_target_property(print_language_sources print_language SOURCES)
+foreach(src ${print_language_sources})
+  set_source_files_properties(
+    ${src} PROPERTIES COMPILE_FLAGS ${autoq_compiler_flags})
 endforeach()
 
 target_link_libraries(autoq libautoq)
