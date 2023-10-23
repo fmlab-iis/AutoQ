@@ -82,14 +82,18 @@ void AUTOQ::Automata<Symbol>::Y(int k) {
                     transitions[symbol_tag][in].insert(s+stateNum);
             }
         }
-    } 
-    auto &tak = transitions.at({k});
-    auto in_outs = tak;
-    for (const auto &in_out : in_outs) {
-        assert(in_out.first.size() == 2);
-        if (in_out.first[0] < stateNum && in_out.first[1] < stateNum) {
-            tak[{in_out.first[1]+stateNum, in_out.first[0]}] = in_out.second;
-            tak.erase(in_out.first);
+    }
+    for (auto &tr : transitions) {
+        if (tr.first.is_leaf() || (tr.first.is_internal() && tr.first.symbol().qubit() > k)) break;
+        if (tr.first.is_internal() && tr.first.symbol().qubit() == k) {
+            auto in_outs = tr.second;
+            for (const auto &in_out : in_outs) {
+                assert(in_out.first.size() == 2);
+                if (in_out.first[0] < stateNum && in_out.first[1] < stateNum) {
+                    tr.second[{in_out.first[1]+stateNum, in_out.first[0]}] = in_out.second;
+                    tr.second.erase(in_out.first);
+                }
+            }
         }
     }
     stateNum *= 2;
@@ -123,13 +127,17 @@ void AUTOQ::Automata<Symbol>::Z(int t) {
             }
         }
     } 
-    auto &tak = transitions.at({t});
-    auto in_outs = tak;
-    for (const auto &in_out : in_outs) {
-        assert(in_out.first.size() == 2);
-        if (in_out.first[0] < stateNum && in_out.first[1] < stateNum) {
-            tak[{in_out.first[0], in_out.first[1]+stateNum}] = in_out.second;
-            tak.erase(in_out.first);
+    for (auto &tr : transitions) {
+        if (tr.first.is_leaf() || (tr.first.is_internal() && tr.first.symbol().qubit() > t)) break;
+        if (tr.first.is_internal() && tr.first.symbol().qubit() == t) {
+            auto in_outs = tr.second;
+            for (const auto &in_out : in_outs) {
+                assert(in_out.first.size() == 2);
+                if (in_out.first[0] < stateNum && in_out.first[1] < stateNum) {
+                    tr.second[{in_out.first[0], in_out.first[1]+stateNum}] = in_out.second;
+                    tr.second.erase(in_out.first);
+                }
+            }
         }
     }
     stateNum *= 2;
@@ -280,13 +288,17 @@ void AUTOQ::Automata<Symbol>::S(int t) {
             }
         }
     }
-    auto &tac = transitions.at({t});
-    auto in_outs = tac;
-    for (const auto &in_out : in_outs) {
-        assert(in_out.first.size() == 2);
-        if (in_out.first[0] < stateNum && in_out.first[1] < stateNum) {
-            tac[{in_out.first[0], in_out.first[1]+stateNum}] = in_out.second;
-            tac.erase(in_out.first);
+    for (auto &tr : transitions) {
+        if (tr.first.is_leaf() || (tr.first.is_internal() && tr.first.symbol().qubit() > t)) break;
+        if (tr.first.is_internal() && tr.first.symbol().qubit() == t) {
+            auto in_outs = tr.second;
+            for (const auto &in_out : in_outs) {
+                assert(in_out.first.size() == 2);
+                if (in_out.first[0] < stateNum && in_out.first[1] < stateNum) {
+                    tr.second[{in_out.first[0], in_out.first[1]+stateNum}] = in_out.second;
+                    tr.second.erase(in_out.first);
+                }
+            }
         }
     }
     stateNum += aut2.stateNum;
@@ -319,13 +331,17 @@ void AUTOQ::Automata<Symbol>::T(int t) {
             }
         }
     }
-    auto &tac = transitions.at({t});
-    auto in_outs = tac;
-    for (const auto &in_out : in_outs) {
-        assert(in_out.first.size() == 2);
-        if (in_out.first[0] < stateNum && in_out.first[1] < stateNum) {
-            tac[{in_out.first[0], in_out.first[1]+stateNum}] = in_out.second;
-            tac.erase(in_out.first);
+    for (auto &tr : transitions) {
+        if (tr.first.is_leaf() || (tr.first.is_internal() && tr.first.symbol().qubit() > t)) break;
+        if (tr.first.is_internal() && tr.first.symbol().qubit() == t) {
+            auto in_outs = tr.second;
+            for (const auto &in_out : in_outs) {
+                assert(in_out.first.size() == 2);
+                if (in_out.first[0] < stateNum && in_out.first[1] < stateNum) {
+                    tr.second[{in_out.first[0], in_out.first[1]+stateNum}] = in_out.second;
+                    tr.second.erase(in_out.first);
+                }
+            }
         }
     }
     stateNum += aut2.stateNum;
@@ -424,13 +440,17 @@ void AUTOQ::Automata<Symbol>::CNOT(int c, int t, bool opt) {
                 }
             }
         }
-        auto &tac = transitions.at({c});
-        auto in_outs = tac;
-        for (const auto &in_out : in_outs) {
-            assert(in_out.first.size() == 2);
-            if (in_out.first[0] < stateNum && in_out.first[1] < stateNum) {
-                tac[{in_out.first[0], in_out.first[1]+stateNum}] = in_out.second;
-                tac.erase(in_out.first);
+        for (auto &tr : transitions) {
+            if (tr.first.is_leaf() || (tr.first.is_internal() && tr.first.symbol().qubit() > c)) break;
+            if (tr.first.is_internal() && tr.first.symbol().qubit() == c) {
+                auto in_outs = tr.second;
+                for (const auto &in_out : in_outs) {
+                    assert(in_out.first.size() == 2);
+                    if (in_out.first[0] < stateNum && in_out.first[1] < stateNum) {
+                        tr.second[{in_out.first[0], in_out.first[1]+stateNum}] = in_out.second;
+                        tr.second.erase(in_out.first);
+                    }
+                }
             }
         }
         stateNum += aut2.stateNum;
@@ -468,13 +488,17 @@ void AUTOQ::Automata<Symbol>::CZ(int c, int t) {
             }
         }
     } 
-    auto &tak = aut2.transitions.at({t});
-    auto in_outs = tak;
-    for (const auto &in_out : in_outs) {
-        assert(in_out.first.size() == 2);
-        if (in_out.first[0] < stateNum && in_out.first[1] < stateNum) {
-            tak[{in_out.first[0], in_out.first[1]+stateNum}] = in_out.second;
-            tak.erase(in_out.first);
+    for (auto &tr : aut2.transitions) {
+        if (tr.first.is_leaf() || (tr.first.is_internal() && tr.first.symbol().qubit() > t)) break;
+        if (tr.first.is_internal() && tr.first.symbol().qubit() == t) {
+            auto in_outs = tr.second;
+            for (const auto &in_out : in_outs) {
+                assert(in_out.first.size() == 2);
+                if (in_out.first[0] < stateNum && in_out.first[1] < stateNum) {
+                    tr.second[{in_out.first[0], in_out.first[1]+stateNum}] = in_out.second;
+                    tr.second.erase(in_out.first);
+                }
+            }
         }
     }
     for (const auto &tr : aut2.transitions) {
@@ -488,14 +512,18 @@ void AUTOQ::Automata<Symbol>::CZ(int c, int t) {
                     transitions[symbol_tag][in].insert(s+stateNum);
             }
         }
-    } 
-    auto &tak2 = transitions.at({c});
-    auto in_outs2 = tak2;
-    for (const auto &in_out : in_outs2) {
-        assert(in_out.first.size() == 2);
-        if (in_out.first[0] < stateNum && in_out.first[1] < stateNum) {
-            tak2[{in_out.first[0], in_out.first[1]+stateNum}] = in_out.second;
-            tak2.erase(in_out.first);
+    }   
+    for (auto &tr : aut2.transitions) {
+        if (tr.first.is_leaf() || (tr.first.is_internal() && tr.first.symbol().qubit() > c)) break;
+        if (tr.first.is_internal() && tr.first.symbol().qubit() == c) {
+            auto in_outs2 = tr.second;
+            for (const auto &in_out : in_outs2) {
+                assert(in_out.first.size() == 2);
+                if (in_out.first[0] < stateNum && in_out.first[1] < stateNum) {
+                    tr.second[{in_out.first[0], in_out.first[1]+stateNum}] = in_out.second;
+                    tr.second.erase(in_out.first);
+                }
+            }
         }
     }
     stateNum *= 3;
@@ -531,13 +559,17 @@ void AUTOQ::Automata<Symbol>::Toffoli(int c, int c2, int t) {
                 }
             }
         }
-        auto &tac = transitions.at({c});
-        auto in_outs = tac;
-        for (const auto &in_out : in_outs) {
-            assert(in_out.first.size() == 2);
-            if (in_out.first[0] < stateNum && in_out.first[1] < stateNum) {
-                tac[{in_out.first[0], in_out.first[1]+stateNum}] = in_out.second;
-                tac.erase(in_out.first);
+        for (auto &tr : transitions) {
+            if (tr.first.is_leaf() || (tr.first.is_internal() && tr.first.symbol().qubit() > c)) break;
+            if (tr.first.is_internal() && tr.first.symbol().qubit() == c) {
+                auto in_outs = tr.second;
+                for (const auto &in_out : in_outs) {
+                    assert(in_out.first.size() == 2);
+                    if (in_out.first[0] < stateNum && in_out.first[1] < stateNum) {
+                        tr.second[{in_out.first[0], in_out.first[1]+stateNum}] = in_out.second;
+                        tr.second.erase(in_out.first);
+                    }
+                }
             }
         }
         stateNum += aut2.stateNum;
@@ -603,13 +635,17 @@ void AUTOQ::Automata<Symbol>::Tdg(int t) {
             }
         }
     }
-    auto &tac = transitions.at({t});
-    auto in_outs = tac;
-    for (const auto &in_out : in_outs) {
-        assert(in_out.first.size() == 2);
-        if (in_out.first[0] < stateNum && in_out.first[1] < stateNum) {
-            tac[{in_out.first[0], in_out.first[1]+stateNum}] = in_out.second;
-            tac.erase(in_out.first);
+    for (auto &tr : transitions) {
+        if (tr.first.is_leaf() || (tr.first.is_internal() && tr.first.symbol().qubit() > t)) break;
+        if (tr.first.is_internal() && tr.first.symbol().qubit() == t) {
+            auto in_outs = tr.second;
+            for (const auto &in_out : in_outs) {
+                assert(in_out.first.size() == 2);
+                if (in_out.first[0] < stateNum && in_out.first[1] < stateNum) {
+                    tr.second[{in_out.first[0], in_out.first[1]+stateNum}] = in_out.second;
+                    tr.second.erase(in_out.first);
+                }
+            }
         }
     }
     stateNum += aut2.stateNum;
@@ -655,13 +691,17 @@ void AUTOQ::Automata<Symbol>::Sdg(int t) {
             }
         }
     }
-    auto &tac = transitions.at({t});
-    auto in_outs = tac;
-    for (const auto &in_out : in_outs) {
-        assert(in_out.first.size() == 2);
-        if (in_out.first[0] < stateNum && in_out.first[1] < stateNum) {
-            tac[{in_out.first[0], in_out.first[1]+stateNum}] = in_out.second;
-            tac.erase(in_out.first);
+    for (auto &tr : transitions) {
+        if (tr.first.is_leaf() || (tr.first.is_internal() && tr.first.symbol().qubit() > t)) break;
+        if (tr.first.is_internal() && tr.first.symbol().qubit() == t) {
+            auto in_outs = tr.second;
+            for (const auto &in_out : in_outs) {
+                assert(in_out.first.size() == 2);
+                if (in_out.first[0] < stateNum && in_out.first[1] < stateNum) {
+                    tr.second[{in_out.first[0], in_out.first[1]+stateNum}] = in_out.second;
+                    tr.second.erase(in_out.first);
+                }
+            }
         }
     }
     stateNum += aut2.stateNum;
