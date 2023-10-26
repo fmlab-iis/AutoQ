@@ -1198,6 +1198,11 @@ void AUTOQ::Automata<Symbol>::execute(const char *filename) {
                 ++it;
             }
             swap(pos[0], pos[1]);
+        } else if (line.find("PRINT") == 0) {
+            std::cout << AUTOQ::Util::Convert::ToString(qubitNum) << " & " << AUTOQ::TreeAutomata::gateCount
+                << " & " << "-" << " & " << stateNum
+                << " & " << "-"  << " & " << transition_size()
+                << " & " << "-"  << " & " << "\n";
         } else if (line.length() > 0)
             throw std::runtime_error("[ERROR] unsupported gate: " + line + ".");
     }
