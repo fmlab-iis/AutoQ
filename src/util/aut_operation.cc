@@ -1028,14 +1028,23 @@ void AUTOQ::Automata<Symbol>::fraction_simplification() {
         args.push_back(input.substr(i, MAX_ARG_STRLEN));
     }
     input = TimbukSerializer::Serialize(rhsPath);
-    length = input.length();    
+    length = input.length();
     for (int i=0; i<length; i+=MAX_ARG_STRLEN) {
         args.push_back(input.substr(i, MAX_ARG_STRLEN));
     }
     std::string aux;
+    std::string arguments;
+    for (const std::string& a : args) {
+			arguments += a + " ";
+		}
+    if (!AUTOQ::Util::ShellCmd(arguments, aux)) {
+        throw std::runtime_error("[ERROR] Failed to execute VATA.");
+    }
+#if 0
     if (!AUTOQ::Util::ShellCmd(args, aux)) {
         throw std::runtime_error("[ERROR] Failed to execute VATA.");
     }
+#endif
     return (aux == "1\n");
   }
 
@@ -1308,7 +1317,7 @@ std::vector<std::pair<std::map<int, unsigned>, std::vector<std::string>>> AUTOQ:
                     auto left = print(leafSymbolTagsMap, dqfCOL, qubit + 1, in_outs.first.at(0));
                     auto right = print(leafSymbolTagsMap, dqfCOL, qubit + 1, in_outs.first.at(1));
                     for (const auto &L : left) {
-                        const auto &colL = L.first;                        
+                        const auto &colL = L.first;
                         for (const auto &R : right) {
                             auto subtreeL = L.second;
                             const auto &colR = R.first;
@@ -1333,7 +1342,7 @@ std::vector<std::pair<std::map<int, unsigned>, std::vector<std::string>>> AUTOQ:
                                     if (count >= 2) goto FAIL;
                                 }
                             }
-                            subtreeL.insert(subtreeL.end(), subtreeR.begin(), subtreeR.end());                            
+                            subtreeL.insert(subtreeL.end(), subtreeR.begin(), subtreeR.end());
                             answers.push_back({newcol, subtreeL});
                             FAIL: {}
                         }
@@ -1350,7 +1359,7 @@ void AUTOQ::Automata<Symbol>::print_language(const char *str) const {
     std::cout << str;
     std::map<typename AUTOQ::Automata<Symbol>::State, std::vector<typename AUTOQ::Automata<Symbol>::SymbolTag>> leafSymbolTagsMap;
     std::map<int, std::map<std::pair<typename AUTOQ::Automata<Symbol>::State, typename AUTOQ::Automata<Symbol>::Symbol>, std::vector<unsigned>>> dqfCOL;
-    for (const auto &t : transitions) { 
+    for (const auto &t : transitions) {
         for (const auto &in_outs : t.second) { // construct the map from state to leaf symbols
             for (const auto &q : in_outs.second) {
                 if (t.first.symbol().is_internal())
