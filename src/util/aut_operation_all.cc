@@ -264,7 +264,14 @@ bool AUTOQ::Automata<Symbol>::light_reduce_up()
     for (const auto& vecSetPair : symbMapPair.second) {
       for (auto state : vecSetPair.second) {
         auto itBoolPair = index.insert({state, *vecSetPair.second.begin()});
-        if (!itBoolPair.second) { // if there was more than one occurrence of 'state' as parent
+        if (!itBoolPair.second &&                // insert didn't pass
+          (itBoolPair.first->second != state) && // the merge is non-identity
+          (itBoolPair.first->second != *vecSetPair.second.begin())
+            // the new value is not the same as the old one
+          ) {
+          // if there was more than one occurrence of 'state' as parent
+          // AUTOQ_DEBUG("broken possible merge: " + Convert::ToString(state) +
+          //   " -> " + Convert::ToString(itBoolPair.first->second));
           itBoolPair.first->second = state;
         }
       }

@@ -4,6 +4,7 @@
 #include <vector>
 #include <autoq/util/convert.hh>
 #include <boost/multiprecision/cpp_int.hpp>
+#include <boost/functional/hash.hpp>
 
 namespace AUTOQ
 {
