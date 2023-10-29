@@ -76,6 +76,9 @@ bool AUTOQ::Util::ShellCmd(const std::string &cmd, std::string &result) {
     pclose(pipe);
     return true;
 }
+
+// removed due to compilation issue
+#if 0
 bool AUTOQ::Util::ShellCmd(const std::vector<std::string> &cmd, std::string &result) {
     int pipefd[2];
     if (pipe(pipefd) == -1) {
@@ -123,6 +126,7 @@ bool AUTOQ::Util::ShellCmd(const std::vector<std::string> &cmd, std::string &res
     }
     return true;
 }
+#endif
 
 // AUTOQ::AutBase::StateDict AUTOQ::Util::CreateProductStringToStateMap(
 // 	const AUTOQ::AutBase::StateDict& lhsCont,

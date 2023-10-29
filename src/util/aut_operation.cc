@@ -1087,9 +1087,18 @@ void AUTOQ::Automata<Symbol>::fraction_simplification() {
         args.push_back(input.substr(i, MAX_ARG_STRLEN));
     }
     std::string aux;
+    std::string arguments;
+    for (const std::string& a : args) {
+			arguments += a + " ";
+		}
+    if (!AUTOQ::Util::ShellCmd(arguments, aux)) {
+        throw std::runtime_error("[ERROR] Failed to execute VATA.");
+    }
+#if 0
     if (!AUTOQ::Util::ShellCmd(args, aux)) {
         throw std::runtime_error("[ERROR] Failed to execute VATA.");
     }
+#endif
     return (aux == "1\n");
   }
 
