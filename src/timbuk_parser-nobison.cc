@@ -438,24 +438,6 @@ PredicateAutomata::Symbol from_string_to_Predicate(const std::string& lhs)
 // }
 
 template <typename Symbol>
-Automata<Symbol> TimbukParser<Symbol>::ParseString(const std::string& str)
-{
-	Automata<Symbol> timbukParse;
-
-	try
-	{
-		timbukParse = parse_automaton<Symbol>(str);
-	}
-	catch (std::exception& ex)
-	{
-		throw std::runtime_error("[ERROR] \'" + std::string(ex.what()) +
-			"\'\nwhile parsing the following automaton.\n\n>>>>>>>>>>>>>>>>>>>>\n" + str + "\n<<<<<<<<<<<<<<<<<<<<");
-	}
-
-	return timbukParse;
-}
-
-template <typename Symbol>
 Automata<Symbol> parse_automaton(const std::string& str)
 {
 	bool start_numbers = false;
@@ -580,9 +562,11 @@ Automata<Symbol> parse_automaton(const std::string& str)
                         result.transitions[Symbol(boost::lexical_cast<int>(lhs))][std::vector<SymbolicAutomata::State>()].insert(t);
                     } catch (...) {
                         try {
-                            result.transitions[Symbol({{numbers.at(lhs), {{"1", 1}}}})][std::vector<SymbolicAutomata::State>()].insert(t);
+                            Symbolic symb(Symbolic::ComplexType{{numbers.at(lhs), {{"1", 1}}}});
+                            result.transitions[symb][std::vector<SymbolicAutomata::State>()].insert(t);
                         } catch (...) {
-                            result.transitions[Symbol({{Complex::One(), {{lhs, 1}}}})][std::vector<SymbolicAutomata::State>()].insert(t);
+                            Symbolic symb(Symbolic::ComplexType{{Complex::One(), {{lhs, 1}}}});
+                            result.transitions[symb][std::vector<SymbolicAutomata::State>()].insert(t);
                         }
                     }
                 }
@@ -650,6 +634,26 @@ Automata<Symbol> parse_automaton(const std::string& str)
     result.finalStates.push_back(0);
 	return result;
 }
+
+
+template <typename Symbol>
+Automata<Symbol> TimbukParser<Symbol>::ParseString(const std::string& str)
+{
+	Automata<Symbol> timbukParse;
+
+	try
+	{
+		timbukParse = parse_automaton<Symbol>(str);
+	}
+	catch (std::exception& ex)
+	{
+		throw std::runtime_error("[ERROR] \'" + std::string(ex.what()) +
+			"\'\nwhile parsing the following automaton.\n\n>>>>>>>>>>>>>>>>>>>>\n" + str + "\n<<<<<<<<<<<<<<<<<<<<");
+	}
+
+	return timbukParse;
+}
+
 
 template <> // The loop reading part is different from other types, so we have to specialize this type.
 PredicateAutomata TimbukParser<Predicate>::from_tree_to_automaton(std::string tree) {
@@ -876,7 +880,7 @@ Automata<Symbol> TimbukParser<Symbol>::from_line_to_automaton(std::string line) 
         for (const auto &t : aut_leaves) {
             for (const auto &t2 : aut2.transitions) {
                 if (t2.first.is_internal()) { // if the to-be-appended transition is internal, then
-                    int Q = aut.qubitNum + t2.first.symbol().qubit(); // we need to shift the qubit number
+                    int Q = aut.qubitNum + static_cast<int>(t2.first.symbol().qubit()); // we need to shift the qubit number
                     for (const auto &kv : t2.second) { // for each pair of vec_in -> set_out
                         auto k = kv.first;
                         for (unsigned i=0; i<k.size(); i++)
