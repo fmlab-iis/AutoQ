@@ -5,6 +5,7 @@
 #include <autoq/util/convert.hh>
 #include <autoq/complex/complex.hh>
 #include <boost/multiprecision/cpp_int.hpp>
+#include <boost/functional/hash.hpp>
 
 namespace AUTOQ
 {

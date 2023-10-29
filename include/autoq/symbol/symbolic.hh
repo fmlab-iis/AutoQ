@@ -76,12 +76,13 @@ struct AUTOQ::Symbol::Symbolic {
 private:
     bool internal;
 public:
-    std::map<Complex::Complex, AUTOQ::Symbol::linear_combination> complex;
+    using ComplexType = std::map<Complex::Complex, AUTOQ::Symbol::linear_combination>;
+    ComplexType complex;
 
     // Notice that if we do not use is_convertible_v, type int will not be accepted in this case.
     template <typename T, typename = std::enable_if_t<std::is_convertible<T, boost::multiprecision::cpp_int>::value>>
         Symbolic(T qubit) : internal(true), complex({{Complex::Complex::One(), AUTOQ::Symbol::linear_combination({{"1", qubit}})}}) {}
-    Symbolic(const std::map<Complex::Complex, AUTOQ::Symbol::linear_combination> &c) : internal(false), complex(c) {}
+    Symbolic(const ComplexType &c) : internal(false), complex(c) {}
     Symbolic() : internal(), complex() {} // prevent the compiler from complaining about the lack of default constructor
     bool is_internal() const { return internal; }
     bool is_leaf() const { return !internal; }
@@ -89,7 +90,7 @@ public:
         assert(internal);
         // assert(complex.imag() == 0);
         return complex.at(Complex::Complex::One()).at("1");
-    }    
+    }
     void back_to_zero() { complex.clear(); }
     friend std::ostream& operator<<(std::ostream& os, const Symbolic& obj) {
         os << AUTOQ::Util::Convert::ToString(obj.complex);
