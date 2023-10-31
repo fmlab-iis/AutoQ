@@ -1149,6 +1149,13 @@ void AUTOQ::Util::Automata<InitialSymbol>::execute(const char *filename) {
                 ++it;
             }
             swap(pos[0], pos[1]);
+        } else if (line.find("PRINT_STATS") == 0) {
+            std::cout << AUTOQ::Util::Convert::ToString(qubitNum) << " & " << AUTOQ::Util::TreeAutomata::gateCount
+                << " & " << "-" << " & " << stateNum
+                << " & " << "-"  << " & " << transition_size()
+                << " & " << "-"  << " & " << "\n";
+        } else if (line.find("PRINT_AUT") == 0) {
+            print();
         } else if (line.length() > 0)
             throw std::runtime_error("Unsupported gate: " + line);
     }
