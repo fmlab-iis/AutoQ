@@ -148,6 +148,7 @@ public:   // methods
 	}
 
 private:
+    void state_renumbering();
     void remove_impossible_colors();
     void remove_useless(bool only_bottom_up=false);
     Automata binary_operation(const Automata &o, bool add);
