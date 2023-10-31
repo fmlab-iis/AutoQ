@@ -72,7 +72,7 @@ optional arguments:
     }
     aut_final.reduce();
     std::cout << std::endl;
-    aut_final.print();
+    aut_final.print_aut();
     return 0;
 } catch (std::exception &e) {
     std::cout << e.what() << std::endl;

@@ -93,6 +93,7 @@ public:   // data members
     inline static int gateCount;
     inline static bool gateLog, opLog;
     inline static std::chrono::steady_clock::duration binop_time, branch_rest_time, value_rest_time;
+    inline static std::chrono::time_point<std::chrono::steady_clock> start_time;
     /* Notice inline is very convenient for declaring and defining a static member variable together! */
 
 public:   // methods
@@ -164,7 +165,8 @@ public:
     Automata operator+(const Automata &o);
     Automata operator-(const Automata &o);
     Automata Union(const Automata &o); // U is in uppercase since "union" is a reserved keyword.
-    void print(const char *str="") const;
+    void print_aut(const char *str="") const;
+    void print_stats(const std::string &str="", bool newline=false);
     int transition_size();
 
     /// simulation-based reduction

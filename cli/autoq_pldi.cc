@@ -64,6 +64,7 @@ optional arguments:
         AUTOQ::TreeAutomata aut = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Concrete>::FromFileToAutomata(argv[1]);
         int stateBefore = aut.stateNum, transitionBefore = aut.transition_size();
         auto startSim = chrono::steady_clock::now();
+        AUTOQ::TreeAutomata::start_time = startSim;
         aut.execute(argv[2]);
         auto durationSim = chrono::steady_clock::now() - startSim;
         auto durationVer = durationSim; // just borrow its type!
@@ -71,7 +72,7 @@ optional arguments:
         auto startVer = chrono::steady_clock::now();
         // std::cout << "OUTPUT AUTOMATON:\n";
         // std::cout << "=================\n";
-        // aut.print();
+        // aut.print_aut();
         // std::cout << "=================\n";
         if (argc >= 4) {
             auto aut2 = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Concrete>::FromFileToAutomata(argv[3]);
@@ -111,7 +112,7 @@ optional arguments:
         AUTOQ::Constraint C(buffer.str().c_str());
         std::cout << "OUTPUT AUTOMATON:\n";
         std::cout << "=================\n";
-        aut.print();
+        aut.print_aut();
         std::cout << "=================\n";
         std::cout << "-\n" << AUTOQ::is_spec_satisfied(C, aut, spec) << " " << toString(chrono::steady_clock::now() - startVer) << " " << getPeakRSS() / 1024 / 1024 << "MB\n";
     }
