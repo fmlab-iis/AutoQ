@@ -16,3 +16,5 @@ python_interface/__pycache__
 
 .vscode/*
 backup/*
+
+PLDI24/autoq_pldi*
