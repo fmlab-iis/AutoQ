@@ -167,6 +167,6 @@ int main(int argc, char **argv) {
     aut_final.fraction_simplification();
     aut_final.reduce();
     std::cout << std::endl;
-    aut_final.print();
+    aut_final.print_aut();
     return 0;
 }

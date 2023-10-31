@@ -513,8 +513,9 @@ AUTOQ::Util::Automata<InitialSymbol> AUTOQ::Util::Automata<InitialSymbol>::Union
     return result;
 }
 
-template <typename InitialSymbol>
-void AUTOQ::Util::Automata<InitialSymbol>::print() {
+template <typename Symbol>
+void AUTOQ::Util::Automata<Symbol>::print_aut(const char *str) const {
+    std::cout << str;
     std::cout << AUTOQ::Serialization::TimbukSerializer::Serialize(*this);
 }
 

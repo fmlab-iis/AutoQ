@@ -1461,7 +1461,7 @@ void VATA::Util::TreeAutomata::reduce()
 }
 
 
-void VATA::Util::TreeAutomata::print() {
+void VATA::Util::TreeAutomata::print_aut() {
     std::string result;
 
   result += "Ops ";

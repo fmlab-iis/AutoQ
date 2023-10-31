@@ -463,7 +463,7 @@ BOOST_AUTO_TEST_CASE(Grover_Search)
     buffer << t.rdbuf();
     auto ans = VATA::Parsing::TimbukParser::ParseString(buffer.str());
     // int n = (aut.qubitNum + 1) / 3;
-    // aut.print();
+    // aut.print_aut();
 
     /******************************** Answer Validation *********************************/
     BOOST_REQUIRE_MESSAGE(VATA::Util::TreeAutomata::check_equal_aut(aut, ans), "");

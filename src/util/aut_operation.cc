@@ -1066,8 +1066,8 @@ void AUTOQ::Util::Automata<InitialSymbol>::execute(const char *filename) {
     std::ifstream qasm(filename);
     const std::regex digit("\\d+");
     const std::regex_iterator<std::string::iterator> END;
-    if (!qasm.is_open()) throw std::runtime_error("The circuit cannot be opened!");
-    std::string line;
+    if (!qasm.is_open()) throw std::runtime_error("[ERROR] Failed to open file " + std::string(filename) + ".");
+    std::string line, previous_line;
     while (getline(qasm, line)) {
         if (line.find("OPENQASM") == 0 || line.find("include ") == 0|| line.find("//") == 0) continue;
         if (line.find("qreg ") == 0) {
@@ -1150,12 +1150,9 @@ void AUTOQ::Util::Automata<InitialSymbol>::execute(const char *filename) {
             }
             swap(pos[0], pos[1]);
         } else if (line.find("PRINT_STATS") == 0) {
-            std::cout << AUTOQ::Util::Convert::ToString(qubitNum) << " & " << AUTOQ::Util::TreeAutomata::gateCount
-                << " & " << "-" << " & " << stateNum
-                << " & " << "-"  << " & " << transition_size()
-                << " & " << "-"  << " & " << "\n";
+            print_stats(previous_line, true);
         } else if (line.find("PRINT_AUT") == 0) {
-            print();
+            print_aut();
         } else if (line.length() > 0)
             throw std::runtime_error("Unsupported gate: " + line);
     }
@@ -1351,6 +1348,18 @@ void AUTOQ::Util::Automata<InitialSymbol>::print_language() {
             std::cout << "*:" << (ptr->first) << std::endl;
         }
     }
+}
+
+template <typename Symbol>
+void AUTOQ::Util::Automata<Symbol>::print_stats(const std::string &str, bool newline) {
+    remove_useless();
+    std::cout << str;
+    std::cout << AUTOQ::Util::Convert::ToString(qubitNum) << " & " << AUTOQ::Util::TreeAutomata::gateCount
+              << " & " << "-" << " & " << stateNum
+              << " & " << "-" << " & " << transition_size()
+              << " & " << AUTOQ::Util::Convert::toString(std::chrono::steady_clock::now() - start_time) << " & " << "-";
+    if (newline)
+        std::cout << std::endl;
 }
 
 // https://bytefreaks.net/programming-2/c/c-undefined-reference-to-templated-class-function

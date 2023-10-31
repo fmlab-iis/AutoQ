@@ -141,7 +141,7 @@ public:
     TreeAutomata operator+(const TreeAutomata &o) { return binary_operation(o, true); }
     TreeAutomata operator-(const TreeAutomata &o) { return binary_operation(o, false); }
     TreeAutomata Union(const TreeAutomata &o); // U is in uppercase since "union" is a reserved keyword.
-    void print();
+    void print_aut();
     int transition_size();
 
     /// simulation-based reduction

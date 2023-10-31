@@ -37,7 +37,7 @@ int main(int argc, char **argv) {
         auto durationVer = durationSim; // just borrow its type!
         aut.fraction_simplification();
         auto startVer = chrono::steady_clock::now();
-        aut.print();
+        aut.print_aut();
         if (argc >= 4) {
             if (!AUTOQ::Util::TreeAutomata::check_inclusion(aut, argv[3])) {
                 std::cout << "-\n0\n";
@@ -65,7 +65,7 @@ int main(int argc, char **argv) {
         std::stringstream buffer;
         buffer << t.rdbuf();
         AUTOQ::Util::Constraint C(buffer.str().c_str());
-        aut.print();
+        aut.print_aut();
         std::cout << "-\n" << AUTOQ::Util::is_spec_satisfied(C, aut, spec) << "\n";
     }
     return 0;

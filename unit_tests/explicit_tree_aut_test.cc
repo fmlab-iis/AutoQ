@@ -465,7 +465,7 @@ BOOST_AUTO_TEST_CASE(Grover_Search)
     buffer << t.rdbuf();
     auto ans = AUTOQ::Parsing::TimbukParser<AUTOQ::Util::TreeAutomata::InitialSymbol>::ParseString(buffer.str());
     // int n = (aut.qubitNum + 1) / 3;
-    // aut.print();
+    // aut.print_aut();
 
     /******************************** Answer Validation *********************************/
     BOOST_REQUIRE_MESSAGE(AUTOQ::Util::TreeAutomata::check_equal_aut(aut, ans), "");
