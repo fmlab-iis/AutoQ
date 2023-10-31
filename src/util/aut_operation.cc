@@ -79,6 +79,49 @@ namespace std
 } // namespace std
 
 template <typename InitialSymbol>
+void AUTOQ::Util::Automata<InitialSymbol>::state_renumbering() {
+    TransitionMap transitions_new;
+    std::map<State, State> stateOldToNew;
+    for (const auto &t : transitions) {
+        for (const auto &in_out : t.second) {
+            const auto &outs = in_out.second;
+            StateVector sv;
+            for (const auto &v : in_out.first) { // we construct the new tuple
+                State newState = stateOldToNew.size();
+                auto itBoolPair = stateOldToNew.insert({v, newState});
+                if (!itBoolPair.second) { // if insertion didn't happened
+                    const auto& it = itBoolPair.first;
+                    newState = it->second;
+                }
+                sv.push_back(newState);
+            }
+            for (const auto &s : outs) {
+                State newState = stateOldToNew.size();
+                auto itBoolPair = stateOldToNew.insert({s, newState});
+                if (!itBoolPair.second) { // if insertion didn't happened
+                    const auto& it = itBoolPair.first;
+                    newState = it->second;
+                }
+                transitions_new[t.first][sv].insert(newState);
+            }
+        }
+    }
+    transitions = transitions_new;
+    StateVector finalStates_new; // TODO: Can we set the initial capacity?
+    finalStates_new.reserve(finalStates.size());
+    for (const auto &s : finalStates) {
+        auto it = stateOldToNew.find(s);
+        if (it != stateOldToNew.end()) {
+            finalStates_new.push_back(it->second);
+        }
+        // We do not add the untouched final states here, since
+        // it could severely degrade the performance (either with or without sim_reduce()).
+    }
+    finalStates = finalStates_new;
+    stateNum = stateOldToNew.size();
+}
+
+template <typename InitialSymbol>
 void AUTOQ::Util::Automata<InitialSymbol>::remove_useless(bool only_bottom_up) {
     auto start = std::chrono::steady_clock::now();
     bool changed;
@@ -168,45 +211,7 @@ void AUTOQ::Util::Automata<InitialSymbol>::remove_useless(bool only_bottom_up) {
     /*********************
      * Part 3: Renumbering
      *********************/
-    TransitionMap transitions_new;
-    std::map<State, State> stateOldToNew;
-    for (const auto &t : transitions) {
-        for (const auto &in_out : t.second) {
-            const auto &outs = in_out.second;
-            StateVector sv;
-            for (const auto &v : in_out.first) { // we construct the new tuple
-                State newState = stateOldToNew.size();
-                auto itBoolPair = stateOldToNew.insert({v, newState});
-                if (!itBoolPair.second) { // if insertion didn't happened
-                    const auto& it = itBoolPair.first;
-                    newState = it->second;
-                }
-                sv.push_back(newState);
-            }
-            for (const auto &s : outs) {
-                State newState = stateOldToNew.size();
-                auto itBoolPair = stateOldToNew.insert({s, newState});
-                if (!itBoolPair.second) { // if insertion didn't happened
-                    const auto& it = itBoolPair.first;
-                    newState = it->second;
-                }
-                transitions_new[t.first][sv].insert(newState);
-            }
-        }
-    }
-    transitions = transitions_new;
-    StateVector finalStates_new; // TODO: Can we set the initial capacity?
-    finalStates_new.reserve(finalStates.size());
-    for (const auto &s : finalStates) {
-        auto it = stateOldToNew.find(s);
-        if (it != stateOldToNew.end()) {
-            finalStates_new.push_back(it->second);
-        }
-        // We do not add the untouched final states here, since
-        // it could severely degrade the performance (either with or without sim_reduce()).
-    }
-    finalStates = finalStates_new;
-    stateNum = stateOldToNew.size();
+    state_renumbering();
     auto duration = std::chrono::steady_clock::now() - start;
     if (opLog) std::cout << __FUNCTION__ << "：" << stateNum << " states " << count_transitions() << " transitions\n";
 }
@@ -1352,7 +1357,7 @@ void AUTOQ::Util::Automata<InitialSymbol>::print_language() {
 
 template <typename Symbol>
 void AUTOQ::Util::Automata<Symbol>::print_stats(const std::string &str, bool newline) {
-    remove_useless();
+    state_renumbering();
     std::cout << str;
     std::cout << AUTOQ::Util::Convert::ToString(qubitNum) << " & " << AUTOQ::Util::TreeAutomata::gateCount
               << " & " << "-" << " & " << stateNum
