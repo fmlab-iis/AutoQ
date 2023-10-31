@@ -90,7 +90,7 @@ public:   // data members
     unsigned qubitNum;
 	TransitionMap transitions;
     bool isTopdownDeterministic;
-    inline static int gateCount;
+    inline static int gateCount, stateBefore, transitionBefore;
     inline static bool gateLog, opLog;
     inline static std::chrono::steady_clock::duration binop_time, branch_rest_time, value_rest_time;
     inline static std::chrono::time_point<std::chrono::steady_clock> start_time;
@@ -218,6 +218,7 @@ public:
     static bool check_inclusion(const std::string& lhsPath, const Automata& rhsPath);
     static bool check_inclusion(const Automata& lhsPath, const Automata& rhsPath);
 
+    void initialize_stats();
     void execute(const char *filename);
     void print_language(const char *str="") const;
     std::vector<std::pair<std::map<int, unsigned>, std::vector<std::string>>> print(const std::map<typename AUTOQ::Automata<Symbol>::State, std::vector<typename AUTOQ::Automata<Symbol>::SymbolTag>> &leafSymbolTagsMap, std::map<int, std::map<std::pair<typename AUTOQ::Automata<Symbol>::State, typename AUTOQ::Automata<Symbol>::Symbol>, std::vector<unsigned>>> dqfCOL, int qubit, typename AUTOQ::Automata<Symbol>::State state) const;

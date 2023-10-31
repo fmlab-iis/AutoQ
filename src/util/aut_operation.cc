@@ -1124,6 +1124,13 @@ void AUTOQ::Automata<Symbol>::fraction_simplification() {
 // } // anonymous namespace
 /******************************************************/
 
+template <typename InitialSymbol>
+void AUTOQ::Automata<InitialSymbol>::initialize_stats() {
+    stateBefore = stateNum;
+    transitionBefore = transition_size();
+    start_time = std::chrono::steady_clock::now();
+}
+
 template <typename Symbol>
 void AUTOQ::Automata<Symbol>::execute(const char *filename) {
     std::ifstream qasm(filename);
@@ -1464,8 +1471,8 @@ void AUTOQ::Automata<Symbol>::print_stats(const std::string &str, bool newline) 
     state_renumbering();
     std::cout << str;
     std::cout << AUTOQ::Util::Convert::ToString(qubitNum) << " & " << AUTOQ::TreeAutomata::gateCount
-              << " & " << "-" << " & " << stateNum
-              << " & " << "-" << " & " << transition_size()
+              << " & " << stateBefore << " & " << stateNum
+              << " & " << transitionBefore << " & " << transition_size()
               << " & " << AUTOQ::Util::Convert::toString(std::chrono::steady_clock::now() - start_time) << " & " << "-";
     if (newline)
         std::cout << std::endl;

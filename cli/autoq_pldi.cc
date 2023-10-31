@@ -62,14 +62,12 @@ optional arguments:
         //     }
         // }
         AUTOQ::TreeAutomata aut = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Concrete>::FromFileToAutomata(argv[1]);
-        int stateBefore = aut.stateNum, transitionBefore = aut.transition_size();
-        auto startSim = chrono::steady_clock::now();
-        AUTOQ::TreeAutomata::start_time = startSim;
+        aut.initialize_stats();
         aut.execute(argv[2]);
-        auto durationSim = chrono::steady_clock::now() - startSim;
-        auto durationVer = durationSim; // just borrow its type!
+        // auto durationSim = chrono::steady_clock::now() - startSim;
+        // auto durationVer = durationSim; // just borrow its type!
         // aut.fraction_simplification();
-        auto startVer = chrono::steady_clock::now();
+        // auto startVer = chrono::steady_clock::now();
         // std::cout << "OUTPUT AUTOMATON:\n";
         // std::cout << "=================\n";
         // aut.print_aut();
@@ -79,10 +77,7 @@ optional arguments:
             // if (!AUTOQ::TreeAutomata::check_inclusion(aut, aut2)) {
                 // std::cout << "-\n0\n";
                 // throw std::runtime_error("Does not satisfy the postcondition!");
-                std::cout << AUTOQ::Util::Convert::ToString(aut.qubitNum) << " & " << AUTOQ::TreeAutomata::gateCount
-                << " & " << stateBefore << " & " << aut.stateNum
-                << " & " << transitionBefore << " & " << aut.transition_size()
-                << " & " << toString(durationSim) << " & V";
+                aut.print_stats(); // << " & V";
             // } else {
             //     durationVer = chrono::steady_clock::now() - startVer;
             //     std::cout << AUTOQ::Util::Convert::ToString(aut.qubitNum) << " & " << AUTOQ::TreeAutomata::gateCount
@@ -91,11 +86,8 @@ optional arguments:
             //     << " & " << toString(durationSim) << " & " << toString(durationVer);
             // }
         } else {
-            durationVer = chrono::steady_clock::now() - startVer;
-            std::cout << AUTOQ::Util::Convert::ToString(aut.qubitNum) << " & " << AUTOQ::TreeAutomata::gateCount
-                << " & " << stateBefore << " & " << aut.stateNum
-                << " & " << transitionBefore << " & " << aut.transition_size()
-                << " & " << toString(durationSim) << " & " << toString(durationVer);
+            // durationVer = chrono::steady_clock::now() - startVer;
+            aut.print_stats(); // << " & " << toString(durationVer);
         }
     } else { // argc >= 5
         auto startVer = chrono::steady_clock::now();
