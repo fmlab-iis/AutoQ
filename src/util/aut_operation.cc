@@ -422,185 +422,185 @@ void AUTOQ::Automata<Symbol>::branch_restriction(int k, bool positive_has_value)
 //     if (opLog) std::cout << __FUNCTION__ << "：" << stateNum << " states " << count_transitions() << " transitions\n";
 // }
 
-#define construct_product_state_id(a, b, i) \
-    State i; \
-    if (overflow) { \
-        auto it = stateOldToNew.find(std::make_pair(a, b)); \
-        if (it == stateOldToNew.end()) { \
-            i = stateOldToNew.size(); \
-            stateOldToNew[std::make_pair(a, b)] = i; \
-        } \
-        else i = it->second; \
-    } else i = a * o.stateNum + b;
-template <typename Symbol>
-AUTOQ::Automata<Symbol> AUTOQ::Automata<Symbol>::binary_operation(const Automata<Symbol> &o, bool add) {
-    auto start = std::chrono::steady_clock::now();
-    AUTOQ::Automata<Symbol> result;
-    result.name = name;
-    result.qubitNum = qubitNum;
-    result.isTopdownDeterministic = isTopdownDeterministic; // IMPORTANT: Avoid missing copying new fields afterwards.
+// #define construct_product_state_id(a, b, i) \
+//     State i; \
+//     if (overflow) { \
+//         auto it = stateOldToNew.find(std::make_pair(a, b)); \
+//         if (it == stateOldToNew.end()) { \
+//             i = stateOldToNew.size(); \
+//             stateOldToNew[std::make_pair(a, b)] = i; \
+//         } \
+//         else i = it->second; \
+//     } else i = a * o.stateNum + b;
+// template <typename Symbol>
+// AUTOQ::Automata<Symbol> AUTOQ::Automata<Symbol>::binary_operation(const Automata<Symbol> &o, bool add) {
+//     auto start = std::chrono::steady_clock::now();
+//     AUTOQ::Automata<Symbol> result;
+//     result.name = name;
+//     result.qubitNum = qubitNum;
+//     result.isTopdownDeterministic = isTopdownDeterministic; // IMPORTANT: Avoid missing copying new fields afterwards.
 
-    std::map<std::pair<State, State>, State> stateOldToNew; // used only if overflow := true;
-    bool overflow = (stateNum > std::numeric_limits<State>::max() / o.stateNum);
-    if (!overflow)
-        result.finalStates.reserve(finalStates.size() * o.finalStates.size()); // TODO: Can we set the initial capacity?
-    else
-        throw std::overflow_error("[ERROR] The number of states after multiplication is too large.");
+//     std::map<std::pair<State, State>, State> stateOldToNew; // used only if overflow := true;
+//     bool overflow = (stateNum > std::numeric_limits<State>::max() / o.stateNum);
+//     if (!overflow)
+//         result.finalStates.reserve(finalStates.size() * o.finalStates.size()); // TODO: Can we set the initial capacity?
+//     else
+//         throw std::overflow_error("[ERROR] The number of states after multiplication is too large.");
 
-    for (const auto &fs1 : finalStates)
-        for (const auto &fs2 : o.finalStates) {
-            construct_product_state_id(fs1, fs2, i);
-            result.finalStates.push_back(i);
-        }
+//     for (const auto &fs1 : finalStates)
+//         for (const auto &fs2 : o.finalStates) {
+//             construct_product_state_id(fs1, fs2, i);
+//             result.finalStates.push_back(i);
+//         }
 
-    // We assume here transitions are ordered by symbols.
-    // x_i are placed in the beginning, and leaves are placed in the end.
-    // This traversal method is due to efficiency.
-    std::vector<bool> previous_level_states2(stateNum * o.stateNum);
-    std::vector<bool> previous_level_states(stateNum * o.stateNum);
-    for (auto s : result.finalStates)
-        previous_level_states[s] = true;
-    std::vector<bool> next_level_states;
-    auto it = transitions.begin();
-    auto it2 = o.transitions.begin();
-    for (; it != transitions.end(); it++) { // iterate over all internal transitions of T1
-        if (it->first.is_leaf()) break; // internal
-        if (it->first < it2->first) continue;
-        while (it2 != o.transitions.end() && it->first > it2->first)
-            it2++;
-        if (it2 == o.transitions.end()) break;
-        if (it->first < it2->first) continue;
-        assert(it->first == it2->first); // Ensure T1's and T2's current transitions have the same symbol now.
-        // Update previous_level_states.
-        if (it != transitions.begin() && it->first.symbol().qubit() != std::prev(it)->first.symbol().qubit()) { // T1 changes level.
-            previous_level_states = previous_level_states2;
-            previous_level_states2 = std::vector<bool>(stateNum * o.stateNum);
-        }
-        // Update next_level_states.
-        if (it == transitions.begin() || it->first.symbol().qubit() != std::prev(it)->first.symbol().qubit()) { // T1 goes into the new level.
-            next_level_states = std::vector<bool>(stateNum * o.stateNum);
-            auto it3 = it; // it3 indicates the next level of it.
-            while (it3 != transitions.end() && it3->first.is_internal() && it3->first.symbol().qubit() == it->first.symbol().qubit())
-                it3++;
-            if (it3 == transitions.end()) {} // T1 has no leaf transitions?
-            else if (it3->first.is_leaf()) { // The next level of T1 is leaf transitions.
-                auto it4 = it2; // Initially it2 has the same symbol as it.
-                while (it4 != o.transitions.end() && it4->first.is_internal())
-                    it4++;
-                auto it4i = it4;
-                // We hope it4 currently points to the first leaf transition.
-                // If it4 points to o.transitions.end(), then the following loop will not be executed.
-                for (; it3 != transitions.end(); it3++) { // iterate over all leaf transitions of T1
-                    assert(it3->first.is_leaf());
-                    for (it4 = it4i; it4 != o.transitions.end(); it4++) { // iterate over all leaf transitions of T2
-                        assert(it4->first.is_leaf());
-                        for (const auto &s1 : it3->second.begin()->second) { // iterate over all output states of it3
-                            for (const auto &s2 : it4->second.begin()->second) { // iterate over all output states of it4
-                                construct_product_state_id(s1, s2, i);
-                                next_level_states[i] = true; // collect all output state products of the next level
-                            }
-                        }
-                    }
-                }
-            } else { // The next level of T1 is still internal transitions.
-                int current_level = static_cast<int>(it3->first.symbol().qubit());
-                auto it4 = it2; // Initially it2 has the same symbol as it.
-                while (it4 != o.transitions.end() && it4->first.is_internal() && it4->first.symbol().qubit() == current_level)
-                    it4++;
-                // We hope it4 currently points to T2's first transition of the next level.
-                // If it4 points to o.transitions.end(), then the following loop will not be executed.
-                for (; it3->first.is_internal() && it3->first.symbol().qubit() == current_level; it3++) {
-                    if (it3->first < it4->first) continue;
-                    while (it4 != o.transitions.end() && it3->first > it4->first)
-                        it4++;
-                    if (it4 == o.transitions.end()) break;
-                    if (it3->first < it4->first) continue;
-                    assert(it3->first == it4->first);
-                    // Ensure T1's and T2's current transitions have the same symbol now.
-                    for (auto itt = it3->second.begin(); itt != it3->second.end(); itt++) { // all input-output pairs of it3
-                        for (auto itt2 = it4->second.begin(); itt2 != it4->second.end(); itt2++) { // all input-output pairs of it4
-                            for (const auto &s1 : itt->second) { // all output states of it3
-                                for (const auto &s2 : itt2->second) { // all output states of it4
-                                    construct_product_state_id(s1, s2, i);
-                                    next_level_states[i] = true; // collect all output state products of the next level
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        std::map<StateVector, StateSet> m;
-        for (auto itt = it->second.begin(); itt != it->second.end(); itt++) { // iterate over all input-output pairs of it
-            for (auto itt2 = it2->second.begin(); itt2 != it2->second.end(); itt2++) { // iterate over all input-output pairs of it2
-                StateVector sv;
-                StateSet ss;
-                construct_product_state_id(itt->first[0], itt2->first[0], i);
-                if (!next_level_states[i]) continue;
-                sv.push_back(i); // construct product of T1's and T2's left input states
-                construct_product_state_id(itt->first[1], itt2->first[1], j);
-                if (!next_level_states[j]) continue;
-                sv.push_back(j); // construct product of T1's and T2's right input states
-                for (const auto &s1 : itt->second) { // all output states of itt
-                    for (const auto &s2 : itt2->second) { // all output states of itt2
-                        construct_product_state_id(s1, s2, i);
-                        if (previous_level_states[i])
-                            ss.insert(i);
-                    }
-                }
-                if (ss.size() > 0) {
-                    previous_level_states2[sv[0]] = true;
-                    previous_level_states2[sv[1]] = true;
-                    m.insert(std::make_pair(sv, ss));
-                }
-            }
-        }
-        result.transitions.insert(make_pair(it->first, m));
-        assert(m.begin()->first.size() == 2);
-    }
-    previous_level_states = previous_level_states2;
-    // We now advance it2 to T2's first leaf transition.
-    while (it2 != o.transitions.end() && !it2->first.is_leaf())
-        it2++;
-    for (; it != transitions.end(); it++) {
-        assert(it->first.is_leaf());
-        for (auto it2t = it2; it2t != o.transitions.end(); it2t++) { // it2 as the new begin point.
-            assert(it2t->first.is_leaf());
-            Symbol symbol;
-            if (add) symbol = it->first.symbol() + it2t->first.symbol();
-            else symbol = it->first.symbol() - it2t->first.symbol();
-            for (const auto &s1 : it->second.begin()->second)
-                for (const auto &s2 : it2t->second.begin()->second) {
-                    construct_product_state_id(s1, s2, i);
-                    if (previous_level_states[i]) {
-                        assert(it->first.tag() == it2t->first.tag()); // untagged
-                        result.transitions[{symbol, it->first.tag()}][{}].insert(i);
-                    }
-                }
-        }
-    }
-    if (overflow)
-        result.stateNum = stateOldToNew.size();
-    else
-        result.stateNum = stateNum * o.stateNum;
-    result.remove_useless(true); // otherwise, will out of memory
-    // Round several approximately equal floating points to the same value!
-    #if COMPLEX != 1
-        result.fraction_simplification();
-    #endif
-    auto end = std::chrono::steady_clock::now();
-    binop_time += end - start;
-    if (opLog) std::cout << __FUNCTION__ << "：" << stateNum << " states " << count_transitions() << " transitions\n";
-    return result;
-}
-template <typename Symbol>
-AUTOQ::Automata<Symbol> Automata<Symbol>::operator+(const Automata &o) {
-    return binary_operation(o, true);
-}
-template <typename Symbol>
-AUTOQ::Automata<Symbol> Automata<Symbol>::operator-(const Automata &o) {
-    return binary_operation(o, false);
-}
+//     // We assume here transitions are ordered by symbols.
+//     // x_i are placed in the beginning, and leaves are placed in the end.
+//     // This traversal method is due to efficiency.
+//     std::vector<bool> previous_level_states2(stateNum * o.stateNum);
+//     std::vector<bool> previous_level_states(stateNum * o.stateNum);
+//     for (auto s : result.finalStates)
+//         previous_level_states[s] = true;
+//     std::vector<bool> next_level_states;
+//     auto it = transitions.begin();
+//     auto it2 = o.transitions.begin();
+//     for (; it != transitions.end(); it++) { // iterate over all internal transitions of T1
+//         if (it->first.is_leaf()) break; // internal
+//         if (it->first < it2->first) continue;
+//         while (it2 != o.transitions.end() && it->first > it2->first)
+//             it2++;
+//         if (it2 == o.transitions.end()) break;
+//         if (it->first < it2->first) continue;
+//         assert(it->first == it2->first); // Ensure T1's and T2's current transitions have the same symbol now.
+//         // Update previous_level_states.
+//         if (it != transitions.begin() && it->first.symbol().qubit() != std::prev(it)->first.symbol().qubit()) { // T1 changes level.
+//             previous_level_states = previous_level_states2;
+//             previous_level_states2 = std::vector<bool>(stateNum * o.stateNum);
+//         }
+//         // Update next_level_states.
+//         if (it == transitions.begin() || it->first.symbol().qubit() != std::prev(it)->first.symbol().qubit()) { // T1 goes into the new level.
+//             next_level_states = std::vector<bool>(stateNum * o.stateNum);
+//             auto it3 = it; // it3 indicates the next level of it.
+//             while (it3 != transitions.end() && it3->first.is_internal() && it3->first.symbol().qubit() == it->first.symbol().qubit())
+//                 it3++;
+//             if (it3 == transitions.end()) {} // T1 has no leaf transitions?
+//             else if (it3->first.is_leaf()) { // The next level of T1 is leaf transitions.
+//                 auto it4 = it2; // Initially it2 has the same symbol as it.
+//                 while (it4 != o.transitions.end() && it4->first.is_internal())
+//                     it4++;
+//                 auto it4i = it4;
+//                 // We hope it4 currently points to the first leaf transition.
+//                 // If it4 points to o.transitions.end(), then the following loop will not be executed.
+//                 for (; it3 != transitions.end(); it3++) { // iterate over all leaf transitions of T1
+//                     assert(it3->first.is_leaf());
+//                     for (it4 = it4i; it4 != o.transitions.end(); it4++) { // iterate over all leaf transitions of T2
+//                         assert(it4->first.is_leaf());
+//                         for (const auto &s1 : it3->second.begin()->second) { // iterate over all output states of it3
+//                             for (const auto &s2 : it4->second.begin()->second) { // iterate over all output states of it4
+//                                 construct_product_state_id(s1, s2, i);
+//                                 next_level_states[i] = true; // collect all output state products of the next level
+//                             }
+//                         }
+//                     }
+//                 }
+//             } else { // The next level of T1 is still internal transitions.
+//                 int current_level = static_cast<int>(it3->first.symbol().qubit());
+//                 auto it4 = it2; // Initially it2 has the same symbol as it.
+//                 while (it4 != o.transitions.end() && it4->first.is_internal() && it4->first.symbol().qubit() == current_level)
+//                     it4++;
+//                 // We hope it4 currently points to T2's first transition of the next level.
+//                 // If it4 points to o.transitions.end(), then the following loop will not be executed.
+//                 for (; it3->first.is_internal() && it3->first.symbol().qubit() == current_level; it3++) {
+//                     if (it3->first < it4->first) continue;
+//                     while (it4 != o.transitions.end() && it3->first > it4->first)
+//                         it4++;
+//                     if (it4 == o.transitions.end()) break;
+//                     if (it3->first < it4->first) continue;
+//                     assert(it3->first == it4->first);
+//                     // Ensure T1's and T2's current transitions have the same symbol now.
+//                     for (auto itt = it3->second.begin(); itt != it3->second.end(); itt++) { // all input-output pairs of it3
+//                         for (auto itt2 = it4->second.begin(); itt2 != it4->second.end(); itt2++) { // all input-output pairs of it4
+//                             for (const auto &s1 : itt->second) { // all output states of it3
+//                                 for (const auto &s2 : itt2->second) { // all output states of it4
+//                                     construct_product_state_id(s1, s2, i);
+//                                     next_level_states[i] = true; // collect all output state products of the next level
+//                                 }
+//                             }
+//                         }
+//                     }
+//                 }
+//             }
+//         }
+//         std::map<StateVector, StateSet> m;
+//         for (auto itt = it->second.begin(); itt != it->second.end(); itt++) { // iterate over all input-output pairs of it
+//             for (auto itt2 = it2->second.begin(); itt2 != it2->second.end(); itt2++) { // iterate over all input-output pairs of it2
+//                 StateVector sv;
+//                 StateSet ss;
+//                 construct_product_state_id(itt->first[0], itt2->first[0], i);
+//                 if (!next_level_states[i]) continue;
+//                 sv.push_back(i); // construct product of T1's and T2's left input states
+//                 construct_product_state_id(itt->first[1], itt2->first[1], j);
+//                 if (!next_level_states[j]) continue;
+//                 sv.push_back(j); // construct product of T1's and T2's right input states
+//                 for (const auto &s1 : itt->second) { // all output states of itt
+//                     for (const auto &s2 : itt2->second) { // all output states of itt2
+//                         construct_product_state_id(s1, s2, i);
+//                         if (previous_level_states[i])
+//                             ss.insert(i);
+//                     }
+//                 }
+//                 if (ss.size() > 0) {
+//                     previous_level_states2[sv[0]] = true;
+//                     previous_level_states2[sv[1]] = true;
+//                     m.insert(std::make_pair(sv, ss));
+//                 }
+//             }
+//         }
+//         result.transitions.insert(make_pair(it->first, m));
+//         assert(m.begin()->first.size() == 2);
+//     }
+//     previous_level_states = previous_level_states2;
+//     // We now advance it2 to T2's first leaf transition.
+//     while (it2 != o.transitions.end() && !it2->first.is_leaf())
+//         it2++;
+//     for (; it != transitions.end(); it++) {
+//         assert(it->first.is_leaf());
+//         for (auto it2t = it2; it2t != o.transitions.end(); it2t++) { // it2 as the new begin point.
+//             assert(it2t->first.is_leaf());
+//             Symbol symbol;
+//             if (add) symbol = it->first.symbol() + it2t->first.symbol();
+//             else symbol = it->first.symbol() - it2t->first.symbol();
+//             for (const auto &s1 : it->second.begin()->second)
+//                 for (const auto &s2 : it2t->second.begin()->second) {
+//                     construct_product_state_id(s1, s2, i);
+//                     if (previous_level_states[i]) {
+//                         assert(it->first.tag() == it2t->first.tag()); // untagged
+//                         result.transitions[{symbol, it->first.tag()}][{}].insert(i);
+//                     }
+//                 }
+//         }
+//     }
+//     if (overflow)
+//         result.stateNum = stateOldToNew.size();
+//     else
+//         result.stateNum = stateNum * o.stateNum;
+//     result.remove_useless(true); // otherwise, will out of memory
+//     // Round several approximately equal floating points to the same value!
+//     #if COMPLEX != 1
+//         result.fraction_simplification();
+//     #endif
+//     auto end = std::chrono::steady_clock::now();
+//     binop_time += end - start;
+//     if (opLog) std::cout << __FUNCTION__ << "：" << stateNum << " states " << count_transitions() << " transitions\n";
+//     return result;
+// }
+// template <typename Symbol>
+// AUTOQ::Automata<Symbol> Automata<Symbol>::operator+(const Automata &o) {
+//     return binary_operation(o, true);
+// }
+// template <typename Symbol>
+// AUTOQ::Automata<Symbol> Automata<Symbol>::operator-(const Automata &o) {
+//     return binary_operation(o, false);
+// }
 
 template <>
 AUTOQ::TreeAutomata AUTOQ::TreeAutomata::uniform(int n) {

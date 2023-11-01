@@ -151,7 +151,7 @@ private:
     void state_renumbering();
     void remove_impossible_colors();
     void remove_useless(bool only_bottom_up=false);
-    Automata binary_operation(const Automata &o, bool add);
+    // Automata binary_operation(const Automata &o, bool add);
     // void swap_forward(const int k);
     // void swap_backward(const int k);
 
@@ -163,8 +163,8 @@ public:
     // void value_restriction(int k, bool branch);
     // void semi_determinize();
     // void semi_undeterminize();
-    Automata operator+(const Automata &o);
-    Automata operator-(const Automata &o);
+    // Automata operator+(const Automata &o);
+    // Automata operator-(const Automata &o);
     Automata Union(const Automata &o); // U is in uppercase since "union" is a reserved keyword.
     void print_aut(const char *str="") const;
     void print_stats(const std::string &str="", bool newline=false);

@@ -179,6 +179,7 @@ void AUTOQ::Automata<Symbol>::H(int t) {
         result.transitions.insert(*it);
     }
 
+    std::vector<bool> possible_next_level_states(2 * stateNum * stateNum + stateNum);
     assert(it->first.symbol().qubit() == t); // iterate over all internal transitions of symbol == t
     for (; it != transitions.end(); it++) { 
         if (it->first.is_leaf() || it->first.symbol().qubit() > t) break;
@@ -187,15 +188,20 @@ void AUTOQ::Automata<Symbol>::H(int t) {
             result.transitions[it->first][{stateNum + in_outs.first.at(0)*stateNum + in_outs.first.at(1),
                        stateNum + stateNum*stateNum + in_outs.first.at(0)*stateNum + in_outs.first.at(1)}]
                 = in_outs.second;
+            possible_next_level_states[stateNum + in_outs.first.at(0)*stateNum + in_outs.first.at(1)] = true;
+            possible_next_level_states[stateNum + stateNum*stateNum + in_outs.first.at(0)*stateNum + in_outs.first.at(1)] = true;
         }
     }
 
     auto head = it;
+    std::vector<bool> possible_previous_level_states = possible_next_level_states;
     for (; it != transitions.end(); it++) { // iterate over all internal transitions of symbol > t
         if (it->first.is_leaf()) break; // assert internal transition
         assert(it->first.symbol().qubit() > t);
-        if (it->first.symbol().qubit() != head->first.symbol().qubit())
+        if (it->first.symbol().qubit() != head->first.symbol().qubit()) { // change layer
             head = it;
+            possible_previous_level_states = possible_next_level_states;
+        }
         for (auto it2=head; it2 != transitions.end(); it2++) {
             if (it2->first.is_leaf()) break; // another internal transition
             if (it2->first.symbol().qubit() != it->first.symbol().qubit()) break; // ensure that the two symbols have the same qubit.
@@ -213,12 +219,20 @@ void AUTOQ::Automata<Symbol>::H(int t) {
                             //                  << stateNum + in_out1.first.at(1)*stateNum + in_out2.first.at(1) << ")("
                             //                  << top1 << ")(" << top2 << ")(" << stateNum + top1*stateNum + top2 << ")\n";
                             auto &nt = result.transitions[{it->first.symbol(), it->first.tag() | it2->first.tag()}];
-                            nt[{stateNum + in_out1.first.at(0)*stateNum + in_out2.first.at(0),
-                                stateNum + in_out1.first.at(1)*stateNum + in_out2.first.at(1)}]
-                                .insert(stateNum + top1*stateNum + top2); // (s1, s2, +) -> stateNum + s1 * stateNum + s2
-                            nt[{stateNum + stateNum*stateNum + in_out1.first.at(0)*stateNum + in_out2.first.at(0),
-                                stateNum + stateNum*stateNum + in_out1.first.at(1)*stateNum + in_out2.first.at(1)}]
-                                .insert(stateNum + stateNum*stateNum + top1*stateNum + top2); // (s1, s2, -) -> stateNum + stateNum^2 + s1 * stateNum + s2
+                            if (possible_previous_level_states[stateNum + top1*stateNum + top2]) {
+                                nt[{stateNum + in_out1.first.at(0)*stateNum + in_out2.first.at(0),
+                                    stateNum + in_out1.first.at(1)*stateNum + in_out2.first.at(1)}]
+                                    .insert(stateNum + top1*stateNum + top2); // (s1, s2, +) -> stateNum + s1 * stateNum + s2
+                                possible_next_level_states[stateNum + in_out1.first.at(0)*stateNum + in_out2.first.at(0)] = true;
+                                possible_next_level_states[stateNum + in_out1.first.at(1)*stateNum + in_out2.first.at(1)] = true;
+                            }
+                            if (possible_previous_level_states[stateNum + stateNum*stateNum + top1*stateNum + top2]) {
+                                nt[{stateNum + stateNum*stateNum + in_out1.first.at(0)*stateNum + in_out2.first.at(0),
+                                    stateNum + stateNum*stateNum + in_out1.first.at(1)*stateNum + in_out2.first.at(1)}]
+                                    .insert(stateNum + stateNum*stateNum + top1*stateNum + top2); // (s1, s2, -) -> stateNum + stateNum^2 + s1 * stateNum + s2
+                                possible_next_level_states[stateNum + stateNum*stateNum + in_out1.first.at(0)*stateNum + in_out2.first.at(0)] = true;
+                                possible_next_level_states[stateNum + stateNum*stateNum + in_out1.first.at(1)*stateNum + in_out2.first.at(1)] = true;
+                            }
                         }
                     }
                 }
@@ -227,6 +241,7 @@ void AUTOQ::Automata<Symbol>::H(int t) {
     }
 
     head = it;
+    possible_previous_level_states = possible_next_level_states;
     for (; it != transitions.end(); it++) { // iterate over all leaf transitions
         assert(it->first.is_leaf()); // assert leaf transition
         for (auto it2=head; it2 != transitions.end(); it2++) {
@@ -244,12 +259,14 @@ void AUTOQ::Automata<Symbol>::H(int t) {
                             // std::cout << (it->first.symbol() + it2->first.symbol()).divide_by_the_square_root_of_two() << "C\n";
                             // std::cout << (it->first.symbol() - it2->first.symbol()).divide_by_the_square_root_of_two() << "D\n";
                             // std::cout << "(" << stateNum << ")(" << top1 << ")(" << top2 << ")(" << stateNum + top1*stateNum + top2 << ")(" << stateNum + stateNum*stateNum + top1*stateNum + top2 << ")\n";
-                            result.transitions[{(it->first.symbol() + it2->first.symbol()).divide_by_the_square_root_of_two(),
-                                                it->first.tag() | it2->first.tag()}][{}]
-                                .insert(stateNum + top1*stateNum + top2); // (s1, s2, +) -> stateNum + s1 * stateNum + s2
-                            result.transitions[{(it->first.symbol() - it2->first.symbol()).divide_by_the_square_root_of_two(),
-                                                it->first.tag() | it2->first.tag()}][{}]
-                                .insert(stateNum + stateNum*stateNum + top1*stateNum + top2); // (s1, s2, -) -> stateNum + stateNum^2 + s1 * stateNum + s2
+                            if (possible_previous_level_states[stateNum + top1*stateNum + top2])
+                                result.transitions[{(it->first.symbol() + it2->first.symbol()).divide_by_the_square_root_of_two(),
+                                                    it->first.tag() | it2->first.tag()}][{}]
+                                    .insert(stateNum + top1*stateNum + top2); // (s1, s2, +) -> stateNum + s1 * stateNum + s2
+                            if (possible_previous_level_states[stateNum + stateNum*stateNum + top1*stateNum + top2])
+                                result.transitions[{(it->first.symbol() - it2->first.symbol()).divide_by_the_square_root_of_two(),
+                                                    it->first.tag() | it2->first.tag()}][{}]
+                                    .insert(stateNum + stateNum*stateNum + top1*stateNum + top2); // (s1, s2, -) -> stateNum + stateNum^2 + s1 * stateNum + s2
                         }
                     }
                 }
@@ -258,8 +275,8 @@ void AUTOQ::Automata<Symbol>::H(int t) {
     }
 
     result.stateNum = 2 * stateNum * stateNum + stateNum;
-    result.remove_useless(); // otherwise, will out of memory (from the past binary operation)
-    result.sim_reduce();
+    result.remove_useless(); // have to remove redundant colos!
+    result.reduce();
     *this = result;
     gateCount++;
     auto duration = std::chrono::steady_clock::now() - start;
