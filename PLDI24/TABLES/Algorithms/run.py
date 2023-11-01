@@ -72,8 +72,8 @@ counter = manager.Value('i', 0)
 process_pool_large = []
 string_pool_large = []
 lock = Lock()
-for root, dirnames, filenames in sorted(os.walk('./spec')):
-    if len(dirnames) == 0 and 'pre.spec' in filenames: # may be .aut or .spec
+for root, dirnames, filenames in sorted(os.walk('.')):
+    if len(dirnames) == 0 and 'pre.spec' in filenames and 'pre.aut' in filenames: # may be .aut or .spec
         process_pool_small = []
         string_pool_small = [manager.Value(c_wchar_p, root)]
         for func in (CTA, TA):
