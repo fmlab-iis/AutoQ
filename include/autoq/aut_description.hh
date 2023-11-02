@@ -159,7 +159,7 @@ public:
     void fraction_simplification();
     void omega_multiplication(int rotation=1);
     void divide_by_the_square_root_of_two();
-    void branch_restriction(int k, bool positive_has_value=true);
+    // void branch_restriction(int k, bool positive_has_value=true);
     // void value_restriction(int k, bool branch);
     // void semi_determinize();
     // void semi_undeterminize();

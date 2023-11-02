@@ -316,67 +316,67 @@ void AUTOQ::Automata<Symbol>::divide_by_the_square_root_of_two() {
     if (opLog) std::cout << __FUNCTION__ << "：" << stateNum << " states " << count_transitions() << " transitions\n";
 }
 
-template <typename Symbol>
-void AUTOQ::Automata<Symbol>::branch_restriction(int k, bool positive_has_value) {
-    auto start = std::chrono::steady_clock::now();
-    State num_of_states = stateNum;
-    if (stateNum > std::numeric_limits<State>::max() / 2)
-        throw std::overflow_error("[ERROR] The number of states is too large.");
-    stateNum *= 2;
+// template <typename Symbol>
+// void AUTOQ::Automata<Symbol>::branch_restriction(int k, bool positive_has_value) {
+//     auto start = std::chrono::steady_clock::now();
+//     State num_of_states = stateNum;
+//     if (stateNum > std::numeric_limits<State>::max() / 2)
+//         throw std::overflow_error("[ERROR] The number of states is too large.");
+//     stateNum *= 2;
 
-    TransitionMap transitions_copy = transitions;
-    for (const auto &t : transitions_copy) {
-        const SymbolTag &symbol_tag = t.first;
-        if (symbol_tag.is_internal()) { // x_i + determinized number
-            auto &in_outs_dest = transitions.at(symbol_tag);
-            for (const auto &in_out : t.second) {
-                StateVector in;
-                assert(in_out.first.size() == 2);
-                for (unsigned i=0; i<in_out.first.size(); i++)
-                    in.push_back(in_out.first[i] + num_of_states);
-                StateSet out;
-                for (const auto &n : in_out.second)
-                    out.insert(n + num_of_states);
-                in_outs_dest.insert(make_pair(in, out)); // duplicate this internal transition
-            }
-        } else { // (a,b,c,d,k)
-            assert(symbol_tag.is_leaf());
-            for (const auto &in_out : t.second) {
-                assert(in_out.first.empty());
-                for (const auto &n : in_out.second) { // Note we do not change k.
-                    SymbolTag s = symbol_tag;
-                    s.symbol().back_to_zero();
-                    transitions[s][{}].insert(n + num_of_states); // duplicate this leaf transition
-                }
-            }
-        }
-    }
+//     TransitionMap transitions_copy = transitions;
+//     for (const auto &t : transitions_copy) {
+//         const SymbolTag &symbol_tag = t.first;
+//         if (symbol_tag.is_internal()) { // x_i + determinized number
+//             auto &in_outs_dest = transitions.at(symbol_tag);
+//             for (const auto &in_out : t.second) {
+//                 StateVector in;
+//                 assert(in_out.first.size() == 2);
+//                 for (unsigned i=0; i<in_out.first.size(); i++)
+//                     in.push_back(in_out.first[i] + num_of_states);
+//                 StateSet out;
+//                 for (const auto &n : in_out.second)
+//                     out.insert(n + num_of_states);
+//                 in_outs_dest.insert(make_pair(in, out)); // duplicate this internal transition
+//             }
+//         } else { // (a,b,c,d,k)
+//             assert(symbol_tag.is_leaf());
+//             for (const auto &in_out : t.second) {
+//                 assert(in_out.first.empty());
+//                 for (const auto &n : in_out.second) { // Note we do not change k.
+//                     SymbolTag s = symbol_tag;
+//                     s.symbol().back_to_zero();
+//                     transitions[s][{}].insert(n + num_of_states); // duplicate this leaf transition
+//                 }
+//             }
+//         }
+//     }
 
-    transitions_copy = transitions;
-    for (const auto &t : transitions_copy) {
-        const SymbolTag &symbol_tag = t.first;
-        if (symbol_tag.is_internal() && symbol_tag.symbol().qubit() == k) { // x_i + determinized number
-            auto &in_outs_dest = transitions.at(symbol_tag);
-            for (const auto &in_out : t.second) {
-                assert(in_out.first.size() == 2);
-                StateVector sv = in_out.first;
-                if (in_out.first[0] < num_of_states && in_out.first[1] < num_of_states) {
-                    if (positive_has_value) {
-                        sv[0] = in_out.first[0] + num_of_states;
-                    } else {
-                        sv[1] = in_out.first[1] + num_of_states;
-                    }
-                    in_outs_dest.erase(in_out.first);
-                    in_outs_dest.insert(make_pair(sv, in_out.second));
-                }
-            }
-        }
-    }
-    remove_useless(); // otherwise, will out of memory
-    auto end = std::chrono::steady_clock::now();
-    branch_rest_time += end - start;
-    if (opLog) std::cout << __FUNCTION__ << "：" << stateNum << " states " << count_transitions() << " transitions\n";
-}
+//     transitions_copy = transitions;
+//     for (const auto &t : transitions_copy) {
+//         const SymbolTag &symbol_tag = t.first;
+//         if (symbol_tag.is_internal() && symbol_tag.symbol().qubit() == k) { // x_i + determinized number
+//             auto &in_outs_dest = transitions.at(symbol_tag);
+//             for (const auto &in_out : t.second) {
+//                 assert(in_out.first.size() == 2);
+//                 StateVector sv = in_out.first;
+//                 if (in_out.first[0] < num_of_states && in_out.first[1] < num_of_states) {
+//                     if (positive_has_value) {
+//                         sv[0] = in_out.first[0] + num_of_states;
+//                     } else {
+//                         sv[1] = in_out.first[1] + num_of_states;
+//                     }
+//                     in_outs_dest.erase(in_out.first);
+//                     in_outs_dest.insert(make_pair(sv, in_out.second));
+//                 }
+//             }
+//         }
+//     }
+//     remove_useless(); // otherwise, will out of memory
+//     auto end = std::chrono::steady_clock::now();
+//     branch_rest_time += end - start;
+//     if (opLog) std::cout << __FUNCTION__ << "：" << stateNum << " states " << count_transitions() << " transitions\n";
+// }
 
 // template <typename Symbol>
 // void AUTOQ::Automata<Symbol>::semi_determinize() {
