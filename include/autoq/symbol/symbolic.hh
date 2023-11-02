@@ -137,7 +137,7 @@ public:
         // }
         // complex = complex2;
     }
-    void omega_multiplication(int rotation=1) {
+    Symbolic omega_multiplication(int rotation=1) {
         if (rotation > 0) {
             std::map<Complex::Complex, AUTOQ::Symbol::linear_combination> complex2;
             for (const auto &kv : complex) {
@@ -156,6 +156,7 @@ public:
             }
             complex = complex2;
         }
+        return *this;
     }
     Symbolic divide_by_the_square_root_of_two() {
         std::map<Complex::Complex, AUTOQ::Symbol::linear_combination> complex2;

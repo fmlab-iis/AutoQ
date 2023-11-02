@@ -1,4 +1,5 @@
 #include <autoq/aut_description.hh>
+#include <functional>
 
 // #define TO_QASM
 #define QASM_FILENAME "circuit.qasm"
@@ -149,12 +150,7 @@ void AUTOQ::Automata<Symbol>::Z(int t) {
 }
 
 template <typename Symbol>
-void AUTOQ::Automata<Symbol>::H(int t) {
-    #ifdef TO_QASM
-        system(("echo 'h qubits[" + std::to_string(t-1) + "];' >> " + QASM_FILENAME).c_str());
-        return;
-    #endif
-    auto start = std::chrono::steady_clock::now();
+void AUTOQ::Automata<Symbol>::General_Single_Qubit_Gate(int t, std::function<Symbol(const Symbol&, const Symbol&)> L, std::function<Symbol(const Symbol&, const Symbol&)> R) {
     AUTOQ::Automata<Symbol> result;
     result.name = name;
     result.qubitNum = qubitNum;
@@ -165,8 +161,8 @@ void AUTOQ::Automata<Symbol>::H(int t) {
     if (overflow)
         throw std::overflow_error("[ERROR] The number of states after multiplication is too large.");
     // s < stateNum -> s
-    // (s1, s2, +) -> stateNum + s1 * stateNum + s2
-    // (s1, s2, -) -> stateNum + stateNum^2 + s1 * stateNum + s2 -> max == 2 * stateNum^2 + stateNum
+    // (s1, s2, L) -> stateNum + s1 * stateNum + s2
+    // (s1, s2, R) -> stateNum + stateNum^2 + s1 * stateNum + s2 -> max == 2 * stateNum^2 + stateNum
 
     // We assume here transitions are ordered by symbols.
     // x_i are placed in the beginning, and leaves are placed in the end.
@@ -219,7 +215,7 @@ void AUTOQ::Automata<Symbol>::H(int t) {
                             // std::cout << "(" << stateNum + in_out1.first.at(0)*stateNum + in_out2.first.at(0) << ")("
                             //                  << stateNum + in_out1.first.at(1)*stateNum + in_out2.first.at(1) << ")("
                             //                  << top1 << ")(" << top2 << ")(" << stateNum + top1*stateNum + top2 << ")\n";
-                            auto &nt = result.transitions[{it->first.symbol(), it->first.tag() | it2->first.tag()}];
+                            // auto &nt = result.transitions[{it->first.symbol(), it->first.tag() | it2->first.tag()}];
                             if (possible_previous_level_states[stateNum + top1*stateNum + top2]) {
                                 fqci[it->first.symbol()][stateNum + top1*stateNum + top2][it->first.tag() | it2->first.tag()].push_back({stateNum + in_out1.first.at(0)*stateNum + in_out2.first.at(0), stateNum + in_out1.first.at(1)*stateNum + in_out2.first.at(1)});
                                 // nt[{stateNum + in_out1.first.at(0)*stateNum + in_out2.first.at(0),
@@ -300,12 +296,12 @@ void AUTOQ::Automata<Symbol>::H(int t) {
                             // std::cout << (it->first.symbol() - it2->first.symbol()).divide_by_the_square_root_of_two() << "D\n";
                             // std::cout << "(" << stateNum << ")(" << top1 << ")(" << top2 << ")(" << stateNum + top1*stateNum + top2 << ")(" << stateNum + stateNum*stateNum + top1*stateNum + top2 << ")\n";
                             if (possible_previous_level_states[stateNum + top1*stateNum + top2])
-                                fqci[(it->first.symbol() + it2->first.symbol()).divide_by_the_square_root_of_two()][stateNum + top1*stateNum + top2][it->first.tag() | it2->first.tag()].push_back({});
+                                fqci[L(it->first.symbol(), it2->first.symbol())][stateNum + top1*stateNum + top2][it->first.tag() | it2->first.tag()].push_back({});
                                 // result.transitions[{(it->first.symbol() + it2->first.symbol()).divide_by_the_square_root_of_two(),
                                 //                     it->first.tag() | it2->first.tag()}][{}]
                                 //     .insert(stateNum + top1*stateNum + top2); // (s1, s2, +) -> stateNum + s1 * stateNum + s2
                             if (possible_previous_level_states[stateNum + stateNum*stateNum + top1*stateNum + top2])
-                                fqci[(it->first.symbol() - it2->first.symbol()).divide_by_the_square_root_of_two()][stateNum + stateNum*stateNum + top1*stateNum + top2][it->first.tag() | it2->first.tag()].push_back({});
+                                fqci[R(it->first.symbol(), it2->first.symbol())][stateNum + stateNum*stateNum + top1*stateNum + top2][it->first.tag() | it2->first.tag()].push_back({});
                                 // result.transitions[{(it->first.symbol() - it2->first.symbol()).divide_by_the_square_root_of_two(),
                                 //                     it->first.tag() | it2->first.tag()}][{}]
                                 //     .insert(stateNum + stateNum*stateNum + top1*stateNum + top2); // (s1, s2, -) -> stateNum + stateNum^2 + s1 * stateNum + s2
@@ -341,8 +337,8 @@ void AUTOQ::Automata<Symbol>::H(int t) {
                 if (std::find(dcfq.begin(), dcfq.end(), c_.first) != dcfq.end()) continue;
                 for (const auto &in : c_.second) {
                     result.transitions[{f_.first, c_.first}][in].insert(q_.first);
-                    for (const auto &s : in)
-                        possible_next_level_states[s] = true;
+                    // for (const auto &s : in)
+                    //     possible_next_level_states[s] = true;
                 }
             }
         }
@@ -352,6 +348,18 @@ void AUTOQ::Automata<Symbol>::H(int t) {
     result.state_renumbering();
     result.reduce();
     *this = result;
+}
+
+template <typename Symbol>
+void AUTOQ::Automata<Symbol>::H(int t) {
+    #ifdef TO_QASM
+        system(("echo 'h qubits[" + std::to_string(t-1) + "];' >> " + QASM_FILENAME).c_str());
+        return;
+    #endif
+    auto start = std::chrono::steady_clock::now();
+    General_Single_Qubit_Gate(t,
+        [](const Symbol &l, const Symbol &r) -> Symbol { return (l + r).divide_by_the_square_root_of_two(); },
+        [](const Symbol &l, const Symbol &r) -> Symbol { return (l - r).divide_by_the_square_root_of_two(); });
     gateCount++;
     auto duration = std::chrono::steady_clock::now() - start;
     if (gateLog) std::cout << "H" << t << "：" << stateNum << " states " << count_transitions() << " transitions " << toString(duration) << "\n";
@@ -450,20 +458,9 @@ void AUTOQ::Automata<Symbol>::Rx(int t) {
         return;
     #endif
     auto start = std::chrono::steady_clock::now();
-    exit(1);
-    // this->semi_determinize();
-    // auto aut1 = *this;
-    // auto aut2 = *this;
-    // aut2.value_restriction(t, false);
-    // aut2.branch_restriction(t, true);
-    // auto aut3 = *this;
-    // aut3.value_restriction(t, true);
-    // aut3.branch_restriction(t, false);
-    // aut2 = aut2 + aut3;
-    // aut2.omega_multiplication(2);
-    // *this = aut1 - aut2;
-    // divide_by_the_square_root_of_two();
-    // this->semi_undeterminize();
+    General_Single_Qubit_Gate(t,
+        [](const Symbol &l, Symbol r) -> Symbol { return (l - r.omega_multiplication(2)).divide_by_the_square_root_of_two(); },
+        [](Symbol l, const Symbol &r) -> Symbol { return (r - l.omega_multiplication(2)).divide_by_the_square_root_of_two(); });
     gateCount++;
     auto duration = std::chrono::steady_clock::now() - start;
     if (gateLog) std::cout << "Rx" << t << "：" << stateNum << " states " << count_transitions() << " transitions " << toString(duration) << "\n";
@@ -476,18 +473,9 @@ void AUTOQ::Automata<Symbol>::Ry(int t) {
         return;
     #endif
     auto start = std::chrono::steady_clock::now();
-    exit(1);
-    // this->semi_determinize();
-    // auto aut1 = *this;
-    // aut1.value_restriction(t, false);
-    // auto aut2 = *this;
-    // aut2.branch_restriction(t, true);
-    // auto aut3 = *this;
-    // aut3.value_restriction(t, true);
-    // aut3.branch_restriction(t, false);
-    // *this = aut1 + aut2 - aut3;
-    // divide_by_the_square_root_of_two();
-    // this->semi_undeterminize();
+    General_Single_Qubit_Gate(t,
+        [](const Symbol &l, const Symbol &r) -> Symbol { return (l - r).divide_by_the_square_root_of_two(); },
+        [](const Symbol &l, const Symbol &r) -> Symbol { return (l + r).divide_by_the_square_root_of_two(); });
     gateCount++;
     auto duration = std::chrono::steady_clock::now() - start;
     if (gateLog) std::cout << "Ry" << t << "：" << stateNum << " states " << count_transitions() << " transitions " << toString(duration) << "\n";

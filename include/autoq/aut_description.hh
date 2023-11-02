@@ -154,6 +154,7 @@ private:
     // Automata binary_operation(const Automata &o, bool add);
     // void swap_forward(const int k);
     // void swap_backward(const int k);
+    void General_Single_Qubit_Gate(int t, std::function<Symbol(const Symbol&, const Symbol&)> L, std::function<Symbol(const Symbol&, const Symbol&)> R);
 
 public:
     void fraction_simplification();

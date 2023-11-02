@@ -51,9 +51,10 @@ public:
         if (o.internal && !internal) return false;
         return complex < o.complex;
     }
-    void omega_multiplication(int rotation=1) {
+    Concrete omega_multiplication(int rotation=1) {
         if (rotation > 0) complex.counterclockwise(boost::rational<boost::multiprecision::cpp_int>(rotation, 8));
         if (rotation < 0) complex.clockwise(boost::rational<boost::multiprecision::cpp_int>(rotation, 8));
+        return *this;
     }
     void fraction_simplification() { complex.fraction_simplification(); }
     Concrete divide_by_the_square_root_of_two() { complex.divide_by_the_square_root_of_two(); return *this; }
