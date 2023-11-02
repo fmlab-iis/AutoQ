@@ -561,6 +561,32 @@ template <typename Symbol>
 AUTOQ::Automata<Symbol> Automata<Symbol>::operator-(const Automata &o) {
     return binary_operation(o, false);
 }
+template <>
+AUTOQ::Automata<AUTOQ::Symbol::Symbolic> AUTOQ::Automata<AUTOQ::Symbol::Symbolic>::operator*(const AUTOQ::Complex::Complex &c) {
+    AUTOQ_ERROR(__func__ << " not implemented yet!");
+    exit(1);
+}
+template <typename Symbol>
+AUTOQ::Automata<Symbol> AUTOQ::Automata<Symbol>::operator*(const AUTOQ::Complex::Complex &c) {
+    AUTOQ::Automata<Symbol> result = *this;
+    std::vector<SymbolTag> to_be_removed;
+    TransitionMap to_be_inserted;
+    for (const auto &t : result.transitions) {
+        SymbolTag symbol_tag = t.first;
+        if (symbol_tag.is_leaf()) {
+            to_be_removed.push_back(symbol_tag);
+            symbol_tag.first.complex = symbol_tag.first.complex * c; // *= c;
+            to_be_inserted[symbol_tag] = t.second;
+        }
+    }
+    for (const auto &t : to_be_removed)
+        result.transitions.erase(t);
+    for (const auto &t : to_be_inserted)
+        result.transitions.insert(t);
+    // fraction_simplification();
+    if (opLog) std::cout << __FUNCTION__ << "：" << stateNum << " states " << count_transitions() << " transitions\n";
+    return result;
+}
 
 template <>
 AUTOQ::TreeAutomata AUTOQ::TreeAutomata::uniform(int n) {

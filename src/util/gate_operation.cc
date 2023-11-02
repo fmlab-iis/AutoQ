@@ -1,4 +1,5 @@
 #include <autoq/aut_description.hh>
+#include <autoq/complex/complex.hh>
 
 // #define TO_QASM
 #define QASM_FILENAME "circuit.qasm"
@@ -161,6 +162,25 @@ void AUTOQ::Automata<Symbol>::Z(int t, bool opt) {
     gateCount++;
     auto duration = std::chrono::steady_clock::now() - start;
     if (gateLog) std::cout << "Z" << t << "：" << stateNum << " states " << count_transitions() << " transitions " << toString(duration) << "\n";
+}
+
+template <typename Symbol>
+void AUTOQ::Automata<Symbol>::General_Single_Qubit_Gate(int t, const AUTOQ::Complex::Complex &a, const AUTOQ::Complex::Complex &b, const AUTOQ::Complex::Complex &c, const AUTOQ::Complex::Complex &d) {
+    this->semi_determinize();
+    auto aut1 = *this;
+    aut1.branch_restriction(t, false);
+    auto aut2 = *this;
+    aut2.value_restriction(t, true);
+    aut2.branch_restriction(t, false);
+    auto autL = aut1 * a + aut2 * b;
+    auto aut3 = *this;
+    aut3.value_restriction(t, false);
+    aut3.branch_restriction(t, true);
+    auto aut4 = *this;
+    aut4.branch_restriction(t, true);
+    auto autR = aut3 * c + aut4 * d;
+    *this = autL + autR;
+    this->semi_undeterminize();
 }
 
 template <typename Symbol>

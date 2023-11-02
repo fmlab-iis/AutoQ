@@ -21,6 +21,7 @@
 #include <autoq/util/triple.hh>
 #include <autoq/util/two_way_dict.hh>
 #include <boost/multiprecision/cpp_int.hpp>
+#include <autoq/complex/complex.hh>
 
 namespace AUTOQ
 {
@@ -153,6 +154,7 @@ private:
     Automata binary_operation(const Automata &o, bool add);
     void swap_forward(const int k);
     void swap_backward(const int k);
+    void General_Single_Qubit_Gate(int t, const AUTOQ::Complex::Complex &a, const AUTOQ::Complex::Complex &b, const AUTOQ::Complex::Complex &c, const AUTOQ::Complex::Complex &d);
 
 public:
     void fraction_simplification();
@@ -164,6 +166,7 @@ public:
     void semi_undeterminize();
     Automata operator+(const Automata &o);
     Automata operator-(const Automata &o);
+    Automata operator*(const AUTOQ::Complex::Complex &c);
     Automata Union(const Automata &o); // U is in uppercase since "union" is a reserved keyword.
     void print(const std::string &prompt="") const;
     int transition_size();
