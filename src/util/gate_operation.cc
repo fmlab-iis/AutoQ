@@ -490,19 +490,11 @@ void AUTOQ::Automata<Symbol>::CNOT(int c, int t, bool opt) {
     auto start = std::chrono::steady_clock::now();
     assert(c != t);
     if (c > t) {
-        exit(1);
-        // this->semi_determinize();
-        // auto aut1 = *this;
-        // aut1.branch_restriction(c, false);
-        // auto aut2 = *this;
-        // aut2.branch_restriction(c, true);
-        // auto aut3 = aut2;
-        // aut2.value_restriction(t, false);
-        // aut2.branch_restriction(t, true);
-        // aut3.value_restriction(t, true);
-        // aut3.branch_restriction(t, false);
-        // *this = aut1 + aut2 + aut3;
-        // this->semi_undeterminize();
+        H(c); gateCount--;
+        H(t); gateCount--;
+        CNOT(t, c); gateCount--;
+        H(c); gateCount--;
+        H(t); gateCount--;
     } else {
         auto aut2 = *this;
         aut2.X(t); gateCount--; // prevent repeated counting
@@ -621,8 +613,8 @@ void AUTOQ::Automata<Symbol>::Toffoli(int c, int c2, int t) {
     #endif
     auto start = std::chrono::steady_clock::now();
     assert(c != c2 && c2 != t && t != c);
-    if (c < t && c2 < t) {
-        if (c > c2) std::swap(c, c2);
+    if (c > c2) std::swap(c, c2); // ensure c < c2
+    if (c2 < t) { // c < c2 < t
         auto aut2 = *this;
         aut2.CNOT(c2, t, false); gateCount--; // prevent repeated counting
         for (const auto &tr : aut2.transitions) {
@@ -654,25 +646,18 @@ void AUTOQ::Automata<Symbol>::Toffoli(int c, int c2, int t) {
         stateNum += aut2.stateNum;
         remove_useless();
         reduce();
-    } else {
-        exit(1);
-        // this->semi_determinize();
-        // auto aut1 = *this;
-        // aut1.branch_restriction(c, false);
-        // auto aut2 = *this;
-        // aut2.branch_restriction(c2, false);
-        // auto aut3 = aut2;
-        // aut3.branch_restriction(c, false);
-        // auto aut4 = *this;
-        // aut4.branch_restriction(c, true);
-        // aut4.branch_restriction(c2, true);
-        // auto aut5 = aut4;
-        // aut4.value_restriction(t, false);
-        // aut4.branch_restriction(t, true);
-        // aut5.value_restriction(t, true);
-        // aut5.branch_restriction(t, false);
-        // *this = aut1 + aut2 - aut3 + aut4 + aut5;
-        // this->semi_undeterminize();
+    } else if (t < c) { // t < c < c2
+        H(c2); gateCount--;
+        H(t); gateCount--;
+        Toffoli(t, c, c2); gateCount--;
+        H(c2); gateCount--;
+        H(t); gateCount--;
+    } else { // c < t < c2
+        H(c2); gateCount--;
+        H(t); gateCount--;
+        Toffoli(c, t, c2); gateCount--;
+        H(c2); gateCount--;
+        H(t); gateCount--;
     }
     gateCount++;
     auto duration = std::chrono::steady_clock::now() - start;
