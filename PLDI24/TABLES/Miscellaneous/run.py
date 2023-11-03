@@ -6,8 +6,8 @@ from multiprocessing import Manager, Process, Semaphore, Lock
 name = 'Table3.tex'
 TIMEOUT = 300
 NUM_OF_THREADS = 110
-CTA_EXE = './autoq_pldi_cta'
-TA_EXE = './autoq_pldi_ta'
+CTA_EXE = '../../autoq_pldi_cta'
+TA_EXE = '../../autoq_pldi_ta'
 
 processes = []
 def kill_processes():
@@ -72,8 +72,8 @@ counter = manager.Value('i', 0)
 process_pool_large = []
 string_pool_large = []
 lock = Lock()
-for root, dirnames, filenames in sorted(os.walk('./spec')):
-    if len(dirnames) == 0 and 'pre.spec' in filenames: # may be .aut or .spec
+for root, dirnames, filenames in sorted(os.walk('.')):
+    if len(dirnames) == 0 and 'pre.spec' in filenames and 'pre.aut' in filenames: # may be .aut or .spec
         process_pool_small = []
         string_pool_small = [manager.Value(c_wchar_p, root)]
         for func in (CTA, TA):
@@ -111,9 +111,9 @@ for i in range(len(content)):
     content[i] = ' & '.join(content[i])
 
 contents = dict()
-contents['feynmanbench'] = ''.join(content[i] + '\\\\\n' for i in range(0, 12))
-contents['randombench'] = ''.join(content[i] + '\\\\\n' for i in range(12, 32))
-contents['revlibbench'] = ''.join(content[i] + '\\\\\n' for i in range(32, 53))
+contents['feynmanbench'] = ''.join(content[i].replace('_', '\\_').replace('^', '\\textasciicircum') + '\\\\\n' for i in range(0, 12))
+contents['randombench'] = ''.join(content[i].replace('_', '\\_').replace('^', '\\textasciicircum') + '\\\\\n' for i in range(12, 32))
+contents['revlibbench'] = ''.join(content[i].replace('_', '\\_').replace('^', '\\textasciicircum') + '\\\\\n' for i in range(32, 53))
 
 f = open(name, 'w')
 print(r'''\documentclass{article}
