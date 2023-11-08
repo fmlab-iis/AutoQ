@@ -91,8 +91,9 @@ public:   // data members
     bool isTopdownDeterministic;
     inline static int gateCount, stateBefore, transitionBefore;
     inline static bool gateLog, opLog;
+    inline static std::string include_status;
     inline static std::chrono::steady_clock::duration binop_time, branch_rest_time, value_rest_time;
-    inline static std::chrono::time_point<std::chrono::steady_clock> start_time;
+    inline static std::chrono::time_point<std::chrono::steady_clock> start_execute, stop_execute;
     /* Notice inline is very convenient for declaring and defining a static member variable together! */
 
 public:   // methods
@@ -152,6 +153,7 @@ private:
     Automata binary_operation(const Automata &o, bool add);
     void swap_forward(const int k);
     void swap_backward(const int k);
+    void initialize_stats();
 
 public:
     void fraction_simplification();
@@ -216,7 +218,6 @@ public:
     static bool check_inclusion(const std::string& lhsPath, const Automata& rhsPath);
     static bool check_inclusion(const Automata& lhsPath, const Automata& rhsPath);
 
-    void initialize_stats();
     void execute(const char *filename);
     void print_language();
     std::vector<std::vector<std::string>> print(const std::map<typename AUTOQ::Util::Automata<InitialSymbol>::State, typename AUTOQ::Util::Automata<InitialSymbol>::InitialSymbol> &leafSymbolMap, int qubit, typename AUTOQ::Util::Automata<InitialSymbol>::State state);

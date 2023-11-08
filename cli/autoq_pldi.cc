@@ -61,29 +61,15 @@ optional arguments:
             }
         }
         AUTOQ::Util::TreeAutomata aut = AUTOQ::Parsing::TimbukParser<AUTOQ::Util::Concrete>::FromFileToAutomata(argv[1]);
-        aut.initialize_stats();
         aut.execute(argv[2]);
-        // auto durationSim = chrono::steady_clock::now() - startSim;
-        // auto durationVer = durationSim; // just borrow its type!
-        // aut.fraction_simplification();
-        // auto startVer = chrono::steady_clock::now();
-        // std::cout << "OUTPUT AUTOMATON:\n";
-        // std::cout << "=================\n";
-        // aut.print_aut();
-        // std::cout << "=================\n";
+        aut.fraction_simplification();
         if (argc >= 4) {
             auto aut2 = AUTOQ::Parsing::TimbukParser<AUTOQ::Util::Concrete>::FromFileToAutomata(argv[3]);
-            if (!AUTOQ::Util::TreeAutomata::check_inclusion(aut, aut2)) {
-                // std::cout << "-\n0\n";
-                // throw std::runtime_error("Does not satisfy the postcondition!");
-                aut.print_stats(); // << " & V";
-            } else {
-                // durationVer = chrono::steady_clock::now() - startVer;
-                aut.print_stats(); // << " & " << toString(durationVer);
-            }
+            aut2.fraction_simplification();
+            AUTOQ::Util::TreeAutomata::check_inclusion(aut, aut2);
+            aut.print_stats();
         } else {
-            // durationVer = chrono::steady_clock::now() - startVer;
-            aut.print_stats(); // << " & " << toString(durationVer);
+            aut.print_stats();
         }
     } else { // argc >= 5
     }

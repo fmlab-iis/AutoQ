@@ -991,33 +991,65 @@ void AUTOQ::Util::Automata<InitialSymbol>::fraction_simplification() {
   template <typename InitialSymbol>
   bool AUTOQ::Util::Automata<InitialSymbol>::check_inclusion(const std::string& lhsPath, const std::string& rhsPath)
   {
+    auto start_include = std::chrono::steady_clock::now();
     std::string aux;
     AUTOQ::Util::ShellCmd(get_vata_path() + " incl " + lhsPath + " " + rhsPath, aux);
-    return (aux == "1\n");
+    auto stop_include = std::chrono::steady_clock::now();
+    bool result = (aux == "1\n");
+    if (result) {
+        include_status = AUTOQ::Util::Convert::toString(stop_include - start_include);
+    } else {
+        include_status = "X";
+    }
+    return result;
   }
 
   template <typename InitialSymbol>
   bool AUTOQ::Util::Automata<InitialSymbol>::check_inclusion(const Automata<InitialSymbol>& lhsPath, const std::string& rhsPath)
   {
+    auto start_include = std::chrono::steady_clock::now();
     std::string aux;
     AUTOQ::Util::ShellCmd(get_vata_path() + " incl2 '" + TimbukSerializer::Serialize(lhsPath) + "' " + rhsPath, aux);
-    return (aux == "1\n");
+    auto stop_include = std::chrono::steady_clock::now();
+    bool result = (aux == "1\n");
+    if (result) {
+        include_status = AUTOQ::Util::Convert::toString(stop_include - start_include);
+    } else {
+        include_status = "X";
+    }
+    return result;
   }
 
   template <typename InitialSymbol>
   bool AUTOQ::Util::Automata<InitialSymbol>::check_inclusion(const std::string& lhsPath, const Automata<InitialSymbol>& rhsPath)
   {
+    auto start_include = std::chrono::steady_clock::now();
     std::string aux;
     AUTOQ::Util::ShellCmd(get_vata_path() + " incl3 " + lhsPath + " '" + TimbukSerializer::Serialize(rhsPath) + "'", aux);
-    return (aux == "1\n");
+    auto stop_include = std::chrono::steady_clock::now();
+    bool result = (aux == "1\n");
+    if (result) {
+        include_status = AUTOQ::Util::Convert::toString(stop_include - start_include);
+    } else {
+        include_status = "X";
+    }
+    return result;
   }
 
   template <typename InitialSymbol>
   bool AUTOQ::Util::Automata<InitialSymbol>::check_inclusion(const Automata<InitialSymbol>& lhsPath, const Automata<InitialSymbol>& rhsPath)
   {
+    auto start_include = std::chrono::steady_clock::now();
     std::string aux;
     AUTOQ::Util::ShellCmd(get_vata_path() + " incl4 '" + TimbukSerializer::Serialize(lhsPath) + "' '" + TimbukSerializer::Serialize(rhsPath) + "'", aux);
-    return (aux == "1\n");
+    auto stop_include = std::chrono::steady_clock::now();
+    bool result = (aux == "1\n");
+    if (result) {
+        include_status = AUTOQ::Util::Convert::toString(stop_include - start_include);
+    } else {
+        include_status = "X";
+    }
+    return result;
   }
 
   /** checks language equivalence of two TAs */
@@ -1070,11 +1102,13 @@ template <typename InitialSymbol>
 void AUTOQ::Util::Automata<InitialSymbol>::initialize_stats() {
     stateBefore = stateNum;
     transitionBefore = transition_size();
-    start_time = std::chrono::steady_clock::now();
+    start_execute = std::chrono::steady_clock::now();
 }
 
 template <typename InitialSymbol>
 void AUTOQ::Util::Automata<InitialSymbol>::execute(const char *filename) {
+    initialize_stats();
+
     std::ifstream qasm(filename);
     const std::regex digit("\\d+");
     const std::regex_iterator<std::string::iterator> END;
@@ -1165,8 +1199,11 @@ void AUTOQ::Util::Automata<InitialSymbol>::execute(const char *filename) {
             print_stats(previous_line, true);
         } else if (line.find("PRINT_AUT") == 0) {
             print_aut();
+        } else if (line.find("STOP") == 0) {
+            break;
         } else if (line.length() > 0)
             throw std::runtime_error("Unsupported gate: " + line);
+        stop_execute = std::chrono::steady_clock::now();
     }
     qasm.close();
 }
@@ -1369,7 +1406,7 @@ void AUTOQ::Util::Automata<Symbol>::print_stats(const std::string &str, bool new
     std::cout << AUTOQ::Util::Convert::ToString(qubitNum) << " & " << AUTOQ::Util::TreeAutomata::gateCount
               << " & " << stateBefore << " & " << stateNum
               << " & " << transitionBefore << " & " << transition_size()
-              << " & " << AUTOQ::Util::Convert::toString(std::chrono::steady_clock::now() - start_time) << " & " << "-";
+              << " & " << AUTOQ::Util::Convert::toString(stop_execute - start_execute) << " & " << include_status;
     if (newline)
         std::cout << std::endl;
 }
