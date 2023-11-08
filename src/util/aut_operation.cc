@@ -14,6 +14,7 @@
 #include <chrono>
 #include <queue>
 #include <regex>
+#include <bit>
 #include <boost/dynamic_bitset.hpp>
 
 using namespace AUTOQ;
@@ -1028,99 +1029,307 @@ void AUTOQ::Automata<Symbol>::fraction_simplification() {
 /**************** Equivalence Checking ****************/
 // namespace
 // { // anonymous namespace
-  std::string gpath_to_VATA = "";
+    // std::string gpath_to_VATA = "";
 
-  /** returns the path to AUTOQ executable */
-  const std::string& get_vata_path()
-  {
-    // is it cached?
-    if (!gpath_to_VATA.empty()) return gpath_to_VATA;
+    // /** returns the path to AUTOQ executable */
+    // const std::string& get_vata_path()
+    // {
+    // // is it cached?
+    // if (!gpath_to_VATA.empty()) return gpath_to_VATA;
 
-    // not cached, get it from ENV
-    const char* path = std::getenv("VATA_PATH");
-    if (nullptr == path) {
-      throw std::runtime_error("[ERROR] The environment variable VATA_PATH is not found!");
-    }
+    // // not cached, get it from ENV
+    // const char* path = std::getenv("VATA_PATH");
+    // if (nullptr == path) {
+    //     throw std::runtime_error("[ERROR] The environment variable VATA_PATH is not found!");
+    // }
 
-    gpath_to_VATA = path;
-    return gpath_to_VATA;
-  }
+    // gpath_to_VATA = path;
+    // return gpath_to_VATA;
+    // }
 
-  const int MAX_ARG_STRLEN = 131070; // in fact is 131072 on the Internet
+    // const int MAX_ARG_STRLEN = 131070; // in fact is 131072 on the Internet
 
   /** checks inclusion of two TAs */
-  template <typename Symbol>
-  bool AUTOQ::Automata<Symbol>::check_inclusion(const std::string& lhsPath, const std::string& rhsPath)
-  {
-    std::string aux;
-    AUTOQ::Util::ShellCmd(get_vata_path() + " incl " + lhsPath + " " + rhsPath, aux);
-    return (aux == "1\n");
-  }
+    // template <typename Symbol>
+    // bool AUTOQ::Automata<Symbol>::check_inclusion(const std::string& lhsPath, const std::string& rhsPath)
+    // {
+    // std::string aux;
+    // AUTOQ::Util::ShellCmd(get_vata_path() + " incl " + lhsPath + " " + rhsPath, aux);
+    // return (aux == "1\n");
+    // }
 
-  template <typename Symbol>
-  bool AUTOQ::Automata<Symbol>::check_inclusion(const Automata<Symbol>& lhsPath, const std::string& rhsPath)
-  {
-    std::string aux;
-    std::string aut1 = TimbukSerializer::Serialize(lhsPath);
-    assert(aut1.length() <= MAX_ARG_STRLEN);
-    AUTOQ::Util::ShellCmd(get_vata_path() + " incl2 '" + aut1 + "' " + rhsPath, aux);
-    return (aux == "1\n");
-  }
+    // template <typename Symbol>
+    // bool AUTOQ::Automata<Symbol>::check_inclusion(const Automata<Symbol>& lhsPath, const std::string& rhsPath)
+    // {
+    // std::string aux;
+    // std::string aut1 = TimbukSerializer::Serialize(lhsPath);
+    // assert(aut1.length() <= MAX_ARG_STRLEN);
+    // AUTOQ::Util::ShellCmd(get_vata_path() + " incl2 '" + aut1 + "' " + rhsPath, aux);
+    // return (aux == "1\n");
+    // }
 
-  template <typename Symbol>
-  bool AUTOQ::Automata<Symbol>::check_inclusion(const std::string& lhsPath, const Automata<Symbol>& rhsPath)
-  {
-    std::string aux;
-    std::string aut2 = TimbukSerializer::Serialize(rhsPath);
-    assert(aut2.length() <= MAX_ARG_STRLEN);
-    AUTOQ::Util::ShellCmd(get_vata_path() + " incl3 " + lhsPath + " '" + aut2 + "'", aux);
-    return (aux == "1\n");
-  }
+    // template <typename Symbol>
+    // bool AUTOQ::Automata<Symbol>::check_inclusion(const std::string& lhsPath, const Automata<Symbol>& rhsPath)
+    // {
+    // std::string aux;
+    // std::string aut2 = TimbukSerializer::Serialize(rhsPath);
+    // assert(aut2.length() <= MAX_ARG_STRLEN);
+    // AUTOQ::Util::ShellCmd(get_vata_path() + " incl3 " + lhsPath + " '" + aut2 + "'", aux);
+    // return (aux == "1\n");
+    // }
 
-  template <typename Symbol>
-  bool AUTOQ::Automata<Symbol>::check_inclusion(const Automata<Symbol>& lhsPath, const Automata<Symbol>& rhsPath)
-  {
-    std::string input = TimbukSerializer::Serialize(lhsPath);
-    std::vector<std::string> args{get_vata_path(), "incl4"};
-    int length = input.length();
-    for (int i=0; i<length; i+=MAX_ARG_STRLEN) {
-        args.push_back(input.substr(i, MAX_ARG_STRLEN));
+    template <>
+    bool AUTOQ::Automata<AUTOQ::Symbol::Symbolic>::check_inclusion(const Automata<AUTOQ::Symbol::Symbolic>& autA, const Automata<AUTOQ::Symbol::Symbolic>& autB)
+    {
+        exit(1);
     }
-    input = TimbukSerializer::Serialize(rhsPath);
-    length = input.length();    
-    for (int i=0; i<length; i+=MAX_ARG_STRLEN) {
-        args.push_back(input.substr(i, MAX_ARG_STRLEN));
-    }
-    std::string aux;
-    std::string arguments;
-    for (const std::string& a : args) {
-			arguments += a + " ";
-		}
-    if (!AUTOQ::Util::ShellCmd(arguments, aux)) {
-        throw std::runtime_error("[ERROR] Failed to execute VATA.");
-    }
-#if 0
-    if (!AUTOQ::Util::ShellCmd(args, aux)) {
-        throw std::runtime_error("[ERROR] Failed to execute VATA.");
-    }
-#endif
-    return (aux == "1\n");
-  }
+    template <typename Symbol>
+    bool AUTOQ::Automata<Symbol>::check_inclusion(const Automata<Symbol>& autA, const Automata<Symbol>& autB) {
+        // Part 1: Transform transitions into the new data structure.
+        std::vector<std::map<SymbolTag, StateVector>> transA(autA.stateNum);
+        std::vector<std::map<Symbol, std::map<Tag, StateVector>>> transB(autB.stateNum);
+        for (const auto &t : autA.transitions) {
+            const SymbolTag &symbol_tag = t.first;
+            const auto &in_outs = t.second;
+            for (const auto &in_out : in_outs) {
+                for (const auto &s : in_out.second) {
+                    transA[s][symbol_tag] = in_out.first;
+                    // already assume one (q,fc) corresponds to only one input vector.
+                }
+            }
+        }
+        for (const auto &t : autB.transitions) {
+            const auto &in_outs = t.second;
+            for (const auto &in_out : in_outs) {
+                for (const auto &s : in_out.second) {
+                    transB[s][t.first.symbol()][t.first.tag()] = in_out.first;
+                    // already assume one (q,fc) corresponds to only one input vector.
+                }
+            }
+        }
+        typedef std::map<State, StateSet> Cell;
+        typedef std::set<Cell> Relation;
+        typedef std::vector<Relation> Vertex;
+        std::set<Vertex> visited; // Remember visited configurations.
+        std::queue<Vertex> bfs; // the queue used for traversing the graph
+        Vertex vertex; // current vertex data structure
+        // Construct source vertices.
+        for (const auto &qA : autA.finalStates) {
+            vertex = Vertex();
+            for (const auto &qB : autB.finalStates) {
+                vertex.push_back(Relation({{{qA, {qB}}}}));
+            }
+            assert(!visited.contains(vertex));
+            visited.insert(vertex);
+            bfs.push(vertex);
+        }
+        // Start the BFS!
+        while (!bfs.empty()) {
+            vertex = bfs.front();
+            // std::cout << AUTOQ::Util::Convert::ToString(vertex) << "\n";
+            bfs.pop();
+            // List all possible transition combinations of A in this vertex first!
+            std::map<State, typename std::map<SymbolTag, StateVector>::iterator> A_transition_combinations;
+            std::map<State, Tag> possible_colors_for_qA;
+            for (const auto& qA_qBs : *(vertex.at(0).begin())) {
+                auto qA = qA_qBs.first;
+                A_transition_combinations[qA] = transA[qA].begin();
+                for (const auto &fc_in : transA[qA]) {
+                    possible_colors_for_qA[qA] |= fc_in.first.tag();
+                }
+            }
+            bool have_listed_all_combinationsA = false;
+            do { // Construct one new vertex for each possible combination of A's transitions.                
+                // Print the current combination
+                // for (const auto &kv : A_transition_combinations) {
+                //     std::cout << kv.first << " " << kv.second.second << " ";
+                // }
+                // std::cout << std::endl;
+                /************************************************************/
+                // Check if the current combination is color-consistent.
+                // If not, skip this one and continue to the next combination.
+                unsigned all_used_colors = 0;
+                bool color_consistent = true;
+                // Check if there is no any children state derived from the current combination.
+                // If it is true, then we shall not create new vertices derived from this one,
+                // and we shall judge whether the inclusion does not hold right now.
+                bool is_leaf_vertex = true;
+                for (const auto &kv : A_transition_combinations) {
+                    all_used_colors |= kv.second->first.tag();
+                    if (kv.second->second.size() > 0)
+                        is_leaf_vertex = false;
+                }
+                for (const auto &qA_c : possible_colors_for_qA) {
+                    if (std::popcount(qA_c.second & all_used_colors) > 1) {
+                        color_consistent = false;
+                        break;
+                    }
+                }
+                /*************************************************************************/
+                // Only pick this combination of A's transitions if it is color-consistent.
+                if (color_consistent) {
+                    Vertex vertex2;
+                    bool vertex_fail = true; // is_leaf_vertex
+                    for (const auto &relation : vertex) {
+                        Relation relation2;
+                        bool relation_fail = true; // is_leaf_vertex
+                        for (const auto &cell : relation) {
+                            Cell cell2;
+                            bool cell_fail = false; // is_leaf_vertex
+                            bool have_listed_all_combinationsB = false;
+                            std::map<State, Tag> possible_colors_for_qB;
+                            std::map<State, std::map<Symbol, std::map<Tag, StateVector>::iterator>> B_transition_combinations;
+                            for (const auto &kv : A_transition_combinations) {
+                                const auto &qA = kv.first;
+                                const auto &fc_in = *(kv.second); // the currently picked transition for qA
+                                const auto &desired_symbol = fc_in.first.symbol(); // the corresponding symbol
+                                const auto &inA = fc_in.second; // the current input vector for qA
+                                for (const auto &s : inA) {
+                                    cell2[s]; // Leave room for B's states for each A's child state.
+                                }
+                                if (cell.at(qA).empty()) {
+                                    cell_fail = true; // is_leaf_vertex
+                                    break;
+                                }
+                                for (const auto &qB : cell.at(qA)) {
+                                    /****** Build all possible colors for qB *******/
+                                    for (const auto &f_cin : transB[qB]) {
+                                        for (const auto &c_in : f_cin.second) {
+                                            possible_colors_for_qB[qB] |= c_in.first;
+                                        }
+                                    }
+                                    /***********************************************/
+                                    if (transB[qB].find(desired_symbol) == transB[qB].end()) {
+                                        // If qB has no transitions with the desired symbol,
+                                        // simply construct the unique cell without B's states!
+                                        have_listed_all_combinationsB = true;
+                                    } else if (!B_transition_combinations[qB].empty() && B_transition_combinations[qB].begin()->first != desired_symbol) {
+                                        // If qB is enforced to take two different symbols together,
+                                        // simply construct the unique cell without B's states!
+                                        have_listed_all_combinationsB = true;
+                                    } else {
+                                        B_transition_combinations[qB][desired_symbol] = transB[qB][desired_symbol].begin();
+                                    }
+                                }
+                            }
+                            // No possible combination exists!
+                            if (have_listed_all_combinationsB) {
+                                cell_fail = true; // is_leaf_vertex
+                                relation2.insert(cell2);
+                            }
+                            while (!have_listed_all_combinationsB) { // Construct one new cell for each possible combination of B's transitions.
+                                // Initialize the current cell.
+                                for (auto &kv : cell2) {
+                                    kv.second.clear();
+                                }
+                                // Print the current combination
+                                // for (const auto &kv : B_transition_combinations) {
+                                //     std::cout << kv.first << " " << kv.second.begin()->second.second << " ";
+                                // }
+                                // std::cout << std::endl;
+                                /*************************************************************/
+                                // Check if the current combination is color-consistent.
+                                // If not, simply construct the unique cell without B's states!
+                                bool color_consistent2 = true;
+                                unsigned all_used_colors = 0;
+                                for (const auto &kv : B_transition_combinations) {
+                                    all_used_colors |= kv.second.begin()->second->first;
+                                }
+                                for (const auto &qB_c : possible_colors_for_qB) {
+                                    if (std::popcount(qB_c.second & all_used_colors) > 1) {
+                                        color_consistent2 = false;
+                                        break;
+                                    }
+                                }
+                                /*************************************************************/
+                                if (color_consistent2) {
+                                    for (const auto &kv : A_transition_combinations) {
+                                        const auto &qA = kv.first;
+                                        const auto &inA = kv.second->second; // the current input vector for qA
+                                        for (const auto &qB : cell.at(qA)) {
+                                            const auto &inB = B_transition_combinations[qB].begin()->second->second; // the current input vector for qB
+                                            assert(inA.size() == inB.size()); // one function symbol has only one arity.
+                                            for (unsigned i=0; i<inA.size(); i++) {
+                                                cell2[inA.at(i)].insert(inB.at(i));
+                                            }
+                                        }
+                                    }
+                                }
+                                relation2.insert(cell2);
 
-  /** checks language equivalence of two TAs */
-  template <typename Symbol>
-  bool AUTOQ::Automata<Symbol>::check_equal(const Automata<Symbol>& lhsPath, const Automata<Symbol>& rhsPath)
-  {
+                                // Increment indices
+                                for (auto it = B_transition_combinations.rbegin(); it != B_transition_combinations.rend(); it++) {
+                                    // std::cout << AUTOQ::Util::Convert::ToString(*(it->second.begin()->second.second)) << "\n";
+                                    // std::cout << AUTOQ::Util::Convert::ToString(*std::prev(it->second.begin()->second.first.end(), 1)) << "\n";
+                                    // std::cout << AUTOQ::Util::Convert::ToString(it->second.begin()->second.second) << "\n";
+                                    // std::cout << &*(it->second.begin()->second.second) << "\n";
+                                    // std::cout << &*std::next(it->second.begin()->second.second, 1) << "\n";
+                                    // std::cout << &*(it->second.begin()->second.first.end()) << "\n";
+                                    const auto &q = it->first;
+                                    const auto &f = it->second.begin()->first;
+                                    if (std::next(it->second.begin()->second, 1) != transB[q][f].end()) {
+                                        it->second.begin()->second++;
+                                        break;
+                                    } else {
+                                        if (it == std::prev(B_transition_combinations.rend(), 1)) { // position equivalent to .begin()
+                                            have_listed_all_combinationsB = true;
+                                            break; // All combinations have been generated
+                                        }
+                                        it->second.begin()->second = transB[q][f].begin();
+                                    }
+                                }
+                            }
+                            if (!cell_fail) { // is_leaf_vertex
+                                relation_fail = false;
+                            }
+                        }
+                        vertex2.push_back(relation2);
+                        if (!relation_fail) { // is_leaf_vertex
+                            vertex_fail = false;
+                        }
+                    }
+                    if (is_leaf_vertex) { // only when considering some particular transitions
+                        if (vertex_fail)
+                            return false;
+                    } else if (!visited.contains(vertex2)) {
+                        visited.insert(vertex2);
+                        bfs.push(vertex2);
+                    }
+                }
+
+                // Increment indices
+                for (auto it = A_transition_combinations.rbegin(); it != A_transition_combinations.rend(); it++) {
+                    const auto &qA = it->first;
+                    if (std::next(it->second, 1) != transA[qA].end()) {
+                        it->second = std::next(it->second, 1);
+                        break;
+                    } else {
+                        if (it == std::prev(A_transition_combinations.rend(), 1)) { // position equivalent to .begin()
+                            have_listed_all_combinationsA = true;
+                            break; // All combinations have been generated
+                        }
+                        it->second = transA[qA].begin();
+                    }
+                }
+            } while (!have_listed_all_combinationsA);
+        }
+        return true;
+    }
+
+    /** checks language equivalence of two TAs */
+    template <typename Symbol>
+    bool AUTOQ::Automata<Symbol>::check_equal(const Automata<Symbol>& lhsPath, const Automata<Symbol>& rhsPath)
+    {
     return check_inclusion(lhsPath, rhsPath) && check_inclusion(rhsPath, lhsPath);
-  }
+    }
 
-  template <>
-  bool AUTOQ::TreeAutomata::check_equal_aut(
-      AUTOQ::TreeAutomata lhs,
-      AUTOQ::TreeAutomata rhs)
-  {
-	return check_equal(lhs, rhs);
-  }
+    // template <>
+    // bool AUTOQ::TreeAutomata::check_equal_aut(
+    //     AUTOQ::TreeAutomata lhs,
+    //     AUTOQ::TreeAutomata rhs)
+    // {
+    // return check_equal(lhs, rhs);
+    // }
 // } // anonymous namespace
 /******************************************************/
 

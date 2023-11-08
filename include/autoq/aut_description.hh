@@ -213,12 +213,12 @@ public:
     static Automata zero_one_zero(int n);
 
     /* Equivalence Checking */
-    static bool check_equal(const Automata& lhsPath, const Automata& rhsPath);
-    static bool check_equal_aut(Automata lhs, Automata rhs);
-    static bool check_inclusion(const std::string& lhsPath, const std::string& rhsPath);
-    static bool check_inclusion(const Automata& lhsPath, const std::string& rhsPath);
-    static bool check_inclusion(const std::string& lhsPath, const Automata& rhsPath);
-    static bool check_inclusion(const Automata& lhsPath, const Automata& rhsPath);
+    static bool check_equal(const Automata& autA, const Automata& autB);
+    // static bool check_equal_aut(Automata lhs, Automata rhs);
+    // static bool check_inclusion(const std::string& lhsPath, const std::string& rhsPath);
+    // static bool check_inclusion(const Automata& lhsPath, const std::string& rhsPath);
+    // static bool check_inclusion(const std::string& lhsPath, const Automata& rhsPath);
+    static bool check_inclusion(const Automata& autA, const Automata& autB);
 
     void initialize_stats();
     void execute(const char *filename);
