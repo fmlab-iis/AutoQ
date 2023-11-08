@@ -14,7 +14,7 @@ for n in range(1, 100):
 
         for i in range(n-1, -1, -1):
             file.write(f'h qubits[{i}];\n')
-            file.write(f'x qubits[0];\n')
+            file.write(f'x qubits[{i}];\n')
             file.write(f'h qubits[{i}];\n')
     #########################################
 
