@@ -92,8 +92,9 @@ public:   // data members
     bool isTopdownDeterministic;
     inline static int gateCount, stateBefore, transitionBefore;
     inline static bool gateLog, opLog;
+    inline static std::string include_status;
     inline static std::chrono::steady_clock::duration binop_time, branch_rest_time, value_rest_time;
-    inline static std::chrono::time_point<std::chrono::steady_clock> start_time;
+    inline static std::chrono::time_point<std::chrono::steady_clock> start_execute, stop_execute;
     /* Notice inline is very convenient for declaring and defining a static member variable together! */
 
 public:   // methods
@@ -156,6 +157,7 @@ private:
     // void swap_backward(const int k);
     void General_Single_Qubit_Gate(int t, std::function<Symbol(const Symbol&, const Symbol&)> L, std::function<Symbol(const Symbol&, const Symbol&)> R);
     void General_Controlled_Gate(int c, const AUTOQ::Automata<Symbol> &aut2);
+    void initialize_stats();
 
 public:
     void fraction_simplification();
@@ -220,7 +222,6 @@ public:
     // static bool check_inclusion(const std::string& lhsPath, const Automata& rhsPath);
     static bool check_inclusion(const Automata& autA, const Automata& autB);
 
-    void initialize_stats();
     void execute(const char *filename);
     void print_language(const char *str="") const;
     std::vector<std::pair<std::map<int, unsigned>, std::vector<std::string>>> print(const std::map<typename AUTOQ::Automata<Symbol>::State, std::vector<typename AUTOQ::Automata<Symbol>::SymbolTag>> &leafSymbolTagsMap, std::map<int, std::map<std::pair<typename AUTOQ::Automata<Symbol>::State, typename AUTOQ::Automata<Symbol>::Symbol>, std::vector<unsigned>>> dqfCOL, int qubit, typename AUTOQ::Automata<Symbol>::State state) const;

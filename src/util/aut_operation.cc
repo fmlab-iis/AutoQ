@@ -1085,6 +1085,8 @@ void AUTOQ::Automata<Symbol>::fraction_simplification() {
     }
     template <typename Symbol>
     bool AUTOQ::Automata<Symbol>::check_inclusion(const Automata<Symbol>& autA, const Automata<Symbol>& autB) {
+        auto start_include = std::chrono::steady_clock::now();
+
         // Part 1: Transform transitions into the new data structure.
         std::vector<std::map<SymbolTag, StateVector>> transA(autA.stateNum);
         std::vector<std::map<Symbol, std::map<Tag, StateVector>>> transB(autB.stateNum);
@@ -1289,8 +1291,11 @@ void AUTOQ::Automata<Symbol>::fraction_simplification() {
                         }
                     }
                     if (is_leaf_vertex) { // only when considering some particular transitions
-                        if (vertex_fail)
+                        if (vertex_fail) {
+                            auto stop_include = std::chrono::steady_clock::now();
+                            include_status = "X";
                             return false;
+                        }
                     } else if (!visited.contains(vertex2)) {
                         visited.insert(vertex2);
                         bfs.push(vertex2);
@@ -1313,6 +1318,8 @@ void AUTOQ::Automata<Symbol>::fraction_simplification() {
                 }
             } while (!have_listed_all_combinationsA);
         }
+        auto stop_include = std::chrono::steady_clock::now();
+        include_status = AUTOQ::Util::Convert::toString(stop_include - start_include);
         return true;
     }
 
@@ -1337,11 +1344,13 @@ template <typename InitialSymbol>
 void AUTOQ::Automata<InitialSymbol>::initialize_stats() {
     stateBefore = stateNum;
     transitionBefore = transition_size();
-    start_time = std::chrono::steady_clock::now();
+    start_execute = std::chrono::steady_clock::now();
 }
 
 template <typename Symbol>
 void AUTOQ::Automata<Symbol>::execute(const char *filename) {
+    initialize_stats();
+
     std::ifstream qasm(filename);
     const std::regex digit("\\d+");
     const std::regex_iterator<std::string::iterator> END;
@@ -1432,9 +1441,12 @@ void AUTOQ::Automata<Symbol>::execute(const char *filename) {
             print_stats(previous_line, true);
         } else if (line.find("PRINT_AUT") == 0) {
             print_aut();
+        } else if (line.find("STOP") == 0) {
+            break;
         } else if (line.length() > 0)
             throw std::runtime_error("[ERROR] unsupported gate: " + line + ".");
         previous_line = line;
+        stop_execute = std::chrono::steady_clock::now();
     }
     qasm.close();
 }
@@ -1682,7 +1694,7 @@ void AUTOQ::Automata<Symbol>::print_stats(const std::string &str, bool newline) 
     std::cout << AUTOQ::Util::Convert::ToString(qubitNum) << " & " << AUTOQ::TreeAutomata::gateCount
               << " & " << stateBefore << " & " << stateNum
               << " & " << transitionBefore << " & " << transition_size()
-              << " & " << AUTOQ::Util::Convert::toString(std::chrono::steady_clock::now() - start_time) << " & " << "-";
+              << " & " << AUTOQ::Util::Convert::toString(stop_execute - start_execute) << " & " << include_status;
     if (newline)
         std::cout << std::endl;
 }
