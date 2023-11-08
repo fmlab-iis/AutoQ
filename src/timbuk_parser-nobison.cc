@@ -445,7 +445,7 @@ Automata<Symbol> parse_automaton(const std::string& str)
     Automata<Symbol> result;
     std::map<std::string, Complex> numbers;
     std::map<std::string, std::string> predicates;
-    std::map<Symbol, typename Automata<Symbol>::Tag> currentColor;
+    std::map<typename Automata<Symbol>::State, typename Automata<Symbol>::Tag> currentColor; // for the color constraint
 
 	std::vector<std::string> lines = split_delim(str, '\n');
 	for (const std::string& line : lines) {
@@ -551,31 +551,31 @@ Automata<Symbol> parse_automaton(const std::string& str)
                 if constexpr(std::is_same_v<Symbol, TreeAutomata::Symbol>) {
                     try {
                         auto sym = Symbol(boost::lexical_cast<int>(lhs));
-                        auto &color = currentColor[sym];
+                        auto &color = currentColor[t];
                         color = (color == 0) ? 1 : (color << 1);
                         result.transitions[{sym, TreeAutomata::Tag(color)}][std::vector<TreeAutomata::State>()].insert(t);
                     } catch (...) {
                         auto sym = Symbol(numbers.at(lhs));
-                        auto &color = currentColor[sym];
+                        auto &color = currentColor[t];
                         color = (color == 0) ? 1 : (color << 1);
                         result.transitions[{sym, TreeAutomata::Tag(color)}][std::vector<TreeAutomata::State>()].insert(t);
                     }
                 } else if constexpr(std::is_same_v<Symbol, PredicateAutomata::Symbol>) {
                     try {
                         auto sym = Symbol(boost::lexical_cast<int>(lhs));
-                        auto &color = currentColor[sym];
+                        auto &color = currentColor[t];
                         color = (color == 0) ? 1 : (color << 1);
                         result.transitions[{sym, TreeAutomata::Tag(color)}][std::vector<TreeAutomata::State>()].insert(t);
                     } catch (...) {
                         auto sym = Symbol(predicates.at(lhs).c_str());
-                        auto &color = currentColor[sym];
+                        auto &color = currentColor[t];
                         color = (color == 0) ? 1 : (color << 1);
                         result.transitions[{sym, TreeAutomata::Tag(color)}][std::vector<TreeAutomata::State>()].insert(t);
                     }
                 } else {
                     try {
                         auto sym = Symbol(boost::lexical_cast<int>(lhs));
-                        auto &color = currentColor[sym];
+                        auto &color = currentColor[t];
                         color = (color == 0) ? 1 : (color << 1);
                         result.transitions[{sym, SymbolicAutomata::Tag(color)}][std::vector<SymbolicAutomata::State>()].insert(t);
                     } catch (...) {
@@ -625,17 +625,17 @@ Automata<Symbol> parse_automaton(const std::string& str)
                 if (t > result.stateNum) result.stateNum = t;
                 if constexpr(std::is_same_v<Symbol, TreeAutomata::Symbol>) {
                     auto sym = Symbol(boost::lexical_cast<int>(symbol.substr(1, symbol.length()-2)));
-                    auto &color = currentColor[sym];
+                    auto &color = currentColor[t];
                     color = (color == 0) ? 1 : (color << 1);
                     result.transitions[{sym, TreeAutomata::Tag(color)}][state_vector].insert(t);
                 } else if constexpr(std::is_same_v<Symbol, PredicateAutomata::Symbol>) {
                     auto sym = from_string_to_Predicate(symbol);
-                    auto &color = currentColor[sym];
+                    auto &color = currentColor[t];
                     color = (color == 0) ? 1 : (color << 1);
                     result.transitions[{sym, PredicateAutomata::Tag(color)}][state_vector].insert(t);
                 } else {
                     auto sym = from_string_to_Symbolic(symbol);
-                    auto &color = currentColor[sym];
+                    auto &color = currentColor[t];
                     color = (color == 0) ? 1 : (color << 1);
                     result.transitions[{sym, PredicateAutomata::Tag(color)}][state_vector].insert(t);
                 }
