@@ -1,5 +1,6 @@
 Ops [1]:2 [2]:2 [3]:2 [0,0,0,0,0]:0 [1,0,0,0,0]:0
 Automaton Zero
+States 0 1 2 3 4 5 6
 Final States 0
 Transitions
 [1](2, 1) -> 0
