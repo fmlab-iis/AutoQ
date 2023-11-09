@@ -8,6 +8,7 @@ TIMEOUT = 300
 NUM_OF_THREADS = 100
 CTA_EXE = '../../autoq_pldi_cta'
 TA_EXE = '../../autoq_pldi_ta'
+VATA_EXE = '../../vata'
 
 processes = []
 def kill_processes():
@@ -29,7 +30,7 @@ def CTA(root, stR, semaphore, lock, counter):
         q = p.stdout.splitlines()[0].decode('utf-8')
         p = subprocess.run(f'grep -P ".*(x |y |z |h |s |t |rx\(pi/2\) |ry\(pi/2\) |cx |cz |ccx |tdg |sdg |swap ).*\[\d+\];" {root}/circuit.qasm | wc -l', shell=True, capture_output=True, executable='/bin/bash')
         G = p.stdout.splitlines()[0].decode('utf-8')
-        p = subprocess.run(f'VATA_PATH=../vata timeout {TIMEOUT} {CTA_EXE} {root}/pre.spec {root}/circuit.qasm', shell=True, capture_output=True, executable='/bin/bash')
+        p = subprocess.run(f'timeout {TIMEOUT} {CTA_EXE} {root}/pre.spec {root}/circuit.qasm {root}/post.spec', shell=True, capture_output=True, executable='/bin/bash')
         ret = p.returncode
         if ret == 0:
             stR.value = p.stdout.splitlines()[0].decode('utf-8')
@@ -50,7 +51,7 @@ def TA(root, stR, semaphore, lock, counter):
         q = p.stdout.splitlines()[0].decode('utf-8')
         p = subprocess.run(f'grep -P ".*(x |y |z |h |s |t |rx\(pi/2\) |ry\(pi/2\) |cx |cz |ccx |tdg |sdg |swap ).*\[\d+\];" {root}/circuit.qasm | wc -l', shell=True, capture_output=True, executable='/bin/bash')
         G = p.stdout.splitlines()[0].decode('utf-8')
-        p = subprocess.run(f'VATA_PATH=../vata timeout {TIMEOUT} {TA_EXE} {root}/pre.aut {root}/circuit.qasm', shell=True, capture_output=True, executable='/bin/bash')
+        p = subprocess.run(f'VATA_PATH={VATA_EXE} timeout {TIMEOUT} {TA_EXE} {root}/pre.aut {root}/circuit.qasm {root}/post.aut', shell=True, capture_output=True, executable='/bin/bash')
         ret = p.returncode
         if ret == 0:
             stR.value = p.stdout.splitlines()[0].decode('utf-8')
