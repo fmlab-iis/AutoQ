@@ -829,23 +829,23 @@ void AUTOQ::Automata<Symbol>::CZ(int c, int t) {
     assert(c != t);
     if (c > t) std::swap(c, t);
     auto aut2 = *this;
-    for (const auto &tr : transitions) {
-        SymbolTag symbol_tag = tr.first;
-        if (symbol_tag.is_leaf())
-            symbol_tag.symbol().negate();
-        if (!(symbol_tag.is_internal() && symbol_tag.symbol().qubit() <= t)) {
+    aut2.Z(t); gateCount--; // prevent repeated counting
+    for (const auto &tr : aut2.transitions) {
+        const SymbolTag &symbol_tag = tr.first;
+        if (!(symbol_tag.is_internal() && symbol_tag.symbol().qubit() <= c)) {
+            auto &ttf = transitions[symbol_tag];
             for (const auto &in_out : tr.second) {
                 StateVector in;
                 for (const auto &s : in_out.first)
                     in.push_back(s+stateNum);
                 for (const auto &s : in_out.second)
-                    aut2.transitions[symbol_tag][in].insert(s+stateNum);
+                    ttf[in].insert(s+stateNum);
             }
         }
-    } 
-    for (auto &tr : aut2.transitions) {
-        if (tr.first.is_leaf() || (tr.first.is_internal() && tr.first.symbol().qubit() > t)) break;
-        if (tr.first.is_internal() && tr.first.symbol().qubit() == t) {
+    }   
+    for (auto &tr : transitions) {
+        if (tr.first.is_leaf() || (tr.first.is_internal() && tr.first.symbol().qubit() > c)) break;
+        if (tr.first.is_internal() && tr.first.symbol().qubit() == c) {
             auto in_outs = tr.second;
             for (const auto &in_out : in_outs) {
                 assert(in_out.first.size() == 2);
@@ -856,32 +856,7 @@ void AUTOQ::Automata<Symbol>::CZ(int c, int t) {
             }
         }
     }
-    for (const auto &tr : aut2.transitions) {
-        const SymbolTag &symbol_tag = tr.first;
-        if (!(symbol_tag.is_internal() && symbol_tag.symbol().qubit() <= c)) {
-            for (const auto &in_out : tr.second) {
-                StateVector in;
-                for (const auto &s : in_out.first)
-                    in.push_back(s+stateNum);
-                for (const auto &s : in_out.second)
-                    transitions[symbol_tag][in].insert(s+stateNum);
-            }
-        }
-    }   
-    for (auto &tr : aut2.transitions) {
-        if (tr.first.is_leaf() || (tr.first.is_internal() && tr.first.symbol().qubit() > c)) break;
-        if (tr.first.is_internal() && tr.first.symbol().qubit() == c) {
-            auto in_outs2 = tr.second;
-            for (const auto &in_out : in_outs2) {
-                assert(in_out.first.size() == 2);
-                if (in_out.first[0] < stateNum && in_out.first[1] < stateNum) {
-                    tr.second[{in_out.first[0], in_out.first[1]+stateNum}] = in_out.second;
-                    tr.second.erase(in_out.first);
-                }
-            }
-        }
-    }
-    stateNum *= 3;
+    stateNum += aut2.stateNum;
     remove_useless();
     reduce();
     gateCount++;
