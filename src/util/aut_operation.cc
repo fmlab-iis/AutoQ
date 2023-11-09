@@ -1594,7 +1594,7 @@ bool AUTOQ::is_spec_satisfied(const Constraint &C, const SymbolicAutomata &Ae, c
 template <typename Symbol>
 std::vector<std::pair<std::map<int, unsigned>, std::vector<std::string>>> AUTOQ::Automata<Symbol>::print(
     const std::map<typename AUTOQ::Automata<Symbol>::State, std::vector<typename AUTOQ::Automata<Symbol>::SymbolTag>> &leafSymbolTagsMap,
-    std::map<int, std::map<std::pair<typename AUTOQ::Automata<Symbol>::State, typename AUTOQ::Automata<Symbol>::Symbol>, std::vector<unsigned>>> dqfCOL,
+    std::map<int, std::map<typename AUTOQ::Automata<Symbol>::State, std::vector<unsigned>>> dqCOL,
     int qubit, typename AUTOQ::Automata<Symbol>::State state) const {
     if (qubit == static_cast<int>(qubitNum + 1)) {
         for (const auto &symbol_tag : leafSymbolTagsMap.at(state)) {
@@ -1608,8 +1608,8 @@ std::vector<std::pair<std::map<int, unsigned>, std::vector<std::string>>> AUTOQ:
         if (tr.first.symbol().is_internal() && tr.first.symbol().qubit()==qubit) {
             for (const auto &in_outs : tr.second) {
                 if (in_outs.second.find(state) != in_outs.second.end()) {
-                    auto left = print(leafSymbolTagsMap, dqfCOL, qubit + 1, in_outs.first.at(0));
-                    auto right = print(leafSymbolTagsMap, dqfCOL, qubit + 1, in_outs.first.at(1));
+                    auto left = print(leafSymbolTagsMap, dqCOL, qubit + 1, in_outs.first.at(0));
+                    auto right = print(leafSymbolTagsMap, dqCOL, qubit + 1, in_outs.first.at(1));
                     for (const auto &L : left) {
                         const auto &colL = L.first;                        
                         for (const auto &R : right) {
@@ -1620,18 +1620,18 @@ std::vector<std::pair<std::map<int, unsigned>, std::vector<std::string>>> AUTOQ:
                             for (const auto &kv : colL) {
                                 const auto d = kv.first;
                                 newcol[d] = kv.second | colR.at(d);
-                                for (const auto &qfCOL : dqfCOL[d]) {
+                                for (const auto &qCOL : dqCOL[d]) {
                                     int count = 0;
-                                    for (const auto &color : qfCOL.second) {
+                                    for (const auto &color : qCOL.second) {
                                         count += (newcol[d] == (newcol[d] | color));
                                         if (count >= 2) goto FAIL;
                                     }
                                 }
                             }
                             newcol[qubit] |= tr.first.tag();
-                            for (const auto &qfCOL : dqfCOL[qubit]) {
+                            for (const auto &qCOL : dqCOL[qubit]) {
                                 int count = 0;
-                                for (const auto &color : qfCOL.second) {
+                                for (const auto &color : qCOL.second) {
                                     count += (newcol[qubit] == (newcol[qubit] | color));
                                     if (count >= 2) goto FAIL;
                                 }
@@ -1652,14 +1652,14 @@ template <typename Symbol>
 void AUTOQ::Automata<Symbol>::print_language(const char *str) const {
     std::cout << str;
     std::map<typename AUTOQ::Automata<Symbol>::State, std::vector<typename AUTOQ::Automata<Symbol>::SymbolTag>> leafSymbolTagsMap;
-    std::map<int, std::map<std::pair<typename AUTOQ::Automata<Symbol>::State, typename AUTOQ::Automata<Symbol>::Symbol>, std::vector<unsigned>>> dqfCOL;
+    std::map<int, std::map<typename AUTOQ::Automata<Symbol>::State, std::vector<unsigned>>> dqCOL;
     for (const auto &t : transitions) { 
         for (const auto &in_outs : t.second) { // construct the map from state to leaf symbols
             for (const auto &q : in_outs.second) {
                 if (t.first.symbol().is_internal())
-                    dqfCOL[static_cast<int>(t.first.symbol().qubit())][std::make_pair(q, t.first.symbol())].push_back(t.first.tag());
+                    dqCOL[static_cast<int>(t.first.symbol().qubit())][q].push_back(t.first.tag());
                 else
-                    dqfCOL[qubitNum+1][std::make_pair(q, t.first.symbol())].push_back(t.first.tag());
+                    dqCOL[qubitNum+1][q].push_back(t.first.tag());
             }
         }
         if (t.first.is_leaf()) { // construct the map from state to leaf symbols
@@ -1669,7 +1669,7 @@ void AUTOQ::Automata<Symbol>::print_language(const char *str) const {
         }
     }
     for (const auto &s : finalStates) {
-        auto results = print(leafSymbolTagsMap, dqfCOL, 1, s);
+        auto results = print(leafSymbolTagsMap, dqCOL, 1, s);
         for (const auto &result : results) {
             const auto &subtree = result.second;
             std::map<std::string, int> count;

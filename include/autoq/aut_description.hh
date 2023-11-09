@@ -224,7 +224,7 @@ public:
 
     void execute(const char *filename);
     void print_language(const char *str="") const;
-    std::vector<std::pair<std::map<int, unsigned>, std::vector<std::string>>> print(const std::map<typename AUTOQ::Automata<Symbol>::State, std::vector<typename AUTOQ::Automata<Symbol>::SymbolTag>> &leafSymbolTagsMap, std::map<int, std::map<std::pair<typename AUTOQ::Automata<Symbol>::State, typename AUTOQ::Automata<Symbol>::Symbol>, std::vector<unsigned>>> dqfCOL, int qubit, typename AUTOQ::Automata<Symbol>::State state) const;
+    std::vector<std::pair<std::map<int, unsigned>, std::vector<std::string>>> print(const std::map<typename AUTOQ::Automata<Symbol>::State, std::vector<typename AUTOQ::Automata<Symbol>::SymbolTag>> &leafSymbolTagsMap, std::map<int, std::map<typename AUTOQ::Automata<Symbol>::State, std::vector<unsigned>>> dqCOL, int qubit, typename AUTOQ::Automata<Symbol>::State state) const;
 };
 
 
