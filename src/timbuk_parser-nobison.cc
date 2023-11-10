@@ -141,6 +141,7 @@ static std::pair<std::string, int> parse_colonned_token(std::string str)
 //     return TreeAutomata::Symbol(temp);
 // }
 
+// TODO: need to be refined later (because of already eliminating the square brackets)
 SymbolicAutomata::Symbol from_string_to_Symbolic(const std::string& str)
 {
 	std::vector<AUTOQ::Symbol::linear_combination> temp;
@@ -185,9 +186,9 @@ SymbolicAutomata::Symbol from_string_to_Symbolic(const std::string& str)
 PredicateAutomata::Symbol from_string_to_Predicate(const std::string& lhs)
 {
     try {
-        return Predicate(boost::multiprecision::cpp_int(lhs.substr(1, lhs.size()-2)));
+        return Predicate(boost::multiprecision::cpp_int(lhs));
     } catch (...) {
-        return Predicate(lhs.substr(1, lhs.size()-2).c_str());
+        return Predicate(lhs.c_str());
     }
 }
 
@@ -440,7 +441,8 @@ PredicateAutomata::Symbol from_string_to_Predicate(const std::string& lhs)
 template <typename Symbol>
 Automata<Symbol> parse_automaton(const std::string& str)
 {
-	bool start_numbers = false;
+	bool colored = false;
+    bool start_numbers = false;
     bool start_transitions = false;
     Automata<Symbol> result;
     std::map<std::string, Complex> numbers;
@@ -472,6 +474,10 @@ Automata<Symbol> parse_automaton(const std::string& str)
                 }
             }
 		} else if (!start_transitions) {	// processing numbers
+            if (str.substr(0, 7) == "Colored") {
+                read_word(str); // after this command, "str" is expected to be "Transitions"
+                colored = true;
+            }
             if (str == "Transitions") {
                 start_transitions = true;
                 continue;
@@ -550,41 +556,111 @@ Automata<Symbol> parse_automaton(const std::string& str)
                 if (t > result.stateNum) result.stateNum = t;
                 if constexpr(std::is_same_v<Symbol, TreeAutomata::Symbol>) {
                     try {
-                        auto sym = Symbol(boost::lexical_cast<int>(lhs));
-                        auto &color = currentColor[t];
-                        color = (color == 0) ? 1 : (color << 1);
-                        result.transitions[{sym, TreeAutomata::Tag(color)}][std::vector<TreeAutomata::State>()].insert(t);
+                        if (colored) {
+                            std::istringstream ss(lhs); // Create a stringstream from the input string
+                            std::string token; // Tokenize the input string using a comma delimiter
+                            std::getline(ss, token, ',');
+                            auto sym = Symbol(boost::lexical_cast<int>(token));
+                            std::getline(ss, token, ',');
+                            auto color = boost::lexical_cast<TreeAutomata::Tag>(token);
+                            result.transitions[{sym, TreeAutomata::Tag(color)}][std::vector<TreeAutomata::State>()].insert(t);
+                        } else {
+                            auto sym = Symbol(boost::lexical_cast<int>(lhs));
+                            auto &color = currentColor[t];
+                            color = (color == 0) ? 1 : (color << 1);
+                            result.transitions[{sym, TreeAutomata::Tag(color)}][std::vector<TreeAutomata::State>()].insert(t);
+                        }
                     } catch (...) {
-                        auto sym = Symbol(numbers.at(lhs));
-                        auto &color = currentColor[t];
-                        color = (color == 0) ? 1 : (color << 1);
-                        result.transitions[{sym, TreeAutomata::Tag(color)}][std::vector<TreeAutomata::State>()].insert(t);
+                        if (colored) {
+                            std::istringstream ss(lhs); // Create a stringstream from the input string
+                            std::string token; // Tokenize the input string using a comma delimiter
+                            std::getline(ss, token, ',');
+                            auto sym = Symbol(numbers.at(token));
+                            std::getline(ss, token, ',');
+                            auto color = boost::lexical_cast<TreeAutomata::Tag>(token);
+                            result.transitions[{sym, TreeAutomata::Tag(color)}][std::vector<TreeAutomata::State>()].insert(t);
+                        } else {
+                            auto sym = Symbol(numbers.at(lhs));
+                            auto &color = currentColor[t];
+                            color = (color == 0) ? 1 : (color << 1);
+                            result.transitions[{sym, TreeAutomata::Tag(color)}][std::vector<TreeAutomata::State>()].insert(t);
+                        }
                     }
                 } else if constexpr(std::is_same_v<Symbol, PredicateAutomata::Symbol>) {
                     try {
-                        auto sym = Symbol(boost::lexical_cast<int>(lhs));
-                        auto &color = currentColor[t];
-                        color = (color == 0) ? 1 : (color << 1);
-                        result.transitions[{sym, TreeAutomata::Tag(color)}][std::vector<TreeAutomata::State>()].insert(t);
+                        if (colored) {
+                            std::istringstream ss(lhs); // Create a stringstream from the input string
+                            std::string token; // Tokenize the input string using a comma delimiter
+                            std::getline(ss, token, ',');
+                            auto sym = Symbol(boost::lexical_cast<int>(token));
+                            std::getline(ss, token, ',');
+                            auto color = boost::lexical_cast<PredicateAutomata::Tag>(token);
+                            result.transitions[{sym, PredicateAutomata::Tag(color)}][std::vector<PredicateAutomata::State>()].insert(t);
+                        } else {
+                            auto sym = Symbol(boost::lexical_cast<int>(lhs));
+                            auto &color = currentColor[t];
+                            color = (color == 0) ? 1 : (color << 1);
+                            result.transitions[{sym, PredicateAutomata::Tag(color)}][std::vector<PredicateAutomata::State>()].insert(t);
+                        }
                     } catch (...) {
-                        auto sym = Symbol(predicates.at(lhs).c_str());
-                        auto &color = currentColor[t];
-                        color = (color == 0) ? 1 : (color << 1);
-                        result.transitions[{sym, TreeAutomata::Tag(color)}][std::vector<TreeAutomata::State>()].insert(t);
+                        if (colored) {
+                            std::istringstream ss(lhs); // Create a stringstream from the input string
+                            std::string token; // Tokenize the input string using a comma delimiter
+                            std::getline(ss, token, ',');
+                            auto sym = Symbol(predicates.at(token).c_str());
+                            std::getline(ss, token, ',');
+                            auto color = boost::lexical_cast<PredicateAutomata::Tag>(token);
+                            result.transitions[{sym, PredicateAutomata::Tag(color)}][std::vector<PredicateAutomata::State>()].insert(t);
+                        } else {
+                            auto sym = Symbol(predicates.at(lhs).c_str());
+                            auto &color = currentColor[t];
+                            color = (color == 0) ? 1 : (color << 1);
+                            result.transitions[{sym, PredicateAutomata::Tag(color)}][std::vector<PredicateAutomata::State>()].insert(t);
+                        }
                     }
                 } else {
                     try {
-                        auto sym = Symbol(boost::lexical_cast<int>(lhs));
-                        auto &color = currentColor[t];
-                        color = (color == 0) ? 1 : (color << 1);
-                        result.transitions[{sym, SymbolicAutomata::Tag(color)}][std::vector<SymbolicAutomata::State>()].insert(t);
+                        if (colored) {
+                            std::istringstream ss(lhs); // Create a stringstream from the input string
+                            std::string token; // Tokenize the input string using a comma delimiter
+                            std::getline(ss, token, ',');
+                            auto sym = Symbol(boost::lexical_cast<int>(token));
+                            std::getline(ss, token, ',');
+                            auto color = boost::lexical_cast<SymbolicAutomata::Tag>(token);
+                            result.transitions[{sym, SymbolicAutomata::Tag(color)}][std::vector<SymbolicAutomata::State>()].insert(t);
+                        } else {
+                            auto sym = Symbol(boost::lexical_cast<int>(lhs));
+                            auto &color = currentColor[t];
+                            color = (color == 0) ? 1 : (color << 1);
+                            result.transitions[{sym, SymbolicAutomata::Tag(color)}][std::vector<SymbolicAutomata::State>()].insert(t);
+                        }
                     } catch (...) {
                         try {
-                            Symbolic symb(Symbolic::ComplexType{{numbers.at(lhs), {{"1", 1}}}});
-                            result.transitions[symb][std::vector<SymbolicAutomata::State>()].insert(t);
+                            if (colored) {
+                                std::istringstream ss(lhs); // Create a stringstream from the input string
+                                std::string token; // Tokenize the input string using a comma delimiter
+                                std::getline(ss, token, ',');
+                                Symbolic symb(Symbolic::ComplexType{{numbers.at(token), {{"1", 1}}}});
+                                std::getline(ss, token, ',');
+                                auto color = boost::lexical_cast<SymbolicAutomata::Tag>(token);
+                                result.transitions[{symb, SymbolicAutomata::Tag(color)}][std::vector<SymbolicAutomata::State>()].insert(t);
+                            } else {
+                                Symbolic symb(Symbolic::ComplexType{{numbers.at(lhs), {{"1", 1}}}});
+                                result.transitions[symb][std::vector<SymbolicAutomata::State>()].insert(t);
+                            }
                         } catch (...) {
-                            Symbolic symb(Symbolic::ComplexType{{Complex::One(), {{lhs, 1}}}});
-                            result.transitions[symb][std::vector<SymbolicAutomata::State>()].insert(t);
+                            if (colored) {
+                                std::istringstream ss(lhs); // Create a stringstream from the input string
+                                std::string token; // Tokenize the input string using a comma delimiter
+                                std::getline(ss, token, ',');
+                                Symbolic symb(Symbolic::ComplexType{{Complex::One(), {{token, 1}}}});
+                                std::getline(ss, token, ',');
+                                auto color = boost::lexical_cast<SymbolicAutomata::Tag>(token);
+                                result.transitions[{symb, SymbolicAutomata::Tag(color)}][std::vector<SymbolicAutomata::State>()].insert(t);
+                            } else {
+                                Symbolic symb(Symbolic::ComplexType{{Complex::One(), {{lhs, 1}}}});
+                                result.transitions[symb][std::vector<SymbolicAutomata::State>()].insert(t);
+                            }
                         }
                     }
                 }
@@ -600,6 +676,8 @@ Automata<Symbol> parse_automaton(const std::string& str)
 				if (symbol.empty()) {
 					throw std::runtime_error(invalid_trans_str);
 				}
+                // eliminate the square brackets: [...] -> ...
+                symbol = symbol.substr(1, symbol.length()-2);
 
                 std::vector<typename Automata<Symbol>::State> state_vector;
                 std::string str_state_tuple = lhs.substr(parens_begin_pos + 1,
@@ -624,20 +702,50 @@ Automata<Symbol> parse_automaton(const std::string& str)
                 int t = atoi(rhs.c_str());
                 if (t > result.stateNum) result.stateNum = t;
                 if constexpr(std::is_same_v<Symbol, TreeAutomata::Symbol>) {
-                    auto sym = Symbol(boost::lexical_cast<int>(symbol.substr(1, symbol.length()-2)));
-                    auto &color = currentColor[t];
-                    color = (color == 0) ? 1 : (color << 1);
-                    result.transitions[{sym, TreeAutomata::Tag(color)}][state_vector].insert(t);
+                    if (colored) {
+                        std::istringstream ss(symbol); // Create a stringstream from the input string
+                        std::string token; // Tokenize the input string using a comma delimiter
+                        std::getline(ss, token, ',');
+                        auto sym = Symbol(boost::lexical_cast<int>(token));
+                        std::getline(ss, token, ',');
+                        auto color = boost::lexical_cast<TreeAutomata::Tag>(token);
+                        result.transitions[{sym, TreeAutomata::Tag(color)}][state_vector].insert(t);
+                    } else {
+                        auto sym = Symbol(boost::lexical_cast<int>(symbol));
+                        auto &color = currentColor[t];
+                        color = (color == 0) ? 1 : (color << 1);
+                        result.transitions[{sym, TreeAutomata::Tag(color)}][state_vector].insert(t);
+                    }
                 } else if constexpr(std::is_same_v<Symbol, PredicateAutomata::Symbol>) {
-                    auto sym = from_string_to_Predicate(symbol);
-                    auto &color = currentColor[t];
-                    color = (color == 0) ? 1 : (color << 1);
-                    result.transitions[{sym, PredicateAutomata::Tag(color)}][state_vector].insert(t);
+                    if (colored) {
+                        std::istringstream ss(symbol); // Create a stringstream from the input string
+                        std::string token; // Tokenize the input string using a comma delimiter
+                        std::getline(ss, token, ',');
+                        auto sym = from_string_to_Predicate(token);
+                        std::getline(ss, token, ',');
+                        auto color = boost::lexical_cast<PredicateAutomata::Tag>(token);
+                        result.transitions[{sym, PredicateAutomata::Tag(color)}][state_vector].insert(t);
+                    } else {
+                        auto sym = from_string_to_Predicate(symbol);
+                        auto &color = currentColor[t];
+                        color = (color == 0) ? 1 : (color << 1);
+                        result.transitions[{sym, PredicateAutomata::Tag(color)}][state_vector].insert(t);
+                    }
                 } else {
-                    auto sym = from_string_to_Symbolic(symbol);
-                    auto &color = currentColor[t];
-                    color = (color == 0) ? 1 : (color << 1);
-                    result.transitions[{sym, PredicateAutomata::Tag(color)}][state_vector].insert(t);
+                    if (colored) {
+                        std::istringstream ss(symbol); // Create a stringstream from the input string
+                        std::string token; // Tokenize the input string using a comma delimiter
+                        std::getline(ss, token, ',');
+                        auto sym = from_string_to_Symbolic(token);
+                        std::getline(ss, token, ',');
+                        auto color = boost::lexical_cast<SymbolicAutomata::Tag>(token);
+                        result.transitions[{sym, SymbolicAutomata::Tag(color)}][state_vector].insert(t);
+                    } else {
+                        auto sym = from_string_to_Symbolic(symbol);
+                        auto &color = currentColor[t];
+                        color = (color == 0) ? 1 : (color << 1);
+                        result.transitions[{sym, SymbolicAutomata::Tag(color)}][state_vector].insert(t);
+                    }
                 }
                 /*********************************************************************************************/
 			}
