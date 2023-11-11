@@ -448,9 +448,9 @@ Automata<Symbol> parse_automaton(const std::string& str)
     typename Automata<Symbol>::StateSet finalStates;
     std::map<std::string, Complex> numbers;
     std::map<std::string, std::string> predicates;
-    std::map<int, typename Automata<Symbol>::Tag> currentColor; // for the color constraint
     // notice that we use the key 0 to denote the leaf level
     // since we may not know the number of qubits in advance.
+    std::map<unsigned, std::map<typename Automata<Symbol>::State, std::vector<std::pair<Symbol, typename Automata<Symbol>::StateVector>>>> dqfin;
 
 	std::vector<std::string> lines = split_delim(str, '\n');
 	for (const std::string& line : lines) {
@@ -569,13 +569,7 @@ Automata<Symbol> parse_automaton(const std::string& str)
                             result.transitions[{sym, TreeAutomata::Tag(color)}][std::vector<TreeAutomata::State>()].insert(t);
                         } else {
                             auto sym = Symbol(boost::lexical_cast<int>(lhs));
-                            auto &color = currentColor[0];
-                            if (color == Automata<Symbol>::Tag_MAX) {
-                                AUTOQ_ERROR("Colors are not enough when parsing the transition \"" + line + "\".");
-                                exit(1);
-                            }
-                            color = (color == 0) ? 1 : (color << 1);
-                            result.transitions[{sym, TreeAutomata::Tag(color)}][std::vector<TreeAutomata::State>()].insert(t);
+                            dqfin[0][t].push_back({sym, std::vector<TreeAutomata::State>()});
                         }
                     } catch (...) {
                         if (colored) {
@@ -588,13 +582,7 @@ Automata<Symbol> parse_automaton(const std::string& str)
                             result.transitions[{sym, TreeAutomata::Tag(color)}][std::vector<TreeAutomata::State>()].insert(t);
                         } else {
                             auto sym = Symbol(numbers.at(lhs));
-                            auto &color = currentColor[0];
-                            if (color == Automata<Symbol>::Tag_MAX) {
-                                AUTOQ_ERROR("Colors are not enough when parsing the transition \"" + line + "\".");
-                                exit(1);
-                            }
-                            color = (color == 0) ? 1 : (color << 1);
-                            result.transitions[{sym, TreeAutomata::Tag(color)}][std::vector<TreeAutomata::State>()].insert(t);
+                            dqfin[0][t].push_back({sym, std::vector<TreeAutomata::State>()});
                         }
                     }
                 } else if constexpr(std::is_same_v<Symbol, PredicateAutomata::Symbol>) {
@@ -609,13 +597,7 @@ Automata<Symbol> parse_automaton(const std::string& str)
                             result.transitions[{sym, PredicateAutomata::Tag(color)}][std::vector<PredicateAutomata::State>()].insert(t);
                         } else {
                             auto sym = Symbol(boost::lexical_cast<int>(lhs));
-                            auto &color = currentColor[0];
-                            if (color == Automata<Symbol>::Tag_MAX) {
-                                AUTOQ_ERROR("Colors are not enough when parsing the transition \"" + line + "\".");
-                                exit(1);
-                            }
-                            color = (color == 0) ? 1 : (color << 1);
-                            result.transitions[{sym, PredicateAutomata::Tag(color)}][std::vector<PredicateAutomata::State>()].insert(t);
+                            dqfin[0][t].push_back({sym, std::vector<PredicateAutomata::State>()});
                         }
                     } catch (...) {
                         if (colored) {
@@ -628,13 +610,7 @@ Automata<Symbol> parse_automaton(const std::string& str)
                             result.transitions[{sym, PredicateAutomata::Tag(color)}][std::vector<PredicateAutomata::State>()].insert(t);
                         } else {
                             auto sym = Symbol(predicates.at(lhs).c_str());
-                            auto &color = currentColor[0];
-                            if (color == Automata<Symbol>::Tag_MAX) {
-                                AUTOQ_ERROR("Colors are not enough when parsing the transition \"" + line + "\".");
-                                exit(1);
-                            }
-                            color = (color == 0) ? 1 : (color << 1);
-                            result.transitions[{sym, PredicateAutomata::Tag(color)}][std::vector<PredicateAutomata::State>()].insert(t);
+                            dqfin[0][t].push_back({sym, std::vector<PredicateAutomata::State>()});
                         }
                     }
                 } else {
@@ -649,13 +625,7 @@ Automata<Symbol> parse_automaton(const std::string& str)
                             result.transitions[{sym, SymbolicAutomata::Tag(color)}][std::vector<SymbolicAutomata::State>()].insert(t);
                         } else {
                             auto sym = Symbol(boost::lexical_cast<int>(lhs));
-                            auto &color = currentColor[0];
-                            if (color == Automata<Symbol>::Tag_MAX) {
-                                AUTOQ_ERROR("Colors are not enough when parsing the transition \"" + line + "\".");
-                                exit(1);
-                            }
-                            color = (color == 0) ? 1 : (color << 1);
-                            result.transitions[{sym, SymbolicAutomata::Tag(color)}][std::vector<SymbolicAutomata::State>()].insert(t);
+                            dqfin[0][t].push_back({sym, std::vector<SymbolicAutomata::State>()});
                         }
                     } catch (...) {
                         try {
@@ -669,7 +639,7 @@ Automata<Symbol> parse_automaton(const std::string& str)
                                 result.transitions[{symb, SymbolicAutomata::Tag(color)}][std::vector<SymbolicAutomata::State>()].insert(t);
                             } else {
                                 Symbolic symb(Symbolic::ComplexType{{numbers.at(lhs), {{"1", 1}}}});
-                                result.transitions[symb][std::vector<SymbolicAutomata::State>()].insert(t);
+                                dqfin[0][t].push_back({symb, std::vector<SymbolicAutomata::State>()});
                             }
                         } catch (...) {
                             if (colored) {
@@ -682,7 +652,7 @@ Automata<Symbol> parse_automaton(const std::string& str)
                                 result.transitions[{symb, SymbolicAutomata::Tag(color)}][std::vector<SymbolicAutomata::State>()].insert(t);
                             } else {
                                 Symbolic symb(Symbolic::ComplexType{{Complex::One(), {{lhs, 1}}}});
-                                result.transitions[symb][std::vector<SymbolicAutomata::State>()].insert(t);
+                                dqfin[0][t].push_back({symb, std::vector<SymbolicAutomata::State>()});
                             }
                         }
                     }
@@ -737,13 +707,7 @@ Automata<Symbol> parse_automaton(const std::string& str)
                             finalStates.insert(t);
                     } else {
                         auto sym = Symbol(boost::lexical_cast<int>(symbol));
-                        auto &color = currentColor[static_cast<int>(sym.qubit())];
-                        if (color == Automata<Symbol>::Tag_MAX) {
-                            AUTOQ_ERROR("Colors are not enough when parsing the transition \"" + line + "\".");
-                            exit(1);
-                        }
-                        color = (color == 0) ? 1 : (color << 1);
-                        result.transitions[{sym, TreeAutomata::Tag(color)}][state_vector].insert(t);
+                        dqfin[static_cast<int>(sym.qubit())][t].push_back({sym, state_vector});
                         if (static_cast<int>(sym.qubit()) == 1)
                             finalStates.insert(t);
                     }
@@ -760,13 +724,7 @@ Automata<Symbol> parse_automaton(const std::string& str)
                             finalStates.insert(t);
                     } else {
                         auto sym = from_string_to_Predicate(symbol);
-                        auto &color = currentColor[static_cast<int>(sym.qubit())];
-                        if (color == Automata<Symbol>::Tag_MAX) {
-                            AUTOQ_ERROR("Colors are not enough when parsing the transition \"" + line + "\".");
-                            exit(1);
-                        }
-                        color = (color == 0) ? 1 : (color << 1);
-                        result.transitions[{sym, PredicateAutomata::Tag(color)}][state_vector].insert(t);
+                        dqfin[static_cast<int>(sym.qubit())][t].push_back({sym, state_vector});
                         if (static_cast<int>(sym.qubit()) == 1)
                             finalStates.insert(t);
                     }
@@ -783,13 +741,7 @@ Automata<Symbol> parse_automaton(const std::string& str)
                             finalStates.insert(t);
                     } else {
                         auto sym = from_string_to_Symbolic(symbol);
-                        auto &color = currentColor[static_cast<int>(sym.qubit())];
-                        if (color == Automata<Symbol>::Tag_MAX) {
-                            AUTOQ_ERROR("Colors are not enough when parsing the transition \"" + line + "\".");
-                            exit(1);
-                        }
-                        color = (color == 0) ? 1 : (color << 1);
-                        result.transitions[{sym, SymbolicAutomata::Tag(color)}][state_vector].insert(t);
+                        dqfin[static_cast<int>(sym.qubit())][t].push_back({sym, state_vector});
                         if (static_cast<int>(sym.qubit()) == 1)
                             finalStates.insert(t);
                     }
@@ -803,11 +755,39 @@ Automata<Symbol> parse_automaton(const std::string& str)
 		throw std::runtime_error(std::string(__FUNCTION__) + ": Transitions not specified.");
 	}
 
-    for (const auto &kv : result.transitions) {
-        if (kv.first.is_internal()) {
-            if (kv.first.symbol().qubit() > INT_MAX)
-                throw std::overflow_error("[ERROR] The number of qubits is too large!");
-            result.qubitNum = std::max(result.qubitNum, static_cast<unsigned>(kv.first.symbol().qubit()));
+    if (!colored) {
+        for (const auto &d_qfin : dqfin) { // in layer "d"
+            auto d = d_qfin.first;
+            if (d > 0) {
+                result.qubitNum = std::max(result.qubitNum, d);
+            }
+
+            typename Automata<Symbol>::Tag currentColor = 0;
+            for (const auto &q_fins : d_qfin.second) { // for each top state "q"
+                const auto &q = q_fins.first;
+                const auto &fins = q_fins.second;
+                if (fins.size() == 1) {
+                    result.transitions[{fins.at(0).first, typename Automata<Symbol>::Tag(0)}][fins.at(0).second].insert(q);
+                } else {
+                    for (const auto &fin : fins) { // loop through all transitions under "q"
+                        if (currentColor == Automata<Symbol>::Tag_MAX) {
+                            AUTOQ_ERROR("Colors are not enough!");
+                            // when parsing the transition \"" + AUTOQ::Util::Convert::ToString() + "\".");
+                            exit(1);
+                        }
+                        currentColor = (currentColor == 0) ? 1 : (currentColor << 1);
+                        result.transitions[{fin.first, typename Automata<Symbol>::Tag(currentColor)}][fin.second].insert(q);
+                    }
+                }
+            }
+        }
+    } else {
+        for (const auto &kv : result.transitions) {
+            if (kv.first.is_internal()) {
+                if (kv.first.symbol().qubit() > INT_MAX)
+                    throw std::overflow_error("[ERROR] The number of qubits is too large!");
+                result.qubitNum = std::max(result.qubitNum, static_cast<unsigned>(kv.first.symbol().qubit()));
+            }
         }
     }
     result.stateNum++; // because the state number starts from 0

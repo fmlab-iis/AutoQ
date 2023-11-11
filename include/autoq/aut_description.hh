@@ -30,9 +30,9 @@ namespace AUTOQ
         struct Symbolic;
         struct Predicate;
     }
-    template <typename TT> struct Automata;        
-    typedef Automata<Symbol::Concrete> TreeAutomata;        
-    typedef Automata<Symbol::Symbolic> SymbolicAutomata;        
+    template <typename TT> struct Automata;
+    typedef Automata<Symbol::Concrete> TreeAutomata;
+    typedef Automata<Symbol::Symbolic> SymbolicAutomata;
     typedef Automata<Symbol::Predicate> PredicateAutomata;
 }
 
@@ -103,8 +103,8 @@ public:   // methods
 	Automata() :
 		name(),
 		finalStates(),
-        stateNum(),
-        qubitNum(),
+        stateNum(0),
+        qubitNum(0),
 		transitions(),
         isTopdownDeterministic(false)
 	{ }
