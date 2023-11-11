@@ -445,6 +445,7 @@ Automata<Symbol> parse_automaton(const std::string& str)
     bool start_numbers = false;
     bool start_transitions = false;
     Automata<Symbol> result;
+    typename Automata<Symbol>::StateSet finalStates;
     std::map<std::string, Complex> numbers;
     std::map<std::string, std::string> predicates;
     std::map<int, typename Automata<Symbol>::Tag> currentColor; // for the color constraint
@@ -732,6 +733,8 @@ Automata<Symbol> parse_automaton(const std::string& str)
                         std::getline(ss, token, ',');
                         auto color = boost::lexical_cast<TreeAutomata::Tag>(token);
                         result.transitions[{sym, TreeAutomata::Tag(color)}][state_vector].insert(t);
+                        if (static_cast<int>(sym.qubit()) == 1)
+                            finalStates.insert(t);
                     } else {
                         auto sym = Symbol(boost::lexical_cast<int>(symbol));
                         auto &color = currentColor[static_cast<int>(sym.qubit())];
@@ -741,6 +744,8 @@ Automata<Symbol> parse_automaton(const std::string& str)
                         }
                         color = (color == 0) ? 1 : (color << 1);
                         result.transitions[{sym, TreeAutomata::Tag(color)}][state_vector].insert(t);
+                        if (static_cast<int>(sym.qubit()) == 1)
+                            finalStates.insert(t);
                     }
                 } else if constexpr(std::is_same_v<Symbol, PredicateAutomata::Symbol>) {
                     if (colored) {
@@ -751,6 +756,8 @@ Automata<Symbol> parse_automaton(const std::string& str)
                         std::getline(ss, token, ',');
                         auto color = boost::lexical_cast<PredicateAutomata::Tag>(token);
                         result.transitions[{sym, PredicateAutomata::Tag(color)}][state_vector].insert(t);
+                        if (static_cast<int>(sym.qubit()) == 1)
+                            finalStates.insert(t);
                     } else {
                         auto sym = from_string_to_Predicate(symbol);
                         auto &color = currentColor[static_cast<int>(sym.qubit())];
@@ -760,6 +767,8 @@ Automata<Symbol> parse_automaton(const std::string& str)
                         }
                         color = (color == 0) ? 1 : (color << 1);
                         result.transitions[{sym, PredicateAutomata::Tag(color)}][state_vector].insert(t);
+                        if (static_cast<int>(sym.qubit()) == 1)
+                            finalStates.insert(t);
                     }
                 } else {
                     if (colored) {
@@ -770,6 +779,8 @@ Automata<Symbol> parse_automaton(const std::string& str)
                         std::getline(ss, token, ',');
                         auto color = boost::lexical_cast<SymbolicAutomata::Tag>(token);
                         result.transitions[{sym, SymbolicAutomata::Tag(color)}][state_vector].insert(t);
+                        if (static_cast<int>(sym.qubit()) == 1)
+                            finalStates.insert(t);
                     } else {
                         auto sym = from_string_to_Symbolic(symbol);
                         auto &color = currentColor[static_cast<int>(sym.qubit())];
@@ -779,6 +790,8 @@ Automata<Symbol> parse_automaton(const std::string& str)
                         }
                         color = (color == 0) ? 1 : (color << 1);
                         result.transitions[{sym, SymbolicAutomata::Tag(color)}][state_vector].insert(t);
+                        if (static_cast<int>(sym.qubit()) == 1)
+                            finalStates.insert(t);
                     }
                 }
                 /*********************************************************************************************/
@@ -798,7 +811,7 @@ Automata<Symbol> parse_automaton(const std::string& str)
         }
     }
     result.stateNum++; // because the state number starts from 0
-    result.finalStates.push_back(0);
+    result.finalStates = std::vector<typename Automata<Symbol>::State>(finalStates.begin(), finalStates.end());
 	return result;
 }
 
