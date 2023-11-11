@@ -1110,8 +1110,7 @@ void AUTOQ::Automata<Symbol>::fraction_simplification() {
             }
         }
         typedef std::map<State, StateSet> Cell;
-        typedef std::set<Cell> Relation;
-        typedef std::vector<Relation> Vertex;
+        typedef std::set<Cell> Vertex;
         std::set<Vertex> visited; // Remember visited configurations.
         std::queue<Vertex> bfs; // the queue used for traversing the graph
         Vertex vertex; // current vertex data structure
@@ -1119,7 +1118,7 @@ void AUTOQ::Automata<Symbol>::fraction_simplification() {
         for (const auto &qA : autA.finalStates) {
             vertex = Vertex();
             for (const auto &qB : autB.finalStates) {
-                vertex.push_back(Relation({{{qA, {qB}}}}));
+                vertex.insert(Cell({{qA, {qB}}}));
             }
             assert(!visited.contains(vertex));
             visited.insert(vertex);
@@ -1133,7 +1132,7 @@ void AUTOQ::Automata<Symbol>::fraction_simplification() {
             // List all possible transition combinations of A in this vertex first!
             std::map<State, typename std::map<SymbolTag, StateVector>::iterator> A_transition_combinations;
             std::map<State, Tag> possible_colors_for_qA;
-            for (const auto& qA_qBs : *(vertex.at(0).begin())) {
+            for (const auto& qA_qBs : *(vertex.begin())) {
                 auto qA = qA_qBs.first;
                 A_transition_combinations[qA] = transA[qA].begin();
                 for (const auto &fc_in : transA[qA]) {
@@ -1141,7 +1140,7 @@ void AUTOQ::Automata<Symbol>::fraction_simplification() {
                 }
             }
             bool have_listed_all_combinationsA = false;
-            do { // Construct one new vertex for each possible combination of A's transitions.                
+            do { // Construct one new vertex for each possible combination of A's transitions.
                 // Print the current combination
                 // for (const auto &kv : A_transition_combinations) {
                 //     std::cout << kv.first << " " << kv.second.second << " ";
@@ -1172,121 +1171,113 @@ void AUTOQ::Automata<Symbol>::fraction_simplification() {
                 if (color_consistent) {
                     Vertex vertex2;
                     bool vertex_fail = true; // is_leaf_vertex
-                    for (const auto &relation : vertex) {
-                        Relation relation2;
-                        bool relation_fail = true; // is_leaf_vertex
-                        for (const auto &cell : relation) {
-                            Cell cell2;
-                            bool cell_fail = false; // is_leaf_vertex
-                            bool have_listed_all_combinationsB = false;
-                            std::map<State, Tag> possible_colors_for_qB;
-                            std::map<State, std::map<Symbol, std::map<Tag, StateVector>::iterator>> B_transition_combinations;
-                            for (const auto &kv : A_transition_combinations) {
-                                const auto &qA = kv.first;
-                                const auto &fc_in = *(kv.second); // the currently picked transition for qA
-                                const auto &desired_symbol = fc_in.first.symbol(); // the corresponding symbol
-                                const auto &inA = fc_in.second; // the current input vector for qA
-                                for (const auto &s : inA) {
-                                    cell2[s]; // Leave room for B's states for each A's child state.
-                                }
-                                if (cell.at(qA).empty()) {
-                                    cell_fail = true; // is_leaf_vertex
-                                    break;
-                                }
-                                for (const auto &qB : cell.at(qA)) {
-                                    /****** Build all possible colors for qB *******/
-                                    for (const auto &f_cin : transB[qB]) {
-                                        for (const auto &c_in : f_cin.second) {
-                                            possible_colors_for_qB[qB] |= c_in.first;
-                                        }
-                                    }
-                                    /***********************************************/
-                                    if (transB[qB].find(desired_symbol) == transB[qB].end()) {
-                                        // If qB has no transitions with the desired symbol,
-                                        // simply construct the unique cell without B's states!
-                                        have_listed_all_combinationsB = true;
-                                    } else if (!B_transition_combinations[qB].empty() && B_transition_combinations[qB].begin()->first != desired_symbol) {
-                                        // If qB is enforced to take two different symbols together,
-                                        // simply construct the unique cell without B's states!
-                                        have_listed_all_combinationsB = true;
-                                    } else {
-                                        B_transition_combinations[qB][desired_symbol] = transB[qB][desired_symbol].begin();
-                                    }
-                                }
+                    for (const auto &cell : vertex) {
+                        Cell cell2;
+                        bool cell_fail = false; // is_leaf_vertex
+                        bool have_listed_all_combinationsB = false;
+                        std::map<State, Tag> possible_colors_for_qB;
+                        std::map<State, std::map<Symbol, std::map<Tag, StateVector>::iterator>> B_transition_combinations;
+                        for (const auto &kv : A_transition_combinations) {
+                            const auto &qA = kv.first;
+                            const auto &fc_in = *(kv.second); // the currently picked transition for qA
+                            const auto &desired_symbol = fc_in.first.symbol(); // the corresponding symbol
+                            const auto &inA = fc_in.second; // the current input vector for qA
+                            for (const auto &s : inA) {
+                                cell2[s]; // Leave room for B's states for each A's child state.
                             }
-                            // No possible combination exists!
-                            if (have_listed_all_combinationsB) {
+                            if (cell.at(qA).empty()) {
                                 cell_fail = true; // is_leaf_vertex
-                                relation2.insert(cell2);
+                                break;
                             }
-                            while (!have_listed_all_combinationsB) { // Construct one new cell for each possible combination of B's transitions.
-                                // Initialize the current cell.
-                                for (auto &kv : cell2) {
-                                    kv.second.clear();
-                                }
-                                // Print the current combination
-                                // for (const auto &kv : B_transition_combinations) {
-                                //     std::cout << kv.first << " " << kv.second.begin()->second.second << " ";
-                                // }
-                                // std::cout << std::endl;
-                                /*************************************************************/
-                                // Check if the current combination is color-consistent.
-                                // If not, simply construct the unique cell without B's states!
-                                bool color_consistent2 = true;
-                                unsigned all_used_colors = 0;
-                                for (const auto &kv : B_transition_combinations) {
-                                    all_used_colors |= kv.second.begin()->second->first;
-                                }
-                                for (const auto &qB_c : possible_colors_for_qB) {
-                                    if (std::popcount(qB_c.second & all_used_colors) > 1) {
-                                        color_consistent2 = false;
-                                        break;
+                            for (const auto &qB : cell.at(qA)) {
+                                /****** Build all possible colors for qB *******/
+                                for (const auto &f_cin : transB[qB]) {
+                                    for (const auto &c_in : f_cin.second) {
+                                        possible_colors_for_qB[qB] |= c_in.first;
                                     }
                                 }
-                                /*************************************************************/
-                                if (color_consistent2) {
-                                    for (const auto &kv : A_transition_combinations) {
-                                        const auto &qA = kv.first;
-                                        const auto &inA = kv.second->second; // the current input vector for qA
-                                        for (const auto &qB : cell.at(qA)) {
-                                            const auto &inB = B_transition_combinations[qB].begin()->second->second; // the current input vector for qB
-                                            assert(inA.size() == inB.size()); // one function symbol has only one arity.
-                                            for (unsigned i=0; i<inA.size(); i++) {
-                                                cell2[inA.at(i)].insert(inB.at(i));
-                                            }
-                                        }
-                                    }
+                                /***********************************************/
+                                if (transB[qB].find(desired_symbol) == transB[qB].end()) {
+                                    // If qB has no transitions with the desired symbol,
+                                    // simply construct the unique cell without B's states!
+                                    have_listed_all_combinationsB = true;
+                                } else if (!B_transition_combinations[qB].empty() && B_transition_combinations[qB].begin()->first != desired_symbol) {
+                                    // If qB is enforced to take two different symbols together,
+                                    // simply construct the unique cell without B's states!
+                                    have_listed_all_combinationsB = true;
+                                } else {
+                                    B_transition_combinations[qB][desired_symbol] = transB[qB][desired_symbol].begin();
                                 }
-                                relation2.insert(cell2);
-
-                                // Increment indices
-                                for (auto it = B_transition_combinations.rbegin(); it != B_transition_combinations.rend(); it++) {
-                                    // std::cout << AUTOQ::Util::Convert::ToString(*(it->second.begin()->second.second)) << "\n";
-                                    // std::cout << AUTOQ::Util::Convert::ToString(*std::prev(it->second.begin()->second.first.end(), 1)) << "\n";
-                                    // std::cout << AUTOQ::Util::Convert::ToString(it->second.begin()->second.second) << "\n";
-                                    // std::cout << &*(it->second.begin()->second.second) << "\n";
-                                    // std::cout << &*std::next(it->second.begin()->second.second, 1) << "\n";
-                                    // std::cout << &*(it->second.begin()->second.first.end()) << "\n";
-                                    const auto &q = it->first;
-                                    const auto &f = it->second.begin()->first;
-                                    if (std::next(it->second.begin()->second, 1) != transB[q][f].end()) {
-                                        it->second.begin()->second++;
-                                        break;
-                                    } else {
-                                        if (it == std::prev(B_transition_combinations.rend(), 1)) { // position equivalent to .begin()
-                                            have_listed_all_combinationsB = true;
-                                            break; // All combinations have been generated
-                                        }
-                                        it->second.begin()->second = transB[q][f].begin();
-                                    }
-                                }
-                            }
-                            if (!cell_fail) { // is_leaf_vertex
-                                relation_fail = false;
                             }
                         }
-                        vertex2.push_back(relation2);
-                        if (!relation_fail) { // is_leaf_vertex
+                        // No possible combination exists!
+                        if (have_listed_all_combinationsB) {
+                            cell_fail = true; // is_leaf_vertex
+                            vertex2.insert(cell2);
+                        }
+                        while (!have_listed_all_combinationsB) { // Construct one new cell for each possible combination of B's transitions.
+                            // Initialize the current cell.
+                            for (auto &kv : cell2) {
+                                kv.second.clear();
+                            }
+                            // Print the current combination
+                            // for (const auto &kv : B_transition_combinations) {
+                            //     std::cout << kv.first << " " << kv.second.begin()->second.second << " ";
+                            // }
+                            // std::cout << std::endl;
+                            /*************************************************************/
+                            // Check if the current combination is color-consistent.
+                            // If not, simply construct the unique cell without B's states!
+                            bool color_consistent2 = true;
+                            unsigned all_used_colors = 0;
+                            for (const auto &kv : B_transition_combinations) {
+                                all_used_colors |= kv.second.begin()->second->first;
+                            }
+                            for (const auto &qB_c : possible_colors_for_qB) {
+                                if (std::popcount(qB_c.second & all_used_colors) > 1) {
+                                    color_consistent2 = false;
+                                    break;
+                                }
+                            }
+                            /*************************************************************/
+                            if (color_consistent2) {
+                                for (const auto &kv : A_transition_combinations) {
+                                    const auto &qA = kv.first;
+                                    const auto &inA = kv.second->second; // the current input vector for qA
+                                    for (const auto &qB : cell.at(qA)) {
+                                        const auto &inB = B_transition_combinations[qB].begin()->second->second; // the current input vector for qB
+                                        assert(inA.size() == inB.size()); // one function symbol has only one arity.
+                                        for (unsigned i=0; i<inA.size(); i++) {
+                                            cell2[inA.at(i)].insert(inB.at(i));
+                                        }
+                                    }
+                                }
+                            }
+                            vertex2.insert(cell2);
+
+                            // Increment indices
+                            for (auto it = B_transition_combinations.rbegin(); it != B_transition_combinations.rend(); it++) {
+                                // std::cout << AUTOQ::Util::Convert::ToString(*(it->second.begin()->second.second)) << "\n";
+                                // std::cout << AUTOQ::Util::Convert::ToString(*std::prev(it->second.begin()->second.first.end(), 1)) << "\n";
+                                // std::cout << AUTOQ::Util::Convert::ToString(it->second.begin()->second.second) << "\n";
+                                // std::cout << &*(it->second.begin()->second.second) << "\n";
+                                // std::cout << &*std::next(it->second.begin()->second.second, 1) << "\n";
+                                // std::cout << &*(it->second.begin()->second.first.end()) << "\n";
+                                const auto &q = it->first;
+                                const auto &f = it->second.begin()->first;
+                                if (std::next(it->second.begin()->second, 1) != transB[q][f].end()) {
+                                    it->second.begin()->second++;
+                                    break;
+                                } else {
+                                    if (it == std::prev(B_transition_combinations.rend(), 1)) { // position equivalent to .begin()
+                                        have_listed_all_combinationsB = true;
+                                        break; // All combinations have been generated
+                                    }
+                                    it->second.begin()->second = transB[q][f].begin();
+                                }
+                            }
+                        }
+                        if (!cell_fail) { // is_leaf_vertex
                             vertex_fail = false;
                         }
                     }
