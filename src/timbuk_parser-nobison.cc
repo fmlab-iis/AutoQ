@@ -569,6 +569,10 @@ Automata<Symbol> parse_automaton(const std::string& str)
                         } else {
                             auto sym = Symbol(boost::lexical_cast<int>(lhs));
                             auto &color = currentColor[0];
+                            if (color == Automata<Symbol>::Tag_MAX) {
+                                AUTOQ_ERROR("Colors are not enough when parsing the transition \"" + line + "\".");
+                                exit(1);
+                            }
                             color = (color == 0) ? 1 : (color << 1);
                             result.transitions[{sym, TreeAutomata::Tag(color)}][std::vector<TreeAutomata::State>()].insert(t);
                         }
@@ -584,6 +588,10 @@ Automata<Symbol> parse_automaton(const std::string& str)
                         } else {
                             auto sym = Symbol(numbers.at(lhs));
                             auto &color = currentColor[0];
+                            if (color == Automata<Symbol>::Tag_MAX) {
+                                AUTOQ_ERROR("Colors are not enough when parsing the transition \"" + line + "\".");
+                                exit(1);
+                            }
                             color = (color == 0) ? 1 : (color << 1);
                             result.transitions[{sym, TreeAutomata::Tag(color)}][std::vector<TreeAutomata::State>()].insert(t);
                         }
@@ -601,6 +609,10 @@ Automata<Symbol> parse_automaton(const std::string& str)
                         } else {
                             auto sym = Symbol(boost::lexical_cast<int>(lhs));
                             auto &color = currentColor[0];
+                            if (color == Automata<Symbol>::Tag_MAX) {
+                                AUTOQ_ERROR("Colors are not enough when parsing the transition \"" + line + "\".");
+                                exit(1);
+                            }
                             color = (color == 0) ? 1 : (color << 1);
                             result.transitions[{sym, PredicateAutomata::Tag(color)}][std::vector<PredicateAutomata::State>()].insert(t);
                         }
@@ -616,6 +628,10 @@ Automata<Symbol> parse_automaton(const std::string& str)
                         } else {
                             auto sym = Symbol(predicates.at(lhs).c_str());
                             auto &color = currentColor[0];
+                            if (color == Automata<Symbol>::Tag_MAX) {
+                                AUTOQ_ERROR("Colors are not enough when parsing the transition \"" + line + "\".");
+                                exit(1);
+                            }
                             color = (color == 0) ? 1 : (color << 1);
                             result.transitions[{sym, PredicateAutomata::Tag(color)}][std::vector<PredicateAutomata::State>()].insert(t);
                         }
@@ -633,6 +649,10 @@ Automata<Symbol> parse_automaton(const std::string& str)
                         } else {
                             auto sym = Symbol(boost::lexical_cast<int>(lhs));
                             auto &color = currentColor[0];
+                            if (color == Automata<Symbol>::Tag_MAX) {
+                                AUTOQ_ERROR("Colors are not enough when parsing the transition \"" + line + "\".");
+                                exit(1);
+                            }
                             color = (color == 0) ? 1 : (color << 1);
                             result.transitions[{sym, SymbolicAutomata::Tag(color)}][std::vector<SymbolicAutomata::State>()].insert(t);
                         }
@@ -715,6 +735,10 @@ Automata<Symbol> parse_automaton(const std::string& str)
                     } else {
                         auto sym = Symbol(boost::lexical_cast<int>(symbol));
                         auto &color = currentColor[static_cast<int>(sym.qubit())];
+                        if (color == Automata<Symbol>::Tag_MAX) {
+                            AUTOQ_ERROR("Colors are not enough when parsing the transition \"" + line + "\".");
+                            exit(1);
+                        }
                         color = (color == 0) ? 1 : (color << 1);
                         result.transitions[{sym, TreeAutomata::Tag(color)}][state_vector].insert(t);
                     }
@@ -730,6 +754,10 @@ Automata<Symbol> parse_automaton(const std::string& str)
                     } else {
                         auto sym = from_string_to_Predicate(symbol);
                         auto &color = currentColor[static_cast<int>(sym.qubit())];
+                        if (color == Automata<Symbol>::Tag_MAX) {
+                            AUTOQ_ERROR("Colors are not enough when parsing the transition \"" + line + "\".");
+                            exit(1);
+                        }
                         color = (color == 0) ? 1 : (color << 1);
                         result.transitions[{sym, PredicateAutomata::Tag(color)}][state_vector].insert(t);
                     }
@@ -745,6 +773,10 @@ Automata<Symbol> parse_automaton(const std::string& str)
                     } else {
                         auto sym = from_string_to_Symbolic(symbol);
                         auto &color = currentColor[static_cast<int>(sym.qubit())];
+                        if (color == Automata<Symbol>::Tag_MAX) {
+                            AUTOQ_ERROR("Colors are not enough when parsing the transition \"" + line + "\".");
+                            exit(1);
+                        }
                         color = (color == 0) ? 1 : (color << 1);
                         result.transitions[{sym, SymbolicAutomata::Tag(color)}][state_vector].insert(t);
                     }
@@ -1113,14 +1145,14 @@ Automata<Symbol> TimbukParser<Symbol>::FromFileToAutomata(const char* filepath)
 template <typename Symbol>
 bool TimbukParser<Symbol>::findAndSplitSubstring(const std::string& filename, std::string& automaton, std::string& constraint) {
     std::ifstream file(filename);
-    
+
     if (!file.is_open()) {
-        std::cerr << "Error: Unable to open file." << std::endl;
+        std::cout << "Error: Unable to open file." << std::endl;
         return false;
     }
-    
+
     std::string fileContents((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
-    
+
     file.close();
 
     size_t found = fileContents.find("Constraints");
@@ -1129,7 +1161,7 @@ bool TimbukParser<Symbol>::findAndSplitSubstring(const std::string& filename, st
         constraint = fileContents.substr(found + 11); // "Constraints".length()
         return true;
     }
-    
+
     return false;
 }
 

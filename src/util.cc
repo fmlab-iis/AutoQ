@@ -82,13 +82,13 @@ bool AUTOQ::Util::ShellCmd(const std::string &cmd, std::string &result) {
 bool AUTOQ::Util::ShellCmd(const std::vector<std::string> &cmd, std::string &result) {
     int pipefd[2];
     if (pipe(pipefd) == -1) {
-        std::cerr << "[ERROR] Failed to create pipe." << std::endl;
+        std::cout << "[ERROR] Failed to create pipe." << std::endl;
         return false;
     }
 
     pid_t pid = fork();
     if (pid == -1) {
-        std::cerr << "[ERROR] Failed to fork." << std::endl;
+        std::cout << "[ERROR] Failed to fork." << std::endl;
         return false;
     } else if (pid == 0) { // Child process
         close(pipefd[0]); // Close unused read end
@@ -107,7 +107,7 @@ bool AUTOQ::Util::ShellCmd(const std::vector<std::string> &cmd, std::string &res
         execvp(args[0], const_cast<char**>(args));
         // If execvp() fails, this block will be executed
         delete[] args; // Free the array itself
-        std::cerr << "[ERROR] Failed to execute command." << std::endl;
+        std::cout << "[ERROR] Failed to execute command." << std::endl;
         exit(1);
     } else { // Parent process
         close(pipefd[1]); // Close unused write end
