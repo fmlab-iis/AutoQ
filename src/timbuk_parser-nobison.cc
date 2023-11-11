@@ -461,6 +461,7 @@ Automata<Symbol> parse_automaton(const std::string& str)
 	bool start_numbers = false;
     bool start_transitions = false;
     Automata<Symbol> result;
+    typename Automata<Symbol>::StateSet finalStates;
     std::map<std::string, Complex> numbers;
     std::map<std::string, std::string> predicates;
 
@@ -623,14 +624,22 @@ Automata<Symbol> parse_automaton(const std::string& str)
                 /*********************************************************************************************/
                 int t = atoi(rhs.c_str());
                 if (t > result.stateNum) result.stateNum = t;
+                if (symbol == "[1]")
+                    finalStates.insert(t);
                 if constexpr(std::is_same_v<Symbol, TreeAutomata::Symbol>) {
                     result.transitions[Symbol(boost::lexical_cast<int>(symbol.substr(1, symbol.length()-2)))][state_vector].insert(t);
+                    if (boost::lexical_cast<int>(symbol.substr(1, symbol.length()-2)) == 1)
+                        finalStates.insert(t);
                 } else if constexpr(std::is_same_v<Symbol, PredicateAutomata::Symbol>) {
                     auto temp = from_string_to_Predicate(symbol);
                     result.transitions[temp][state_vector].insert(t);
+                    if (boost::lexical_cast<int>(temp.qubit()) == 1)
+                        finalStates.insert(t);
                 } else {
                     auto temp = from_string_to_Symbolic(symbol);
                     result.transitions[temp][state_vector].insert(t);
+                    if (boost::lexical_cast<int>(temp.qubit()) == 1)
+                        finalStates.insert(t);
                 }
                 /*********************************************************************************************/
 			}
@@ -649,7 +658,7 @@ Automata<Symbol> parse_automaton(const std::string& str)
         }
     }
     result.stateNum++; // because the state number starts from 0
-    result.finalStates.push_back(0);
+    result.finalStates = std::vector<typename Automata<Symbol>::State>(finalStates.begin(), finalStates.end());
 	return result;
 }
 
@@ -976,14 +985,14 @@ Automata<Symbol> TimbukParser<Symbol>::FromFileToAutomata(const char* filepath)
 template <typename Symbol>
 bool TimbukParser<Symbol>::findAndSplitSubstring(const std::string& filename, std::string& automaton, std::string& constraint) {
     std::ifstream file(filename);
-    
+
     if (!file.is_open()) {
         std::cerr << "Error: Unable to open file." << std::endl;
         return false;
     }
-    
+
     std::string fileContents((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
-    
+
     file.close();
 
     size_t found = fileContents.find("Constraints");
@@ -992,7 +1001,7 @@ bool TimbukParser<Symbol>::findAndSplitSubstring(const std::string& filename, st
         constraint = fileContents.substr(found + 11); // "Constraints".length()
         return true;
     }
-    
+
     return false;
 }
 
