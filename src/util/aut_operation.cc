@@ -1131,12 +1131,12 @@ void AUTOQ::Automata<Symbol>::fraction_simplification() {
             bfs.pop();
             // List all possible transition combinations of A in this vertex first!
             std::map<State, typename std::map<SymbolTag, StateVector>::iterator> A_transition_combinations;
-            std::map<State, Tag> possible_colors_for_qA;
+            std::map<State, std::vector<Tag>> possible_colors_for_qA; // Elements may repeat in the vector!
             for (const auto& qA_qBs : *(vertex.begin())) {
                 auto qA = qA_qBs.first;
                 A_transition_combinations[qA] = transA[qA].begin();
                 for (const auto &fc_in : transA[qA]) {
-                    possible_colors_for_qA[qA] |= fc_in.first.tag();
+                    possible_colors_for_qA[qA].push_back(fc_in.first.tag());
                 }
             }
             bool have_listed_all_combinationsA = false;
@@ -1155,19 +1155,30 @@ void AUTOQ::Automata<Symbol>::fraction_simplification() {
                 // If it is true, then we shall not create new vertices derived from this one,
                 // and we shall judge whether the inclusion does not hold right now.
                 bool is_leaf_vertex = true;
+                // std::cout << "Check color consistency of this A's transition combination.\n";
                 for (const auto &kv : A_transition_combinations) {
+                    // std::cout << AUTOQ::Util::Convert::ToString(kv.second->first);
+                    // std::cout << AUTOQ::Util::Convert::ToString(kv.second->second) << " -> ";
+                    // std::cout << AUTOQ::Util::Convert::ToString(kv.first) << "\n";
                     all_used_colors |= kv.second->first.tag();
                     if (kv.second->second.size() > 0)
                         is_leaf_vertex = false;
                 }
-                for (const auto &qA_c : possible_colors_for_qA) {
-                    if (std::popcount(qA_c.second & all_used_colors) > 1) {
-                        color_consistent = false;
-                        break;
+                for (const auto &qA_c : possible_colors_for_qA) { // for each fixed qA
+                    int counter = 0;
+                    for (const auto &color : qA_c.second) { // loop through all possible colors
+                        if ((color | all_used_colors) == all_used_colors) { // color is a subset of all_used_colors
+                            counter++;
+                            if (counter >= 2) {
+                                color_consistent = false;
+                                break;
+                            }
+                        }
                     }
                 }
                 /*************************************************************************/
                 // Only pick this combination of A's transitions if it is color-consistent.
+                // std::cout << AUTOQ::Util::Convert::ToString(color_consistent) << "\n";
                 if (color_consistent) {
                     Vertex vertex2;
                     bool vertex_fail = true; // is_leaf_vertex
@@ -1175,7 +1186,7 @@ void AUTOQ::Automata<Symbol>::fraction_simplification() {
                         Cell cell2;
                         bool cell_fail = false; // is_leaf_vertex
                         bool have_listed_all_combinationsB = false;
-                        std::map<State, Tag> possible_colors_for_qB;
+                        std::map<State, std::vector<Tag>> possible_colors_for_qB;
                         std::map<State, std::map<Symbol, std::map<Tag, StateVector>::iterator>> B_transition_combinations;
                         for (const auto &kv : A_transition_combinations) {
                             const auto &qA = kv.first;
@@ -1193,7 +1204,7 @@ void AUTOQ::Automata<Symbol>::fraction_simplification() {
                                 /****** Build all possible colors for qB *******/
                                 for (const auto &f_cin : transB[qB]) {
                                     for (const auto &c_in : f_cin.second) {
-                                        possible_colors_for_qB[qB] |= c_in.first;
+                                        possible_colors_for_qB[qB].push_back(c_in.first);
                                     }
                                 }
                                 /***********************************************/
@@ -1230,16 +1241,27 @@ void AUTOQ::Automata<Symbol>::fraction_simplification() {
                             // If not, simply construct the unique cell without B's states!
                             bool color_consistent2 = true;
                             unsigned all_used_colors = 0;
+                            // std::cout << "Check color consistency of this B's transition combination.\n";
                             for (const auto &kv : B_transition_combinations) {
+                                // std::cout << AUTOQ::Util::Convert::ToString(kv.second->first);
+                                // std::cout << AUTOQ::Util::Convert::ToString(kv.second->second) << " -> ";
+                                // std::cout << AUTOQ::Util::Convert::ToString(kv.first) << "\n";
                                 all_used_colors |= kv.second.begin()->second->first;
                             }
-                            for (const auto &qB_c : possible_colors_for_qB) {
-                                if (std::popcount(qB_c.second & all_used_colors) > 1) {
-                                    color_consistent2 = false;
-                                    break;
+                            for (const auto &qB_c : possible_colors_for_qB) { // for each fixed qB
+                                int counter = 0;
+                                for (const auto &color : qB_c.second) { // loop through all possible colors
+                                    if ((color | all_used_colors) == all_used_colors) { // color is a subset of all_used_colors
+                                        counter++;
+                                        if (counter >= 2) {
+                                            color_consistent2 = false;
+                                            break;
+                                        }
+                                    }
                                 }
                             }
                             /*************************************************************/
+                            // std::cout << AUTOQ::Util::Convert::ToString(color_consistent2) << "\n";
                             if (color_consistent2) {
                                 for (const auto &kv : A_transition_combinations) {
                                     const auto &qA = kv.first;
