@@ -107,7 +107,7 @@ content.sort(key = lambda x: x[0])
 # print(content)
 
 for i in range(len(content)):
-    content[i][0] = content[i][0].split('/')[-1]
+    content[i][0] = content[i][0].split('/')[-1].lstrip('0')
     content[i].insert(0, '')
     content[i] = ' & '.join(content[i])
 
@@ -181,7 +181,7 @@ print(r'''\documentclass{article}
   contents['bvsingbench'] +
 r'''\midrule
   \multirow{ 5}{*}{\rotatebox[origin=c]{90}{\bvmultbench}}
-''' + 
+''' +
   contents['bvmultbench'] +
 r'''\midrule
 \multirow{ 5}{*}{\rotatebox[origin=c]{90}{\ghzsingbench}}
@@ -189,27 +189,27 @@ r'''\midrule
   contents['ghzsingbench'] +
 r'''\midrule
   \multirow{ 5}{*}{\rotatebox[origin=c]{90}{\ghzmultbench}}
-''' + 
+''' +
   contents['ghzmultbench'] +
 r'''\midrule
   \multirow{ 5}{*}{\rotatebox[origin=c]{90}{\groversingbench}}
-''' + 
+''' +
   contents['groversingbench'] +
 r'''\midrule
   \multirow{ 5}{*}{\rotatebox[origin=c]{90}{\grovermultbench}}
-''' + 
+''' +
   contents['grovermultbench'] +
 r'''\midrule
   \multirow{ 5}{*}{\rotatebox[origin=c]{90}{\hhbench}}
-''' + 
+''' +
   contents['hhbench'] +
 r'''\midrule
   \multirow{ 5}{*}{\rotatebox[origin=c]{90}{\hxhbench}}
-''' + 
+''' +
   contents['hxhbench'] +
 r'''\midrule
   \multirow{ 5}{*}{\rotatebox[origin=c]{90}{\mctoffolibench}}
-''' + 
+''' +
   contents['mctoffolibench'] +
 r'''\bottomrule
 \end{tabular}
