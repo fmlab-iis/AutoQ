@@ -7,9 +7,9 @@ AutoQ is a command-line utility written in C++ for Hoare-style quantum circuit v
 
 <img width="412" alt="image" src="https://user-images.githubusercontent.com/10044077/214999182-7e3882d2-47cf-49cb-aa3e-45295072b3f8.png">
 
-As for Hoare-style verification, there are three main components: `pre.aut`, `circuit.qasm` and `post.aut`. The first file `pre.aut` describes an automaton that encodes a set $P$ of quantum states. The second file `circuit.qasm` describes a quantum circuit $C$ in QASM format. Notice that this format is not able to initialize the initial quantum state. The last file `post.aut` describes an automaton that encodes another set $Q$ of quantum states. Finally this tool tries to check whether for each state $s$ in $P$, the output state $C(s)$ lies in the set $Q$. If the result is true, we say the specified property is correct.
+As for Hoare-style verification, there are three main components: `pre.spec`, `circuit.qasm` and `post.spec`. The first file `pre.spec` describes an automaton that encodes a set $P$ of quantum states. The second file `circuit.qasm` describes a quantum circuit $C$ in QASM format. Notice that this format is not able to initialize the initial quantum state. The last file `post.spec` describes an automaton that encodes another set $Q$ of quantum states. Finally this tool tries to check whether for each state $s$ in $P$, the output state $C(s)$ lies in the set $Q$. If the result is true, we say the specified property is correct.
 
-This tool can also be generalized to support "symbolic" quantum states. In this case, we simply replace some entries of leaf transitions in `pre.aut` with fresh variables. File `constraint.smt` is responsible for imposing constraints on all fresh variables used in `pre.aut`. Let the output automaton produced by the quantum circuit along with input automaton `pre.aut` be `post.aut`. Then all symbols of leaf transitions in file `spec.aut`, which is used to verify `post.aut`, are predicates. Each predicate, however, has only four variables $\\\$a$, $\\\$b$, $\\\$c$ and $\\\$d$. When the predicate's truth value is evaluated for some leaf transition in `post.aut` whose computed symbol is $(a_{expr},b_{expr},c_{expr},d_{expr},k_{expr})$, these variables will be replaced by $a_{expr}/\sqrt2^{k_{expr}}$, $b_{expr}/\sqrt2^{k_{expr}}$, $c_{expr}/\sqrt2^{k_{expr}}$ and $d_{expr}/\sqrt2^{k_{expr}}$. We say the predicate is "true" for some leaf transition if it is always true under the constraint specified in `constraint.smt`; otherwise the predicate is "false." Similarly, this tool tries to check whether for each symbolic state $s$ in $P$, the output state $C(s)$ matches some tree in $Q$ such that all predicates in the tree are always true under `constraint.smt`. If the result is true, we say the specified property is correct.
+This tool can also be generalized to support "symbolic" quantum states. In this case, we simply replace some entries of leaf transitions in `pre.spec` with fresh variables. Constraints on all fresh variables should also be provided in the end of `pre.spec`. Let the output automaton produced by the quantum circuit along with input automaton `pre.spec` be `post.spec`. Then all symbols of leaf transitions in file `post.spec` are predicates. Each predicate, however, has only four variables $\\\$a$, $\\\$b$, $\\\$c$ and $\\\$d$. When the predicate's truth value is evaluated for some leaf transition in `post.spec` whose computed symbol is $(a_{expr},b_{expr},c_{expr},d_{expr},k_{expr})$, these variables will be replaced by $a_{expr}/\sqrt2^{k_{expr}}$, $b_{expr}/\sqrt2^{k_{expr}}$, $c_{expr}/\sqrt2^{k_{expr}}$ and $d_{expr}/\sqrt2^{k_{expr}}$. We say the predicate is "true" for some leaf transition if it is always true under the constraint specified in `pre.spec`; otherwise the predicate is "false." Similarly, this tool tries to check whether for each symbolic state $s$ in $P$, the output state $C(s)$ matches some tree in $Q$ such that all predicates in the tree are always true under the constraints. If the result is true, we say the specified property is correct.
 
 ---
 
@@ -82,7 +82,7 @@ There are three modes: concrete probability amplitudes without specification, co
 
 1. Concrete probability amplitudes without specification.
 ```
-$ ./build/cli/autoq benchmarks/BernsteinVazirani/02/pre.aut benchmarks/BernsteinVazirani/02/circuit.qasm
+$ ./build/cli/autoq benchmarks/BernsteinVazirani/02/pre.spec benchmarks/BernsteinVazirani/02/circuit.qasm
 Ops [1]:2 [2]:2 [3]:2 [0,0,0,0,0]:0 [1,0,0,0,0]:0 
 Automaton Zero
 States 0 1 2 3 4 5 6 
@@ -100,7 +100,7 @@ The program simply prints the resulting concrete automaton.
 
 2. Concrete probability amplitudes with specification.
 ```
-$ VATA_PATH=$PWD/vata ./build/cli/autoq benchmarks/Grover/02/pre.aut benchmarks/Grover/02/circuit.qasm benchmarks/Grover/02/post.aut
+$ VATA_PATH=$PWD/vata ./build/cli/autoq benchmarks/Grover/02/pre.spec benchmarks/Grover/02/circuit.qasm benchmarks/Grover/02/post.spec
 Ops [1]:2 [2]:2 [3]:2 [-1,0,0,0,0]:0 [0,0,0,0,0]:0 
 Automaton Zero
 States 0 1 2 3 4 5 6 
@@ -117,7 +117,7 @@ Transitions
 0
 ```
 ```
-$ VATA_PATH=$PWD/vata ./build/cli/autoq benchmarks/BernsteinVazirani/02/pre.aut benchmarks/BernsteinVazirani/02/circuit.qasm benchmarks/BernsteinVazirani/02/post.aut
+$ VATA_PATH=$PWD/vata ./build/cli/autoq benchmarks/BernsteinVazirani/02/pre.spec benchmarks/BernsteinVazirani/02/circuit.qasm benchmarks/BernsteinVazirani/02/post.spec
 Ops [1]:2 [2]:2 [3]:2 [0,0,0,0,0]:0 [1,0,0,0,0]:0 
 Automaton Zero
 States 0 1 2 3 4 5 6 
@@ -133,23 +133,26 @@ Transitions
 -
 1
 ```
-The program first prints the resulting concrete automaton, and then the verification result, where `1` indicates $C(P)\subseteq Q$ and `0` otherwise. We can observe that the old file `benchmarks/Grover/02/post.aut` in fact does not meet the circuit's output. Notice that in this case environment variable `VATA_PATH` locating the binary built from [this commit](https://github.com/alan23273850/libvata/commit/22ce24661a4c4b1e684961330aa54288f7eda7ca) should be provided in order for AutoQ to run the inclusion checking algorithm. I've also provided [one](https://github.com/alan23273850/AutoQ/blob/main/vata) in the project root directory.
+The program first prints the resulting concrete automaton, and then the verification result, where `1` indicates $C(P)\subseteq Q$ and `0` otherwise. We can observe that the old file `benchmarks/Grover/02/post.spec` in fact does not meet the circuit's output. Notice that in this case environment variable `VATA_PATH` locating the binary built from [this commit](https://github.com/alan23273850/libvata/commit/299727542bd6bc18eeb8b7f8a2d1ea53ac6d37eb) should be provided in order for AutoQ to run the inclusion checking algorithm. I've also provided [one](https://github.com/alan23273850/AutoQ/blob/main/vata) in the project root directory.
 
 3. Symbolic probability amplitudes with specification.
 ```
-$ ./build/cli/autoq benchmarks/Symbolic/H2/pre.aut benchmarks/Symbolic/H2/circuit.qasm benchmarks/Symbolic/H2/spec.aut benchmarks/Symbolic/H2/constraint.smt
-Ops [1]:2 [a,b,c,d,3]:0 [e,f,g,h,3]:0 
-Automaton Zero
+$ ./build/cli/autoq benchmarks/Symbolic/H2/pre.spec benchmarks/Symbolic/H2/circuit.qasm benchmarks/Symbolic/H2/post.spec
+OUTPUT AUTOMATON:
+=================
+Ops [[1,0,0,0,0] -> 1]:2 [[1,0,0,0,2] -> 0x 2y]:0 [[1,0,0,0,2] -> 2x 0y]:0 
+Automaton anonymous
 States 0 1 2 
 Final States 0 
 Transitions
-[1](1, 2) -> 0
-[a,b,c,d,3] -> 1
-[e,f,g,h,3] -> 2
+[[1,0,0,0,0] -> 1](1, 2) -> 0
+[[1,0,0,0,2] -> 0x 2y] -> 2
+[[1,0,0,0,2] -> 2x 0y] -> 1
+=================
 -
-1
+1 0.1s 10MB
 ```
-The program first prints the resulting symbolic automaton, where each entry in 5-tuples is a human-readable format of the linear combination, and then the verification result, where `1` indicates that the inclusion checking algorithm returns `true` and `0` indicates `false`. In this case `VATA_PATH` is no longer required since we use another inclusion checking algorithm for symbolic automata.
+The program first prints the resulting symbolic automaton, where each entry in 5-tuples is a human-readable format of the linear combination, and then the verification result, where `1` indicates that the inclusion checking algorithm returns `true` and `0` indicates `false`. The `0.1s` denotes the running time. The `10MB` is the peak memory usage. In this case `VATA_PATH` is no longer required since we use another inclusion checking algorithm for symbolic automata.
 
 ---
 
@@ -157,19 +160,19 @@ The program first prints the resulting symbolic automaton, where each entry in 5
 
 1. Run a [1+1-qubit version of the Bernstein-Vazirani algorithm](https://github.com/alan23273850/AutoQ/blob/main/benchmarks/BernsteinVazirani/01/circuit.qasm).
 
-The [initial automaton](https://github.com/alan23273850/AutoQ/blob/main/benchmarks/BernsteinVazirani/01/pre.aut) contains an initial $|00\rangle$ quantum state. Since the hidden string is $1$ (and the other qubit is auxiliary), so the [result automaton](https://github.com/alan23273850/AutoQ/blob/main/benchmarks/BernsteinVazirani/01/post.aut) should contain exactly one quantum state $|11\rangle$.
+The [initial automaton](https://github.com/alan23273850/AutoQ/blob/main/benchmarks/BernsteinVazirani/01/pre.spec) contains an initial $|00\rangle$ quantum state. Since the hidden string is $1$ (and the other qubit is auxiliary), so the [result automaton](https://github.com/alan23273850/AutoQ/blob/main/benchmarks/BernsteinVazirani/01/post.spec) should contain exactly one quantum state $|11\rangle$.
 
 2. [Two consecutive Hadamard gates together](https://github.com/alan23273850/AutoQ/blob/main/benchmarks/Symbolic/H2/circuit.qasm) acts as an identity transformation.
 
-The [initial automaton](https://github.com/alan23273850/AutoQ/blob/main/benchmarks/Symbolic/H2/pre.aut) contains an arbitrary quantum state $(a,b,c,d,3)|0\rangle + (e,f,g,h,3)|1\rangle$. *Please be careful that in symbolic verification all k's in symbols of all leaf transitions must be the same.* Since it uses 8 variables, we should declare them in the [constraint](https://github.com/alan23273850/AutoQ/blob/main/benchmarks/Symbolic/H2/constraint.smt). In this case, values of these variables are arbitrary, so no additional constraint is needed. The result automaton should also contain exactly one original quantum state $(a/\sqrt2^3,b/\sqrt2^3,c/\sqrt2^3,d/\sqrt2^3)|0\rangle$ $+$ $(e/\sqrt2^3,f/\sqrt2^3,g/\sqrt2^3,h/\sqrt2^3)|1\rangle$, so the [specification](https://github.com/alan23273850/AutoQ/blob/main/benchmarks/Symbolic/H2/spec.aut) about $|0\rangle$ should be $\\$a*\sqrt2^3=a$, $\\$b*\sqrt2^3=b$, $\\$c*\sqrt2^3=c$ and $\\$d*\sqrt2^3=d$, and the [specification](https://github.com/alan23273850/AutoQ/blob/main/benchmarks/Symbolic/H2/spec.aut) about $|1\rangle$ should be $\\$a*\sqrt2^3=e$, $\\$b*\sqrt2^3=f$, $\\$c*\sqrt2^3=g$ and $\\$d*\sqrt2^3=h$. Notice that I've implemented the function `pow_sqrt2_k n` in SMT so that one can directly compute $\sqrt2^n$ with it.
+The [initial automaton](https://github.com/alan23273850/AutoQ/blob/main/benchmarks/Symbolic/H2/pre.spec) contains an arbitrary quantum state $(a,b,c,d,3)|0\rangle + (e,f,g,h,3)|1\rangle$. *Please be careful that in symbolic verification all k's in symbols of all leaf transitions must be the same.* Since it uses 8 variables, we should declare them in the `Constraints` section in [`pre.spec`](https://github.com/alan23273850/AutoQ/blob/main/benchmarks/Symbolic/H2/pre.spec). In this case, values of these variables are arbitrary, so no additional constraint is needed. The result automaton should also contain exactly one original quantum state $(a/\sqrt2^3,b/\sqrt2^3,c/\sqrt2^3,d/\sqrt2^3)|0\rangle$ $+$ $(e/\sqrt2^3,f/\sqrt2^3,g/\sqrt2^3,h/\sqrt2^3)|1\rangle$, so the [specification](https://github.com/alan23273850/AutoQ/blob/main/benchmarks/Symbolic/H2/post.spec) about $|0\rangle$ should be $\\$a*\sqrt2^3=a$, $\\$b*\sqrt2^3=b$, $\\$c*\sqrt2^3=c$ and $\\$d*\sqrt2^3=d$, and the [specification](https://github.com/alan23273850/AutoQ/blob/main/benchmarks/Symbolic/H2/post.spec) about $|1\rangle$ should be $\\$a*\sqrt2^3=e$, $\\$b*\sqrt2^3=f$, $\\$c*\sqrt2^3=g$ and $\\$d*\sqrt2^3=h$. Notice that I've implemented the function `pow_sqrt2_k n` in SMT so that one can directly compute $\sqrt2^n$ with it.
 
 A careful reader may have noticed that the above probability amplitudes may not satisfy $|(a,b,c,d,3)|^2 + |(e,f,g,h,3)|^2 = 1$, but it does not matter since the original constraint still contains all valid quantum states, so the verified property is still true under the real quantum world.
 
 ---
 
 ## Automata Format
-AutoQ so far supports only the Timbuk format of tree automata. The format is
-specified by the following grammar with the start symbol \<file\>:
+AutoQ so far supports only the Timbuk format of tree automata. The complete format
+`*.aut` is specified by the following grammar with the start symbol \<file\>:
 
 ```
   <file>            : 'Final States' <state_list> <newline> 'Transitions' <newline> <transition_list>
@@ -188,13 +191,11 @@ specified by the following grammar with the start symbol \<file\>:
   <newline>         : '\n' // or another character acting as a newline character
 ```
 
-Only final states and transitions are sufficient. In this repository some automaton files may have
-other information, but in fact they are no longer required. Also notice that there are two formats
-of \<symbol\>. The first format [n] indicates n-th qubit (counting from 1) of the circuit. It is an
-internal transition and must have two child states. The second format [a,b,c,d,k] indicates the
-probability amplitude $(a+b\omega+c\omega^2+d\omega^3) / \sqrt2^k$ of some computational basis state,
-where $w = \cos(\pi/4) + i\sin(\pi/4)$. It is a leaf transition and must have no any child state.
-In the whole file, all [\_,\_,\_,\_,k]'s of leaf transitions must be the same!
+There are two formats of \<symbol\>. The first format [n] indicates n-th qubit (counting from 1) of the
+circuit. It is an internal transition and must have two child states. The second format [a,b,c,d,k]
+indicates the probability amplitude $(a+b\omega+c\omega^2+d\omega^3) / \sqrt2^k$ of some computational
+basis state, where $w = \cos(\pi/4) + i\sin(\pi/4)$. It is a leaf transition and must have no any child
+state. In the whole file, all [\_,\_,\_,\_,k]'s of leaf transitions must be the same!
 
 An example could look like this:
 ```
@@ -208,6 +209,15 @@ Transitions
 [0,0,0,0,0] -> 5
 [1,0,0,0,0] -> 6
 ```
+
+But notice that this format `*.aut` is currently used for communicating with [libvata](https://github.com/alan23273850/AutoQ/blob/main/vata) only.
+For now, only transitions are required. Final states are automatically assigned to be the parent
+states of all level-1 transitions. Besides, to get rid of 5-tuples in the future, one should also
+specify all used complex constants at the beginning. The expression is a linear combination of
+`A(r)` denoting $e^{2\pi r}$, optionally divided by a power of `V2` denoting $\sqrt 2$. The parser
+is very smart, so you can simply write `1` for the complex amplitude `1` and similarly for something
+else. The extension of this new simplified format is `*.spec`. Please refer to samples files for more
+details.
 
 ---
 
@@ -326,9 +336,9 @@ Transitions
 [vL,0,0,0,0] -> 49
 ```
 
-Finally we have `build/cli/paut_from_states` for "predicate" probability amplitude. The concept is a little different from the previous two kinds of amplitudes. Each "predicate" amplitude is a predicate in SMT-LIB form. It is used to check whether all probability amplitudes in a symbolic automaton satisfy the probability amplitudes described in the predicate automaton under some constraint. Each `./benchmarks/Symbolic/*/spec.aut` is a predicate automaton.
+Finally we have `build/cli/paut_from_states` for "predicate" probability amplitude. The concept is a little different from the previous two kinds of amplitudes. Each "predicate" amplitude is a predicate in SMT-LIB form. It is used to check whether all probability amplitudes in a symbolic automaton satisfy the probability amplitudes described in the predicate automaton under some constraint. Each `./benchmarks/Symbolic/*/post.spec` is a predicate automaton.
 
-For the convenience of parsing, each `{prob}:{ampl}` must be enclosed with `[` and `]`. That is, `[{prob}:{ampl}]`. The following is an example illustrating how to construct `./benchmarks/Symbolic/H2/spec.aut`.
+For the convenience of parsing, each `{prob}:{ampl}` must be enclosed with `[` and `]`. That is, `[{prob}:{ampl}]`. The following is an example illustrating how to construct `./benchmarks/Symbolic/H2/post.spec`.
 ```
 $ build/cli/paut_from_states
 [0:(and (= (* $a (pow_sqrt2_k 3)) a) (= (* $b (pow_sqrt2_k 3)) b) (= (* $c (pow_sqrt2_k 3)) c) (= (* $d (pow_sqrt2_k 3)) d))] [1:(and (= (* $a (pow_sqrt2_k 3)) e) (= (* $b (pow_sqrt2_k 3)) f) (= (* $c (pow_sqrt2_k 3)) g) (= (* $d (pow_sqrt2_k 3)) h))]
@@ -342,3 +352,9 @@ Transitions
 [(and (= (* $a (pow_sqrt2_k 3)) a) (= (* $b (pow_sqrt2_k 3)) b) (= (* $c (pow_sqrt2_k 3)) c) (= (* $d (pow_sqrt2_k 3)) d))] -> 1
 [(and (= (* $a (pow_sqrt2_k 3)) e) (= (* $b (pow_sqrt2_k 3)) f) (= (* $c (pow_sqrt2_k 3)) g) (= (* $d (pow_sqrt2_k 3)) h))] -> 2
 ```
+
+---
+
+## Important Announcement
+
+If you plan to use [our tool proposed in PLDI'23](https://dl.acm.org/doi/10.1145/3591270) for some purposes, please use the binary provided in [this Zenodo link](https://zenodo.org/records/7811406) or checkout to [this branch](https://github.com/alan23273850/AutoQ/commits/PLDI) and obtain the binary `./build/cli/autoq` and `./build/cli/autoq_pldi` by compiling the source codes. Thank you for your kind cooperation.
