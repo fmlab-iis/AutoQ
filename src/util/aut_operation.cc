@@ -1087,7 +1087,7 @@ void AUTOQ::Automata<Symbol>::fraction_simplification() {
     bool AUTOQ::Automata<Symbol>::check_inclusion(const Automata<Symbol>& autA, const Automata<Symbol>& autB) {
         auto start_include = std::chrono::steady_clock::now();
 
-        // Part 1: Transform transitions into the new data structure.
+        // Preparation: Transform transitions into the new data structure.
         std::vector<std::map<SymbolTag, StateVector>> transA(autA.stateNum);
         std::vector<std::map<Symbol, std::map<Tag, StateVector>>> transB(autB.stateNum);
         for (const auto &t : autA.transitions) {
@@ -1109,9 +1109,13 @@ void AUTOQ::Automata<Symbol>::fraction_simplification() {
                 }
             }
         }
+        // autA.print_aut("autA\n");
+        // autB.print_aut("autB\n");
+
+        // Main Routine: Graph Traversal
         typedef std::map<State, StateSet> Cell;
         typedef std::set<Cell> Vertex;
-        std::set<Vertex> visited; // Remember visited configurations.
+        std::set<Vertex> created; // Remember created configurations.
         std::queue<Vertex> bfs; // the queue used for traversing the graph
         Vertex vertex; // current vertex data structure
         // Construct source vertices.
@@ -1120,14 +1124,15 @@ void AUTOQ::Automata<Symbol>::fraction_simplification() {
             for (const auto &qB : autB.finalStates) {
                 vertex.insert(Cell({{qA, {qB}}}));
             }
-            assert(!visited.contains(vertex));
-            visited.insert(vertex);
+            assert(!created.contains(vertex));
+            created.insert(vertex);
             bfs.push(vertex);
+            // AUTOQ_DEBUG("CREATE SOURCE VERTEX: " << AUTOQ::Util::Convert::ToString(vertex));
         }
         // Start the BFS!
         while (!bfs.empty()) {
             vertex = bfs.front();
-            // std::cout << AUTOQ::Util::Convert::ToString(vertex) << "\n";
+            // AUTOQ_DEBUG("EXTRACT VERTEX: " << AUTOQ::Util::Convert::ToString(vertex));
             bfs.pop();
             // List all possible transition combinations of A in this vertex first!
             std::map<State, typename std::map<SymbolTag, StateVector>::iterator> A_transition_combinations;
@@ -1141,11 +1146,6 @@ void AUTOQ::Automata<Symbol>::fraction_simplification() {
             }
             bool have_listed_all_combinationsA = false;
             do { // Construct one new vertex for each possible combination of A's transitions.
-                // Print the current combination
-                // for (const auto &kv : A_transition_combinations) {
-                //     std::cout << kv.first << " " << kv.second.second << " ";
-                // }
-                // std::cout << std::endl;
                 /************************************************************/
                 // Check if the current combination is color-consistent.
                 // If not, skip this one and continue to the next combination.
@@ -1155,11 +1155,11 @@ void AUTOQ::Automata<Symbol>::fraction_simplification() {
                 // If it is true, then we shall not create new vertices derived from this one,
                 // and we shall judge whether the inclusion does not hold right now.
                 bool is_leaf_vertex = true;
-                // std::cout << "Check color consistency of this A's transition combination.\n";
-                for (const auto &kv : A_transition_combinations) {
-                    // std::cout << AUTOQ::Util::Convert::ToString(kv.second->first);
-                    // std::cout << AUTOQ::Util::Convert::ToString(kv.second->second) << " -> ";
-                    // std::cout << AUTOQ::Util::Convert::ToString(kv.first) << "\n";
+                // AUTOQ_DEBUG("A's CURRENTLY CONSIDERED TRANSITIONS: ");
+                for (const auto &kv : A_transition_combinations) { // Print the current combination
+                    // AUTOQ_DEBUG(AUTOQ::Util::Convert::ToString(kv.second->first)
+                    //         + AUTOQ::Util::Convert::ToString(kv.second->second)
+                    //         + " -> " + AUTOQ::Util::Convert::ToString(kv.first));
                     all_used_colors |= kv.second->first.tag();
                     if (kv.second->second.size() > 0)
                         is_leaf_vertex = false;
@@ -1178,17 +1178,21 @@ void AUTOQ::Automata<Symbol>::fraction_simplification() {
                 }
                 /*************************************************************************/
                 // Only pick this combination of A's transitions if it is color-consistent.
-                // std::cout << AUTOQ::Util::Convert::ToString(color_consistent) << "\n";
+                // AUTOQ_DEBUG("ARE " << (color_consistent ? "" : "NOT ") << "COLOR-CONSISTENT.");
                 if (color_consistent) {
                     Vertex vertex2;
                     bool vertex_fail = true; // is_leaf_vertex
                     for (const auto &cell : vertex) {
+                        // AUTOQ_DEBUG("EXTRACT CELL: " << AUTOQ::Util::Convert::ToString(cell));
                         Cell cell2;
                         bool cell_fail = false; // is_leaf_vertex
                         bool have_listed_all_combinationsB = false;
                         std::map<State, std::vector<Tag>> possible_colors_for_qB;
+
+                        // The following loop is used to build all possible transition combinations of B,
+                        // given the cell (set) of constraints, each of which describes "some A's state <==> some B's states".
                         std::map<State, std::map<Symbol, std::map<Tag, StateVector>::iterator>> B_transition_combinations;
-                        for (const auto &kv : A_transition_combinations) {
+                        for (const auto &kv : A_transition_combinations) { // simply loop through all qA's in this cell
                             const auto &qA = kv.first;
                             const auto &fc_in = *(kv.second); // the currently picked transition for qA
                             const auto &desired_symbol = fc_in.first.symbol(); // the corresponding symbol
@@ -1197,14 +1201,20 @@ void AUTOQ::Automata<Symbol>::fraction_simplification() {
                                 cell2[s]; // Leave room for B's states for each A's child state.
                             }
                             if (cell.at(qA).empty()) {
-                                cell_fail = true; // is_leaf_vertex
+                                // If qB has no states corresponding to qA,
+                                // simply construct the unique cell without B's states!
+                                have_listed_all_combinationsB = true;
                                 break;
                             }
                             for (const auto &qB : cell.at(qA)) {
                                 /****** Build all possible colors for qB *******/
-                                for (const auto &f_cin : transB[qB]) {
-                                    for (const auto &c_in : f_cin.second) {
-                                        possible_colors_for_qB[qB].push_back(c_in.first);
+                                // IMPORTANT: Each qB can only be processed once; otherwise the number
+                                // of some colors recorded in possible_colors_for_qB[qB] will be wrong!
+                                if (possible_colors_for_qB.find(qB) == possible_colors_for_qB.end()) {
+                                    for (const auto &f_cin : transB[qB]) {
+                                        for (const auto &c_in : f_cin.second) {
+                                            possible_colors_for_qB[qB].push_back(c_in.first);
+                                        }
                                     }
                                 }
                                 /***********************************************/
@@ -1212,40 +1222,39 @@ void AUTOQ::Automata<Symbol>::fraction_simplification() {
                                     // If qB has no transitions with the desired symbol,
                                     // simply construct the unique cell without B's states!
                                     have_listed_all_combinationsB = true;
+                                    break;
                                 } else if (!B_transition_combinations[qB].empty() && B_transition_combinations[qB].begin()->first != desired_symbol) {
                                     // If qB is enforced to take two different symbols together,
                                     // simply construct the unique cell without B's states!
                                     have_listed_all_combinationsB = true;
+                                    break;
                                 } else {
                                     B_transition_combinations[qB][desired_symbol] = transB[qB][desired_symbol].begin();
                                 }
                             }
+                            if (have_listed_all_combinationsB)
+                                break; // shortcut
                         }
-                        // No possible combination exists!
-                        if (have_listed_all_combinationsB) {
+                        if (have_listed_all_combinationsB) { // No possible combination exists!
                             cell_fail = true; // is_leaf_vertex
                             vertex2.insert(cell2);
-                        }
+                            // AUTOQ_DEBUG("PUSH CELL: " << AUTOQ::Util::Convert::ToString(cell2) << " TO THE NEW VERTEX.");
+                        } // mutually exclusive with the following loop
                         while (!have_listed_all_combinationsB) { // Construct one new cell for each possible combination of B's transitions.
-                            // Initialize the current cell.
-                            for (auto &kv : cell2) {
+                            for (auto &kv : cell2) { // Initialize the current cell.
                                 kv.second.clear();
                             }
-                            // Print the current combination
-                            // for (const auto &kv : B_transition_combinations) {
-                            //     std::cout << kv.first << " " << kv.second.begin()->second.second << " ";
-                            // }
-                            // std::cout << std::endl;
                             /*************************************************************/
                             // Check if the current combination is color-consistent.
                             // If not, simply construct the unique cell without B's states!
                             bool color_consistent2 = true;
                             unsigned all_used_colors = 0;
-                            // std::cout << "Check color consistency of this B's transition combination.\n";
-                            for (const auto &kv : B_transition_combinations) {
-                                // std::cout << AUTOQ::Util::Convert::ToString(kv.second->first);
-                                // std::cout << AUTOQ::Util::Convert::ToString(kv.second->second) << " -> ";
-                                // std::cout << AUTOQ::Util::Convert::ToString(kv.first) << "\n";
+                            // AUTOQ_DEBUG("B's CURRENTLY CONSIDERED TRANSITIONS: ");
+                            for (const auto &kv : B_transition_combinations) { // Print the current combination
+                                // AUTOQ_DEBUG(AUTOQ::Util::Convert::ToString(kv.second.begin()->first)
+                                //     + "[" + AUTOQ::Util::Convert::ToString(kv.second.begin()->second->first) + "]"
+                                //     + AUTOQ::Util::Convert::ToString(kv.second.begin()->second->second)
+                                //     + " -> " + AUTOQ::Util::Convert::ToString(kv.first));
                                 all_used_colors |= kv.second.begin()->second->first;
                             }
                             for (const auto &qB_c : possible_colors_for_qB) { // for each fixed qB
@@ -1259,9 +1268,12 @@ void AUTOQ::Automata<Symbol>::fraction_simplification() {
                                         }
                                     }
                                 }
+                                if (!color_consistent2)
+                                    break; // shortcut
                             }
                             /*************************************************************/
-                            // std::cout << AUTOQ::Util::Convert::ToString(color_consistent2) << "\n";
+                            // AUTOQ_DEBUG("ARE " << (color_consistent2 ? "" : "NOT ") << "COLOR-CONSISTENT.");
+                            // If consistent, equivalize the two input vectors of each equivalent transition pair.
                             if (color_consistent2) {
                                 for (const auto &kv : A_transition_combinations) {
                                     const auto &qA = kv.first;
@@ -1276,6 +1288,7 @@ void AUTOQ::Automata<Symbol>::fraction_simplification() {
                                 }
                             }
                             vertex2.insert(cell2);
+                            // AUTOQ_DEBUG("PUSH CELL: " << AUTOQ::Util::Convert::ToString(cell2) << " TO THE NEW VERTEX.");
 
                             // Increment indices
                             for (auto it = B_transition_combinations.rbegin(); it != B_transition_combinations.rend(); it++) {
@@ -1304,14 +1317,19 @@ void AUTOQ::Automata<Symbol>::fraction_simplification() {
                         }
                     }
                     if (is_leaf_vertex) { // only when considering some particular transitions
+                        // AUTOQ_DEBUG("THE VERTEX: " << AUTOQ::Util::Convert::ToString(vertex2) << " LEADS A TO NOTHING OF STATES, SO WE SHALL NOT PUSH THIS VERTEX BUT CHECK IF B HAS POSSIBLE SIMULTANEOUS TRANSITION COMBINATIONS LEADING TO THIS VERTEX.");
                         if (vertex_fail) {
                             auto stop_include = std::chrono::steady_clock::now();
                             include_status = "X";
+                            // AUTOQ_DEBUG("UNFORTUNATELY B HAS NO POSSIBLE TRANSITION COMBINATIONS, SO THE INCLUSION DOES NOT HOLD :(");
                             return false;
                         }
-                    } else if (!visited.contains(vertex2)) {
-                        visited.insert(vertex2);
+                    } else if (created.contains(vertex2)) {
+                        // AUTOQ_DEBUG("THE VERTEX: " << AUTOQ::Util::Convert::ToString(vertex2) << " HAS BEEN CREATED BEFORE.");
+                    } else {
+                        created.insert(vertex2);
                         bfs.push(vertex2);
+                        // AUTOQ_DEBUG("BUILD EDGE: " << AUTOQ::Util::Convert::ToString(vertex) << " -> " << AUTOQ::Util::Convert::ToString(vertex2));
                     }
                 }
 
@@ -1333,6 +1351,7 @@ void AUTOQ::Automata<Symbol>::fraction_simplification() {
         }
         auto stop_include = std::chrono::steady_clock::now();
         include_status = AUTOQ::Util::Convert::toString(stop_include - start_include);
+        // AUTOQ_DEBUG("FORTUNATELY FOR EACH (MAXIMAL) PATH B HAS POSSIBLE SIMULTANEOUS TRANSITION COMBINATIONS, SO THE INCLUSION DOES HOLD :)");
         return true;
     }
 
