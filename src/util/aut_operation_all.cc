@@ -642,23 +642,26 @@ void AUTOQ::Automata<Symbol>::reduce() {
     // return;
     auto envptr = std::getenv("RED");
     if (!(envptr != nullptr && std::string(envptr) == std::string("0"))) {
-        bottom_up_reduce();
-        // while (true) {
-        //     this->light_reduce_up_iter();
+        if (!hasLoop) {
+            bottom_up_reduce();
+        } else {
+            while (true) {
+                this->light_reduce_up_iter();
 
-        //     Automata old = *this;
-        //     this->light_reduce_down_iter();
-        //     // AUTOQ_DEBUG("after light_reduce_down: " + Convert::ToString(count_aut_states(*this)));
+                Automata old = *this;
+                this->light_reduce_down_iter();
+                // AUTOQ_DEBUG("after light_reduce_down: " + Convert::ToString(count_aut_states(*this)));
 
-        //     compact_aut(*this);
-        //     // assert(check_equal_aut(old, *this));
+                compact_aut(*this);
+                // assert(check_equal_aut(old, *this));
 
-        //     auto a = *this; //transition_size();
-        //     this->union_all_colors_for_a_given_transition();
-        //     auto b = *this; //transition_size();
-        //     if (a == b)
-        //         break;
-        // }
+                auto a = *this; //transition_size();
+                this->union_all_colors_for_a_given_transition();
+                auto b = *this; //transition_size();
+                if (a == b)
+                    break;
+            }
+        }
     }
     auto duration = std::chrono::steady_clock::now() - start;
     total_reduce_time += duration;

@@ -95,6 +95,7 @@ public:   // data members
     State stateNum;
     unsigned qubitNum;
 	TransitionMap transitions;
+    bool hasLoop;
     bool isTopdownDeterministic;
     inline static int gateCount, stateBefore, transitionBefore;
     inline static bool gateLog, opLog;
@@ -112,6 +113,7 @@ public:   // methods
         stateNum(0),
         qubitNum(0),
 		transitions(),
+        hasLoop(false),
         isTopdownDeterministic(false)
 	{
         auto envptr = std::getenv("LOG");

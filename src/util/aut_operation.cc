@@ -2260,7 +2260,7 @@ void AUTOQ::Automata<Symbol>::unfold_top() {
         const auto &fc = fc_ois.first;
         const auto &ois = fc_ois.second;
         auto &transitions_insert_fc = transitions_insert[fc];
-        auto &transitions_insert_fc2 = transitions_insert[{fc.symbol().qubit()+1, fc.second}];
+        auto &transitions_insert_fc2 = fc.symbol().is_internal() ? transitions_insert[{fc.symbol().qubit()+1, fc.second}] : transitions_insert_fc;
         auto &transitions_delete_fc = transitions_delete[fc];
         for (const auto &oi : ois) {
             const auto &top = oi.first;
@@ -2312,8 +2312,8 @@ void AUTOQ::Automata<Symbol>::unfold_bottom() {
         const auto &fc = fc_ois.first;
         const auto &ois = fc_ois.second;
         auto &transitions_result_fc = transitions_result[fc];
-        auto &transitions_result2 = transitions_result[{fc.first.qubit() + 1, fc.second}];
-        auto &transitions_result3 = transitions_result[{fc.first.qubit(), fc.second}];
+        auto &transitions_result2 = fc.first.is_internal() ? transitions_result[{fc.first.qubit() + 1, fc.second}] : transitions_result_fc;
+        auto &transitions_result3 = fc.first.is_internal() ? transitions_result[{fc.first.qubit(), fc.second}] : transitions_result_fc;
         for (const auto &oi : ois) {
             const auto &top = oi.first;
             const auto &ins = oi.second;
