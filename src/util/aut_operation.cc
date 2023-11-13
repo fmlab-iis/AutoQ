@@ -182,7 +182,7 @@ void AUTOQ::Automata<Symbol>::remove_impossible_colors() {
 template <typename Symbol>
 void AUTOQ::Automata<Symbol>::remove_useless(bool only_bottom_up) {
     auto start = std::chrono::steady_clock::now();
-    remove_impossible_colors();
+    // remove_impossible_colors();
 
     bool changed;
     std::vector<bool> traversed(stateNum, false);
