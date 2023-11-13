@@ -58,10 +58,8 @@ optional arguments:
     if (argc < 5) {
         AUTOQ::TreeAutomata aut = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Concrete>::FromFileToAutomata(argv[1]);
         aut.execute(argv[2]);
-        aut.fraction_simplification();
         if (argc >= 4) {
             auto aut2 = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Concrete>::FromFileToAutomata(argv[3]);
-            aut2.fraction_simplification();
             AUTOQ::TreeAutomata::check_inclusion(aut, aut2);
             aut.print_stats();
         } else {

@@ -221,7 +221,7 @@ public:
     // static bool check_inclusion(const std::string& lhsPath, const std::string& rhsPath);
     // static bool check_inclusion(const Automata& lhsPath, const std::string& rhsPath);
     // static bool check_inclusion(const std::string& lhsPath, const Automata& rhsPath);
-    static bool check_inclusion(const Automata& autA, const Automata& autB);
+    static bool check_inclusion(Automata autA, Automata autB);
 
     void execute(const char *filename);
     void print_language(const char *str="") const;

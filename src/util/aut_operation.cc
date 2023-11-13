@@ -1079,12 +1079,14 @@ void AUTOQ::Automata<Symbol>::fraction_simplification() {
     // }
 
     template <>
-    bool AUTOQ::Automata<AUTOQ::Symbol::Symbolic>::check_inclusion(const Automata<AUTOQ::Symbol::Symbolic>& autA, const Automata<AUTOQ::Symbol::Symbolic>& autB)
+    bool AUTOQ::Automata<AUTOQ::Symbol::Symbolic>::check_inclusion(Automata<AUTOQ::Symbol::Symbolic> autA, Automata<AUTOQ::Symbol::Symbolic> autB)
     {
         exit(1);
     }
     template <typename Symbol>
-    bool AUTOQ::Automata<Symbol>::check_inclusion(const Automata<Symbol>& autA, const Automata<Symbol>& autB) {
+    bool AUTOQ::Automata<Symbol>::check_inclusion(Automata<Symbol> autA, Automata<Symbol> autB) {
+        autA.fraction_simplification();
+        autB.fraction_simplification();
         auto start_include = std::chrono::steady_clock::now();
 
         // Preparation: Transform transitions into the new data structure.
