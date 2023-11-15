@@ -157,7 +157,7 @@ private:
     // void swap_forward(const int k);
     // void swap_backward(const int k);
     void General_Single_Qubit_Gate(int t, std::function<Symbol(const Symbol&, const Symbol&)> L, std::function<Symbol(const Symbol&, const Symbol&)> R);
-    void General_Controlled_Gate(int c, const AUTOQ::Automata<Symbol> &aut2);
+    // void General_Controlled_Gate(int c, const AUTOQ::Automata<Symbol> &aut2);
     void initialize_stats();
 
 public:
