@@ -130,7 +130,7 @@ void AUTOQ::Automata<InitialSymbol>::state_renumbering() {
 
 template <typename Symbol>
 void AUTOQ::Automata<Symbol>::remove_impossible_colors() {
-    std::map<Symbol, std::map<State, std::map<Tag, std::vector<StateVector>>>> fqci;
+    std::map<State, std::map<Tag, std::vector<std::pair<Symbol, StateVector>>>> qcfi;
     for (const auto &tr : transitions) {
         auto &symbol_tag = tr.first;
         auto &in_outs = tr.second;
@@ -138,44 +138,58 @@ void AUTOQ::Automata<Symbol>::remove_impossible_colors() {
             auto &in = in_out.first;
             auto &outs = in_out.second;
             for (const auto &out : outs) {
-                fqci[symbol_tag.symbol()][out][symbol_tag.tag()].push_back(in);
+                qcfi[out][symbol_tag.tag()].push_back({symbol_tag.symbol(), in});
             }
         }
     }
 
-    std::map<Symbol, std::map<State, std::vector<Tag>>> delete_colors;
-    for (const auto &f_ : fqci) {
-        for (const auto &q_ : f_.second) {
-            for (auto q_ptr = q_.second.rbegin(); q_ptr != q_.second.rend(); ++q_ptr) {
-                if (q_ptr->second.size() >= 2) {
-                    delete_colors[f_.first][q_.first].push_back(q_ptr->first);
-                }
-                else {
-                    for (auto q_ptr2 = q_.second.begin(); q_ptr2 != q_.second.end(); ++q_ptr2) {
-                        if (q_ptr2->first >= q_ptr->first) break;
-                        if ((q_ptr->first | q_ptr2->first) == q_ptr->first) {
-                            delete_colors[f_.first][q_.first].push_back(q_ptr->first);
-                            break;
-                        }
+    std::map<State, std::set<Tag>> delete_colors;
+    for (const auto &q_ : qcfi) {
+        for (auto c_ptr = q_.second.rbegin(); c_ptr != q_.second.rend(); ++c_ptr) {
+            if (c_ptr->second.size() >= 2) {
+                delete_colors[q_.first].insert(c_ptr->first);
+            }
+            else {
+                for (auto c_ptr2 = q_.second.begin(); c_ptr2 != q_.second.end(); ++c_ptr2) {
+                    if (c_ptr2->first >= c_ptr->first) break;
+                    if ((c_ptr->first | c_ptr2->first) == c_ptr->first) {
+                        delete_colors[q_.first].insert(c_ptr->first);
+                        break;
                     }
                 }
             }
         }
     }
 
-    for (const auto &f_ : delete_colors) {
-        for (const auto &q_ : f_.second) {
-            for (const auto &c : q_.second) {
-                std::vector<StateVector> to_be_deleted;
-                for (auto &in_outs : transitions[{f_.first, c}]) {
-                    in_outs.second.erase(q_.first);
-                    if (in_outs.second.empty())
-                        to_be_deleted.push_back(in_outs.first);
+    for (const auto &q_ : delete_colors) {
+        for (const auto &c : q_.second) {
+            std::vector<std::pair<Symbol, StateVector>> to_be_deleted;
+            for (auto &fc_iq : transitions) {
+                if (fc_iq.first.tag() == c) {
+                    for (auto &in_outs : fc_iq.second) {
+                        in_outs.second.erase(q_.first);
+                        if (in_outs.second.empty())
+                            to_be_deleted.push_back({fc_iq.first.symbol(), in_outs.first});
+                    }
                 }
-                for (const auto &in : to_be_deleted)
-                    transitions[{f_.first, c}].erase(in);
+            }
+            for (const auto &f_i : to_be_deleted)
+                transitions[{f_i.first, c}].erase(f_i.second);
+        }
+    }
+
+    for (auto &tr : transitions) {
+        auto &symbol_tag = tr.first;
+        auto &in_outs = tr.second;
+        for (auto &in_out : in_outs) {
+            auto &in = in_out.first;
+            auto &outs = in_out.second;
+            if (outs.empty()) {
+                in_outs.erase(in);
             }
         }
+        if (in_outs.empty())
+            transitions.erase(symbol_tag);
     }
 }
 
