@@ -1220,7 +1220,8 @@ void AUTOQ::Automata<Symbol>::fraction_simplification() {
                                 // If qB has no states corresponding to qA,
                                 // simply construct the unique cell without B's states!
                                 have_listed_all_combinationsB = true;
-                                break;
+                                // Do NOT use break; here to avoid interrupting
+                                // the process of building cell2 completely.
                             }
                             for (const auto &qB : cell.at(qA)) {
                                 /****** Build all possible colors for qB *******/
@@ -1238,18 +1239,20 @@ void AUTOQ::Automata<Symbol>::fraction_simplification() {
                                     // If qB has no transitions with the desired symbol,
                                     // simply construct the unique cell without B's states!
                                     have_listed_all_combinationsB = true;
-                                    break;
+                                    // Do NOT use break; here to avoid interrupting
+                                    // the process of building cell2 completely.
                                 } else if (!B_transition_combinations[qB].empty() && B_transition_combinations[qB].begin()->first != desired_symbol) {
                                     // If qB is enforced to take two different symbols together,
                                     // simply construct the unique cell without B's states!
                                     have_listed_all_combinationsB = true;
-                                    break;
+                                    // Do NOT use break; here to avoid interrupting
+                                    // the process of building cell2 completely.
                                 } else {
                                     B_transition_combinations[qB][desired_symbol] = transB[qB][desired_symbol].begin();
                                 }
                             }
-                            if (have_listed_all_combinationsB)
-                                break; // shortcut
+                            // Do NOT use break; here to avoid interrupting
+                            // the process of building cell2 completely.
                         }
                         if (have_listed_all_combinationsB) { // No possible combination exists!
                             cell_fail = true; // is_leaf_vertex
