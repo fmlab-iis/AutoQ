@@ -251,6 +251,11 @@ public:
     void execute(const char *filename);
     // void reverse_execute(const char *filename);
     void print_language(const char *str="") const;
+
+    // parametric utilities
+    void unfold_top();
+    void unfold_bottom();
+    void fold();
 };
 
 
