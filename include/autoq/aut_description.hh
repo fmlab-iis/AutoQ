@@ -228,6 +228,9 @@ public:
     void Tdg(int t);
     void Sdg(int t);
     void swap(int t1, int t2);
+    void CX();
+    void CX_inv();
+    void phase(const boost::rational<boost::multiprecision::cpp_int> &r);
 
     /* Produce an automaton instance. */
     static Automata uniform(int n);
