@@ -347,13 +347,13 @@ PredicateAutomata::Symbol from_string_to_Predicate(const std::string& lhs)
 //                 if (t > result.stateNum) result.stateNum = t;
 //                 if constexpr(std::is_same_v<Symbol, TreeAutomata::Symbol>) {
 //                     auto temp = from_string_to_Concrete(lhs);
-//                     result.transitions[temp][std::vector<TreeAutomata::State>()].insert(t); //.stateNum.TranslateFwd(rhs));
+//                     result.transitions[temp][t].insert(std::vector<TreeAutomata::State>()); //.stateNum.TranslateFwd(rhs));
 //                 } else if constexpr(std::is_same_v<Symbol, PredicateAutomata::Symbol>) {
 //                     auto temp = from_string_to_Predicate(lhs);
-//                     result.transitions[temp][std::vector<TreeAutomata::State>()].insert(t); //.stateNum.TranslateFwd(rhs));
+//                     result.transitions[temp][t].insert(std::vector<TreeAutomata::State>()); //.stateNum.TranslateFwd(rhs));
 //                 } else {
 //                     auto temp = from_string_to_Symbolic(lhs);
-//                     result.transitions[temp][std::vector<SymbolicAutomata::State>()].insert(t); //.stateNum.TranslateFwd(rhs));
+//                     result.transitions[temp][t].insert(std::vector<SymbolicAutomata::State>()); //.stateNum.TranslateFwd(rhs));
 //                 }
 //                 /*******************************************************************************************************************/
 // 			}
@@ -409,13 +409,13 @@ PredicateAutomata::Symbol from_string_to_Predicate(const std::string& lhs)
 //                 if (t > result.stateNum) result.stateNum = t;
 //                 if constexpr(std::is_same_v<Symbol, TreeAutomata::Symbol>) {
 //                     auto temp = from_string_to_Concrete(lab);
-//                     result.transitions[temp][state_vector].insert(t); //result.stateNum.TranslateFwd(rhs));
+//                     result.transitions[temp][t].insert(state_vector); //result.stateNum.TranslateFwd(rhs));
 //                 } else if constexpr(std::is_same_v<Symbol, PredicateAutomata::Symbol>) {
 //                     auto temp = from_string_to_Predicate(lab);
-//                     result.transitions[temp][state_vector].insert(t); //.stateNum.TranslateFwd(rhs));
+//                     result.transitions[temp][t].insert(state_vector); //.stateNum.TranslateFwd(rhs));
 //                 } else {
 //                     auto temp = from_string_to_Symbolic(lab);
-//                     result.transitions[temp][state_vector].insert(t); //result.stateNum.TranslateFwd(rhs));
+//                     result.transitions[temp][t].insert(state_vector); //result.stateNum.TranslateFwd(rhs));
 //                 }
 //                 /*********************************************************************************************/
 // 			}
@@ -566,7 +566,7 @@ Automata<Symbol> parse_automaton(const std::string& str)
                             auto sym = Symbol(boost::lexical_cast<int>(token));
                             std::getline(ss, token, ',');
                             auto color = boost::lexical_cast<TreeAutomata::Tag>(token);
-                            result.transitions[{sym, TreeAutomata::Tag(color)}][std::vector<TreeAutomata::State>()].insert(t);
+                            result.transitions[{sym, TreeAutomata::Tag(color)}][t].insert(std::vector<TreeAutomata::State>());
                         } else {
                             auto sym = Symbol(boost::lexical_cast<int>(lhs));
                             dqfin[0][t].push_back({sym, std::vector<TreeAutomata::State>()});
@@ -579,7 +579,7 @@ Automata<Symbol> parse_automaton(const std::string& str)
                             auto sym = Symbol(numbers.at(token));
                             std::getline(ss, token, ',');
                             auto color = boost::lexical_cast<TreeAutomata::Tag>(token);
-                            result.transitions[{sym, TreeAutomata::Tag(color)}][std::vector<TreeAutomata::State>()].insert(t);
+                            result.transitions[{sym, TreeAutomata::Tag(color)}][t].insert(std::vector<TreeAutomata::State>());
                         } else {
                             auto sym = Symbol(numbers.at(lhs));
                             dqfin[0][t].push_back({sym, std::vector<TreeAutomata::State>()});
@@ -594,7 +594,7 @@ Automata<Symbol> parse_automaton(const std::string& str)
                             auto sym = Symbol(boost::lexical_cast<int>(token));
                             std::getline(ss, token, ',');
                             auto color = boost::lexical_cast<PredicateAutomata::Tag>(token);
-                            result.transitions[{sym, PredicateAutomata::Tag(color)}][std::vector<PredicateAutomata::State>()].insert(t);
+                            result.transitions[{sym, PredicateAutomata::Tag(color)}][t].insert(std::vector<PredicateAutomata::State>());
                         } else {
                             auto sym = Symbol(boost::lexical_cast<int>(lhs));
                             dqfin[0][t].push_back({sym, std::vector<PredicateAutomata::State>()});
@@ -607,7 +607,7 @@ Automata<Symbol> parse_automaton(const std::string& str)
                             auto sym = Symbol(predicates.at(token).c_str());
                             std::getline(ss, token, ',');
                             auto color = boost::lexical_cast<PredicateAutomata::Tag>(token);
-                            result.transitions[{sym, PredicateAutomata::Tag(color)}][std::vector<PredicateAutomata::State>()].insert(t);
+                            result.transitions[{sym, PredicateAutomata::Tag(color)}][t].insert(std::vector<PredicateAutomata::State>());
                         } else {
                             auto sym = Symbol(predicates.at(lhs).c_str());
                             dqfin[0][t].push_back({sym, std::vector<PredicateAutomata::State>()});
@@ -622,7 +622,7 @@ Automata<Symbol> parse_automaton(const std::string& str)
                             auto sym = Symbol(boost::lexical_cast<int>(token));
                             std::getline(ss, token, ',');
                             auto color = boost::lexical_cast<SymbolicAutomata::Tag>(token);
-                            result.transitions[{sym, SymbolicAutomata::Tag(color)}][std::vector<SymbolicAutomata::State>()].insert(t);
+                            result.transitions[{sym, SymbolicAutomata::Tag(color)}][t].insert(std::vector<SymbolicAutomata::State>());
                         } else {
                             auto sym = Symbol(boost::lexical_cast<int>(lhs));
                             dqfin[0][t].push_back({sym, std::vector<SymbolicAutomata::State>()});
@@ -636,7 +636,7 @@ Automata<Symbol> parse_automaton(const std::string& str)
                                 Symbolic symb(Symbolic::ComplexType{{numbers.at(token), {{"1", 1}}}});
                                 std::getline(ss, token, ',');
                                 auto color = boost::lexical_cast<SymbolicAutomata::Tag>(token);
-                                result.transitions[{symb, SymbolicAutomata::Tag(color)}][std::vector<SymbolicAutomata::State>()].insert(t);
+                                result.transitions[{symb, SymbolicAutomata::Tag(color)}][t].insert(std::vector<SymbolicAutomata::State>());
                             } else {
                                 Symbolic symb(Symbolic::ComplexType{{numbers.at(lhs), {{"1", 1}}}});
                                 dqfin[0][t].push_back({symb, std::vector<SymbolicAutomata::State>()});
@@ -649,7 +649,7 @@ Automata<Symbol> parse_automaton(const std::string& str)
                                 Symbolic symb(Symbolic::ComplexType{{Complex::One(), {{token, 1}}}});
                                 std::getline(ss, token, ',');
                                 auto color = boost::lexical_cast<SymbolicAutomata::Tag>(token);
-                                result.transitions[{symb, SymbolicAutomata::Tag(color)}][std::vector<SymbolicAutomata::State>()].insert(t);
+                                result.transitions[{symb, SymbolicAutomata::Tag(color)}][t].insert(std::vector<SymbolicAutomata::State>());
                             } else {
                                 Symbolic symb(Symbolic::ComplexType{{Complex::One(), {{lhs, 1}}}});
                                 dqfin[0][t].push_back({symb, std::vector<SymbolicAutomata::State>()});
@@ -702,7 +702,7 @@ Automata<Symbol> parse_automaton(const std::string& str)
                         auto sym = Symbol(boost::lexical_cast<int>(token));
                         std::getline(ss, token, ',');
                         auto color = boost::lexical_cast<TreeAutomata::Tag>(token);
-                        result.transitions[{sym, TreeAutomata::Tag(color)}][state_vector].insert(t);
+                        result.transitions[{sym, TreeAutomata::Tag(color)}][t].insert(state_vector);
                         if (static_cast<int>(sym.qubit()) == 1)
                             finalStates.insert(t);
                     } else {
@@ -719,7 +719,7 @@ Automata<Symbol> parse_automaton(const std::string& str)
                         auto sym = from_string_to_Predicate(token);
                         std::getline(ss, token, ',');
                         auto color = boost::lexical_cast<PredicateAutomata::Tag>(token);
-                        result.transitions[{sym, PredicateAutomata::Tag(color)}][state_vector].insert(t);
+                        result.transitions[{sym, PredicateAutomata::Tag(color)}][t].insert(state_vector);
                         if (static_cast<int>(sym.qubit()) == 1)
                             finalStates.insert(t);
                     } else {
@@ -736,7 +736,7 @@ Automata<Symbol> parse_automaton(const std::string& str)
                         auto sym = from_string_to_Symbolic(token);
                         std::getline(ss, token, ',');
                         auto color = boost::lexical_cast<SymbolicAutomata::Tag>(token);
-                        result.transitions[{sym, SymbolicAutomata::Tag(color)}][state_vector].insert(t);
+                        result.transitions[{sym, SymbolicAutomata::Tag(color)}][t].insert(state_vector);
                         if (static_cast<int>(sym.qubit()) == 1)
                             finalStates.insert(t);
                     } else {
@@ -767,7 +767,7 @@ Automata<Symbol> parse_automaton(const std::string& str)
                 const auto &q = q_fins.first;
                 const auto &fins = q_fins.second;
                 if (fins.size() == 1) {
-                    result.transitions[{fins.at(0).first, typename Automata<Symbol>::Tag(0)}][fins.at(0).second].insert(q);
+                    result.transitions[{fins.at(0).first, typename Automata<Symbol>::Tag(0)}][q].insert(fins.at(0).second);
                 } else {
                     for (const auto &fin : fins) { // loop through all transitions under "q"
                         if (currentColor == Automata<Symbol>::Tag_MAX) {
@@ -776,7 +776,7 @@ Automata<Symbol> parse_automaton(const std::string& str)
                             exit(1);
                         }
                         currentColor = (currentColor == 0) ? 1 : (currentColor << 1);
-                        result.transitions[{fin.first, typename Automata<Symbol>::Tag(currentColor)}][fin.second].insert(q);
+                        result.transitions[{fin.first, typename Automata<Symbol>::Tag(currentColor)}][q].insert(fin.second);
                     }
                 }
             }
@@ -845,7 +845,7 @@ PredicateAutomata TimbukParser<Predicate>::from_tree_to_automaton(std::string tr
     PredicateAutomata::State state_counter = 0;
     for (unsigned level=1; level<=aut.qubitNum; level++) {
         for (PredicateAutomata::State i=0; i<pow_of_two; i++) {
-            aut.transitions[Predicate(level)][{(state_counter<<1)+1, (state_counter<<1)+2}] = {state_counter};
+            aut.transitions[Predicate(level)][state_counter].insert({(state_counter<<1)+1, (state_counter<<1)+2});
             state_counter++;
         }
         pow_of_two <<= 1;
@@ -855,10 +855,10 @@ PredicateAutomata TimbukParser<Predicate>::from_tree_to_automaton(std::string tr
         if (spf == states_probs.end()) {
             if (default_prob == PredicateAutomata::Symbol())
                 throw std::runtime_error("[ERROR] The default amplitude is not specified!");
-            aut.transitions[default_prob][{}].insert(i);
+            aut.transitions[default_prob][i].insert({{}});
         }
         else
-            aut.transitions[spf->second][{}].insert(i);
+            aut.transitions[spf->second][i].insert({{}});
     }
     aut.finalStates.push_back(0);
     aut.stateNum = (state_counter<<1) + 1;
@@ -917,12 +917,12 @@ Automata<Concrete> TimbukParser<Concrete>::from_tree_to_automaton(std::string tr
     //         if (default_prob == Complex::Complex())
     //             throw std::runtime_error("[ERROR] The default amplitude is not specified!");
     //         if (default_prob.size() == 5)
-    //             aut.transitions[Concrete(default_prob)][{}].insert(i);
+    //             aut.transitions[Concrete(default_prob)][i].insert({{}});
     //         else
-    //             aut.transitions[Concrete(default_prob.at(0))][{}].insert(i);
+    //             aut.transitions[Concrete(default_prob.at(0))][i].insert({{}});
     //     }
     //     else
-    //         aut.transitions[spf->second][{}].insert(i);
+    //         aut.transitions[spf->second][i].insert({{}});
     // }
     // aut.finalStates.push_back(0);
     // aut.stateNum = (state_counter<<1) + 1;
@@ -1001,10 +1001,10 @@ Automata<Symbolic> TimbukParser<Symbolic>::from_tree_to_automaton(std::string tr
     //                                             {Complex::Complex::Angle(boost::rational<boost::multiprecision::cpp_int>(1, 8)).divide_by_the_square_root_of_two(static_cast<int>(default_prob.at(4).at("1"))), default_prob.at(1)},
     //                                             {Complex::Complex::Angle(boost::rational<boost::multiprecision::cpp_int>(2, 8)).divide_by_the_square_root_of_two(static_cast<int>(default_prob.at(4).at("1"))), default_prob.at(2)},
     //                                             {Complex::Complex::Angle(boost::rational<boost::multiprecision::cpp_int>(3, 8)).divide_by_the_square_root_of_two(static_cast<int>(default_prob.at(4).at("1"))), default_prob.at(3)}});
-    //         aut.transitions[ds][{}].insert(i);
+    //         aut.transitions[ds][i].insert({{}});
     //     }
     //     else
-    //         aut.transitions[spf->second][{}].insert(i);
+    //         aut.transitions[spf->second][i].insert({{}});
     // }
     // aut.finalStates.push_back(0);
     // aut.stateNum = (state_counter<<1) + 1;
@@ -1041,27 +1041,29 @@ Automata<Symbol> TimbukParser<Symbol>::from_line_to_automaton(std::string line) 
             for (const auto &t2 : aut2.transitions) {
                 if (t2.first.is_internal()) { // if the to-be-appended transition is internal, then
                     int Q = aut.qubitNum + static_cast<int>(t2.first.symbol().qubit()); // we need to shift the qubit number
-                    for (const auto &kv : t2.second) { // for each pair of vec_in -> set_out
-                        auto k = kv.first;
-                        for (unsigned i=0; i<k.size(); i++)
-                            k.at(i) += aut.stateNum;
-                        // above shift the state number of vec_in first,
-                        for (const auto &s : kv.second) {
-                            if (s == 0) { // if to be connected to leaf states of aut, then
-                                for (const auto &s2 : t.second.at({})) // simply apply these states
-                                    aut.transitions[Symbol(Q)][k].insert(s2);
+                    for (const auto &kv : t2.second) { // for each pair of top state -> set of children
+                        auto top = kv.first;
+                        for (auto in : kv.second) {
+                            for (auto &e : in)
+                                e += aut.stateNum;
+                            // above shift the state number of the child states first,
+                            if (top == 0) { // if to be connected to leaf states of aut, then
+                                for (const auto &q_ins : t.second) {
+                                    if (q_ins.second.contains({})) // simply apply these states
+                                        aut.transitions[Symbol(Q)][q_ins.first].insert(in);
+                                }
                             }
-                            else // and then shift the state number of set_out
-                                aut.transitions[Symbol(Q)][k].insert(s + aut.stateNum);
+                            else // and then shift the state number of the top state
+                                aut.transitions[Symbol(Q)][top + aut.stateNum].insert(in);
                         }
                     }
                 } else {
                     for (const auto &kv : t2.second) {
-                        auto k = kv.first;
-                        for (unsigned i=0; i<k.size(); i++)
-                            k.at(i) += aut.stateNum;
-                        for (const auto &s : kv.second) {
-                            aut.transitions[t.first.symbol() * t2.first.symbol()][k].insert(s + aut.stateNum);
+                        auto top = kv.first;
+                        for (auto in : kv.second) {
+                            for (auto &e : in)
+                                e += aut.stateNum;
+                            aut.transitions[t.first.symbol() * t2.first.symbol()][top + aut.stateNum].insert(in);
                         }
                     }
                 }
