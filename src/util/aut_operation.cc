@@ -527,7 +527,7 @@ AUTOQ::Automata<Symbol> AUTOQ::Automata<Symbol>::binary_operation(const Automata
         result.stateNum = stateNum * o.stateNum;
     result.remove_useless(true); // otherwise, will out of memory
     // Round several approximately equal floating points to the same value!
-    #if COMPLEX != 1
+    #ifndef COMPLEX_FiveTuple
         result.fraction_simplification();
     #endif
     auto end = std::chrono::steady_clock::now();
@@ -1029,7 +1029,7 @@ void AUTOQ::Automata<Symbol>::fraction_simplification() {
         args.push_back(input.substr(i, MAX_ARG_STRLEN));
     }
     input = TimbukSerializer::Serialize(rhsPath);
-    length = input.length();    
+    length = input.length();
     for (int i=0; i<length; i+=MAX_ARG_STRLEN) {
         args.push_back(input.substr(i, MAX_ARG_STRLEN));
     }

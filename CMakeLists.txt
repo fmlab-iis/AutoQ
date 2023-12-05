@@ -17,7 +17,7 @@ set(CMAKE_COLOR_MAKEFILE ON)
 OPTION(MAKE_STATIC_AUTOQ "make static library" OFF)
 
 # The default C++ compiler
-set(DEFAULT_CXX_COMPILER "g++") 
+set(DEFAULT_CXX_COMPILER "g++")
 
 # Build with Clang? -- currently does nothing, initialize with
 #   $ CXX=clang++ make debug
@@ -138,6 +138,9 @@ endif()
 # for the use of "concept" and "std::same_as"
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -std=c++20")
 set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -std=c++20")
+
+set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -DCOMPLEX_FiveTuple")
+set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -DCOMPLEX_FiveTuple")
 
 ##############################################################################
 #                                 PROJECT
