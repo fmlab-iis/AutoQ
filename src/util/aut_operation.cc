@@ -546,7 +546,7 @@ AUTOQ::Automata<Symbol> AUTOQ::Automata<Symbol>::binary_operation(const Automata
         result.stateNum = stateNum * o.stateNum;
     result.remove_useless(true); // otherwise, will out of memory
     // Round several approximately equal floating points to the same value!
-    #if COMPLEX != 1
+    #ifndef COMPLEX_FiveTuple
         result.fraction_simplification();
     #endif
     auto end = std::chrono::steady_clock::now();

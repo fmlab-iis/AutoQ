@@ -2,6 +2,7 @@
 #define _AUTOQ_COMPLEX_HH_
 
 #include <autoq/complex/plain.hh>
+#include <autoq/complex/ntuple.hh>
 #include <autoq/complex/fivetuple.hh>
 
 template <typename T>
@@ -37,12 +38,16 @@ namespace AUTOQ
     namespace Complex
     {
         /* Users can define multiple types of amplitudes in the following line, */
+        struct nTuple;
         struct FiveTuple;
         struct Plain;
-        #if COMPLEX == 1
+        #ifdef COMPLEX_nTuple
+            using Complex = nTuple;
+        #elif COMPLEX_FiveTuple // equivalent to #elifdef COMPLEX_FiveTuple
             using Complex = FiveTuple;
-        #else
+        #elif COMPLEX_Plain // equivalent to #elifdef COMPLEX_Plain
             using Complex = Plain;
+        #else
         #endif
         // but we can use only one type at a same time.
         static_assert(is_complex<Complex>, "The used type must implement all required member functions!");

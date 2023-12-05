@@ -418,11 +418,11 @@ BOOST_AUTO_TEST_CASE(Bernstein_Vazirani)
 void dfs(const std::map<AUTOQ::TreeAutomata::State, AUTOQ::TreeAutomata::StateVector> &edge,
          const std::map<AUTOQ::TreeAutomata::State, AUTOQ::TreeAutomata::SymbolTag> &leaf,
          const AUTOQ::TreeAutomata::StateVector &layer,
-         #if COMPLEX == 3
-         std::vector<float128> &prob) {
-         #else
+        //  #if COMPLEX == 3
+        //  std::vector<float128> &prob) {
+        //  #else
          std::vector<double> &prob) {
-         #endif
+        //  #endif
     for (const AUTOQ::TreeAutomata::State &s : layer) {
         const auto &new_layer = edge.at(s);
         if (!new_layer.empty()) {
