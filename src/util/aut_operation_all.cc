@@ -45,9 +45,9 @@ namespace { // anonymous namespace
       const auto& symbolName = symbolTranslator(symMap.first);
 
       for (const auto& vecSet : symMap.second) {
-        const auto& tuple = vecSet.first;
+        const auto& parent = vecSet.first;
 
-        for (const auto& parent : vecSet.second) {
+        for (const auto& tuple : vecSet.second) {
           const auto& parentName = stateIndex[parent];
 
           size_t dest;
@@ -96,10 +96,11 @@ namespace { // anonymous namespace
     }
 
     for (const auto& symMap : aut.transitions) {
-      for (const auto& vecSet : symMap.second) {
-        states.insert(vecSet.second.begin(), vecSet.second.end());
-        for (const auto& child : vecSet.first) {
-          states.insert(child);
+      for (const auto& out_ins : symMap.second) {
+        states.insert(out_ins.first);
+        for (const auto& in : out_ins.second) {
+            for (const auto& child : in)
+                states.insert(child);
         }
       }
     }
@@ -130,49 +131,30 @@ namespace { // anonymous namespace
   void reindex_aut_states(Automata<Symbol>& aut, Index& index)
   {
     using State = typename Automata<Symbol>::State;
-    using StateSet = typename Automata<Symbol>::StateSet;
     using StateVector = typename Automata<Symbol>::StateVector;
-    using TransitionMap = typename Automata<Symbol>::TransitionMap;
 
     StateVector newFinal;
-    TransitionMap newTrans;
 
     for (const State& state : aut.finalStates) { // process final states
       if (newFinal.end() == std::find(newFinal.begin(), newFinal.end(), index[state])) {
         newFinal.push_back(index[state]);
       }
     }
-
-    // Iterate through all transitions and add reindex everything
-    for (const auto& symMap : aut.transitions) {
-      const auto& symbol_tag = symMap.first;
-
-      std::map<StateVector, StateSet> newMap;
-
-      for (const auto& vecSet : symMap.second) {
-        const auto& tuple = vecSet.first;
-        StateVector newTuple;
-        for (const auto& child : tuple) {
-          newTuple.push_back(index[child]);
+    typename Automata<Symbol>::TransitionMap transitions_new;
+    for (const auto &t : aut.transitions) {
+        for (const auto &out_ins : t.second) {
+            const auto &out = out_ins.first;
+            for (auto in : out_ins.second) {
+                for (auto &e : in) {
+                    e = index[e];
+                }
+                transitions_new[t.first][index[out]].insert(in);
+            }
         }
-
-        StateSet newSet;
-        for (const auto& parent : vecSet.second) {
-          newSet.insert(index[parent]);
-        }
-
-        auto itBoolPair = newMap.insert({newTuple, newSet});
-        if (!itBoolPair.second) { // there is already something
-            StateSet& ss = itBoolPair.first->second;
-            ss.insert(newSet.begin(), newSet.end());
-        }
-      }
-
-      newTrans.insert({symbol_tag, newMap});
     }
 
     aut.finalStates = newFinal;
-    aut.transitions = newTrans;
+    aut.transitions = transitions_new;
   }
 
   template <class T>
@@ -227,11 +209,20 @@ template <typename Symbol>
 bool AUTOQ::Automata<Symbol>::light_reduce_up()
 {
   using State = typename Automata<Symbol>::State;
+  using StateSet = typename Automata<Symbol>::StateSet;
+  using StateVector = typename Automata<Symbol>::StateVector;
   using StateToStateMap = typename std::unordered_map<State, State>;
 
   StateToStateMap index;
   for (const auto& symbMapPair : this->transitions) {
-    for (const auto& vecSetPair : symbMapPair.second) {
+    std::map<StateVector, StateSet> vecSetPairs;
+    for (const auto& out_ins : symbMapPair.second) {
+        const auto &out = out_ins.first;
+        for (const auto& in : out_ins.second) {
+            vecSetPairs[in].insert(out);
+        }
+    }
+    for (const auto& vecSetPair : vecSetPairs) {
       for (auto state : vecSetPair.second) {
         auto itBoolPair = index.insert({state, *vecSetPair.second.begin()});
         if (!itBoolPair.second) { // if there was more than one occurrence of 'state' as parent
@@ -286,12 +277,12 @@ bool AUTOQ::Automata<Symbol>::light_reduce_down()
   // first process root states
   std::set<State> class_candidate(this->finalStates.begin(), this->finalStates.end());
   for (const auto& symbMapPair : this->transitions) {
-    const auto& vector_map = symbMapPair.second;
-    for (const auto& vecSetPair : vector_map) {
-      const auto& children = vecSetPair.first;
-      for (const auto& child : children) {
-        if (class_candidate.end() != class_candidate.find(child)) {
-          assert(false);
+    for (const auto& out_ins : symbMapPair.second) { // _ : top down map
+      for (const auto& in : out_ins.second) { // _ : childrens
+        for (const auto& child : in) {
+            if (class_candidate.end() != class_candidate.find(child)) {
+                assert(false);
+            }
         }
       }
     }
@@ -311,18 +302,7 @@ bool AUTOQ::Automata<Symbol>::light_reduce_down()
 
   // then process other states
   for (const auto& symbMapPair : this->transitions) {
-    const auto& vector_map = symbMapPair.second;
-    std::map<State, std::set<StateVector>> top_down_map;
-    for (const auto& vecSetPair : vector_map) {
-      const auto& state_vector = vecSetPair.first;
-      const auto& parent_states = vecSetPair.second;
-      for (auto parent : parent_states) {
-        auto itBoolPair = top_down_map.insert({parent, {state_vector}});
-        if (!itBoolPair.second) { // 'parent' already mapped
-          itBoolPair.first->second.insert(state_vector);
-        }
-      }
-    }
+    const auto& top_down_map = symbMapPair.second;
     // AUTOQ_DEBUG("top down map: " + Convert::ToString(top_down_map));
 
     for (const auto& parentSetPair : top_down_map) {
@@ -368,7 +348,14 @@ bool AUTOQ::Automata<Symbol>::light_reduce_down()
           // check sanity
           bool sane = true;
           for (const auto& symbMapPair : this->transitions) {
-            const auto& vector_map = symbMapPair.second;
+            std::map<StateVector, StateSet> vector_map;
+            for (const auto& out_ins : symbMapPair.second) {
+                const auto &out = out_ins.first;
+                for (const auto& in : out_ins.second) {
+                    vector_map[in].insert(out);
+                }
+            }
+            // const auto& vector_map = symbMapPair.second;
             if (!sane) { break; }
             for (const auto& vecSetPair : vector_map) {
               const auto& vec = vecSetPair.first;
@@ -419,7 +406,7 @@ bool AUTOQ::Automata<Symbol>::light_reduce_down_iter()
 }
 
 template <typename Symbol>
-int AUTOQ::Automata<Symbol>::count_transitions() {
+int AUTOQ::Automata<Symbol>::count_transitions() const {
     int count = 0;
     for (const auto &t : transitions)
         for (const auto &in_outs : t.second) {
@@ -432,7 +419,7 @@ template <typename Symbol>
 void AUTOQ::Automata<Symbol>::reduce() {
     auto start = std::chrono::steady_clock::now();
     // AUTOQ_DEBUG("before light_reduce_down: " + Convert::ToString(count_aut_states(*this)));
-    // this->sim_reduce();
+    // this->sim_reduce(); return;
     this->light_reduce_up_iter();
 
     Automata old = *this;
@@ -461,15 +448,15 @@ AUTOQ::Automata<Symbol> AUTOQ::Automata<Symbol>::Union(const Automata<Symbol> &o
 
     for (const auto &t : o.transitions) {
         auto &container = result.transitions[t.first];
-        for (const auto &in_outs : t.second) {
-            auto in = in_outs.first;
-            for (unsigned i=0; i<in.size(); i++) {
-                in[i] += this->stateNum;
-            }
-            auto &container_out = container[in];
-            const auto &outs = in_outs.second;
-            for (const auto &s : outs) {
-                container_out.insert(s + this->stateNum);
+        for (const auto &out_ins : t.second) {
+            auto out = out_ins.first;
+            out += this->stateNum;
+            auto &sub_container = container[out];
+            for (auto in : out_ins.second) {
+                for (unsigned i=0; i<in.size(); i++) {
+                    in[i] += this->stateNum;
+                }
+                sub_container.insert(in);
             }
         }
     }

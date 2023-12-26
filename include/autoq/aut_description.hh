@@ -30,9 +30,9 @@ namespace AUTOQ
         struct Symbolic;
         struct Predicate;
     }
-    template <typename TT> struct Automata;        
-    typedef Automata<Symbol::Concrete> TreeAutomata;        
-    typedef Automata<Symbol::Symbolic> SymbolicAutomata;        
+    template <typename TT> struct Automata;
+    typedef Automata<Symbol::Concrete> TreeAutomata;
+    typedef Automata<Symbol::Symbolic> SymbolicAutomata;
     typedef Automata<Symbol::Predicate> PredicateAutomata;
 }
 
@@ -81,7 +81,8 @@ public:   // data types
             return os;
         }
     };
-    typedef std::map<SymbolTag, std::map<StateVector, StateSet>> TransitionMap;
+    typedef std::map<SymbolTag, std::map<State, std::set<StateVector>>> TransitionMap;
+    typedef std::map<SymbolTag, std::map<StateVector, StateSet>> TransitionMap2;
 
 public:   // data members
 	std::string name;
@@ -147,6 +148,7 @@ public:   // methods
 	}
 
 private:
+    void state_renumbering();
     void remove_useless(bool only_bottom_up=false);
     Automata binary_operation(const Automata &o, bool add);
     void swap_forward(const int k);
@@ -179,10 +181,10 @@ public:
     /// reduces the automaton using a prefered reduction
     void reduce();
 
-    int count_transitions();
+    int count_transitions() const;
     void X(int t);
     void Y(int t);
-    void Z(int t);
+    void Z(int t, bool opt=true);
     void H(int t);
     void S(int t);
     void T(int t);

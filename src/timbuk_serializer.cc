@@ -41,10 +41,10 @@ std::string TimbukSerializer::Serialize(Automata<Symbol> desc)
 	{
         if (std::is_convertible<Symbol, std::string>::value)
             result += "[" + AUTOQ::Util::Convert::ToString(itSymb->first) + "]:" +
-			    AUTOQ::Util::Convert::ToString(itSymb->second.begin()->first.size()) + " ";
+			    AUTOQ::Util::Convert::ToString(itSymb->second.begin()->second.begin()->size()) + " ";
         else
 		    result += AUTOQ::Util::Convert::ToString(itSymb->first) + ":" +
-			    AUTOQ::Util::Convert::ToString(itSymb->second.begin()->first.size()) + " ";
+			    AUTOQ::Util::Convert::ToString(itSymb->second.begin()->second.begin()->size()) + " ";
 	}
 
 	result += "\n";
@@ -73,22 +73,23 @@ std::string TimbukSerializer::Serialize(Automata<Symbol> desc)
 
     for (const auto &t : desc.transitions) {
         for (const auto &t2 : t.second) {
-            for (const auto &finalSet : t2.second) {
+            const auto &q = t2.first;
+            for (const auto &in : t2.second) {
                 if (std::is_convertible<Symbol, std::string>::value)
                     result += "[" + Convert::ToString(t.first) + "]";
                 else
                     result += Convert::ToString(t.first);
-                if (!(t2.first.empty())) {
+                if (!(in.empty())) {
                     result += "(";
-                    result += std::to_string(t2.first[0]); //desc.stateNum.TranslateBwd(t2.first[0]);
-                    for (size_t i = 1; i < t2.first.size(); ++i) {
+                    result += std::to_string(in[0]); //desc.stateNum.TranslateBwd(in[0]);
+                    for (size_t i = 1; i < in.size(); ++i) {
                         result += ", ";
-                        result += std::to_string(t2.first[i]); //desc.stateNum.TranslateBwd(t2.first[i]);
+                        result += std::to_string(in[i]); //desc.stateNum.TranslateBwd(in[i]);
                     }
                     result += ")";
                 }
                 result += " -> ";
-                result += std::to_string(finalSet); //desc.stateNum.TranslateBwd(finalSet);
+                result += std::to_string(q); //desc.stateNum.TranslateBwd(finalSet);
                 result += "\n";
             }
         }
