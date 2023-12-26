@@ -860,74 +860,103 @@ void AUTOQ::Automata<Symbol>::swap_forward(const int k) {
 template <typename Symbol>
 void AUTOQ::Automata<Symbol>::swap_backward(const int k) {
     if (isTopdownDeterministic) return;
+
+    /*************************************************/
+    TransitionMap2 transitions2;
+    for (const auto &t : transitions) {
+        const auto &symbol_tag = t.first;
+        for (const auto &out_ins : t.second) {
+            auto s = out_ins.first;
+            for (const auto &in : out_ins.second)
+                transitions2[symbol_tag][in].insert(s);
+        }
+    }
+    /*************************************************/
+
     for (int next_k=qubitNum; next_k>k; next_k--) {
-        std::map<State, std::map<SymbolTag, std::set<StateVector>>> qfti; // only consists of level: k
-        for (const auto &t : transitions) {
+        std::map<State, std::vector<std::pair<SymbolTag, StateVector>>> svsv;
+        for (const auto &t : transitions2) {
             const auto &symbol_tag = t.first;
-            const auto &out_ins = t.second;
+            const auto &in_outs = t.second;
             if (symbol_tag.is_internal() && symbol_tag.symbol().qubit() == k) {
-                assert(symbol_tag.tag().size() <= 1);
-                for (const auto &out_in : out_ins) {
-                    for (const auto &in : out_in.second)
-                        qfti[out_in.first][symbol_tag].insert(in);
+                assert(symbol_tag.tag().size() == 1);
+                for (const auto &in_out : in_outs) {
+                    for (const auto &s : in_out.second)
+                        svsv[s].push_back(make_pair(symbol_tag, in_out.first));
                 }
             }
         }
-        TransitionMap to_be_inserted;
-        std::vector<SymbolTag> to_be_removed;
-        for (const auto &t : transitions) {
+        std::vector<SymbolTag> to_be_removed2;
+        TransitionMap2 to_be_removed, to_be_inserted;
+        for (const auto &t : transitions2) {
             const SymbolTag &symbol_tag = t.first;
             if (symbol_tag.is_internal() && symbol_tag.symbol().qubit() == next_k) {
-                const auto &xl_ij = symbol_tag;
-                const auto &xl = xl_ij.symbol();
-                const auto &i = xl_ij.tag().at(0);
-                const auto &j = xl_ij.tag().at(1);
-                for (const auto &out_ins : t.second) {
-                    auto q = out_ins.first;
-                    for (const auto &in : out_ins.second) { // 1st transition
-                        auto q0p = in.at(0);
-                        auto q1p = in.at(1);
-                        for (const auto &fti1 : qfti[q0p]) {
-                            const auto &xt_h = fti1.first;
-                            assert(!xt_h.tag().empty());
-                            for (const auto &in : fti1.second) { // 2nd transition
-                                const auto &q00 = in.at(0);
-                                const auto &q10 = in.at(1);
-                                for (const auto &in : qfti[q1p][xt_h]) { // 3rd transition
-                                    const auto &q01 = in.at(0);
-                                    const auto &q11 = in.at(1);
-                                    /* construct the two new states */
-                                    auto q0pp = stateNum++;
-                                    auto q1pp = stateNum++;
-                                    /********************************/
-                                    to_be_inserted[xt_h][q].insert({q0pp, q1pp});
-                                    to_be_inserted[{xl, {i}}][q0pp].insert({q00, q01});
-                                    to_be_inserted[{xl, {j}}][q1pp].insert({q10, q11});
+                assert(symbol_tag.tag().size() == 2);
+                for (const auto &in_out : t.second) {
+                    assert(in_out.first.size() == 2);
+                    for (const auto &ssv1 : svsv[in_out.first[0]]) {
+                        for (const auto &ssv2 : svsv[in_out.first[1]]) {
+                            if (ssv1.first == ssv2.first) {
+                                to_be_removed[ssv1.first][ssv1.second].insert(in_out.first[0]);
+                                to_be_removed[ssv2.first][ssv2.second].insert(in_out.first[1]);
+                                SymbolTag t1 = {symbol_tag.symbol(), {symbol_tag.tag(0)}};
+                                if (to_be_inserted[t1][{ssv1.second[0], ssv2.second[0]}].empty()) {
+                                    if (transitions2[t1][{ssv1.second[0], ssv2.second[0]}].empty())
+                                        to_be_inserted[t1][{ssv1.second[0], ssv2.second[0]}].insert(stateNum++);
+                                    else
+                                        to_be_inserted[t1][{ssv1.second[0], ssv2.second[0]}].insert(*(transitions2[t1][{ssv1.second[0], ssv2.second[0]}].begin()));
                                 }
+                                SymbolTag t2 = {symbol_tag.symbol(), {symbol_tag.tag(1)}};
+                                if (to_be_inserted[t2][{ssv1.second[1], ssv2.second[1]}].empty()) {
+                                    if (transitions2[t2][{ssv1.second[1], ssv2.second[1]}].empty())
+                                        to_be_inserted[t2][{ssv1.second[1], ssv2.second[1]}].insert(stateNum++);
+                                    else
+                                        to_be_inserted[t2][{ssv1.second[1], ssv2.second[1]}].insert(*(transitions2[t2][{ssv1.second[1], ssv2.second[1]}].begin()));
+                                }
+                                assert(k == ssv1.first.symbol().qubit());
+                                for (const auto &s : in_out.second)
+                                    to_be_inserted[ssv1.first][{*(to_be_inserted[t1][{ssv1.second[0], ssv2.second[0]}].begin()), *(to_be_inserted[t2][{ssv1.second[1], ssv2.second[1]}].begin())}].insert(s);
                             }
                         }
                     }
                 }
+                to_be_removed2.push_back(symbol_tag);
             }
         }
-        for (const auto &t : transitions) {
+        for (const auto &v : to_be_removed2)
+            transitions2.erase(v);
+        for (const auto &t : to_be_removed) {
             const SymbolTag &symbol_tag = t.first;
-            if (symbol_tag.is_internal() && (symbol_tag.symbol().qubit() == k || symbol_tag.symbol().qubit() == next_k)) {
-                to_be_removed.push_back(symbol_tag);
+            for (const auto &in_out : t.second) {
+                for (const auto &s : in_out.second)
+                    transitions2[symbol_tag][in_out.first].erase(s);
+                if (transitions2[symbol_tag][in_out.first].empty())
+                    transitions2[symbol_tag].erase(in_out.first);
+                if (transitions2[symbol_tag].empty())
+                    transitions2.erase(symbol_tag);
             }
         }
-        for (const auto &v : to_be_removed)
-            transitions.erase(v);
         for (const auto &t : to_be_inserted) {
             const SymbolTag &symbol_tag = t.first;
-            for (const auto &out_ins : t.second) {
-                for (const auto &in : out_ins.second) {
-                    transitions[symbol_tag][out_ins.first].insert(in);
+            for (const auto &in_out : t.second) {
+                for (const auto &s : in_out.second) {
+                    transitions2[symbol_tag][in_out.first].insert(s);
                 }
             }
         }
         // DO NOT reduce here.
     }
+    /*************************************************/
+    transitions.clear();
+    for (const auto &t : transitions2) {
+        const auto &symbol_tag = t.first;
+        for (const auto &in_outs : t.second) {
+            auto in = in_outs.first;
+            for (const auto &s : in_outs.second)
+                transitions[symbol_tag][s].insert(in);
+        }
+    }
+    /*************************************************/
     if (opLog) std::cout << __FUNCTION__ << "：" << stateNum << " states " << count_transitions() << " transitions\n";
 }
 
