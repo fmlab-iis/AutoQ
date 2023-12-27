@@ -1653,11 +1653,15 @@ bool AUTOQ::is_scaled_spec_satisfied(const TreeAutomata &R, const TreeAutomata &
 }
 
 template <typename Symbol>
-std::vector<std::vector<std::string>> AUTOQ::Automata<Symbol>::print(const std::map<typename AUTOQ::Automata<Symbol>::State, typename AUTOQ::Automata<Symbol>::Symbol> &leafSymbolMap, int qubit, typename AUTOQ::Automata<Symbol>::State state) {
+std::vector<std::vector<std::string>> AUTOQ::Automata<Symbol>::print(const std::map<typename AUTOQ::Automata<Symbol>::State, std::set<typename AUTOQ::Automata<Symbol>::Symbol>> &leafSymbolMap, int qubit, typename AUTOQ::Automata<Symbol>::State state) const {
     if (qubit == static_cast<int>(qubitNum + 1)) {
-        std::stringstream ss;
-        ss << leafSymbolMap.at(state);
-        return {{ss.str()}};
+        std::vector<std::vector<std::string>> ans;
+        for (const auto &t : leafSymbolMap.at(state)) {
+            std::stringstream ss;
+            ss << t;
+            ans.push_back({ss.str()});
+        }
+        return ans;
     }
     std::vector<std::vector<std::string>> ans;
     for (const auto &out_ins : transitions.at({qubit})) {
@@ -1679,13 +1683,14 @@ std::vector<std::vector<std::string>> AUTOQ::Automata<Symbol>::print(const std::
 }
 
 template <typename Symbol>
-void AUTOQ::Automata<Symbol>::print_language() {
-    std::map<typename AUTOQ::Automata<Symbol>::State, typename AUTOQ::Automata<Symbol>::Symbol> leafSymbolMap;
+void AUTOQ::Automata<Symbol>::print_language(const char *str) const {
+    std::cout << str;
+    std::map<typename AUTOQ::Automata<Symbol>::State, std::set<typename AUTOQ::Automata<Symbol>::Symbol>> leafSymbolMap;
     for (const auto &t : transitions) { // construct the map from state to leaf symbol
         if (t.first.is_leaf()) {
             for (const auto &out_ins : t.second) {
                 // if (out_ins.second.contains({}))
-                    leafSymbolMap[out_ins.first] = t.first.symbol(); // assume each state only maps to one leaf symbol
+                    leafSymbolMap[out_ins.first].insert(t.first.symbol()); // assume each state only maps to one leaf symbol
             }
         }
     }
