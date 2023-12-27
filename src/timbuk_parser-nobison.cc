@@ -461,7 +461,6 @@ Automata<Symbol> parse_automaton(const std::string& str)
 	bool start_numbers = false;
     bool start_transitions = false;
     Automata<Symbol> result;
-    typename Automata<Symbol>::StateSet finalStates;
     std::map<std::string, Complex> numbers;
     std::map<std::string, std::string> predicates;
 
@@ -625,21 +624,21 @@ Automata<Symbol> parse_automaton(const std::string& str)
                 int t = atoi(rhs.c_str());
                 if (t > result.stateNum) result.stateNum = t;
                 if (symbol == "[1]")
-                    finalStates.insert(t);
+                    result.finalStates.insert(t);
                 if constexpr(std::is_same_v<Symbol, TreeAutomata::Symbol>) {
                     result.transitions[Symbol(boost::lexical_cast<int>(symbol.substr(1, symbol.length()-2)))][t].insert(state_vector);
                     if (boost::lexical_cast<int>(symbol.substr(1, symbol.length()-2)) == 1)
-                        finalStates.insert(t);
+                        result.finalStates.insert(t);
                 } else if constexpr(std::is_same_v<Symbol, PredicateAutomata::Symbol>) {
                     auto temp = from_string_to_Predicate(symbol);
                     result.transitions[temp][t].insert(state_vector);
                     if (boost::lexical_cast<int>(temp.qubit()) == 1)
-                        finalStates.insert(t);
+                        result.finalStates.insert(t);
                 } else {
                     auto temp = from_string_to_Symbolic(symbol);
                     result.transitions[temp][t].insert(state_vector);
                     if (boost::lexical_cast<int>(temp.qubit()) == 1)
-                        finalStates.insert(t);
+                        result.finalStates.insert(t);
                 }
                 /*********************************************************************************************/
 			}
@@ -658,7 +657,6 @@ Automata<Symbol> parse_automaton(const std::string& str)
         }
     }
     result.stateNum++; // because the state number starts from 0
-    result.finalStates = std::vector<typename Automata<Symbol>::State>(finalStates.begin(), finalStates.end());
 	return result;
 }
 
@@ -707,7 +705,7 @@ PredicateAutomata TimbukParser<Predicate>::from_tree_to_automaton(std::string tr
         else
             aut.transitions[spf->second][i].insert({{}});
     }
-    aut.finalStates.push_back(0);
+    aut.finalStates.insert(0);
     aut.stateNum = (state_counter<<1) + 1;
     aut.reduce();
 

@@ -131,14 +131,12 @@ namespace { // anonymous namespace
   void reindex_aut_states(Automata<Symbol>& aut, Index& index)
   {
     using State = typename Automata<Symbol>::State;
-    using StateVector = typename Automata<Symbol>::StateVector;
+    using StateSet = typename Automata<Symbol>::StateSet;
 
-    StateVector newFinal;
+    StateSet newFinal;
 
     for (const State& state : aut.finalStates) { // process final states
-      if (newFinal.end() == std::find(newFinal.begin(), newFinal.end(), index[state])) {
-        newFinal.push_back(index[state]);
-      }
+        newFinal.insert(index[state]);
     }
     typename Automata<Symbol>::TransitionMap transitions_new;
     for (const auto &t : aut.transitions) {
@@ -460,9 +458,8 @@ AUTOQ::Automata<Symbol> AUTOQ::Automata<Symbol>::Union(const Automata<Symbol> &o
             }
         }
     }
-    result.finalStates.reserve(finalStates.size() + o.finalStates.size()); // TODO: Can we set the initial capacity?
     for (const auto &s : o.finalStates) {
-        result.finalStates.push_back(s + this->stateNum);
+        result.finalStates.insert(s + this->stateNum);
     }
     result.reduce();
     if (opLog) std::cout << __FUNCTION__ << "：" << stateNum << " states " << count_transitions() << " transitions\n";

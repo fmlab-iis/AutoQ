@@ -112,12 +112,11 @@ void AUTOQ::Automata<InitialSymbol>::state_renumbering() {
         }
     }
     transitions = transitions_new;
-    StateVector finalStates_new; // TODO: Can we set the initial capacity?
-    finalStates_new.reserve(finalStates.size());
+    StateSet finalStates_new;
     for (const auto &s : finalStates) {
         auto it = stateOldToNew.find(s);
         if (it != stateOldToNew.end()) {
-            finalStates_new.push_back(it->second);
+            finalStates_new.insert(it->second);
         }
         // We do not add the untouched final states here, since
         // it could severely degrade the performance (either with or without sim_reduce()).
@@ -221,10 +220,10 @@ void AUTOQ::Automata<Symbol>::remove_useless(bool only_bottom_up) {
         }
     }
     transitions = transitions_new;
-    StateVector finalStates_new;
+    StateSet finalStates_new;
     for (const auto &s : finalStates) {
         if (traversed[s])
-            finalStates_new.push_back(s);
+            finalStates_new.insert(s);
     }
     finalStates = finalStates_new;
 
@@ -401,15 +400,15 @@ AUTOQ::Automata<Symbol> AUTOQ::Automata<Symbol>::binary_operation(const Automata
 
     std::map<std::pair<State, State>, State> stateOldToNew; // used only if overflow := true;
     bool overflow = (stateNum > std::numeric_limits<State>::max() / o.stateNum);
-    if (!overflow)
-        result.finalStates.reserve(finalStates.size() * o.finalStates.size()); // TODO: Can we set the initial capacity?
+    if (!overflow) {}
+        // result.finalStates.reserve(finalStates.size() * o.finalStates.size()); // TODO: Can we set the initial capacity?
     else
         throw std::overflow_error("[ERROR] The number of states after multiplication is too large.");
 
     for (const auto &fs1 : finalStates)
         for (const auto &fs2 : o.finalStates) {
             construct_product_state_id(fs1, fs2, i);
-            result.finalStates.push_back(i);
+            result.finalStates.insert(i);
         }
 
     // We assume here transitions are ordered by symbols.
@@ -572,7 +571,7 @@ AUTOQ::TreeAutomata AUTOQ::TreeAutomata::uniform(int n) {
         aut.transitions[{level}][level-1].insert({level, level});
     }
     aut.transitions[Concrete(Complex::Complex::One().divide_by_the_square_root_of_two(n))][n].insert({{}});
-    aut.finalStates.push_back(0);
+    aut.finalStates.insert(0);
     aut.stateNum = n+1;
 
     // aut.minimize();
@@ -594,7 +593,7 @@ AUTOQ::TreeAutomata AUTOQ::TreeAutomata::basis(int n) {
     }
     aut.transitions[Concrete(Complex::Complex::One())][2*n].insert({{}});
     aut.transitions[Concrete(Complex::Complex::Zero())][2*n - 1].insert({{}});
-    aut.finalStates.push_back(0);
+    aut.finalStates.insert(0);
     aut.stateNum = 2*n + 1;
 
     // aut.minimize();
@@ -618,7 +617,7 @@ AUTOQ::TreeAutomata AUTOQ::TreeAutomata::random(int n) {
     for (State i=state_counter; i<=state_counter*2; i++) {
         aut.transitions[Concrete(Complex::Complex::Rand())][i].insert({{}});
     }
-    aut.finalStates.push_back(0);
+    aut.finalStates.insert(0);
     aut.stateNum = state_counter*2 + 1;
 
     // aut.minimize();
@@ -648,7 +647,7 @@ AUTOQ::TreeAutomata AUTOQ::TreeAutomata::zero(int n) {
     TreeAutomata aut;
     aut.name = "Zero";
     aut.qubitNum = n;
-    aut.finalStates.push_back(0);
+    aut.finalStates.insert(0);
     aut.transitions[{1}][0].insert({2,1});
     for (int level=2; level<=n; level++) {
         aut.transitions[{level}][level*2-3].insert({level*2-1, level*2-1});
@@ -696,7 +695,7 @@ AUTOQ::TreeAutomata AUTOQ::TreeAutomata::basis_zero_one_zero(int n) {
         aut.transitions[Concrete(Complex::Complex::Zero())][4*n + 1].insert({{}});
         aut.stateNum = 4*n + 3;
     }
-	aut.finalStates.push_back(0);
+	aut.finalStates.insert(0);
     return aut;
 }
 
@@ -732,7 +731,7 @@ AUTOQ::TreeAutomata AUTOQ::TreeAutomata::zero_zero_one_zero(int n) {
         aut.transitions[Concrete(Complex::Complex::Zero())][4*n + 1].insert({{}});
         aut.stateNum = 4*n + 3;
     }
-	aut.finalStates.push_back(0);
+	aut.finalStates.insert(0);
     // aut.isTopdownDeterministic = true;
     return aut;
 }
@@ -765,7 +764,7 @@ AUTOQ::TreeAutomata AUTOQ::TreeAutomata::zero_one_zero(int n) {
         aut.transitions[Concrete(Complex::Complex::Zero())][2*n + 1].insert({{}});
         aut.stateNum = 2*n + 3;
     }
-	aut.finalStates.push_back(0);
+	aut.finalStates.insert(0);
     // aut.isTopdownDeterministic = true;
     return aut;
 }
