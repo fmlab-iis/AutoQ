@@ -463,6 +463,7 @@ Automata<Symbol> parse_automaton(const std::string& str)
     Automata<Symbol> result;
     std::map<std::string, Complex> numbers;
     std::map<std::string, std::string> predicates;
+    std::map<std::string, typename Automata<Symbol>::State> states;
 
 	std::vector<std::string> lines = split_delim(str, '\n');
 	for (const std::string& line : lines) {
@@ -563,7 +564,13 @@ Automata<Symbol> parse_automaton(const std::string& str)
                 /*******************************************************************************************************************/
                 assert(lhs.front() == '[' && lhs.back() == ']');
                 lhs = lhs.substr(1, lhs.size()-2);
-                int t = atoi(rhs.c_str());
+                int t;
+                auto it = states.find(rhs);
+                if (it == states.end()) {
+                    t = states.size();
+                    states[rhs] = t;
+                } else
+                    t = it->second; //atoi(rhs.c_str());
                 if (t > result.stateNum) result.stateNum = t;
                 if constexpr(std::is_same_v<Symbol, TreeAutomata::Symbol>) {
                     try {
@@ -613,7 +620,13 @@ Automata<Symbol> parse_automaton(const std::string& str)
 
                     /*******************************************************************/
                     if (state.length() > 0) {
-                        int t = atoi(state.c_str());
+                        int t;
+                        auto it = states.find(state);
+                        if (it == states.end()) {
+                            t = states.size();
+                            states[state] = t;
+                        } else
+                            t = it->second; //atoi(state.c_str());
                         if (t > result.stateNum) result.stateNum = t;
                         state_vector.push_back(t);
                     }
@@ -621,7 +634,13 @@ Automata<Symbol> parse_automaton(const std::string& str)
 				}
 
                 /*********************************************************************************************/
-                int t = atoi(rhs.c_str());
+                int t;
+                auto it = states.find(rhs);
+                if (it == states.end()) {
+                    t = states.size();
+                    states[rhs] = t;
+                } else
+                    t = it->second; //atoi(rhs.c_str());
                 if (t > result.stateNum) result.stateNum = t;
                 if (symbol == "[1]")
                     result.finalStates.insert(t);
