@@ -887,9 +887,9 @@ Automata<Symbol> TimbukParser<Symbol>::from_line_to_automaton(std::string line) 
         for (const auto &t : aut_leaves) {
             typename Automata<Symbol>::StateSet ss;
             for (const auto &out_ins : t.second) { // for (const auto &s2 : t.second.at({})) // simply apply these states
-                if (out_ins.second.contains({})) {
+                // if (out_ins.second.contains({})) {
                     ss.insert(out_ins.first);
-                }
+                // }
             }
             for (const auto &t2 : aut2.transitions) {
                 if (t2.first.is_internal()) { // if the to-be-appended transition is internal, then

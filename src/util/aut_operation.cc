@@ -1305,9 +1305,9 @@ bool AUTOQ::is_spec_satisfied(const Constraint &C, const SymbolicAutomata &Ae, c
         if (te.first.is_leaf()) {
             StateSet ss;
             for (const auto &out_ins : te.second) {
-                if (out_ins.second.contains({})) {
+                // if (out_ins.second.contains({})) {
                     ss.insert(out_ins.first);
-                }
+                // }
             }
             for (const auto &qe: ss) {
                 StateSet Us;
@@ -1315,7 +1315,7 @@ bool AUTOQ::is_spec_satisfied(const Constraint &C, const SymbolicAutomata &Ae, c
                     if (ps.first.is_leaf()) {
                         if (check_validity(C, ps.first.symbol(), te.first.symbol())) { // C ⇒ ps(te)
                             for (const auto &kv : ps.second) {
-                                if (kv.second.contains({}))
+                                // if (kv.second.contains({}))
                                     Us.insert(kv.first);
                             }
                         }
@@ -1418,7 +1418,7 @@ void AUTOQ::Automata<Symbol>::print_language() {
     for (const auto &t : transitions) { // construct the map from state to leaf symbol
         if (t.first.is_leaf()) {
             for (const auto &out_ins : t.second) {
-                if (out_ins.second.contains({}))
+                // if (out_ins.second.contains({}))
                     leafSymbolMap[out_ins.first] = t.first.symbol(); // assume each state only maps to one leaf symbol
             }
         }
