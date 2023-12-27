@@ -1385,6 +1385,273 @@ bool AUTOQ::is_spec_satisfied(const Constraint &C, const SymbolicAutomata &Ae, c
     return true;
 }
 
+#define MIN
+bool AUTOQ::is_scaled_spec_satisfied(const TreeAutomata &R, const TreeAutomata &Q) {
+    using State = TreeAutomata::State;
+    using StateSet = TreeAutomata::StateSet;
+    using StateVector = TreeAutomata::StateVector;
+    using StateScaleSet = std::set<std::pair<State, Complex::Complex>>;
+    StateSet As_finalStates(Q.finalStates.begin(), Q.finalStates.end());
+    std::map<State, std::set<StateScaleSet>> processed; // Line 1: ← ∅;
+    std::map<State, std::set<StateScaleSet>> worklist;
+
+    /************************************/
+    // Line 2-4: Construct the initial worklist!
+    for (const auto &tr : R.transitions) {
+        if (tr.first.is_leaf()) {
+            const auto &vr = tr.first;
+            const auto &cr = vr.symbol().complex;
+            for (const auto &out_ins : tr.second) {
+                auto sr = out_ins.first;
+                StateScaleSet Uq;
+                if (cr.isZero()) {
+                    for (const auto &tq : Q.transitions) {
+                        if (tq.first.is_leaf()) {
+                            const auto &vq = tq.first;
+                            const auto &cq = vq.symbol().complex;
+                            if (cq.isZero()) {
+                                for (const auto &out_ins : tq.second) {
+                                    auto uq = out_ins.first;
+                                    Uq.insert({uq, 0}); // here 0 := ?
+                                }
+                            }
+                        }
+                    }
+                } else { // cr is not zero
+                    for (const auto &tq : Q.transitions) {
+                        if (tq.first.is_leaf()) {
+                            const auto &vq = tq.first;
+                            const auto &cq = vq.symbol().complex;
+                            if (!cq.isZero()) {
+                                for (const auto &out_ins : tq.second) {
+                                    auto uq = out_ins.first;
+                                    Uq.insert({uq, cq / cr});
+                                }
+                            }
+                        }
+                    }
+                }
+                #ifdef MIN
+                auto copy = worklist[sr]; // Min{...}
+                for (const auto &t : copy) {
+                    if (std::includes(t.begin(), t.end(), Uq.begin(), Uq.end()))
+                        worklist[sr].erase(t);
+                }
+                bool cancel = false;
+                for (const auto &t : worklist[sr]) {
+                    if (std::includes(Uq.begin(), Uq.end(), t.begin(), t.end())) {
+                        cancel = true;
+                        break;
+                    }
+                }
+                if (!cancel)
+                #endif
+                    worklist[sr].insert(Uq);
+            }
+        }
+    }
+    /************************************/
+    while (!worklist.empty()) { // Line 5
+        /*********************************************/
+        // Line 6
+        auto it = worklist.begin(); // const auto &it ?
+        if (it->second.empty()) {
+            worklist.erase(it);
+            continue;
+        }
+        auto sr = it->first;
+        auto Uq = *(it->second.begin());
+        it->second.erase(it->second.begin());
+        /*********************************************/
+        // Line 7
+        if (R.finalStates.contains(sr)) {
+            StateSet ss;
+            for (const auto &uq_c : Uq) {
+                auto uq = uq_c.first;
+                ss.insert(uq);
+            }
+            std::set<int> intersection; // Create a set to store the intersection
+            std::set_intersection( // Use set_intersection to find the common elements
+                ss.begin(), ss.end(),
+                Q.finalStates.begin(), Q.finalStates.end(),
+                std::inserter(intersection, intersection.begin())
+            );
+            if (intersection.empty()) { // Check if the intersection is empty
+                return false;
+            }
+        }
+        /*********************************************/
+        // Line 8
+        #ifdef MIN
+        auto copy = processed[sr]; // Min{...}
+        for (const auto &t : copy) {
+            if (std::includes(t.begin(), t.end(), Uq.begin(), Uq.end()))
+                processed[sr].erase(t);
+        }
+        bool cancel = false;
+        for (const auto &t : processed[sr]) {
+            if (std::includes(Uq.begin(), Uq.end(), t.begin(), t.end())) {
+                cancel = true;
+                break;
+            }
+        }
+        if (!cancel)
+        #endif
+            processed[sr].insert(Uq);
+        // std::cout << AUTOQ::Util::Convert::ToString(processed) << "\n";
+        /*********************************************/
+        // Line 10
+        auto sr1 = sr;
+        const auto &Uq1 = Uq;
+        for (const auto &kv : processed) {
+            auto sr2 = kv.first;
+            for (const auto &Uq2 : kv.second) {
+                for (const auto &tr : R.transitions) {
+                    const auto &alpha = tr.first;
+                    /*********************************************/
+                    // Line 11
+                    StateSet Hr;
+                    for (const auto &out_ins : tr.second) {
+                        if (out_ins.second.contains({sr1, sr2})) {
+                            Hr.insert(out_ins.first);
+                        }
+                    }
+                    /*********************************************/
+                    StateScaleSet Uq_; // Line 12
+                    /*********************************************/
+                    // Line 13
+                    for (const auto &kv1 : Uq1) {
+                        const auto &sq1 = kv1.first;
+                        const auto &c1 = kv1.second;
+                        for (const auto &kv2 : Uq2) {
+                            const auto &sq2 = kv2.first;
+                            const auto &c2 = kv2.second;
+                            /*********************************************/
+                            // Line 14
+                            if (c1 != c2 && !c1.isZero() && !c2.isZero()) {
+                                continue;
+                            }
+                            /*********************************************/
+                            // Line 15-16
+                            auto it = Q.transitions.find(alpha);
+                            if (it != Q.transitions.end()) {
+                                for (const auto &out_ins : it->second) {
+                                    if (out_ins.second.contains({sq1, sq2})) {
+                                        auto sq = out_ins.first;
+                                        if (c1.isZero())
+                                            Uq_.insert(std::make_pair(sq, c2));
+                                        else
+                                            Uq_.insert(std::make_pair(sq, c1));
+                                    }
+                                }
+                            }
+                            /*********************************************/
+                        }
+                    }
+                    /*********************************************/
+                    // Line 17-18
+                    for (const auto &sr_ : Hr) {
+                        if (!processed[sr_].contains(Uq_) && !worklist[sr_].contains(Uq_)) {
+                            #ifdef MIN
+                            auto copy = worklist[sr_]; // Min{...}
+                            for (const auto &t : copy) {
+                                if (std::includes(t.begin(), t.end(), Uq_.begin(), Uq_.end()))
+                                    worklist[sr_].erase(t);
+                            }
+                            bool cancel = false;
+                            for (const auto &t : worklist[sr_]) {
+                                if (std::includes(Uq_.begin(), Uq_.end(), t.begin(), t.end())) {
+                                    cancel = true;
+                                    break;
+                                }
+                            }
+                            if (!cancel)
+                            #endif
+                                worklist[sr_].insert(Uq_);
+                        }
+                    }
+                    /*********************************************/
+                }
+            }
+        }
+        auto sr2 = sr;
+        const auto &Uq2 = Uq;
+        for (const auto &kv : processed) {
+            auto sr1 = kv.first;
+            for (const auto &Uq1 : kv.second) {
+                if (sr1 == sr2 && Uq1 == Uq2) continue;
+                for (const auto &tr : R.transitions) {
+                    const auto &alpha = tr.first;
+                    /*********************************************/
+                    // Line 11
+                    StateSet Hr;
+                    for (const auto &out_ins : tr.second) {
+                        if (out_ins.second.contains({sr1, sr2})) {
+                            Hr.insert(out_ins.first);
+                        }
+                    }
+                    /*********************************************/
+                    StateScaleSet Uq_; // Line 12
+                    /*********************************************/
+                    // Line 13
+                    for (const auto &kv1 : Uq1) {
+                        const auto &sq1 = kv1.first;
+                        const auto &c1 = kv1.second;
+                        for (const auto &kv2 : Uq2) {
+                            const auto &sq2 = kv2.first;
+                            const auto &c2 = kv2.second;
+                            /*********************************************/
+                            // Line 14
+                            if (c1 != c2 && !c1.isZero() && !c2.isZero()) {
+                                continue;
+                            }
+                            /*********************************************/
+                            // Line 15-16
+                            auto it = Q.transitions.find(alpha);
+                            if (it != Q.transitions.end()) {
+                                for (const auto &out_ins : it->second) {
+                                    if (out_ins.second.contains({sq1, sq2})) {
+                                        auto sq = out_ins.first;
+                                        if (c1.isZero())
+                                            Uq_.insert(std::make_pair(sq, c2));
+                                        else
+                                            Uq_.insert(std::make_pair(sq, c1));
+                                    }
+                                }
+                            }
+                            /*********************************************/
+                        }
+                    }
+                    /*********************************************/
+                    // Line 17-18
+                    for (const auto &sr_ : Hr) {
+                        if (!processed[sr_].contains(Uq_) && !worklist[sr_].contains(Uq_)) {
+                            #ifdef MIN
+                            auto copy = worklist[sr_]; // Min{...}
+                            for (const auto &t : copy) {
+                                if (std::includes(t.begin(), t.end(), Uq_.begin(), Uq_.end()))
+                                    worklist[sr_].erase(t);
+                            }
+                            bool cancel = false;
+                            for (const auto &t : worklist[sr_]) {
+                                if (std::includes(Uq_.begin(), Uq_.end(), t.begin(), t.end())) {
+                                    cancel = true;
+                                    break;
+                                }
+                            }
+                            if (!cancel)
+                            #endif
+                                worklist[sr_].insert(Uq_);
+                        }
+                    }
+                    /*********************************************/
+                }
+            }
+        }
+    }
+    return true;
+}
+
 template <typename Symbol>
 std::vector<std::vector<std::string>> AUTOQ::Automata<Symbol>::print(const std::map<typename AUTOQ::Automata<Symbol>::State, typename AUTOQ::Automata<Symbol>::Symbol> &leafSymbolMap, int qubit, typename AUTOQ::Automata<Symbol>::State state) {
     if (qubit == static_cast<int>(qubitNum + 1)) {

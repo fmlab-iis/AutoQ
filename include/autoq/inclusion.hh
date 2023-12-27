@@ -43,6 +43,7 @@ struct AUTOQ::Constraint {
 };
 
 namespace AUTOQ {
+    bool is_scaled_spec_satisfied(const TreeAutomata &R, const TreeAutomata &Q);
     bool is_spec_satisfied(const Constraint &C, const SymbolicAutomata &Ae, const PredicateAutomata &As);
     bool check_validity(Constraint C, const PredicateAutomata::Symbol &ps, const SymbolicAutomata::Symbol &te);
 }
