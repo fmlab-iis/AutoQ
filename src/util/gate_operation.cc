@@ -659,6 +659,96 @@ void AUTOQ::Automata<Symbol>::swap(int t1, int t2) {
     if (gateLog) std::cout << "swap" << t1 << "," << t2 << "：" << stateNum << " states " << count_transitions() << " transitions " << toString(duration) << "\n";
 }
 
+template <typename Symbol>
+void AUTOQ::Automata<Symbol>::U(int t) {
+    #ifdef TO_QASM
+        system(("echo 'u qubits[" + std::to_string(t-1) + "];' >> " + QASM_FILENAME).c_str());
+        return;
+    #endif
+    auto start = std::chrono::steady_clock::now();
+    // \sqrt{1-k}, -\sqrt{k}
+    // \sqrt{k}, \sqrt{1-k}
+    // where k^0.5 = 21/221 and (1-k)^0.5 = 220/221
+    General_Single_Qubit_Gate(t, AUTOQ::Complex::Complex(220), AUTOQ::Complex::Complex(-21), AUTOQ::Complex::Complex(21), AUTOQ::Complex::Complex(220)); // hide the denominator 221
+    gateCount++;
+    auto duration = std::chrono::steady_clock::now() - start;
+    if (gateLog) std::cout << "U" << t << "：" << stateNum << " states " << count_transitions() << " transitions " << toString(duration) << "\n";
+}
+
+template <>
+void AUTOQ::Automata<AUTOQ::Symbol::Symbolic>::CU(int c, int t) {
+    AUTOQ_ERROR(__func__ << " not implemented yet!");
+}
+template <typename Symbol>
+void AUTOQ::Automata<Symbol>::CU(int c, int t) {
+    #ifdef TO_QASM
+        system(("echo 'cu qubits[" + std::to_string(c-1) + "], qubits[" + std::to_string(t-1) + "];' >> " + QASM_FILENAME).c_str());
+        return;
+    #endif
+    auto start = std::chrono::steady_clock::now();
+    if (c >= t) {
+        AUTOQ_ERROR(__func__ << " not implemented yet!");
+    }
+    assert(c < t);
+    auto aut2 = *this;
+    disableRenumbering = true;
+    aut2.U(t); gateCount--; // prevent repeated counting
+    disableRenumbering = false;
+    auto aut2_count_states = aut2.count_states();
+
+    /* the non-controlled part multiplied by 221 */
+    auto transitions_copy = transitions;
+    for (const auto &tr : transitions_copy) {
+        if (tr.first.is_leaf()) {
+            transitions.erase(tr.first);
+            SymbolTag s = tr.first;
+            s.symbol().complex = s.symbol().complex * AUTOQ::Complex::Complex(221);
+            transitions[s] = tr.second;
+        }
+    }
+
+    /* Shift aut2's states with offset stateNum
+       and merge aut2's transitions into (*this)'. */
+    for (const auto &tr : aut2.transitions) {
+        const SymbolTag &symbol_tag = tr.first;
+        if (!(symbol_tag.is_internal() && symbol_tag.symbol().qubit() <= c)) {
+            auto &ttf = transitions[symbol_tag];
+            for (const auto &out_ins : tr.second) {
+                const auto &q = out_ins.first + stateNum;
+                for (auto in : out_ins.second) {
+                    for (unsigned i=0; i<in.size(); i++)
+                        in.at(i) += stateNum;
+                    ttf[q].insert(in);
+                }
+            }
+        }
+    }
+
+    /* Connect the controlled part of (*this)'s
+       transitions to aut2.U(t). */
+    for (auto &tr : transitions) {
+        if (tr.first.is_leaf() || (tr.first.is_internal() && tr.first.symbol().qubit() > c)) break;
+        if (tr.first.is_internal() && tr.first.symbol().qubit() == c) {
+            for (auto &out_ins : tr.second) {
+                std::vector<StateVector> vec(out_ins.second.begin(), out_ins.second.end());
+                for (auto &in : vec) {
+                    assert(in.size() == 2);
+                    if (in.at(0) < stateNum && in.at(1) < stateNum) {
+                        in.at(1) += stateNum;
+                    }
+                }
+                out_ins.second = std::set<StateVector>(vec.begin(), vec.end());
+            }
+        }
+    }
+    stateNum += aut2_count_states;
+    remove_useless();
+    reduce();
+    gateCount++;
+    auto duration = std::chrono::steady_clock::now() - start;
+    if (gateLog) std::cout << "CU" << c << "," << t << "：" << stateNum << " states " << count_transitions() << " transitions " << toString(duration) << "\n";
+}
+
 // void AUTOQ::Automata<Symbol>::Fredkin(int c, int t, int t2) {
 //     auto start = std::chrono::steady_clock::now();
 //     assert(c != t && t != t2 && t2 != c);

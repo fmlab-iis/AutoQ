@@ -86,6 +86,7 @@ namespace std
 
 template <typename InitialSymbol>
 void AUTOQ::Automata<InitialSymbol>::state_renumbering() {
+    if (disableRenumbering) return;
     TransitionMap transitions_new;
     std::map<State, State> stateOldToNew;
     for (const auto &t : transitions) {

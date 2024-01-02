@@ -404,11 +404,29 @@ bool AUTOQ::Automata<Symbol>::light_reduce_down_iter()
 }
 
 template <typename Symbol>
+int AUTOQ::Automata<Symbol>::count_states() const {
+    int maxState = 0;
+    for (const auto &t : transitions) {
+        for (const auto &out_ins : t.second) {
+            if (maxState < out_ins.first)
+                maxState = out_ins.first;
+            for (const auto &in : out_ins.second) {
+                for (const auto &s : in) {
+                    if (maxState < s)
+                        maxState = s;
+                }
+            }
+        }
+    }
+    return maxState + 1;
+}
+
+template <typename Symbol>
 int AUTOQ::Automata<Symbol>::count_transitions() const {
     int count = 0;
     for (const auto &t : transitions)
-        for (const auto &in_outs : t.second) {
-            count += in_outs.second.size();
+        for (const auto &out_ins : t.second) {
+            count += out_ins.second.size();
         }
     return count;
 }
@@ -424,7 +442,8 @@ void AUTOQ::Automata<Symbol>::reduce() {
     this->light_reduce_down_iter();
     // AUTOQ_DEBUG("after light_reduce_down: " + Convert::ToString(count_aut_states(*this)));
 
-    compact_aut(*this);
+    if (!disableRenumbering)
+        compact_aut(*this);
     // assert(check_equal_aut(old, *this));
 
     auto duration = std::chrono::steady_clock::now() - start;

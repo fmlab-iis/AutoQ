@@ -96,6 +96,7 @@ public:   // data members
     inline static bool gateLog, opLog;
     inline static std::chrono::steady_clock::duration binop_time, branch_rest_time, value_rest_time;
     /* Notice inline is very convenient for declaring and defining a static member variable together! */
+    inline static bool disableRenumbering = false;
 
 public:   // methods
 
@@ -184,6 +185,7 @@ public:
     /// reduces the automaton using a prefered reduction
     void reduce();
 
+    int count_states() const;
     int count_transitions() const;
     void X(int t);
     void Y(int t);
@@ -201,6 +203,8 @@ public:
     void Tdg(int t);
     void Sdg(int t);
     void swap(int t1, int t2);
+    void U(int t);
+    void CU(int c, int t);
 
     /* Produce an automaton instance. */
     static Automata uniform(int n);
