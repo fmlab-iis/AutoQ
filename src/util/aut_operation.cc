@@ -1234,6 +1234,14 @@ void AUTOQ::Automata<Symbol>::execute(const char *filename) {
                 ++it;
             }
             CZ(pos[0], pos[1]);
+        } else if (line.find("cu ") == 0) {
+            std::regex_iterator<std::string::iterator> it(line.begin(), line.end(), digit);
+            std::vector<int> pos;
+            while (it != END) {
+                pos.push_back(1 + atoi(it->str().c_str()));
+                ++it;
+            }
+            CU(pos[0], pos[1]);
         } else if (line.find("ccx ") == 0) {
             std::regex_iterator<std::string::iterator> it(line.begin(), line.end(), digit);
             std::vector<int> pos;

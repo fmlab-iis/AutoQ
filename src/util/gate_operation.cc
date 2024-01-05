@@ -675,10 +675,6 @@ void AUTOQ::Automata<Symbol>::U(int t) {
     if (gateLog) std::cout << "U" << t << "：" << stateNum << " states " << count_transitions() << " transitions " << toString(duration) << "\n";
 }
 
-template <>
-void AUTOQ::Automata<AUTOQ::Symbol::Symbolic>::CU(int c, int t) {
-    AUTOQ_ERROR(__func__ << " not implemented yet!");
-}
 template <typename Symbol>
 void AUTOQ::Automata<Symbol>::CU(int c, int t) {
     #ifdef TO_QASM
@@ -686,62 +682,29 @@ void AUTOQ::Automata<Symbol>::CU(int c, int t) {
         return;
     #endif
     auto start = std::chrono::steady_clock::now();
-    if (c >= t) {
-        AUTOQ_ERROR(__func__ << " not implemented yet!");
-    }
-    assert(c < t);
+    this->semi_determinize();
+
+    auto aut1 = *this;
+    aut1.branch_restriction(t, false);
     auto aut2 = *this;
-    disableRenumbering = true;
-    aut2.U(t); gateCount--; // prevent repeated counting
-    disableRenumbering = false;
-    auto aut2_count_states = aut2.count_states();
+    aut2.value_restriction(t, true);
+    aut2.branch_restriction(t, false);
+    auto autL = aut1 * AUTOQ::Complex::Complex(220) + aut2 * AUTOQ::Complex::Complex(-21);
+    auto aut3 = *this;
+    aut3.value_restriction(t, false);
+    aut3.branch_restriction(t, true);
+    auto aut4 = *this;
+    aut4.branch_restriction(t, true);
+    auto autR = aut3 * AUTOQ::Complex::Complex(21) + aut4 * AUTOQ::Complex::Complex(220);
+    autR = autL + autR; // hide the denominator 221
+    autR.branch_restriction(t, true);
 
-    /* the non-controlled part multiplied by 221 */
-    auto transitions_copy = transitions;
-    for (const auto &tr : transitions_copy) {
-        if (tr.first.is_leaf()) {
-            transitions.erase(tr.first);
-            SymbolTag s = tr.first;
-            s.symbol().complex = s.symbol().complex * AUTOQ::Complex::Complex(221);
-            transitions[s] = tr.second;
-        }
-    }
+    autL = *this;
+    autL.branch_restriction(c, false);
+    autL = autL * AUTOQ::Complex::Complex(221);
 
-    /* Shift aut2's states with offset stateNum
-       and merge aut2's transitions into (*this)'. */
-    for (const auto &tr : aut2.transitions) {
-        const SymbolTag &symbol_tag = tr.first;
-        if (!(symbol_tag.is_internal() && symbol_tag.symbol().qubit() <= c)) {
-            auto &ttf = transitions[symbol_tag];
-            for (const auto &out_ins : tr.second) {
-                const auto &q = out_ins.first + stateNum;
-                for (auto in : out_ins.second) {
-                    for (unsigned i=0; i<in.size(); i++)
-                        in.at(i) += stateNum;
-                    ttf[q].insert(in);
-                }
-            }
-        }
-    }
-
-    /* Connect the controlled part of (*this)'s
-       transitions to aut2.U(t). */
-    for (auto &tr : transitions) {
-        if (tr.first.is_leaf() || (tr.first.is_internal() && tr.first.symbol().qubit() > c)) break;
-        if (tr.first.is_internal() && tr.first.symbol().qubit() == c) {
-            for (auto &out_ins : tr.second) {
-                std::vector<StateVector> vec(out_ins.second.begin(), out_ins.second.end());
-                for (auto &in : vec) {
-                    assert(in.size() == 2);
-                    if (in.at(0) < stateNum && in.at(1) < stateNum) {
-                        in.at(1) += stateNum;
-                    }
-                }
-                out_ins.second = std::set<StateVector>(vec.begin(), vec.end());
-            }
-        }
-    }
-    stateNum += aut2_count_states;
+    *this = autL + autR;
+    this->semi_undeterminize();
     remove_useless();
     reduce();
     gateCount++;
