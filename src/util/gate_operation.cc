@@ -164,24 +164,24 @@ void AUTOQ::Automata<Symbol>::Z(int t, bool opt) {
     if (gateLog) std::cout << "Z" << t << "：" << stateNum << " states " << count_transitions() << " transitions " << toString(duration) << "\n";
 }
 
-template <typename Symbol>
-void AUTOQ::Automata<Symbol>::General_Single_Qubit_Gate(int t, const AUTOQ::Complex::Complex &a, const AUTOQ::Complex::Complex &b, const AUTOQ::Complex::Complex &c, const AUTOQ::Complex::Complex &d) {
-    this->semi_determinize();
-    auto aut1 = *this;
-    aut1.branch_restriction(t, false);
-    auto aut2 = *this;
-    aut2.value_restriction(t, true);
-    aut2.branch_restriction(t, false);
-    auto autL = aut1 * a + aut2 * b;
-    auto aut3 = *this;
-    aut3.value_restriction(t, false);
-    aut3.branch_restriction(t, true);
-    auto aut4 = *this;
-    aut4.branch_restriction(t, true);
-    auto autR = aut3 * c + aut4 * d;
-    *this = autL + autR;
-    this->semi_undeterminize();
-}
+// template <typename Symbol>
+// void AUTOQ::Automata<Symbol>::General_Single_Qubit_Gate(int t, const AUTOQ::Complex::Complex &a, const AUTOQ::Complex::Complex &b, const AUTOQ::Complex::Complex &c, const AUTOQ::Complex::Complex &d) {
+//     this->semi_determinize();
+//     auto aut1 = *this;
+//     aut1.branch_restriction(t, false);
+//     auto aut2 = *this;
+//     aut2.value_restriction(t, true);
+//     aut2.branch_restriction(t, false);
+//     auto autL = aut1 * a + aut2 * b;
+//     auto aut3 = *this;
+//     aut3.value_restriction(t, false);
+//     aut3.branch_restriction(t, true);
+//     auto aut4 = *this;
+//     aut4.branch_restriction(t, true);
+//     auto autR = aut3 * c + aut4 * d;
+//     *this = autL + autR;
+//     this->semi_undeterminize();
+// }
 
 template <typename Symbol>
 void AUTOQ::Automata<Symbol>::H(int t) {
@@ -660,22 +660,6 @@ void AUTOQ::Automata<Symbol>::swap(int t1, int t2) {
 }
 
 template <typename Symbol>
-void AUTOQ::Automata<Symbol>::U(int t) {
-    #ifdef TO_QASM
-        system(("echo 'u qubits[" + std::to_string(t-1) + "];' >> " + QASM_FILENAME).c_str());
-        return;
-    #endif
-    auto start = std::chrono::steady_clock::now();
-    // \sqrt{1-k}, -\sqrt{k}
-    // \sqrt{k}, \sqrt{1-k}
-    // where k^0.5 = 21/221 and (1-k)^0.5 = 220/221
-    General_Single_Qubit_Gate(t, AUTOQ::Complex::Complex(220), AUTOQ::Complex::Complex(-21), AUTOQ::Complex::Complex(21), AUTOQ::Complex::Complex(220)); // hide the denominator 221
-    gateCount++;
-    auto duration = std::chrono::steady_clock::now() - start;
-    if (gateLog) std::cout << "U" << t << "：" << stateNum << " states " << count_transitions() << " transitions " << toString(duration) << "\n";
-}
-
-template <typename Symbol>
 void AUTOQ::Automata<Symbol>::CU(int c, int t) {
     #ifdef TO_QASM
         system(("echo 'cu qubits[" + std::to_string(c-1) + "], qubits[" + std::to_string(t-1) + "];' >> " + QASM_FILENAME).c_str());
@@ -689,19 +673,19 @@ void AUTOQ::Automata<Symbol>::CU(int c, int t) {
     auto aut2 = *this;
     aut2.value_restriction(t, true);
     aut2.branch_restriction(t, false);
-    auto autL = aut1 * AUTOQ::Complex::Complex(220) + aut2 * AUTOQ::Complex::Complex(-21);
+    auto autL = aut1 * 220 + aut2 * -21;
     auto aut3 = *this;
     aut3.value_restriction(t, false);
     aut3.branch_restriction(t, true);
     auto aut4 = *this;
     aut4.branch_restriction(t, true);
-    auto autR = aut3 * AUTOQ::Complex::Complex(21) + aut4 * AUTOQ::Complex::Complex(220);
+    auto autR = aut3 * 21 + aut4 * 220;
     autR = autL + autR; // hide the denominator 221
-    autR.branch_restriction(t, true);
+    autR.branch_restriction(c, true);
 
     autL = *this;
     autL.branch_restriction(c, false);
-    autL = autL * AUTOQ::Complex::Complex(221);
+    autL = autL * 221;
 
     *this = autL + autR;
     this->semi_undeterminize();

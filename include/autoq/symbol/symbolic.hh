@@ -35,6 +35,14 @@ struct AUTOQ::Symbol::linear_combination : std::map<std::string, boost::multipre
         }
         return a;
     }
+    linear_combination operator*(int c) const {
+        linear_combination result;
+        for (const auto &kv : *this) {
+            if (c != 0)
+                result[kv.first] = kv.second * c;
+        }
+        return result;
+    }
     linear_combination operator*(const linear_combination &b) const {
         linear_combination ans;
         for (const auto &kv1 : *this) {
@@ -89,7 +97,7 @@ public:
         assert(internal);
         // assert(complex.imag() == 0);
         return complex.at(Complex::Complex::One()).at("1");
-    }    
+    }
     void back_to_zero() { complex.clear(); }
     friend std::ostream& operator<<(std::ostream& os, const Symbolic& obj) {
         os << AUTOQ::Util::Convert::ToString(obj.complex);
@@ -125,6 +133,14 @@ public:
         from "complex" to "linear combination" instead of a mapping
         from "variable" to "complex". If we adopt the latter mapping,
         the multiplication of two variables cannot be a "variable" anymore. */
+    }
+    Symbolic operator*(int c) const {
+        if (c == 0) return std::map<Complex::Complex, AUTOQ::Symbol::linear_combination>();
+        std::map<Complex::Complex, AUTOQ::Symbol::linear_combination> complex2;
+        for (const auto &kv : complex) {
+            complex2[kv.first] = kv.second * c;
+        }
+        return complex2;
     }
     void fraction_simplification() {
         // std::map<Complex::Complex, AUTOQ::Symbol::linear_combination> complex2;
