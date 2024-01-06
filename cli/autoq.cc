@@ -63,13 +63,13 @@ optional arguments:
         aut.execute(argv[2]);
         // aut.fraction_simplification();
         aut.reduce();
-        AUTOQ::PredicateAutomata spec = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Predicate>::FromFileToAutomata(argv[3]);
+        AUTOQ::PredicateAutomata spec;// = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Predicate>::FromFileToAutomata(argv[3]);
         AUTOQ::Constraint C(constraint.c_str());
         std::cout << "OUTPUT AUTOMATON:\n";
         std::cout << "=================\n";
         aut.print();
         std::cout << "=================\n";
-        std::cout << "-\n" << AUTOQ::is_spec_satisfied(C, aut, spec) << " " << toString(chrono::steady_clock::now() - startVer) << " " << getPeakRSS() / 1024 / 1024 << "MB\n";
+        // std::cout << "-\n" << AUTOQ::is_spec_satisfied(C, aut, spec) << " " << toString(chrono::steady_clock::now() - startVer) << " " << getPeakRSS() / 1024 / 1024 << "MB\n";
     } else {
         AUTOQ::TreeAutomata aut = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Concrete>::FromFileToAutomata(argv[1]);
         // int stateBefore = aut.stateNum, transitionBefore = aut.transition_size();

@@ -584,12 +584,15 @@ Automata<Symbol> parse_automaton(const std::string& str)
                     } catch (...) {
                         result.transitions[Symbol(predicates.at(lhs).c_str())][t].insert(std::vector<TreeAutomata::State>());
                     }
-                } else {
+                } else { // if constexpr(std::is_same_v<Symbol, SymbolicAutomata::Symbol>) {
                     try {
                         result.transitions[Symbol(boost::lexical_cast<int>(lhs))][t].insert(std::vector<SymbolicAutomata::State>());
                     } catch (...) {
                         try {
-                            result.transitions[Symbol({{numbers.at(lhs), {{"1", 1}}}})][t].insert(std::vector<SymbolicAutomata::State>());
+                            if (numbers.at(lhs).isZero())
+                                result.transitions[Symbol()][t].insert(std::vector<SymbolicAutomata::State>());
+                            else
+                                result.transitions[Symbol({{numbers.at(lhs), {{"1", 1}}}})][t].insert(std::vector<SymbolicAutomata::State>());
                         } catch (...) {
                             result.transitions[Symbol({{Complex::One(), {{lhs, 1}}}})][t].insert(std::vector<SymbolicAutomata::State>());
                         }
@@ -848,7 +851,7 @@ Automata<Symbolic> TimbukParser<Symbolic>::from_tree_to_automaton(std::string tr
                     try {
                         auto v = boost::lexical_cast<boost::multiprecision::cpp_int>(t.c_str());
                         if (v == 0)
-                            default_prob.complex[Complex::Complex::Angle(boost::rational<boost::multiprecision::cpp_int>(fivetuple_counter++, 8))]; // = AUTOQ::Symbol::Symbolic::Map();
+                            fivetuple_counter++; // default_prob.complex[Complex::Complex::Angle(boost::rational<boost::multiprecision::cpp_int>(fivetuple_counter++, 8))]; // = AUTOQ::Symbol::Symbolic::Map();
                         else
                             default_prob.complex[Complex::Complex::Angle(boost::rational<boost::multiprecision::cpp_int>(fivetuple_counter++, 8))] = {{"1", v}};
                     } catch (boost::bad_lexical_cast& e) {
@@ -865,7 +868,7 @@ Automata<Symbolic> TimbukParser<Symbolic>::from_tree_to_automaton(std::string tr
                     try {
                         auto v = boost::lexical_cast<boost::multiprecision::cpp_int>(t.c_str());
                         if (v == 0)
-                            sps.complex[Complex::Complex::Angle(boost::rational<boost::multiprecision::cpp_int>(fivetuple_counter++, 8))]; // = AUTOQ::Symbol::Symbolic::Map();
+                            fivetuple_counter++; // sps.complex[Complex::Complex::Angle(boost::rational<boost::multiprecision::cpp_int>(fivetuple_counter++, 8))]; // = AUTOQ::Symbol::Symbolic::Map();
                         else
                             sps.complex[Complex::Complex::Angle(boost::rational<boost::multiprecision::cpp_int>(fivetuple_counter++, 8))] = {{"1", v}};
                     } catch (boost::bad_lexical_cast& e) {
@@ -900,8 +903,8 @@ Automata<Symbolic> TimbukParser<Symbolic>::from_tree_to_automaton(std::string tr
     for (typename Automata<Symbolic>::State i=state_counter; i<=(state_counter<<1); i++) {
         auto spf = states_probs.find(i-state_counter);
         if (spf == states_probs.end()) {
-            if (default_prob == Symbolic())
-                throw std::runtime_error("[ERROR] The default amplitude is not specified!");
+            // if (default_prob == Symbolic())
+            //     throw std::runtime_error("[ERROR] The default amplitude is not specified!");
             aut.transitions[default_prob][i].insert({{}});
         }
         else

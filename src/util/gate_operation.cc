@@ -696,6 +696,47 @@ void AUTOQ::Automata<Symbol>::CU(int c, int t) {
     if (gateLog) std::cout << "CU" << c << "," << t << "：" << stateNum << " states " << count_transitions() << " transitions " << toString(duration) << "\n";
 }
 
+template <typename Symbol>
+AUTOQ::Automata<Symbol> AUTOQ::Automata<Symbol>::measure(int t, bool outcome) const {
+    #ifdef TO_QASM
+        system(("echo 'measure qubits[" + std::to_string(t-1) + "];' >> " + QASM_FILENAME).c_str());
+        return;
+    #endif
+    auto start = std::chrono::steady_clock::now();
+    auto aut = *this;
+    for (auto &tr : aut.transitions) {
+        if (tr.first.is_internal()) {
+            if (tr.first.symbol().qubit() == t) {
+                for (auto &out_ins : tr.second) {
+                    std::vector<StateVector> vec(out_ins.second.begin(), out_ins.second.end());
+                    for (auto &in : vec) {
+                        assert(in.size() == 2);
+                        assert(in.at(0) < aut.stateNum && in.at(1) < aut.stateNum);
+                        if (!outcome) { // connect the "true" branch to "zero"
+                            in.at(1) = aut.stateNum;
+                        } else { // connect the "false" branch to "zero"
+                            in.at(0) = aut.stateNum;
+                        }
+                    }
+                    out_ins.second = std::set<StateVector>(vec.begin(), vec.end());
+                }
+                aut.stateNum++;
+            }
+        }
+    }
+    for (int i=t+1; i<=aut.qubitNum; i++) {
+        aut.transitions[{i}][aut.stateNum-1].insert({aut.stateNum, aut.stateNum});
+        aut.stateNum++;
+    }
+    aut.transitions[Symbol()][aut.stateNum-1].insert({{}});
+    aut.remove_useless();
+    aut.reduce();
+    gateCount++;
+    auto duration = std::chrono::steady_clock::now() - start;
+    if (gateLog) std::cout << "measure " << t << "：" << aut.stateNum << " states " << aut.count_transitions() << " transitions " << toString(duration) << "\n";
+    return aut;
+}
+
 // void AUTOQ::Automata<Symbol>::Fredkin(int c, int t, int t2) {
 //     auto start = std::chrono::steady_clock::now();
 //     assert(c != t && t != t2 && t2 != c);

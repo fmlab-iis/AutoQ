@@ -79,6 +79,7 @@ public:   // data types
         }
         friend std::ostream& operator<<(std::ostream& os, const SymbolTag& obj) {
             os << obj.symbol(); // print only the symbol part without the tag
+            // os << obj.symbol() << AUTOQ::Util::Convert::ToString(obj.tag());
             return os;
         }
     };
@@ -205,6 +206,7 @@ public:
     void swap(int t1, int t2);
     void U(int t);
     void CU(int c, int t);
+    Automata measure(int t, bool outcome) const;
 
     /* Produce an automaton instance. */
     static Automata uniform(int n);

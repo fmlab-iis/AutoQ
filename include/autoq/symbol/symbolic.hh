@@ -11,6 +11,7 @@ namespace AUTOQ
 	{
         struct linear_combination;
         struct Symbolic;
+        struct SymbolicComplex;
 	}
 }
 
@@ -18,6 +19,13 @@ namespace AUTOQ
 typedef std::map<std::string, boost::multiprecision::cpp_int> stdmapstdstringboostmultiprecisioncpp_int;
 struct AUTOQ::Symbol::linear_combination : std::map<std::string, boost::multiprecision::cpp_int> {
     using stdmapstdstringboostmultiprecisioncpp_int::stdmapstdstringboostmultiprecisioncpp_int;
+    bool trueMustBeZero() const {
+        for (const auto &kv : *this) {
+            if (kv.second != 0)
+                return false;
+        }
+        return true;
+    }
     linear_combination operator+(linear_combination b) const {
         for (const auto &kv : *this) {
             auto k = kv.first;
@@ -80,17 +88,34 @@ struct AUTOQ::Symbol::linear_combination : std::map<std::string, boost::multipre
         return os;
     }
 };
+
+struct AUTOQ::Symbol::SymbolicComplex : std::map<Complex::Complex, AUTOQ::Symbol::linear_combination> {
+    SymbolicComplex operator*(int c) const {
+        SymbolicComplex result;
+        if (c != 0) {
+            for (const auto &kv : *this) {
+                result[kv.first] = kv.second * c;
+            }
+        }
+        return result;
+    }
+    friend std::ostream& operator<<(std::ostream& os, const SymbolicComplex& obj) {
+        os << AUTOQ::Util::Convert::ToString(static_cast<std::map<Complex::Complex, AUTOQ::Symbol::linear_combination>>(obj));
+        return os;
+    }
+};
 struct AUTOQ::Symbol::Symbolic {
 private:
     bool internal;
 public:
-    std::map<Complex::Complex, AUTOQ::Symbol::linear_combination> complex;
+    AUTOQ::Symbol::SymbolicComplex complex;
 
     // Notice that if we do not use is_convertible_v, type int will not be accepted in this case.
     template <typename T, typename = std::enable_if_t<std::is_convertible<T, boost::multiprecision::cpp_int>::value>>
         Symbolic(T qubit) : internal(true), complex({{Complex::Complex::One(), AUTOQ::Symbol::linear_combination({{"1", qubit}})}}) {}
     Symbolic(const std::map<Complex::Complex, AUTOQ::Symbol::linear_combination> &c) : internal(false), complex(c) {}
-    Symbolic() : internal(), complex() {} // prevent the compiler from complaining about the lack of default constructor
+    Symbolic() : internal(false), complex() {} // prevent the compiler from complaining about the lack of default constructor
+    // Symbolic() : internal(false), complex({{Complex::Complex::Zero(), AUTOQ::Symbol::linear_combination({{"1", 1}})}}) {} // prevent the compiler from complaining about the lack of default constructor
     bool is_internal() const { return internal; }
     bool is_leaf() const { return !internal; }
     boost::multiprecision::cpp_int qubit() const {
@@ -122,7 +147,7 @@ public:
         return Symbolic(complex2);
     }
     Symbolic operator*(const Symbolic &o) const {
-        std::map<Complex::Complex, AUTOQ::Symbol::linear_combination> complex2;
+        SymbolicComplex complex2;
         for (const auto &kv1 : complex) {
             for (const auto &kv2 : o.complex) {
                 complex2[kv1.first * kv2.first] = kv1.second * kv2.second;
@@ -135,25 +160,21 @@ public:
         the multiplication of two variables cannot be a "variable" anymore. */
     }
     Symbolic operator*(int c) const {
-        if (c == 0) return std::map<Complex::Complex, AUTOQ::Symbol::linear_combination>();
-        std::map<Complex::Complex, AUTOQ::Symbol::linear_combination> complex2;
-        for (const auto &kv : complex) {
-            complex2[kv.first] = kv.second * c;
-        }
-        return complex2;
+        return complex * c;
     }
     void fraction_simplification() {
-        // std::map<Complex::Complex, AUTOQ::Symbol::linear_combination> complex2;
-        // for (const auto &kv : complex) {
-        //     auto k = kv.first;
-        //     auto v = kv.second;
-        //     complex2[k.fraction_simplification()] = v;
-        // }
-        // complex = complex2;
+        SymbolicComplex complex2;
+        for (const auto &kv : complex) {
+            auto k = kv.first;
+            auto v = kv.second;
+            if (k.isZero() || v.trueMustBeZero()) continue;
+            complex2[k.fraction_simplification()] = complex2[k.fraction_simplification()] + v;
+        }
+        complex = complex2;
     }
     void omega_multiplication(int rotation=1) {
         if (rotation > 0) {
-            std::map<Complex::Complex, AUTOQ::Symbol::linear_combination> complex2;
+            SymbolicComplex complex2;
             for (const auto &kv : complex) {
                 auto k = kv.first;
                 auto v = kv.second;
@@ -162,7 +183,7 @@ public:
             complex = complex2;
         }
         if (rotation < 0) {
-            std::map<Complex::Complex, AUTOQ::Symbol::linear_combination> complex2;
+            SymbolicComplex complex2;
             for (const auto &kv : complex) {
                 auto k = kv.first;
                 auto v = kv.second;
@@ -172,7 +193,7 @@ public:
         }
     }
     void divide_by_the_square_root_of_two() {
-        std::map<Complex::Complex, AUTOQ::Symbol::linear_combination> complex2;
+        SymbolicComplex complex2;
         for (const auto &kv : complex) {
             auto k = kv.first;
             auto v = kv.second;
@@ -181,7 +202,7 @@ public:
         complex = complex2;
     }
     void negate() {
-        std::map<Complex::Complex, AUTOQ::Symbol::linear_combination> complex2;
+        SymbolicComplex complex2;
         for (const auto &kv : complex) {
             auto k = kv.first;
             auto v = kv.second;
@@ -190,7 +211,7 @@ public:
         complex = complex2;
     }
     void degree45cw() {
-        std::map<Complex::Complex, AUTOQ::Symbol::linear_combination> complex2;
+        SymbolicComplex complex2;
         for (const auto &kv : complex) {
             auto k = kv.first;
             auto v = kv.second;
@@ -199,7 +220,7 @@ public:
         complex = complex2;
     }
     void degree90cw() {
-        std::map<Complex::Complex, AUTOQ::Symbol::linear_combination> complex2;
+        SymbolicComplex complex2;
         for (const auto &kv : complex) {
             auto k = kv.first;
             auto v = kv.second;

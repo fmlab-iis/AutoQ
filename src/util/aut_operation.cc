@@ -5,6 +5,7 @@
 #include <autoq/symbol/predicate.hh>
 #include <autoq/util/util.hh>
 #include <autoq/inclusion.hh>
+#include <autoq/parsing/timbuk_parser.hh>
 #include <autoq/serialization/timbuk_serializer.hh>
 
 #include "simulation/explicit_lts.hh"
@@ -562,8 +563,8 @@ template <typename Symbol>
 AUTOQ::Automata<Symbol> Automata<Symbol>::operator-(const Automata &o) {
     return binary_operation(o, false);
 }
-template <>
-AUTOQ::Automata<AUTOQ::Symbol::Concrete> AUTOQ::Automata<AUTOQ::Symbol::Concrete>::operator*(int c) {
+template <typename Symbol>
+AUTOQ::Automata<Symbol> AUTOQ::Automata<Symbol>::operator*(int c) {
     auto result = *this;
     std::vector<SymbolTag> to_be_removed;
     TransitionMap to_be_inserted;
@@ -572,28 +573,6 @@ AUTOQ::Automata<AUTOQ::Symbol::Concrete> AUTOQ::Automata<AUTOQ::Symbol::Concrete
         if (symbol_tag.is_leaf()) {
             to_be_removed.push_back(symbol_tag);
             symbol_tag.first.complex = symbol_tag.first.complex * c; // *= c;
-            to_be_inserted[symbol_tag] = t.second;
-        }
-    }
-    for (const auto &t : to_be_removed)
-        result.transitions.erase(t);
-    for (const auto &t : to_be_inserted)
-        result.transitions.insert(t);
-    // fraction_simplification();
-    if (opLog) std::cout << __FUNCTION__ << "：" << stateNum << " states " << count_transitions() << " transitions\n";
-    return result;
-}
-template <>
-AUTOQ::Automata<AUTOQ::Symbol::Symbolic> AUTOQ::Automata<AUTOQ::Symbol::Symbolic>::operator*(int c) {
-    auto result = *this;
-    std::vector<SymbolTag> to_be_removed;
-    TransitionMap to_be_inserted;
-    for (const auto &t : result.transitions) {
-        SymbolTag symbol_tag = t.first;
-        if (symbol_tag.is_leaf()) {
-            to_be_removed.push_back(symbol_tag);
-            for (auto &kv : symbol_tag.first.complex) // std::map<Complex::Complex, AUTOQ::Symbol::linear_combination> complex;
-                kv.second = kv.second * c; // *= c;
             to_be_inserted[symbol_tag] = t.second;
         }
     }
@@ -1181,6 +1160,7 @@ void AUTOQ::Automata<Symbol>::fraction_simplification() {
 
 template <typename Symbol>
 void AUTOQ::Automata<Symbol>::execute(const char *filename) {
+    AUTOQ::Automata<Symbol> I, measure_to_continue, measure_to_break;
     std::ifstream qasm(filename);
     const std::regex digit("\\d+");
     const std::regex_iterator<std::string::iterator> END;
@@ -1188,7 +1168,7 @@ void AUTOQ::Automata<Symbol>::execute(const char *filename) {
     std::string line;
     while (getline(qasm, line)) {
         if (line.find("OPENQASM") == 0 || line.find("include ") == 0|| line.find("//") == 0) continue;
-        if (line.find("qreg ") == 0) {
+        if (line.find("qreg ") == 0 || line.find("qubit") == 0) {
             std::regex_iterator<std::string::iterator> it(line.begin(), line.end(), digit);
             while (it != END) {
                 if (atoi(it->str().c_str()) != static_cast<int>(qubitNum))
@@ -1275,8 +1255,61 @@ void AUTOQ::Automata<Symbol>::execute(const char *filename) {
                 ++it;
             }
             swap(pos[0], pos[1]);
+        } else if (line.find("while ") == 0) { // while (!measure problem[3]) { // loop-invariant.{spec|hsl}
+            std::regex_iterator<std::string::iterator> it(line.begin(), line.end(), digit);
+            std::vector<int> pos;
+            while (it != END) {
+                pos.push_back(1 + atoi(it->str().c_str()));
+                ++it;
+            }
+            assert(pos.size() == 1);
+            const std::regex spec("// *(.*)");
+            std::regex_iterator<std::string::iterator> it2(line.begin(), line.end(), spec);
+            auto str = std::string(filename);
+            str.resize(str.rfind('/'));
+            I = AUTOQ::Parsing::TimbukParser<Symbol>::FromFileToAutomata((str + std::string("/") + it2->str(1)).c_str());
+            std::cout << "We first verify \"P ⊆ I\" here." << std::endl;
+            this->print_language("P:\n");
+            I.print_language("I:\n");
+            // if (!AUTOQ::Automata<Symbol>::check_inclusion(*this, I)) {
+            //     throw std::runtime_error("[ERROR] The current automaton does not satisfy the upcoming while-loop invariant.");
+            //     exit(1);
+            // }
+            if (line.find("!measure") != std::string::npos) {
+                measure_to_continue = I.measure(pos.at(0), false);
+                measure_to_break = I.measure(pos.at(0), true);
+            } else { // while (measure ...
+                measure_to_continue = I.measure(pos.at(0), true);
+                measure_to_break = I.measure(pos.at(0), false);
+            }
+            *this = measure_to_continue;
+        } else if (line.find("} ") == 0) { // } // post.{spec|hsl}
+            const std::regex spec("// *(.*)");
+            std::regex_iterator<std::string::iterator> it(line.begin(), line.end(), spec);
+            auto str = std::string(filename);
+            str.resize(str.rfind('/'));
+            auto Q = AUTOQ::Parsing::TimbukParser<Symbol>::FromFileToAutomata((str + std::string("/") + it->str(1)).c_str());
+            measure_to_continue = *this; // is C(measure_to_continue)
+            std::cout << "Then we verify \"C(measure_to_continue) ⊆ I\" here." << std::endl;
+            measure_to_continue.print_language("C(measure_to_continue):\n");
+            I.print_language("I:\n");
+            // if (!AUTOQ::Automata<Symbol>::check_inclusion(measure_to_continue, I)) {
+            //     throw std::runtime_error("[ERROR] C(measure_to_continue) ⊈ I.");
+            //     exit(1);
+            // }
+            std::cout << "Then we verify \"measure_to_break ⊆ Q\" here." << std::endl;
+            measure_to_break.print_language("measure_to_break:\n");
+            Q.print_language("Q:\n");
+            // if (!AUTOQ::Automata<Symbol>::check_inclusion(measure_to_break, Q)) {
+            //     throw std::runtime_error("[ERROR] measure_to_break ⊈ Q.");
+            //     exit(1);
+            // }
+            *this = Q; // Use this postcondition to execute the remaining circuit!
         } else if (line.length() > 0)
             throw std::runtime_error("[ERROR] unsupported gate: " + line + ".");
+        fraction_simplification();
+        // print("\n" + line + "\n");
+        print_language((line + std::string("\n")).c_str());
     }
     qasm.close();
 }
