@@ -734,63 +734,66 @@ PredicateAutomata TimbukParser<Predicate>::from_tree_to_automaton(std::string tr
 template <>
 Automata<Concrete> TimbukParser<Concrete>::from_tree_to_automaton(std::string tree) {
     Automata<Concrete> aut;
-    // std::istringstream iss(tree);
-    // std::map<typename Automata<Concrete>::State, Concrete> states_probs;
-    // Complex::Complex default_prob;
-    // for (std::string state_prob; iss >> state_prob;) {
-    //     std::istringstream iss2(state_prob);
-    //     std::string state;
-    //     std::getline(iss2, state, ':');
-    //     if (states_probs.empty())
-    //         aut.qubitNum = state.length();
-    //     else if (aut.qubitNum != state.length())
-    //         throw std::runtime_error("[ERROR] The numbers of qubits are not the same in all basis states!");
-    //     std::string t;
-    //     if (state == "*") {
-    //         while (std::getline(iss2, t, ',')) {
-    //             try {
-    //                 default_prob.push_back(boost::lexical_cast<boost::multiprecision::cpp_int>(t.c_str()));
-    //             } catch (...) {
-    //                 throw std::runtime_error("[ERROR] The input entry \"" + t + "\" is not an integer!");
-    //             }
-    //         }
-    //     } else {
-    //         TreeAutomata::State s = std::stoll(state, nullptr, 2);
-    //         auto &sps = states_probs[s].complex;
-    //         while (std::getline(iss2, t, ',')) {
-    //             try {
-    //                 sps.push_back(boost::lexical_cast<boost::multiprecision::cpp_int>(t.c_str()));
-    //             } catch (...) {
-    //                 throw std::runtime_error("[ERROR] The input entry \"" + t + "\" is not an integer!");
-    //             }
-    //         }
-    //     }
-    // }
-    // typename Automata<Concrete>::State pow_of_two = 1;
-    // typename Automata<Concrete>::State state_counter = 0;
-    // for (unsigned level=1; level<=aut.qubitNum; level++) {
-    //     for (typename Automata<Concrete>::State i=0; i<pow_of_two; i++) {
-    //         aut.transitions[Concrete(level)][{(state_counter<<1)+1, (state_counter<<1)+2}] = {state_counter};
-    //         state_counter++;
-    //     }
-    //     pow_of_two <<= 1;
-    // }
-    // for (typename Automata<Concrete>::State i=state_counter; i<=(state_counter<<1); i++) {
-    //     auto spf = states_probs.find(i-state_counter);
-    //     if (spf == states_probs.end()) {
-    //         if (default_prob == Complex::Complex())
-    //             throw std::runtime_error("[ERROR] The default amplitude is not specified!");
-    //         if (default_prob.size() == 5)
-    //             aut.transitions[Concrete(default_prob)][i].insert({{}});
-    //         else
-    //             aut.transitions[Concrete(default_prob.at(0))][i].insert({{}});
-    //     }
-    //     else
-    //         aut.transitions[spf->second][i].insert({{}});
-    // }
-    // aut.finalStates.push_back(0);
-    // aut.stateNum = (state_counter<<1) + 1;
-    // aut.reduce();
+    std::istringstream iss(tree);
+    std::map<typename Automata<Concrete>::State, Concrete> states_probs;
+    Complex::Complex default_prob;
+    int fivetuple_counter = 0;
+    for (std::string state_prob; iss >> state_prob;) {
+        std::istringstream iss2(state_prob);
+        std::string state;
+        std::getline(iss2, state, ':');
+        if (states_probs.empty()) {
+            if (state == "*")
+                throw std::runtime_error("[ERROR] The numbers of qubits are not specified!");
+            aut.qubitNum = state.length();
+        } else if (state != "*" && aut.qubitNum != state.length())
+            throw std::runtime_error("[ERROR] The numbers of qubits are not the same in all basis states!");
+        std::string t;
+        if (state == "*") {
+            while (std::getline(iss2, t, ',')) {
+                try {
+                    default_prob.push_back(boost::lexical_cast<boost::multiprecision::cpp_int>(t.c_str()));
+                } catch (...) {
+                    throw std::runtime_error("[ERROR] The input entry \"" + t + "\" is not an integer!");
+                }
+            }
+        } else {
+            TreeAutomata::State s = std::stoll(state, nullptr, 2);
+            auto &sps = states_probs[s].complex;
+            while (std::getline(iss2, t, ',')) {
+                try {
+                    sps.push_back(boost::lexical_cast<boost::multiprecision::cpp_int>(t.c_str()));
+                } catch (...) {
+                    throw std::runtime_error("[ERROR] The input entry \"" + t + "\" is not an integer!");
+                }
+            }
+        }
+    }
+    typename Automata<Concrete>::State pow_of_two = 1;
+    typename Automata<Concrete>::State state_counter = 0;
+    for (unsigned level=1; level<=aut.qubitNum; level++) {
+        for (typename Automata<Concrete>::State i=0; i<pow_of_two; i++) {
+            aut.transitions[Concrete(level)][state_counter].insert({(state_counter<<1)+1, (state_counter<<1)+2});
+            state_counter++;
+        }
+        pow_of_two <<= 1;
+    }
+    for (typename Automata<Concrete>::State i=state_counter; i<=(state_counter<<1); i++) {
+        auto spf = states_probs.find(i-state_counter);
+        if (spf == states_probs.end()) {
+            if (default_prob == Complex::Complex())
+                throw std::runtime_error("[ERROR] The default amplitude is not specified!");
+            if (default_prob.size() == 5)
+                aut.transitions[Concrete(default_prob)][i].insert({{}});
+            else
+                aut.transitions[Concrete(default_prob.at(0))][i].insert({{}});
+        }
+        else
+            aut.transitions[spf->second][i].insert({{}});
+    }
+    aut.finalStates.insert(0);
+    aut.stateNum = (state_counter<<1) + 1;
+    aut.reduce();
 
     return aut;
 }
@@ -799,80 +802,114 @@ template <>
 Automata<Symbolic> TimbukParser<Symbolic>::from_tree_to_automaton(std::string tree) {
     Automata<Symbolic> aut;
     std::istringstream iss(tree);
-    // std::map<typename Automata<Symbolic>::State, Symbolic> states_probs;
-    // std::vector<AUTOQ::Symbol::linear_combination> default_prob;
-    // for (std::string state_prob; iss >> state_prob;) {
-    //     std::istringstream iss2(state_prob);
-    //     std::string state;
-    //     std::getline(iss2, state, ':');
-    //     if (states_probs.empty())
-    //         aut.qubitNum = state.length();
-    //     else if (aut.qubitNum != state.length())
-    //         throw std::runtime_error("[ERROR] The numbers of qubits are not the same in all basis states!");
-    //     std::string t;
-    //     if (state == "*") {
-    //         while (std::getline(iss2, t, ',')) {
-    //             try {
-    //                 auto v = boost::lexical_cast<boost::multiprecision::cpp_int>(t.c_str());
-    //                 if (v == 0)
-    //                     default_prob.push_back(AUTOQ::Symbol::linear_combination());
-    //                 else
-    //                     default_prob.push_back({{"1", v}});
-    //             } catch (boost::bad_lexical_cast& e) {
-    //                 default_prob.push_back({{t.c_str(), 1}});
-    //             }
-    //         }
-    //     } else {
-    //         SymbolicAutomata::State s = std::stoll(state, nullptr, 2);
-    //         auto &sps = states_probs[s].complex;
-    //         boost::rational<boost::multiprecision::cpp_int> theta = 0;
-    //         while (std::getline(iss2, t, ',')) {
-    //             assert(theta <= boost::rational<boost::multiprecision::cpp_int>(1, 2));
-    //             try {
-    //                 auto v = boost::lexical_cast<boost::multiprecision::cpp_int>(t.c_str());
-    //                 if (theta == boost::rational<boost::multiprecision::cpp_int>(1, 2)) {
-    //                     std::map<Complex::Complex, AUTOQ::Symbol::linear_combination> complex2;
-    //                     for (const auto &kv : sps) {
-    //                         auto k = kv.first;
-    //                         complex2[k.divide_by_the_square_root_of_two(static_cast<int>(v))] = kv.second;
-    //                     }
-    //                     sps = complex2;
-    //                 }
-    //                 if (v != 0)
-    //                     sps[Complex::Complex(theta)]["1"] += v;
-    //             } catch (boost::bad_lexical_cast& e) {
-    //                 sps[Complex::Complex(theta)][t.c_str()] += 1;
-    //             }
-    //             theta += boost::rational<boost::multiprecision::cpp_int>(1, 8);
-    //         }
-    //     }
-    // }
-    // typename Automata<Symbolic>::State pow_of_two = 1;
-    // typename Automata<Symbolic>::State state_counter = 0;
-    // for (int level=1; level<=aut.qubitNum; level++) {
-    //     for (typename Automata<Symbolic>::State i=0; i<pow_of_two; i++) {
-    //         aut.transitions[Symbolic(level)][{(state_counter<<1)+1, (state_counter<<1)+2}] = {state_counter};
-    //         state_counter++;
-    //     }
-    //     pow_of_two <<= 1;
-    // }
-    // for (typename Automata<Symbolic>::State i=state_counter; i<=(state_counter<<1); i++) {
-    //     auto spf = states_probs.find(i-state_counter);
-    //     if (spf == states_probs.end()) {
-    //         if (default_prob == std::vector<AUTOQ::Symbol::linear_combination>())
-    //             throw std::runtime_error("[ERROR] The default amplitude is not specified!");
-    //         auto ds = SymbolicAutomata::Symbol({{Complex::Complex::Angle(0).divide_by_the_square_root_of_two(static_cast<int>(default_prob.at(4).at("1"))), default_prob.at(0)},
-    //                                             {Complex::Complex::Angle(boost::rational<boost::multiprecision::cpp_int>(1, 8)).divide_by_the_square_root_of_two(static_cast<int>(default_prob.at(4).at("1"))), default_prob.at(1)},
-    //                                             {Complex::Complex::Angle(boost::rational<boost::multiprecision::cpp_int>(2, 8)).divide_by_the_square_root_of_two(static_cast<int>(default_prob.at(4).at("1"))), default_prob.at(2)},
-    //                                             {Complex::Complex::Angle(boost::rational<boost::multiprecision::cpp_int>(3, 8)).divide_by_the_square_root_of_two(static_cast<int>(default_prob.at(4).at("1"))), default_prob.at(3)}});
-    //         aut.transitions[ds][i].insert({{}});
-    //     }
-    //     else
-    //         aut.transitions[spf->second][i].insert({{}});
-    // }
-    // aut.finalStates.push_back(0);
-    // aut.stateNum = (state_counter<<1) + 1;
-    // aut.reduce();
+    std::map<typename Automata<Symbolic>::State, Symbolic> states_probs;
+    Symbolic default_prob;
+    int fivetuple_counter = 0;
+    for (std::string state_prob; iss >> state_prob;) {
+        std::istringstream iss2(state_prob);
+        std::string state;
+        std::getline(iss2, state, ':');
+        if (states_probs.empty()) {
+            if (state == "*")
+                throw std::runtime_error("[ERROR] The numbers of qubits are not specified!");
+            aut.qubitNum = state.length();
+        } else if (state != "*" && aut.qubitNum != state.length())
+            throw std::runtime_error("[ERROR] The numbers of qubits are not the same in all basis states!");
+        std::string t;
+        if constexpr(std::is_same_v<Symbolic, TreeAutomata::Symbol>) {
+            if (state == "*") {
+                while (std::getline(iss2, t, ',')) {
+                    try {
+                        default_prob.complex[Complex::Complex::Angle(boost::rational<boost::multiprecision::cpp_int>(fivetuple_counter++, 8))] = {{"1", boost::lexical_cast<boost::multiprecision::cpp_int>(t.c_str())}};
+                        if (fivetuple_counter == 5) {
+                            fivetuple_counter = 0;
+                        }
+                    } catch (...) {
+                        throw std::runtime_error("[ERROR] The input entry \"" + t + "\" is not an integer!");
+                    }
+                }
+            } else {
+                TreeAutomata::State s = std::stoll(state, nullptr, 2);
+                auto &sps = states_probs[s];
+                while (std::getline(iss2, t, ',')) {
+                    try {
+                        sps.complex[Complex::Complex::Angle(boost::rational<boost::multiprecision::cpp_int>(fivetuple_counter++, 8))] = {{"1", boost::lexical_cast<boost::multiprecision::cpp_int>(t.c_str())}};
+                        if (fivetuple_counter == 5) {
+                            fivetuple_counter = 0;
+                        }
+                    } catch (...) {
+                        throw std::runtime_error("[ERROR] The input entry \"" + t + "\" is not an integer!");
+                    }
+                }
+            }
+        } else if constexpr(std::is_same_v<Symbolic, SymbolicAutomata::Symbol>) {
+            if (state == "*") {
+                while (std::getline(iss2, t, ',')) {
+                    try {
+                        auto v = boost::lexical_cast<boost::multiprecision::cpp_int>(t.c_str());
+                        if (v == 0)
+                            default_prob.complex[Complex::Complex::Angle(boost::rational<boost::multiprecision::cpp_int>(fivetuple_counter++, 8))]; // = AUTOQ::Symbol::Symbolic::Map();
+                        else
+                            default_prob.complex[Complex::Complex::Angle(boost::rational<boost::multiprecision::cpp_int>(fivetuple_counter++, 8))] = {{"1", v}};
+                    } catch (boost::bad_lexical_cast& e) {
+                        default_prob.complex[Complex::Complex::Angle(boost::rational<boost::multiprecision::cpp_int>(fivetuple_counter++, 8))] = {{t.c_str(), 1}};
+                    }
+                    if (fivetuple_counter == 5) {
+                        fivetuple_counter = 0;
+                    }
+                }
+            } else {
+                SymbolicAutomata::State s = std::stoll(state, nullptr, 2);
+                auto &sps = states_probs[s];
+                while (std::getline(iss2, t, ',')) {
+                    try {
+                        auto v = boost::lexical_cast<boost::multiprecision::cpp_int>(t.c_str());
+                        if (v == 0)
+                            sps.complex[Complex::Complex::Angle(boost::rational<boost::multiprecision::cpp_int>(fivetuple_counter++, 8))]; // = AUTOQ::Symbol::Symbolic::Map();
+                        else
+                            sps.complex[Complex::Complex::Angle(boost::rational<boost::multiprecision::cpp_int>(fivetuple_counter++, 8))] = {{"1", v}};
+                    } catch (boost::bad_lexical_cast& e) {
+                        sps.complex[Complex::Complex::Angle(boost::rational<boost::multiprecision::cpp_int>(fivetuple_counter++, 8))] = {{t.c_str(), 1}};
+                    }
+                    if (fivetuple_counter == 5) {
+                        fivetuple_counter = 0;
+                    }
+                }
+            }
+        } else { // if constexpr(std::is_same_v<Symbolic, PredicateAutomata::Symbol>) {
+            // if (state == "*") {
+            //     std::getline(iss2, t);
+            //     default_prob = Predicate(t.c_str());
+            // } else {
+            //     PredicateAutomata::State s = std::stoll(state, nullptr, 2);
+            //     auto &sps = states_probs[s];
+            //     std::getline(iss2, t);
+            //     sps = Predicate(t.c_str());
+            // }
+        }
+    }
+    typename Automata<Symbolic>::State pow_of_two = 1;
+    typename Automata<Symbolic>::State state_counter = 0;
+    for (int level=1; level<=aut.qubitNum; level++) {
+        for (typename Automata<Symbolic>::State i=0; i<pow_of_two; i++) {
+            aut.transitions[Symbolic(level)][state_counter].insert({(state_counter<<1)+1, (state_counter<<1)+2});
+            state_counter++;
+        }
+        pow_of_two <<= 1;
+    }
+    for (typename Automata<Symbolic>::State i=state_counter; i<=(state_counter<<1); i++) {
+        auto spf = states_probs.find(i-state_counter);
+        if (spf == states_probs.end()) {
+            if (default_prob == Symbolic())
+                throw std::runtime_error("[ERROR] The default amplitude is not specified!");
+            aut.transitions[default_prob][i].insert({{}});
+        }
+        else
+            aut.transitions[spf->second][i].insert({{}});
+    }
+    aut.finalStates.insert(0);
+    aut.stateNum = (state_counter<<1) + 1;
+    aut.reduce();
 
     return aut;
 }
