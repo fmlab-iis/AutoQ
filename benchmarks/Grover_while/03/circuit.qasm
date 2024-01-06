@@ -1,0 +1,56 @@
+OPENQASM 3;
+include "stdgates.inc";
+qubit[7] problem;
+
+h problem[4];
+h problem[5];
+h problem[6];
+ccx problem[4], problem[5], problem[0];
+ccx problem[0], problem[6], problem[1];
+cx problem[1], problem[3];
+ccx problem[0], problem[6], problem[1];
+ccx problem[4], problem[5], problem[0];
+cu problem[3], problem[2];
+ccx problem[4], problem[5], problem[0];
+ccx problem[0], problem[6], problem[1];
+cx problem[1], problem[3];
+ccx problem[0], problem[6], problem[1];
+ccx problem[4], problem[5], problem[0];
+
+while (!measure problem[2]) { // loop-invariant.spec
+x problem[3];
+h problem[3];
+ccx problem[4], problem[5], problem[0];
+ccx problem[0], problem[6], problem[1];
+cx problem[1], problem[3];
+ccx problem[0], problem[6], problem[1];
+ccx problem[4], problem[5], problem[0];
+h problem[3];
+x problem[3];
+h problem[4];
+h problem[5];
+h problem[6];
+x problem[4];
+x problem[5];
+x problem[6];
+ccx problem[4], problem[5], problem[0];
+cz problem[0], problem[6];
+ccx problem[4], problem[5], problem[0];
+x problem[4];
+x problem[5];
+x problem[6];
+h problem[4];
+h problem[5];
+h problem[6];
+ccx problem[4], problem[5], problem[0];
+ccx problem[0], problem[6], problem[1];
+cx problem[1], problem[3];
+ccx problem[0], problem[6], problem[1];
+ccx problem[4], problem[5], problem[0];
+cu problem[3], problem[2];
+ccx problem[4], problem[5], problem[0];
+ccx problem[0], problem[6], problem[1];
+cx problem[1], problem[3];
+ccx problem[0], problem[6], problem[1];
+ccx problem[4], problem[5], problem[0];
+} // post.spec
