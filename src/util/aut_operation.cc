@@ -1276,6 +1276,7 @@ void AUTOQ::Automata<Symbol>::execute(const char *filename) {
             std::cout << "We first verify \"P ⊆ I\" here." << std::endl;
             this->print_language("P:\n");
             I.print_language("I:\n");
+            this->remove_useless(); this->reduce(); I.remove_useless(); I.reduce();
             if (!is_scaled_spec_satisfied(*this, std::string(), I, constraintI)) {
                 throw std::runtime_error("[ERROR] The current automaton does not satisfy the upcoming while-loop invariant.");
                 exit(1);
@@ -1302,6 +1303,7 @@ void AUTOQ::Automata<Symbol>::execute(const char *filename) {
             std::cout << "Then we verify \"C(measure_to_continue) ⊆ I\" here." << std::endl;
             measure_to_continue.print_language("C(measure_to_continue):\n");
             I.print_language("I:\n");
+            measure_to_continue.remove_useless(); measure_to_continue.reduce(); // I.remove_useless(); I.reduce();
             if (!is_scaled_spec_satisfied(measure_to_continue, constraintI, I, constraintI)) {
                 throw std::runtime_error("[ERROR] C(measure_to_continue) ⊈ I.");
                 exit(1);
@@ -1309,6 +1311,7 @@ void AUTOQ::Automata<Symbol>::execute(const char *filename) {
             std::cout << "Then we verify \"measure_to_break ⊆ Q\" here." << std::endl;
             measure_to_break.print_language("measure_to_break:\n");
             Q.print_language("Q:\n");
+            measure_to_break.remove_useless(); measure_to_break.reduce(); Q.remove_useless(); Q.reduce();
             if (!is_scaled_spec_satisfied(measure_to_break, constraintI, Q, constraintQ)) {
                 throw std::runtime_error("[ERROR] measure_to_break ⊈ Q.");
                 exit(1);
@@ -1767,6 +1770,36 @@ bool AUTOQ::is_scaled_spec_satisfied(TreeAutomata R, std::string constraintR, Tr
     std::cout << __func__ << "\n";
     exit(1);
 }
+void generateNonEmptySubsets(std::set<std::set<int>> &all_possible_sat_ratio_combinations, const string &constraint, const std::vector<std::pair<AUTOQ::Symbol::SymbolicComplex, AUTOQ::Symbol::SymbolicComplex>> &ratioMap, const std::vector<int>& set, std::vector<int>& current, int index) {
+    if (current.size() >= 2) { // Check if the current subset is non-empty and not a singleton
+        // Print the current non-empty subset
+        // for (int num : current) {
+        //     std::cout << num << " ";
+        // }
+        // std::cout << std::endl;
+        std::string assertion = "(and";
+        for (int i=1; i<current.size(); ++i) {
+            const auto &c1 = ratioMap[current[i-1]];
+            const auto &c2 = ratioMap[current[i]];
+            assertion += " (= (- (* " + c1.first.realToSMT() + " " + c2.second.realToSMT() + ") (* " + c1.first.imagToSMT() + " " + c2.second.imagToSMT() + ")) (- (* " + c1.second.realToSMT() + " " + c2.first.realToSMT() + ") (* " + c1.second.imagToSMT() + " " + c2.first.imagToSMT() + ")))";
+            assertion += " (= (+ (* " + c1.first.realToSMT() + " " + c2.second.imagToSMT() + ") (* " + c1.first.imagToSMT() + " " + c2.second.realToSMT() + ")) (+ (* " + c1.second.realToSMT() + " " + c2.first.imagToSMT() + ") (* " + c1.second.imagToSMT() + " " + c2.first.realToSMT() + ")))";
+        }
+        assertion += ")";
+        if (!call_SMT_solver(constraint, assertion)) {
+            return;
+        }
+        all_possible_sat_ratio_combinations.insert(std::set<int>(current.begin(), current.end()));
+    }
+    for (int i = index; i < set.size(); ++i) { // Explore all possible elements to include in the current subset
+        current.push_back(set[i]);
+        generateNonEmptySubsets(all_possible_sat_ratio_combinations, constraint, ratioMap, set, current, i + 1); // Recursively generate non-empty subsets with the current element included
+        current.pop_back(); // Backtrack: Remove the current element to explore other possibilities
+    }
+}
+void enumerateNonEmptySubsets(std::set<std::set<int>> &all_possible_sat_ratio_combinations, const string &constraint, const std::vector<std::pair<AUTOQ::Symbol::SymbolicComplex, AUTOQ::Symbol::SymbolicComplex>> &ratioMap, const std::vector<int>& set) {
+    std::vector<int> current;
+    generateNonEmptySubsets(all_possible_sat_ratio_combinations, constraint, ratioMap, set, current, 0);
+}
 bool AUTOQ::is_scaled_spec_satisfied(SymbolicAutomata R, std::string constraintR, SymbolicAutomata Q, std::string constraintQ) {
     auto start = chrono::steady_clock::now();
 
@@ -1774,7 +1807,7 @@ bool AUTOQ::is_scaled_spec_satisfied(SymbolicAutomata R, std::string constraintR
     using StateSet = SymbolicAutomata::StateSet;
     using StateVector = SymbolicAutomata::StateVector;
     using SymbolicComplex = AUTOQ::Symbol::SymbolicComplex;
-    using StateScaleSet = std::set<std::pair<State, std::set<std::pair<SymbolicComplex, SymbolicComplex>>>>;
+    using StateScaleSet = std::set<std::pair<State, std::set<int>>>; // int <-> std::pair<SymbolicComplex, SymbolicComplex>
     StateSet As_finalStates(Q.finalStates.begin(), Q.finalStates.end());
     std::map<State, std::set<StateScaleSet>> processed; // Line 1: ← ∅;
     std::map<State, std::set<StateScaleSet>> worklist;
@@ -1844,6 +1877,8 @@ bool AUTOQ::is_scaled_spec_satisfied(SymbolicAutomata R, std::string constraintR
 
     /************************************/
     // Line 2-4: Construct the initial worklist!
+    std::map<std::pair<SymbolicComplex, SymbolicComplex>, int> ratioInverseMap;
+    std::vector<std::pair<SymbolicComplex, SymbolicComplex>> ratioMap;
     for (const auto &tr : R.transitions) {
         if (tr.first.is_leaf()) {
             const auto &vr = tr.first;
@@ -1866,7 +1901,13 @@ bool AUTOQ::is_scaled_spec_satisfied(SymbolicAutomata R, std::string constraintR
                         ) {
                             for (const auto &out_ins : tq.second) {
                                 auto uq = out_ins.first;
-                                Uq.insert({uq, {{cq, cr}}});
+                                auto it = ratioInverseMap.find({cq, cr});
+                                if (it == ratioInverseMap.end()) {
+                                    ratioInverseMap[{cq, cr}] = ratioInverseMap.size();
+                                    it = ratioInverseMap.find({cq, cr});
+                                    ratioMap.push_back({cq, cr});
+                                }
+                                Uq.insert({uq, {it->second}});
                             }
                         }
                     }
@@ -1891,6 +1932,17 @@ bool AUTOQ::is_scaled_spec_satisfied(SymbolicAutomata R, std::string constraintR
         }
     }
     // std::cout << "Worklist: " << AUTOQ::Util::Convert::ToString(worklist) << "\n";
+    /************************************/
+    // std::cout << AUTOQ::Util::Convert::ToString(ratioMap) << std::endl;
+    // std::cout << AUTOQ::Util::Convert::ToString(ratioInverseMap) << std::endl;
+
+    // Pre-compute satisfiabilities for all possible combinations of ratios for efficiency!
+    std::vector<int> ratioIDs(ratioMap.size());
+    std::iota(ratioIDs.begin(), ratioIDs.end(), 0);
+    // std::cout << AUTOQ::Util::Convert::ToString(ratioIDs) << std::endl;
+    std::set<std::set<int>> all_possible_sat_ratio_combinations;
+    enumerateNonEmptySubsets(all_possible_sat_ratio_combinations, constraintR + constraintQ, ratioMap, ratioIDs);
+
     /************************************/
     while (!worklist.empty()) { // Line 5
         /*********************************************/
@@ -1971,21 +2023,15 @@ bool AUTOQ::is_scaled_spec_satisfied(SymbolicAutomata R, std::string constraintR
                             const auto &c2_set = kv2.second;
                             /*********************************************/
                             // Line 14
-                            std::string assertion = "(and";
-                            for (const auto &c1 : c1_set)
-                                for (const auto &c2 : c2_set) {
-                                    assertion += " (= (- (* " + c1.first.realToSMT() + " " + c2.second.realToSMT() + ") (* " + c1.first.imagToSMT() + " " + c2.second.imagToSMT() + ")) (- (* " + c1.second.realToSMT() + " " + c2.first.realToSMT() + ") (* " + c1.second.imagToSMT() + " " + c2.first.imagToSMT() + ")))";
-                                    assertion += " (= (+ (* " + c1.first.realToSMT() + " " + c2.second.imagToSMT() + ") (* " + c1.first.imagToSMT() + " " + c2.second.realToSMT() + ")) (+ (* " + c1.second.realToSMT() + " " + c2.first.imagToSMT() + ") (* " + c1.second.imagToSMT() + " " + c2.first.realToSMT() + ")))";
-                                }
-                            assertion += ")";
-                            if (!call_SMT_solver(constraintR + constraintQ, assertion)) { // (c1_set == c2_set is unsat)
+                            std::set<int> unionSet;
+                            std::set_union(c1_set.begin(), c1_set.end(), c2_set.begin(), c2_set.end(), std::inserter(unionSet, unionSet.begin()));
+                            // std::vector<int> unionVector(unionSet.begin(), unionSet.end()); // Convert set to vector
+                            // std::sort(unionVector.begin(), unionVector.end()); // Sort the vector
+                            if (unionSet.size()>=2 && !all_possible_sat_ratio_combinations.contains(unionSet)) {
                                 continue;
                             }
                             /*********************************************/
                             // Line 15-16
-                            std::set<std::pair<SymbolicComplex, SymbolicComplex>> unionSet;
-                            std::set_union(c1_set.begin(), c1_set.end(), c2_set.begin(), c2_set.end(),
-                                std::inserter(unionSet, unionSet.begin()));
                             auto it = Q.transitions.find(alpha);
                             if (it != Q.transitions.end()) {
                                 for (const auto &out_ins : it->second) {
@@ -2055,21 +2101,15 @@ bool AUTOQ::is_scaled_spec_satisfied(SymbolicAutomata R, std::string constraintR
                             assert(!c2_set.empty());
                             /*********************************************/
                             // Line 14
-                            std::string assertion = "(and";
-                            for (const auto &c1 : c1_set)
-                                for (const auto &c2 : c2_set) {
-                                    assertion += " (= (- (* " + c1.first.realToSMT() + " " + c2.second.realToSMT() + ") (* " + c1.first.imagToSMT() + " " + c2.second.imagToSMT() + ")) (- (* " + c1.second.realToSMT() + " " + c2.first.realToSMT() + ") (* " + c1.second.imagToSMT() + " " + c2.first.imagToSMT() + ")))";
-                                    assertion += " (= (+ (* " + c1.first.realToSMT() + " " + c2.second.imagToSMT() + ") (* " + c1.first.imagToSMT() + " " + c2.second.realToSMT() + ")) (+ (* " + c1.second.realToSMT() + " " + c2.first.imagToSMT() + ") (* " + c1.second.imagToSMT() + " " + c2.first.realToSMT() + ")))";
-                                }
-                            assertion += ")";
-                            if (!call_SMT_solver(constraintR + constraintQ, assertion)) { // (c1_set == c2_set is unsat)
+                            std::set<int> unionSet;
+                            std::set_union(c1_set.begin(), c1_set.end(), c2_set.begin(), c2_set.end(), std::inserter(unionSet, unionSet.begin()));
+                            // std::vector<int> unionVector(unionSet.begin(), unionSet.end()); // Convert set to vector
+                            // std::sort(unionVector.begin(), unionVector.end()); // Sort the vector
+                            if (unionSet.size()>=2 && !all_possible_sat_ratio_combinations.contains(unionSet)) {
                                 continue;
                             }
                             /*********************************************/
                             // Line 15-16
-                            std::set<std::pair<SymbolicComplex, SymbolicComplex>> unionSet;
-                            std::set_union(c1_set.begin(), c1_set.end(), c2_set.begin(), c2_set.end(),
-                                std::inserter(unionSet, unionSet.begin()));
                             auto it = Q.transitions.find(alpha);
                             if (it != Q.transitions.end()) {
                                 for (const auto &out_ins : it->second) {

@@ -152,7 +152,6 @@ public:   // methods
 
 private:
     void state_renumbering();
-    void remove_useless(bool only_bottom_up=false);
     Automata binary_operation(const Automata &o, bool add);
     void swap_forward(const int k);
     void swap_backward(const int k);
@@ -185,6 +184,7 @@ public:
     bool light_reduce_down_iter();
     /// reduces the automaton using a prefered reduction
     void reduce();
+    void remove_useless(bool only_bottom_up=false);
 
     int count_states() const;
     int count_transitions() const;

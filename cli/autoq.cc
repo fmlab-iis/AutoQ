@@ -65,10 +65,15 @@ optional arguments:
         aut.reduce();
         AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Concrete>::findAndSplitSubstring(argv[3], automatonS, constraintS);
         AUTOQ::SymbolicAutomata spec = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Symbolic>::ParseString(automatonS);
+        spec.remove_useless();
+        spec.reduce();
         // AUTOQ::Constraint C(constraint.c_str());
         // std::cout << "OUTPUT AUTOMATON:\n";
         // std::cout << "=================\n";
-        // aut.print();
+        aut.print();
+        std::cout << "\n" << constraint << "\n";
+        spec.print();
+        std::cout << "\n" << constraintS << "\n";
         // std::cout << "=================\n";
         std::cout << "-\n" << AUTOQ::is_scaled_spec_satisfied(aut, constraint, spec, constraintS) << " " << toString(chrono::steady_clock::now() - startVer) << " " << getPeakRSS() / 1024 / 1024 << "MB\n";
     } else {
