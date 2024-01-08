@@ -87,6 +87,17 @@ struct AUTOQ::Symbol::linear_combination : std::map<std::string, boost::multipre
         }
         return os;
     }
+    std::string toSMT() const { // std::map<std::string, boost::multiprecision::cpp_int>
+        if (empty()) return "0";
+        std::string result = "(+";
+        for (const auto &kv : *this) {
+            auto k = kv.first;
+            auto v = kv.second;
+            result += " (* " + k + " " + v.str() + ")";
+        }
+        result += ")";
+        return result;
+    }
 };
 
 struct AUTOQ::Symbol::SymbolicComplex : std::map<Complex::Complex, AUTOQ::Symbol::linear_combination> {
@@ -102,6 +113,28 @@ struct AUTOQ::Symbol::SymbolicComplex : std::map<Complex::Complex, AUTOQ::Symbol
     friend std::ostream& operator<<(std::ostream& os, const SymbolicComplex& obj) {
         os << AUTOQ::Util::Convert::ToString(static_cast<std::map<Complex::Complex, AUTOQ::Symbol::linear_combination>>(obj));
         return os;
+    }
+    std::string realToSMT() const { // std::map<Complex::Complex, AUTOQ::Symbol::linear_combination> complex;
+        if (empty()) return "0";
+        std::string result = "(+";
+        for (const auto &kv : *this) {
+            auto k = kv.first;
+            auto v = kv.second;
+            result += " (* " + k.realToSMT() + " " + v.toSMT() + ")";
+        }
+        result += ")";
+        return result;
+    }
+    std::string imagToSMT() const { // std::map<Complex::Complex, AUTOQ::Symbol::linear_combination> complex;
+        if (empty()) return "0";
+        std::string result = "(+";
+        for (const auto &kv : *this) {
+            auto k = kv.first;
+            auto v = kv.second;
+            result += " (* " + k.imagToSMT() + " " + v.toSMT() + ")";
+        }
+        result += ")";
+        return result;
     }
 };
 struct AUTOQ::Symbol::Symbolic {

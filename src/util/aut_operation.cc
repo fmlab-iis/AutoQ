@@ -1160,6 +1160,7 @@ void AUTOQ::Automata<Symbol>::fraction_simplification() {
 
 template <typename Symbol>
 void AUTOQ::Automata<Symbol>::execute(const char *filename) {
+    std::string automatonI, constraintI, automatonQ, constraintQ;
     AUTOQ::Automata<Symbol> I, measure_to_continue, measure_to_break;
     std::ifstream qasm(filename);
     const std::regex digit("\\d+");
@@ -1267,14 +1268,18 @@ void AUTOQ::Automata<Symbol>::execute(const char *filename) {
             std::regex_iterator<std::string::iterator> it2(line.begin(), line.end(), spec);
             auto str = std::string(filename);
             str.resize(str.rfind('/'));
-            I = AUTOQ::Parsing::TimbukParser<Symbol>::FromFileToAutomata((str + std::string("/") + it2->str(1)).c_str());
+            /**************************************************************************************************************/
+            // I = AUTOQ::Parsing::TimbukParser<Symbol>::FromFileToAutomata((str + std::string("/") + it2->str(1)).c_str());
+            AUTOQ::Parsing::TimbukParser<Symbol>::findAndSplitSubstring((str + std::string("/") + it2->str(1)).c_str(), automatonI, constraintI);
+            I = AUTOQ::Parsing::TimbukParser<Symbol>::ParseString(automatonI);
+            /**************************************************************************************************************/
             std::cout << "We first verify \"P ⊆ I\" here." << std::endl;
             this->print_language("P:\n");
             I.print_language("I:\n");
-            // if (!AUTOQ::Automata<Symbol>::check_inclusion(*this, I)) {
-            //     throw std::runtime_error("[ERROR] The current automaton does not satisfy the upcoming while-loop invariant.");
-            //     exit(1);
-            // }
+            if (!is_scaled_spec_satisfied(*this, std::string(), I, constraintI)) {
+                throw std::runtime_error("[ERROR] The current automaton does not satisfy the upcoming while-loop invariant.");
+                exit(1);
+            }
             if (line.find("!measure") != std::string::npos) {
                 measure_to_continue = I.measure(pos.at(0), false);
                 measure_to_break = I.measure(pos.at(0), true);
@@ -1288,28 +1293,32 @@ void AUTOQ::Automata<Symbol>::execute(const char *filename) {
             std::regex_iterator<std::string::iterator> it(line.begin(), line.end(), spec);
             auto str = std::string(filename);
             str.resize(str.rfind('/'));
-            auto Q = AUTOQ::Parsing::TimbukParser<Symbol>::FromFileToAutomata((str + std::string("/") + it->str(1)).c_str());
+            /**************************************************************************************************************/
+            // auto Q = AUTOQ::Parsing::TimbukParser<Symbol>::FromFileToAutomata((str + std::string("/") + it->str(1)).c_str());
+            AUTOQ::Parsing::TimbukParser<Symbol>::findAndSplitSubstring((str + std::string("/") + it->str(1)).c_str(), automatonQ, constraintQ);
+            auto Q = AUTOQ::Parsing::TimbukParser<Symbol>::ParseString(automatonQ);
+            /**************************************************************************************************************/
             measure_to_continue = *this; // is C(measure_to_continue)
             std::cout << "Then we verify \"C(measure_to_continue) ⊆ I\" here." << std::endl;
             measure_to_continue.print_language("C(measure_to_continue):\n");
             I.print_language("I:\n");
-            // if (!AUTOQ::Automata<Symbol>::check_inclusion(measure_to_continue, I)) {
-            //     throw std::runtime_error("[ERROR] C(measure_to_continue) ⊈ I.");
-            //     exit(1);
-            // }
+            if (!is_scaled_spec_satisfied(measure_to_continue, constraintI, I, constraintI)) {
+                throw std::runtime_error("[ERROR] C(measure_to_continue) ⊈ I.");
+                exit(1);
+            }
             std::cout << "Then we verify \"measure_to_break ⊆ Q\" here." << std::endl;
             measure_to_break.print_language("measure_to_break:\n");
             Q.print_language("Q:\n");
-            // if (!AUTOQ::Automata<Symbol>::check_inclusion(measure_to_break, Q)) {
-            //     throw std::runtime_error("[ERROR] measure_to_break ⊈ Q.");
-            //     exit(1);
-            // }
+            if (!is_scaled_spec_satisfied(measure_to_break, constraintI, Q, constraintQ)) {
+                throw std::runtime_error("[ERROR] measure_to_break ⊈ Q.");
+                exit(1);
+            }
             *this = Q; // Use this postcondition to execute the remaining circuit!
         } else if (line.length() > 0)
             throw std::runtime_error("[ERROR] unsupported gate: " + line + ".");
         fraction_simplification();
         // print("\n" + line + "\n");
-        print_language((line + std::string("\n")).c_str());
+        // print_language((line + std::string("\n")).c_str());
     }
     qasm.close();
 }
@@ -1376,6 +1385,28 @@ bool AUTOQ::check_validity(Constraint C, const PredicateAutomata::Symbol &ps, co
         std::cout << smt_input << "\n";
         std::cout << str << "-\n";
         throw std::runtime_error("[ERROR] The solver Z3 did not correctly return SAT or UNSAT.\nIt's probably because the specification automaton is NOT a predicate automaton.");
+    }
+}
+bool AUTOQ::call_SMT_solver(const string &C, const string &str) {
+    std::string result;
+    // std::string str(ps);
+    // auto regToExpr = C.to_exprs(te);
+    // for (const auto &kv : regToExpr) // example: z3 <(echo '(declare-fun x () Int)(declare-fun z () Int)(assert (= z (+ x 3)))(check-sat)')
+    //     str = std::regex_replace(str, std::regex(kv.first), kv.second);
+    // std::cout << std::string(C) + "(assert (not " + str + "))(check-sat)\n";
+    std::string smt_input = "bash -c \"z3 <(echo '" + C + "(assert " + str + ")(check-sat)')\"";
+    // auto start = chrono::steady_clock::now();
+    // std::cout << smt_input << "\n";
+    ShellCmd(smt_input, result);
+    // std::cout << result << "\n";
+    // auto duration = chrono::steady_clock::now() - start;
+    // std::cout << toString2(duration) << "\n";
+    if (result == "unsat\n") return false;
+    else if (result == "sat\n") return true;
+    else {
+        std::cout << smt_input << "\n";
+        std::cout << result << "-\n";
+        throw std::runtime_error("[ERROR] The solver Z3 did not correctly return SAT or UNSAT.");
     }
 }
 bool AUTOQ::is_spec_satisfied(const Constraint &C, const SymbolicAutomata &Ae, const PredicateAutomata &As) {
@@ -1618,15 +1649,13 @@ bool AUTOQ::is_scaled_spec_satisfied(const TreeAutomata &R, const TreeAutomata &
                             }
                             /*********************************************/
                             // Line 15-16
+                            auto c = c1.isZero() ? c2 : c1;
                             auto it = Q.transitions.find(alpha);
                             if (it != Q.transitions.end()) {
                                 for (const auto &out_ins : it->second) {
                                     if (out_ins.second.contains({sq1, sq2})) {
                                         auto sq = out_ins.first;
-                                        if (c1.isZero())
-                                            Uq_.insert(std::make_pair(sq, c2));
-                                        else
-                                            Uq_.insert(std::make_pair(sq, c1));
+                                        Uq_.insert(std::make_pair(sq, c));
                                     }
                                 }
                             }
@@ -1692,15 +1721,13 @@ bool AUTOQ::is_scaled_spec_satisfied(const TreeAutomata &R, const TreeAutomata &
                             }
                             /*********************************************/
                             // Line 15-16
+                            auto c = c1.isZero() ? c2 : c1;
                             auto it = Q.transitions.find(alpha);
                             if (it != Q.transitions.end()) {
                                 for (const auto &out_ins : it->second) {
                                     if (out_ins.second.contains({sq1, sq2})) {
                                         auto sq = out_ins.first;
-                                        if (c1.isZero())
-                                            Uq_.insert(std::make_pair(sq, c2));
-                                        else
-                                            Uq_.insert(std::make_pair(sq, c1));
+                                        Uq_.insert(std::make_pair(sq, c));
                                     }
                                 }
                             }
@@ -1734,6 +1761,357 @@ bool AUTOQ::is_scaled_spec_satisfied(const TreeAutomata &R, const TreeAutomata &
             }
         }
     }
+    return true;
+}
+bool AUTOQ::is_scaled_spec_satisfied(TreeAutomata R, std::string constraintR, TreeAutomata Q, std::string constraintQ) {
+    std::cout << __func__ << "\n";
+    exit(1);
+}
+bool AUTOQ::is_scaled_spec_satisfied(SymbolicAutomata R, std::string constraintR, SymbolicAutomata Q, std::string constraintQ) {
+    auto start = chrono::steady_clock::now();
+
+    using State = SymbolicAutomata::State;
+    using StateSet = SymbolicAutomata::StateSet;
+    using StateVector = SymbolicAutomata::StateVector;
+    using SymbolicComplex = AUTOQ::Symbol::SymbolicComplex;
+    using StateScaleSet = std::set<std::pair<State, std::set<std::pair<SymbolicComplex, SymbolicComplex>>>>;
+    StateSet As_finalStates(Q.finalStates.begin(), Q.finalStates.end());
+    std::map<State, std::set<StateScaleSet>> processed; // Line 1: ← ∅;
+    std::map<State, std::set<StateScaleSet>> worklist;
+
+    const std::regex_iterator<std::string::iterator> END;
+    const std::regex var("\\(declare-fun[ ]+([^ ]+)[ ]+\\(\\)"); // (declare-fun v1 () Real)
+    /*********************************************************/
+    // Rename the variables in R's transitions and constraints!
+    std::regex_iterator<std::string::iterator> it(constraintR.begin(), constraintR.end(), var);
+    std::set<std::string> varsR, varsQ;
+    while (it != END) {
+        varsR.insert(it->str(1));
+        // std::cout << it->str(1) << "\n";
+        ++it;
+    }
+    auto transitions2 = R.transitions;
+    for (const auto &tr : transitions2) {
+        if (tr.first.symbol().is_leaf()) {
+            AUTOQ::Symbol::SymbolicComplex complex_new;
+            for (const auto &c_lc : tr.first.symbol().complex) { // std::map<Complex::Complex, AUTOQ::Symbol::linear_combination>
+                auto lc = c_lc.second;
+                AUTOQ::Symbol::linear_combination lc_new;
+                for (const auto &v_i : lc) { // std::map<std::string, boost::multiprecision::cpp_int>
+                    if (varsR.contains(v_i.first))
+                        lc_new[v_i.first + "_R"] = v_i.second;
+                    else
+                        lc_new[v_i.first] = v_i.second;
+                }
+                complex_new[c_lc.first] = lc_new;
+            }
+            R.transitions.erase(tr.first.symbol());
+            R.transitions[AUTOQ::Symbol::Symbolic(complex_new)] = tr.second;
+        }
+    }
+    for (const auto &var : varsR)
+        constraintR = std::regex_replace(constraintR, std::regex("(\\b" + var + "\\b)"), var + "_R");
+    /*********************************************************/
+    // Rename the variables in Q's transitions and constraints!
+    std::regex_iterator<std::string::iterator> it2(constraintQ.begin(), constraintQ.end(), var);
+    while (it2 != END) {
+        varsQ.insert(it2->str(1));
+        // std::cout << it2->str(1) << "\n";
+        ++it2;
+    }
+    transitions2 = Q.transitions;
+    for (const auto &tr : transitions2) {
+        if (tr.first.symbol().is_leaf()) {
+            AUTOQ::Symbol::SymbolicComplex complex_new;
+            for (const auto &c_lc : tr.first.symbol().complex) { // std::map<Complex::Complex, AUTOQ::Symbol::linear_combination>
+                auto lc = c_lc.second;
+                AUTOQ::Symbol::linear_combination lc_new;
+                for (const auto &v_i : lc) { // std::map<std::string, boost::multiprecision::cpp_int>
+                    if (varsQ.contains(v_i.first))
+                        lc_new[v_i.first + "_Q"] = v_i.second;
+                    else
+                        lc_new[v_i.first] = v_i.second;
+                }
+                complex_new[c_lc.first] = lc_new;
+            }
+            Q.transitions.erase(tr.first.symbol());
+            Q.transitions[AUTOQ::Symbol::Symbolic(complex_new)] = tr.second;
+        }
+    }
+    for (const auto &var : varsQ)
+        constraintQ = std::regex_replace(constraintQ, std::regex("(\\b" + var + "\\b)"), var + "_Q");
+    /*********************************************************/
+
+    /************************************/
+    // Line 2-4: Construct the initial worklist!
+    for (const auto &tr : R.transitions) {
+        if (tr.first.is_leaf()) {
+            const auto &vr = tr.first;
+            const auto &cr = vr.symbol().complex;
+            for (const auto &out_ins : tr.second) {
+                auto sr = out_ins.first;
+                StateScaleSet Uq;
+                for (const auto &tq : Q.transitions) {
+                    if (tq.first.is_leaf()) {
+                        const auto &vq = tq.first;
+                        const auto &cq = vq.symbol().complex;
+                        // std::cout << cq.realToSMT() << "\n";
+                        // std::cout << cq.imagToSMT() << "\n";
+                        // std::cout << cr.realToSMT() << "\n";
+                        // std::cout << cr.imagToSMT() << "\n";
+                        if (call_SMT_solver(constraintR + constraintQ,
+                                "(and (= " + cq.realToSMT() + " 0)(= " + cq.imagToSMT() + " 0)(= " + cr.realToSMT() + " 0)(= " + cr.imagToSMT() + " 0))") // cq == 0 && cr == 0
+                         || call_SMT_solver(constraintR + constraintQ,
+                                "(and (or (not (= " + cq.realToSMT() + " 0))(not (= " + cq.imagToSMT() + " 0)))(or (not (= " + cr.realToSMT() + " 0))(not (= " + cr.imagToSMT() + " 0))))") // cq != 0 && cr != 0
+                        ) {
+                            for (const auto &out_ins : tq.second) {
+                                auto uq = out_ins.first;
+                                Uq.insert({uq, {{cq, cr}}});
+                            }
+                        }
+                    }
+                }
+                #ifdef MIN
+                auto copy = worklist[sr]; // Min{...}
+                for (const auto &t : copy) {
+                    if (std::includes(t.begin(), t.end(), Uq.begin(), Uq.end()))
+                        worklist[sr].erase(t);
+                }
+                bool cancel = false;
+                for (const auto &t : worklist[sr]) {
+                    if (std::includes(Uq.begin(), Uq.end(), t.begin(), t.end())) {
+                        cancel = true;
+                        break;
+                    }
+                }
+                if (!cancel)
+                #endif
+                    worklist[sr].insert(Uq);
+            }
+        }
+    }
+    // std::cout << "Worklist: " << AUTOQ::Util::Convert::ToString(worklist) << "\n";
+    /************************************/
+    while (!worklist.empty()) { // Line 5
+        /*********************************************/
+        // Line 6
+        auto it = worklist.begin(); // const auto &it ?
+        if (it->second.empty()) {
+            worklist.erase(it);
+            continue;
+        }
+        auto sr = it->first;
+        auto Uq = *(it->second.begin());
+        it->second.erase(it->second.begin());
+        /*********************************************/
+        // Line 7
+        if (R.finalStates.contains(sr)) {
+            StateSet ss;
+            for (const auto &uq_c : Uq) {
+                auto uq = uq_c.first;
+                ss.insert(uq);
+            }
+            std::set<int> intersection; // Create a set to store the intersection
+            std::set_intersection( // Use set_intersection to find the common elements
+                ss.begin(), ss.end(),
+                Q.finalStates.begin(), Q.finalStates.end(),
+                std::inserter(intersection, intersection.begin())
+            );
+            if (intersection.empty()) { // Check if the intersection is empty
+                auto duration = chrono::steady_clock::now() - start;
+                std::cout << toString2(duration) << "\n";
+                return false;
+            }
+        }
+        /*********************************************/
+        // Line 8
+        #ifdef MIN
+        auto copy = processed[sr]; // Min{...}
+        for (const auto &t : copy) {
+            if (std::includes(t.begin(), t.end(), Uq.begin(), Uq.end()))
+                processed[sr].erase(t);
+        }
+        bool cancel = false;
+        for (const auto &t : processed[sr]) {
+            if (std::includes(Uq.begin(), Uq.end(), t.begin(), t.end())) {
+                cancel = true;
+                break;
+            }
+        }
+        if (!cancel)
+        #endif
+            processed[sr].insert(Uq);
+        // std::cout << AUTOQ::Util::Convert::ToString(processed) << "\n";
+        /*********************************************/
+        // Line 10
+        auto sr1 = sr;
+        const auto &Uq1 = Uq;
+        for (const auto &kv : processed) {
+            auto sr2 = kv.first;
+            for (const auto &Uq2 : kv.second) {
+                for (const auto &tr : R.transitions) {
+                    const auto &alpha = tr.first;
+                    /*********************************************/
+                    // Line 11
+                    StateSet Hr;
+                    for (const auto &out_ins : tr.second) {
+                        if (out_ins.second.contains({sr1, sr2})) {
+                            Hr.insert(out_ins.first);
+                        }
+                    }
+                    /*********************************************/
+                    StateScaleSet Uq_; // Line 12
+                    /*********************************************/
+                    // Line 13
+                    for (const auto &kv1 : Uq1) {
+                        const auto &sq1 = kv1.first;
+                        const auto &c1_set = kv1.second;
+                        for (const auto &kv2 : Uq2) {
+                            const auto &sq2 = kv2.first;
+                            const auto &c2_set = kv2.second;
+                            /*********************************************/
+                            // Line 14
+                            std::string assertion = "(and";
+                            for (const auto &c1 : c1_set)
+                                for (const auto &c2 : c2_set) {
+                                    assertion += " (= (- (* " + c1.first.realToSMT() + " " + c2.second.realToSMT() + ") (* " + c1.first.imagToSMT() + " " + c2.second.imagToSMT() + ")) (- (* " + c1.second.realToSMT() + " " + c2.first.realToSMT() + ") (* " + c1.second.imagToSMT() + " " + c2.first.imagToSMT() + ")))";
+                                    assertion += " (= (+ (* " + c1.first.realToSMT() + " " + c2.second.imagToSMT() + ") (* " + c1.first.imagToSMT() + " " + c2.second.realToSMT() + ")) (+ (* " + c1.second.realToSMT() + " " + c2.first.imagToSMT() + ") (* " + c1.second.imagToSMT() + " " + c2.first.realToSMT() + ")))";
+                                }
+                            assertion += ")";
+                            if (!call_SMT_solver(constraintR + constraintQ, assertion)) { // (c1_set == c2_set is unsat)
+                                continue;
+                            }
+                            /*********************************************/
+                            // Line 15-16
+                            std::set<std::pair<SymbolicComplex, SymbolicComplex>> unionSet;
+                            std::set_union(c1_set.begin(), c1_set.end(), c2_set.begin(), c2_set.end(),
+                                std::inserter(unionSet, unionSet.begin()));
+                            auto it = Q.transitions.find(alpha);
+                            if (it != Q.transitions.end()) {
+                                for (const auto &out_ins : it->second) {
+                                    if (out_ins.second.contains({sq1, sq2})) {
+                                        auto sq = out_ins.first;
+                                        Uq_.insert(std::make_pair(sq, unionSet));
+                                    }
+                                }
+                            }
+                            /*********************************************/
+                        }
+                    }
+                    /*********************************************/
+                    // Line 17-18
+                    for (const auto &sr_ : Hr) {
+                        if (!processed[sr_].contains(Uq_) && !worklist[sr_].contains(Uq_)) {
+                            #ifdef MIN
+                            auto copy = worklist[sr_]; // Min{...}
+                            for (const auto &t : copy) {
+                                if (std::includes(t.begin(), t.end(), Uq_.begin(), Uq_.end()))
+                                    worklist[sr_].erase(t);
+                            }
+                            bool cancel = false;
+                            for (const auto &t : worklist[sr_]) {
+                                if (std::includes(Uq_.begin(), Uq_.end(), t.begin(), t.end())) {
+                                    cancel = true;
+                                    break;
+                                }
+                            }
+                            if (!cancel)
+                            #endif
+                                worklist[sr_].insert(Uq_);
+                            // std::cout << AUTOQ::Util::Convert::ToString(worklist) << "\n";
+                        }
+                    }
+                    /*********************************************/
+                }
+            }
+        }
+        auto sr2 = sr;
+        const auto &Uq2 = Uq;
+        for (const auto &kv : processed) {
+            auto sr1 = kv.first;
+            for (const auto &Uq1 : kv.second) {
+                if (sr1 == sr2 && Uq1 == Uq2) continue;
+                for (const auto &tr : R.transitions) {
+                    const auto &alpha = tr.first;
+                    /*********************************************/
+                    // Line 11
+                    StateSet Hr;
+                    for (const auto &out_ins : tr.second) {
+                        if (out_ins.second.contains({sr1, sr2})) {
+                            Hr.insert(out_ins.first);
+                        }
+                    }
+                    /*********************************************/
+                    StateScaleSet Uq_; // Line 12
+                    /*********************************************/
+                    // Line 13
+                    for (const auto &kv1 : Uq1) {
+                        const auto &sq1 = kv1.first;
+                        const auto &c1_set = kv1.second;
+                        assert(!c1_set.empty());
+                        for (const auto &kv2 : Uq2) {
+                            const auto &sq2 = kv2.first;
+                            const auto &c2_set = kv2.second;
+                            assert(!c2_set.empty());
+                            /*********************************************/
+                            // Line 14
+                            std::string assertion = "(and";
+                            for (const auto &c1 : c1_set)
+                                for (const auto &c2 : c2_set) {
+                                    assertion += " (= (- (* " + c1.first.realToSMT() + " " + c2.second.realToSMT() + ") (* " + c1.first.imagToSMT() + " " + c2.second.imagToSMT() + ")) (- (* " + c1.second.realToSMT() + " " + c2.first.realToSMT() + ") (* " + c1.second.imagToSMT() + " " + c2.first.imagToSMT() + ")))";
+                                    assertion += " (= (+ (* " + c1.first.realToSMT() + " " + c2.second.imagToSMT() + ") (* " + c1.first.imagToSMT() + " " + c2.second.realToSMT() + ")) (+ (* " + c1.second.realToSMT() + " " + c2.first.imagToSMT() + ") (* " + c1.second.imagToSMT() + " " + c2.first.realToSMT() + ")))";
+                                }
+                            assertion += ")";
+                            if (!call_SMT_solver(constraintR + constraintQ, assertion)) { // (c1_set == c2_set is unsat)
+                                continue;
+                            }
+                            /*********************************************/
+                            // Line 15-16
+                            std::set<std::pair<SymbolicComplex, SymbolicComplex>> unionSet;
+                            std::set_union(c1_set.begin(), c1_set.end(), c2_set.begin(), c2_set.end(),
+                                std::inserter(unionSet, unionSet.begin()));
+                            auto it = Q.transitions.find(alpha);
+                            if (it != Q.transitions.end()) {
+                                for (const auto &out_ins : it->second) {
+                                    if (out_ins.second.contains({sq1, sq2})) {
+                                        auto sq = out_ins.first;
+                                        Uq_.insert(std::make_pair(sq, unionSet));
+                                    }
+                                }
+                            }
+                            /*********************************************/
+                        }
+                    }
+                    /*********************************************/
+                    // Line 17-18
+                    for (const auto &sr_ : Hr) {
+                        if (!processed[sr_].contains(Uq_) && !worklist[sr_].contains(Uq_)) {
+                            #ifdef MIN
+                            auto copy = worklist[sr_]; // Min{...}
+                            for (const auto &t : copy) {
+                                if (std::includes(t.begin(), t.end(), Uq_.begin(), Uq_.end()))
+                                    worklist[sr_].erase(t);
+                            }
+                            bool cancel = false;
+                            for (const auto &t : worklist[sr_]) {
+                                if (std::includes(Uq_.begin(), Uq_.end(), t.begin(), t.end())) {
+                                    cancel = true;
+                                    break;
+                                }
+                            }
+                            if (!cancel)
+                            #endif
+                                worklist[sr_].insert(Uq_);
+                            // std::cout << AUTOQ::Util::Convert::ToString(worklist) << "\n";
+                        }
+                    }
+                    /*********************************************/
+                }
+            }
+        }
+    }
+    auto duration = chrono::steady_clock::now() - start;
+    std::cout << toString2(duration) << "\n";
     return true;
 }
 

@@ -55,21 +55,22 @@ optional arguments:
         return 0;
     }
 
-    std::string automaton;
-    std::string constraint; // The following template argument does not matter.
+    std::string automaton, automatonS;
+    std::string constraint, constraintS; // The following template argument does not matter.
     if (AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Concrete>::findAndSplitSubstring(argv[1], automaton, constraint)) {
         auto startVer = chrono::steady_clock::now();
         AUTOQ::SymbolicAutomata aut = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Symbolic>::ParseString(automaton);
         aut.execute(argv[2]);
         // aut.fraction_simplification();
         aut.reduce();
-        AUTOQ::PredicateAutomata spec;// = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Predicate>::FromFileToAutomata(argv[3]);
-        AUTOQ::Constraint C(constraint.c_str());
-        std::cout << "OUTPUT AUTOMATON:\n";
-        std::cout << "=================\n";
-        aut.print();
-        std::cout << "=================\n";
-        // std::cout << "-\n" << AUTOQ::is_spec_satisfied(C, aut, spec) << " " << toString(chrono::steady_clock::now() - startVer) << " " << getPeakRSS() / 1024 / 1024 << "MB\n";
+        AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Concrete>::findAndSplitSubstring(argv[3], automatonS, constraintS);
+        AUTOQ::SymbolicAutomata spec = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Symbolic>::ParseString(automatonS);
+        // AUTOQ::Constraint C(constraint.c_str());
+        // std::cout << "OUTPUT AUTOMATON:\n";
+        // std::cout << "=================\n";
+        // aut.print();
+        // std::cout << "=================\n";
+        std::cout << "-\n" << AUTOQ::is_scaled_spec_satisfied(aut, constraint, spec, constraintS) << " " << toString(chrono::steady_clock::now() - startVer) << " " << getPeakRSS() / 1024 / 1024 << "MB\n";
     } else {
         AUTOQ::TreeAutomata aut = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Concrete>::FromFileToAutomata(argv[1]);
         // int stateBefore = aut.stateNum, transitionBefore = aut.transition_size();
