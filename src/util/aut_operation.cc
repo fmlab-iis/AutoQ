@@ -1160,7 +1160,8 @@ void AUTOQ::Automata<Symbol>::fraction_simplification() {
 // }
 
 template <typename Symbol>
-void AUTOQ::Automata<Symbol>::execute(const char *filename) {
+bool AUTOQ::Automata<Symbol>::execute(const char *filename) {
+    bool verify = true;
     std::string automatonI, constraintI, automatonQ, constraintQ;
     AUTOQ::Automata<Symbol> I, measure_to_continue, measure_to_break;
     std::ifstream qasm(filename);
@@ -1278,10 +1279,9 @@ void AUTOQ::Automata<Symbol>::execute(const char *filename) {
             // this->print_language("P:\n");
             // I.print_language("I:\n");
             this->remove_useless(); this->reduce(); I.remove_useless(); I.reduce();
-            if (!is_scaled_spec_satisfied(*this, std::string(), I, constraintI)) {
-                throw std::runtime_error("[ERROR] The current automaton does not satisfy the upcoming while-loop invariant.");
-                exit(1);
-            }
+            bool t = is_scaled_spec_satisfied(*this, std::string(), I, constraintI);
+            verify &= t;
+            if (!t) AUTOQ_ERROR("[ERROR] P ⊈ I.");
             if (line.find("!measure") != std::string::npos) {
                 measure_to_continue = I.measure(pos.at(0), false);
                 measure_to_break = I.measure(pos.at(0), true);
@@ -1305,19 +1305,18 @@ void AUTOQ::Automata<Symbol>::execute(const char *filename) {
             // measure_to_continue.print_language("C(measure_to_continue):\n");
             // I.print_language("I:\n");
             measure_to_continue.remove_useless(); measure_to_continue.reduce(); // I.remove_useless(); I.reduce();
-            if (!is_scaled_spec_satisfied(measure_to_continue, constraintI, I, constraintI)) {
-                throw std::runtime_error("[ERROR] C(measure_to_continue) ⊈ I.");
-                exit(1);
-            }
+            bool t = is_scaled_spec_satisfied(measure_to_continue, constraintI, I, constraintI);
+            verify &= t;
+            if (!t) AUTOQ_ERROR("[ERROR] C(measure_to_continue) ⊈ I.");
             std::cout << "Then we verify \"measure_to_break ⊆ Q\" here." << std::endl;
             // measure_to_break.print_language("measure_to_break:\n");
             // Q.print_language("Q:\n");
             measure_to_break.remove_useless(); measure_to_break.reduce(); Q.remove_useless(); Q.reduce();
-            if (!is_scaled_spec_satisfied(measure_to_break, constraintI, Q, constraintQ)) {
-                throw std::runtime_error("[ERROR] measure_to_break ⊈ Q.");
-                exit(1);
-            }
+            t = is_scaled_spec_satisfied(measure_to_break, constraintI, Q, constraintQ);
+            verify &= t;
+            if (!t) AUTOQ_ERROR("[ERROR] measure_to_break ⊈ Q.");
             *this = Q; // Use this postcondition to execute the remaining circuit!
+            gateCount--; // retract the excess counting of the measurement operator in the while loop guard
         } else if (line.length() > 0)
             throw std::runtime_error("[ERROR] unsupported gate: " + line + ".");
         fraction_simplification();
@@ -1325,6 +1324,7 @@ void AUTOQ::Automata<Symbol>::execute(const char *filename) {
         // print_language((line + std::string("\n")).c_str());
     }
     qasm.close();
+    return verify;
 }
 
 // std::string exec(const char* cmd) {

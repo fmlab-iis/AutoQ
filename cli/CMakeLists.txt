@@ -49,6 +49,11 @@ add_executable(autoq_pldi
   ${CMAKE_CURRENT_BINARY_DIR}/version.cc
 )
 
+add_executable(autoq_cav24
+  autoq_cav24.cc
+  ${CMAKE_CURRENT_BINARY_DIR}/version.cc
+)
+
 add_executable(caut_from_states
   caut_from_states.cc
   ${CMAKE_CURRENT_BINARY_DIR}/version.cc
@@ -84,6 +89,7 @@ endforeach()
 
 target_link_libraries(autoq libautoq)
 target_link_libraries(autoq_pldi libautoq)
+target_link_libraries(autoq_cav24 libautoq)
 target_link_libraries(caut_from_states libautoq)
 target_link_libraries(saut_from_states libautoq)
 target_link_libraries(paut_from_states libautoq)
