@@ -1771,41 +1771,6 @@ bool AUTOQ::is_scaled_spec_satisfied(TreeAutomata R, std::string constraintR, Tr
     std::cout << __func__ << "\n";
     exit(1);
 }
-void generateNonEmptySubsets(std::vector<bool> &all_possible_sat_ratio_combinations, const string &constraint, const std::vector<std::pair<AUTOQ::Symbol::SymbolicComplex, AUTOQ::Symbol::SymbolicComplex>> &ratioMap, const std::vector<int>& set, std::vector<int>& current, int index) {
-    if (current.size() == 1) {
-        all_possible_sat_ratio_combinations[1 << current[0]] = true;
-    }
-    if (current.size() >= 2) { // Check if the current subset is non-empty and not a singleton
-        // Print the current non-empty subset
-        // for (int num : current) {
-        //     std::cout << num << " ";
-        // }
-        // std::cout << std::endl;
-        std::string assertion = "(and";
-        unsigned currentSet = 1 << current[0];
-        for (int i=1; i<current.size(); ++i) {
-            const auto &c1 = ratioMap[current[i-1]];
-            const auto &c2 = ratioMap[current[i]];
-            assertion += " (= (- (* " + c1.first.realToSMT() + " " + c2.second.realToSMT() + ") (* " + c1.first.imagToSMT() + " " + c2.second.imagToSMT() + ")) (- (* " + c1.second.realToSMT() + " " + c2.first.realToSMT() + ") (* " + c1.second.imagToSMT() + " " + c2.first.imagToSMT() + ")))";
-            assertion += " (= (+ (* " + c1.first.realToSMT() + " " + c2.second.imagToSMT() + ") (* " + c1.first.imagToSMT() + " " + c2.second.realToSMT() + ")) (+ (* " + c1.second.realToSMT() + " " + c2.first.imagToSMT() + ") (* " + c1.second.imagToSMT() + " " + c2.first.realToSMT() + ")))";
-            currentSet |= 1 << current[i];
-        }
-        assertion += ")";
-        if (!call_SMT_solver(constraint, assertion)) {
-            return;
-        }
-        all_possible_sat_ratio_combinations[currentSet] = true; //.insert(unsigned(current.begin(), current.end()));
-    }
-    for (int i = index; i < set.size(); ++i) { // Explore all possible elements to include in the current subset
-        current.push_back(set[i]);
-        generateNonEmptySubsets(all_possible_sat_ratio_combinations, constraint, ratioMap, set, current, i + 1); // Recursively generate non-empty subsets with the current element included
-        current.pop_back(); // Backtrack: Remove the current element to explore other possibilities
-    }
-}
-void enumerateNonEmptySubsets(std::vector<bool> &all_possible_sat_ratio_combinations, const string &constraint, const std::vector<std::pair<AUTOQ::Symbol::SymbolicComplex, AUTOQ::Symbol::SymbolicComplex>> &ratioMap, const std::vector<int>& set) {
-    std::vector<int> current;
-    generateNonEmptySubsets(all_possible_sat_ratio_combinations, constraint, ratioMap, set, current, 0);
-}
 bool AUTOQ::is_scaled_spec_satisfied(SymbolicAutomata R, std::string constraintR, SymbolicAutomata Q, std::string constraintQ) {
     auto start = chrono::steady_clock::now();
 
@@ -1946,8 +1911,8 @@ bool AUTOQ::is_scaled_spec_satisfied(SymbolicAutomata R, std::string constraintR
     std::vector<int> ratioIDs(ratioMap.size());
     std::iota(ratioIDs.begin(), ratioIDs.end(), 0);
     // std::cout << AUTOQ::Util::Convert::ToString(ratioIDs) << std::endl;
-    std::vector<bool> all_possible_sat_ratio_combinations(1 << ratioIDs.size());
-    enumerateNonEmptySubsets(all_possible_sat_ratio_combinations, constraintR + constraintQ, ratioMap, ratioIDs);
+    std::vector<bool> DP(1 << ratioIDs.size()); // dynamic programming
+    std::vector<bool> DP_enable(1 << ratioIDs.size());
 
     /************************************/
     while (!worklist.empty()) { // Line 5
@@ -2034,7 +1999,33 @@ bool AUTOQ::is_scaled_spec_satisfied(SymbolicAutomata R, std::string constraintR
                             unsigned unionSet = c1_set | c2_set;
                             // std::vector<int> unionVector(unionSet.begin(), unionSet.end()); // Convert set to vector
                             // std::sort(unionVector.begin(), unionVector.end()); // Sort the vector
-                            if (!all_possible_sat_ratio_combinations[unionSet]) {
+                            if (!DP_enable[unionSet]) {
+                                auto x = unionSet;
+                                std::vector<int> current;
+                                for (int i = 0; x > 0; ++i) {
+                                    if (x & 1) {
+                                        current.push_back(i);
+                                    }
+                                    x >>= 1;
+                                }
+                                /*****************************/
+                                if (current.size() == 1) {
+                                    DP_enable[unionSet] = true;
+                                    DP[unionSet] = true;
+                                } else {
+                                    std::string assertion = "(and";
+                                    for (int i=1; i<current.size(); ++i) {
+                                        const auto &c1 = ratioMap[current[i-1]];
+                                        const auto &c2 = ratioMap[current[i]];
+                                        assertion += " (= (- (* " + c1.first.realToSMT() + " " + c2.second.realToSMT() + ") (* " + c1.first.imagToSMT() + " " + c2.second.imagToSMT() + ")) (- (* " + c1.second.realToSMT() + " " + c2.first.realToSMT() + ") (* " + c1.second.imagToSMT() + " " + c2.first.imagToSMT() + ")))";
+                                        assertion += " (= (+ (* " + c1.first.realToSMT() + " " + c2.second.imagToSMT() + ") (* " + c1.first.imagToSMT() + " " + c2.second.realToSMT() + ")) (+ (* " + c1.second.realToSMT() + " " + c2.first.imagToSMT() + ") (* " + c1.second.imagToSMT() + " " + c2.first.realToSMT() + ")))";
+                                    }
+                                    assertion += ")";
+                                    DP_enable[unionSet] = true;
+                                    DP[unionSet] = call_SMT_solver(constraintR + constraintQ, assertion);
+                                }
+                            }
+                            if (!DP[unionSet]) {
                                 continue;
                             }
                             /*********************************************/
@@ -2111,7 +2102,33 @@ bool AUTOQ::is_scaled_spec_satisfied(SymbolicAutomata R, std::string constraintR
                             unsigned unionSet = c1_set | c2_set;
                             // std::vector<int> unionVector(unionSet.begin(), unionSet.end()); // Convert set to vector
                             // std::sort(unionVector.begin(), unionVector.end()); // Sort the vector
-                            if (!all_possible_sat_ratio_combinations[unionSet]) {
+                            if (!DP_enable[unionSet]) {
+                                auto x = unionSet;
+                                std::vector<int> current;
+                                for (int i = 0; x > 0; ++i) {
+                                    if (x & 1) {
+                                        current.push_back(i);
+                                    }
+                                    x >>= 1;
+                                }
+                                /*****************************/
+                                if (current.size() == 1) {
+                                    DP_enable[unionSet] = true;
+                                    DP[unionSet] = true;
+                                } else {
+                                    std::string assertion = "(and";
+                                    for (int i=1; i<current.size(); ++i) {
+                                        const auto &c1 = ratioMap[current[i-1]];
+                                        const auto &c2 = ratioMap[current[i]];
+                                        assertion += " (= (- (* " + c1.first.realToSMT() + " " + c2.second.realToSMT() + ") (* " + c1.first.imagToSMT() + " " + c2.second.imagToSMT() + ")) (- (* " + c1.second.realToSMT() + " " + c2.first.realToSMT() + ") (* " + c1.second.imagToSMT() + " " + c2.first.imagToSMT() + ")))";
+                                        assertion += " (= (+ (* " + c1.first.realToSMT() + " " + c2.second.imagToSMT() + ") (* " + c1.first.imagToSMT() + " " + c2.second.realToSMT() + ")) (+ (* " + c1.second.realToSMT() + " " + c2.first.imagToSMT() + ") (* " + c1.second.imagToSMT() + " " + c2.first.realToSMT() + ")))";
+                                    }
+                                    assertion += ")";
+                                    DP_enable[unionSet] = true;
+                                    DP[unionSet] = call_SMT_solver(constraintR + constraintQ, assertion);
+                                }
+                            }
+                            if (!DP[unionSet]) {
                                 continue;
                             }
                             /*********************************************/
