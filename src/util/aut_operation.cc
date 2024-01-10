@@ -1317,7 +1317,7 @@ bool AUTOQ::Automata<Symbol>::execute(const char *filename, const std::string &c
             gateCount--; // retract the excess counting of the measurement operator in the while loop guard
         } else if (line.length() > 0)
             throw std::runtime_error("[ERROR] unsupported gate: " + line + ".");
-        fraction_simplification();
+        // fraction_simplification();
         // print("\n" + line + "\n");
         // print_language((line + std::string("\n")).c_str());
     }
@@ -1504,7 +1504,7 @@ bool AUTOQ::is_spec_satisfied(const Constraint &C, const SymbolicAutomata &Ae, c
 }
 
 #define MIN
-bool AUTOQ::is_scaled_spec_satisfied(const TreeAutomata &R, const TreeAutomata &Q) {
+bool AUTOQ::is_scaled_spec_satisfied(const TreeAutomata &R, std::string constraintR, const TreeAutomata &Q, std::string constraintQ) {
     using State = TreeAutomata::State;
     using StateSet = TreeAutomata::StateSet;
     using StateVector = TreeAutomata::StateVector;
@@ -1764,10 +1764,6 @@ bool AUTOQ::is_scaled_spec_satisfied(const TreeAutomata &R, const TreeAutomata &
         }
     }
     return true;
-}
-bool AUTOQ::is_scaled_spec_satisfied(TreeAutomata R, std::string constraintR, TreeAutomata Q, std::string constraintQ) {
-    std::cout << __func__ << "\n";
-    exit(1);
 }
 bool AUTOQ::is_scaled_spec_satisfied(SymbolicAutomata R, std::string constraintR, SymbolicAutomata Q, std::string constraintQ) {
     auto start = chrono::steady_clock::now();
