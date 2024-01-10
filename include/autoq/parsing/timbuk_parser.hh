@@ -47,6 +47,7 @@ public:   // methods
     static AUTOQ::Automata<Symbol> FromFileToAutomata(const char* filepath);
     static AUTOQ::Automata<Symbol> from_tree_to_automaton(std::string tree);
     static AUTOQ::Automata<Symbol> from_line_to_automaton(std::string line);
+    static AUTOQ::Automata<Symbol> split_automaton_and_constraint(const std::string& filename, std::string& constraint);
 
 	/**
 	 * @copydoc  AUTOQ::Parsing::AbstrParser::~AbstrParser

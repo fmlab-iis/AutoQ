@@ -22,13 +22,12 @@ std::string toString(std::chrono::steady_clock::duration tp);
 
 int main(int argc, char **argv) {
 try {
-    std::string automaton, constraint;
-    AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Symbolic>::findAndSplitSubstring(argv[1], automaton, constraint);
-    AUTOQ::SymbolicAutomata aut = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Symbolic>::ParseString(automaton);
+    std::string constraint;
+    AUTOQ::SymbolicAutomata aut = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Symbolic>::split_automaton_and_constraint(argv[1], constraint);
     aut.remove_useless();
     aut.reduce();
     auto start = chrono::steady_clock::now();
-    bool verify = aut.execute(argv[2]);
+    bool verify = aut.execute(argv[2], constraint);
     std::cout << aut.qubitNum << " & " << AUTOQ::SymbolicAutomata::gateCount
         << " & " << (verify ? "OK" : "Bug") << " & " << toString(chrono::steady_clock::now() - start) << " & " << getPeakRSS() / 1024 / 1024 << "MB\n";
     return 0;

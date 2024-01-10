@@ -1160,7 +1160,7 @@ void AUTOQ::Automata<Symbol>::fraction_simplification() {
 // }
 
 template <typename Symbol>
-bool AUTOQ::Automata<Symbol>::execute(const char *filename) {
+bool AUTOQ::Automata<Symbol>::execute(const char *filename, const std::string &constraint) {
     bool verify = true;
     std::string automatonI, constraintI, automatonQ, constraintQ;
     AUTOQ::Automata<Symbol> I, measure_to_continue, measure_to_break;
@@ -1272,14 +1272,13 @@ bool AUTOQ::Automata<Symbol>::execute(const char *filename) {
             str.resize(str.rfind('/'));
             /**************************************************************************************************************/
             // I = AUTOQ::Parsing::TimbukParser<Symbol>::FromFileToAutomata((str + std::string("/") + it2->str(1)).c_str());
-            AUTOQ::Parsing::TimbukParser<Symbol>::findAndSplitSubstring((str + std::string("/") + it2->str(1)).c_str(), automatonI, constraintI);
-            I = AUTOQ::Parsing::TimbukParser<Symbol>::ParseString(automatonI);
+            I = AUTOQ::Parsing::TimbukParser<Symbol>::split_automaton_and_constraint(str + std::string("/") + it2->str(1), constraintI);
             /**************************************************************************************************************/
             std::cout << "We first verify \"P ⊆ I\" here." << std::endl;
             // this->print_language("P:\n");
             // I.print_language("I:\n");
             this->remove_useless(); this->reduce(); I.remove_useless(); I.reduce();
-            bool t = is_scaled_spec_satisfied(*this, std::string(), I, constraintI);
+            bool t = is_scaled_spec_satisfied(*this, constraint, I, constraintI);
             verify &= t;
             if (!t) AUTOQ_ERROR("[ERROR] P ⊈ I.");
             if (line.find("!measure") != std::string::npos) {
@@ -1297,8 +1296,7 @@ bool AUTOQ::Automata<Symbol>::execute(const char *filename) {
             str.resize(str.rfind('/'));
             /**************************************************************************************************************/
             // auto Q = AUTOQ::Parsing::TimbukParser<Symbol>::FromFileToAutomata((str + std::string("/") + it->str(1)).c_str());
-            AUTOQ::Parsing::TimbukParser<Symbol>::findAndSplitSubstring((str + std::string("/") + it->str(1)).c_str(), automatonQ, constraintQ);
-            auto Q = AUTOQ::Parsing::TimbukParser<Symbol>::ParseString(automatonQ);
+            auto Q = AUTOQ::Parsing::TimbukParser<Symbol>::split_automaton_and_constraint(str + std::string("/") + it->str(1), constraintQ);
             /**************************************************************************************************************/
             measure_to_continue = *this; // is C(measure_to_continue)
             std::cout << "Then we verify \"C(measure_to_continue) ⊆ I\" here." << std::endl;

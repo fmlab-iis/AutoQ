@@ -98,6 +98,9 @@ struct AUTOQ::Symbol::linear_combination : std::map<std::string, boost::multipre
         result += ")";
         return result;
     }
+    boost::multiprecision::cpp_int toInt() const {
+        return at("1");
+    }
 };
 
 struct AUTOQ::Symbol::SymbolicComplex : std::map<Complex::Complex, AUTOQ::Symbol::linear_combination> {
