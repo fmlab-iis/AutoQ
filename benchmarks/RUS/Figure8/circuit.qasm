@@ -10,9 +10,8 @@ cx problem[0], problem[1];
 t problem[0];
 h problem[0];
 x problem[0];
-s problem[0];
 
-while (!measure problem[0]) { // loop-invariant.spec
+while (!measure problem[0]) { // loop-invariant.aut
 h problem[0];
 t problem[0];
 cx problem[0], problem[1];
@@ -21,5 +20,4 @@ cx problem[0], problem[1];
 t problem[0];
 h problem[0];
 x problem[0];
-s problem[0];
-} // post.spec
+} // post.aut

@@ -1274,7 +1274,7 @@ bool AUTOQ::Automata<Symbol>::execute(const char *filename, const std::string &c
             // I = AUTOQ::Parsing::TimbukParser<Symbol>::FromFileToAutomata((str + std::string("/") + it2->str(1)).c_str());
             I = AUTOQ::Parsing::TimbukParser<Symbol>::split_automaton_and_constraint(str + std::string("/") + it2->str(1), constraintI);
             /**************************************************************************************************************/
-            std::cout << "We first verify \"P ⊆ I\" here." << std::endl;
+            // std::cout << "We first verify \"P ⊆ I\" here." << std::endl;
             // this->print_language("P:\n");
             // I.print_language("I:\n");
             this->remove_useless(); this->reduce(); I.remove_useless(); I.reduce();
@@ -1299,14 +1299,14 @@ bool AUTOQ::Automata<Symbol>::execute(const char *filename, const std::string &c
             auto Q = AUTOQ::Parsing::TimbukParser<Symbol>::split_automaton_and_constraint(str + std::string("/") + it->str(1), constraintQ);
             /**************************************************************************************************************/
             measure_to_continue = *this; // is C(measure_to_continue)
-            std::cout << "Then we verify \"C(measure_to_continue) ⊆ I\" here." << std::endl;
+            // std::cout << "Then we verify \"C(measure_to_continue) ⊆ I\" here." << std::endl;
             // measure_to_continue.print_language("C(measure_to_continue):\n");
             // I.print_language("I:\n");
             measure_to_continue.remove_useless(); measure_to_continue.reduce(); // I.remove_useless(); I.reduce();
             bool t = is_scaled_spec_satisfied(measure_to_continue, constraintI, I, constraintI);
             verify &= t;
             if (!t) AUTOQ_ERROR("[ERROR] C(measure_to_continue) ⊈ I.");
-            std::cout << "Then we verify \"measure_to_break ⊆ Q\" here." << std::endl;
+            // std::cout << "Then we verify \"measure_to_break ⊆ Q\" here." << std::endl;
             // measure_to_break.print_language("measure_to_break:\n");
             // Q.print_language("Q:\n");
             measure_to_break.remove_useless(); measure_to_break.reduce(); Q.remove_useless(); Q.reduce();
@@ -1504,11 +1504,23 @@ bool AUTOQ::is_spec_satisfied(const Constraint &C, const SymbolicAutomata &Ae, c
 }
 
 #define MIN
+struct PairComparator {
+    bool operator()(const std::pair<TreeAutomata::State, std::pair<Complex::Complex, Complex::Complex>> &lhs, const std::pair<TreeAutomata::State, std::pair<Complex::Complex, Complex::Complex>> &rhs) const {
+        auto lhsS = lhs.first;
+        auto rhsS = rhs.first;
+        auto lhsC = lhs.second;
+        auto rhsC = rhs.second;
+        return !(lhsS == rhsS && (
+            (lhsC.first.isZero() && rhsC.first.isZero()) ||
+            (!lhsC.first.isZero() && !rhsC.first.isZero() && (lhsC.first * rhsC.second).valueEqual(lhsC.second * rhsC.first))
+        ));
+    }
+};
 bool AUTOQ::is_scaled_spec_satisfied(const TreeAutomata &R, std::string constraintR, const TreeAutomata &Q, std::string constraintQ) {
     using State = TreeAutomata::State;
     using StateSet = TreeAutomata::StateSet;
     using StateVector = TreeAutomata::StateVector;
-    using StateScaleSet = std::set<std::pair<State, Complex::Complex>>;
+    using StateScaleSet = std::set<std::pair<State, std::pair<Complex::Complex, Complex::Complex>>, PairComparator>;
     StateSet As_finalStates(Q.finalStates.begin(), Q.finalStates.end());
     std::map<State, std::set<StateScaleSet>> processed; // Line 1: ← ∅;
     std::map<State, std::set<StateScaleSet>> worklist;
@@ -1530,7 +1542,7 @@ bool AUTOQ::is_scaled_spec_satisfied(const TreeAutomata &R, std::string constrai
                             if (cq.isZero()) {
                                 for (const auto &out_ins : tq.second) {
                                     auto uq = out_ins.first;
-                                    Uq.insert({uq, 0}); // here 0 := ?
+                                    Uq.insert({uq, {cr, cq}}); // here 0 := ?
                                 }
                             }
                         }
@@ -1543,7 +1555,7 @@ bool AUTOQ::is_scaled_spec_satisfied(const TreeAutomata &R, std::string constrai
                             if (!cq.isZero()) {
                                 for (const auto &out_ins : tq.second) {
                                     auto uq = out_ins.first;
-                                    Uq.insert({uq, cq / cr});
+                                    Uq.insert({uq, {cq, cr}});
                                 }
                             }
                         }
@@ -1640,18 +1652,18 @@ bool AUTOQ::is_scaled_spec_satisfied(const TreeAutomata &R, std::string constrai
                     // Line 13
                     for (const auto &kv1 : Uq1) {
                         const auto &sq1 = kv1.first;
-                        const auto &c1 = kv1.second;
+                        const auto &r1 = kv1.second;
                         for (const auto &kv2 : Uq2) {
                             const auto &sq2 = kv2.first;
-                            const auto &c2 = kv2.second;
+                            const auto &r2 = kv2.second;
                             /*********************************************/
                             // Line 14
-                            if (c1 != c2 && !c1.isZero() && !c2.isZero()) {
+                            if (!(r1.first * r2.second).valueEqual(r1.second * r2.first) && !r1.first.isZero() && !r2.first.isZero()) {
                                 continue;
                             }
                             /*********************************************/
                             // Line 15-16
-                            auto c = c1.isZero() ? c2 : c1;
+                            auto c = r1.first.isZero() ? r2 : r1;
                             auto it = Q.transitions.find(alpha);
                             if (it != Q.transitions.end()) {
                                 for (const auto &out_ins : it->second) {
@@ -1712,18 +1724,18 @@ bool AUTOQ::is_scaled_spec_satisfied(const TreeAutomata &R, std::string constrai
                     // Line 13
                     for (const auto &kv1 : Uq1) {
                         const auto &sq1 = kv1.first;
-                        const auto &c1 = kv1.second;
+                        const auto &r1 = kv1.second;
                         for (const auto &kv2 : Uq2) {
                             const auto &sq2 = kv2.first;
-                            const auto &c2 = kv2.second;
+                            const auto &r2 = kv2.second;
                             /*********************************************/
                             // Line 14
-                            if (c1 != c2 && !c1.isZero() && !c2.isZero()) {
+                            if (!(r1.first * r2.second).valueEqual(r1.second * r2.first) && !r1.first.isZero() && !r2.first.isZero()) {
                                 continue;
                             }
                             /*********************************************/
                             // Line 15-16
-                            auto c = c1.isZero() ? c2 : c1;
+                            auto c = r1.first.isZero() ? r2 : r1;
                             auto it = Q.transitions.find(alpha);
                             if (it != Q.transitions.end()) {
                                 for (const auto &out_ins : it->second) {
