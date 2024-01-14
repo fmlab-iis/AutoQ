@@ -1525,36 +1525,52 @@ bool AUTOQ::is_scaled_spec_satisfied(const TreeAutomata &R, std::string constrai
     std::map<State, std::set<StateScaleSet>> processed; // Line 1: ← ∅;
     std::map<State, std::set<StateScaleSet>> worklist;
 
+    TreeAutomata::TransitionMap2 R_transitions;
+    for (const auto &t : R.transitions) {
+        const auto &symbol_tag = t.first;
+        for (const auto &out_ins : t.second) {
+            auto s = out_ins.first;
+            for (const auto &in : out_ins.second)
+                R_transitions[symbol_tag][in].insert(s);
+        }
+    }
+    TreeAutomata::TransitionMap2 Q_transitions;
+    for (const auto &t : Q.transitions) {
+        const auto &symbol_tag = t.first;
+        for (const auto &out_ins : t.second) {
+            auto s = out_ins.first;
+            for (const auto &in : out_ins.second)
+                Q_transitions[symbol_tag][in].insert(s);
+        }
+    }
+
     /************************************/
     // Line 2-4: Construct the initial worklist!
-    for (const auto &tr : R.transitions) {
+    for (const auto &tr : R_transitions) {
         if (tr.first.is_leaf()) {
             const auto &vr = tr.first;
             const auto &cr = vr.symbol().complex;
-            for (const auto &out_ins : tr.second) {
-                auto sr = out_ins.first;
+            for (const auto &sr : tr.second.at({})) {
                 StateScaleSet Uq;
                 if (cr.isZero()) {
-                    for (const auto &tq : Q.transitions) {
+                    for (const auto &tq : Q_transitions) {
                         if (tq.first.is_leaf()) {
                             const auto &vq = tq.first;
                             const auto &cq = vq.symbol().complex;
                             if (cq.isZero()) {
-                                for (const auto &out_ins : tq.second) {
-                                    auto uq = out_ins.first;
+                                for (const auto &uq : tq.second.at({})) {
                                     Uq.insert({uq, {cr, cq}}); // here 0 := ?
                                 }
                             }
                         }
                     }
                 } else { // cr is not zero
-                    for (const auto &tq : Q.transitions) {
+                    for (const auto &tq : Q_transitions) {
                         if (tq.first.is_leaf()) {
                             const auto &vq = tq.first;
                             const auto &cq = vq.symbol().complex;
                             if (!cq.isZero()) {
-                                for (const auto &out_ins : tq.second) {
-                                    auto uq = out_ins.first;
+                                for (const auto &uq : tq.second.at({})) {
                                     Uq.insert({uq, {cq, cr}});
                                 }
                             }
@@ -1636,16 +1652,14 @@ bool AUTOQ::is_scaled_spec_satisfied(const TreeAutomata &R, std::string constrai
         for (const auto &kv : processed) {
             auto sr2 = kv.first;
             for (const auto &Uq2 : kv.second) {
-                for (const auto &tr : R.transitions) {
+                for (const auto &tr : R_transitions) {
                     const auto &alpha = tr.first;
                     /*********************************************/
                     // Line 11
-                    StateSet Hr;
-                    for (const auto &out_ins : tr.second) {
-                        if (out_ins.second.contains({sr1, sr2})) {
-                            Hr.insert(out_ins.first);
-                        }
-                    }
+                    auto Hr_ptr = tr.second.find({sr1, sr2});
+                    if (Hr_ptr == tr.second.end()) continue;
+                    StateSet Hr = Hr_ptr->second;
+                    if (Hr.empty()) continue;
                     /*********************************************/
                     StateScaleSet Uq_; // Line 12
                     /*********************************************/
@@ -1657,21 +1671,24 @@ bool AUTOQ::is_scaled_spec_satisfied(const TreeAutomata &R, std::string constrai
                             const auto &sq2 = kv2.first;
                             const auto &r2 = kv2.second;
                             /*********************************************/
+                            // Line 15
+                            StateSet sqSet;
+                            auto it = Q_transitions.find(alpha);
+                            if (it != Q_transitions.end()) {
+                                auto ptr = it->second.find({sq1, sq2});
+                                if (ptr == it->second.end()) continue;
+                                sqSet = ptr->second;
+                            }
+                            if (sqSet.empty()) continue;
                             // Line 14
                             if (!(r1.first * r2.second).valueEqual(r1.second * r2.first) && !r1.first.isZero() && !r2.first.isZero()) {
                                 continue;
                             }
                             /*********************************************/
-                            // Line 15-16
+                            // Line 16
                             auto c = r1.first.isZero() ? r2 : r1;
-                            auto it = Q.transitions.find(alpha);
-                            if (it != Q.transitions.end()) {
-                                for (const auto &out_ins : it->second) {
-                                    if (out_ins.second.contains({sq1, sq2})) {
-                                        auto sq = out_ins.first;
-                                        Uq_.insert(std::make_pair(sq, c));
-                                    }
-                                }
+                            for (const auto &sq : sqSet) {
+                                Uq_.insert(std::make_pair(sq, c));
                             }
                             /*********************************************/
                         }
@@ -1708,16 +1725,14 @@ bool AUTOQ::is_scaled_spec_satisfied(const TreeAutomata &R, std::string constrai
             auto sr1 = kv.first;
             for (const auto &Uq1 : kv.second) {
                 if (sr1 == sr2 && Uq1 == Uq2) continue;
-                for (const auto &tr : R.transitions) {
+                for (const auto &tr : R_transitions) {
                     const auto &alpha = tr.first;
                     /*********************************************/
                     // Line 11
-                    StateSet Hr;
-                    for (const auto &out_ins : tr.second) {
-                        if (out_ins.second.contains({sr1, sr2})) {
-                            Hr.insert(out_ins.first);
-                        }
-                    }
+                    auto Hr_ptr = tr.second.find({sr1, sr2});
+                    if (Hr_ptr == tr.second.end()) continue;
+                    StateSet Hr = Hr_ptr->second;
+                    if (Hr.empty()) continue;
                     /*********************************************/
                     StateScaleSet Uq_; // Line 12
                     /*********************************************/
@@ -1729,21 +1744,24 @@ bool AUTOQ::is_scaled_spec_satisfied(const TreeAutomata &R, std::string constrai
                             const auto &sq2 = kv2.first;
                             const auto &r2 = kv2.second;
                             /*********************************************/
+                            // Line 15
+                            StateSet sqSet;
+                            auto it = Q_transitions.find(alpha);
+                            if (it != Q_transitions.end()) {
+                                auto ptr = it->second.find({sq1, sq2});
+                                if (ptr == it->second.end()) continue;
+                                sqSet = ptr->second;
+                            }
+                            if (sqSet.empty()) continue;
                             // Line 14
                             if (!(r1.first * r2.second).valueEqual(r1.second * r2.first) && !r1.first.isZero() && !r2.first.isZero()) {
                                 continue;
                             }
                             /*********************************************/
-                            // Line 15-16
+                            // Line 16
                             auto c = r1.first.isZero() ? r2 : r1;
-                            auto it = Q.transitions.find(alpha);
-                            if (it != Q.transitions.end()) {
-                                for (const auto &out_ins : it->second) {
-                                    if (out_ins.second.contains({sq1, sq2})) {
-                                        auto sq = out_ins.first;
-                                        Uq_.insert(std::make_pair(sq, c));
-                                    }
-                                }
+                            for (const auto &sq : sqSet) {
+                                Uq_.insert(std::make_pair(sq, c));
                             }
                             /*********************************************/
                         }
@@ -1852,18 +1870,37 @@ bool AUTOQ::is_scaled_spec_satisfied(SymbolicAutomata R, std::string constraintR
         constraintQ = std::regex_replace(constraintQ, std::regex("(\\b" + var + "\\b)"), var + "_Q");
     /*********************************************************/
 
+    SymbolicAutomata::TransitionMap2 R_transitions;
+    for (const auto &t : R.transitions) {
+        const auto &symbol_tag = t.first;
+        for (const auto &out_ins : t.second) {
+            auto s = out_ins.first;
+            for (const auto &in : out_ins.second)
+                R_transitions[symbol_tag][in].insert(s);
+        }
+    }
+    SymbolicAutomata::TransitionMap2 Q_transitions;
+    for (const auto &t : Q.transitions) {
+        const auto &symbol_tag = t.first;
+        for (const auto &out_ins : t.second) {
+            auto s = out_ins.first;
+            for (const auto &in : out_ins.second)
+                Q_transitions[symbol_tag][in].insert(s);
+        }
+    }
+
+
     /************************************/
     // Line 2-4: Construct the initial worklist!
     std::map<std::pair<SymbolicComplex, SymbolicComplex>, int> ratioInverseMap;
     std::vector<std::pair<SymbolicComplex, SymbolicComplex>> ratioMap;
-    for (const auto &tr : R.transitions) {
+    for (const auto &tr : R_transitions) {
         if (tr.first.is_leaf()) {
             const auto &vr = tr.first;
             const auto &cr = vr.symbol().complex;
-            for (const auto &out_ins : tr.second) {
-                auto sr = out_ins.first;
+            for (const auto &sr : tr.second.at({})) {
                 StateScaleSet Uq;
-                for (const auto &tq : Q.transitions) {
+                for (const auto &tq : Q_transitions) {
                     if (tq.first.is_leaf()) {
                         const auto &vq = tq.first;
                         const auto &cq = vq.symbol().complex;
@@ -1876,8 +1913,7 @@ bool AUTOQ::is_scaled_spec_satisfied(SymbolicAutomata R, std::string constraintR
                          || call_SMT_solver(constraintR + constraintQ,
                                 "(and (or (not (= " + cq.realToSMT() + " 0))(not (= " + cq.imagToSMT() + " 0)))(or (not (= " + cr.realToSMT() + " 0))(not (= " + cr.imagToSMT() + " 0))))") // cq != 0 && cr != 0
                         ) {
-                            for (const auto &out_ins : tq.second) {
-                                auto uq = out_ins.first;
+                            for (const auto &uq : tq.second.at({})) {
                                 auto it = ratioInverseMap.find({cq, cr});
                                 if (it == ratioInverseMap.end()) {
                                     ratioInverseMap[{cq, cr}] = ratioInverseMap.size();
@@ -1978,16 +2014,14 @@ bool AUTOQ::is_scaled_spec_satisfied(SymbolicAutomata R, std::string constraintR
         for (const auto &kv : processed) {
             auto sr2 = kv.first;
             for (const auto &Uq2 : kv.second) {
-                for (const auto &tr : R.transitions) {
+                for (const auto &tr : R_transitions) {
                     const auto &alpha = tr.first;
                     /*********************************************/
                     // Line 11
-                    StateSet Hr;
-                    for (const auto &out_ins : tr.second) {
-                        if (out_ins.second.contains({sr1, sr2})) {
-                            Hr.insert(out_ins.first);
-                        }
-                    }
+                    auto Hr_ptr = tr.second.find({sr1, sr2});
+                    if (Hr_ptr == tr.second.end()) continue;
+                    StateSet Hr = Hr_ptr->second;
+                    if (Hr.empty()) continue;
                     /*********************************************/
                     StateScaleSet Uq_; // Line 12
                     /*********************************************/
@@ -2001,6 +2035,15 @@ bool AUTOQ::is_scaled_spec_satisfied(SymbolicAutomata R, std::string constraintR
                             const auto &c2_set = kv2.second;
                             assert(c2_set > 0);
                             /*********************************************/
+                            // Line 15
+                            StateSet sqSet;
+                            auto it = Q_transitions.find(alpha);
+                            if (it != Q_transitions.end()) {
+                                auto ptr = it->second.find({sq1, sq2});
+                                if (ptr == it->second.end()) continue;
+                                sqSet = ptr->second;
+                            }
+                            if (sqSet.empty()) continue;
                             // Line 14
                             unsigned unionSet = c1_set | c2_set;
                             // std::vector<int> unionVector(unionSet.begin(), unionSet.end()); // Convert set to vector
@@ -2035,15 +2078,9 @@ bool AUTOQ::is_scaled_spec_satisfied(SymbolicAutomata R, std::string constraintR
                                 continue;
                             }
                             /*********************************************/
-                            // Line 15-16
-                            auto it = Q.transitions.find(alpha);
-                            if (it != Q.transitions.end()) {
-                                for (const auto &out_ins : it->second) {
-                                    if (out_ins.second.contains({sq1, sq2})) {
-                                        auto sq = out_ins.first;
-                                        Uq_.insert(std::make_pair(sq, unionSet));
-                                    }
-                                }
+                            // Line 16
+                            for (const auto &sq : sqSet) {
+                                Uq_.insert(std::make_pair(sq, unionSet));
                             }
                             /*********************************************/
                         }
@@ -2081,16 +2118,14 @@ bool AUTOQ::is_scaled_spec_satisfied(SymbolicAutomata R, std::string constraintR
             auto sr1 = kv.first;
             for (const auto &Uq1 : kv.second) {
                 if (sr1 == sr2 && Uq1 == Uq2) continue;
-                for (const auto &tr : R.transitions) {
+                for (const auto &tr : R_transitions) {
                     const auto &alpha = tr.first;
                     /*********************************************/
                     // Line 11
-                    StateSet Hr;
-                    for (const auto &out_ins : tr.second) {
-                        if (out_ins.second.contains({sr1, sr2})) {
-                            Hr.insert(out_ins.first);
-                        }
-                    }
+                    auto Hr_ptr = tr.second.find({sr1, sr2});
+                    if (Hr_ptr == tr.second.end()) continue;
+                    StateSet Hr = Hr_ptr->second;
+                    if (Hr.empty()) continue;
                     /*********************************************/
                     StateScaleSet Uq_; // Line 12
                     /*********************************************/
@@ -2104,6 +2139,15 @@ bool AUTOQ::is_scaled_spec_satisfied(SymbolicAutomata R, std::string constraintR
                             const auto &c2_set = kv2.second;
                             assert(c2_set > 0);
                             /*********************************************/
+                            // Line 15
+                            StateSet sqSet;
+                            auto it = Q_transitions.find(alpha);
+                            if (it != Q_transitions.end()) {
+                                auto ptr = it->second.find({sq1, sq2});
+                                if (ptr == it->second.end()) continue;
+                                sqSet = ptr->second;
+                            }
+                            if (sqSet.empty()) continue;
                             // Line 14
                             unsigned unionSet = c1_set | c2_set;
                             // std::vector<int> unionVector(unionSet.begin(), unionSet.end()); // Convert set to vector
@@ -2138,15 +2182,9 @@ bool AUTOQ::is_scaled_spec_satisfied(SymbolicAutomata R, std::string constraintR
                                 continue;
                             }
                             /*********************************************/
-                            // Line 15-16
-                            auto it = Q.transitions.find(alpha);
-                            if (it != Q.transitions.end()) {
-                                for (const auto &out_ins : it->second) {
-                                    if (out_ins.second.contains({sq1, sq2})) {
-                                        auto sq = out_ins.first;
-                                        Uq_.insert(std::make_pair(sq, unionSet));
-                                    }
-                                }
+                            // Line 16
+                            for (const auto &sq : sqSet) {
+                                Uq_.insert(std::make_pair(sq, unionSet));
                             }
                             /*********************************************/
                         }
