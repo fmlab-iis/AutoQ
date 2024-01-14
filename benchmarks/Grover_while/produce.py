@@ -120,7 +120,7 @@ for n in range(3, 100):
     with open("post.spec", "w") as file:
         file.write("Numbers\n")
         file.write("c0 := 0\n")
-        file.write("v3\n")
+        file.write("c1 := 1\n")
         file.write("Transitions\n")
         file.write("[1](2, 1) -> 0\n")
         for i in range(2, n):
@@ -144,9 +144,7 @@ for n in range(3, 100):
         file.write(f"[c0] -> {5*(2*n+1) - 3*n - 4}\n")
         file.write(f"[c0] -> {5*(2*n+1) - 3*n - 3}\n")
         file.write(f"[c0] -> {5*(2*n+1) - 3*n - 2}\n")
-        file.write(f"[v3] -> {5*(2*n+1) - 3*n - 1}\n")
-        file.write("Constraints\n")
-        file.write("(declare-fun v3 () Real)\n")
+        file.write(f"[c1] -> {5*(2*n+1) - 3*n - 1}\n")
     #########################################
 
     os.chdir('..')

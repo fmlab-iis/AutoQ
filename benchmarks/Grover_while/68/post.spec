@@ -1,6 +1,6 @@
 Numbers
 c0 := 0
-v3
+c1 := 1
 Transitions
 [1](2, 1) -> 0
 [2](3, 3) -> 1
@@ -482,6 +482,4 @@ Transitions
 [c0] -> 477
 [c0] -> 478
 [c0] -> 479
-[v3] -> 480
-Constraints
-(declare-fun v3 () Real)
+[c1] -> 480

@@ -4,18 +4,22 @@ from ctypes import c_wchar_p
 from multiprocessing import Manager, Process, Semaphore, Lock
 
 # name = 'Table2.tex'
-TIMEOUT = 30000000
-NUM_OF_THREADS = 100
+TIMEOUT = 60 * 30
+NUM_OF_THREADS = 1
 TA_EXE = '../../build/cli/autoq_cav24'
 
 processes = []
 def kill_processes():
-    for pid in processes:
-        if pid != 0: # This line is very important!!!!
-            try:
-                os.killpg(os.getpgid(pid), signal.SIGKILL)  # Send the signal to all the process groups
-            except: # in case this handler is called multiple times
-                pass
+    os.system(f'pkill {TA_EXE.split("/")[-1]}')
+    # while len(processes) > 0:
+    #     print(processes)
+    #     for pid in processes:
+    #         if pid != 0: # This line is very important!!!!
+    #             try:
+    #                 os.killpg(os.getpgid(pid), signal.SIGKILL)  # Send the signal to all the process groups
+    #             except: # in case this handler is called multiple times
+    #                 pass
+    #         processes.remove(pid)
 def handle_sigint(*_):
     kill_processes()
     exit(1)
@@ -51,7 +55,7 @@ process_pool_large = []
 string_pool_large = []
 lock = Lock()
 for root, dirnames, filenames in sorted(os.walk('.')):
-    pattern = re.compile(r'^\.\/[0-9][0-9]')
+    pattern = re.compile(r'^\.\/(03|[1-5]0)')
     if not pattern.match(root): continue
     if len(dirnames) == 0 and 'pre.spec' in filenames:
         process_pool_small = []
