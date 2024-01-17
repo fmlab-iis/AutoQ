@@ -2069,6 +2069,13 @@ bool AUTOQ::is_scaled_spec_satisfied(SymbolicAutomata R, std::string constraintR
                                         assertion += " (= (- (* " + c1.first.realToSMT() + " " + c2.second.realToSMT() + ") (* " + c1.first.imagToSMT() + " " + c2.second.imagToSMT() + ")) (- (* " + c1.second.realToSMT() + " " + c2.first.realToSMT() + ") (* " + c1.second.imagToSMT() + " " + c2.first.imagToSMT() + ")))";
                                         assertion += " (= (+ (* " + c1.first.realToSMT() + " " + c2.second.imagToSMT() + ") (* " + c1.first.imagToSMT() + " " + c2.second.realToSMT() + ")) (+ (* " + c1.second.realToSMT() + " " + c2.first.imagToSMT() + ") (* " + c1.second.imagToSMT() + " " + c2.first.realToSMT() + ")))";
                                     }
+                                    for (int i=0; i<current.size(); i++) {
+                                        const auto &c = ratioMap[current[i]];
+                                        assertion += " (or"; // assertion += " (or () ())";
+                                        assertion += " (and (= " + c.first.realToSMT() + " 0)(= " + c.first.imagToSMT() + " 0)(= " + c.second.realToSMT() + " 0)(= " + c.second.imagToSMT() + " 0))"; // (cq == 0 && cr == 0) || (cq != 0 && cr != 0)
+                                        assertion += " (and (or (not (= " + c.first.realToSMT() + " 0))(not (= " + c.first.imagToSMT() + " 0)))(or (not (= " + c.second.realToSMT() + " 0))(not (= " + c.second.imagToSMT() + " 0))))";
+                                        assertion += ")";
+                                    }
                                     assertion += ")";
                                     DP_enable[unionSet] = true;
                                     DP[unionSet] = call_SMT_solver(constraintR + constraintQ, assertion);
