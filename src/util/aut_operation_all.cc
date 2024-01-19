@@ -451,7 +451,7 @@ void AUTOQ::Automata<Symbol>::reduce() {
 }
 
 template <typename Symbol>
-AUTOQ::Automata<Symbol> AUTOQ::Automata<Symbol>::Union(const Automata<Symbol> &o) {
+AUTOQ::Automata<Symbol> AUTOQ::Automata<Symbol>::Union(const Automata<Symbol> &o) const {
     if (*this == Automata<Symbol>()) return o;
 
     Automata<Symbol> result;

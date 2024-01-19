@@ -1160,17 +1160,34 @@ void AUTOQ::Automata<Symbol>::fraction_simplification() {
 // }
 
 template <typename Symbol>
-bool AUTOQ::Automata<Symbol>::execute(const char *filename, const std::string &constraint) {
+bool AUTOQ::Automata<Symbol>::execute(const char *filename) {
+    std::string constraint;
+    return execute(filename, constraint);
+}
+template <typename Symbol>
+bool AUTOQ::Automata<Symbol>::execute(const char *filename, std::string &constraint) {
     bool verify = true;
-    std::string automatonI, constraintI, automatonQ, constraintQ;
-    AUTOQ::Automata<Symbol> I, measure_to_continue, measure_to_break;
+    bool inGateDef = false;
+    bool inWhileLoop = false;
+    bool inIfBlock = false;
+    bool inElseBlock = false;
+    std::map<std::string, int> var_is_measure_what_qubit;
+    std::string automatonI, constraintI, automatonQ, constraintQ, while_measurement_guard;
+    AUTOQ::Automata<Symbol> I, measure_to_continue, measure_to_break, measure_to_else, result_after_if;
     std::ifstream qasm(filename);
     const std::regex digit("\\d+");
     const std::regex_iterator<std::string::iterator> END;
     if (!qasm.is_open()) throw std::runtime_error("[ERROR] Failed to open file " + std::string(filename) + ".");
-    std::string line;
+    std::string line, previous_line;
     while (getline(qasm, line)) {
-        if (line.find("OPENQASM") == 0 || line.find("include ") == 0|| line.find("//") == 0) continue;
+        line = AUTOQ::Util::trim(line);
+        if (inGateDef) {
+            if (line.find("}") != std::string::npos) {
+                inGateDef = false;
+            }
+            continue; // simply ignore gate definitions
+        }
+        if (line.find("OPENQASM") == 0 || line.find("include ") == 0 || line.find("//") == 0 || line.find("bit") == 0) continue;
         if (line.find("qreg ") == 0 || line.find("qubit") == 0) {
             std::regex_iterator<std::string::iterator> it(line.begin(), line.end(), digit);
             while (it != END) {
@@ -1234,7 +1251,7 @@ bool AUTOQ::Automata<Symbol>::execute(const char *filename, const std::string &c
                 ++it;
             }
             CZ(pos[0], pos[1]);
-        } else if (line.find("cu ") == 0) {
+        } else if (line.find("ccustom ") == 0) {
             std::regex_iterator<std::string::iterator> it(line.begin(), line.end(), digit);
             std::vector<int> pos;
             while (it != END) {
@@ -1258,14 +1275,21 @@ bool AUTOQ::Automata<Symbol>::execute(const char *filename, const std::string &c
                 ++it;
             }
             swap(pos[0], pos[1]);
-        } else if (line.find("while ") == 0) { // while (!measure problem[3]) { // loop-invariant.{spec|hsl}
-            std::regex_iterator<std::string::iterator> it(line.begin(), line.end(), digit);
-            std::vector<int> pos;
-            while (it != END) {
-                pos.push_back(1 + atoi(it->str().c_str()));
-                ++it;
-            }
-            assert(pos.size() == 1);
+        } else if (line.find("while") == 0) { // while (!result) { // loop-invariant.{spec|hsl}
+            if (previous_line.find("measure") == std::string::npos)
+                throw std::runtime_error("[ERROR] The while loop guard must be a measurement operator.");
+            while_measurement_guard = previous_line;
+            std::erase(while_measurement_guard, ' ');
+            inWhileLoop = true;
+            const std::regex varR("\\((.*)\\)");
+            std::regex_iterator<std::string::iterator> it(line.begin(), line.end(), varR);
+            assert(it != END);
+            std::string var = AUTOQ::Util::trim(it->str(1));
+            bool negate = (var.at(0) == '!'); // whether the variable is negated
+            if (negate)
+                var = var.substr(1);
+            int pos = var_is_measure_what_qubit[var];
+            /********************************/
             const std::regex spec("// *(.*)");
             std::regex_iterator<std::string::iterator> it2(line.begin(), line.end(), spec);
             auto str = std::string(filename);
@@ -1281,45 +1305,97 @@ bool AUTOQ::Automata<Symbol>::execute(const char *filename, const std::string &c
             bool t = is_scaled_spec_satisfied(*this, constraint, I, constraintI);
             verify &= t;
             if (!t) AUTOQ_ERROR("[ERROR] P ⊈ I.");
-            if (line.find("!measure") != std::string::npos) {
-                measure_to_continue = I.measure(pos.at(0), false);
-                measure_to_break = I.measure(pos.at(0), true);
+            if (negate) {
+                measure_to_continue = I.measure(pos, false);
+                measure_to_break = I.measure(pos, true);
             } else { // while (measure ...
-                measure_to_continue = I.measure(pos.at(0), true);
-                measure_to_break = I.measure(pos.at(0), false);
+                measure_to_continue = I.measure(pos, true);
+                measure_to_break = I.measure(pos, false);
             }
             *this = measure_to_continue;
-        } else if (line.find("} ") == 0) { // } // post.{spec|hsl}
-            const std::regex spec("// *(.*)");
-            std::regex_iterator<std::string::iterator> it(line.begin(), line.end(), spec);
-            auto str = std::string(filename);
-            str.resize(str.rfind('/'));
-            /**************************************************************************************************************/
-            // auto Q = AUTOQ::Parsing::TimbukParser<Symbol>::FromFileToAutomata((str + std::string("/") + it->str(1)).c_str());
-            auto Q = AUTOQ::Parsing::TimbukParser<Symbol>::split_automaton_and_constraint(str + std::string("/") + it->str(1), constraintQ);
-            /**************************************************************************************************************/
-            measure_to_continue = *this; // is C(measure_to_continue)
-            // std::cout << "Then we verify \"C(measure_to_continue) ⊆ I\" here." << std::endl;
-            // measure_to_continue.print_language("C(measure_to_continue):\n");
-            // I.print_language("I:\n");
-            measure_to_continue.remove_useless(); measure_to_continue.reduce(); // I.remove_useless(); I.reduce();
-            bool t = is_scaled_spec_satisfied(measure_to_continue, constraintI, I, constraintI);
-            verify &= t;
-            if (!t) AUTOQ_ERROR("[ERROR] C(measure_to_continue) ⊈ I.");
-            // std::cout << "Then we verify \"measure_to_break ⊆ Q\" here." << std::endl;
-            // measure_to_break.print_language("measure_to_break:\n");
-            // Q.print_language("Q:\n");
-            measure_to_break.remove_useless(); measure_to_break.reduce(); Q.remove_useless(); Q.reduce();
-            t = is_scaled_spec_satisfied(measure_to_break, constraintI, Q, constraintQ);
-            verify &= t;
-            if (!t) AUTOQ_ERROR("[ERROR] measure_to_break ⊈ Q.");
-            *this = Q; // Use this postcondition to execute the remaining circuit!
-            gateCount--; // retract the excess counting of the measurement operator in the while loop guard
+        } else if (line.find("}") == 0) { // } // post.{spec|hsl}
+            if (inWhileLoop) {
+                inWhileLoop = false;
+                std::erase(previous_line, ' ');
+                if (while_measurement_guard != previous_line)
+                    throw std::runtime_error("[ERROR] The while loop guard must be repeated at the end of the loop!");
+                const std::regex spec("// *(.*)");
+                std::regex_iterator<std::string::iterator> it(line.begin(), line.end(), spec);
+                auto str = std::string(filename);
+                str.resize(str.rfind('/'));
+                /**************************************************************************************************************/
+                // auto Q = AUTOQ::Parsing::TimbukParser<Symbol>::FromFileToAutomata((str + std::string("/") + it->str(1)).c_str());
+                auto Q = AUTOQ::Parsing::TimbukParser<Symbol>::split_automaton_and_constraint(str + std::string("/") + it->str(1), constraintQ);
+                /**************************************************************************************************************/
+                measure_to_continue = *this; // is C(measure_to_continue)
+                // std::cout << "Then we verify \"C(measure_to_continue) ⊆ I\" here." << std::endl;
+                // measure_to_continue.print_language("C(measure_to_continue):\n");
+                // I.print_language("I:\n");
+                measure_to_continue.remove_useless(); measure_to_continue.reduce(); // I.remove_useless(); I.reduce();
+                bool t = is_scaled_spec_satisfied(measure_to_continue, constraintI, I, constraintI);
+                verify &= t;
+                if (!t) AUTOQ_ERROR("[ERROR] C(measure_to_continue) ⊈ I.");
+                // std::cout << "Then we verify \"measure_to_break ⊆ Q\" here." << std::endl;
+                // measure_to_break.print_language("measure_to_break:\n");
+                // Q.print_language("Q:\n");
+                measure_to_break.remove_useless(); measure_to_break.reduce(); Q.remove_useless(); Q.reduce();
+                t = is_scaled_spec_satisfied(measure_to_break, constraintI, Q, constraintQ);
+                verify &= t;
+                if (!t) AUTOQ_ERROR("[ERROR] measure_to_break ⊈ Q.");
+                *this = Q; // Use this postcondition to execute the remaining circuit!
+                constraint = constraintQ; // pass the postcondition's contraint to the main function for the later use!
+                gateCount--; // retract the excess counting of the measurement operator in the while loop guard
+            } else if (inIfBlock) {
+                inIfBlock = false;
+                result_after_if = *this; // this automaton is used to be merged with the result automaton after the "else" block if the "else" block is present.
+                *this = this->Union(measure_to_else); // if the "else" block is absent, then that branch is simply the other measurement outcome.
+            } else if (inElseBlock) {
+                inElseBlock = false;
+                *this = this->Union(result_after_if); // merge the else-branch result with the if-branch result
+            }
+        } else if (line.find("if") == 0) { // if (!result) {
+            if (previous_line.find("measure") == std::string::npos)
+                throw std::runtime_error("[ERROR] The if guard must be a measurement operator.");
+            inIfBlock = true;
+            const std::regex varR("\\((.*)\\)");
+            std::regex_iterator<std::string::iterator> it(line.begin(), line.end(), varR);
+            assert(it != END);
+            std::string var = AUTOQ::Util::trim(it->str(1));
+            bool negate = (var.at(0) == '!'); // whether the variable is negated
+            if (negate)
+                var = var.substr(1);
+            int pos = var_is_measure_what_qubit[var];
+            if (negate) {
+                *this = this->measure(pos, false);
+                measure_to_else = this->measure(pos, true);
+            } else { // if (measure ...
+                *this = this->measure(pos, true);
+                measure_to_else = this->measure(pos, false);
+            }
+        } else if (line.find("else") == 0) { // else {
+            inElseBlock = true;
+            *this = measure_to_else;
+        } else if (line.find("gate ") == 0) {
+            if (line.find("}") == std::string::npos) {
+                inGateDef = true; // TODO: unsure if this is necessary
+            }
+        } else if (line.find("=") != std::string::npos && line.find("measure") != std::string::npos) {
+            const std::regex m("([^ ]+) *= *measure.*\\[(\\d+)\\]"); // result = measure problem[4];
+            std::regex_iterator<std::string::iterator> it(line.begin(), line.end(), m);
+            assert(it != END);
+            std::string result = it->str(1);
+            int pos = 1 + atoi(it->str(2).c_str());
+            var_is_measure_what_qubit[result] = pos;
+            // TODO: Actually, we should split the automaton here into two separate copies which
+            // are produced from the measurement outcome of 0 and 1, respectively. However, we do
+            // not do this for simplicity temporarily.
         } else if (line.length() > 0)
             throw std::runtime_error("[ERROR] unsupported gate: " + line + ".");
         // fraction_simplification();
         // print("\n" + line + "\n");
         // print_language((line + std::string("\n")).c_str());
+        if (line.length() > 0)
+            previous_line = line;
     }
     qasm.close();
     return verify;
@@ -1517,6 +1593,9 @@ struct PairComparator {
     }
 };
 bool AUTOQ::is_scaled_spec_satisfied(const TreeAutomata &R, std::string constraintR, const TreeAutomata &Q, std::string constraintQ) {
+    return is_scaled_spec_satisfied(R, Q);
+}
+bool AUTOQ::is_scaled_spec_satisfied(const TreeAutomata &R, const TreeAutomata &Q) {
     using State = TreeAutomata::State;
     using StateSet = TreeAutomata::StateSet;
     using StateVector = TreeAutomata::StateVector;
@@ -1796,6 +1875,7 @@ bool AUTOQ::is_scaled_spec_satisfied(const TreeAutomata &R, std::string constrai
     return true;
 }
 bool AUTOQ::is_scaled_spec_satisfied(SymbolicAutomata R, std::string constraintR, SymbolicAutomata Q, std::string constraintQ) {
+    if (R.StrictlyEqual(Q) && constraintR == constraintQ) return true;
     auto start = chrono::steady_clock::now();
 
     using State = SymbolicAutomata::State;

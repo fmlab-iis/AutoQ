@@ -22,12 +22,16 @@ std::string toString(std::chrono::steady_clock::duration tp);
 
 int main(int argc, char **argv) {
 try {
-    std::string constraint;
+    std::string constraint, constraintQ;
     AUTOQ::TreeAutomata aut = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Concrete>::split_automaton_and_constraint(argv[1], constraint);
     aut.remove_useless();
     aut.reduce();
     auto start = chrono::steady_clock::now();
     bool verify = aut.execute(argv[2], constraint);
+    AUTOQ::TreeAutomata Q = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Concrete>::split_automaton_and_constraint(argv[3], constraintQ);
+    Q.remove_useless();
+    Q.reduce();
+    verify &= is_scaled_spec_satisfied(aut, Q);
     std::cout << aut.qubitNum << " & " << AUTOQ::TreeAutomata::gateCount
         << " & " << (verify ? "OK" : "Bug") << " & " << toString(chrono::steady_clock::now() - start) << " & " << getPeakRSS() / 1024 / 1024 << "MB\n";
     return 0;

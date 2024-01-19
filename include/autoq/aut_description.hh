@@ -168,7 +168,7 @@ public:
     Automata operator+(const Automata &o);
     Automata operator-(const Automata &o);
     Automata operator*(int c);
-    Automata Union(const Automata &o); // U is in uppercase since "union" is a reserved keyword.
+    Automata Union(const Automata &o) const; // U is in uppercase since "union" is a reserved keyword.
     void print(const std::string &prompt="") const;
     int transition_size();
 
@@ -225,7 +225,8 @@ public:
     static bool check_inclusion(const std::string& lhsPath, const Automata& rhsPath);
     static bool check_inclusion(const Automata& lhsPath, const Automata& rhsPath);
 
-    bool execute(const char *filename, const std::string &constraint="");
+    bool execute(const char *filename);
+    bool execute(const char *filename, std::string &constraint);
     void print_language(const char *str="") const;
     std::vector<std::vector<std::string>> print(const std::map<typename AUTOQ::Automata<Symbol>::State, std::set<typename AUTOQ::Automata<Symbol>::Symbol>> &leafSymbolMap, int qubit, typename AUTOQ::Automata<Symbol>::State state) const;
 };
