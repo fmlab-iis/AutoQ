@@ -1,33 +1,36 @@
 OPENQASM 3;
 include "stdgates.inc";
-qreg problem[2];
+qubit[2] qb;
+bit[2] outcome;
 
-h problem[0];
-t problem[0];
-h problem[0];
-cz problem[0], problem[1];
-tdg problem[0];
-h problem[0];
-t problem[0];
-cz problem[0], problem[1];
-z problem[1];
-h problem[0];
-t problem[0];
-h problem[0];
-x problem[0];
+h qb[0];
+t qb[0];
+h qb[0];
+cz qb[0], qb[1];
+tdg qb[0];
+h qb[0];
+t qb[0];
+cz qb[0], qb[1];
+z qb[1];
+h qb[0];
+t qb[0];
+h qb[0];
+x qb[0];
 
-while (!measure problem[0]) { // loop-invariant.aut
-h problem[0];
-t problem[0];
-h problem[0];
-cz problem[0], problem[1];
-tdg problem[0];
-h problem[0];
-t problem[0];
-cz problem[0], problem[1];
-z problem[1];
-h problem[0];
-t problem[0];
-h problem[0];
-x problem[0];
+outcome[0] = measure qb[0];
+while (!outcome[0]) { // loop-invariant.aut
+h qb[0];
+t qb[0];
+h qb[0];
+cz qb[0], qb[1];
+tdg qb[0];
+h qb[0];
+t qb[0];
+cz qb[0], qb[1];
+z qb[1];
+h qb[0];
+t qb[0];
+h qb[0];
+x qb[0];
+outcome[0] = measure qb[0];
 } // post.aut
