@@ -1,56 +1,70 @@
 OPENQASM 3;
 include "stdgates.inc";
-qubit[7] problem;
+qubit[7] qb;
+bit[7] outcome;
 
-h problem[4];
-h problem[5];
-h problem[6];
-ccx problem[4], problem[5], problem[0];
-ccx problem[0], problem[6], problem[1];
-cx problem[1], problem[3];
-ccx problem[0], problem[6], problem[1];
-ccx problem[4], problem[5], problem[0];
-cu problem[3], problem[2];
-ccx problem[4], problem[5], problem[0];
-ccx problem[0], problem[6], problem[1];
-cx problem[1], problem[3];
-ccx problem[0], problem[6], problem[1];
-ccx problem[4], problem[5], problem[0];
+// Define a controlled U operation using the ctrl gate modifier.
+// q1 is control, q2 is target
+gate custom q {
+    U(0.190332413, 0, 0) q;
+}
+gate ccustom q1, q2 {
+    ctrl @ custom q1, q2;
+}
 
-while (!measure problem[2]) { // loop-invariant.spec
-x problem[3];
-h problem[3];
-ccx problem[4], problem[5], problem[0];
-ccx problem[0], problem[6], problem[1];
-cx problem[1], problem[3];
-ccx problem[0], problem[6], problem[1];
-ccx problem[4], problem[5], problem[0];
-h problem[3];
-x problem[3];
-h problem[4];
-h problem[5];
-h problem[6];
-x problem[4];
-x problem[5];
-x problem[6];
-ccx problem[4], problem[5], problem[0];
-cz problem[0], problem[6];
-ccx problem[4], problem[5], problem[0];
-x problem[4];
-x problem[5];
-x problem[6];
-h problem[4];
-h problem[5];
-h problem[6];
-ccx problem[4], problem[5], problem[0];
-ccx problem[0], problem[6], problem[1];
-cx problem[1], problem[3];
-ccx problem[0], problem[6], problem[1];
-ccx problem[4], problem[5], problem[0];
-cu problem[3], problem[2];
-ccx problem[4], problem[5], problem[0];
-ccx problem[0], problem[6], problem[1];
-cx problem[1], problem[3];
-ccx problem[0], problem[6], problem[1];
-ccx problem[4], problem[5], problem[0];
+h qb[4];
+h qb[5];
+h qb[6];
+ccx qb[4], qb[5], qb[0];
+ccx qb[0], qb[6], qb[1];
+cx qb[1], qb[3];
+ccx qb[0], qb[6], qb[1];
+ccx qb[4], qb[5], qb[0];
+ccustom qb[3], qb[2];
+ccx qb[4], qb[5], qb[0];
+ccx qb[0], qb[6], qb[1];
+cx qb[1], qb[3];
+ccx qb[0], qb[6], qb[1];
+ccx qb[4], qb[5], qb[0];
+
+outcome[2] = measure qb[2];
+while (!outcome[2]) { // loop-invariant.spec
+x qb[3];
+h qb[3];
+ccx qb[4], qb[5], qb[0];
+ccx qb[0], qb[6], qb[1];
+cx qb[1], qb[3];
+ccx qb[0], qb[6], qb[1];
+ccx qb[4], qb[5], qb[0];
+h qb[3];
+x qb[3];
+h qb[4];
+h qb[5];
+h qb[6];
+x qb[4];
+x qb[5];
+x qb[6];
+ccx qb[4], qb[5], qb[0];
+cz qb[0], qb[6];
+ccx qb[4], qb[5], qb[0];
+x qb[4];
+x qb[5];
+x qb[6];
+h qb[4];
+h qb[5];
+h qb[6];
+ccx qb[4], qb[5], qb[0];
+ccx qb[0], qb[6], qb[1];
+cx qb[1], qb[3];
+ccx qb[0], qb[6], qb[1];
+ccx qb[4], qb[5], qb[0];
+ccustom qb[3], qb[2];
+ccx qb[4], qb[5], qb[0];
+ccx qb[0], qb[6], qb[1];
+cx qb[1], qb[3];
+ccx qb[0], qb[6], qb[1];
+ccx qb[4], qb[5], qb[0];
+outcome[2] = measure qb[2];
 } // post.spec
+
+// outcome = measure qb;

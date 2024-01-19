@@ -2,27 +2,27 @@
 import os
 
 def oracle(file, n):
-    file.write(f'ccx problem[{n+1}], problem[{n+2}], problem[{0}];\n')
+    file.write(f'ccx qb[{n+1}], qb[{n+2}], qb[{0}];\n')
     for i in range(0, n-2):
-        file.write(f'ccx problem[{i}], problem[{n+3+i}], problem[{i+1}];\n')
-    file.write(f'cx problem[{n-2}], problem[{n}];\n')
+        file.write(f'ccx qb[{i}], qb[{n+3+i}], qb[{i+1}];\n')
+    file.write(f'cx qb[{n-2}], qb[{n}];\n')
     for i in range(n-3, -1, -1):
-        file.write(f'ccx problem[{i}], problem[{n+3+i}], problem[{i+1}];\n')
-    file.write(f'ccx problem[{n+1}], problem[{n+2}], problem[{0}];\n')
+        file.write(f'ccx qb[{i}], qb[{n+3+i}], qb[{i+1}];\n')
+    file.write(f'ccx qb[{n+1}], qb[{n+2}], qb[{0}];\n')
 
 def E_k(file, n):
     oracle(file, n)
-    file.write(f'cu problem[{n}], problem[{n-1}];\n')
+    file.write(f'ccustom qb[{n}], qb[{n-1}];\n')
     oracle(file, n)
 
 def mcz(file, n):
-    file.write(f'ccx problem[{n+1}], problem[{n+2}], problem[{0}];\n')
+    file.write(f'ccx qb[{n+1}], qb[{n+2}], qb[{0}];\n')
     for i in range(0, n-3):
-        file.write(f'ccx problem[{i}], problem[{n+3+i}], problem[{i+1}];\n')
-    file.write(f'cz problem[{n-3}], problem[{2*n}];\n')
+        file.write(f'ccx qb[{i}], qb[{n+3+i}], qb[{i+1}];\n')
+    file.write(f'cz qb[{n-3}], qb[{2*n}];\n')
     for i in range(n-4, -1, -1):
-        file.write(f'ccx problem[{i}], problem[{n+3+i}], problem[{i+1}];\n')
-    file.write(f'ccx problem[{n+1}], problem[{n+2}], problem[{0}];\n')
+        file.write(f'ccx qb[{i}], qb[{n+3+i}], qb[{i+1}];\n')
+    file.write(f'ccx qb[{n+1}], qb[{n+2}], qb[{0}];\n')
 
 for n in range(3, 100):
     assert n >= 3
@@ -37,33 +37,45 @@ for n in range(3, 100):
     with open("circuit.qasm", "w") as file:
         file.write("OPENQASM 3;\n")
         file.write('include "stdgates.inc";\n')
-        file.write(f'qubit[{2*n+1}] problem;\n\n') # assert n >= 3
+        file.write(f'qubit[{2*n+1}] qb;\n') # assert n >= 3
+        file.write(f'bit[{2*n+1}] outcome;\n\n')
+        file.write('''// Define a controlled U operation using the ctrl gate modifier.
+// q1 is control, q2 is target
+gate custom q {
+    U(0.190332413, 0, 0) q;
+}
+gate ccustom q1, q2 {
+    ctrl @ custom q1, q2;
+}\n\n''')
         ########
         for i in range(n+1, 2*n+1): # initial superposition
-            file.write(f'h problem[{i}];\n')
+            file.write(f'h qb[{i}];\n')
         ########
         E_k(file, n)
         ########
-        file.write(f'\nwhile (!measure problem[{n-1}]) ' + '{ // loop-invariant.spec\n')
-        file.write(f'x problem[{n}];\n')
-        file.write(f'h problem[{n}];\n')
+        file.write(f'\noutcome[{n-1}] = measure qb[{n-1}];\n')
+        file.write(f'while (!outcome[{n-1}]) ' + '{ // loop-invariant.spec\n')
+        file.write(f'x qb[{n}];\n')
+        file.write(f'h qb[{n}];\n')
         oracle(file, n)
-        file.write(f'h problem[{n}];\n')
-        file.write(f'x problem[{n}];\n')
+        file.write(f'h qb[{n}];\n')
+        file.write(f'x qb[{n}];\n')
         ######## diffusion
         for i in range(n+1, 2*n+1):
-            file.write(f'h problem[{i}];\n')
+            file.write(f'h qb[{i}];\n')
         for i in range(n+1, 2*n+1):
-            file.write(f'x problem[{i}];\n')
+            file.write(f'x qb[{i}];\n')
         mcz(file, n)
         for i in range(n+1, 2*n+1):
-            file.write(f'x problem[{i}];\n')
+            file.write(f'x qb[{i}];\n')
         for i in range(n+1, 2*n+1):
-            file.write(f'h problem[{i}];\n')
+            file.write(f'h qb[{i}];\n')
         ########
         E_k(file, n)
         ########
+        file.write(f'outcome[{n-1}] = measure qb[{n-1}];\n')
         file.write('} // post.spec\n')
+        file.write('\n// outcome = measure qb;\n')
     #########################################
 
     #########################################
