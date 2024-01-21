@@ -14,31 +14,67 @@
 #include <regex>
 
 using namespace std;
+using AUTOQ::TreeAutomata;
 using AUTOQ::Util::ShellCmd;
 using AUTOQ::Util::ReadFile;
 
 int type, n;
+
+int rand_gen();
+void rand_gen(int &a, int &b);
+void rand_gen(int &a, int &b, int &c);
 std::string toString(std::chrono::steady_clock::duration tp);
 
 int main(int argc, char **argv) {
 try {
-    std::string constraint, constraintQ;
-    AUTOQ::TreeAutomata aut = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Concrete>::ReadAutomatonAndConstraint(argv[1], constraint);
+    auto aut = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Symbolic>::ReadAutomaton(argv[1]);
+    aut.execute(argv[2]);
     aut.remove_useless();
     aut.reduce();
-    auto start = chrono::steady_clock::now();
-    bool verify = aut.execute(argv[2], constraint);
-    AUTOQ::TreeAutomata Q = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Concrete>::ReadAutomatonAndConstraint(argv[3], constraintQ);
-    Q.remove_useless();
-    Q.reduce();
-    verify &= is_scaled_spec_satisfied(aut, Q);
-    std::cout << aut.qubitNum << " & " << AUTOQ::TreeAutomata::gateCount
-        << " & " << (verify ? "OK" : "Bug") << " & " << toString(chrono::steady_clock::now() - start) << " & " << getPeakRSS() / 1024 / 1024 << "MB\n";
     return 0;
 } catch (std::exception &e) {
     std::cout << e.what() << std::endl;
     return 0;
 }
+}
+
+int rand_gen() {
+    if (type == 3) return 1;
+    else if (type == 5) return n;
+    else return rand() % n + 1;
+}
+void rand_gen(int &a, int &b) {
+    if (type == 3) { // TOP
+        a = 1;
+        b = 2;
+    } else if (type == 5) { // BOTTOM
+        a = n-1;
+        b = n;
+    } else {
+        a = rand() % n + 1;
+        do {
+            b = rand() % n + 1;
+        } while (b == a);
+    }
+}
+void rand_gen(int &a, int &b, int &c) {
+    if (type == 3) { // TOP
+        a = 1;
+        b = 2;
+        c = 3;
+    } else if (type == 5) { // BOTTOM
+        a = n-2;
+        b = n-1;
+        c = n;
+    } else {
+        a = rand() % n + 1;
+        do {
+            b = rand() % n + 1;
+        } while (b == a);
+        do {
+            c = rand() % n + 1;
+        } while (c == a || c == b);
+    }
 }
 
 std::string toString(std::chrono::steady_clock::duration tp) {

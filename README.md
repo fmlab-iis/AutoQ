@@ -25,8 +25,8 @@ $ sudo apt install libboost-filesystem-dev
 $ sudo apt install libboost-test-dev
 ```
 
-Also notice that the installed Z3 via `$ sudo apt install z3` may not be the latest one.  
-To resolve this issue, we use the following commands instead.  
+Also notice that the installed Z3 via `$ sudo apt install z3` may not be the latest one.
+To resolve this issue, we use the following commands instead.
 ```
 $ wget https://github.com/Z3Prover/z3/releases/download/z3-4.12.1/z3-4.12.1-x64-glibc-2.35.zip
 $ unzip z3-4.12.1-x64-glibc-2.35.zip
@@ -83,10 +83,10 @@ There are three modes: concrete probability amplitudes without specification, co
 1. Concrete probability amplitudes without specification.
 ```
 $ ./build/cli/autoq benchmarks/BernsteinVazirani/02/pre.spec benchmarks/BernsteinVazirani/02/circuit.qasm
-Ops [1]:2 [2]:2 [3]:2 [0,0,0,0,0]:0 [1,0,0,0,0]:0 
+Ops [1]:2 [2]:2 [3]:2 [0,0,0,0,0]:0 [1,0,0,0,0]:0
 Automaton Zero
-States 0 1 2 3 4 5 6 
-Final States 0 
+States 0 1 2 3 4 5 6
+Final States 0
 Transitions
 [1](1, 2) -> 0
 [2](3, 3) -> 1
@@ -101,10 +101,10 @@ The program simply prints the resulting concrete automaton.
 2. Concrete probability amplitudes with specification.
 ```
 $ VATA_PATH=$PWD/vata ./build/cli/autoq benchmarks/Grover/02/pre.spec benchmarks/Grover/02/circuit.qasm benchmarks/Grover/02/post.spec
-Ops [1]:2 [2]:2 [3]:2 [-1,0,0,0,0]:0 [0,0,0,0,0]:0 
+Ops [1]:2 [2]:2 [3]:2 [-1,0,0,0,0]:0 [0,0,0,0,0]:0
 Automaton Zero
-States 0 1 2 3 4 5 6 
-Final States 0 
+States 0 1 2 3 4 5 6
+Final States 0
 Transitions
 [1](1, 2) -> 0
 [2](3, 3) -> 2
@@ -118,10 +118,10 @@ Transitions
 ```
 ```
 $ VATA_PATH=$PWD/vata ./build/cli/autoq benchmarks/BernsteinVazirani/02/pre.spec benchmarks/BernsteinVazirani/02/circuit.qasm benchmarks/BernsteinVazirani/02/post.spec
-Ops [1]:2 [2]:2 [3]:2 [0,0,0,0,0]:0 [1,0,0,0,0]:0 
+Ops [1]:2 [2]:2 [3]:2 [0,0,0,0,0]:0 [1,0,0,0,0]:0
 Automaton Zero
-States 0 1 2 3 4 5 6 
-Final States 0 
+States 0 1 2 3 4 5 6
+Final States 0
 Transitions
 [1](1, 2) -> 0
 [2](3, 3) -> 1
@@ -140,10 +140,10 @@ The program first prints the resulting concrete automaton, and then the verifica
 $ ./build/cli/autoq benchmarks/Symbolic/H2/pre.spec benchmarks/Symbolic/H2/circuit.qasm benchmarks/Symbolic/H2/post.spec
 OUTPUT AUTOMATON:
 =================
-Ops [[1,0,0,0,0] -> 1]:2 [[1,0,0,0,2] -> 0x 2y]:0 [[1,0,0,0,2] -> 2x 0y]:0 
+Ops [[1,0,0,0,0] -> 1]:2 [[1,0,0,0,2] -> 0x 2y]:0 [[1,0,0,0,2] -> 2x 0y]:0
 Automaton anonymous
-States 0 1 2 
-Final States 0 
+States 0 1 2
+Final States 0
 Transitions
 [[1,0,0,0,0] -> 1](1, 2) -> 0
 [[1,0,0,0,2] -> 0x 2y] -> 2
@@ -199,7 +199,7 @@ state. In the whole file, all [\_,\_,\_,\_,k]'s of leaf transitions must be the 
 
 An example could look like this:
 ```
-Final States 0 
+Final States 0
 Transitions
 [1](1, 2) -> 0
 [2](3, 3) -> 1
@@ -223,7 +223,7 @@ details.
 
 ## Build an automaton from states
 
-We also provide two binaries for the user to construct an automaton that accepts all quantum states described by the user and rejects other quantum states. The binary `build/cli/caut_from_states` is for concrete probability amplitude, and `build/cli/saut_from_states` is for symbolic probability amplitude. One can describe a set of states with the following grammar starting from \<states\>:
+We also provide two binaries for the user to construct an automaton that accepts all quantum states described by the user and rejects other quantum states. The binary `build/cli/hsl_concrete` is for concrete probability amplitude, and `build/cli/hsl_symbolic` is for symbolic probability amplitude. One can describe a set of states with the following grammar starting from \<states\>:
 
 ```
   <states>          : <state>
@@ -236,7 +236,7 @@ We also provide two binaries for the user to construct an automaton that accepts
 
   <amplitude>       : {int} ',' {int} ',' {int} ',' {int} ',' {int} // concrete amplitude
                     | {str} ',' {str} ',' {str} ',' {str} ',' {str} // symbolic amplitude
-  
+
   <newline>         : '\n' // or another character acting as a newline character
 ```
 
@@ -246,16 +246,16 @@ During program execution, the user inputs multiple lines of data and then presse
 
 Here we give some examples. The first example contains all computational basis states in a 2-qubit quantum system.
 ```
-$ build/cli/caut_from_states 
+$ build/cli/hsl_concrete
 0:1,0,0,0,0 *:0,0,0,0,0 # 0:1,0,0,0,0 *:0,0,0,0,0
 0:1,0,0,0,0 *:0,0,0,0,0 # 1:1,0,0,0,0 *:0,0,0,0,0
 1:1,0,0,0,0 *:0,0,0,0,0 # 0:1,0,0,0,0 *:0,0,0,0,0
 1:1,0,0,0,0 *:0,0,0,0,0 # 1:1,0,0,0,0 *:0,0,0,0,0
 
-Ops [1]:2 [2]:2 [0,0,0,0,0]:0 [1,0,0,0,0]:0 
+Ops [1]:2 [2]:2 [0,0,0,0,0]:0 [1,0,0,0,0]:0
 Automaton Union
-States 0 1 2 3 4 
-Final States 0 
+States 0 1 2 3 4
+Final States 0
 Transitions
 [1](1, 2) -> 0
 [1](2, 1) -> 0
@@ -269,13 +269,13 @@ Transitions
 The second example contains the set of states:<br>
 <img width="315" alt="image" src="https://user-images.githubusercontent.com/10044077/217997027-4dec8f23-811d-4747-86b3-e95d37b9ec69.png">
 ```
-$ build/cli/saut_from_states 
+$ build/cli/hsl_symbolic
 |i|=3 i:1,0,0,0,0 *:0,0,0,0,0 # i:vH,0,0,0,0 *:vL,0,0,0,0 # 000:1,0,0,0,0 *:0,0,0,0,0
 
-Ops [1]:2 [2]:2 [3]:2 [4]:2 [5]:2 [6]:2 [7]:2 [8]:2 [9]:2 [0,0,0,0,0]:0 [vH,0,0,0,0]:0 [vL,0,0,0,0]:0 
+Ops [1]:2 [2]:2 [3]:2 [4]:2 [5]:2 [6]:2 [7]:2 [8]:2 [9]:2 [0,0,0,0,0]:0 [vH,0,0,0,0]:0 [vL,0,0,0,0]:0
 Automaton Union
-States 0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 
-Final States 0 
+States 0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49
+Final States 0
 Transitions
 [1](1, 2) -> 0
 [1](1, 3) -> 0
@@ -336,17 +336,17 @@ Transitions
 [vL,0,0,0,0] -> 49
 ```
 
-Finally we have `build/cli/paut_from_states` for "predicate" probability amplitude. The concept is a little different from the previous two kinds of amplitudes. Each "predicate" amplitude is a predicate in SMT-LIB form. It is used to check whether all probability amplitudes in a symbolic automaton satisfy the probability amplitudes described in the predicate automaton under some constraint. Each `./benchmarks/Symbolic/*/post.spec` is a predicate automaton.
+Finally we have `build/cli/hsl_predicate` for "predicate" probability amplitude. The concept is a little different from the previous two kinds of amplitudes. Each "predicate" amplitude is a predicate in SMT-LIB form. It is used to check whether all probability amplitudes in a symbolic automaton satisfy the probability amplitudes described in the predicate automaton under some constraint. Each `./benchmarks/Symbolic/*/post.spec` is a predicate automaton.
 
 For the convenience of parsing, each `{prob}:{ampl}` must be enclosed with `[` and `]`. That is, `[{prob}:{ampl}]`. The following is an example illustrating how to construct `./benchmarks/Symbolic/H2/post.spec`.
 ```
-$ build/cli/paut_from_states
+$ build/cli/hsl_predicate
 [0:(and (= (* $a (pow_sqrt2_k 3)) a) (= (* $b (pow_sqrt2_k 3)) b) (= (* $c (pow_sqrt2_k 3)) c) (= (* $d (pow_sqrt2_k 3)) d))] [1:(and (= (* $a (pow_sqrt2_k 3)) e) (= (* $b (pow_sqrt2_k 3)) f) (= (* $c (pow_sqrt2_k 3)) g) (= (* $d (pow_sqrt2_k 3)) h))]
 
-Ops [1]:2 [(and (= (* $a (pow_sqrt2_k 3)) a) (= (* $b (pow_sqrt2_k 3)) b) (= (* $c (pow_sqrt2_k 3)) c) (= (* $d (pow_sqrt2_k 3)) d))]:0 [(and (= (* $a (pow_sqrt2_k 3)) e) (= (* $b (pow_sqrt2_k 3)) f) (= (* $c (pow_sqrt2_k 3)) g) (= (* $d (pow_sqrt2_k 3)) h))]:0 
+Ops [1]:2 [(and (= (* $a (pow_sqrt2_k 3)) a) (= (* $b (pow_sqrt2_k 3)) b) (= (* $c (pow_sqrt2_k 3)) c) (= (* $d (pow_sqrt2_k 3)) d))]:0 [(and (= (* $a (pow_sqrt2_k 3)) e) (= (* $b (pow_sqrt2_k 3)) f) (= (* $c (pow_sqrt2_k 3)) g) (= (* $d (pow_sqrt2_k 3)) h))]:0
 Automaton anonymous
-States 0 1 2 
-Final States 0 
+States 0 1 2
+Final States 0
 Transitions
 [1](1, 2) -> 0
 [(and (= (* $a (pow_sqrt2_k 3)) a) (= (* $b (pow_sqrt2_k 3)) b) (= (* $c (pow_sqrt2_k 3)) c) (= (* $d (pow_sqrt2_k 3)) d))] -> 1

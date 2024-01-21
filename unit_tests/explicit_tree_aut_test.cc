@@ -515,10 +515,7 @@ BOOST_AUTO_TEST_CASE(Grover_Search)
     //     perror("getcwd() error");
     // }
 
-    std::ifstream t("../../reference_answers/Grover" + std::to_string(n) + ".aut");
-    std::stringstream buffer;
-    buffer << t.rdbuf();
-    auto ans = AUTOQ::Parsing::TimbukParser<AUTOQ::TreeAutomata::Symbol>::ParseString(buffer.str());
+    auto ans = AUTOQ::Parsing::TimbukParser<AUTOQ::TreeAutomata::Symbol>::ReadAutomaton("../../reference_answers/Grover" + std::to_string(n) + ".spec");
     // int n = (aut.qubitNum + 1) / 3;
     // aut.print();
 
@@ -750,14 +747,12 @@ BOOST_AUTO_TEST_CASE(Symbolic_into_Predicates)
             if (strstr(entry.path().c_str(), "OEGrover100") != nullptr) continue;
 
             std::string automaton;
-            std::string constraint; // The following template argument does not matter.
-            AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Concrete>::findAndSplitSubstring(std::string(entry.path()) + std::string("/pre.spec"), automaton, constraint);
-
-            AUTOQ::SymbolicAutomata aut = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Symbolic>::ParseString(automaton);
+            std::string constraint;
+            AUTOQ::SymbolicAutomata aut = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Symbolic>::ReadAutomatonAndConstraint(std::string(entry.path()) + std::string("/pre.spec"), constraint);
             aut.execute((std::string(entry.path()) + std::string("/circuit.qasm")).c_str());
             aut.fraction_simplification();
 
-            AUTOQ::PredicateAutomata spec = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Predicate>::FromFileToAutomata((std::string(entry.path()) + std::string("/post.spec")).c_str());
+            AUTOQ::PredicateAutomata spec = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Predicate>::ReadAutomaton((std::string(entry.path()) + std::string("/post.spec")).c_str());
 
             AUTOQ::Constraint C(constraint.c_str());
 
@@ -775,14 +770,12 @@ BOOST_AUTO_TEST_CASE(Symbolic_into_Predicates_bug)
     for (const auto & entry : fs::directory_iterator(path)) {
         if (entry.is_directory()) {
             std::string automaton;
-            std::string constraint; // The following template argument does not matter.
-            AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Concrete>::findAndSplitSubstring(std::string(entry.path()) + std::string("/pre.spec"), automaton, constraint);
-
-            AUTOQ::SymbolicAutomata aut = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Symbolic>::ParseString(automaton);
+            std::string constraint;
+            AUTOQ::SymbolicAutomata aut = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Symbolic>::ReadAutomatonAndConstraint(std::string(entry.path()) + std::string("/pre.spec"), constraint);
             aut.execute((std::string(entry.path()) + std::string("/circuit.qasm")).c_str());
             aut.fraction_simplification();
 
-            AUTOQ::PredicateAutomata spec = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Predicate>::FromFileToAutomata((std::string(entry.path()) + std::string("/post.spec")).c_str());
+            AUTOQ::PredicateAutomata spec = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Predicate>::ReadAutomaton((std::string(entry.path()) + std::string("/post.spec")).c_str());
 
             AUTOQ::Constraint C(constraint.c_str());
 

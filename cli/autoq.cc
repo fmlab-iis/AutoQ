@@ -38,7 +38,7 @@ positional arguments:
 
   circuit.qasm          the quantum circuit in OpenQASM 2.0.
 
-  post.{spec|hsl}        the specification automaton we expect to include the output automaton produced by
+  post.{spec|hsl}       the specification automaton we expect to include the output automaton produced by
                         the input automaton passing through the circuit
                         This file can be omitted when the probability amplitudes are all concrete. In this
                         case, the program only prints the output automaton without checking inclusion.
@@ -56,15 +56,14 @@ optional arguments:
     }
 
     std::string automaton, automatonS;
-    std::string constraint, constraintS; // The following template argument does not matter.
-    if (AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Concrete>::findAndSplitSubstring(argv[1], automaton, constraint)) {
+    std::string constraint, constraintS;
+    AUTOQ::SymbolicAutomata aut = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Symbolic>::ReadAutomatonAndConstraint(argv[1], constraint);
+    if (constraint.length() > 0) {
         auto startVer = chrono::steady_clock::now();
-        AUTOQ::SymbolicAutomata aut = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Symbolic>::ParseString(automaton);
         aut.execute(argv[2]);
         // aut.fraction_simplification();
         aut.reduce();
-        AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Concrete>::findAndSplitSubstring(argv[3], automatonS, constraintS);
-        AUTOQ::SymbolicAutomata spec = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Symbolic>::ParseString(automatonS);
+        AUTOQ::SymbolicAutomata spec = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Symbolic>::ReadAutomatonAndConstraint(argv[3], constraintS);
         // spec.remove_useless();
         // spec.reduce();
         // AUTOQ::Constraint C(constraint.c_str());
@@ -77,7 +76,7 @@ optional arguments:
         // // std::cout << "=================\n";
         // std::cout << "-\n" << AUTOQ::is_scaled_spec_satisfied(aut, constraint, spec, constraintS) << " " << toString(chrono::steady_clock::now() - startVer) << " " << getPeakRSS() / 1024 / 1024 << "MB\n";
     } else {
-        AUTOQ::TreeAutomata aut = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Concrete>::FromFileToAutomata(argv[1]);
+        AUTOQ::TreeAutomata aut = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Concrete>::ReadAutomaton(argv[1]);
         // int stateBefore = aut.stateNum, transitionBefore = aut.transition_size();
         auto startSim = chrono::steady_clock::now();
         aut.execute(argv[2]);
@@ -93,7 +92,7 @@ optional arguments:
             if (std::getenv("VATA_PATH") == nullptr) {
                 throw std::runtime_error("[ERROR] The environment variable VATA_PATH is not found!");
             }
-            auto aut2 = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Concrete>::FromFileToAutomata(argv[3]);
+            auto aut2 = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Concrete>::ReadAutomaton(argv[3]);
             if (!AUTOQ::TreeAutomata::check_inclusion(aut, aut2)) {
                 std::cout << "-\n0\n";
                 // throw std::runtime_error("Does not satisfy the postcondition!");

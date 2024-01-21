@@ -26,7 +26,6 @@
 #include <autoq/aut_description.hh>
 #include <boost/algorithm/string/predicate.hpp>
 
-using AUTOQ::Parsing::AbstrParser;
 using AUTOQ::Parsing::TimbukParser;
 using AUTOQ::Symbol::Concrete;
 using AUTOQ::Symbol::Symbolic;
@@ -196,8 +195,7 @@ PredicateAutomata::Symbol from_string_to_Predicate(const std::string& lhs)
 }
 
 template <typename Symbol>
-Automata<Symbol> parse_timbuk(const std::string& str)
-{
+Automata<Symbol> parse_timbuk(const std::string& str) {
 	Automata<Symbol> result;
 
 	bool are_transitions = false;
@@ -442,26 +440,8 @@ Automata<Symbol> parse_timbuk(const std::string& str)
 }
 
 template <typename Symbol>
-Automata<Symbol> TimbukParser<Symbol>::ParseString(const std::string& str)
-{
-	Automata<Symbol> timbukParse;
-
-	try
-	{
-		timbukParse = parse_automaton<Symbol>(str);
-	}
-	catch (std::exception& ex)
-	{
-		throw std::runtime_error("[ERROR] \'" + std::string(ex.what()) +
-			"\'\nwhile parsing the following automaton.\n\n>>>>>>>>>>>>>>>>>>>>\n" + str + "\n<<<<<<<<<<<<<<<<<<<<");
-	}
-
-	return timbukParse;
-}
-
-template <typename Symbol>
-Automata<Symbol> parse_automaton(const std::string& str)
-{
+Automata<Symbol> parse_automaton(const std::string& str) {
+try {
 	bool start_numbers = false;
     bool start_transitions = false;
     Automata<Symbol> result;
@@ -684,6 +664,61 @@ Automata<Symbol> parse_automaton(const std::string& str)
     }
     result.stateNum++; // because the state number starts from 0
 	return result;
+} catch (std::exception& ex) {
+    throw std::runtime_error("[ERROR] \'" + std::string(ex.what()) +
+        "\'\nwhile parsing the following automaton.\n\n>>>>>>>>>>>>>>>>>>>>\n" + str + "\n<<<<<<<<<<<<<<<<<<<<");
+}
+}
+
+template <typename Symbol>
+Automata<Symbol> TimbukParser<Symbol>::parse_hsl_from_istream(std::istream *is) {
+    Automata<Symbol> aut_final;
+    std::string line;
+    while (std::getline(*is, line)) {
+        line = AUTOQ::Util::trim(line);
+        if (line.substr(0, 4) == "|i|=") { // if startswith "|i|="
+            std::istringstream iss(line);
+            std::string length; iss >> length; length = length.substr(4);
+            line.clear();
+            for (std::string t; iss >> t;)
+                line += t + ' ';
+            std::string i(std::atoi(length.c_str()), '1');
+            bool reach_all_zero;
+            do {
+                auto aut = TimbukParser<Symbol>::from_line_to_automaton(std::regex_replace(line, std::regex("i:"), i + ":"));
+                aut_final = aut_final.Union(aut);
+                aut_final.reduce();
+
+                // the following performs -1 on the binary string i
+                reach_all_zero = false;
+                for (int j=i.size()-1; j>=0; j--) {
+                    if (i.at(j) == '0') {
+                        if (j == 0) {
+                            reach_all_zero = true;
+                            break;
+                        }
+                        i.at(j) = '1';
+                    } else {
+                        i.at(j) = '0';
+                        break;
+                    }
+                }
+            } while (!reach_all_zero);
+        } else {
+            auto aut = TimbukParser<Symbol>::from_line_to_automaton(line);
+            aut_final = aut_final.Union(aut);
+            aut_final.reduce();
+        }
+    }
+    // DO NOT fraction_simplification() here since the resulting automaton may be used as pre.spec
+    // and in this case all k's must be the same.
+    return aut_final;
+}
+
+template <typename Symbol>
+Automata<Symbol> parse_hsl(const std::string& str) {
+    std::istringstream inputStream(str); // delimited by '\n'
+    return TimbukParser<Symbol>::parse_hsl_from_istream(&inputStream);
 }
 
 template <> // The loop reading part is different from other types, so we have to specialize this type.
@@ -989,102 +1024,18 @@ Automata<Symbol> TimbukParser<Symbol>::from_line_to_automaton(std::string line) 
 }
 
 template <typename Symbol>
-Automata<Symbol> TimbukParser<Symbol>::FromFileToAutomata(const char* filepath)
-{
-    if (boost::algorithm::ends_with(filepath, ".spec")) {
-        std::ifstream t(filepath);
-        if (!t) // in case the file could not be open
-            throw std::runtime_error("[ERROR] Failed to open file " + std::string(filepath) + ".");
-        std::stringstream buffer;
-        buffer << t.rdbuf();
-        return ParseString(buffer.str());
-    } else if (boost::algorithm::ends_with(filepath, ".aut")) {
-        std::ifstream t(filepath);
-        if (!t) // in case the file could not be open
-            throw std::runtime_error("[ERROR] Failed to open file " + std::string(filepath) + ".");
-        std::stringstream buffer;
-        buffer << t.rdbuf();
-        return parse_timbuk<Symbol>(buffer.str());
-    } else if (boost::algorithm::ends_with(filepath, ".hsl")) {
-        Automata<Symbol> aut_final;
-        std::string line;
-        std::ifstream file(filepath);
-        if (!file) // in case the file could not be open
-            throw std::runtime_error("[ERROR] Failed to open file " + std::string(filepath) + ".");
-        while (std::getline(file, line)) {
-            line = AUTOQ::Util::trim(line);
-            if (line.substr(0, 4) == "|i|=") { // if startswith "|i|="
-                std::istringstream iss(line);
-                std::string length; iss >> length; length = length.substr(4);
-                line.clear();
-                for (std::string t; iss >> t;)
-                    line += t + ' ';
-                std::string i(std::atoi(length.c_str()), '1');
-                bool reach_all_zero;
-                do {
-                    auto aut = from_line_to_automaton(std::regex_replace(line, std::regex("i:"), i + ":"));
-                    aut_final = aut_final.Union(aut);
-                    aut_final.reduce();
-
-                    // the following performs -1 on the binary string i
-                    reach_all_zero = false;
-                    for (int j=i.size()-1; j>=0; j--) {
-                        if (i.at(j) == '0') {
-                            if (j == 0) {
-                                reach_all_zero = true;
-                                break;
-                            }
-                            i.at(j) = '1';
-                        } else {
-                            i.at(j) = '0';
-                            break;
-                        }
-                    }
-                } while (!reach_all_zero);
-            } else {
-                auto aut = from_line_to_automaton(line);
-                aut_final = aut_final.Union(aut);
-                aut_final.reduce();
-            }
-        }
-        // DO NOT fraction_simplification() here since the resulting automaton may be used as pre.spec
-        // and in this case all k's must be the same.
-        return aut_final;
-    } else {
-        throw std::runtime_error("[ERROR] " + std::string(__FUNCTION__) + ": The filename extension is not supported.");
-    }
+Automata<Symbol> TimbukParser<Symbol>::ReadAutomaton(const std::string& filepath) {
+    std::string constraint;
+    return ReadAutomatonAndConstraint(filepath, constraint);
 }
 
 template <typename Symbol>
-bool TimbukParser<Symbol>::findAndSplitSubstring(const std::string& filename, std::string& automaton, std::string& constraint) {
-    std::ifstream file(filename);
-
-    if (!file.is_open()) {
-        std::cerr << "Error: Unable to open file." << std::endl;
-        return false;
-    }
-
-    std::string fileContents((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
-
-    file.close();
-
-    size_t found = fileContents.find("Constraints");
-    if (found != std::string::npos) {
-        automaton = fileContents.substr(0, found);
-        constraint = fileContents.substr(found + 11); // "Constraints".length()
-        return true;
-    }
-
-    return false;
-}
-
-template <typename Symbol>
-AUTOQ::Automata<Symbol> TimbukParser<Symbol>::split_automaton_and_constraint(const std::string& filename, std::string& constraint) {
-    std::ifstream file(filename);
+AUTOQ::Automata<Symbol> TimbukParser<Symbol>::ReadAutomatonAndConstraint(const std::string& filepath, std::string& constraint) {
+    std::ifstream file(filepath);
     std::string automaton;
     if (!file.is_open()) {
         std::cerr << "Error: Unable to open file." << std::endl;
-        // return false;
+        exit(1);
     }
     std::string fileContents((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
     file.close();
@@ -1096,10 +1047,14 @@ AUTOQ::Automata<Symbol> TimbukParser<Symbol>::split_automaton_and_constraint(con
         automaton = fileContents;
         constraint = "";
     }
-    if (boost::algorithm::ends_with(filename, ".spec")) {
+    if (boost::algorithm::ends_with(filepath, ".spec")) {
         return parse_automaton<Symbol>(automaton);
-    } else { // if (boost::algorithm::ends_with(filename, ".aut")) {
+    } else if (boost::algorithm::ends_with(filepath, ".aut")) {
         return parse_timbuk<Symbol>(automaton);
+    } else if (boost::algorithm::ends_with(filepath, ".hsl")) {
+        return parse_hsl<Symbol>(automaton);
+    } else {
+        throw std::runtime_error("[ERROR] " + std::string(__FUNCTION__) + ": The filename extension is not supported.");
     }
 }
 

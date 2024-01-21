@@ -1295,8 +1295,8 @@ bool AUTOQ::Automata<Symbol>::execute(const char *filename, std::string &constra
             auto str = std::string(filename);
             str.resize(str.rfind('/'));
             /**************************************************************************************************************/
-            // I = AUTOQ::Parsing::TimbukParser<Symbol>::FromFileToAutomata((str + std::string("/") + it2->str(1)).c_str());
-            I = AUTOQ::Parsing::TimbukParser<Symbol>::split_automaton_and_constraint(str + std::string("/") + it2->str(1), constraintI);
+            // I = AUTOQ::Parsing::TimbukParser<Symbol>::ReadAutomaton((str + std::string("/") + it2->str(1)).c_str());
+            I = AUTOQ::Parsing::TimbukParser<Symbol>::ReadAutomatonAndConstraint(str + std::string("/") + it2->str(1), constraintI);
             /**************************************************************************************************************/
             // std::cout << "We first verify \"P ⊆ I\" here." << std::endl;
             // this->print_language("P:\n");
@@ -1324,8 +1324,8 @@ bool AUTOQ::Automata<Symbol>::execute(const char *filename, std::string &constra
                 auto str = std::string(filename);
                 str.resize(str.rfind('/'));
                 /**************************************************************************************************************/
-                // auto Q = AUTOQ::Parsing::TimbukParser<Symbol>::FromFileToAutomata((str + std::string("/") + it->str(1)).c_str());
-                auto Q = AUTOQ::Parsing::TimbukParser<Symbol>::split_automaton_and_constraint(str + std::string("/") + it->str(1), constraintQ);
+                // auto Q = AUTOQ::Parsing::TimbukParser<Symbol>::ReadAutomaton((str + std::string("/") + it->str(1)).c_str());
+                auto Q = AUTOQ::Parsing::TimbukParser<Symbol>::ReadAutomatonAndConstraint(str + std::string("/") + it->str(1), constraintQ);
                 /**************************************************************************************************************/
                 measure_to_continue = *this; // is C(measure_to_continue)
                 // std::cout << "Then we verify \"C(measure_to_continue) ⊆ I\" here." << std::endl;
@@ -1393,7 +1393,7 @@ bool AUTOQ::Automata<Symbol>::execute(const char *filename, std::string &constra
             throw std::runtime_error("[ERROR] unsupported gate: " + line + ".");
         // fraction_simplification();
         // print("\n" + line + "\n");
-        // print_language((line + std::string("\n")).c_str());
+        // print_language(("\n" + line + "\n").c_str());
         if (line.length() > 0)
             previous_line = line;
     }
@@ -1598,7 +1598,6 @@ bool AUTOQ::is_scaled_spec_satisfied(const TreeAutomata &R, std::string constrai
 bool AUTOQ::is_scaled_spec_satisfied(const TreeAutomata &R, const TreeAutomata &Q) {
     using State = TreeAutomata::State;
     using StateSet = TreeAutomata::StateSet;
-    using StateVector = TreeAutomata::StateVector;
     using StateScaleSet = std::set<std::pair<State, std::pair<Complex::Complex, Complex::Complex>>, PairComparator>;
     StateSet As_finalStates(Q.finalStates.begin(), Q.finalStates.end());
     std::map<State, std::set<StateScaleSet>> processed; // Line 1: ← ∅;
@@ -1880,7 +1879,6 @@ bool AUTOQ::is_scaled_spec_satisfied(SymbolicAutomata R, std::string constraintR
 
     using State = SymbolicAutomata::State;
     using StateSet = SymbolicAutomata::StateSet;
-    using StateVector = SymbolicAutomata::StateVector;
     using SymbolicComplex = AUTOQ::Symbol::SymbolicComplex;
     using StateScaleSet = std::set<std::pair<State, unsigned>>; // int <-> std::pair<SymbolicComplex, SymbolicComplex>
     StateSet As_finalStates(Q.finalStates.begin(), Q.finalStates.end());
@@ -2143,13 +2141,13 @@ bool AUTOQ::is_scaled_spec_satisfied(SymbolicAutomata R, std::string constraintR
                                     DP[unionSet] = true;
                                 } else {
                                     std::string assertion = "(and";
-                                    for (int i=1; i<current.size(); ++i) {
+                                    for (unsigned i=1; i<current.size(); ++i) {
                                         const auto &c1 = ratioMap[current[i-1]];
                                         const auto &c2 = ratioMap[current[i]];
                                         assertion += " (= (- (* " + c1.first.realToSMT() + " " + c2.second.realToSMT() + ") (* " + c1.first.imagToSMT() + " " + c2.second.imagToSMT() + ")) (- (* " + c1.second.realToSMT() + " " + c2.first.realToSMT() + ") (* " + c1.second.imagToSMT() + " " + c2.first.imagToSMT() + ")))";
                                         assertion += " (= (+ (* " + c1.first.realToSMT() + " " + c2.second.imagToSMT() + ") (* " + c1.first.imagToSMT() + " " + c2.second.realToSMT() + ")) (+ (* " + c1.second.realToSMT() + " " + c2.first.imagToSMT() + ") (* " + c1.second.imagToSMT() + " " + c2.first.realToSMT() + ")))";
                                     }
-                                    for (int i=0; i<current.size(); i++) {
+                                    for (unsigned i=0; i<current.size(); i++) {
                                         const auto &c = ratioMap[current[i]];
                                         assertion += " (or"; // assertion += " (or () ())";
                                         assertion += " (and (= " + c.first.realToSMT() + " 0)(= " + c.first.imagToSMT() + " 0)(= " + c.second.realToSMT() + " 0)(= " + c.second.imagToSMT() + " 0))"; // (cq == 0 && cr == 0) || (cq != 0 && cr != 0)
@@ -2254,7 +2252,7 @@ bool AUTOQ::is_scaled_spec_satisfied(SymbolicAutomata R, std::string constraintR
                                     DP[unionSet] = true;
                                 } else {
                                     std::string assertion = "(and";
-                                    for (int i=1; i<current.size(); ++i) {
+                                    for (unsigned i=1; i<current.size(); ++i) {
                                         const auto &c1 = ratioMap[current[i-1]];
                                         const auto &c2 = ratioMap[current[i]];
                                         assertion += " (= (- (* " + c1.first.realToSMT() + " " + c2.second.realToSMT() + ") (* " + c1.first.imagToSMT() + " " + c2.second.imagToSMT() + ")) (- (* " + c1.second.realToSMT() + " " + c2.first.realToSMT() + ") (* " + c1.second.imagToSMT() + " " + c2.first.imagToSMT() + ")))";

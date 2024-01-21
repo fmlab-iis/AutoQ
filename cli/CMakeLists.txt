@@ -59,23 +59,28 @@ add_executable(autoq_cav24_concrete
   ${CMAKE_CURRENT_BINARY_DIR}/version.cc
 )
 
-add_executable(caut_from_states
-  caut_from_states.cc
+add_executable(hsl_concrete
+  hsl_concrete.cc
   ${CMAKE_CURRENT_BINARY_DIR}/version.cc
 )
 
-add_executable(saut_from_states
-  saut_from_states.cc
+add_executable(hsl_symbolic
+  hsl_symbolic.cc
   ${CMAKE_CURRENT_BINARY_DIR}/version.cc
 )
 
-add_executable(paut_from_states
-  paut_from_states.cc
+add_executable(hsl_predicate
+  hsl_predicate.cc
   ${CMAKE_CURRENT_BINARY_DIR}/version.cc
 )
 
 add_executable(print_language
   print_language.cc
+  ${CMAKE_CURRENT_BINARY_DIR}/version.cc
+)
+
+add_executable(symbolic_execution
+symbolic_execution.cc
   ${CMAKE_CURRENT_BINARY_DIR}/version.cc
 )
 
@@ -96,7 +101,8 @@ target_link_libraries(autoq libautoq)
 target_link_libraries(autoq_pldi libautoq)
 target_link_libraries(autoq_cav24_symbolic libautoq)
 target_link_libraries(autoq_cav24_concrete libautoq)
-target_link_libraries(caut_from_states libautoq)
-target_link_libraries(saut_from_states libautoq)
-target_link_libraries(paut_from_states libautoq)
+target_link_libraries(hsl_concrete libautoq)
+target_link_libraries(hsl_symbolic libautoq)
+target_link_libraries(hsl_predicate libautoq)
 target_link_libraries(print_language libautoq)
+target_link_libraries(symbolic_execution libautoq)
