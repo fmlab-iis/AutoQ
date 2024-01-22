@@ -16,6 +16,7 @@
 #include <queue>
 #include <regex>
 #include <bit>
+#include <filesystem>
 #include <boost/dynamic_bitset.hpp>
 
 using namespace AUTOQ;
@@ -1292,11 +1293,8 @@ bool AUTOQ::Automata<Symbol>::execute(const char *filename, std::string &constra
             /********************************/
             const std::regex spec("// *(.*)");
             std::regex_iterator<std::string::iterator> it2(line.begin(), line.end(), spec);
-            auto str = std::string(filename);
-            str.resize(str.rfind('/'));
-            /**************************************************************************************************************/
-            // I = AUTOQ::Parsing::TimbukParser<Symbol>::ReadAutomaton((str + std::string("/") + it2->str(1)).c_str());
-            I = AUTOQ::Parsing::TimbukParser<Symbol>::ReadAutomatonAndConstraint(str + std::string("/") + it2->str(1), constraintI);
+            std::string dir = (std::filesystem::current_path() / filename).parent_path().string();
+            I = AUTOQ::Parsing::TimbukParser<Symbol>::ReadAutomatonAndConstraint(dir + std::string("/") + it2->str(1), constraintI);
             /**************************************************************************************************************/
             // std::cout << "We first verify \"P ⊆ I\" here." << std::endl;
             // this->print_language("P:\n");
@@ -1321,11 +1319,8 @@ bool AUTOQ::Automata<Symbol>::execute(const char *filename, std::string &constra
                     throw std::runtime_error("[ERROR] The while loop guard must be repeated at the end of the loop!");
                 const std::regex spec("// *(.*)");
                 std::regex_iterator<std::string::iterator> it(line.begin(), line.end(), spec);
-                auto str = std::string(filename);
-                str.resize(str.rfind('/'));
-                /**************************************************************************************************************/
-                // auto Q = AUTOQ::Parsing::TimbukParser<Symbol>::ReadAutomaton((str + std::string("/") + it->str(1)).c_str());
-                auto Q = AUTOQ::Parsing::TimbukParser<Symbol>::ReadAutomatonAndConstraint(str + std::string("/") + it->str(1), constraintQ);
+                std::string dir = (std::filesystem::current_path() / filename).parent_path().string();
+                auto Q = AUTOQ::Parsing::TimbukParser<Symbol>::ReadAutomatonAndConstraint(dir + std::string("/") + it->str(1), constraintQ);
                 /**************************************************************************************************************/
                 measure_to_continue = *this; // is C(measure_to_continue)
                 // std::cout << "Then we verify \"C(measure_to_continue) ⊆ I\" here." << std::endl;
