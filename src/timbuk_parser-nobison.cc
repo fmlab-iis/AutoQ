@@ -802,6 +802,7 @@ Automata<Concrete> TimbukParser<Concrete>::from_tree_to_automaton(std::string tr
         } else {
             TreeAutomata::State s = std::stoll(state, nullptr, 2);
             auto &sps = states_probs[s].complex;
+            sps.clear();
             while (std::getline(iss2, t, ',')) {
                 try {
                     sps.push_back(boost::lexical_cast<boost::multiprecision::cpp_int>(t.c_str()));
