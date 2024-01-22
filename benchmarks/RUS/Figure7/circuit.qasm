@@ -19,7 +19,7 @@ h qb[0];
 x qb[0];
 
 outcome[0] = measure qb[0];
-while (!outcome[0]) { // loop-invariant.aut
+while (!outcome[0]) { // loop-invariant.hsl
 h qb[0];
 tdg qb[0];
 h qb[0];
@@ -35,6 +35,6 @@ tdg qb[0];
 h qb[0];
 x qb[0];
 outcome[0] = measure qb[0];
-} // post.aut
+} // post.hsl
 
 // outcome = measure qb;

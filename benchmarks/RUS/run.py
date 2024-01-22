@@ -28,7 +28,8 @@ def TA(root, stR, semaphore, lock, counter):
         # q = p.stdout.splitlines()[0].decode('utf-8')
         # p = subprocess.run(f'grep -P ".*(x |y |z |h |s |t |rx\(pi/2\) |ry\(pi/2\) |cx |cz |ccx |tdg |sdg |swap ).*\[\d+\];" {root}/circuit.qasm | wc -l', shell=True, capture_output=True, executable='/bin/bash')
         # G = p.stdout.splitlines()[0].decode('utf-8')
-        p = subprocess.run(f'timeout {TIMEOUT} {TA_EXE} {root}/pre.spec {root}/circuit.qasm {root}/post.aut', shell=True, capture_output=True, executable='/bin/bash')
+        p = subprocess.run(f'timeout {TIMEOUT} {TA_EXE} {root}/pre.hsl {root}/circuit.qasm {root}/post.hsl', shell=True, capture_output=True, executable='/bin/bash')
+        # print(f'timeout {TIMEOUT} {TA_EXE} {root}/pre.hsl {root}/circuit.qasm {root}/post.hsl')
         ret = p.returncode
         if ret == 0:
             stR.value = p.stdout.splitlines()[-1].decode('utf-8')
@@ -53,7 +54,7 @@ lock = Lock()
 for root, dirnames, filenames in sorted(os.walk('.')):
     # pattern = re.compile(r'^\.\/[0-9][0-9]')
     # if not pattern.match(root): continue
-    if len(dirnames) == 0 and 'pre.spec' in filenames:
+    if len(dirnames) == 0 and 'pre.hsl' in filenames:
         process_pool_small = []
         string_pool_small = [manager.Value(c_wchar_p, root)]
         for func in (TA, ):
