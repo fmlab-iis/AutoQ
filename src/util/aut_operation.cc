@@ -1366,11 +1366,11 @@ bool AUTOQ::Automata<Symbol>::execute(const char *filename, std::string &constra
                 var = var.substr(1);
             int pos = var_is_measure_what_qubit[var];
             if (negate) {
-                *this = this->measure(pos, false);
                 measure_to_else = this->measure(pos, true);
+                *this = this->measure(pos, false);
             } else { // if (measure ...
-                *this = this->measure(pos, true);
                 measure_to_else = this->measure(pos, false);
+                *this = this->measure(pos, true);
             }
         } else if (line.find("else") == 0) { // else {
             inElseBlock = true;
@@ -2360,7 +2360,7 @@ void AUTOQ::Automata<Symbol>::print_language(const char *str) const {
             });
             for (unsigned i=0; i<s.size(); i++) {
                 if (s[i] != (ptr->first))
-                    std::cout << boost::dynamic_bitset(qubitNum, i) << ":" << s[i] << "\n";
+                    std::cout << boost::dynamic_bitset(qubitNum, i) << ":" << s[i] << " ";
             }
             std::cout << "*:" << (ptr->first) << std::endl;
         }
