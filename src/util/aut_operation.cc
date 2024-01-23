@@ -1317,28 +1317,28 @@ bool AUTOQ::Automata<Symbol>::execute(const char *filename, std::string &constra
                 std::erase(previous_line, ' ');
                 if (while_measurement_guard != previous_line)
                     throw std::runtime_error("[ERROR] The while loop guard must be repeated at the end of the loop!");
-                const std::regex spec("// *(.*)");
-                std::regex_iterator<std::string::iterator> it(line.begin(), line.end(), spec);
-                std::string dir = (std::filesystem::current_path() / filename).parent_path().string();
-                auto Q = AUTOQ::Parsing::TimbukParser<Symbol>::ReadAutomatonAndConstraint(dir + std::string("/") + it->str(1), constraintQ);
+                // const std::regex spec("// *(.*)");
+                // std::regex_iterator<std::string::iterator> it(line.begin(), line.end(), spec);
+                // std::string dir = (std::filesystem::current_path() / filename).parent_path().string();
+                // auto Q = AUTOQ::Parsing::TimbukParser<Symbol>::ReadAutomatonAndConstraint(dir + std::string("/") + it->str(1), constraintQ);
                 /**************************************************************************************************************/
-                measure_to_continue = *this; // is C(measure_to_continue)
+                // measure_to_continue = *this; // is C(measure_to_continue)
                 // std::cout << "Then we verify \"C(measure_to_continue) ⊆ I\" here." << std::endl;
                 // measure_to_continue.print_language("C(measure_to_continue):\n");
                 // I.print_language("I:\n");
-                measure_to_continue.remove_useless(); measure_to_continue.reduce(); // I.remove_useless(); I.reduce();
-                bool t = is_scaled_spec_satisfied(measure_to_continue, constraintI, I, constraintI);
+                // measure_to_continue.remove_useless(); measure_to_continue.reduce(); // I.remove_useless(); I.reduce();
+                bool t = is_scaled_spec_satisfied(*this, constraintI, I, constraintI);
                 verify &= t;
                 if (!t) AUTOQ_ERROR("[ERROR] C(measure_to_continue) ⊈ I.");
                 // std::cout << "Then we verify \"measure_to_break ⊆ Q\" here." << std::endl;
                 // measure_to_break.print_language("measure_to_break:\n");
                 // Q.print_language("Q:\n");
-                measure_to_break.remove_useless(); measure_to_break.reduce(); Q.remove_useless(); Q.reduce();
-                t = is_scaled_spec_satisfied(measure_to_break, constraintI, Q, constraintQ);
-                verify &= t;
-                if (!t) AUTOQ_ERROR("[ERROR] measure_to_break ⊈ Q.");
-                *this = Q; // Use this postcondition to execute the remaining circuit!
-                constraint = constraintQ; // pass the postcondition's contraint to the main function for the later use!
+                // measure_to_break.remove_useless(); measure_to_break.reduce(); Q.remove_useless(); Q.reduce();
+                // t = is_scaled_spec_satisfied(measure_to_break, constraintI, Q, constraintQ);
+                // verify &= t;
+                // if (!t) AUTOQ_ERROR("[ERROR] measure_to_break ⊈ Q.");
+                *this = measure_to_break; // Use this postcondition to execute the remaining circuit!
+                constraint = constraintI; // pass the postcondition's contraint to the main function for the later use!
                 gateCount--; // retract the excess counting of the measurement operator in the while loop guard
             } else if (inIfBlock) {
                 inIfBlock = false;
@@ -1869,7 +1869,7 @@ bool AUTOQ::is_scaled_spec_satisfied(const TreeAutomata &R, const TreeAutomata &
     return true;
 }
 bool AUTOQ::is_scaled_spec_satisfied(SymbolicAutomata R, std::string constraintR, SymbolicAutomata Q, std::string constraintQ) {
-    if (R.StrictlyEqual(Q) && constraintR == constraintQ) return true;
+    // if (R.StrictlyEqual(Q) && constraintR == constraintQ) return true;
     auto start = chrono::steady_clock::now();
 
     using State = SymbolicAutomata::State;
