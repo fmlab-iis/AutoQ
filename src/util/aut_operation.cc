@@ -1188,7 +1188,7 @@ bool AUTOQ::Automata<Symbol>::execute(const char *filename, std::string &constra
             }
             continue; // simply ignore gate definitions
         }
-        if (line.find("OPENQASM") == 0 || line.find("include ") == 0 || line.find("//") == 0 || line.find("bit") == 0) continue;
+        if (line.find("OPENQASM") == 0 || line.find("include ") == 0 || line.find("//") == 0 || line.find("/*") == 0 || line.find("bit") == 0) continue;
         if (line.find("qreg ") == 0 || line.find("qubit") == 0) {
             std::regex_iterator<std::string::iterator> it(line.begin(), line.end(), digit);
             while (it != END) {
@@ -1252,14 +1252,14 @@ bool AUTOQ::Automata<Symbol>::execute(const char *filename, std::string &constra
                 ++it;
             }
             CZ(pos[0], pos[1]);
-        } else if (line.find("ccustom ") == 0) {
+        } else if (line.find("ck ") == 0) {
             std::regex_iterator<std::string::iterator> it(line.begin(), line.end(), digit);
             std::vector<int> pos;
             while (it != END) {
                 pos.push_back(1 + atoi(it->str().c_str()));
                 ++it;
             }
-            CU(pos[0], pos[1]);
+            CK(pos[0], pos[1]);
         } else if (line.find("ccx ") == 0) {
             std::regex_iterator<std::string::iterator> it(line.begin(), line.end(), digit);
             std::vector<int> pos;
@@ -1311,7 +1311,7 @@ bool AUTOQ::Automata<Symbol>::execute(const char *filename, std::string &constra
                 measure_to_break = I.measure(pos, false);
             }
             *this = measure_to_continue;
-        } else if (line.find("}") == 0) { // } // post.{spec|hsl}
+        } else if (line.find("}") == 0) {
             if (inWhileLoop) {
                 inWhileLoop = false;
                 std::erase(previous_line, ' ');

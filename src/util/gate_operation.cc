@@ -660,7 +660,7 @@ void AUTOQ::Automata<Symbol>::swap(int t1, int t2) {
 }
 
 template <typename Symbol>
-void AUTOQ::Automata<Symbol>::CU(int c, int t) {
+void AUTOQ::Automata<Symbol>::CK(int c, int t) {
     #ifdef TO_QASM
         system(("echo 'cu qubits[" + std::to_string(c-1) + "], qubits[" + std::to_string(t-1) + "];' >> " + QASM_FILENAME).c_str());
         return;

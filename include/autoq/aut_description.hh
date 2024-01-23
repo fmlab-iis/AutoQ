@@ -205,7 +205,7 @@ public:
     void Sdg(int t);
     void swap(int t1, int t2);
     void U(int t);
-    void CU(int c, int t);
+    void CK(int c, int t);
     Automata measure(int t, bool outcome) const;
 
     /* Produce an automaton instance. */

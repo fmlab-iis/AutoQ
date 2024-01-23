@@ -12,7 +12,7 @@ def oracle(file, n):
 
 def E_k(file, n):
     oracle(file, n)
-    file.write(f'ccustom qb[{n}], qb[{n-1}];\n')
+    file.write(f'ck qb[{n}], qb[{n-1}];\n')
     oracle(file, n)
 
 def mcz(file, n):
@@ -39,14 +39,19 @@ for n in range(3, 100):
         file.write('include "stdgates.inc";\n')
         file.write(f'qubit[{2*n+1}] qb;\n') # assert n >= 3
         file.write(f'bit[{2*n+1}] outcome;\n\n')
-        file.write('''// Define a controlled U operation using the ctrl gate modifier.
-// q1 is control, q2 is target
-gate custom q {
+        file.write('''/******************************************************/
+// Users should be notified that all gate definitions
+// in this circuit file are simply ignored by AutoQ 2.0.
+// These definitions are intended for this circuit file
+// to be readable by qiskit.
+gate k q {
     U(0.190332413, 0, 0) q;
 }
-gate ccustom q1, q2 {
-    ctrl @ custom q1, q2;
-}\n\n''')
+gate ck q1, q2 {
+    ctrl @ k q1, q2;
+}
+/******************************************************/
+\n''')
         ########
         for i in range(n+1, 2*n+1): # initial superposition
             file.write(f'h qb[{i}];\n')
@@ -74,7 +79,7 @@ gate ccustom q1, q2 {
         E_k(file, n)
         ########
         file.write(f'outcome[{n-1}] = measure qb[{n-1}];\n')
-        file.write('} // post.spec\n')
+        file.write('}\n')
         file.write('\n// outcome = measure qb;\n')
     #########################################
 

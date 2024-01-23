@@ -3,14 +3,18 @@ include "stdgates.inc";
 qubit[101] qb;
 bit[101] outcome;
 
-// Define a controlled U operation using the ctrl gate modifier.
-// q1 is control, q2 is target
-gate custom q {
+/******************************************************/
+// Users should be notified that all gate definitions
+// in this circuit file are simply ignored by AutoQ 2.0.
+// These definitions are intended for this circuit file
+// to be readable by qiskit.
+gate k q {
     U(0.190332413, 0, 0) q;
 }
-gate ccustom q1, q2 {
-    ctrl @ custom q1, q2;
+gate ck q1, q2 {
+    ctrl @ k q1, q2;
 }
+/******************************************************/
 
 h qb[51];
 h qb[52];
@@ -161,7 +165,7 @@ ccx qb[2], qb[55], qb[3];
 ccx qb[1], qb[54], qb[2];
 ccx qb[0], qb[53], qb[1];
 ccx qb[51], qb[52], qb[0];
-ccustom qb[50], qb[49];
+ck qb[50], qb[49];
 ccx qb[51], qb[52], qb[0];
 ccx qb[0], qb[53], qb[1];
 ccx qb[1], qb[54], qb[2];
@@ -763,7 +767,7 @@ ccx qb[2], qb[55], qb[3];
 ccx qb[1], qb[54], qb[2];
 ccx qb[0], qb[53], qb[1];
 ccx qb[51], qb[52], qb[0];
-ccustom qb[50], qb[49];
+ck qb[50], qb[49];
 ccx qb[51], qb[52], qb[0];
 ccx qb[0], qb[53], qb[1];
 ccx qb[1], qb[54], qb[2];
