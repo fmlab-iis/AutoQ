@@ -49,4 +49,4 @@ h qb[0];
 z qb[1];
 x qb[0];
 outcome[0] = measure qb[0];
-} // post.hsl
+}

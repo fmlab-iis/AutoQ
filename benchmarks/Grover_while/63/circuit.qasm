@@ -1085,6 +1085,6 @@ ccx qb[1], qb[67], qb[2];
 ccx qb[0], qb[66], qb[1];
 ccx qb[64], qb[65], qb[0];
 outcome[62] = measure qb[62];
-} // post.spec
+}
 
 // outcome = measure qb;

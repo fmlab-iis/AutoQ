@@ -11,4 +11,4 @@ while (!outcome[0]) { // loop-invariant.hsl
     h qb[0];
     cx qb[0], qb[1];
     outcome[0] = measure qb[0];
-} // post.hsl
+}
