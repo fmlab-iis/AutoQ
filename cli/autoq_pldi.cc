@@ -58,7 +58,7 @@ optional arguments:
     if (argc < 5) {
         if (argc >= 4) { // Check VATA_PATH first!
             if (std::getenv("VATA_PATH") == nullptr) {
-                throw std::runtime_error("[ERROR] The environment variable VATA_PATH is not found!");
+                throw std::runtime_error(AUTOQ_LOG_PREFIX + "[ERROR] The environment variable VATA_PATH is not found!");
             }
         }
         AUTOQ::TreeAutomata aut = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Concrete>::ReadAutomaton(argv[1]);
@@ -77,7 +77,7 @@ optional arguments:
             auto aut2 = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Concrete>::ReadAutomaton(argv[3]);
             if (!AUTOQ::TreeAutomata::check_inclusion(aut, aut2)) {
                 // std::cout << "-\n0\n";
-                // throw std::runtime_error("Does not satisfy the postcondition!");
+                // throw std::runtime_error(AUTOQ_LOG_PREFIX + "Does not satisfy the postcondition!");
                 std::cout << AUTOQ::Util::Convert::ToString(aut.qubitNum) << " & " << AUTOQ::TreeAutomata::gateCount
                 << " & " << stateBefore << " & " << aut.stateNum
                 << " & " << transitionBefore << " & " << aut.transition_size()
@@ -105,7 +105,7 @@ optional arguments:
         AUTOQ::PredicateAutomata spec = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Predicate>::ReadAutomaton(argv[3]);
         std::ifstream t(argv[4]);
         if (!t) // in case the file could not be open
-            throw std::runtime_error("[ERROR] Failed to open file " + std::string(argv[4]) + ".");
+            throw std::runtime_error(AUTOQ_LOG_PREFIX + "[ERROR] Failed to open file " + std::string(argv[4]) + ".");
         std::stringstream buffer;
         buffer << t.rdbuf();
         AUTOQ::Constraint C(buffer.str().c_str());

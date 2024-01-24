@@ -88,7 +88,7 @@ public:   // methods
 		}
 		else
 		{	// in case there is no translation for the value
-			throw std::runtime_error("Cannot insert value into const translator.");
+			throw std::runtime_error(AUTOQ_LOG_PREFIX + "Cannot insert value into const translator.");
 		}
 	}
 
@@ -163,7 +163,7 @@ public:   // methods
 		}
 		else
 		{
-			throw std::runtime_error("Cannot insert value into const translator.");
+			throw std::runtime_error(AUTOQ_LOG_PREFIX + "Cannot insert value into const translator.");
 		}
 	}
 

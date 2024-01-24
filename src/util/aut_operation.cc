@@ -285,7 +285,7 @@ void AUTOQ::Automata<Symbol>::branch_restriction(int k, bool positive_has_value)
     auto start = std::chrono::steady_clock::now();
     State num_of_states = stateNum;
     if (stateNum > std::numeric_limits<State>::max() / 2)
-        throw std::overflow_error("[ERROR] The number of states is too large.");
+        throw std::overflow_error(AUTOQ_LOG_PREFIX + "[ERROR] The number of states is too large.");
     stateNum *= 2;
 
     TransitionMap transitions_copy = transitions;
@@ -407,7 +407,7 @@ AUTOQ::Automata<Symbol> AUTOQ::Automata<Symbol>::binary_operation(const Automata
     if (!overflow) {}
         // result.finalStates.reserve(finalStates.size() * o.finalStates.size()); // TODO: Can we set the initial capacity?
     else
-        throw std::overflow_error("[ERROR] The number of states after multiplication is too large.");
+        throw std::overflow_error(AUTOQ_LOG_PREFIX + "[ERROR] The number of states after multiplication is too large.");
 
     for (const auto &fs1 : finalStates)
         for (const auto &fs2 : o.finalStates) {
@@ -1057,7 +1057,7 @@ void AUTOQ::Automata<Symbol>::fraction_simplification() {
     // not cached, get it from ENV
     const char* path = std::getenv("VATA_PATH");
     if (nullptr == path) {
-      throw std::runtime_error("[ERROR] The environment variable VATA_PATH is not found!");
+      throw std::runtime_error(AUTOQ_LOG_PREFIX + "[ERROR] The environment variable VATA_PATH is not found!");
     }
 
     gpath_to_VATA = path;
@@ -1111,7 +1111,7 @@ void AUTOQ::Automata<Symbol>::fraction_simplification() {
     }
     std::string aux;
     if (!AUTOQ::Util::ShellCmd(args, aux)) {
-        throw std::runtime_error("[ERROR] Failed to execute VATA.");
+        throw std::runtime_error(AUTOQ_LOG_PREFIX + "[ERROR] Failed to execute VATA.");
     }
     return (aux == "1\n");
   }
@@ -1165,7 +1165,7 @@ void AUTOQ::Automata<Symbol>::fraction_simplification() {
 //     std::string result;
 //     std::unique_ptr<FILE, decltype(&pclose)> pipe(popen(cmd, "r"), pclose);
 //     if (!pipe) {
-//         throw std::runtime_error("popen() failed!");
+//         throw std::runtime_error(AUTOQ_LOG_PREFIX + "popen() failed!");
 //     }
 //     while (fgets(buffer.data(), buffer.size(), pipe.get()) != nullptr) {
 //         result += buffer.data();
@@ -1221,7 +1221,7 @@ bool AUTOQ::check_validity(Constraint C, const PredicateAutomata::Symbol &ps, co
     else {
         std::cout << smt_input << "\n";
         std::cout << str << "-\n";
-        throw std::runtime_error("[ERROR] The solver Z3 did not correctly return SAT or UNSAT.\nIt's probably because the specification automaton is NOT a predicate automaton.");
+        throw std::runtime_error(AUTOQ_LOG_PREFIX + "[ERROR] The solver Z3 did not correctly return SAT or UNSAT.\nIt's probably because the specification automaton is NOT a predicate automaton.");
     }
 }
 bool AUTOQ::call_SMT_solver(const string &C, const string &str) {
@@ -1243,7 +1243,7 @@ bool AUTOQ::call_SMT_solver(const string &C, const string &str) {
     else {
         std::cout << smt_input << "\n";
         std::cout << result << "-\n";
-        throw std::runtime_error("[ERROR] The solver Z3 did not correctly return SAT or UNSAT.");
+        throw std::runtime_error(AUTOQ_LOG_PREFIX + "[ERROR] The solver Z3 did not correctly return SAT or UNSAT.");
     }
 }
 bool AUTOQ::is_spec_satisfied(const Constraint &C, const SymbolicAutomata &Ae, const PredicateAutomata &As) {

@@ -46,7 +46,7 @@ struct AUTOQ::Complex::FiveTuple : stdvectorboostmultiprecisioncpp_int {
         if (theta == boost::rational<boost::multiprecision::cpp_int>(5, 8)) return {0,-1,0,0,0};
         if (theta == boost::rational<boost::multiprecision::cpp_int>(6, 8)) return {0,0,-1,0,0};
         if (theta == boost::rational<boost::multiprecision::cpp_int>(7, 8)) return {0,0,0,-1,0};
-        throw std::runtime_error("Angle not supported!");
+        throw std::runtime_error(AUTOQ_LOG_PREFIX + "Angle not supported!");
     }
     static FiveTuple One() { return FiveTuple({1,0,0,0,0}); }
     static FiveTuple Zero() { return FiveTuple({0,0,0,0,0}); }

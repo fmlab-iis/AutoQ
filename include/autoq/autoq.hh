@@ -23,7 +23,7 @@
 	#define DEBUG 0
 #endif
 
-#define AUTOQ_LOG_PREFIX (std::string(__FILE__ ":" + AUTOQ::Util::Convert::ToString(__LINE__) + ": "))
+#define AUTOQ_LOG_PREFIX (std::string(__FILE__) + ":" + std::to_string(__LINE__) + ": ")
 
 /// @todo: maybe change logging to something like Boost::Log or Google's logging stuff?
 #define AUTOQ_LOG_MESSAGE(severity, msg) (std::clog << #severity << ": " << (AUTOQ_LOG_PREFIX) << msg << "\n")

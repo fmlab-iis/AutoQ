@@ -30,7 +30,7 @@ optional arguments:
     if (argc >= 2){
         file.open(argv[1]);
         if (!file) // in case the file could not be open
-            throw std::runtime_error("[ERROR] Failed to open file " + std::string(argv[1]) + ".");
+            throw std::runtime_error(AUTOQ_LOG_PREFIX + "[ERROR] Failed to open file " + std::string(argv[1]) + ".");
         in = &file;
     }
     SymbolicAutomata aut_final = TimbukParser<SymbolicAutomata::Symbol>::parse_hsl_from_istream(in);

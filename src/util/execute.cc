@@ -25,7 +25,7 @@ bool AUTOQ::Automata<Symbol>::execute(const char *filename, std::string &constra
     std::ifstream qasm(filename);
     const std::regex digit("\\d+");
     const std::regex_iterator<std::string::iterator> END;
-    if (!qasm.is_open()) throw std::runtime_error("[ERROR] Failed to open file " + std::string(filename) + ".");
+    if (!qasm.is_open()) throw std::runtime_error(AUTOQ_LOG_PREFIX + "[ERROR] Failed to open file " + std::string(filename) + ".");
     std::string line, previous_line;
     while (getline(qasm, line)) {
         line = AUTOQ::Util::trim(line);
@@ -40,7 +40,7 @@ bool AUTOQ::Automata<Symbol>::execute(const char *filename, std::string &constra
             std::regex_iterator<std::string::iterator> it(line.begin(), line.end(), digit);
             while (it != END) {
                 if (atoi(it->str().c_str()) != static_cast<int>(qubitNum))
-                    throw std::runtime_error("[ERROR] The number of qubits in the automaton does not match the number of qubits in the circuit.");
+                    throw std::runtime_error(AUTOQ_LOG_PREFIX + "[ERROR] The number of qubits in the automaton does not match the number of qubits in the circuit.");
                 ++it;
             }
         } else if (line.find("x ") == 0) {
@@ -125,7 +125,7 @@ bool AUTOQ::Automata<Symbol>::execute(const char *filename, std::string &constra
             swap(pos[0], pos[1]);
         } else if (line.find("while") == 0) { // while (!result) { // loop-invariant.{spec|hsl}
             if (previous_line.find("measure") == std::string::npos)
-                throw std::runtime_error("[ERROR] The while loop guard must be a measurement operator.");
+                throw std::runtime_error(AUTOQ_LOG_PREFIX + "[ERROR] The while loop guard must be a measurement operator.");
             while_measurement_guard = previous_line;
             std::erase(while_measurement_guard, ' ');
             inWhileLoop = true;
@@ -163,7 +163,7 @@ bool AUTOQ::Automata<Symbol>::execute(const char *filename, std::string &constra
                 inWhileLoop = false;
                 std::erase(previous_line, ' ');
                 if (while_measurement_guard != previous_line)
-                    throw std::runtime_error("[ERROR] The while loop guard must be repeated at the end of the loop!");
+                    throw std::runtime_error(AUTOQ_LOG_PREFIX + "[ERROR] The while loop guard must be repeated at the end of the loop!");
                 // const std::regex spec("// *(.*)");
                 // std::regex_iterator<std::string::iterator> it(line.begin(), line.end(), spec);
                 // std::string dir = (std::filesystem::current_path() / filename).parent_path().string();
@@ -197,7 +197,7 @@ bool AUTOQ::Automata<Symbol>::execute(const char *filename, std::string &constra
             }
         } else if (line.find("if") == 0) { // if (!result) {
             if (previous_line.find("measure") == std::string::npos)
-                throw std::runtime_error("[ERROR] The if guard must be a measurement operator.");
+                throw std::runtime_error(AUTOQ_LOG_PREFIX + "[ERROR] The if guard must be a measurement operator.");
             inIfBlock = true;
             const std::regex varR("\\((.*)\\)");
             std::regex_iterator<std::string::iterator> it(line.begin(), line.end(), varR);
@@ -232,7 +232,7 @@ bool AUTOQ::Automata<Symbol>::execute(const char *filename, std::string &constra
             // are produced from the measurement outcome of 0 and 1, respectively. However, we do
             // not do this for simplicity temporarily.
         } else if (line.length() > 0)
-            throw std::runtime_error("[ERROR] unsupported gate: " + line + ".");
+            throw std::runtime_error(AUTOQ_LOG_PREFIX + "[ERROR] unsupported gate: " + line + ".");
         // fraction_simplification();
         // print("\n" + line + "\n");
         // print_language(("\n" + line + "\n").c_str());

@@ -34,7 +34,7 @@ private:
     }
     void set(const rational &a, int d) {
         if (d > N) {
-            throw std::runtime_error("invalid power");
+            throw std::runtime_error(AUTOQ_LOG_PREFIX + "invalid power");
         } else {
             coeff[d] = a;
         }
@@ -62,7 +62,7 @@ public:
             r += 1;
         nTuple p;
         if (N % r.denominator() != 0) {
-            throw std::runtime_error("Angle not supported!");
+            throw std::runtime_error(AUTOQ_LOG_PREFIX + "Angle not supported!");
         } else {
             p.set(rational(1), static_cast<int>(N * r.numerator() / r.denominator()));
             return p;

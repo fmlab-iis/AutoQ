@@ -64,7 +64,7 @@ private:
                     if (!right.isZero()) {
                         left = left / right;
                     } else {
-                        throw std::runtime_error("Division by zero");
+                        throw std::runtime_error(AUTOQ_LOG_PREFIX + "Division by zero");
                     }
                 }
             } else {
@@ -111,13 +111,13 @@ private:
     Complex parsePrimary() {
         skipWhitespace();
         if (index_ >= input_.length()) {
-            throw std::runtime_error("Unexpected end of input");
+            throw std::runtime_error(AUTOQ_LOG_PREFIX + "Unexpected end of input");
         }
         if (input_[index_] == '(') {
             index_++;
             Complex result = parseExpression();
             if (index_ >= input_.length() || input_[index_] != ')') {
-                throw std::runtime_error("Missing closing parenthesis");
+                throw std::runtime_error(AUTOQ_LOG_PREFIX + "Missing closing parenthesis");
             }
             index_++;
             return result;
@@ -132,27 +132,27 @@ private:
                     index_++;
                     skipWhitespace();
                     if (index_ >= input_.length() || (!std::isdigit(input_[index_]) && input_[index_] != '-')) {
-                        throw std::runtime_error("Invalid argument for A function");
+                        throw std::runtime_error(AUTOQ_LOG_PREFIX + "Invalid argument for A function");
                     }
                     auto x = parseExpression();
                     if (index_ >= input_.length() || input_[index_] != ')') {
-                        throw std::runtime_error("Missing closing parenthesis for A function");
+                        throw std::runtime_error(AUTOQ_LOG_PREFIX + "Missing closing parenthesis for A function");
                     }
                     index_++;
                     // assert(x.imag() == 0);
                     return Complex::Angle(x.to_rational());
                 } else {
-                    throw std::runtime_error("Invalid syntax for A function");
+                    throw std::runtime_error(AUTOQ_LOG_PREFIX + "Invalid syntax for A function");
                 }
             } else if (function == "V2") {
                 return Complex::sqrt2();
             } else {
-                throw std::runtime_error("Unknown function: " + function);
+                throw std::runtime_error(AUTOQ_LOG_PREFIX + "Unknown function: " + function);
             }
         } else if (std::isdigit(input_[index_]) || input_[index_] == '-') {
             return Complex(parseNumber());
         } else {
-            throw std::runtime_error("Unexpected character: " + std::string(1, input_[index_]));
+            throw std::runtime_error(AUTOQ_LOG_PREFIX + "Unexpected character: " + std::string(1, input_[index_]));
         }
     }
 

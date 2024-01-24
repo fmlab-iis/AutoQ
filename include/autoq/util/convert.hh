@@ -536,7 +536,7 @@ public:
 
 
 	/**
-	 * @brief  Converts a string to an object 
+	 * @brief  Converts a string to an object
 	 *
 	 * Static method for conversion of a string to an object of any class with
 	 * the >> input operator
@@ -554,7 +554,7 @@ public:
 		std::istringstream iss(str);
 		if (!(iss >> result))
 		{	// if there was an error
-			throw std::invalid_argument(__func__ + std::string(": invalid argument"));
+			throw std::invalid_argument(AUTOQ_LOG_PREFIX + std::string("invalid argument"));
 		}
 
 		return result;

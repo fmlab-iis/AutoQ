@@ -72,7 +72,7 @@ private:
                 //     if (!right.isZero()) {
                 //         left = left / right;
                 //     } else {
-                //         throw std::runtime_error("Division by zero");
+                //         throw std::runtime_error(AUTOQ_LOG_PREFIX + "Division by zero");
                 //     }
                 // }
             } else {
@@ -119,13 +119,13 @@ private:
     linear_combination parsePrimary() {
         skipWhitespace();
         if (index_ >= input_.length()) {
-            throw std::runtime_error("Unexpected end of input");
+            throw std::runtime_error(AUTOQ_LOG_PREFIX + "Unexpected end of input");
         }
         if (input_[index_] == '(') {
             index_++;
             linear_combination result = parseExpression();
             if (index_ >= input_.length() || input_[index_] != ')') {
-                throw std::runtime_error("Missing closing parenthesis");
+                throw std::runtime_error(AUTOQ_LOG_PREFIX + "Missing closing parenthesis");
             }
             index_++;
             return result;
@@ -138,13 +138,13 @@ private:
             return {{varName, 1}};
             // if (varName == "A") {
             // } else {
-            //     throw std::runtime_error("Unknown varName: " + varName);
+            //     throw std::runtime_error(AUTOQ_LOG_PREFIX + "Unknown varName: " + varName);
             // }
         } else if (std::isdigit(input_[index_]) || input_[index_] == '-') {
             return {{"1", parseNumber().numerator()}};
             // return linear_combination(parseNumber());
         } else {
-            throw std::runtime_error("Unexpected character: " + std::string(1, input_[index_]));
+            throw std::runtime_error(AUTOQ_LOG_PREFIX + "Unexpected character: " + std::string(1, input_[index_]));
         }
     }
 

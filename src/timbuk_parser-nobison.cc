@@ -125,7 +125,7 @@ typename TreeAutomata::Symbol from_string_to_Concrete(const std::string& str)
             try {
                 temp.push_back(boost::lexical_cast<boost::multiprecision::cpp_int>(str.substr(i, j-i).c_str()));
             } catch (...) {
-                throw std::runtime_error("[ERROR] The input entry \"" + str.substr(i, j-i) + "\" is not an integer!");
+                throw std::runtime_error(AUTOQ_LOG_PREFIX + "[ERROR] The input entry \"" + str.substr(i, j-i) + "\" is not an integer!");
             }
             i = j;
         }
@@ -133,7 +133,7 @@ typename TreeAutomata::Symbol from_string_to_Concrete(const std::string& str)
         try {
             temp.push_back(boost::lexical_cast<boost::multiprecision::cpp_int>(str.c_str()));
         } catch (...) {
-            throw std::runtime_error("[ERROR] The input entry \"" + str + "\" is not an integer!");
+            throw std::runtime_error(AUTOQ_LOG_PREFIX + "[ERROR] The input entry \"" + str + "\" is not an integer!");
         }
     }
     assert(temp.size() == 1 || temp.size() == 5);
@@ -222,7 +222,7 @@ Automata<Symbol> parse_timbuk(const std::string& str) {
 			{
 				if (aut_parsed)
 				{
-					throw std::runtime_error(std::string(__FUNCTION__) + ": Automaton already parsed!");
+					throw std::runtime_error(AUTOQ_LOG_PREFIX + "Automaton already parsed!");
 				}
 
 				aut_parsed = true;
@@ -231,7 +231,7 @@ Automata<Symbol> parse_timbuk(const std::string& str) {
 
 				if (!str.empty())
 				{
-					throw std::runtime_error(std::string(__FUNCTION__) + ": Line \"" + line +
+					throw std::runtime_error(AUTOQ_LOG_PREFIX + "Line \"" + line +
 						"\" has an unexpected string.");
 				}
 			}
@@ -239,7 +239,7 @@ Automata<Symbol> parse_timbuk(const std::string& str) {
 			{
 				// if (ops_parsed)
 				// {
-				// 	throw std::runtime_error(std::string(__FUNCTION__) + "Ops already parsed!");
+				// 	throw std::runtime_error(AUTOQ_LOG_PREFIX + "Ops already parsed!");
 				// }
 
 				// ops_parsed = true;
@@ -257,7 +257,7 @@ Automata<Symbol> parse_timbuk(const std::string& str) {
 			{
 				if (states_parsed)
 				{
-					throw std::runtime_error(std::string(__FUNCTION__) + ": States already parsed!");
+					throw std::runtime_error(AUTOQ_LOG_PREFIX + "States already parsed!");
 				}
 
 				states_parsed = true;
@@ -278,13 +278,13 @@ Automata<Symbol> parse_timbuk(const std::string& str) {
 				std::string str_states = read_word(str);
 				if ("States" != str_states)
 				{
-					throw std::runtime_error(std::string(__FUNCTION__) + ": Line \"" + line +
+					throw std::runtime_error(AUTOQ_LOG_PREFIX + "Line \"" + line +
 						"\" contains an unexpected string.");
 				}
 
 				if (final_parsed)
 				{
-					throw std::runtime_error(std::string(__FUNCTION__) + ": Final States already parsed!");
+					throw std::runtime_error(AUTOQ_LOG_PREFIX + "Final States already parsed!");
 				}
 
 				final_parsed = true;
@@ -303,14 +303,14 @@ Automata<Symbol> parse_timbuk(const std::string& str) {
 			}
 			else
 			{	// guard
-				throw std::runtime_error(std::string(__FUNCTION__) + ": Line \"" + line +
+				throw std::runtime_error(AUTOQ_LOG_PREFIX + "Line \"" + line +
 					"\" contains an unexpected string.");
 			}
 		}
 		else
 		{	// processing transitions
-			std::string invalid_trans_str = std::string(__FUNCTION__) +
-				": Invalid transition \"" + line + "\".";
+			std::string invalid_trans_str = AUTOQ_LOG_PREFIX +
+				"Invalid transition \"" + line + "\".";
 
 			size_t arrow_pos = str.find("->");
 			if (std::string::npos == arrow_pos)
@@ -425,13 +425,13 @@ Automata<Symbol> parse_timbuk(const std::string& str) {
 
 	if (!are_transitions)
 	{
-		throw std::runtime_error(std::string(__FUNCTION__) + ": Transitions not specified.");
+		throw std::runtime_error(AUTOQ_LOG_PREFIX + "Transitions not specified.");
 	}
 
     for (const auto &kv : result.transitions) {
         if (kv.first.is_internal()) {
             if (kv.first.symbol().qubit() > INT_MAX)
-                throw std::overflow_error("[ERROR] The number of qubits is too large!");
+                throw std::overflow_error(AUTOQ_LOG_PREFIX + "[ERROR] The number of qubits is too large!");
             result.qubitNum = std::max(result.qubitNum, static_cast<unsigned>(kv.first.symbol().qubit()));
         }
     }
@@ -461,7 +461,7 @@ try {
                     start_numbers = true;
                     continue;
                 } else {	// guard
-                    throw std::runtime_error(std::string(__FUNCTION__) + ": Line \"" + line +
+                    throw std::runtime_error(AUTOQ_LOG_PREFIX + "Line \"" + line +
                         "\" contains an unexpected string.");
                 }
             } else {
@@ -469,7 +469,7 @@ try {
                     start_numbers = true;
                     continue;
                 } else {	// guard
-                    throw std::runtime_error(std::string(__FUNCTION__) + ": Line \"" + line +
+                    throw std::runtime_error(AUTOQ_LOG_PREFIX + "Line \"" + line +
                         "\" contains an unexpected string.");
                 }
             }
@@ -485,9 +485,9 @@ try {
                 std::string rhs = trim(str.substr(arrow_pos + 2));
                 if (lhs.empty() || rhs.empty()) {
                     if constexpr(std::is_same_v<Symbol, Predicate>)
-                        throw std::runtime_error(std::string(__FUNCTION__) + ": Invalid predicate \"" + line + "\".");
+                        throw std::runtime_error(AUTOQ_LOG_PREFIX + "Invalid predicate \"" + line + "\".");
                     else
-                        throw std::runtime_error(std::string(__FUNCTION__) + ": Invalid number \"" + line + "\".");
+                        throw std::runtime_error(AUTOQ_LOG_PREFIX + "Invalid number \"" + line + "\".");
                 }
                 if constexpr(!std::is_same_v<Symbol, Predicate>) {
                     numbers[lhs] = ComplexParser(rhs).parse();
@@ -519,8 +519,8 @@ try {
             }
             #endif
 
-			std::string invalid_trans_str = std::string(__FUNCTION__) +
-				": Invalid transition \"" + line + "\".";
+			std::string invalid_trans_str = AUTOQ_LOG_PREFIX +
+				"Invalid transition \"" + line + "\".";
 
 			size_t arrow_pos = str.find("->");
 			if (std::string::npos == arrow_pos) {
@@ -652,20 +652,20 @@ try {
 	}
 
 	if (!start_transitions) {
-		throw std::runtime_error(std::string(__FUNCTION__) + ": Transitions not specified.");
+		throw std::runtime_error(AUTOQ_LOG_PREFIX + "Transitions not specified.");
 	}
 
     for (const auto &kv : result.transitions) {
         if (kv.first.is_internal()) {
             if (kv.first.symbol().qubit() > INT_MAX)
-                throw std::overflow_error("[ERROR] The number of qubits is too large!");
+                throw std::overflow_error(AUTOQ_LOG_PREFIX + "[ERROR] The number of qubits is too large!");
             result.qubitNum = std::max(result.qubitNum, static_cast<unsigned>(kv.first.symbol().qubit()));
         }
     }
     result.stateNum++; // because the state number starts from 0
 	return result;
 } catch (std::exception& ex) {
-    throw std::runtime_error("[ERROR] \'" + std::string(ex.what()) +
+    throw std::runtime_error(AUTOQ_LOG_PREFIX + "[ERROR] \'" + std::string(ex.what()) +
         "\'\nwhile parsing the following automaton.\n\n>>>>>>>>>>>>>>>>>>>>\n" + str + "\n<<<<<<<<<<<<<<<<<<<<");
 }
 }
@@ -760,7 +760,7 @@ PredicateAutomata TimbukParser<Predicate>::from_tree_to_automaton(std::string tr
         auto spf = states_probs.find(i-state_counter);
         if (spf == states_probs.end()) {
             if (default_prob == PredicateAutomata::Symbol())
-                throw std::runtime_error("[ERROR] The default amplitude is not specified!");
+                throw std::runtime_error(AUTOQ_LOG_PREFIX + "[ERROR] The default amplitude is not specified!");
             aut.transitions[default_prob][i].insert({{}});
         }
         else
@@ -786,17 +786,17 @@ Automata<Concrete> TimbukParser<Concrete>::from_tree_to_automaton(std::string tr
         std::getline(iss2, state, ':');
         if (states_probs.empty()) {
             if (state == "*")
-                throw std::runtime_error("[ERROR] The numbers of qubits are not specified!");
+                throw std::runtime_error(AUTOQ_LOG_PREFIX + "[ERROR] The numbers of qubits are not specified!");
             aut.qubitNum = state.length();
         } else if (state != "*" && aut.qubitNum != state.length())
-            throw std::runtime_error("[ERROR] The numbers of qubits are not the same in all basis states!");
+            throw std::runtime_error(AUTOQ_LOG_PREFIX + "[ERROR] The numbers of qubits are not the same in all basis states!");
         std::string t;
         if (state == "*") {
             while (std::getline(iss2, t, ',')) {
                 try {
                     default_prob.push_back(boost::lexical_cast<boost::multiprecision::cpp_int>(t.c_str()));
                 } catch (...) {
-                    throw std::runtime_error("[ERROR] The input entry \"" + t + "\" is not an integer!");
+                    throw std::runtime_error(AUTOQ_LOG_PREFIX + "[ERROR] The input entry \"" + t + "\" is not an integer!");
                 }
             }
         } else {
@@ -807,7 +807,7 @@ Automata<Concrete> TimbukParser<Concrete>::from_tree_to_automaton(std::string tr
                 try {
                     sps.push_back(boost::lexical_cast<boost::multiprecision::cpp_int>(t.c_str()));
                 } catch (...) {
-                    throw std::runtime_error("[ERROR] The input entry \"" + t + "\" is not an integer!");
+                    throw std::runtime_error(AUTOQ_LOG_PREFIX + "[ERROR] The input entry \"" + t + "\" is not an integer!");
                 }
             }
         }
@@ -825,7 +825,7 @@ Automata<Concrete> TimbukParser<Concrete>::from_tree_to_automaton(std::string tr
         auto spf = states_probs.find(i-state_counter);
         if (spf == states_probs.end()) {
             if (default_prob == Complex::Complex())
-                throw std::runtime_error("[ERROR] The default amplitude is not specified!");
+                throw std::runtime_error(AUTOQ_LOG_PREFIX + "[ERROR] The default amplitude is not specified!");
             if (default_prob.size() == 5)
                 aut.transitions[Concrete(default_prob)][i].insert({{}});
             else
@@ -854,10 +854,10 @@ Automata<Symbolic> TimbukParser<Symbolic>::from_tree_to_automaton(std::string tr
         std::getline(iss2, state, ':');
         if (states_probs.empty()) {
             if (state == "*")
-                throw std::runtime_error("[ERROR] The numbers of qubits are not specified!");
+                throw std::runtime_error(AUTOQ_LOG_PREFIX + "[ERROR] The numbers of qubits are not specified!");
             aut.qubitNum = state.length();
         } else if (state != "*" && aut.qubitNum != state.length())
-            throw std::runtime_error("[ERROR] The numbers of qubits are not the same in all basis states!");
+            throw std::runtime_error(AUTOQ_LOG_PREFIX + "[ERROR] The numbers of qubits are not the same in all basis states!");
         std::string t;
         if constexpr(std::is_same_v<Symbolic, TreeAutomata::Symbol>) {
             if (state == "*") {
@@ -868,7 +868,7 @@ Automata<Symbolic> TimbukParser<Symbolic>::from_tree_to_automaton(std::string tr
                             fivetuple_counter = 0;
                         }
                     } catch (...) {
-                        throw std::runtime_error("[ERROR] The input entry \"" + t + "\" is not an integer!");
+                        throw std::runtime_error(AUTOQ_LOG_PREFIX + "[ERROR] The input entry \"" + t + "\" is not an integer!");
                     }
                 }
             } else {
@@ -881,7 +881,7 @@ Automata<Symbolic> TimbukParser<Symbolic>::from_tree_to_automaton(std::string tr
                             fivetuple_counter = 0;
                         }
                     } catch (...) {
-                        throw std::runtime_error("[ERROR] The input entry \"" + t + "\" is not an integer!");
+                        throw std::runtime_error(AUTOQ_LOG_PREFIX + "[ERROR] The input entry \"" + t + "\" is not an integer!");
                     }
                 }
             }
@@ -944,7 +944,7 @@ Automata<Symbolic> TimbukParser<Symbolic>::from_tree_to_automaton(std::string tr
         auto spf = states_probs.find(i-state_counter);
         if (spf == states_probs.end()) {
             // if (default_prob == Symbolic())
-            //     throw std::runtime_error("[ERROR] The default amplitude is not specified!");
+            //     throw std::runtime_error(AUTOQ_LOG_PREFIX + "[ERROR] The default amplitude is not specified!");
             aut.transitions[default_prob][i].insert({{}});
         }
         else
@@ -1055,7 +1055,7 @@ AUTOQ::Automata<Symbol> TimbukParser<Symbol>::ReadAutomatonAndConstraint(const s
     } else if (boost::algorithm::ends_with(filepath, ".hsl")) {
         return parse_hsl<Symbol>(automaton);
     } else {
-        throw std::runtime_error("[ERROR] " + std::string(__FUNCTION__) + ": The filename extension is not supported.");
+        throw std::runtime_error(AUTOQ_LOG_PREFIX + "[ERROR] The filename extension is not supported.");
     }
 }
 

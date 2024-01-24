@@ -41,7 +41,7 @@ std::string AUTOQ::Util::ReadFile(const std::string& fileName)
 	std::ifstream t(fileName);
 	if (!t)
 	{	// in case the file could not be open
-		throw std::runtime_error("[ERROR] Failed to open file " + fileName + ".");
+		throw std::runtime_error(AUTOQ_LOG_PREFIX + "[ERROR] Failed to open file " + fileName + ".");
 	}
 
 	std::string str;

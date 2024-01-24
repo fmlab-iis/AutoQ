@@ -99,8 +99,8 @@ public:   // Public methods
 		{
 			if (!bwdMap_.insert(std::make_pair(mappingPair.second, mappingPair.first)).second)
 			{
-				throw std::runtime_error(std::string(__func__) +
-					": failed to construct reverse mapping");
+				throw std::runtime_error(AUTOQ_LOG_PREFIX +
+					"Failed to construct reverse mapping");
 			}
 		}
 	}
@@ -116,7 +116,7 @@ public:   // Public methods
 		ConstIteratorFwd itFwd;
 		if ((itFwd = fwdMap_.find(t1)) == this->EndFwd())
 		{	// in case the value that should be stored there is not
-			throw std::out_of_range(__func__ + std::string(": cannot translate " + Convert::ToString(t1)));
+			throw std::out_of_range(AUTOQ_LOG_PREFIX + "Cannot translate " + Convert::ToString(t1));
 		}
 
 		return itFwd->second;
@@ -127,7 +127,7 @@ public:   // Public methods
 		ConstIteratorBwd itBwd;
 		if ((itBwd = bwdMap_.find(t2)) == EndBwd())
 		{	// in case the value that should be stored there is not
-			throw std::out_of_range(__func__ + std::string(": cannot translate " + Convert::ToString(t2)));
+			throw std::out_of_range(AUTOQ_LOG_PREFIX + "Cannot translate " + Convert::ToString(t2));
 		}
 
 		return itBwd->second;
@@ -153,7 +153,7 @@ public:   // Public methods
 		const_iterator it = this->find(t1);
 		if (this->end() == it)
 		{
-			throw std::out_of_range(__func__);
+			throw std::out_of_range(AUTOQ_LOG_PREFIX + __func__);
 		}
 		else
 		{

@@ -90,12 +90,12 @@ optional arguments:
         std::cout << "=================\n";
         if (argc >= 4) {
             if (std::getenv("VATA_PATH") == nullptr) {
-                throw std::runtime_error("[ERROR] The environment variable VATA_PATH is not found!");
+                throw std::runtime_error(AUTOQ_LOG_PREFIX + "[ERROR] The environment variable VATA_PATH is not found!");
             }
             auto aut2 = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Concrete>::ReadAutomaton(argv[3]);
             if (!AUTOQ::TreeAutomata::check_inclusion(aut, aut2)) {
                 std::cout << "-\n0\n";
-                // throw std::runtime_error("Does not satisfy the postcondition!");
+                // throw std::runtime_error(AUTOQ_LOG_PREFIX + "Does not satisfy the postcondition!");
                 // std::cout << AUTOQ::Util::Convert::ToString(aut.qubitNum) << " & " << AUTOQ::TreeAutomata::gateCount
                 // << " & " << stateBefore << " & " << aut.stateNum
                 // << " & " << transitionBefore << " & " << aut.transition_size()
