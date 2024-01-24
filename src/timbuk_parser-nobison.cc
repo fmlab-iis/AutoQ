@@ -779,8 +779,9 @@ Automata<Concrete> TimbukParser<Concrete>::from_tree_to_automaton(std::string tr
     std::istringstream iss(tree);
     std::map<typename Automata<Concrete>::State, Concrete> states_probs;
     Complex::Complex default_prob;
-    int fivetuple_counter = 0;
-    for (std::string state_prob; iss >> state_prob;) {
+    std::string state_prob;
+    while (std::getline(iss, state_prob, '|')) {
+        std::erase(state_prob, ' ');
         std::istringstream iss2(state_prob);
         std::string state;
         std::getline(iss2, state, ':');
@@ -792,24 +793,12 @@ Automata<Concrete> TimbukParser<Concrete>::from_tree_to_automaton(std::string tr
             throw std::runtime_error(AUTOQ_LOG_PREFIX + "[ERROR] The numbers of qubits are not the same in all basis states!");
         std::string t;
         if (state == "*") {
-            while (std::getline(iss2, t, ',')) {
-                try {
-                    default_prob.push_back(boost::lexical_cast<boost::multiprecision::cpp_int>(t.c_str()));
-                } catch (...) {
-                    throw std::runtime_error(AUTOQ_LOG_PREFIX + "[ERROR] The input entry \"" + t + "\" is not an integer!");
-                }
-            }
+            std::getline(iss2, t);
+            default_prob = ComplexParser(t).parse();
         } else {
             TreeAutomata::State s = std::stoll(state, nullptr, 2);
-            auto &sps = states_probs[s].complex;
-            sps.clear();
-            while (std::getline(iss2, t, ',')) {
-                try {
-                    sps.push_back(boost::lexical_cast<boost::multiprecision::cpp_int>(t.c_str()));
-                } catch (...) {
-                    throw std::runtime_error(AUTOQ_LOG_PREFIX + "[ERROR] The input entry \"" + t + "\" is not an integer!");
-                }
-            }
+            std::getline(iss2, t);
+            states_probs[s].complex = ComplexParser(t).parse();
         }
     }
     typename Automata<Concrete>::State pow_of_two = 1;
@@ -933,7 +922,7 @@ Automata<Symbolic> TimbukParser<Symbolic>::from_tree_to_automaton(std::string tr
     }
     typename Automata<Symbolic>::State pow_of_two = 1;
     typename Automata<Symbolic>::State state_counter = 0;
-    for (int level=1; level<=aut.qubitNum; level++) {
+    for (unsigned level=1; level<=aut.qubitNum; level++) {
         for (typename Automata<Symbolic>::State i=0; i<pow_of_two; i++) {
             aut.transitions[Symbolic(level)][state_counter].insert({(state_counter<<1)+1, (state_counter<<1)+2});
             state_counter++;

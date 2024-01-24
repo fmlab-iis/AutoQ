@@ -687,6 +687,20 @@ AUTOQ::TreeAutomata AUTOQ::TreeAutomata::zero(int n) {
     return aut;
 }
 
+template <typename Symbol>
+AUTOQ::Automata<Symbol> AUTOQ::Automata<Symbol>::zero_amplitude(int n) {
+    Automata<Symbol> aut;
+    aut.name = "Zero_Amplitude";
+    aut.qubitNum = n;
+    for (int level=1; level<=n; level++) {
+        aut.transitions[{level}][level-1].insert({level, level});
+    }
+    aut.transitions[Symbol()][n].insert({{}});
+    aut.finalStates.insert(0);
+    aut.stateNum = n+1;
+    return aut;
+}
+
 template <>
 AUTOQ::TreeAutomata AUTOQ::TreeAutomata::basis_zero_one_zero(int n) {
     TreeAutomata aut;
@@ -1354,7 +1368,9 @@ struct PairComparator {
 bool AUTOQ::is_scaled_spec_satisfied(const TreeAutomata &R, std::string constraintR, const TreeAutomata &Q, std::string constraintQ) {
     return is_scaled_spec_satisfied(R, Q);
 }
-bool AUTOQ::is_scaled_spec_satisfied(const TreeAutomata &R, const TreeAutomata &Q) {
+bool AUTOQ::is_scaled_spec_satisfied(const TreeAutomata &R, TreeAutomata Q) {
+    Q = Q.Union(AUTOQ::TreeAutomata::zero_amplitude(Q.qubitNum));
+
     using State = TreeAutomata::State;
     using StateSet = TreeAutomata::StateSet;
     using StateScaleSet = std::set<std::pair<State, std::pair<Complex::Complex, Complex::Complex>>, PairComparator>;
@@ -1633,6 +1649,8 @@ bool AUTOQ::is_scaled_spec_satisfied(const TreeAutomata &R, const TreeAutomata &
     return true;
 }
 bool AUTOQ::is_scaled_spec_satisfied(SymbolicAutomata R, std::string constraintR, SymbolicAutomata Q, std::string constraintQ) {
+    Q = Q.Union(AUTOQ::SymbolicAutomata::zero_amplitude(Q.qubitNum));
+
     // if (R.StrictlyEqual(Q) && constraintR == constraintQ) return true;
     auto start = chrono::steady_clock::now();
 
@@ -2095,6 +2113,43 @@ std::vector<std::vector<std::string>> AUTOQ::Automata<Symbol>::print(const std::
     }
     return ans;
 }
+template <>
+std::vector<std::vector<std::string>> AUTOQ::Automata<Concrete>::print(const std::map<typename AUTOQ::Automata<Concrete>::State, std::set<typename AUTOQ::Automata<Concrete>::Symbol>> &leafSymbolMap, int qubit, typename AUTOQ::Automata<Concrete>::State state) const {
+    if (qubit == static_cast<int>(qubitNum + 1)) {
+        std::vector<std::vector<std::string>> ans;
+        for (const auto &t : leafSymbolMap.at(state)) {
+            std::string result;
+            bool start = false;
+            for (unsigned i=0; i<t.complex.size()-1; i++) {
+                if (i == 0 && t.complex.at(0) == 0 && t.complex.at(1) == 0 && t.complex.at(2) == 0 && t.complex.at(3) == 0 || t.complex.at(i) != 0) {
+                    if (start) result += " + ";
+                    result += t.complex.at(i).str();
+                    if (i >= 1) result += " * A(" + std::to_string(i) + "/8)";
+                    start = true;
+                }
+            }
+            ans.push_back({result});
+        }
+        return ans;
+    }
+    std::vector<std::vector<std::string>> ans;
+    for (const auto &out_ins : transitions.at({qubit})) {
+        if (out_ins.first == state) {
+            for (const auto &in : out_ins.second) {
+                auto v1 = print(leafSymbolMap, qubit + 1, in.at(0));
+                auto v2 = print(leafSymbolMap, qubit + 1, in.at(1));
+                for (const auto &s1 : v1) {
+                    for (const auto &s2 : v2) {
+                        auto v = s1;
+                        v.insert(v.end(), s2.begin(), s2.end());
+                        ans.push_back(v);
+                    }
+                }
+            }
+        }
+    }
+    return ans;
+}
 
 template <typename Symbol>
 void AUTOQ::Automata<Symbol>::print_language(const char *str) const {
@@ -2119,7 +2174,7 @@ void AUTOQ::Automata<Symbol>::print_language(const char *str) const {
             });
             for (unsigned i=0; i<s.size(); i++) {
                 if (s[i] != (ptr->first))
-                    std::cout << boost::dynamic_bitset(qubitNum, i) << ":" << s[i] << " ";
+                    std::cout << boost::dynamic_bitset(qubitNum, i) << ":" << s[i] << " | ";
             }
             std::cout << "*:" << (ptr->first) << std::endl;
         }

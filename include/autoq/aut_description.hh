@@ -213,6 +213,7 @@ public:
     static Automata basis(int n);
     static Automata random(int n);
     static Automata zero(int n);
+    static Automata zero_amplitude(int n);
     static Automata basis_zero_one_zero(int n);
     static Automata zero_zero_one_zero(int n);
     static Automata zero_one_zero(int n);
