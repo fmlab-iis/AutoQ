@@ -37,4 +37,3 @@ Transitions
 [17](34, 33) -> 32
 [c0] -> 33
 [c1] -> 34
-Constraints

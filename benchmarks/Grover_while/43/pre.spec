@@ -177,4 +177,3 @@ Transitions
 [87](174, 173) -> 172
 [c0] -> 173
 [c1] -> 174
-Constraints

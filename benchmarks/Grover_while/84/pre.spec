@@ -341,4 +341,3 @@ Transitions
 [169](338, 337) -> 336
 [c0] -> 337
 [c1] -> 338
-Constraints

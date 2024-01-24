@@ -229,4 +229,3 @@ Transitions
 [113](226, 225) -> 224
 [c0] -> 225
 [c1] -> 226
-Constraints

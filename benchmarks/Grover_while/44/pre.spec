@@ -181,4 +181,3 @@ Transitions
 [89](178, 177) -> 176
 [c0] -> 177
 [c1] -> 178
-Constraints

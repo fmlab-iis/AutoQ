@@ -249,4 +249,3 @@ Transitions
 [123](246, 245) -> 244
 [c0] -> 245
 [c1] -> 246
-Constraints

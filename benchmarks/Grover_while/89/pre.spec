@@ -361,4 +361,3 @@ Transitions
 [179](358, 357) -> 356
 [c0] -> 357
 [c1] -> 358
-Constraints

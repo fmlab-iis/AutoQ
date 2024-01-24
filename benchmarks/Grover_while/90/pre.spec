@@ -365,4 +365,3 @@ Transitions
 [181](362, 361) -> 360
 [c0] -> 361
 [c1] -> 362
-Constraints

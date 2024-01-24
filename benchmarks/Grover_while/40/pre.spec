@@ -165,4 +165,3 @@ Transitions
 [81](162, 161) -> 160
 [c0] -> 161
 [c1] -> 162
-Constraints

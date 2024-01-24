@@ -205,4 +205,3 @@ Transitions
 [101](202, 201) -> 200
 [c0] -> 201
 [c1] -> 202
-Constraints

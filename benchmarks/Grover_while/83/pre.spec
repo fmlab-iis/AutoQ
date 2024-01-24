@@ -337,4 +337,3 @@ Transitions
 [167](334, 333) -> 332
 [c0] -> 333
 [c1] -> 334
-Constraints

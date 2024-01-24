@@ -61,4 +61,3 @@ Transitions
 [29](58, 57) -> 56
 [c0] -> 57
 [c1] -> 58
-Constraints

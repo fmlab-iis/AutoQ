@@ -145,4 +145,3 @@ Transitions
 [71](142, 141) -> 140
 [c0] -> 141
 [c1] -> 142
-Constraints

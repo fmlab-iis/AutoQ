@@ -73,4 +73,3 @@ Transitions
 [35](70, 69) -> 68
 [c0] -> 69
 [c1] -> 70
-Constraints

@@ -72,5 +72,3 @@ Transitions
 [v2] -> 65
 [c0] -> 66
 [v3] -> 67
-Constraints
-(declare-fun v1 () Real)(declare-fun v2 () Real)(declare-fun v3 () Real)

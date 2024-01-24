@@ -325,4 +325,3 @@ Transitions
 [161](322, 321) -> 320
 [c0] -> 321
 [c1] -> 322
-Constraints

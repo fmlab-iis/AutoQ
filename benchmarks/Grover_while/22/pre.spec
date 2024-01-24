@@ -93,4 +93,3 @@ Transitions
 [45](90, 89) -> 88
 [c0] -> 89
 [c1] -> 90
-Constraints

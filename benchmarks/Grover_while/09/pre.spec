@@ -41,4 +41,3 @@ Transitions
 [19](38, 37) -> 36
 [c0] -> 37
 [c1] -> 38
-Constraints

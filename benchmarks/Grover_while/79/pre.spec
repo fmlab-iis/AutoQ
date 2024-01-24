@@ -321,4 +321,3 @@ Transitions
 [159](318, 317) -> 316
 [c0] -> 317
 [c1] -> 318
-Constraints

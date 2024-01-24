@@ -21,4 +21,3 @@ Transitions
 [9](18, 17) -> 16
 [c0] -> 17
 [c1] -> 18
-Constraints

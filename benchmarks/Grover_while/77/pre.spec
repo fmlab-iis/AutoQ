@@ -313,4 +313,3 @@ Transitions
 [155](310, 309) -> 308
 [c0] -> 309
 [c1] -> 310
-Constraints

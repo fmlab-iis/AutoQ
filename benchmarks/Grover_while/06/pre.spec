@@ -29,4 +29,3 @@ Transitions
 [13](26, 25) -> 24
 [c0] -> 25
 [c1] -> 26
-Constraints

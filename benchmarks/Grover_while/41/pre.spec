@@ -169,4 +169,3 @@ Transitions
 [83](166, 165) -> 164
 [c0] -> 165
 [c1] -> 166
-Constraints

@@ -17,4 +17,3 @@ Transitions
 [7](14, 13) -> 12
 [c0] -> 13
 [c1] -> 14
-Constraints

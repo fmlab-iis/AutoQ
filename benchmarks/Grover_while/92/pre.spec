@@ -373,4 +373,3 @@ Transitions
 [185](370, 369) -> 368
 [c0] -> 369
 [c1] -> 370
-Constraints

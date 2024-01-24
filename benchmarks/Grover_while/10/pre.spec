@@ -45,4 +45,3 @@ Transitions
 [21](42, 41) -> 40
 [c0] -> 41
 [c1] -> 42
-Constraints

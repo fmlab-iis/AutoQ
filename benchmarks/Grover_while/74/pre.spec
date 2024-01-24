@@ -301,4 +301,3 @@ Transitions
 [149](298, 297) -> 296
 [c0] -> 297
 [c1] -> 298
-Constraints

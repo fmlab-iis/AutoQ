@@ -85,4 +85,3 @@ Transitions
 [41](82, 81) -> 80
 [c0] -> 81
 [c1] -> 82
-Constraints

@@ -381,4 +381,3 @@ Transitions
 [189](378, 377) -> 376
 [c0] -> 377
 [c1] -> 378
-Constraints

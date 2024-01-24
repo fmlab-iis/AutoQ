@@ -261,4 +261,3 @@ Transitions
 [129](258, 257) -> 256
 [c0] -> 257
 [c1] -> 258
-Constraints

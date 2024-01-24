@@ -153,4 +153,3 @@ Transitions
 [75](150, 149) -> 148
 [c0] -> 149
 [c1] -> 150
-Constraints

@@ -113,4 +113,3 @@ Transitions
 [55](110, 109) -> 108
 [c0] -> 109
 [c1] -> 110
-Constraints

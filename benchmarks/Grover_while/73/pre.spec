@@ -297,4 +297,3 @@ Transitions
 [147](294, 293) -> 292
 [c0] -> 293
 [c1] -> 294
-Constraints

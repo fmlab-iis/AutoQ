@@ -281,4 +281,3 @@ Transitions
 [139](278, 277) -> 276
 [c0] -> 277
 [c1] -> 278
-Constraints

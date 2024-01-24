@@ -660,5 +660,3 @@ Transitions
 [v2] -> 653
 [c0] -> 654
 [v3] -> 655
-Constraints
-(declare-fun v1 () Real)(declare-fun v2 () Real)(declare-fun v3 () Real)

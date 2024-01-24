@@ -201,4 +201,3 @@ Transitions
 [99](198, 197) -> 196
 [c0] -> 197
 [c1] -> 198
-Constraints

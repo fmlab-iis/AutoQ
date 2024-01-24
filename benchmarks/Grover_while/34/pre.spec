@@ -141,4 +141,3 @@ Transitions
 [69](138, 137) -> 136
 [c0] -> 137
 [c1] -> 138
-Constraints

@@ -89,4 +89,3 @@ Transitions
 [43](86, 85) -> 84
 [c0] -> 85
 [c1] -> 86
-Constraints

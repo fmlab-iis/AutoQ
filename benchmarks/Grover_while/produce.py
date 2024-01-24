@@ -95,7 +95,6 @@ gate ck q1, q2 {
             file.write(f"[{i}]({2*i    }, {2*i - 1}) -> {2*i - 2}\n")
         file.write(f"[c0] -> {2*(2*n+1) - 1}\n")
         file.write(f"[c1] -> {2*(2*n+1)    }\n")
-        file.write("Constraints\n")
     #########################################
 
     #########################################
@@ -129,8 +128,6 @@ gate ck q1, q2 {
         file.write(f"[v2] -> {5*(2*n+1) - 3*n - 3}\n")
         file.write(f"[c0] -> {5*(2*n+1) - 3*n - 2}\n")
         file.write(f"[v3] -> {5*(2*n+1) - 3*n - 1}\n")
-        file.write("Constraints\n")
-        file.write("(declare-fun v1 () Real)(declare-fun v2 () Real)(declare-fun v3 () Real)\n")
     #########################################
 
     #########################################

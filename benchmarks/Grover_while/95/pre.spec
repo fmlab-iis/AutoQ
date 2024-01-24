@@ -385,4 +385,3 @@ Transitions
 [191](382, 381) -> 380
 [c0] -> 381
 [c1] -> 382
-Constraints

@@ -357,4 +357,3 @@ Transitions
 [177](354, 353) -> 352
 [c0] -> 353
 [c1] -> 354
-Constraints

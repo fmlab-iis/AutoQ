@@ -25,4 +25,3 @@ Transitions
 [11](22, 21) -> 20
 [c0] -> 21
 [c1] -> 22
-Constraints

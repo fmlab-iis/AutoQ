@@ -225,4 +225,3 @@ Transitions
 [111](222, 221) -> 220
 [c0] -> 221
 [c1] -> 222
-Constraints

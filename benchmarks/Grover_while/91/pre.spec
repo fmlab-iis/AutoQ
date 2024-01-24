@@ -369,4 +369,3 @@ Transitions
 [183](366, 365) -> 364
 [c0] -> 365
 [c1] -> 366
-Constraints

@@ -277,4 +277,3 @@ Transitions
 [137](274, 273) -> 272
 [c0] -> 273
 [c1] -> 274
-Constraints

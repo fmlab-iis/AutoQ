@@ -611,5 +611,3 @@ Transitions
 [v2] -> 604
 [c0] -> 605
 [v3] -> 606
-Constraints
-(declare-fun v1 () Real)(declare-fun v2 () Real)(declare-fun v3 () Real)

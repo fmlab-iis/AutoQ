@@ -97,4 +97,3 @@ Transitions
 [47](94, 93) -> 92
 [c0] -> 93
 [c1] -> 94
-Constraints

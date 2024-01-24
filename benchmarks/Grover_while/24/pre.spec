@@ -101,4 +101,3 @@ Transitions
 [49](98, 97) -> 96
 [c0] -> 97
 [c1] -> 98
-Constraints

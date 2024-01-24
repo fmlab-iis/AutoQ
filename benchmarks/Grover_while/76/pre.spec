@@ -309,4 +309,3 @@ Transitions
 [153](306, 305) -> 304
 [c0] -> 305
 [c1] -> 306
-Constraints

@@ -401,4 +401,3 @@ Transitions
 [199](398, 397) -> 396
 [c0] -> 397
 [c1] -> 398
-Constraints

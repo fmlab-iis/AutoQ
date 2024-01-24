@@ -157,4 +157,3 @@ Transitions
 [77](154, 153) -> 152
 [c0] -> 153
 [c1] -> 154
-Constraints

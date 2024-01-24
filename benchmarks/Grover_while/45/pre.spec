@@ -185,4 +185,3 @@ Transitions
 [91](182, 181) -> 180
 [c0] -> 181
 [c1] -> 182
-Constraints

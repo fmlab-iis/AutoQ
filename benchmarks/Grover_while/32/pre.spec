@@ -133,4 +133,3 @@ Transitions
 [65](130, 129) -> 128
 [c0] -> 129
 [c1] -> 130
-Constraints

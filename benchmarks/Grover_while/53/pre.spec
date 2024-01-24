@@ -217,4 +217,3 @@ Transitions
 [107](214, 213) -> 212
 [c0] -> 213
 [c1] -> 214
-Constraints

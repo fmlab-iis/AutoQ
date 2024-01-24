@@ -81,4 +81,3 @@ Transitions
 [39](78, 77) -> 76
 [c0] -> 77
 [c1] -> 78
-Constraints

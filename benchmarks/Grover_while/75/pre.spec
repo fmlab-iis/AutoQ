@@ -305,4 +305,3 @@ Transitions
 [151](302, 301) -> 300
 [c0] -> 301
 [c1] -> 302
-Constraints

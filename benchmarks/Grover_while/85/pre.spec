@@ -345,4 +345,3 @@ Transitions
 [171](342, 341) -> 340
 [c0] -> 341
 [c1] -> 342
-Constraints

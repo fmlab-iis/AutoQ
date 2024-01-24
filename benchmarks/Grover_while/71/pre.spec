@@ -289,4 +289,3 @@ Transitions
 [143](286, 285) -> 284
 [c0] -> 285
 [c1] -> 286
-Constraints

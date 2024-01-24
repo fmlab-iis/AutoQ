@@ -49,4 +49,3 @@ Transitions
 [23](46, 45) -> 44
 [c0] -> 45
 [c1] -> 46
-Constraints

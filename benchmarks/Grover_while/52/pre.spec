@@ -213,4 +213,3 @@ Transitions
 [105](210, 209) -> 208
 [c0] -> 209
 [c1] -> 210
-Constraints

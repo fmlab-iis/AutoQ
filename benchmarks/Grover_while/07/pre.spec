@@ -33,4 +33,3 @@ Transitions
 [15](30, 29) -> 28
 [c0] -> 29
 [c1] -> 30
-Constraints

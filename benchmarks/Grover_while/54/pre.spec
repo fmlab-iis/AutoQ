@@ -221,4 +221,3 @@ Transitions
 [109](218, 217) -> 216
 [c0] -> 217
 [c1] -> 218
-Constraints

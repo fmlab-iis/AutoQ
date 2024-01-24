@@ -289,5 +289,3 @@ Transitions
 [v2] -> 282
 [c0] -> 283
 [v3] -> 284
-Constraints
-(declare-fun v1 () Real)(declare-fun v2 () Real)(declare-fun v3 () Real)

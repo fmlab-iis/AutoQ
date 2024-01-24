@@ -485,5 +485,3 @@ Transitions
 [v2] -> 478
 [c0] -> 479
 [v3] -> 480
-Constraints
-(declare-fun v1 () Real)(declare-fun v2 () Real)(declare-fun v3 () Real)
