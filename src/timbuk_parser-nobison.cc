@@ -490,7 +490,7 @@ try {
                         throw std::runtime_error(AUTOQ_LOG_PREFIX + "Invalid number \"" + line + "\".");
                 }
                 if constexpr(!std::is_same_v<Symbol, Predicate>) {
-                    numbers[lhs] = ComplexParser(rhs).parse();
+                    numbers[lhs] = ComplexParser(rhs).getComplex();
                     // std::cout << lhs << " " << numbers[lhs] << "\n";
                 } else
                     predicates[lhs] = rhs;
@@ -676,6 +676,7 @@ Automata<Symbol> TimbukParser<Symbol>::parse_hsl_from_istream(std::istream *is) 
     std::string line;
     while (std::getline(*is, line)) {
         line = AUTOQ::Util::trim(line);
+        if (line.empty()) continue;
         if (line.substr(0, 4) == "|i|=") { // if startswith "|i|="
             std::istringstream iss(line);
             std::string length; iss >> length; length = length.substr(4);
@@ -794,11 +795,11 @@ Automata<Concrete> TimbukParser<Concrete>::from_tree_to_automaton(std::string tr
         std::string t;
         if (state == "*") {
             std::getline(iss2, t);
-            default_prob = ComplexParser(t).parse();
+            default_prob = ComplexParser(t).getComplex();
         } else {
             TreeAutomata::State s = std::stoll(state, nullptr, 2);
             std::getline(iss2, t);
-            states_probs[s].complex = ComplexParser(t).parse();
+            states_probs[s].complex = ComplexParser(t).getComplex();
         }
     }
     typename Automata<Concrete>::State pow_of_two = 1;
@@ -835,9 +836,10 @@ Automata<Symbolic> TimbukParser<Symbolic>::from_tree_to_automaton(std::string tr
     Automata<Symbolic> aut;
     std::istringstream iss(tree);
     std::map<typename Automata<Symbolic>::State, Symbolic> states_probs;
-    Symbolic default_prob;
-    int fivetuple_counter = 0;
-    for (std::string state_prob; iss >> state_prob;) {
+    AUTOQ::Symbol::SymbolicComplex default_prob;
+    std::string state_prob;
+    while (std::getline(iss, state_prob, '|')) {
+        std::erase(state_prob, ' ');
         std::istringstream iss2(state_prob);
         std::string state;
         std::getline(iss2, state, ':');
@@ -848,77 +850,22 @@ Automata<Symbolic> TimbukParser<Symbolic>::from_tree_to_automaton(std::string tr
         } else if (state != "*" && aut.qubitNum != state.length())
             throw std::runtime_error(AUTOQ_LOG_PREFIX + "[ERROR] The numbers of qubits are not the same in all basis states!");
         std::string t;
-        if constexpr(std::is_same_v<Symbolic, TreeAutomata::Symbol>) {
+        // } else if constexpr(std::is_same_v<Symbolic, SymbolicAutomata::Symbol>) {
+        AUTOQ::Symbol::SymbolicComplex &symbolic_complex = std::invoke([&]()-> AUTOQ::Symbol::SymbolicComplex& {
             if (state == "*") {
-                while (std::getline(iss2, t, ',')) {
-                    try {
-                        default_prob.complex[Complex::Complex::Angle(boost::rational<boost::multiprecision::cpp_int>(fivetuple_counter++, 8))] = {{"1", boost::lexical_cast<boost::multiprecision::cpp_int>(t.c_str())}};
-                        if (fivetuple_counter == 5) {
-                            fivetuple_counter = 0;
-                        }
-                    } catch (...) {
-                        throw std::runtime_error(AUTOQ_LOG_PREFIX + "[ERROR] The input entry \"" + t + "\" is not an integer!");
-                    }
-                }
-            } else {
-                TreeAutomata::State s = std::stoll(state, nullptr, 2);
-                auto &sps = states_probs[s];
-                while (std::getline(iss2, t, ',')) {
-                    try {
-                        sps.complex[Complex::Complex::Angle(boost::rational<boost::multiprecision::cpp_int>(fivetuple_counter++, 8))] = {{"1", boost::lexical_cast<boost::multiprecision::cpp_int>(t.c_str())}};
-                        if (fivetuple_counter == 5) {
-                            fivetuple_counter = 0;
-                        }
-                    } catch (...) {
-                        throw std::runtime_error(AUTOQ_LOG_PREFIX + "[ERROR] The input entry \"" + t + "\" is not an integer!");
-                    }
-                }
-            }
-        } else if constexpr(std::is_same_v<Symbolic, SymbolicAutomata::Symbol>) {
-            if (state == "*") {
-                while (std::getline(iss2, t, ',')) {
-                    try {
-                        auto v = boost::lexical_cast<boost::multiprecision::cpp_int>(t.c_str());
-                        if (v == 0)
-                            fivetuple_counter++; // default_prob.complex[Complex::Complex::Angle(boost::rational<boost::multiprecision::cpp_int>(fivetuple_counter++, 8))]; // = AUTOQ::Symbol::Symbolic::Map();
-                        else
-                            default_prob.complex[Complex::Complex::Angle(boost::rational<boost::multiprecision::cpp_int>(fivetuple_counter++, 8))] = {{"1", v}};
-                    } catch (boost::bad_lexical_cast& e) {
-                        default_prob.complex[Complex::Complex::Angle(boost::rational<boost::multiprecision::cpp_int>(fivetuple_counter++, 8))] = {{t.c_str(), 1}};
-                    }
-                    if (fivetuple_counter == 5) {
-                        fivetuple_counter = 0;
-                    }
-                }
+                return default_prob;
             } else {
                 SymbolicAutomata::State s = std::stoll(state, nullptr, 2);
-                auto &sps = states_probs[s];
-                while (std::getline(iss2, t, ',')) {
-                    try {
-                        auto v = boost::lexical_cast<boost::multiprecision::cpp_int>(t.c_str());
-                        if (v == 0)
-                            fivetuple_counter++; // sps.complex[Complex::Complex::Angle(boost::rational<boost::multiprecision::cpp_int>(fivetuple_counter++, 8))]; // = AUTOQ::Symbol::Symbolic::Map();
-                        else
-                            sps.complex[Complex::Complex::Angle(boost::rational<boost::multiprecision::cpp_int>(fivetuple_counter++, 8))] = {{"1", v}};
-                    } catch (boost::bad_lexical_cast& e) {
-                        sps.complex[Complex::Complex::Angle(boost::rational<boost::multiprecision::cpp_int>(fivetuple_counter++, 8))] = {{t.c_str(), 1}};
-                    }
-                    if (fivetuple_counter == 5) {
-                        fivetuple_counter = 0;
-                    }
-                }
+                return states_probs[s].complex;
             }
-        } else { // if constexpr(std::is_same_v<Symbolic, PredicateAutomata::Symbol>) {
-            // if (state == "*") {
-            //     std::getline(iss2, t);
-            //     default_prob = Predicate(t.c_str());
-            // } else {
-            //     PredicateAutomata::State s = std::stoll(state, nullptr, 2);
-            //     auto &sps = states_probs[s];
-            //     std::getline(iss2, t);
-            //     sps = Predicate(t.c_str());
-            // }
-        }
+        });
+        std::getline(iss2, t);
+        auto cp = ComplexParser(t);
+        std::string var = cp.getVariable();
+        if (var.length() > 0) // is a variable
+            symbolic_complex[Complex::Complex::One()] = {{var, 1}};
+        else // is a complex number
+            symbolic_complex[cp.getComplex()] = {{"1", 1}};
     }
     typename Automata<Symbolic>::State pow_of_two = 1;
     typename Automata<Symbolic>::State state_counter = 0;
@@ -934,7 +881,7 @@ Automata<Symbolic> TimbukParser<Symbolic>::from_tree_to_automaton(std::string tr
         if (spf == states_probs.end()) {
             // if (default_prob == Symbolic())
             //     throw std::runtime_error(AUTOQ_LOG_PREFIX + "[ERROR] The default amplitude is not specified!");
-            aut.transitions[default_prob][i].insert({{}});
+            aut.transitions[Symbolic(default_prob)][i].insert({{}});
         }
         else
             aut.transitions[spf->second][i].insert({{}});

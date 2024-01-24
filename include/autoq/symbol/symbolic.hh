@@ -150,6 +150,7 @@ public:
     template <typename T, typename = std::enable_if_t<std::is_convertible<T, boost::multiprecision::cpp_int>::value>>
         Symbolic(T qubit) : internal(true), complex({{Complex::Complex::One(), AUTOQ::Symbol::linear_combination({{"1", qubit}})}}) {}
     Symbolic(const std::map<Complex::Complex, AUTOQ::Symbol::linear_combination> &c) : internal(false), complex(c) {}
+    Symbolic(const AUTOQ::Symbol::SymbolicComplex &c) : internal(false), complex(c) {}
     Symbolic() : internal(false), complex() {} // prevent the compiler from complaining about the lack of default constructor
     // Symbolic() : internal(false), complex({{Complex::Complex::Zero(), AUTOQ::Symbol::linear_combination({{"1", 1}})}}) {} // prevent the compiler from complaining about the lack of default constructor
     bool is_internal() const { return internal; }

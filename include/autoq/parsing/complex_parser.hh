@@ -12,17 +12,30 @@ using AUTOQ::Complex::Complex;
 
 class ComplexParser {
 public:
-    ComplexParser(const std::string& input) : input_(input), index_(0) {}
-
-    Complex parse() {
-        skipWhitespace();
-        Complex result = parseExpression();
-        return result;
+    ComplexParser(const std::string& input) : input_(input), index_(0) {
+        parse();
+    }
+    Complex getComplex() const {
+        return resultC;
+    }
+    std::string getVariable() const {
+        return resultV;
     }
 
 private:
     const std::string& input_;
     size_t index_;
+    Complex resultC; // complex
+    std::string resultV; // variable
+
+    void parse() {
+        skipWhitespace();
+        try {
+            resultC = parseExpression();
+        } catch (std::exception& e) {
+            resultV = input_;
+        }
+    }
 
     void skipWhitespace() {
         while (index_ < input_.length() && std::isspace(input_[index_])) {
