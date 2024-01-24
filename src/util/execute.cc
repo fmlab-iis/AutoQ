@@ -9,18 +9,13 @@
 
 template <typename Symbol>
 bool AUTOQ::Automata<Symbol>::execute(const char *filename) {
-    std::string constraint;
-    return execute(filename, constraint);
-}
-template <typename Symbol>
-bool AUTOQ::Automata<Symbol>::execute(const char *filename, std::string &constraint) {
     bool verify = true;
     bool inGateDef = false;
     bool inWhileLoop = false;
     bool inIfBlock = false;
     bool inElseBlock = false;
     std::map<std::string, int> var_is_measure_what_qubit;
-    std::string automatonI, constraintI, automatonQ, constraintQ, while_measurement_guard;
+    std::string while_measurement_guard;
     AUTOQ::Automata<Symbol> I, measure_to_continue, measure_to_break, measure_to_else, result_after_if;
     std::ifstream qasm(filename);
     const std::regex digit("\\d+");
@@ -141,13 +136,13 @@ bool AUTOQ::Automata<Symbol>::execute(const char *filename, std::string &constra
             const std::regex spec("// *(.*)");
             std::regex_iterator<std::string::iterator> it2(line.begin(), line.end(), spec);
             std::string dir = (std::filesystem::current_path() / filename).parent_path().string();
-            I = AUTOQ::Parsing::TimbukParser<Symbol>::ReadAutomatonAndConstraint(dir + std::string("/") + it2->str(1), constraintI);
+            I = AUTOQ::Parsing::TimbukParser<Symbol>::ReadAutomaton(dir + std::string("/") + it2->str(1));
             /**************************************************************************************************************/
             // std::cout << "We first verify \"P ⊆ I\" here." << std::endl;
             // this->print_language("P:\n");
             // I.print_language("I:\n");
             this->remove_useless(); this->reduce(); I.remove_useless(); I.reduce();
-            bool t = is_scaled_spec_satisfied(*this, constraint, I, constraintI);
+            bool t = is_scaled_spec_satisfied(*this, I);
             verify &= t;
             if (!t) AUTOQ_ERROR("[ERROR] P ⊈ I.");
             if (negate) {
@@ -167,14 +162,14 @@ bool AUTOQ::Automata<Symbol>::execute(const char *filename, std::string &constra
                 // const std::regex spec("// *(.*)");
                 // std::regex_iterator<std::string::iterator> it(line.begin(), line.end(), spec);
                 // std::string dir = (std::filesystem::current_path() / filename).parent_path().string();
-                // auto Q = AUTOQ::Parsing::TimbukParser<Symbol>::ReadAutomatonAndConstraint(dir + std::string("/") + it->str(1), constraintQ);
+                // auto Q = AUTOQ::Parsing::TimbukParser<Symbol>::ReadAutomaton(dir + std::string("/") + it->str(1));
                 /**************************************************************************************************************/
                 // measure_to_continue = *this; // is C(measure_to_continue)
                 // std::cout << "Then we verify \"C(measure_to_continue) ⊆ I\" here." << std::endl;
                 // measure_to_continue.print_language("C(measure_to_continue):\n");
                 // I.print_language("I:\n");
                 // measure_to_continue.remove_useless(); measure_to_continue.reduce(); // I.remove_useless(); I.reduce();
-                bool t = is_scaled_spec_satisfied(*this, constraintI, I, constraintI);
+                bool t = is_scaled_spec_satisfied(*this, I);
                 verify &= t;
                 if (!t) AUTOQ_ERROR("[ERROR] C(measure_to_continue) ⊈ I.");
                 // std::cout << "Then we verify \"measure_to_break ⊆ Q\" here." << std::endl;
@@ -185,7 +180,6 @@ bool AUTOQ::Automata<Symbol>::execute(const char *filename, std::string &constra
                 // verify &= t;
                 // if (!t) AUTOQ_ERROR("[ERROR] measure_to_break ⊈ Q.");
                 *this = measure_to_break; // Use this postcondition to execute the remaining circuit!
-                constraint = constraintI; // pass the postcondition's contraint to the main function for the later use!
                 gateCount--; // retract the excess counting of the measurement operator in the while loop guard
             } else if (inIfBlock) {
                 inIfBlock = false;

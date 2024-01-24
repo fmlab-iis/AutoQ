@@ -747,14 +747,13 @@ BOOST_AUTO_TEST_CASE(Symbolic_into_Predicates)
             if (strstr(entry.path().c_str(), "OEGrover100") != nullptr) continue;
 
             std::string automaton;
-            std::string constraint;
-            AUTOQ::SymbolicAutomata aut = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Symbolic>::ReadAutomatonAndConstraint(std::string(entry.path()) + std::string("/pre.spec"), constraint);
+            AUTOQ::SymbolicAutomata aut = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Symbolic>::ReadAutomaton(std::string(entry.path()) + std::string("/pre.spec"));
             aut.execute((std::string(entry.path()) + std::string("/circuit.qasm")).c_str());
             aut.fraction_simplification();
 
             AUTOQ::PredicateAutomata spec = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Predicate>::ReadAutomaton((std::string(entry.path()) + std::string("/post.spec")).c_str());
 
-            AUTOQ::Constraint C(constraint.c_str());
+            AUTOQ::Constraint C(aut.constraints.c_str());
 
             BOOST_REQUIRE_MESSAGE(AUTOQ::is_spec_satisfied(C, aut, spec), "\n" +
                         std::string(entry.path().c_str()) + "\n" +
@@ -770,14 +769,13 @@ BOOST_AUTO_TEST_CASE(Symbolic_into_Predicates_bug)
     for (const auto & entry : fs::directory_iterator(path)) {
         if (entry.is_directory()) {
             std::string automaton;
-            std::string constraint;
-            AUTOQ::SymbolicAutomata aut = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Symbolic>::ReadAutomatonAndConstraint(std::string(entry.path()) + std::string("/pre.spec"), constraint);
+            AUTOQ::SymbolicAutomata aut = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Symbolic>::ReadAutomaton(std::string(entry.path()) + std::string("/pre.spec"));
             aut.execute((std::string(entry.path()) + std::string("/circuit.qasm")).c_str());
             aut.fraction_simplification();
 
             AUTOQ::PredicateAutomata spec = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Predicate>::ReadAutomaton((std::string(entry.path()) + std::string("/post.spec")).c_str());
 
-            AUTOQ::Constraint C(constraint.c_str());
+            AUTOQ::Constraint C(aut.constraints.c_str());
 
             BOOST_REQUIRE_MESSAGE(!AUTOQ::is_spec_satisfied(C, aut, spec), "\n" +
                         AUTOQ::Serialization::TimbukSerializer::Serialize(aut) +

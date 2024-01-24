@@ -724,7 +724,7 @@ AUTOQ::Automata<Symbol> AUTOQ::Automata<Symbol>::measure(int t, bool outcome) co
             }
         }
     }
-    for (int i=t+1; i<=aut.qubitNum; i++) {
+    for (unsigned i=t+1; i<=aut.qubitNum; i++) {
         aut.transitions[{i}][aut.stateNum-1].insert({aut.stateNum, aut.stateNum});
         aut.stateNum++;
     }

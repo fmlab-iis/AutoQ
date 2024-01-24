@@ -142,8 +142,7 @@ typename TreeAutomata::Symbol from_string_to_Concrete(const std::string& str)
     return TreeAutomata::Symbol(temp);
 }
 
-SymbolicAutomata::Symbol from_string_to_Symbolic(const std::string& str)
-{
+SymbolicAutomata::Symbol from_string_to_Symbolic(const std::string& str, std::set<std::string> &vars) {
 	std::vector<AUTOQ::Symbol::linear_combination> temp;
     if (str[0] == '[') {
         for (int i=1; i<static_cast<int>(str.length()); i++) {
@@ -157,7 +156,9 @@ SymbolicAutomata::Symbol from_string_to_Symbolic(const std::string& str)
                 // else
                     temp.push_back(sp.parse()); //{{"1", v}});
             } catch (boost::bad_lexical_cast& e) {
-                temp.push_back({{str.substr(i, j-i).c_str(), 1}});
+                auto var = str.substr(i, j-i);
+                vars.insert(var);
+                temp.push_back({{var.c_str(), 1}});
             }
             i = j;
         }
@@ -170,6 +171,7 @@ SymbolicAutomata::Symbol from_string_to_Symbolic(const std::string& str)
             // else
                 temp.push_back(sp.parse()); //{{"1", v}});
         } catch (boost::bad_lexical_cast& e) {
+            vars.insert(str);
             temp.push_back({{str.c_str(), 1}});
         }
     }
@@ -183,6 +185,10 @@ SymbolicAutomata::Symbol from_string_to_Symbolic(const std::string& str)
         return SymbolicAutomata::Symbol(static_cast<int>(tt.at("1")));
     else
         return SymbolicAutomata::Symbol({{Complex::One(), tt}});
+}
+SymbolicAutomata::Symbol from_string_to_Symbolic(const std::string& str) {
+    std::set<std::string> vars;
+    return from_string_to_Symbolic(str, vars);
 }
 
 PredicateAutomata::Symbol from_string_to_Predicate(const std::string& lhs)
@@ -353,7 +359,7 @@ Automata<Symbol> parse_timbuk(const std::string& str) {
                     auto temp = from_string_to_Predicate(lhs);
                     result.transitions[temp][t].insert(std::vector<TreeAutomata::State>()); //.stateNum.TranslateFwd(rhs));
                 } else {
-                    auto temp = from_string_to_Symbolic(lhs);
+                    auto temp = from_string_to_Symbolic(lhs, result.vars);
                     result.transitions[temp][t].insert(std::vector<SymbolicAutomata::State>()); //.stateNum.TranslateFwd(rhs));
                 }
                 /*******************************************************************************************************************/
@@ -579,6 +585,7 @@ try {
                                 result.transitions[Symbol({{numbers.at(lhs), {{"1", 1}}}})][t].insert(std::vector<SymbolicAutomata::State>());
                         } catch (...) {
                             result.transitions[Symbol({{Complex::One(), {{lhs, 1}}}})][t].insert(std::vector<SymbolicAutomata::State>());
+                            result.vars.insert(lhs);
                         }
                     }
                 }
@@ -862,8 +869,10 @@ Automata<Symbolic> TimbukParser<Symbolic>::from_tree_to_automaton(std::string tr
         std::getline(iss2, t);
         auto cp = ComplexParser(t);
         std::string var = cp.getVariable();
-        if (var.length() > 0) // is a variable
+        if (var.length() > 0) { // is a variable
+            aut.vars.insert(var);
             symbolic_complex[Complex::Complex::One()] = {{var, 1}};
+        }
         else // is a complex number
             symbolic_complex[cp.getComplex()] = {{"1", 1}};
     }
@@ -956,20 +965,17 @@ Automata<Symbol> TimbukParser<Symbol>::from_line_to_automaton(std::string line) 
         }
         aut.qubitNum += aut2.qubitNum;
         aut.reduce();
+        for (const auto &var : aut2.vars)
+            aut.vars.insert(var);
     }
     return aut;
 }
 
 template <typename Symbol>
-Automata<Symbol> TimbukParser<Symbol>::ReadAutomaton(const std::string& filepath) {
-    std::string constraint;
-    return ReadAutomatonAndConstraint(filepath, constraint);
-}
-
-template <typename Symbol>
-AUTOQ::Automata<Symbol> TimbukParser<Symbol>::ReadAutomatonAndConstraint(const std::string& filepath, std::string& constraint) {
+AUTOQ::Automata<Symbol> TimbukParser<Symbol>::ReadAutomaton(const std::string& filepath) {
+    AUTOQ::Automata<Symbol> result;
     std::ifstream file(filepath);
-    std::string automaton;
+    std::string automaton, constraints;
     if (!file.is_open()) {
         std::cerr << "Error: Unable to open file." << std::endl;
         exit(1);
@@ -979,20 +985,22 @@ AUTOQ::Automata<Symbol> TimbukParser<Symbol>::ReadAutomatonAndConstraint(const s
     size_t found = fileContents.find("Constraints");
     if (found != std::string::npos) {
         automaton = fileContents.substr(0, found);
-        constraint = fileContents.substr(found + 11); // "Constraints".length()
+        constraints = fileContents.substr(found + 11); // "Constraints".length()
     } else {
         automaton = fileContents;
-        constraint = "";
+        constraints = "";
     }
     if (boost::algorithm::ends_with(filepath, ".spec")) {
-        return parse_automaton<Symbol>(automaton);
+        result = parse_automaton<Symbol>(automaton);
     } else if (boost::algorithm::ends_with(filepath, ".aut")) {
-        return parse_timbuk<Symbol>(automaton);
+        result = parse_timbuk<Symbol>(automaton);
     } else if (boost::algorithm::ends_with(filepath, ".hsl")) {
-        return parse_hsl<Symbol>(automaton);
+        result = parse_hsl<Symbol>(automaton);
     } else {
         throw std::runtime_error(AUTOQ_LOG_PREFIX + "[ERROR] The filename extension is not supported.");
     }
+    result.constraints += constraints; // = is also okay, since only the variable definitions will not produce constraints.
+    return result;
 }
 
 // https://bytefreaks.net/programming-2/c/c-undefined-reference-to-templated-class-function

@@ -44,8 +44,7 @@ struct AUTOQ::Constraint {
 
 namespace AUTOQ {
     bool is_scaled_spec_satisfied(const TreeAutomata &R, TreeAutomata Q);
-    bool is_scaled_spec_satisfied(const TreeAutomata &R, std::string constraintR, const TreeAutomata &Q, std::string constraintQ);
-    bool is_scaled_spec_satisfied(SymbolicAutomata R, std::string constraintR, SymbolicAutomata Q, std::string constraintQ);
+    bool is_scaled_spec_satisfied(SymbolicAutomata R, SymbolicAutomata Q);
     bool is_spec_satisfied(const Constraint &C, const SymbolicAutomata &Ae, const PredicateAutomata &As);
     bool check_validity(Constraint C, const PredicateAutomata::Symbol &ps, const SymbolicAutomata::Symbol &te);
     bool call_SMT_solver(const std::string &C, const std::string &str);

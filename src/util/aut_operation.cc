@@ -552,6 +552,11 @@ AUTOQ::Automata<Symbol> AUTOQ::Automata<Symbol>::binary_operation(const Automata
     #ifndef COMPLEX_FiveTuple
         result.fraction_simplification();
     #endif
+    if (this->vars != o.vars || this->constraints != o.constraints) {
+        throw std::runtime_error(AUTOQ_LOG_PREFIX + "[ERROR] The two variable sets or constraints in binary_operation are not exactly the same.");
+    }
+    result.vars = this->vars;
+    result.constraints = this->constraints;
     auto end = std::chrono::steady_clock::now();
     binop_time += end - start;
     if (opLog) std::cout << __FUNCTION__ << "：" << stateNum << " states " << count_transitions() << " transitions\n";
@@ -1365,9 +1370,6 @@ struct PairComparator {
         ));
     }
 };
-bool AUTOQ::is_scaled_spec_satisfied(const TreeAutomata &R, std::string constraintR, const TreeAutomata &Q, std::string constraintQ) {
-    return is_scaled_spec_satisfied(R, Q);
-}
 bool AUTOQ::is_scaled_spec_satisfied(const TreeAutomata &R, TreeAutomata Q) {
     Q = Q.Union(AUTOQ::TreeAutomata::zero_amplitude(Q.qubitNum));
 
@@ -1648,10 +1650,10 @@ bool AUTOQ::is_scaled_spec_satisfied(const TreeAutomata &R, TreeAutomata Q) {
     }
     return true;
 }
-bool AUTOQ::is_scaled_spec_satisfied(SymbolicAutomata R, std::string constraintR, SymbolicAutomata Q, std::string constraintQ) {
+bool AUTOQ::is_scaled_spec_satisfied(SymbolicAutomata R, SymbolicAutomata Q) {
     Q = Q.Union(AUTOQ::SymbolicAutomata::zero_amplitude(Q.qubitNum));
 
-    // if (R.StrictlyEqual(Q) && constraintR == constraintQ) return true;
+    // if (R.StrictlyEqual(Q)) return true;
     auto start = chrono::steady_clock::now();
 
     using State = SymbolicAutomata::State;
@@ -1662,17 +1664,8 @@ bool AUTOQ::is_scaled_spec_satisfied(SymbolicAutomata R, std::string constraintR
     std::map<State, std::set<StateScaleSet>> processed; // Line 1: ← ∅;
     std::map<State, std::set<StateScaleSet>> worklist;
 
-    const std::regex_iterator<std::string::iterator> END;
-    const std::regex var("\\(declare-fun[ ]+([^ ]+)[ ]+\\(\\)"); // (declare-fun v1 () Real)
     /*********************************************************/
     // Rename the variables in R's transitions and constraints!
-    std::regex_iterator<std::string::iterator> it(constraintR.begin(), constraintR.end(), var);
-    std::set<std::string> varsR, varsQ;
-    while (it != END) {
-        varsR.insert(it->str(1));
-        // std::cout << it->str(1) << "\n";
-        ++it;
-    }
     auto transitions2 = R.transitions;
     for (const auto &tr : transitions2) {
         if (tr.first.symbol().is_leaf()) {
@@ -1681,7 +1674,7 @@ bool AUTOQ::is_scaled_spec_satisfied(SymbolicAutomata R, std::string constraintR
                 auto lc = c_lc.second;
                 AUTOQ::Symbol::linear_combination lc_new;
                 for (const auto &v_i : lc) { // std::map<std::string, boost::multiprecision::cpp_int>
-                    if (varsR.contains(v_i.first))
+                    if (R.vars.contains(v_i.first))
                         lc_new[v_i.first + "_R"] = v_i.second;
                     else
                         lc_new[v_i.first] = v_i.second;
@@ -1692,16 +1685,10 @@ bool AUTOQ::is_scaled_spec_satisfied(SymbolicAutomata R, std::string constraintR
             R.transitions[AUTOQ::Symbol::Symbolic(complex_new)] = tr.second;
         }
     }
-    for (const auto &var : varsR)
-        constraintR = std::regex_replace(constraintR, std::regex("(\\b" + var + "\\b)"), var + "_R");
+    for (const auto &var : R.vars)
+        R.constraints = std::regex_replace(R.constraints, std::regex("(\\b" + var + "\\b)"), var + "_R");
     /*********************************************************/
     // Rename the variables in Q's transitions and constraints!
-    std::regex_iterator<std::string::iterator> it2(constraintQ.begin(), constraintQ.end(), var);
-    while (it2 != END) {
-        varsQ.insert(it2->str(1));
-        // std::cout << it2->str(1) << "\n";
-        ++it2;
-    }
     transitions2 = Q.transitions;
     for (const auto &tr : transitions2) {
         if (tr.first.symbol().is_leaf()) {
@@ -1710,7 +1697,7 @@ bool AUTOQ::is_scaled_spec_satisfied(SymbolicAutomata R, std::string constraintR
                 auto lc = c_lc.second;
                 AUTOQ::Symbol::linear_combination lc_new;
                 for (const auto &v_i : lc) { // std::map<std::string, boost::multiprecision::cpp_int>
-                    if (varsQ.contains(v_i.first))
+                    if (Q.vars.contains(v_i.first))
                         lc_new[v_i.first + "_Q"] = v_i.second;
                     else
                         lc_new[v_i.first] = v_i.second;
@@ -1721,9 +1708,15 @@ bool AUTOQ::is_scaled_spec_satisfied(SymbolicAutomata R, std::string constraintR
             Q.transitions[AUTOQ::Symbol::Symbolic(complex_new)] = tr.second;
         }
     }
-    for (const auto &var : varsQ)
-        constraintQ = std::regex_replace(constraintQ, std::regex("(\\b" + var + "\\b)"), var + "_Q");
+    for (const auto &var : Q.vars)
+        Q.constraints = std::regex_replace(Q.constraints, std::regex("(\\b" + var + "\\b)"), var + "_Q");
     /*********************************************************/
+    std::string global_constraints;
+    for (const auto &var : R.vars)
+        global_constraints += "(declare-fun " + var + "_R () Int)\n";
+    for (const auto &var : Q.vars)
+        global_constraints += "(declare-fun " + var + "_Q () Int)\n";
+    global_constraints += R.constraints + Q.constraints;
 
     SymbolicAutomata::TransitionMap2 R_transitions;
     for (const auto &t : R.transitions) {
@@ -1763,9 +1756,9 @@ bool AUTOQ::is_scaled_spec_satisfied(SymbolicAutomata R, std::string constraintR
                         // std::cout << cq.imagToSMT() << "\n";
                         // std::cout << cr.realToSMT() << "\n";
                         // std::cout << cr.imagToSMT() << "\n";
-                        if (call_SMT_solver(constraintR + constraintQ,
+                        if (call_SMT_solver(global_constraints,
                                 "(and (= " + cq.realToSMT() + " 0)(= " + cq.imagToSMT() + " 0)(= " + cr.realToSMT() + " 0)(= " + cr.imagToSMT() + " 0))") // cq == 0 && cr == 0
-                         || call_SMT_solver(constraintR + constraintQ,
+                         || call_SMT_solver(global_constraints,
                                 "(and (or (not (= " + cq.realToSMT() + " 0))(not (= " + cq.imagToSMT() + " 0)))(or (not (= " + cr.realToSMT() + " 0))(not (= " + cr.imagToSMT() + " 0))))") // cq != 0 && cr != 0
                         ) {
                             for (const auto &uq : tq.second.at({})) {
@@ -1933,7 +1926,7 @@ bool AUTOQ::is_scaled_spec_satisfied(SymbolicAutomata R, std::string constraintR
                                     }
                                     assertion += ")";
                                     DP_enable[unionSet] = true;
-                                    DP[unionSet] = call_SMT_solver(constraintR + constraintQ, assertion);
+                                    DP[unionSet] = call_SMT_solver(global_constraints, assertion);
                                 }
                             }
                             if (!DP[unionSet]) {
@@ -2037,7 +2030,7 @@ bool AUTOQ::is_scaled_spec_satisfied(SymbolicAutomata R, std::string constraintR
                                     }
                                     assertion += ")";
                                     DP_enable[unionSet] = true;
-                                    DP[unionSet] = call_SMT_solver(constraintR + constraintQ, assertion);
+                                    DP[unionSet] = call_SMT_solver(global_constraints, assertion);
                                 }
                             }
                             if (!DP[unionSet]) {

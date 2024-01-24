@@ -23,12 +23,12 @@ std::string toString(std::chrono::steady_clock::duration tp);
 int main(int argc, char **argv) {
 try {
     std::string constraint, constraintQ;
-    AUTOQ::TreeAutomata aut = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Concrete>::ReadAutomatonAndConstraint(argv[1], constraint);
+    AUTOQ::TreeAutomata aut = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Concrete>::ReadAutomaton(argv[1]);
     aut.remove_useless();
     aut.reduce();
     auto start = chrono::steady_clock::now();
-    bool verify = aut.execute(argv[2], constraint);
-    AUTOQ::TreeAutomata Q = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Concrete>::ReadAutomatonAndConstraint(argv[3], constraintQ);
+    bool verify = aut.execute(argv[2]);
+    AUTOQ::TreeAutomata Q = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Concrete>::ReadAutomaton(argv[3]);
     Q.remove_useless();
     Q.reduce();
     verify &= is_scaled_spec_satisfied(aut, Q);

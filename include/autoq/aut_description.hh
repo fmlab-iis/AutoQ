@@ -98,6 +98,8 @@ public:   // data members
     inline static std::chrono::steady_clock::duration binop_time, branch_rest_time, value_rest_time;
     /* Notice inline is very convenient for declaring and defining a static member variable together! */
     inline static bool disableRenumbering = false;
+    std::set<std::string> vars;
+    std::string constraints;
 
 public:   // methods
 
@@ -107,7 +109,9 @@ public:   // methods
         stateNum(),
         qubitNum(),
 		transitions(),
-        isTopdownDeterministic(false)
+        isTopdownDeterministic(false),
+        vars(),
+        constraints()
 	{ }
 
 	/**
@@ -132,7 +136,10 @@ public:   // methods
 			(finalStates == rhs.finalStates) &&
             (stateNum == rhs.stateNum) &&
             (qubitNum == rhs.qubitNum) &&
-			(transitions == rhs.transitions);
+			(transitions == rhs.transitions) &&
+            // (isTopdownDeterministic == rhs.isTopdownDeterministic) &&
+            (vars == rhs.vars) &&
+            (constraints == rhs.constraints);
 	}
 
 	std::string ToString() const

@@ -481,6 +481,9 @@ AUTOQ::Automata<Symbol> AUTOQ::Automata<Symbol>::Union(const Automata<Symbol> &o
         result.finalStates.insert(s + this->stateNum);
     }
     result.reduce();
+    for (const auto &var : o.vars)
+        result.vars.insert(var);
+    result.constraints += o.constraints;
     if (opLog) std::cout << __FUNCTION__ << "：" << stateNum << " states " << count_transitions() << " transitions\n";
     return result;
 }

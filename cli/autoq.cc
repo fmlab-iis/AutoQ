@@ -55,15 +55,13 @@ optional arguments:
         return 0;
     }
 
-    std::string automaton, automatonS;
-    std::string constraint, constraintS;
-    AUTOQ::SymbolicAutomata aut = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Symbolic>::ReadAutomatonAndConstraint(argv[1], constraint);
-    if (constraint.length() > 0) {
+    AUTOQ::SymbolicAutomata aut = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Symbolic>::ReadAutomaton(argv[1]);
+    if (!aut.vars.empty()) {
         auto startVer = chrono::steady_clock::now();
         aut.execute(argv[2]);
         // aut.fraction_simplification();
         aut.reduce();
-        AUTOQ::SymbolicAutomata spec = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Symbolic>::ReadAutomatonAndConstraint(argv[3], constraintS);
+        AUTOQ::SymbolicAutomata spec = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Symbolic>::ReadAutomaton(argv[3]);
         // spec.remove_useless();
         // spec.reduce();
         // AUTOQ::Constraint C(constraint.c_str());
