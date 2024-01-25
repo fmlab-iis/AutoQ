@@ -44,11 +44,6 @@ add_executable(autoq
   ${CMAKE_CURRENT_BINARY_DIR}/version.cc
 )
 
-add_executable(autoq_pldi
-  autoq_pldi.cc
-  ${CMAKE_CURRENT_BINARY_DIR}/version.cc
-)
-
 add_executable(autoq_cav24_symbolic
   autoq_cav24_symbolic.cc
   ${CMAKE_CURRENT_BINARY_DIR}/version.cc
@@ -98,7 +93,6 @@ foreach(src ${autoq_sources})
 endforeach()
 
 target_link_libraries(autoq libautoq)
-target_link_libraries(autoq_pldi libautoq)
 target_link_libraries(autoq_cav24_symbolic libautoq)
 target_link_libraries(autoq_cav24_concrete libautoq)
 target_link_libraries(hsl_concrete libautoq)

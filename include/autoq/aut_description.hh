@@ -211,7 +211,6 @@ public:
     void Tdg(int t);
     void Sdg(int t);
     void swap(int t1, int t2);
-    void U(int t);
     void CK(int c, int t);
     Automata measure(int t, bool outcome) const;
 
