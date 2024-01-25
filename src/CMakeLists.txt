@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.0.0)
 set(CMAKE_COLOR_MAKEFILE ON)
 #set(CMAKE_VERBOSE_MAKEFILE ON)
 
-project(autoq)
+# project(autoq)
 
 # Export compile commands to be used with YouCompleteMe
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
@@ -65,7 +65,7 @@ add_library(libautoq STATIC
 	util/gate_operation.cc
 )
 
-set_target_properties(libautoq PROPERTIES
-  OUTPUT_NAME autoq
-  CLEAN_DIRECT_OUTPUT 1
-)
+# set_target_properties(libautoq PROPERTIES
+#   OUTPUT_NAME autoq
+#   CLEAN_DIRECT_OUTPUT 1
+# )

@@ -10,20 +10,6 @@ using AUTOQ::Parsing::TimbukParser;
 
 int main(int argc, char **argv) {
 try {
-    if (argc >= 2 && ((strcmp(argv[1], "-h")==0) || (strcmp(argv[1], "--help")==0))) {
-        std::cout << R"(usage: ./hsl_concrete [-h] [input.{aut|hsl|spec}]
-
-positional arguments:
-  input.{aut|hsl|spec}      the input high-level specification language
-                            If this file is not provided, the user should provide the language
-                            via stdin.
-
-
-optional arguments:
-  -h, --help            show this help message and exit)" << std::endl;
-        return 0;
-    }
-
     std::string line;
     std::istream *in = &std::cin;
     std::ifstream file;

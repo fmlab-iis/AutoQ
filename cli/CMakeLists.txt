@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.0.0)
 set(CMAKE_COLOR_MAKEFILE ON)
 #set(CMAKE_VERBOSE_MAKEFILE ON)
 
-project(autoq)
+# project(autoq)
 
 set(autoq_compiler_add_flags_list
   -std=c++20
@@ -38,12 +38,6 @@ include_directories(../include)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/version.cc.in
    ${CMAKE_CURRENT_BINARY_DIR}/version.cc @ONLY)
 
-add_executable(autoq
-  autoq.cc
-#   parse_args.cc
-  ${CMAKE_CURRENT_BINARY_DIR}/version.cc
-)
-
 add_executable(autoq_cav24_symbolic
   autoq_cav24_symbolic.cc
   ${CMAKE_CURRENT_BINARY_DIR}/version.cc
@@ -54,23 +48,23 @@ add_executable(autoq_cav24_concrete
   ${CMAKE_CURRENT_BINARY_DIR}/version.cc
 )
 
-add_executable(hsl_concrete
-  hsl_concrete.cc
+add_executable(from_hsl_to_ta_concrete
+  from_hsl_to_ta_concrete.cc
   ${CMAKE_CURRENT_BINARY_DIR}/version.cc
 )
 
-add_executable(hsl_symbolic
-  hsl_symbolic.cc
+add_executable(from_hsl_to_ta_symbolic
+  from_hsl_to_ta_symbolic.cc
   ${CMAKE_CURRENT_BINARY_DIR}/version.cc
 )
 
-add_executable(hsl_predicate
-  hsl_predicate.cc
+add_executable(from_hsl_to_ta_predicate
+  from_hsl_to_ta_predicate.cc
   ${CMAKE_CURRENT_BINARY_DIR}/version.cc
 )
 
-add_executable(print_language
-  print_language.cc
+add_executable(from_ta_to_hsl_concrete
+  from_ta_to_hsl_concrete.cc
   ${CMAKE_CURRENT_BINARY_DIR}/version.cc
 )
 
@@ -83,20 +77,19 @@ if (MAKE_STATIC_AUTOQ)
   SET(CMAKE_CXX_LINK_EXECUTABLE "${CMAKE_CXX_LINK_EXECUTABLE} -static")
 endif()
 
-get_target_property(autoq_sources autoq SOURCES)
+# get_target_property(autoq_sources autoq SOURCES)
 
-foreach(src ${autoq_sources})
+# foreach(src ${autoq_sources})
 
-  set_source_files_properties(
-    ${src} PROPERTIES COMPILE_FLAGS ${autoq_compiler_flags})
+#   set_source_files_properties(
+#     ${src} PROPERTIES COMPILE_FLAGS ${autoq_compiler_flags})
 
-endforeach()
+# endforeach()
 
-target_link_libraries(autoq libautoq)
 target_link_libraries(autoq_cav24_symbolic libautoq)
 target_link_libraries(autoq_cav24_concrete libautoq)
-target_link_libraries(hsl_concrete libautoq)
-target_link_libraries(hsl_symbolic libautoq)
-target_link_libraries(hsl_predicate libautoq)
-target_link_libraries(print_language libautoq)
+target_link_libraries(from_hsl_to_ta_concrete libautoq)
+target_link_libraries(from_hsl_to_ta_symbolic libautoq)
+target_link_libraries(from_hsl_to_ta_predicate libautoq)
+target_link_libraries(from_ta_to_hsl_concrete libautoq)
 target_link_libraries(symbolic_execution libautoq)
