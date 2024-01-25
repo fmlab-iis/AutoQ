@@ -19,6 +19,8 @@
 #include <filesystem>
 #include <boost/dynamic_bitset.hpp>
 
+#define MIN
+
 using namespace AUTOQ;
 using namespace AUTOQ::Util;
 using AUTOQ::Symbol::Concrete;
@@ -1065,74 +1067,325 @@ void AUTOQ::Automata<Symbol>::fraction_simplification() {
 /**************** Equivalence Checking ****************/
 // namespace
 // { // anonymous namespace
-  std::string gpath_to_VATA = "";
+//   std::string gpath_to_VATA = "";
 
-  /** returns the path to AUTOQ executable */
-  const std::string& get_vata_path()
+//   /** returns the path to AUTOQ executable */
+//   const std::string& get_vata_path()
+//   {
+//     // is it cached?
+//     if (!gpath_to_VATA.empty()) return gpath_to_VATA;
+
+//     // not cached, get it from ENV
+//     const char* path = std::getenv("VATA_PATH");
+//     if (nullptr == path) {
+//       throw std::runtime_error(AUTOQ_LOG_PREFIX + "[ERROR] The environment variable VATA_PATH is not found!");
+//     }
+
+//     gpath_to_VATA = path;
+//     return gpath_to_VATA;
+//   }
+
+//   const int MAX_ARG_STRLEN = 131070; // in fact is 131072 on the Internet
+
+//   /** checks inclusion of two TAs */
+//   template <typename Symbol>
+//   bool AUTOQ::Automata<Symbol>::check_inclusion(const std::string& lhsPath, const std::string& rhsPath)
+//   {
+//     std::string aux;
+//     AUTOQ::Util::ShellCmd(get_vata_path() + " incl " + lhsPath + " " + rhsPath, aux);
+//     return (aux == "1\n");
+//   }
+
+//   template <typename Symbol>
+//   bool AUTOQ::Automata<Symbol>::check_inclusion(const Automata<Symbol>& lhsPath, const std::string& rhsPath)
+//   {
+//     std::string aux;
+//     std::string aut1 = TimbukSerializer::Serialize(lhsPath);
+//     assert(aut1.length() <= MAX_ARG_STRLEN);
+//     AUTOQ::Util::ShellCmd(get_vata_path() + " incl2 '" + aut1 + "' " + rhsPath, aux);
+//     return (aux == "1\n");
+//   }
+
+//   template <typename Symbol>
+//   bool AUTOQ::Automata<Symbol>::check_inclusion(const std::string& lhsPath, const Automata<Symbol>& rhsPath)
+//   {
+//     std::string aux;
+//     std::string aut2 = TimbukSerializer::Serialize(rhsPath);
+//     assert(aut2.length() <= MAX_ARG_STRLEN);
+//     AUTOQ::Util::ShellCmd(get_vata_path() + " incl3 " + lhsPath + " '" + aut2 + "'", aux);
+//     return (aux == "1\n");
+//   }
+
+//   template <typename Symbol>
+//   bool AUTOQ::Automata<Symbol>::check_inclusion(const Automata<Symbol>& lhsPath, const Automata<Symbol>& rhsPath)
+//   {
+//     std::string input = TimbukSerializer::Serialize(lhsPath);
+//     std::vector<std::string> args{get_vata_path(), "incl4"};
+//     int length = input.length();
+//     for (int i=0; i<length; i+=MAX_ARG_STRLEN) {
+//         args.push_back(input.substr(i, MAX_ARG_STRLEN));
+//     }
+//     input = TimbukSerializer::Serialize(rhsPath);
+//     length = input.length();
+//     for (int i=0; i<length; i+=MAX_ARG_STRLEN) {
+//         args.push_back(input.substr(i, MAX_ARG_STRLEN));
+//     }
+//     std::string aux;
+//     if (!AUTOQ::Util::ShellCmd(args, aux)) {
+//         throw std::runtime_error(AUTOQ_LOG_PREFIX + "[ERROR] Failed to execute VATA.");
+//     }
+//     return (aux == "1\n");
+//   }
+
+  template <typename Symbol>
+  bool AUTOQ::Automata<Symbol>::check_inclusion(const Automata<Symbol>& R, const Automata<Symbol>& Q)
   {
-    // is it cached?
-    if (!gpath_to_VATA.empty()) return gpath_to_VATA;
+    using State = Automata<Symbol>::State;
+    using StateSet = Automata<Symbol>::StateSet;
+    StateSet As_finalStates(Q.finalStates.begin(), Q.finalStates.end());
+    std::map<State, std::set<StateSet>> processed; // Line 1: ← ∅;
+    std::map<State, std::set<StateSet>> worklist;
 
-    // not cached, get it from ENV
-    const char* path = std::getenv("VATA_PATH");
-    if (nullptr == path) {
-      throw std::runtime_error(AUTOQ_LOG_PREFIX + "[ERROR] The environment variable VATA_PATH is not found!");
+    Automata<Symbol>::TransitionMap2 R_transitions;
+    for (const auto &t : R.transitions) {
+        const auto &symbol_tag = t.first;
+        for (const auto &out_ins : t.second) {
+            auto s = out_ins.first;
+            for (const auto &in : out_ins.second)
+                R_transitions[symbol_tag][in].insert(s);
+        }
+    }
+    Automata<Symbol>::TransitionMap2 Q_transitions;
+    for (const auto &t : Q.transitions) {
+        const auto &symbol_tag = t.first;
+        for (const auto &out_ins : t.second) {
+            auto s = out_ins.first;
+            for (const auto &in : out_ins.second)
+                Q_transitions[symbol_tag][in].insert(s);
+        }
     }
 
-    gpath_to_VATA = path;
-    return gpath_to_VATA;
-  }
+    /************************************/
+    // Line 2-4: Construct the initial worklist!
+    for (const auto &tr : R_transitions) {
+        if (tr.first.is_leaf()) {
+            const auto &vr = tr.first;
+            auto cr = vr.symbol().complex;
+            cr.fraction_simplification();
+            for (const auto &sr : tr.second.at({})) {
+                StateSet Uq;
+                for (const auto &tq : Q_transitions) {
+                    if (tq.first.is_leaf()) {
+                        const auto &vq = tq.first;
+                        auto cq = vq.symbol().complex;
+                        cq.fraction_simplification();
+                        // if (cr.valueEqual(cq)) {
+                        if (cr == cq) {
+                            for (const auto &uq : tq.second.at({})) {
+                                Uq.insert(uq);
+                            }
+                        }
+                    }
+                }
 
-  const int MAX_ARG_STRLEN = 131070; // in fact is 131072 on the Internet
-
-  /** checks inclusion of two TAs */
-  template <typename Symbol>
-  bool AUTOQ::Automata<Symbol>::check_inclusion(const std::string& lhsPath, const std::string& rhsPath)
-  {
-    std::string aux;
-    AUTOQ::Util::ShellCmd(get_vata_path() + " incl " + lhsPath + " " + rhsPath, aux);
-    return (aux == "1\n");
-  }
-
-  template <typename Symbol>
-  bool AUTOQ::Automata<Symbol>::check_inclusion(const Automata<Symbol>& lhsPath, const std::string& rhsPath)
-  {
-    std::string aux;
-    std::string aut1 = TimbukSerializer::Serialize(lhsPath);
-    assert(aut1.length() <= MAX_ARG_STRLEN);
-    AUTOQ::Util::ShellCmd(get_vata_path() + " incl2 '" + aut1 + "' " + rhsPath, aux);
-    return (aux == "1\n");
-  }
-
-  template <typename Symbol>
-  bool AUTOQ::Automata<Symbol>::check_inclusion(const std::string& lhsPath, const Automata<Symbol>& rhsPath)
-  {
-    std::string aux;
-    std::string aut2 = TimbukSerializer::Serialize(rhsPath);
-    assert(aut2.length() <= MAX_ARG_STRLEN);
-    AUTOQ::Util::ShellCmd(get_vata_path() + " incl3 " + lhsPath + " '" + aut2 + "'", aux);
-    return (aux == "1\n");
-  }
-
-  template <typename Symbol>
-  bool AUTOQ::Automata<Symbol>::check_inclusion(const Automata<Symbol>& lhsPath, const Automata<Symbol>& rhsPath)
-  {
-    std::string input = TimbukSerializer::Serialize(lhsPath);
-    std::vector<std::string> args{get_vata_path(), "incl4"};
-    int length = input.length();
-    for (int i=0; i<length; i+=MAX_ARG_STRLEN) {
-        args.push_back(input.substr(i, MAX_ARG_STRLEN));
+                #ifdef MIN
+                auto copy = worklist[sr]; // Min{...}
+                for (const auto &t : copy) {
+                    if (std::includes(t.begin(), t.end(), Uq.begin(), Uq.end()))
+                        worklist[sr].erase(t);
+                }
+                bool cancel = false;
+                for (const auto &t : worklist[sr]) {
+                    if (std::includes(Uq.begin(), Uq.end(), t.begin(), t.end())) {
+                        cancel = true;
+                        break;
+                    }
+                }
+                if (!cancel)
+                #endif
+                    worklist[sr].insert(Uq);
+            }
+        }
     }
-    input = TimbukSerializer::Serialize(rhsPath);
-    length = input.length();
-    for (int i=0; i<length; i+=MAX_ARG_STRLEN) {
-        args.push_back(input.substr(i, MAX_ARG_STRLEN));
+    /************************************/
+    while (!worklist.empty()) { // Line 5
+        /*********************************************/
+        // Line 6
+        auto it = worklist.begin(); // const auto &it ?
+        if (it->second.empty()) {
+            worklist.erase(it);
+            continue;
+        }
+        auto sr = it->first;
+        auto Uq = *(it->second.begin());
+        it->second.erase(it->second.begin());
+        /*********************************************/
+        // Line 7
+        if (R.finalStates.contains(sr)) {
+            StateSet ss;
+            for (const auto &uq : Uq) {
+                ss.insert(uq);
+            }
+            std::set<int> intersection; // Create a set to store the intersection
+            std::set_intersection( // Use set_intersection to find the common elements
+                ss.begin(), ss.end(),
+                Q.finalStates.begin(), Q.finalStates.end(),
+                std::inserter(intersection, intersection.begin())
+            );
+            if (intersection.empty()) { // Check if the intersection is empty
+                return false;
+            }
+        }
+        /*********************************************/
+        // Line 8
+        #ifdef MIN
+        auto copy = processed[sr]; // Min{...}
+        for (const auto &t : copy) {
+            if (std::includes(t.begin(), t.end(), Uq.begin(), Uq.end()))
+                processed[sr].erase(t);
+        }
+        bool cancel = false;
+        for (const auto &t : processed[sr]) {
+            if (std::includes(Uq.begin(), Uq.end(), t.begin(), t.end())) {
+                cancel = true;
+                break;
+            }
+        }
+        if (!cancel)
+        #endif
+            processed[sr].insert(Uq);
+        // std::cout << AUTOQ::Util::Convert::ToString(processed) << "\n";
+        /*********************************************/
+        // Line 10
+        auto sr1 = sr;
+        const auto &Uq1 = Uq;
+        for (const auto &kv : processed) {
+            auto sr2 = kv.first;
+            for (const auto &Uq2 : kv.second) {
+                for (const auto &tr : R_transitions) {
+                    const auto &alpha = tr.first;
+                    /*********************************************/
+                    // Line 11
+                    auto Hr_ptr = tr.second.find({sr1, sr2});
+                    if (Hr_ptr == tr.second.end()) continue;
+                    StateSet Hr = Hr_ptr->second;
+                    if (Hr.empty()) continue;
+                    /*********************************************/
+                    StateSet Uq_; // Line 12
+                    /*********************************************/
+                    // Line 13
+                    for (const auto &sq1 : Uq1) {
+                        for (const auto &sq2 : Uq2) {
+                            /*********************************************/
+                            // Line 15
+                            StateSet sqSet;
+                            auto it = Q_transitions.find(alpha);
+                            if (it != Q_transitions.end()) {
+                                auto ptr = it->second.find({sq1, sq2});
+                                if (ptr == it->second.end()) continue;
+                                sqSet = ptr->second;
+                            }
+                            if (sqSet.empty()) continue;
+                            /*********************************************/
+                            // Line 16
+                            for (const auto &sq : sqSet) {
+                                Uq_.insert(sq);
+                            }
+                            /*********************************************/
+                        }
+                    }
+                    /*********************************************/
+                    // Line 17-18
+                    for (const auto &sr_ : Hr) {
+                        if (!processed[sr_].contains(Uq_) && !worklist[sr_].contains(Uq_)) {
+                            #ifdef MIN
+                            auto copy = worklist[sr_]; // Min{...}
+                            for (const auto &t : copy) {
+                                if (std::includes(t.begin(), t.end(), Uq_.begin(), Uq_.end()))
+                                    worklist[sr_].erase(t);
+                            }
+                            bool cancel = false;
+                            for (const auto &t : worklist[sr_]) {
+                                if (std::includes(Uq_.begin(), Uq_.end(), t.begin(), t.end())) {
+                                    cancel = true;
+                                    break;
+                                }
+                            }
+                            if (!cancel)
+                            #endif
+                                worklist[sr_].insert(Uq_);
+                        }
+                    }
+                    /*********************************************/
+                }
+            }
+        }
+        auto sr2 = sr;
+        const auto &Uq2 = Uq;
+        for (const auto &kv : processed) {
+            auto sr1 = kv.first;
+            for (const auto &Uq1 : kv.second) {
+                if (sr1 == sr2 && Uq1 == Uq2) continue;
+                for (const auto &tr : R_transitions) {
+                    const auto &alpha = tr.first;
+                    /*********************************************/
+                    // Line 11
+                    auto Hr_ptr = tr.second.find({sr1, sr2});
+                    if (Hr_ptr == tr.second.end()) continue;
+                    StateSet Hr = Hr_ptr->second;
+                    if (Hr.empty()) continue;
+                    /*********************************************/
+                    StateSet Uq_; // Line 12
+                    /*********************************************/
+                    // Line 13
+                    for (const auto &sq1 : Uq1) {
+                        for (const auto &sq2 : Uq2) {
+                            /*********************************************/
+                            // Line 15
+                            StateSet sqSet;
+                            auto it = Q_transitions.find(alpha);
+                            if (it != Q_transitions.end()) {
+                                auto ptr = it->second.find({sq1, sq2});
+                                if (ptr == it->second.end()) continue;
+                                sqSet = ptr->second;
+                            }
+                            if (sqSet.empty()) continue;
+                            /*********************************************/
+                            // Line 16
+                            for (const auto &sq : sqSet) {
+                                Uq_.insert(sq);
+                            }
+                            /*********************************************/
+                        }
+                    }
+                    /*********************************************/
+                    // Line 17-18
+                    for (const auto &sr_ : Hr) {
+                        if (!processed[sr_].contains(Uq_) && !worklist[sr_].contains(Uq_)) {
+                            #ifdef MIN
+                            auto copy = worklist[sr_]; // Min{...}
+                            for (const auto &t : copy) {
+                                if (std::includes(t.begin(), t.end(), Uq_.begin(), Uq_.end()))
+                                    worklist[sr_].erase(t);
+                            }
+                            bool cancel = false;
+                            for (const auto &t : worklist[sr_]) {
+                                if (std::includes(Uq_.begin(), Uq_.end(), t.begin(), t.end())) {
+                                    cancel = true;
+                                    break;
+                                }
+                            }
+                            if (!cancel)
+                            #endif
+                                worklist[sr_].insert(Uq_);
+                        }
+                    }
+                    /*********************************************/
+                }
+            }
+        }
     }
-    std::string aux;
-    if (!AUTOQ::Util::ShellCmd(args, aux)) {
-        throw std::runtime_error(AUTOQ_LOG_PREFIX + "[ERROR] Failed to execute VATA.");
-    }
-    return (aux == "1\n");
+    return true;
   }
 
   /** checks language equivalence of two TAs */
@@ -1356,7 +1609,6 @@ bool AUTOQ::is_spec_satisfied(const Constraint &C, const SymbolicAutomata &Ae, c
     return true;
 }
 
-#define MIN
 struct PairComparator {
     bool operator()(const std::pair<TreeAutomata::State, std::pair<Complex::Complex, Complex::Complex>> &lhs, const std::pair<TreeAutomata::State, std::pair<Complex::Complex, Complex::Complex>> &rhs) const {
         auto lhsS = lhs.first;

@@ -139,6 +139,16 @@ struct AUTOQ::Symbol::SymbolicComplex : std::map<Complex::Complex, AUTOQ::Symbol
         result += ")";
         return result;
     }
+    void fraction_simplification() {
+        SymbolicComplex complex2;
+        for (const auto &kv : *this) {
+            auto k = kv.first;
+            auto v = kv.second;
+            if (k.isZero() || v.trueMustBeZero()) continue;
+            complex2[k.fraction_simplification()] = complex2[k.fraction_simplification()] + v;
+        }
+        *this = complex2;
+    }
 };
 struct AUTOQ::Symbol::Symbolic {
 private:
@@ -200,14 +210,7 @@ public:
         return complex * c;
     }
     void fraction_simplification() {
-        SymbolicComplex complex2;
-        for (const auto &kv : complex) {
-            auto k = kv.first;
-            auto v = kv.second;
-            if (k.isZero() || v.trueMustBeZero()) continue;
-            complex2[k.fraction_simplification()] = complex2[k.fraction_simplification()] + v;
-        }
-        complex = complex2;
+        complex.fraction_simplification();
     }
     void omega_multiplication(int rotation=1) {
         if (rotation > 0) {
