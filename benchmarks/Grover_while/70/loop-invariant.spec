@@ -499,3 +499,5 @@ Transitions
 [v2] -> 492
 [c0] -> 493
 [v3] -> 494
+Constraints
+(not (= v3 0))

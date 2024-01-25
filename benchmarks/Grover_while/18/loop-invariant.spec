@@ -135,3 +135,5 @@ Transitions
 [v2] -> 128
 [c0] -> 129
 [v3] -> 130
+Constraints
+(not (= v3 0))

@@ -408,3 +408,5 @@ Transitions
 [v2] -> 401
 [c0] -> 402
 [v3] -> 403
+Constraints
+(not (= v3 0))

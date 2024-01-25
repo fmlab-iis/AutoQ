@@ -100,3 +100,5 @@ Transitions
 [v2] -> 93
 [c0] -> 94
 [v3] -> 95
+Constraints
+(not (= v3 0))

@@ -289,3 +289,5 @@ Transitions
 [v2] -> 282
 [c0] -> 283
 [v3] -> 284
+Constraints
+(not (= v3 0))

@@ -282,3 +282,5 @@ Transitions
 [v2] -> 275
 [c0] -> 276
 [v3] -> 277
+Constraints
+(not (= v3 0))

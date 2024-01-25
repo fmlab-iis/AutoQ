@@ -156,3 +156,5 @@ Transitions
 [v2] -> 149
 [c0] -> 150
 [v3] -> 151
+Constraints
+(not (= v3 0))

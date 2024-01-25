@@ -219,3 +219,5 @@ Transitions
 [v2] -> 212
 [c0] -> 213
 [v3] -> 214
+Constraints
+(not (= v3 0))

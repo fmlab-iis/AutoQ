@@ -86,3 +86,5 @@ Transitions
 [v2] -> 79
 [c0] -> 80
 [v3] -> 81
+Constraints
+(not (= v3 0))

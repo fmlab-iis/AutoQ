@@ -527,3 +527,5 @@ Transitions
 [v2] -> 520
 [c0] -> 521
 [v3] -> 522
+Constraints
+(not (= v3 0))

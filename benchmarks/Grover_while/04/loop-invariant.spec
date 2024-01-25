@@ -37,3 +37,5 @@ Transitions
 [v2] -> 30
 [c0] -> 31
 [v3] -> 32
+Constraints
+(not (= v3 0))

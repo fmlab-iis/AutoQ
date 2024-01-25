@@ -310,3 +310,5 @@ Transitions
 [v2] -> 303
 [c0] -> 304
 [v3] -> 305
+Constraints
+(not (= v3 0))
