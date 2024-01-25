@@ -2090,7 +2090,7 @@ bool AUTOQ::is_scaled_spec_satisfied(SymbolicAutomata R, SymbolicAutomata Q) {
             );
             if (intersection.empty()) { // Check if the intersection is empty
                 auto duration = chrono::steady_clock::now() - start;
-                std::cout << toString2(duration) << "\n";
+                // std::cout << toString2(duration) << "\n";
                 return false;
             }
         }
@@ -2331,7 +2331,7 @@ bool AUTOQ::is_scaled_spec_satisfied(SymbolicAutomata R, SymbolicAutomata Q) {
         }
     }
     auto duration = chrono::steady_clock::now() - start;
-    std::cout << toString2(duration) << "\n";
+    // std::cout << toString2(duration) << "\n";
     return true;
 }
 
