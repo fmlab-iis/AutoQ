@@ -1,5 +1,5 @@
 #!/usr/bin/python3
-import os, re, subprocess
+import os, subprocess
 from ctypes import c_wchar_p
 from multiprocessing import Manager, Process, Semaphore, Lock
 

@@ -1243,14 +1243,13 @@ bool AUTOQ::check_validity(Constraint C, const PredicateAutomata::Symbol &ps, co
         throw std::runtime_error(AUTOQ_LOG_PREFIX + "[ERROR] The solver Z3 did not correctly return SAT or UNSAT.\nIt's probably because the specification automaton is NOT a predicate automaton.");
     }
 }
-bool AUTOQ::call_SMT_solver(const string &C, const string &str) {
+bool AUTOQ::call_SMT_solver(std::string global, const std::string &quantifier, const std::string &ratios) {
     std::string result;
-    // std::string str(ps);
-    // auto regToExpr = C.to_exprs(te);
-    // for (const auto &kv : regToExpr) // example: z3 <(echo '(declare-fun x () Int)(declare-fun z () Int)(assert (= z (+ x 3)))(check-sat)')
-    //     str = std::regex_replace(str, std::regex(kv.first), kv.second);
-    // std::cout << std::string(C) + "(assert (not " + str + "))(check-sat)\n";
-    std::string smt_input = "bash -c \"z3 <(echo '" + C + "(assert " + str + ")(check-sat)')\"";
+    if (global.empty()) global = "true";
+    std::string quantifier_tail;
+    quantifier_tail += (quantifier.find("forall") == std::string::npos) ? "" : ")";
+    quantifier_tail += (quantifier.find("exists") == std::string::npos) ? "" : ")";
+    std::string smt_input = "bash -c \"z3 <(echo '(assert " + quantifier + "(or (not (and " + global + ")) " + ratios + ")" + quantifier_tail + ")(check-sat)')\"";
     // auto start = chrono::steady_clock::now();
     // std::cout << smt_input << "\n";
     ShellCmd(smt_input, result);
@@ -1711,12 +1710,20 @@ bool AUTOQ::is_scaled_spec_satisfied(SymbolicAutomata R, SymbolicAutomata Q) {
     for (const auto &var : Q.vars)
         Q.constraints = std::regex_replace(Q.constraints, std::regex("(\\b" + var + "\\b)"), var + "_Q");
     /*********************************************************/
-    std::string global_constraints;
-    for (const auto &var : R.vars)
-        global_constraints += "(declare-fun " + var + "_R () Int)\n";
-    for (const auto &var : Q.vars)
-        global_constraints += "(declare-fun " + var + "_Q () Int)\n";
-    global_constraints += R.constraints + Q.constraints;
+    std::string global_constraints = R.constraints + Q.constraints;
+    std::string quantifier; // (forall ((x1 σ1) (x2 σ2) ··· (xn σn)) (exists ((x1 σ1) (x2 σ2) ··· (xn σn)) ϕ))
+    if (!R.vars.empty()) {
+        quantifier += "(forall  (";
+        for (const auto &var : R.vars)
+            quantifier += "(" + var + "_R Real)";
+        quantifier += ") ";
+    }
+    if (!Q.vars.empty()) {
+        quantifier += "(exists (";
+        for (const auto &var : Q.vars)
+            quantifier += "(" + var + "_Q Real)";
+        quantifier += ") ";
+    }
 
     SymbolicAutomata::TransitionMap2 R_transitions;
     for (const auto &t : R.transitions) {
@@ -1756,10 +1763,9 @@ bool AUTOQ::is_scaled_spec_satisfied(SymbolicAutomata R, SymbolicAutomata Q) {
                         // std::cout << cq.imagToSMT() << "\n";
                         // std::cout << cr.realToSMT() << "\n";
                         // std::cout << cr.imagToSMT() << "\n";
-                        if (call_SMT_solver(global_constraints,
-                                "(and (= " + cq.realToSMT() + " 0)(= " + cq.imagToSMT() + " 0)(= " + cr.realToSMT() + " 0)(= " + cr.imagToSMT() + " 0))") // cq == 0 && cr == 0
-                         || call_SMT_solver(global_constraints,
-                                "(and (or (not (= " + cq.realToSMT() + " 0))(not (= " + cq.imagToSMT() + " 0)))(or (not (= " + cr.realToSMT() + " 0))(not (= " + cr.imagToSMT() + " 0))))") // cq != 0 && cr != 0
+                        if (call_SMT_solver(global_constraints, quantifier,
+                                "(or (and (= " + cq.realToSMT() + " 0)(= " + cq.imagToSMT() + " 0)(= " + cr.realToSMT() + " 0)(= " + cr.imagToSMT() + " 0))" // cq == 0 && cr == 0
+                                 + " (and (or (not (= " + cq.realToSMT() + " 0))(not (= " + cq.imagToSMT() + " 0)))(or (not (= " + cr.realToSMT() + " 0))(not (= " + cr.imagToSMT() + " 0)))))") // cq != 0 && cr != 0
                         ) {
                             for (const auto &uq : tq.second.at({})) {
                                 auto it = ratioInverseMap.find({cq, cr});
@@ -1926,7 +1932,7 @@ bool AUTOQ::is_scaled_spec_satisfied(SymbolicAutomata R, SymbolicAutomata Q) {
                                     }
                                     assertion += ")";
                                     DP_enable[unionSet] = true;
-                                    DP[unionSet] = call_SMT_solver(global_constraints, assertion);
+                                    DP[unionSet] = call_SMT_solver(global_constraints, quantifier, assertion);
                                 }
                             }
                             if (!DP[unionSet]) {
@@ -2030,7 +2036,7 @@ bool AUTOQ::is_scaled_spec_satisfied(SymbolicAutomata R, SymbolicAutomata Q) {
                                     }
                                     assertion += ")";
                                     DP_enable[unionSet] = true;
-                                    DP[unionSet] = call_SMT_solver(global_constraints, assertion);
+                                    DP[unionSet] = call_SMT_solver(global_constraints, quantifier, assertion);
                                 }
                             }
                             if (!DP[unionSet]) {
