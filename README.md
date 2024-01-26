@@ -11,33 +11,26 @@ OPENQASM 3;
 include "stdgates.inc";
 qubit[2] qb; // quantum bits
 
-//    P: {|00>, 0.25|00> + 0.25|01> + 0.25|10> + 0.25|11>}
+//    P: {|00>, 0.5|00> + 0.5|01> + 0.5|10> + 0.5|11>}
 x qb[0];
-//       {|10>, 0.25|10> + 0.25|11> + 0.25|00> + 0.25|01>}
+//       {|10>, 0.5|10> + 0.5|11> + 0.5|00> + 0.5|01>}
 x qb[1];
-//       {|11>, 0.25|11> + 0.25|10> + 0.25|01> + 0.25|00>}
+//       {|11>, 0.5|11> + 0.5|10> + 0.5|01> + 0.5|00>}
 h qb[1];
-// C(P): {|10>/√2 - |11>/√2, 0.5|10> + 0.5|00>}
+// C(P): {|10>/√2 - |11>/√2, |10>/√2 + |00>/√2}
 /******************************************************/
-//   Q1: {|10>/√2 - |11>/√2, 0.5|10> + 0.5|00>} -> pass
-//   Q2: {|10>/√2 - |11>/√2, 0.5|10> - 0.5|00>} -> fail
+//   Q1: {|10>/√2 - |11>/√2, |10>/√2 + |00>/√2} -> pass
+//   Q2: {|10>/√2 - |11>/√2, |10>/√2 - |00>/√2} -> fail
 ```
-The program starts from an initial set of quantum states $P$. Right after executing each gate, AutoQ 2.0 computes and stores the evolution of these quantum states for later use. At the end of the quantum program, AutoQ 2.0 checks whether the set $Q$ contains the set $C(P)$. In the above example, if we take $Q_1 := C(P)$, the verification passes. If we take $Q_2$ such that there is some quantum state $0.5\ |10\rangle + 0.5\ |00\rangle \in C(P)$ but $\not\in Q_2$, the verification fails.
+The program starts from an initial set of quantum states $P$. Right after executing each gate, AutoQ 2.0 computes and stores the evolution of these quantum states for later use. At the end of the quantum program, AutoQ 2.0 checks whether the set $Q$ contains the set $C(P)$. In the above example, if we take the postcondition $Q_1 = C(P)$, the verification passes. If we take another postcondition $Q_2$ such that there is some quantum state $|10\rangle/\sqrt2 + |00\rangle/\sqrt2 \in C(P)$ but $\not\in Q_2$, the verification fails.
 
 Our program currently supports $X$, $Y$, $Z$, $H$, $T$, $T^\dagger$, $S$, $S^\dagger$, $R_x(\pi/2)$, $R_y(\pi/2)$, $CX$, $CZ$, $CCX$, $SWAP$ quantum gates. The version of OpenQASM should be 3.0.
 
 ---
 
 ## Installation and Compilation
-In order to compile the library and the command-line interface to the library, the following commands need to be executed:
-```
-$ sudo apt install git
-$ sudo apt install make
-$ sudo apt install cmake
-$ sudo apt install g++
-$ sudo apt install libboost-filesystem-dev
-$ sudo apt install libboost-test-dev
-```
+In order to compile the library and the command-line interface to the library, we need to run<br>
+`$ sudo apt install git make cmake g++ libboost-filesystem-dev libboost-test-dev`.
 
 Also notice that the installed Z3 via `$ sudo apt install z3` may not be the latest one.<br>
 To resolve this issue, we use the following commands instead.
@@ -68,16 +61,18 @@ The compiled command-line binaries are located in `${PROJECT_ROOT}/build/cli/`. 
 1. `$ ./build/cli/autoq_cav24_concrete P.{aut|hsl|spec} C.qasm Q.{aut|hsl|spec}`
 ```
 $ ./build/cli/autoq_cav24_concrete benchmarks/control_mini/if-else/pre.hsl benchmarks/control_mini/if-else/circuit.qasm benchmarks/control_mini/if-else/post.hsl
-2 & 5 & OK & 0.0s & 14MB
+The quantum program has [2] qubits and [5] gates.
+The verification process [passed] with [0.0s] and [14MB] memory usage.
 ```
-The program simply prints the statistics, which states that the quantum program has ***2*** qubits and ***5*** gates, and that the verification process ***passed*** with ***0.0 sec*** and ***14MB*** memory usage.
 
 2. `$ ./build/cli/autoq_cav24_symbolic P.{aut|hsl|spec} C.qasm Q.{aut|hsl|spec}`
 ```
 $ ./build/cli/autoq_cav24_symbolic benchmarks/Grover_while/03/pre.spec benchmarks/Grover_while/03/circuit.qasm benchmarks/Grover_while/03/post.spec
-7 & 50 & OK & 3.1s & 14MB
+The quantum program has [7] qubits and [50] gates.
+The verification process [passed] with [3.1s] and [14MB] memory usage.
 ```
-Similarly, the statistics states that the quantum program has ***7*** qubits and ***50*** gates, and that the verification process ***passed*** with ***3.1 sec*** and ***14MB*** memory usage.
+
+These two binaries both support the `-l` option, which is used for printing the statistics whose format is suitable for tables in LaTeX.
 
 ---
 
@@ -93,7 +88,7 @@ Here are some examples.
 ```
 This file describes two quantum states $-A(1/8)\ |01\rangle + (-1 - A(2/8) - 2\cdot A(3/8))\ |10\rangle + A(3/8)\ |11\rangle$ and $A(1/8)\ |00\rangle - A(3/8)\ |10\rangle + (1 + A(2/8) - 2\cdot A(3/8))\ |11\rangle$. Two consecutive pairs of the computational basis states and its corresponding amplitude joined by `:` are separated by `|`. The wildcard character `*` is used to denote all other computational basis states whose amplitudes have not been specified yet in that line. Whitespaces are ignored.
 
-For convenience, AutoQ 2.0 also supports the ***tensor product operator*** `#` and the ***shorthand variable*** `|i|=n` looping through all $n$-bit binary strings.
+For convenience, AutoQ 2.0 also supports the ***tensor product operator*** `#` and the ***existentially quantified variable*** `|i|=n` over all $n$-bit binary strings.
 
 ```
 |i|=3 i:1 | *:0 # i:vH | *:vL # 000:1 | *:0
@@ -252,7 +247,7 @@ The "Constraints" section is still valid here.
 
 ## Appendix - Automata Format `*.spec`
 
-This format is a further simplified version of `*.aut`. For now, only transitions are required. Final states are automatically assigned to be the parent states of all level-$1$ transitions. But before specifying transitions, users should provide, in the "Numbers" section, all ***concrete numbers*** and ***symbolic variables*** that will be used in the following transitions. Concrete numbers should be defined in the form of $\\{var\\} \coloneqq \\{constant\\}$. Symbolic variables should be defined with only its name. Different from `*.hsl`, concrete numbers here can be divided by a power of `V2` denoting $\sqrt 2$.
+This format is a further simplified version of `*.aut`. For now, only transitions are required. Final states are automatically assigned to be the parent states of all $1^{st}$ qubit's transitions. But before specifying transitions, users should provide, in the "Numbers" section, all ***concrete numbers*** and ***symbolic variables*** that will be used in the following transitions. Concrete numbers should be defined in the form of $\\{var\\} \coloneqq \\{constant\\}$. Symbolic variables should be defined with only its name. Different from `*.hsl`, concrete numbers here can be divided by a power of `V2` denoting $\sqrt 2$.
 
 An example could look like this:
 ```
@@ -270,9 +265,3 @@ Transitions
 ```
 
 The "Constraints" section is still valid here.
-
----
-
-## Important Announcement
-
-If you plan to use [our tool proposed in PLDI'23](https://dl.acm.org/doi/10.1145/3591270) for some purposes, please use the binary provided in [this Zenodo link](https://zenodo.org/records/7811406) or checkout to [this branch](https://github.com/alan23273850/AutoQ/commits/PLDI) and obtain the binary `./build/cli/autoq` and `./build/cli/autoq_pldi` by compiling the source codes. Thank you for your kind cooperation.
