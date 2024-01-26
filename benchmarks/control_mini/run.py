@@ -6,7 +6,7 @@ from multiprocessing import Manager, Process, Semaphore, Lock
 # name = 'Table2.tex'
 TIMEOUT = 30000000
 NUM_OF_THREADS = 100
-TA_EXE = '../../build/cli/autoq_cav24_concrete'
+TA_EXE = '../../build/cli/autoq_cav24_concrete -l'
 
 processes = []
 def kill_processes():

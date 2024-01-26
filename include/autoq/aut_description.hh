@@ -232,8 +232,7 @@ public:
     static bool check_inclusion(const std::string& lhsPath, const Automata& rhsPath);
     static bool check_inclusion(const Automata& lhsPath, const Automata& rhsPath);
 
-    bool execute(const char *filename);
-    bool execute(const char *filename, std::string &constraint);
+    bool execute(const std::string& filename);
     void print_language(const char *str="") const;
     std::vector<std::vector<std::string>> print(const std::map<typename AUTOQ::Automata<Symbol>::State, std::set<typename AUTOQ::Automata<Symbol>::Symbol>> &leafSymbolMap, int qubit, typename AUTOQ::Automata<Symbol>::State state) const;
 };

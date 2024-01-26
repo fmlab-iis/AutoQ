@@ -8,7 +8,7 @@
 #include <filesystem>
 
 template <typename Symbol>
-bool AUTOQ::Automata<Symbol>::execute(const char *filename) {
+bool AUTOQ::Automata<Symbol>::execute(const std::string& filename) {
     bool verify = true;
     bool inGateDef = false;
     bool inWhileLoop = false;

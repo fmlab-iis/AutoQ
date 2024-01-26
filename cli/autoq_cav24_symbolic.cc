@@ -13,6 +13,8 @@
 #include <iomanip>
 #include <regex>
 
+#include <CLI11.hpp>
+
 using namespace std;
 using AUTOQ::Util::ShellCmd;
 using AUTOQ::Util::ReadFile;
@@ -21,19 +23,35 @@ int type, n;
 std::string toString(std::chrono::steady_clock::duration tp);
 
 int main(int argc, char **argv) {
+    CLI::App app{" "}; //{"My CLI App"};
+
+    bool latex = false; // Add a boolean flag option (no value)
+    std::string pre, circuit, post;
+    app.add_flag("-l,--latex", latex, "Print the statistics for tables in LaTeX");
+    app.add_option("pre.{aut|hsl|spec}", pre, "the precondition file")->required()->type_name("");
+    app.add_option("circuit.qasm", circuit, "the OpenQASM 3.0 circuit file")->required()->type_name("");
+    app.add_option("post.{aut|hsl|spec}", post, "the postcondition file")->required()->type_name("");
+
+    CLI11_PARSE(app, argc, argv); // Parse the command-line arguments
+
 try {
     std::string constraint, constraintQ;
-    AUTOQ::SymbolicAutomata aut = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Symbolic>::ReadAutomaton(argv[1]);
+    AUTOQ::Automata<AUTOQ::Symbol::Symbolic> aut = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Symbolic>::ReadAutomaton(pre);
     aut.remove_useless();
     aut.reduce();
     auto start = chrono::steady_clock::now();
-    bool verify = aut.execute(argv[2]);
-    AUTOQ::SymbolicAutomata Q = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Symbolic>::ReadAutomaton(argv[3]);
+    bool verify = aut.execute(circuit);
+    AUTOQ::Automata<AUTOQ::Symbol::Symbolic> Q = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Symbolic>::ReadAutomaton(post);
     Q.remove_useless();
     Q.reduce();
     verify &= is_scaled_spec_satisfied(aut, Q);
-    std::cout << aut.qubitNum << " & " << AUTOQ::SymbolicAutomata::gateCount
-        << " & " << (verify ? "OK" : "Bug") << " & " << toString(chrono::steady_clock::now() - start) << " & " << getPeakRSS() / 1024 / 1024 << "MB\n";
+
+    if (latex) {
+        std::cout << aut.qubitNum << " & " << AUTOQ::Automata<AUTOQ::Symbol::Symbolic>::gateCount
+        << " & " << (verify ? "Passed" : "Failed") << " & " << toString(chrono::steady_clock::now() - start) << " & " << getPeakRSS() / 1024 / 1024 << "MB\n";
+    } else {
+        std::cout << "The quantum program has [" << aut.qubitNum << "] qubits and [" << AUTOQ::Automata<AUTOQ::Symbol::Symbolic>::gateCount << "] gates.\nThe verification process [" << (verify ? "passed" : "failed") << "] with [" << toString(chrono::steady_clock::now() - start) << "] and [" << getPeakRSS() / 1024 / 1024 << "MB] memory usage.\n";
+    }
     return 0;
 } catch (std::exception &e) {
     std::cout << e.what() << std::endl;
