@@ -145,8 +145,37 @@ struct AUTOQ::Symbol::SymbolicComplex : std::map<Complex::Complex, AUTOQ::Symbol
             auto k = kv.first;
             auto v = kv.second;
             if (k.isZero() || v.trueMustBeZero()) continue;
-            complex2[k.fraction_simplification()] = complex2[k.fraction_simplification()] + v;
+            k.fraction_simplification();
+            #ifdef COMPLEX_FiveTuple
+            if (k.at(0) < 0) {
+                k = k * (-1);
+                complex2[k] = complex2[k] - v;
+            } else
+            #endif
+                complex2[k] = complex2[k] + v;
         }
+        #ifdef COMPLEX_FiveTuple
+        *this = complex2;
+        complex2.clear();
+        for (const auto &kv : *this) {
+            auto k = kv.first;
+            auto v = kv.second;
+            while (k.at(4) >= 2) {
+                int denominator = 2;
+                for (const auto &vc : v) {
+                    auto coe = vc.second;
+                    if (coe % 2 != 0)
+                        denominator = 1;
+                }
+                if (denominator == 1) break;
+                k.at(4) = k.at(4) - 2;
+                for (auto &vc : v) {
+                    vc.second /= 2;
+                }
+            }
+            complex2[k] = complex2[k] + v;
+        }
+        #endif
         *this = complex2;
     }
 };
