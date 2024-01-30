@@ -144,7 +144,13 @@ bool AUTOQ::Automata<Symbol>::execute(const std::string& filename) {
             this->remove_useless(); this->reduce(); I.remove_useless(); I.reduce();
             bool t = is_scaled_spec_satisfied(*this, I);
             verify &= t;
-            if (!t) AUTOQ_ERROR("[ERROR] P ⊈ I.");
+            if (!t) {
+                AUTOQ_ERROR("[ERROR] P ⊈ I.");
+                fraction_simplification();
+                print_language("P:\n");
+                I.fraction_simplification();
+                I.print_language("I:\n");
+            }
             if (negate) {
                 measure_to_continue = I.measure(pos, false);
                 measure_to_break = I.measure(pos, true);
@@ -171,7 +177,13 @@ bool AUTOQ::Automata<Symbol>::execute(const std::string& filename) {
                 // measure_to_continue.remove_useless(); measure_to_continue.reduce(); // I.remove_useless(); I.reduce();
                 bool t = is_scaled_spec_satisfied(*this, I);
                 verify &= t;
-                if (!t) AUTOQ_ERROR("[ERROR] C(measure_to_continue) ⊈ I.");
+                if (!t) {
+                    AUTOQ_ERROR("[ERROR] C(measure_to_continue) ⊈ I.");
+                    fraction_simplification();
+                    print_language("C(measure_to_continue):\n");
+                    I.fraction_simplification();
+                    I.print_language("I:\n");
+                }
                 // std::cout << "Then we verify \"measure_to_break ⊆ Q\" here." << std::endl;
                 // measure_to_break.print_language("measure_to_break:\n");
                 // Q.print_language("Q:\n");
