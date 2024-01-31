@@ -63,6 +63,7 @@ gate ck q1, q2 {
         file.write(f'x qb[{n}];\n')
         file.write(f'h qb[{n}];\n')
         oracle(file, n)
+        file.write(f'x qb[{n}];\n') # prevent a global phase flip in the diffuser circuit
         file.write(f'h qb[{n}];\n')
         file.write(f'x qb[{n}];\n')
         ######## diffusion
@@ -129,7 +130,7 @@ gate ck q1, q2 {
         file.write(f"[c0] -> {5*(2*n+1) - 3*n - 2}\n")
         file.write(f"[v3] -> {5*(2*n+1) - 3*n - 1}\n")
         file.write(f"Constraints\n")
-        file.write(f'(and (not (= v3 0)) (or (and (> v1 0) (> v2 0) (<= v2 v1)) (and (< v1 0) (< v2 0) (>= v2 v1))))')
+        file.write(f'(and (not (= v3 0)) (and (> v1 0) (> v2 0) (<= v2 v1)))')
     #########################################
 
     #########################################

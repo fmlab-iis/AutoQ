@@ -612,4 +612,4 @@ Transitions
 [c0] -> 605
 [v3] -> 606
 Constraints
-(and (not (= v3 0)) (or (and (> v1 0) (> v2 0) (<= v2 v1)) (and (< v1 0) (< v2 0) (>= v2 v1))))
+(and (not (= v3 0)) (and (> v1 0) (> v2 0) (<= v2 v1)))

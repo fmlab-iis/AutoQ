@@ -334,6 +334,7 @@ ccx qb[2], qb[50], qb[3];
 ccx qb[1], qb[49], qb[2];
 ccx qb[0], qb[48], qb[1];
 ccx qb[46], qb[47], qb[0];
+x qb[45];
 h qb[45];
 x qb[45];
 h qb[46];
