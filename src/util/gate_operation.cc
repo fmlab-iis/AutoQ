@@ -673,13 +673,13 @@ void AUTOQ::Automata<Symbol>::CK(int c, int t) {
     auto aut2 = *this;
     aut2.value_restriction(t, true);
     aut2.branch_restriction(t, false);
-    auto autL = aut1 * 220 + aut2 * -21;
+    auto autL = aut1 * 21 + aut2 * -220;
     auto aut3 = *this;
     aut3.value_restriction(t, false);
     aut3.branch_restriction(t, true);
     auto aut4 = *this;
     aut4.branch_restriction(t, true);
-    auto autR = aut3 * 21 + aut4 * 220;
+    auto autR = aut3 * 220 + aut4 * 21;
     autR = autL + autR; // hide the denominator 221
     autR.branch_restriction(c, true);
 

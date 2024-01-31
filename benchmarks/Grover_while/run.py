@@ -10,7 +10,7 @@ TA_EXE = '../../build/cli/autoq_cav24_symbolic -l'
 
 processes = []
 def kill_processes():
-    os.system(f'pkill {TA_EXE.split("/")[-1]}')
+    os.system(f'pkill {TA_EXE.split(" ")[0]}')
     # while len(processes) > 0:
     #     print(processes)
     #     for pid in processes:

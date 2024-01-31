@@ -374,4 +374,4 @@ Transitions
 [c0] -> 367
 [v3] -> 368
 Constraints
-(not (= v3 0))
+(and (not (= v3 0)) (or (and (> v1 0) (> v2 0) (<= v2 v1)) (and (< v1 0) (< v2 0) (>= v2 v1))))

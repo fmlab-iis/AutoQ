@@ -129,7 +129,7 @@ gate ck q1, q2 {
         file.write(f"[c0] -> {5*(2*n+1) - 3*n - 2}\n")
         file.write(f"[v3] -> {5*(2*n+1) - 3*n - 1}\n")
         file.write(f"Constraints\n")
-        file.write('(not (= v3 0))')
+        file.write(f'(and (not (= v3 0)) (or (and (> v1 0) (> v2 0) (<= v2 v1)) (and (< v1 0) (< v2 0) (>= v2 v1))))')
     #########################################
 
     #########################################
