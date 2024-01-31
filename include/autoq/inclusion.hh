@@ -47,7 +47,7 @@ namespace AUTOQ {
     bool is_scaled_spec_satisfied(SymbolicAutomata R, SymbolicAutomata Q);
     bool is_spec_satisfied(const Constraint &C, const SymbolicAutomata &Ae, const PredicateAutomata &As);
     bool check_validity(Constraint C, const PredicateAutomata::Symbol &ps, const SymbolicAutomata::Symbol &te);
-    bool call_SMT_solver(std::string global, const std::string &quantifier, const std::string &ratios);
+    bool call_SMT_solver(const std::string &var_defs, const std::string &assertion);
 }
 
 #endif

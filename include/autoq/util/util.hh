@@ -22,8 +22,8 @@ namespace AUTOQ
 	namespace Util
 	{
 		std::string ReadFile(const std::string& fileName);
-        bool ShellCmd(const std::string &cmd, std::string &result);
-        bool ShellCmd(const std::vector<std::string> &cmd, std::string &result);
+        std::string ShellCmd(const std::string &cmd);
+        std::string ShellCmd(const std::vector<std::string> &cmd);
         std::string trim(const std::string& str);
 
 		// template <class Container, class Translator>

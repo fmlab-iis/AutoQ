@@ -1483,7 +1483,7 @@ bool AUTOQ::check_validity(Constraint C, const PredicateAutomata::Symbol &ps, co
     // std::cout << std::string(C) + "(assert (not " + str + "))(check-sat)\n";
     std::string smt_input = "bash -c \"z3 <(echo '" + std::string(C) + "(assert (not " + str + "))(check-sat)')\"";
     // auto startSim = chrono::steady_clock::now();
-    ShellCmd(smt_input, str);
+    str = ShellCmd(smt_input);
     // std::cout << smt_input << "\n";
     // std::cout << str << "\n";
     // auto durationSim = chrono::steady_clock::now() - startSim;
@@ -1496,16 +1496,11 @@ bool AUTOQ::check_validity(Constraint C, const PredicateAutomata::Symbol &ps, co
         throw std::runtime_error(AUTOQ_LOG_PREFIX + "[ERROR] The solver Z3 did not correctly return SAT or UNSAT.\nIt's probably because the specification automaton is NOT a predicate automaton.");
     }
 }
-bool AUTOQ::call_SMT_solver(std::string global, const std::string &quantifier, const std::string &ratios) {
-    std::string result;
-    if (global.empty()) global = "true";
-    std::string quantifier_tail;
-    quantifier_tail += (quantifier.find("forall") == std::string::npos) ? "" : ")";
-    quantifier_tail += (quantifier.find("exists") == std::string::npos) ? "" : ")";
-    std::string smt_input = "bash -c \"z3 <(echo '(assert " + quantifier + "(or (not (and " + global + ")) " + ratios + ")" + quantifier_tail + ")(check-sat)')\"";
+bool AUTOQ::call_SMT_solver(const std::string &var_defs, const std::string &assertion) {
+    std::string smt_input = "bash -c \"z3 <(echo '" + var_defs + "(assert " + assertion + ")(check-sat)')\"";
     // auto start = chrono::steady_clock::now();
     // std::cout << smt_input << "\n";
-    ShellCmd(smt_input, result);
+    std::string result = ShellCmd(smt_input);
     // std::cout << result << "\n";
     // auto duration = chrono::steady_clock::now() - start;
     // std::cout << toString2(duration) << "\n";
@@ -1938,6 +1933,7 @@ bool AUTOQ::is_scaled_spec_satisfied(SymbolicAutomata R, SymbolicAutomata Q) {
     }
     for (const auto &var : R.vars)
         R.constraints = std::regex_replace(R.constraints, std::regex("(\\b" + var + "\\b)"), var + "_R");
+    if (AUTOQ::Util::trim(R.constraints).empty()) R.constraints = "true";
     /*********************************************************/
     // Rename the variables in Q's transitions and constraints!
     transitions2 = Q.transitions;
@@ -1961,21 +1957,13 @@ bool AUTOQ::is_scaled_spec_satisfied(SymbolicAutomata R, SymbolicAutomata Q) {
     }
     for (const auto &var : Q.vars)
         Q.constraints = std::regex_replace(Q.constraints, std::regex("(\\b" + var + "\\b)"), var + "_Q");
+    if (AUTOQ::Util::trim(Q.constraints).empty()) Q.constraints = "true";
     /*********************************************************/
-    std::string global_constraints = R.constraints + Q.constraints;
-    std::string quantifier; // (forall ((x1 σ1) (x2 σ2) ··· (xn σn)) (exists ((x1 σ1) (x2 σ2) ··· (xn σn)) ϕ))
-    if (!R.vars.empty()) {
-        quantifier += "(forall  (";
-        for (const auto &var : R.vars)
-            quantifier += "(" + var + "_R Real)";
-        quantifier += ") ";
-    }
-    if (!Q.vars.empty()) {
-        quantifier += "(exists (";
-        for (const auto &var : Q.vars)
-            quantifier += "(" + var + "_Q Real)";
-        quantifier += ") ";
-    }
+    std::string all_var_definitions;
+    for (const auto &var : R.vars)
+        all_var_definitions += "(declare-fun " + var + "_R () Real)";
+    for (const auto &var : Q.vars)
+        all_var_definitions += "(declare-fun " + var + "_Q () Real)";
 
     SymbolicAutomata::TransitionMap2 R_transitions;
     for (const auto &t : R.transitions) {
@@ -1998,7 +1986,7 @@ bool AUTOQ::is_scaled_spec_satisfied(SymbolicAutomata R, SymbolicAutomata Q) {
 
 
     /************************************/
-    // Line 2-4: Construct the initial worklist!
+    // Line 2-3: Construct the initial worklist!
     std::map<std::pair<SymbolicComplex, SymbolicComplex>, int> ratioInverseMap;
     std::vector<std::pair<SymbolicComplex, SymbolicComplex>> ratioMap;
     for (const auto &tr : R_transitions) {
@@ -2015,7 +2003,7 @@ bool AUTOQ::is_scaled_spec_satisfied(SymbolicAutomata R, SymbolicAutomata Q) {
                         // std::cout << cq.imagToSMT() << "\n";
                         // std::cout << cr.realToSMT() << "\n";
                         // std::cout << cr.imagToSMT() << "\n";
-                        if (call_SMT_solver(global_constraints, quantifier,
+                        if (call_SMT_solver(all_var_definitions, // existential filter for efficiency
                                 "(or (and (= " + cq.realToSMT() + " 0)(= " + cq.imagToSMT() + " 0)(= " + cr.realToSMT() + " 0)(= " + cr.imagToSMT() + " 0))" // cq == 0 && cr == 0
                                  + " (and (or (not (= " + cq.realToSMT() + " 0))(not (= " + cq.imagToSMT() + " 0)))(or (not (= " + cr.realToSMT() + " 0))(not (= " + cr.imagToSMT() + " 0)))))") // cq != 0 && cr != 0
                         ) {
@@ -2055,17 +2043,10 @@ bool AUTOQ::is_scaled_spec_satisfied(SymbolicAutomata R, SymbolicAutomata Q) {
     // std::cout << AUTOQ::Util::Convert::ToString(ratioMap) << std::endl;
     // std::cout << AUTOQ::Util::Convert::ToString(ratioInverseMap) << std::endl;
 
-    // Pre-compute satisfiabilities for all possible combinations of ratios for efficiency!
-    std::vector<int> ratioIDs(ratioMap.size());
-    std::iota(ratioIDs.begin(), ratioIDs.end(), 0);
-    // std::cout << AUTOQ::Util::Convert::ToString(ratioIDs) << std::endl;
-    std::vector<bool> DP(1 << ratioIDs.size()); // dynamic programming
-    std::vector<bool> DP_enable(1 << ratioIDs.size());
-
     /************************************/
-    while (!worklist.empty()) { // Line 5
+    while (!worklist.empty()) { // Line 4
         /*********************************************/
-        // Line 6
+        // Line 5
         auto it = worklist.begin(); // const auto &it ?
         if (it->second.empty()) {
             worklist.erase(it);
@@ -2075,27 +2056,64 @@ bool AUTOQ::is_scaled_spec_satisfied(SymbolicAutomata R, SymbolicAutomata Q) {
         auto Uq = *(it->second.begin());
         it->second.erase(it->second.begin());
         /*********************************************/
-        // Line 7
+        // Line 6
         if (R.finalStates.contains(sr)) {
-            StateSet ss;
+            std::set<unsigned> formulas; // set of formulas
             for (const auto &uq_c : Uq) {
                 auto uq = uq_c.first;
-                ss.insert(uq);
+                if (Q.finalStates.contains(uq))
+                    formulas.insert(uq_c.second);
             }
-            std::set<int> intersection; // Create a set to store the intersection
-            std::set_intersection( // Use set_intersection to find the common elements
-                ss.begin(), ss.end(),
-                Q.finalStates.begin(), Q.finalStates.end(),
-                std::inserter(intersection, intersection.begin())
-            );
-            if (intersection.empty()) { // Check if the intersection is empty
+            if (formulas.empty()) { // Check if the intersection is empty
+                auto duration = chrono::steady_clock::now() - start;
+                // std::cout << toString2(duration) << "\n";
+                return false;
+            }
+            std::string assertion = "(not (or";
+            for (const auto &formula : formulas) {
+                auto x = formula;
+                std::vector<int> current;
+                for (int i = 0; x > 0; ++i) {
+                    if (x & 1) {
+                        current.push_back(i);
+                    }
+                    x >>= 1;
+                }
+                assert(!current.empty());
+                std::string ratio_constraint = "(and";
+                for (unsigned i=0; i<current.size(); ++i) {
+                    const auto &c1 = ratioMap[current[i]].first;
+                    const auto &c2 = ratioMap[current[i]].second; // want to assert: c1 = c2 * scale
+                    const auto &rhsR = "(- (* " + c2.realToSMT() + " scaleR) (* " + c2.imagToSMT() + " scaleI))";
+                    const auto &rhsI = "(+ (* " + c2.realToSMT() + " scaleI) (* " + c2.imagToSMT() + " scaleR))";
+                    ratio_constraint += " (= " + c1.realToSMT() + " " + rhsR + ")";
+                    ratio_constraint += " (= " + c1.imagToSMT() + " " + rhsI + ")";
+                }
+                ratio_constraint += ")"; // 𝜓
+                std::string implies_constraint = "(or (not " + R.constraints + ") (and " + Q.constraints + " " + ratio_constraint + "))"; // 𝜑𝑟 ⇒ (𝜑𝑞 ∧ 𝜓)
+                std::string and_scale_cannot_be_zero = "(and (or (not (= scaleR 0)) (not (= scaleI 0))) " + implies_constraint + ")"; // (scaleR ≠ 0 ∨ scaleI ≠ 0) ∧ (𝜑𝑟 ⇒ (𝜑𝑞 ∧ 𝜓))
+                std::string formula_constraint = "(exists (";
+                for (const auto &var : Q.vars) // (forall ((x1 σ1) (x2 σ2) ··· (xn σn)) (exists ((x1 σ1) (x2 σ2) ··· (xn σn)) ϕ))
+                    formula_constraint += "(" + var + "_Q Real)";
+                formula_constraint += "(scaleR Real)";
+                formula_constraint += "(scaleI Real)";
+                formula_constraint += ") ";
+                formula_constraint += and_scale_cannot_be_zero;
+                formula_constraint += ")";
+                assertion += " " + formula_constraint;
+            }
+            assertion += "))";
+            std::string define_varR;
+            for (const auto &var : R.vars)
+                define_varR += "(declare-fun " + var + "_R () Real)";
+            if (call_SMT_solver(define_varR, assertion)) {
                 auto duration = chrono::steady_clock::now() - start;
                 // std::cout << toString2(duration) << "\n";
                 return false;
             }
         }
         /*********************************************/
-        // Line 8
+        // Line 7
         #ifdef MIN
         auto copy = processed[sr]; // Min{...}
         for (const auto &t : copy) {
@@ -2114,7 +2132,7 @@ bool AUTOQ::is_scaled_spec_satisfied(SymbolicAutomata R, SymbolicAutomata Q) {
             processed[sr].insert(Uq);
         // std::cout << AUTOQ::Util::Convert::ToString(processed) << "\n";
         /*********************************************/
-        // Line 10
+        // Line 8-9
         auto sr1 = sr;
         const auto &Uq1 = Uq;
         for (const auto &kv : processed) {
@@ -2123,15 +2141,15 @@ bool AUTOQ::is_scaled_spec_satisfied(SymbolicAutomata R, SymbolicAutomata Q) {
                 for (const auto &tr : R_transitions) {
                     const auto &alpha = tr.first;
                     /*********************************************/
-                    // Line 11
+                    // Line 10
                     auto Hr_ptr = tr.second.find({sr1, sr2});
                     if (Hr_ptr == tr.second.end()) continue;
                     StateSet Hr = Hr_ptr->second;
                     if (Hr.empty()) continue;
                     /*********************************************/
-                    StateScaleSet Uq_; // Line 12
+                    StateScaleSet Uq_; // Line 11
                     /*********************************************/
-                    // Line 13
+                    // Line 12-13
                     for (const auto &kv1 : Uq1) {
                         const auto &sq1 = kv1.first;
                         const auto &c1_set = kv1.second;
@@ -2141,7 +2159,7 @@ bool AUTOQ::is_scaled_spec_satisfied(SymbolicAutomata R, SymbolicAutomata Q) {
                             const auto &c2_set = kv2.second;
                             assert(c2_set > 0);
                             /*********************************************/
-                            // Line 15
+                            // Line 13
                             StateSet sqSet;
                             auto it = Q_transitions.find(alpha);
                             if (it != Q_transitions.end()) {
@@ -2150,48 +2168,8 @@ bool AUTOQ::is_scaled_spec_satisfied(SymbolicAutomata R, SymbolicAutomata Q) {
                                 sqSet = ptr->second;
                             }
                             if (sqSet.empty()) continue;
-                            // Line 14
+                            // Line 13
                             unsigned unionSet = c1_set | c2_set;
-                            // std::vector<int> unionVector(unionSet.begin(), unionSet.end()); // Convert set to vector
-                            // std::sort(unionVector.begin(), unionVector.end()); // Sort the vector
-                            if (!DP_enable[unionSet]) {
-                                auto x = unionSet;
-                                std::vector<int> current;
-                                for (int i = 0; x > 0; ++i) {
-                                    if (x & 1) {
-                                        current.push_back(i);
-                                    }
-                                    x >>= 1;
-                                }
-                                /*****************************/
-                                if (current.size() == 1) {
-                                    DP_enable[unionSet] = true;
-                                    DP[unionSet] = true;
-                                } else {
-                                    std::string assertion = "(and";
-                                    for (unsigned i=1; i<current.size(); ++i) {
-                                        const auto &c1 = ratioMap[current[i-1]];
-                                        const auto &c2 = ratioMap[current[i]];
-                                        assertion += " (= (- (* " + c1.first.realToSMT() + " " + c2.second.realToSMT() + ") (* " + c1.first.imagToSMT() + " " + c2.second.imagToSMT() + ")) (- (* " + c1.second.realToSMT() + " " + c2.first.realToSMT() + ") (* " + c1.second.imagToSMT() + " " + c2.first.imagToSMT() + ")))";
-                                        assertion += " (= (+ (* " + c1.first.realToSMT() + " " + c2.second.imagToSMT() + ") (* " + c1.first.imagToSMT() + " " + c2.second.realToSMT() + ")) (+ (* " + c1.second.realToSMT() + " " + c2.first.imagToSMT() + ") (* " + c1.second.imagToSMT() + " " + c2.first.realToSMT() + ")))";
-                                    }
-                                    for (unsigned i=0; i<current.size(); i++) {
-                                        const auto &c = ratioMap[current[i]];
-                                        assertion += " (or"; // assertion += " (or () ())";
-                                        assertion += " (and (= " + c.first.realToSMT() + " 0)(= " + c.first.imagToSMT() + " 0)(= " + c.second.realToSMT() + " 0)(= " + c.second.imagToSMT() + " 0))"; // (cq == 0 && cr == 0) || (cq != 0 && cr != 0)
-                                        assertion += " (and (or (not (= " + c.first.realToSMT() + " 0))(not (= " + c.first.imagToSMT() + " 0)))(or (not (= " + c.second.realToSMT() + " 0))(not (= " + c.second.imagToSMT() + " 0))))";
-                                        assertion += ")";
-                                    }
-                                    assertion += ")";
-                                    DP_enable[unionSet] = true;
-                                    DP[unionSet] = call_SMT_solver(global_constraints, quantifier, assertion);
-                                }
-                            }
-                            if (!DP[unionSet]) {
-                                continue;
-                            }
-                            /*********************************************/
-                            // Line 16
                             for (const auto &sq : sqSet) {
                                 Uq_.insert(std::make_pair(sq, unionSet));
                             }
@@ -2199,7 +2177,7 @@ bool AUTOQ::is_scaled_spec_satisfied(SymbolicAutomata R, SymbolicAutomata Q) {
                         }
                     }
                     /*********************************************/
-                    // Line 17-18
+                    // Line 14-17
                     for (const auto &sr_ : Hr) {
                         if (!processed[sr_].contains(Uq_) && !worklist[sr_].contains(Uq_)) {
                             #ifdef MIN
@@ -2234,15 +2212,15 @@ bool AUTOQ::is_scaled_spec_satisfied(SymbolicAutomata R, SymbolicAutomata Q) {
                 for (const auto &tr : R_transitions) {
                     const auto &alpha = tr.first;
                     /*********************************************/
-                    // Line 11
+                    // Line 10
                     auto Hr_ptr = tr.second.find({sr1, sr2});
                     if (Hr_ptr == tr.second.end()) continue;
                     StateSet Hr = Hr_ptr->second;
                     if (Hr.empty()) continue;
                     /*********************************************/
-                    StateScaleSet Uq_; // Line 12
+                    StateScaleSet Uq_; // Line 11
                     /*********************************************/
-                    // Line 13
+                    // Line 12-13
                     for (const auto &kv1 : Uq1) {
                         const auto &sq1 = kv1.first;
                         const auto &c1_set = kv1.second;
@@ -2252,7 +2230,7 @@ bool AUTOQ::is_scaled_spec_satisfied(SymbolicAutomata R, SymbolicAutomata Q) {
                             const auto &c2_set = kv2.second;
                             assert(c2_set > 0);
                             /*********************************************/
-                            // Line 15
+                            // Line 13
                             StateSet sqSet;
                             auto it = Q_transitions.find(alpha);
                             if (it != Q_transitions.end()) {
@@ -2261,41 +2239,8 @@ bool AUTOQ::is_scaled_spec_satisfied(SymbolicAutomata R, SymbolicAutomata Q) {
                                 sqSet = ptr->second;
                             }
                             if (sqSet.empty()) continue;
-                            // Line 14
+                            // Line 13
                             unsigned unionSet = c1_set | c2_set;
-                            // std::vector<int> unionVector(unionSet.begin(), unionSet.end()); // Convert set to vector
-                            // std::sort(unionVector.begin(), unionVector.end()); // Sort the vector
-                            if (!DP_enable[unionSet]) {
-                                auto x = unionSet;
-                                std::vector<int> current;
-                                for (int i = 0; x > 0; ++i) {
-                                    if (x & 1) {
-                                        current.push_back(i);
-                                    }
-                                    x >>= 1;
-                                }
-                                /*****************************/
-                                if (current.size() == 1) {
-                                    DP_enable[unionSet] = true;
-                                    DP[unionSet] = true;
-                                } else {
-                                    std::string assertion = "(and";
-                                    for (unsigned i=1; i<current.size(); ++i) {
-                                        const auto &c1 = ratioMap[current[i-1]];
-                                        const auto &c2 = ratioMap[current[i]];
-                                        assertion += " (= (- (* " + c1.first.realToSMT() + " " + c2.second.realToSMT() + ") (* " + c1.first.imagToSMT() + " " + c2.second.imagToSMT() + ")) (- (* " + c1.second.realToSMT() + " " + c2.first.realToSMT() + ") (* " + c1.second.imagToSMT() + " " + c2.first.imagToSMT() + ")))";
-                                        assertion += " (= (+ (* " + c1.first.realToSMT() + " " + c2.second.imagToSMT() + ") (* " + c1.first.imagToSMT() + " " + c2.second.realToSMT() + ")) (+ (* " + c1.second.realToSMT() + " " + c2.first.imagToSMT() + ") (* " + c1.second.imagToSMT() + " " + c2.first.realToSMT() + ")))";
-                                    }
-                                    assertion += ")";
-                                    DP_enable[unionSet] = true;
-                                    DP[unionSet] = call_SMT_solver(global_constraints, quantifier, assertion);
-                                }
-                            }
-                            if (!DP[unionSet]) {
-                                continue;
-                            }
-                            /*********************************************/
-                            // Line 16
                             for (const auto &sq : sqSet) {
                                 Uq_.insert(std::make_pair(sq, unionSet));
                             }
@@ -2303,7 +2248,7 @@ bool AUTOQ::is_scaled_spec_satisfied(SymbolicAutomata R, SymbolicAutomata Q) {
                         }
                     }
                     /*********************************************/
-                    // Line 17-18
+                    // Line 14-17
                     for (const auto &sr_ : Hr) {
                         if (!processed[sr_].contains(Uq_) && !worklist[sr_].contains(Uq_)) {
                             #ifdef MIN

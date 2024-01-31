@@ -56,14 +56,14 @@ std::string AUTOQ::Util::ReadFile(const std::string& fileName)
 	return str;
 }
 
-bool AUTOQ::Util::ShellCmd(const std::string &cmd, std::string &result) {
+std::string AUTOQ::Util::ShellCmd(const std::string &cmd) {
     char buffer[512];
-    result = "";
+    std::string result = "";
 
     // Open pipe to file
     FILE* pipe = popen(cmd.c_str(), "r");
     if (!pipe) {
-        return false;
+        throw std::runtime_error(AUTOQ_LOG_PREFIX + "popen() failed!");
     }
 
     // read till end of process:
@@ -74,19 +74,19 @@ bool AUTOQ::Util::ShellCmd(const std::string &cmd, std::string &result) {
     }
 
     pclose(pipe);
-    return true;
+    return result;
 }
-bool AUTOQ::Util::ShellCmd(const std::vector<std::string> &cmd, std::string &result) {
+std::string AUTOQ::Util::ShellCmd(const std::vector<std::string> &cmd) {
     int pipefd[2];
+    std::string result = "";
+
     if (pipe(pipefd) == -1) {
-        std::cerr << "[ERROR] Failed to create pipe." << std::endl;
-        return false;
+        throw std::runtime_error(AUTOQ_LOG_PREFIX + "popen() failed!");
     }
 
     pid_t pid = fork();
     if (pid == -1) {
-        std::cerr << "[ERROR] Failed to fork." << std::endl;
-        return false;
+        throw std::runtime_error(AUTOQ_LOG_PREFIX + "fork() failed!");
     } else if (pid == 0) { // Child process
         close(pipefd[0]); // Close unused read end
         // Redirect standard output to the write end of the pipe
@@ -121,7 +121,7 @@ bool AUTOQ::Util::ShellCmd(const std::vector<std::string> &cmd, std::string &res
         close(pipefd[0]);
         waitpid(pid, nullptr, 0); // Wait for the child process to finish
     }
-    return true;
+    return result;
 }
 
 // AUTOQ::AutBase::StateDict AUTOQ::Util::CreateProductStringToStateMap(
