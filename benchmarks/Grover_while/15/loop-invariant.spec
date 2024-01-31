@@ -1,8 +1,5 @@
 Numbers
 c0 := 0
-v1
-v2
-v3
 Transitions
 [1](2, 1) -> 0
 [2](3, 3) -> 1
@@ -114,5 +111,3 @@ Transitions
 [v2] -> 107
 [c0] -> 108
 [v3] -> 109
-Constraints
-(and (not (= v3 0)) (and (> v1 0) (> v2 0) (<= v2 v1)))

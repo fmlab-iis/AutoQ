@@ -621,7 +621,6 @@ ccx qb[2], qb[91], qb[3];
 ccx qb[1], qb[90], qb[2];
 ccx qb[0], qb[89], qb[1];
 ccx qb[87], qb[88], qb[0];
-x qb[86];
 h qb[86];
 x qb[86];
 h qb[87];

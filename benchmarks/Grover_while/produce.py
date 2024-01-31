@@ -63,7 +63,7 @@ gate ck q1, q2 {
         file.write(f'x qb[{n}];\n')
         file.write(f'h qb[{n}];\n')
         oracle(file, n)
-        file.write(f'x qb[{n}];\n') # prevent a global phase flip in the diffuser circuit
+        # file.write(f'x qb[{n}];\n') # prevent a global phase flip in the diffuser circuit
         file.write(f'h qb[{n}];\n')
         file.write(f'x qb[{n}];\n')
         ######## diffusion
@@ -102,9 +102,9 @@ gate ck q1, q2 {
     with open("loop-invariant.spec", "w") as file:
         file.write("Numbers\n")
         file.write("c0 := 0\n")
-        file.write("v1\n")
-        file.write("v2\n")
-        file.write("v3\n")
+        # file.write("v1\n")
+        # file.write("v2\n")
+        # file.write("v3\n")
         file.write("Transitions\n")
         file.write("[1](2, 1) -> 0\n")
         for i in range(2, n):
@@ -129,8 +129,8 @@ gate ck q1, q2 {
         file.write(f"[v2] -> {5*(2*n+1) - 3*n - 3}\n")
         file.write(f"[c0] -> {5*(2*n+1) - 3*n - 2}\n")
         file.write(f"[v3] -> {5*(2*n+1) - 3*n - 1}\n")
-        file.write(f"Constraints\n")
-        file.write(f'(and (not (= v3 0)) (and (> v1 0) (> v2 0) (<= v2 v1)))')
+        # file.write(f"Constraints\n")
+        # file.write(f'(and (not (= v3 0)) (and (> v1 0) (> v2 0) (<= v2 v1)))')
     #########################################
 
     #########################################
