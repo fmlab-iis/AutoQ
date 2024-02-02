@@ -16,6 +16,7 @@
 #include <autoq/util/convert.hh>
 #include <autoq/util/triple.hh>
 #include <autoq/aut_description.hh>
+#include <autoq/complex/complex.hh>
 
 namespace AUTOQ
 {
@@ -42,8 +43,8 @@ public:   // methods
 private:
     // Disallow creating an instance of this object
     TimbukParser() {}
-    static AUTOQ::Automata<Symbol> from_tree_to_automaton(std::string tree);
-    static AUTOQ::Automata<Symbol> from_line_to_automaton(std::string line);
+    static AUTOQ::Automata<Symbol> from_tree_to_automaton(std::string tree, const std::map<std::string, AUTOQ::Complex::Complex> &numbers = {});
+    static AUTOQ::Automata<Symbol> from_line_to_automaton(std::string line, const std::map<std::string, AUTOQ::Complex::Complex> &numbers = {});
 };
 
 #endif

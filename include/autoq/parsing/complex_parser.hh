@@ -99,6 +99,13 @@ private:
         }
     }
     Complex parseFactor() {
+        skipWhitespace();
+        char nextChar = input_[index_];
+
+        // Handle unary minus
+        if (nextChar == '-')
+            index_++;
+
         Complex left = parsePrimary();
         while (index_ < input_.length()) {
             skipWhitespace();
@@ -106,12 +113,18 @@ private:
             if (op == '^') {
                 index_++;
                 Complex right = parsePrimary();
-                return fastPower(left, static_cast<int>(right.toInt()));
+                if (nextChar == '-')
+                    return fastPower(left, static_cast<int>(right.toInt())) * -1;
+                else
+                    return fastPower(left, static_cast<int>(right.toInt()));
             } else {
                 break;
             }
         }
-        return left;
+        if (nextChar == '-')
+            return left * -1;
+        else
+            return left;
     }
 
     // template <typename T>
