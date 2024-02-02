@@ -714,7 +714,7 @@ Automata<Symbol> TimbukParser<Symbol>::parse_hsl_from_istream(std::istream *is) 
 		line = trim(line);
 		if (line.empty()) { continue; }
 		if (!start_transitions) {	// processing constants
-            if (line == "Extended Dirac") {
+            if (std::regex_search(line, std::regex("Extended +Dirac"))) {
                 start_transitions = true;
                 continue;
             } else if (!start_numbers) {
@@ -737,16 +737,18 @@ Automata<Symbol> TimbukParser<Symbol>::parse_hsl_from_istream(std::istream *is) 
                 constants[lhs] = ComplexParser(rhs).getComplex();
             }
         }   // processing states
-        else if (line.substr(0, 4) == "|i|=") { // if startswith "|i|="
+        else if (std::regex_search(line, std::regex("\\\\/ *\\|i\\|="))) { // if startswith "\/ |i|="
             std::istringstream iss(line);
-            std::string length; iss >> length; length = length.substr(4);
+            std::string length;
+            std::getline(iss, length, ':');
+            length = trim(length.substr(length.find('=') + 1));
             line.clear();
             for (std::string t; iss >> t;)
                 line += t + ' ';
             std::string i(std::atoi(length.c_str()), '1');
             bool reach_all_zero;
             do {
-                auto aut = TimbukParser<Symbol>::from_line_to_automaton(std::regex_replace(line, std::regex("i:"), i + ":"), constants);
+                auto aut = TimbukParser<Symbol>::from_line_to_automaton(std::regex_replace(line, std::regex("\\|i>"), "|" + i + ">"), constants);
                 aut_final = aut_final.Union(aut);
                 aut_final.reduce();
 
