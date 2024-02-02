@@ -136,7 +136,7 @@ private:
             }
             std::string varName = input_.substr(start, index_ - start);
             return {{varName, 1}};
-            // if (varName == "A") {
+            // if (varName == "ei2pi") {
             // } else {
             //     throw std::runtime_error(AUTOQ_LOG_PREFIX + "Unknown varName: " + varName);
             // }

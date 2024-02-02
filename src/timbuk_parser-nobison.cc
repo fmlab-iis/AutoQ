@@ -471,7 +471,7 @@ try {
                         "\" contains an unexpected string.");
                 }
             } else {
-                if ("Numbers" == first_word) {
+                if ("Constants" == first_word) {
                     start_numbers = true;
                     continue;
                 } else {	// guard
@@ -688,12 +688,12 @@ Automata<Symbol> TimbukParser<Symbol>::parse_hsl_from_istream(std::istream *is) 
 		line = trim(line);
 		if (line.empty()) { continue; }
 		if (!start_transitions) {	// processing numbers
-            if (line == "States") {
+            if (line == "Extended Dirac") {
                 start_transitions = true;
                 continue;
             } else if (!start_numbers) {
                 std::string first_word = read_word(line);
-                if ("Numbers" == first_word) {
+                if ("Constants" == first_word) {
                     start_numbers = true;
                     continue;
                 } else {	// guard

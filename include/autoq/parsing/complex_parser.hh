@@ -153,7 +153,7 @@ private:
                 index_++;
             }
             std::string function = input_.substr(start, index_ - start);
-            if (function == "A") {
+            if (function == "ei2pi") {
                 if (index_ < input_.length() && input_[index_] == '(') {
                     index_++;
                     skipWhitespace();
@@ -170,7 +170,7 @@ private:
                 } else {
                     throw std::runtime_error(AUTOQ_LOG_PREFIX + "Invalid syntax for A function");
                 }
-            } else if (function == "V2") {
+            } else if (function == "sqrt2") {
                 return Complex::sqrt2();
             } else {
                 throw std::runtime_error(AUTOQ_LOG_PREFIX + "Unknown function: " + function);
