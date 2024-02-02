@@ -89,6 +89,7 @@ gate ck q1, q2 {
         file.write("Constants\n")
         file.write("c0 := 0\n")
         file.write("c1 := 1\n")
+        file.write("Root States 0\n")
         file.write("Transitions\n")
         file.write("[1](2, 1) -> 0\n")
         for i in range(2, 2*n+2):
@@ -105,6 +106,7 @@ gate ck q1, q2 {
         # file.write("v1\n")
         # file.write("v2\n")
         # file.write("v3\n")
+        file.write("Root States 0\n")
         file.write("Transitions\n")
         file.write("[1](2, 1) -> 0\n")
         for i in range(2, n):
@@ -138,6 +140,7 @@ gate ck q1, q2 {
         file.write("Constants\n")
         file.write("c0 := 0\n")
         file.write("c1 := 1\n")
+        file.write("Root States 0\n")
         file.write("Transitions\n")
         file.write("[1](2, 1) -> 0\n")
         for i in range(2, n):

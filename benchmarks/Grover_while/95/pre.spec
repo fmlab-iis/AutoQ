@@ -1,6 +1,7 @@
 Constants
 c0 := 0
 c1 := 1
+Root States 0
 Transitions
 [1](2, 1) -> 0
 [2](3, 3) -> 1

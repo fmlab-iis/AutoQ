@@ -480,6 +480,25 @@ try {
                 }
             }
 		} else if (!start_transitions) {	// processing constants
+            if (str == "Root") { // processing root states
+                std::string str_states = read_word(str);
+                if ("States" != str_states) {
+                    throw std::runtime_error(AUTOQ_LOG_PREFIX + "Line \"" + line +
+                        "\" contains an unexpected string.");
+                }
+                while (!str.empty()) {
+                    std::string state = read_word(str);
+                    auto state_num = parse_colonned_token(state);
+                    // result.finalStates.insert(state_num.first);
+                    /****************************************************************************/
+                    int t = atoi(state_num.first.c_str());
+                    if (t > result.stateNum) result.stateNum = t;
+                    result.finalStates.insert(t); //result.stateNum.TranslateFwd(state_num.first));
+                    /****************************************************************************/
+                }
+                continue;
+            }
+
             if (str == "Transitions") {
                 start_transitions = true;
                 continue;
@@ -643,8 +662,8 @@ try {
                 } else
                     t = it->second; //atoi(rhs.c_str());
                 if (t > result.stateNum) result.stateNum = t;
-                if (symbol == "[1]")
-                    result.finalStates.insert(t);
+                // if (symbol == "[1]")
+                //     result.finalStates.insert(t);
                 if constexpr(std::is_same_v<Symbol, TreeAutomata::Symbol>) {
                     result.transitions[Symbol(boost::lexical_cast<int>(symbol.substr(1, symbol.length()-2)))][t].insert(state_vector);
                     if (boost::lexical_cast<int>(symbol.substr(1, symbol.length()-2)) == 1)
