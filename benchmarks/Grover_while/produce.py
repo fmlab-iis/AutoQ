@@ -86,7 +86,7 @@ gate ck q1, q2 {
 
     #########################################
     with open("pre.spec", "w") as file:
-        file.write("Numbers\n")
+        file.write("Constants\n")
         file.write("c0 := 0\n")
         file.write("c1 := 1\n")
         file.write("Transitions\n")
@@ -100,7 +100,7 @@ gate ck q1, q2 {
 
     #########################################
     with open("loop-invariant.spec", "w") as file:
-        file.write("Numbers\n")
+        file.write("Constants\n")
         file.write("c0 := 0\n")
         # file.write("v1\n")
         # file.write("v2\n")
@@ -135,7 +135,7 @@ gate ck q1, q2 {
 
     #########################################
     with open("post.spec", "w") as file:
-        file.write("Numbers\n")
+        file.write("Constants\n")
         file.write("c0 := 0\n")
         file.write("c1 := 1\n")
         file.write("Transitions\n")

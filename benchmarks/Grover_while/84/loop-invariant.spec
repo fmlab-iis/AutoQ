@@ -1,4 +1,4 @@
-Numbers
+Constants
 c0 := 0
 Transitions
 [1](2, 1) -> 0

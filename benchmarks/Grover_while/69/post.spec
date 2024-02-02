@@ -1,4 +1,4 @@
-Numbers
+Constants
 c0 := 0
 c1 := 1
 Transitions

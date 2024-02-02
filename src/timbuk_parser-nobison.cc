@@ -451,7 +451,7 @@ try {
 	bool start_numbers = false;
     bool start_transitions = false;
     Automata<Symbol> result;
-    std::map<std::string, Complex> numbers;
+    std::map<std::string, Complex> constants;
     std::map<std::string, std::string> predicates;
     std::map<std::string, typename Automata<Symbol>::State> states;
 
@@ -479,7 +479,7 @@ try {
                         "\" contains an unexpected string.");
                 }
             }
-		} else if (!start_transitions) {	// processing numbers
+		} else if (!start_transitions) {	// processing constants
             if (str == "Transitions") {
                 start_transitions = true;
                 continue;
@@ -496,8 +496,8 @@ try {
                         throw std::runtime_error(AUTOQ_LOG_PREFIX + "Invalid number \"" + line + "\".");
                 }
                 if constexpr(!std::is_same_v<Symbol, Predicate>) {
-                    numbers[lhs] = ComplexParser(rhs).getComplex();
-                    // std::cout << lhs << " " << numbers[lhs] << "\n";
+                    constants[lhs] = ComplexParser(rhs).getComplex();
+                    // std::cout << lhs << " " << constants[lhs] << "\n";
                 } else
                     predicates[lhs] = rhs;
             }
@@ -507,13 +507,13 @@ try {
             // for speeding up binary operations.
             boost::multiprecision::cpp_int max_k = INT_MIN;
             if constexpr(std::is_same_v<Complex, AUTOQ::Complex::FiveTuple>) {
-                for (const auto &kv : numbers) {
+                for (const auto &kv : constants) {
                     if (kv.second.at(0)!=0 || kv.second.at(1)!=0 || kv.second.at(2)!=0 || kv.second.at(3)!=0)
                         if (max_k < kv.second.at(4))
                             max_k = kv.second.at(4);
                 }
                 if (max_k == INT_MIN) max_k = 0; // IMPORTANT: if not modified, resume to 0.
-                for (auto &kv : numbers) {
+                for (auto &kv : constants) {
                     if (kv.second.at(0)==0 && kv.second.at(1)==0 && kv.second.at(2)==0 && kv.second.at(3)==0)
                         kv.second.at(4) = max_k;
                     else {
@@ -566,7 +566,7 @@ try {
                     try {
                         result.transitions[Symbol(boost::lexical_cast<int>(lhs))][t].insert(std::vector<TreeAutomata::State>());
                     } catch (...) {
-                        result.transitions[Symbol(numbers.at(lhs))][t].insert(std::vector<TreeAutomata::State>());
+                        result.transitions[Symbol(constants.at(lhs))][t].insert(std::vector<TreeAutomata::State>());
                     }
                 } else if constexpr(std::is_same_v<Symbol, PredicateAutomata::Symbol>) {
                     try {
@@ -579,13 +579,20 @@ try {
                         result.transitions[Symbol(boost::lexical_cast<int>(lhs))][t].insert(std::vector<SymbolicAutomata::State>());
                     } catch (...) {
                         try {
-                            if (numbers.at(lhs).isZero())
+                            if (constants.at(lhs).isZero())
                                 result.transitions[Symbol()][t].insert(std::vector<SymbolicAutomata::State>());
                             else
-                                result.transitions[Symbol({{numbers.at(lhs), {{"1", 1}}}})][t].insert(std::vector<SymbolicAutomata::State>());
+                                result.transitions[Symbol({{constants.at(lhs), {{"1", 1}}}})][t].insert(std::vector<SymbolicAutomata::State>());
                         } catch (...) {
-                            result.transitions[Symbol({{Complex::One(), {{lhs, 1}}}})][t].insert(std::vector<SymbolicAutomata::State>());
-                            result.vars.insert(lhs);
+                            result.transitions[Symbol({{Complex::One(), {{lhs + "A", 1}}},
+                                                       {Complex::Angle(boost::rational<boost::multiprecision::cpp_int>(1, 8)), {{lhs + "B", 1}}},
+                                                       {Complex::Angle(boost::rational<boost::multiprecision::cpp_int>(2, 8)), {{lhs + "C", 1}}},
+                                                       {Complex::Angle(boost::rational<boost::multiprecision::cpp_int>(3, 8)), {{lhs + "D", 1}}},
+                                                      })][t].insert(std::vector<SymbolicAutomata::State>());
+                            result.vars.insert(lhs + "A");
+                            result.vars.insert(lhs + "B");
+                            result.vars.insert(lhs + "C");
+                            result.vars.insert(lhs + "D");
                         }
                     }
                 }
@@ -683,11 +690,11 @@ Automata<Symbol> TimbukParser<Symbol>::parse_hsl_from_istream(std::istream *is) 
     bool start_transitions = false;
     Automata<Symbol> aut_final;
     std::string line;
-    std::map<std::string, Complex::Complex> numbers;
+    std::map<std::string, Complex::Complex> constants;
     while (std::getline(*is, line)) {
 		line = trim(line);
 		if (line.empty()) { continue; }
-		if (!start_transitions) {	// processing numbers
+		if (!start_transitions) {	// processing constants
             if (line == "Extended Dirac") {
                 start_transitions = true;
                 continue;
@@ -708,7 +715,7 @@ Automata<Symbol> TimbukParser<Symbol>::parse_hsl_from_istream(std::istream *is) 
                 if (lhs.empty() || rhs.empty()) {
                     throw std::runtime_error(AUTOQ_LOG_PREFIX + "Invalid number \"" + line + "\".");
                 }
-                numbers[lhs] = ComplexParser(rhs).getComplex();
+                constants[lhs] = ComplexParser(rhs).getComplex();
             }
         }   // processing states
         else if (line.substr(0, 4) == "|i|=") { // if startswith "|i|="
@@ -720,7 +727,7 @@ Automata<Symbol> TimbukParser<Symbol>::parse_hsl_from_istream(std::istream *is) 
             std::string i(std::atoi(length.c_str()), '1');
             bool reach_all_zero;
             do {
-                auto aut = TimbukParser<Symbol>::from_line_to_automaton(std::regex_replace(line, std::regex("i:"), i + ":"), numbers);
+                auto aut = TimbukParser<Symbol>::from_line_to_automaton(std::regex_replace(line, std::regex("i:"), i + ":"), constants);
                 aut_final = aut_final.Union(aut);
                 aut_final.reduce();
 
@@ -740,7 +747,7 @@ Automata<Symbol> TimbukParser<Symbol>::parse_hsl_from_istream(std::istream *is) 
                 }
             } while (!reach_all_zero);
         } else {
-            auto aut = TimbukParser<Symbol>::from_line_to_automaton(line, numbers);
+            auto aut = TimbukParser<Symbol>::from_line_to_automaton(line, constants);
             aut_final = aut_final.Union(aut);
             aut_final.reduce();
         }
@@ -759,7 +766,7 @@ Automata<Symbol> parse_hsl(const std::string& str) {
 }
 
 template <> // The loop reading part is different from other types, so we have to specialize this type.
-PredicateAutomata TimbukParser<Predicate>::from_tree_to_automaton(std::string tree, const std::map<std::string, Complex::Complex> &numbers) {
+PredicateAutomata TimbukParser<Predicate>::from_tree_to_automaton(std::string tree, const std::map<std::string, Complex::Complex> &constants) {
     throw std::runtime_error(AUTOQ_LOG_PREFIX + "[ERROR] This function is currently disabled!");
     exit(1);
     // PredicateAutomata aut;
@@ -813,7 +820,7 @@ PredicateAutomata TimbukParser<Predicate>::from_tree_to_automaton(std::string tr
 }
 
 template <>
-Automata<Concrete> TimbukParser<Concrete>::from_tree_to_automaton(std::string tree, const std::map<std::string, Complex::Complex> &numbers) {
+Automata<Concrete> TimbukParser<Concrete>::from_tree_to_automaton(std::string tree, const std::map<std::string, Complex::Complex> &constants) {
     Automata<Concrete> aut;
     std::map<typename Automata<Concrete>::State, Concrete> states_probs;
     Complex::Complex default_prob(0);
@@ -836,7 +843,7 @@ Automata<Concrete> TimbukParser<Concrete>::from_tree_to_automaton(std::string tr
         if (state == "*") {
             auto cp = ComplexParser(t);
             if (!cp.getVariable().empty()) // is symbol
-                default_prob = numbers.at(t);
+                default_prob = constants.at(t);
             else
                 default_prob = cp.getComplex();
 
@@ -844,7 +851,7 @@ Automata<Concrete> TimbukParser<Concrete>::from_tree_to_automaton(std::string tr
             TreeAutomata::State s = std::stoll(state, nullptr, 2);
             auto cp = ComplexParser(t);
             if (!cp.getVariable().empty())  // is symbol
-                states_probs[s].complex = numbers.at(t);
+                states_probs[s].complex = constants.at(t);
             else
                 states_probs[s].complex = cp.getComplex();
         }
@@ -883,7 +890,7 @@ Automata<Concrete> TimbukParser<Concrete>::from_tree_to_automaton(std::string tr
 }
 
 template <>
-Automata<Symbolic> TimbukParser<Symbolic>::from_tree_to_automaton(std::string tree, const std::map<std::string, Complex::Complex> &numbers) {
+Automata<Symbolic> TimbukParser<Symbolic>::from_tree_to_automaton(std::string tree, const std::map<std::string, Complex::Complex> &constants) {
     Automata<Symbolic> aut;
     std::map<typename Automata<Symbolic>::State, Symbolic> states_probs;
     AUTOQ::Symbol::SymbolicComplex default_prob;
@@ -912,14 +919,20 @@ Automata<Symbolic> TimbukParser<Symbolic>::from_tree_to_automaton(std::string tr
                 return states_probs[s].complex;
             }
         });
-        auto it = numbers.find(t);
+        auto it = constants.find(t);
         auto cp = ComplexParser(t);
         if (cp.getVariable().empty())
             symbolic_complex[ComplexParser(t).getComplex()] = {{"1", 1}};
         else {
-            if (it == numbers.end()) { // is a variable
-                aut.vars.insert(t);
-                symbolic_complex[Complex::Complex::One()] = {{t, 1}};
+            if (it == constants.end()) { // is a variable
+                aut.vars.insert(t + "A");
+                aut.vars.insert(t + "B");
+                aut.vars.insert(t + "C");
+                aut.vars.insert(t + "D");
+                symbolic_complex[Complex::Complex::One()] = {{t + "A", 1}};
+                symbolic_complex[Complex::Complex::Angle(boost::rational<boost::multiprecision::cpp_int>(1, 8))] = {{t + "B", 1}};
+                symbolic_complex[Complex::Complex::Angle(boost::rational<boost::multiprecision::cpp_int>(2, 8))] = {{t + "C", 1}};
+                symbolic_complex[Complex::Complex::Angle(boost::rational<boost::multiprecision::cpp_int>(3, 8))] = {{t + "D", 1}};
             }
             else // is a complex number
                 symbolic_complex[it -> second] = {{"1", 1}};
@@ -953,16 +966,16 @@ Automata<Symbolic> TimbukParser<Symbolic>::from_tree_to_automaton(std::string tr
 }
 
 template <typename Symbol>
-Automata<Symbol> TimbukParser<Symbol>::from_line_to_automaton(std::string line, const std::map<std::string, Complex::Complex> &numbers) {
+Automata<Symbol> TimbukParser<Symbol>::from_line_to_automaton(std::string line, const std::map<std::string, Complex::Complex> &constants) {
     std::istringstream iss_tensor(line);
     std::string tree;
     std::getline(iss_tensor, tree, '#');
 
-    auto aut = from_tree_to_automaton(tree, numbers); // the first automata to be tensor producted
+    auto aut = from_tree_to_automaton(tree, constants); // the first automata to be tensor producted
 
     // to tensor product with the rest of the automata
     while (std::getline(iss_tensor, tree, '#')) {
-        auto aut2 = from_tree_to_automaton(tree, numbers);
+        auto aut2 = from_tree_to_automaton(tree, constants);
 
         // let aut2 be tensor producted with aut here
         typename Automata<Symbol>::TransitionMap aut_leaves;
