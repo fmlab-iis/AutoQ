@@ -12,7 +12,10 @@ using AUTOQ::Complex::Complex;
 
 class ComplexParser {
 public:
-    ComplexParser(const std::string& input) : input_(input), index_(0) {
+    ComplexParser(const std::string &input) : input_(input), index_(0), constMap_(std::map<std::string, Complex>()) {
+        parse();
+    }
+    ComplexParser(const std::string &input, const std::map<std::string, Complex> &constMap) : input_(input), index_(0), constMap_(constMap) {
         parse();
     }
     Complex getComplex() const {
@@ -23,10 +26,11 @@ public:
     }
 
 private:
-    const std::string& input_;
+    const std::string &input_;
     size_t index_;
     Complex resultC; // complex
     std::string resultV; // variable
+    const std::map<std::string, Complex> &constMap_;
 
     void parse() {
         skipWhitespace();
@@ -172,8 +176,10 @@ private:
                 }
             } else if (function == "sqrt2") {
                 return Complex::sqrt2();
+            } else if (constMap_.count(function) > 0) {
+                return constMap_.at(function);
             } else {
-                throw std::runtime_error(AUTOQ_LOG_PREFIX + "Unknown function: " + function);
+                throw std::runtime_error(AUTOQ_LOG_PREFIX + "Unknown variable: " + function);
             }
         } else if (std::isdigit(input_[index_]) || input_[index_] == '-') {
             return Complex(parseNumber());
@@ -184,7 +190,9 @@ private:
 
     boost::rational<boost::multiprecision::cpp_int> parseNumber() {
         size_t start = index_;
-        while (index_ < input_.length() && (std::isdigit(input_[index_]) || input_[index_] == '.' || input_[index_] == '-')) {
+        if (index_ < input_.length() && input_[index_] == '-')
+            index_++;
+        while (index_ < input_.length() && (std::isdigit(input_[index_]) || input_[index_] == '.')) {
             index_++;
         }
         std::string numStr = input_.substr(start, index_ - start);

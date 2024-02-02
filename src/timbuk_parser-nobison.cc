@@ -862,7 +862,7 @@ Automata<Concrete> TimbukParser<Concrete>::from_tree_to_automaton(std::string tr
         } else if (state != "*" && aut.qubitNum != state.length())
             throw std::runtime_error(AUTOQ_LOG_PREFIX + "[ERROR] The numbers of qubits are not the same in all basis states!");
         if (state == "*") {
-            auto cp = ComplexParser(t);
+            auto cp = ComplexParser(t, constants);
             if (!cp.getVariable().empty()) // is symbol
                 default_prob = constants.at(t);
             else
@@ -870,7 +870,7 @@ Automata<Concrete> TimbukParser<Concrete>::from_tree_to_automaton(std::string tr
 
         } else {
             TreeAutomata::State s = std::stoll(state, nullptr, 2);
-            auto cp = ComplexParser(t);
+            auto cp = ComplexParser(t, constants);
             if (!cp.getVariable().empty())  // is symbol
                 states_probs[s].complex = constants.at(t);
             else
@@ -941,9 +941,9 @@ Automata<Symbolic> TimbukParser<Symbolic>::from_tree_to_automaton(std::string tr
             }
         });
         auto it = constants.find(t);
-        auto cp = ComplexParser(t);
+        auto cp = ComplexParser(t, constants);
         if (cp.getVariable().empty())
-            symbolic_complex[ComplexParser(t).getComplex()] = {{"1", 1}};
+            symbolic_complex[ComplexParser(t, constants).getComplex()] = {{"1", 1}};
         else {
             if (it == constants.end()) { // is a variable
                 aut.vars.insert(t + "A");
