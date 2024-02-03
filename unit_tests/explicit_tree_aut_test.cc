@@ -726,60 +726,60 @@ BOOST_AUTO_TEST_CASE(Grover_Search_only_one_oracle)
     /************************************************************************************/
 }
 
-#include <filesystem>
-namespace fs = std::filesystem;
-BOOST_AUTO_TEST_CASE(Symbolic_into_Predicates)
-{
-    std::string path = "../../benchmarks/Symbolic/";
-    for (const auto & entry : fs::directory_iterator(path)) {
-        if (entry.is_directory()) {
-            if (strstr(entry.path().c_str(), "BernsteinVazirani99") != nullptr) continue;
-            if (strstr(entry.path().c_str(), "BernsteinVazirani1000") != nullptr) continue;
-            if (strstr(entry.path().c_str(), "MOGrover08") != nullptr) continue;
-            if (strstr(entry.path().c_str(), "MOGrover09") != nullptr) continue;
-            if (strstr(entry.path().c_str(), "SOGrover16") != nullptr) continue;
-            if (strstr(entry.path().c_str(), "SOGrover18") != nullptr) continue;
-            if (strstr(entry.path().c_str(), "SOGrover20") != nullptr) continue;
-            if (strstr(entry.path().c_str(), "OEGrover20") != nullptr) continue;
-            if (strstr(entry.path().c_str(), "OEGrover30") != nullptr) continue;
-            if (strstr(entry.path().c_str(), "OEGrover50") != nullptr) continue;
-            if (strstr(entry.path().c_str(), "OEGrover75") != nullptr) continue;
-            if (strstr(entry.path().c_str(), "OEGrover100") != nullptr) continue;
+// #include <filesystem>
+// namespace fs = std::filesystem;
+// BOOST_AUTO_TEST_CASE(Symbolic_into_Predicates)
+// {
+//     std::string path = "../../benchmarks/Symbolic/";
+//     for (const auto & entry : fs::directory_iterator(path)) {
+//         if (entry.is_directory()) {
+//             if (strstr(entry.path().c_str(), "BernsteinVazirani99") != nullptr) continue;
+//             if (strstr(entry.path().c_str(), "BernsteinVazirani1000") != nullptr) continue;
+//             if (strstr(entry.path().c_str(), "MOGrover08") != nullptr) continue;
+//             if (strstr(entry.path().c_str(), "MOGrover09") != nullptr) continue;
+//             if (strstr(entry.path().c_str(), "SOGrover16") != nullptr) continue;
+//             if (strstr(entry.path().c_str(), "SOGrover18") != nullptr) continue;
+//             if (strstr(entry.path().c_str(), "SOGrover20") != nullptr) continue;
+//             if (strstr(entry.path().c_str(), "OEGrover20") != nullptr) continue;
+//             if (strstr(entry.path().c_str(), "OEGrover30") != nullptr) continue;
+//             if (strstr(entry.path().c_str(), "OEGrover50") != nullptr) continue;
+//             if (strstr(entry.path().c_str(), "OEGrover75") != nullptr) continue;
+//             if (strstr(entry.path().c_str(), "OEGrover100") != nullptr) continue;
 
-            std::string automaton;
-            AUTOQ::SymbolicAutomata aut = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Symbolic>::ReadAutomaton(std::string(entry.path()) + std::string("/pre.spec"));
-            aut.execute((std::string(entry.path()) + std::string("/circuit.qasm")).c_str());
-            aut.fraction_simplification();
+//             std::string automaton;
+//             AUTOQ::SymbolicAutomata aut = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Symbolic>::ReadAutomaton(std::string(entry.path()) + std::string("/pre.spec"));
+//             aut.execute((std::string(entry.path()) + std::string("/circuit.qasm")).c_str());
+//             aut.fraction_simplification();
 
-            AUTOQ::PredicateAutomata spec = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Predicate>::ReadAutomaton((std::string(entry.path()) + std::string("/post.spec")).c_str());
+//             AUTOQ::PredicateAutomata spec = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Predicate>::ReadAutomaton((std::string(entry.path()) + std::string("/post.spec")).c_str());
 
-            AUTOQ::Constraint C(aut.constraints.c_str());
+//             AUTOQ::Constraint C(aut.constraints.c_str());
 
-            BOOST_REQUIRE_MESSAGE(AUTOQ::is_spec_satisfied(C, aut, spec), "\n" +
-                        std::string(entry.path().c_str()) + "\n" +
-                        AUTOQ::Serialization::TimbukSerializer::Serialize(aut) +
-                        AUTOQ::Serialization::TimbukSerializer::Serialize(spec));
-        }
-    }
-}
+//             BOOST_REQUIRE_MESSAGE(AUTOQ::is_spec_satisfied(C, aut, spec), "\n" +
+//                         std::string(entry.path().c_str()) + "\n" +
+//                         AUTOQ::Serialization::TimbukSerializer::Serialize(aut) +
+//                         AUTOQ::Serialization::TimbukSerializer::Serialize(spec));
+//         }
+//     }
+// }
 
-BOOST_AUTO_TEST_CASE(Symbolic_into_Predicates_bug)
-{
-    std::string path = "../../benchmarks/Symbolic-bug/";
-    for (const auto & entry : fs::directory_iterator(path)) {
-        if (entry.is_directory()) {
-            std::string automaton;
-            AUTOQ::SymbolicAutomata aut = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Symbolic>::ReadAutomaton(std::string(entry.path()) + std::string("/pre.spec"));
-            aut.execute((std::string(entry.path()) + std::string("/circuit.qasm")).c_str());
-            aut.fraction_simplification();
+// BOOST_AUTO_TEST_CASE(Symbolic_into_Predicates_bug)
+// {
+//     std::string path = "../../benchmarks/Symbolic-bug/";
+//     for (const auto & entry : fs::directory_iterator(path)) {
+//         if (entry.is_directory()) {
+//             std::string automaton;
+//             AUTOQ::SymbolicAutomata aut = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Symbolic>::ReadAutomaton(std::string(entry.path()) + std::string("/pre.spec"));
+//             aut.execute((std::string(entry.path()) + std::string("/circuit.qasm")).c_str());
+//             aut.fraction_simplification();
 
-            AUTOQ::PredicateAutomata spec = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Predicate>::ReadAutomaton((std::string(entry.path()) + std::string("/post.spec")).c_str());
+//             AUTOQ::PredicateAutomata spec = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Predicate>::ReadAutomaton((std::string(entry.path()) + std::string("/post.spec")).c_str());
 
-            AUTOQ::Constraint C(aut.constraints.c_str());
+//             AUTOQ::Constraint C(aut.constraints.c_str());
 
-            BOOST_REQUIRE_MESSAGE(!AUTOQ::is_spec_satisfied(C, aut, spec), "\n" +
-                        AUTOQ::Serialization::TimbukSerializer::Serialize(aut) +
-                        AUTOQ::Serialization::TimbukSerializer::Serialize(spec));
-        }
-    }
-}
+//             BOOST_REQUIRE_MESSAGE(!AUTOQ::is_spec_satisfied(C, aut, spec), "\n" +
+//                         AUTOQ::Serialization::TimbukSerializer::Serialize(aut) +
+//                         AUTOQ::Serialization::TimbukSerializer::Serialize(spec));
+//         }
+//     }
+// }

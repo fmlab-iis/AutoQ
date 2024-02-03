@@ -454,58 +454,61 @@ Automata<Symbol> parse_automaton(const std::string& str) {
 try {
 	bool start_numbers = false;
     bool start_transitions = false;
+    bool already_root_states = false;
     Automata<Symbol> result;
     std::map<std::string, Complex> constants;
     std::map<std::string, std::string> predicates;
     std::map<std::string, typename Automata<Symbol>::State> states;
+    std::set<std::string> result_finalStates;
 
 	std::vector<std::string> lines = split_delim(str, '\n');
 	for (const std::string& line : lines) {
 		std::string str = trim(line);
 		if (str.empty()) { continue; }
 
-		if (!start_numbers) {
-			std::string first_word = read_word(str);
-            if constexpr(std::is_same_v<Symbol, Predicate>) {
-                if ("Predicates" == first_word) {
-                    start_numbers = true;
-                    continue;
-                } else {	// guard
-                    throw std::runtime_error(AUTOQ_LOG_PREFIX + "Line \"" + line +
-                        "\" contains an unexpected string.");
-                }
-            } else {
-                if ("Constants" == first_word) {
-                    start_numbers = true;
-                    continue;
-                } else {	// guard
-                    throw std::runtime_error(AUTOQ_LOG_PREFIX + "Line \"" + line +
-                        "\" contains an unexpected string.");
-                }
-            }
-		} else if (!start_transitions) {	// processing constants
-            if (str == "Root") { // processing root states
-                std::string str_states = read_word(str);
-                if ("States" != str_states) {
-                    throw std::runtime_error(AUTOQ_LOG_PREFIX + "Line \"" + line +
-                        "\" contains an unexpected string.");
-                }
+		if (!start_transitions) {	// processing constants
+            if (std::regex_search(str, std::regex("Root +States"))) { // processing root states
                 while (!str.empty()) {
                     std::string state = read_word(str);
                     auto state_num = parse_colonned_token(state);
                     // result.finalStates.insert(state_num.first);
                     /****************************************************************************/
-                    int t = atoi(state_num.first.c_str());
-                    if (t > result.stateNum) result.stateNum = t;
-                    result.finalStates.insert(t); //result.stateNum.TranslateFwd(state_num.first));
+                    // int t = atoi(state_num.first.c_str());
+                    // if (t > result.stateNum) result.stateNum = t;
+                    result_finalStates.insert(state_num.first); //result.stateNum.TranslateFwd(state_num.first));
                     /****************************************************************************/
                 }
+                already_root_states = true;
                 continue;
             }
 
             if (str == "Transitions") {
+                if (!already_root_states) {
+                    throw std::runtime_error(AUTOQ_LOG_PREFIX + "Root states not specified.");
+                }
                 start_transitions = true;
                 continue;
+            }
+
+            if (!start_numbers) {
+                std::string first_word = read_word(str);
+                if constexpr(std::is_same_v<Symbol, Predicate>) {
+                    if ("Predicates" == first_word) {
+                        start_numbers = true;
+                        continue;
+                    } else {	// guard
+                        throw std::runtime_error(AUTOQ_LOG_PREFIX + "Line \"" + line +
+                            "\" contains an unexpected string.");
+                    }
+                } else {
+                    if ("Constants" == first_word) {
+                        start_numbers = true;
+                        continue;
+                    } else {	// guard
+                        throw std::runtime_error(AUTOQ_LOG_PREFIX + "Line \"" + line +
+                            "\" contains an unexpected string.");
+                    }
+                }
             }
 
             size_t arrow_pos = str.find(":=");
@@ -674,18 +677,18 @@ try {
                 //     result.finalStates.insert(t);
                 if constexpr(std::is_same_v<Symbol, TreeAutomata::Symbol>) {
                     result.transitions[Symbol(boost::lexical_cast<int>(symbol.substr(1, symbol.length()-2)))][t].insert(state_vector);
-                    if (boost::lexical_cast<int>(symbol.substr(1, symbol.length()-2)) == 1)
-                        result.finalStates.insert(t);
+                    // if (boost::lexical_cast<int>(symbol.substr(1, symbol.length()-2)) == 1)
+                    //     result.finalStates.insert(t);
                 } else if constexpr(std::is_same_v<Symbol, PredicateAutomata::Symbol>) {
                     auto temp = from_string_to_Predicate(symbol);
                     result.transitions[temp][t].insert(state_vector);
-                    if (boost::lexical_cast<int>(temp.qubit()) == 1)
-                        result.finalStates.insert(t);
+                    // if (boost::lexical_cast<int>(temp.qubit()) == 1)
+                    //     result.finalStates.insert(t);
                 } else {
                     auto temp = from_string_to_Symbolic(symbol);
                     result.transitions[temp][t].insert(state_vector);
-                    if (boost::lexical_cast<int>(temp.qubit()) == 1)
-                        result.finalStates.insert(t);
+                    // if (boost::lexical_cast<int>(temp.qubit()) == 1)
+                    //     result.finalStates.insert(t);
                 }
                 /*********************************************************************************************/
 			}
@@ -703,6 +706,13 @@ try {
             result.qubitNum = std::max(result.qubitNum, static_cast<unsigned>(kv.first.symbol().qubit()));
         }
     }
+
+    for (const auto &s : result_finalStates) {
+        auto it = states.find(s);
+        if (it != states.end())
+            result.finalStates.insert(it->second);
+    }
+
     result.stateNum++; // because the state number starts from 0
 	return result;
 } catch (std::exception& ex) {
