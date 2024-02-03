@@ -22,11 +22,12 @@
 #include <autoq/symbol/predicate.hh>
 #include <autoq/parsing/timbuk_parser.hh>
 #include <autoq/parsing/complex_parser.hh>
+#include <autoq/parsing/symboliccomplex_parser.hh>
 #include <autoq/parsing/linearcombination_parser.hh>
 #include <autoq/aut_description.hh>
 #include <boost/algorithm/string/predicate.hpp>
+#include <autoq/complex/symbolic_complex.hh>
 
-using AUTOQ::Parsing::TimbukParser;
 using AUTOQ::Symbol::Concrete;
 using AUTOQ::Symbol::Symbolic;
 using AUTOQ::Symbol::Predicate;
@@ -37,6 +38,9 @@ using AUTOQ::PredicateAutomata;
 using AUTOQ::Util::Convert;
 using AUTOQ::Util::trim;
 using AUTOQ::Complex::Complex;
+using AUTOQ::Complex::SymbolicComplex;
+using AUTOQ::Parsing::TimbukParser;
+using AUTOQ::Parsing::SymbolicComplexParser;
 using AUTOQ::Parsing::LinearCombinationParser;
 
 /**
@@ -143,7 +147,7 @@ typename TreeAutomata::Symbol from_string_to_Concrete(const std::string& str)
 }
 
 SymbolicAutomata::Symbol from_string_to_Symbolic(const std::string& str, std::set<std::string> &vars) {
-	std::vector<AUTOQ::Symbol::linear_combination> temp;
+	std::vector<AUTOQ::Complex::linear_combination> temp;
     if (str[0] == '[') {
         for (int i=1; i<static_cast<int>(str.length()); i++) {
             size_t j = str.find(',', i);
@@ -152,7 +156,7 @@ SymbolicAutomata::Symbol from_string_to_Symbolic(const std::string& str, std::se
                 auto sp = LinearCombinationParser(str.substr(i, j-i));
                 // auto v = boost::lexical_cast<boost::multiprecision::cpp_int>(str.substr(i, j-i).c_str());
                 // if (v == 0)
-                //     temp.push_back(AUTOQ::Symbol::linear_combination());
+                //     temp.push_back(AUTOQ::Complex::linear_combination());
                 // else
                     temp.push_back(sp.parse()); //{{"1", v}});
             } catch (boost::bad_lexical_cast& e) {
@@ -167,7 +171,7 @@ SymbolicAutomata::Symbol from_string_to_Symbolic(const std::string& str, std::se
             auto sp = LinearCombinationParser(str);
             // auto v = boost::lexical_cast<boost::multiprecision::cpp_int>(str.c_str());
             // if (v == 0)
-            //     temp.push_back(AUTOQ::Symbol::linear_combination());
+            //     temp.push_back(AUTOQ::Complex::linear_combination());
             // else
                 temp.push_back(sp.parse()); //{{"1", v}});
         } catch (boost::bad_lexical_cast& e) {
@@ -594,26 +598,30 @@ try {
                         result.transitions[Symbol(predicates.at(lhs).c_str())][t].insert(std::vector<TreeAutomata::State>());
                     }
                 } else { // if constexpr(std::is_same_v<Symbol, SymbolicAutomata::Symbol>) {
-                    try {
-                        result.transitions[Symbol(boost::lexical_cast<int>(lhs))][t].insert(std::vector<SymbolicAutomata::State>());
-                    } catch (...) {
-                        try {
-                            if (constants.at(lhs).isZero())
-                                result.transitions[Symbol()][t].insert(std::vector<SymbolicAutomata::State>());
-                            else
-                                result.transitions[Symbol({{constants.at(lhs), {{"1", 1}}}})][t].insert(std::vector<SymbolicAutomata::State>());
-                        } catch (...) {
-                            result.transitions[Symbol({{Complex::One(), {{lhs + "A", 1}}},
-                                                       {Complex::Angle(boost::rational<boost::multiprecision::cpp_int>(1, 8)), {{lhs + "B", 1}}},
-                                                       {Complex::Angle(boost::rational<boost::multiprecision::cpp_int>(2, 8)), {{lhs + "C", 1}}},
-                                                       {Complex::Angle(boost::rational<boost::multiprecision::cpp_int>(3, 8)), {{lhs + "D", 1}}},
-                                                      })][t].insert(std::vector<SymbolicAutomata::State>());
-                            result.vars.insert(lhs + "A");
-                            result.vars.insert(lhs + "B");
-                            result.vars.insert(lhs + "C");
-                            result.vars.insert(lhs + "D");
-                        }
-                    }
+                    // try {
+                    //     result.transitions[Symbol(boost::lexical_cast<int>(lhs))][t].insert(std::vector<SymbolicAutomata::State>());
+                    // } catch (...) {
+                    //     try {
+                    //         if (constants.at(lhs).isZero())
+                    //             result.transitions[Symbol()][t].insert(std::vector<SymbolicAutomata::State>());
+                    //         else
+                    //             result.transitions[Symbol({{constants.at(lhs), {{"1", 1}}}})][t].insert(std::vector<SymbolicAutomata::State>());
+                    //     } catch (...) {
+                    //         result.transitions[Symbol({{Complex::One(), {{lhs + "A", 1}}},
+                    //                                    {Complex::Angle(boost::rational<boost::multiprecision::cpp_int>(1, 8)), {{lhs + "B", 1}}},
+                    //                                    {Complex::Angle(boost::rational<boost::multiprecision::cpp_int>(2, 8)), {{lhs + "C", 1}}},
+                    //                                    {Complex::Angle(boost::rational<boost::multiprecision::cpp_int>(3, 8)), {{lhs + "D", 1}}},
+                    //                                   })][t].insert(std::vector<SymbolicAutomata::State>());
+                    //         result.vars.insert(lhs + "A");
+                    //         result.vars.insert(lhs + "B");
+                    //         result.vars.insert(lhs + "C");
+                    //         result.vars.insert(lhs + "D");
+                    //     }
+                    // }
+                    SymbolicComplexParser scp(lhs, constants);
+                    result.transitions[Symbol(scp.getSymbolicComplex())][t].insert(std::vector<SymbolicAutomata::State>());
+                    for (const auto &var: scp.getNewVars())
+                        result.vars.insert(var);
                 }
                 /*******************************************************************************************************************/
 			} else {	// contains a tuple of states -> internal
@@ -914,7 +922,7 @@ template <>
 Automata<Symbolic> TimbukParser<Symbolic>::from_tree_to_automaton(std::string tree, const std::map<std::string, Complex::Complex> &constants) {
     Automata<Symbolic> aut;
     std::map<typename Automata<Symbolic>::State, Symbolic> states_probs;
-    AUTOQ::Symbol::SymbolicComplex default_prob;
+    AUTOQ::Complex::SymbolicComplex default_prob;
     const std::regex myregex("(.*?)\\|(.*?)>");
     const std::regex_iterator<std::string::iterator> END;
     std::regex_iterator<std::string::iterator> it2(tree.begin(), tree.end(), myregex);
@@ -932,7 +940,7 @@ Automata<Symbolic> TimbukParser<Symbolic>::from_tree_to_automaton(std::string tr
         } else if (state != "*" && aut.qubitNum != state.length())
             throw std::runtime_error(AUTOQ_LOG_PREFIX + "[ERROR] The numbers of qubits are not the same in all basis states!");
         // } else if constexpr(std::is_same_v<Symbolic, SymbolicAutomata::Symbol>) {
-        AUTOQ::Symbol::SymbolicComplex &symbolic_complex = std::invoke([&]()-> AUTOQ::Symbol::SymbolicComplex& {
+        AUTOQ::Complex::SymbolicComplex &symbolic_complex = std::invoke([&]()-> AUTOQ::Complex::SymbolicComplex& {
             if (state == "*") {
                 return default_prob;
             } else {
@@ -940,24 +948,28 @@ Automata<Symbolic> TimbukParser<Symbolic>::from_tree_to_automaton(std::string tr
                 return states_probs[s].complex;
             }
         });
-        auto it = constants.find(t);
-        auto cp = ComplexParser(t, constants);
-        if (cp.getVariable().empty())
-            symbolic_complex[ComplexParser(t, constants).getComplex()] = {{"1", 1}};
-        else {
-            if (it == constants.end()) { // is a variable
-                aut.vars.insert(t + "A");
-                aut.vars.insert(t + "B");
-                aut.vars.insert(t + "C");
-                aut.vars.insert(t + "D");
-                symbolic_complex[Complex::Complex::One()] = {{t + "A", 1}};
-                symbolic_complex[Complex::Complex::Angle(boost::rational<boost::multiprecision::cpp_int>(1, 8))] = {{t + "B", 1}};
-                symbolic_complex[Complex::Complex::Angle(boost::rational<boost::multiprecision::cpp_int>(2, 8))] = {{t + "C", 1}};
-                symbolic_complex[Complex::Complex::Angle(boost::rational<boost::multiprecision::cpp_int>(3, 8))] = {{t + "D", 1}};
-            }
-            else // is a complex number
-                symbolic_complex[it -> second] = {{"1", 1}};
-        }
+        // auto it = constants.find(t);
+        // auto cp = ComplexParser(t, constants);
+        // if (cp.getVariable().empty())
+        //     symbolic_complex[ComplexParser(t, constants).getComplex()] = {{"1", 1}};
+        // else {
+        //     if (it == constants.end()) { // is a variable
+        //         aut.vars.insert(t + "A");
+        //         aut.vars.insert(t + "B");
+        //         aut.vars.insert(t + "C");
+        //         aut.vars.insert(t + "D");
+        //         symbolic_complex[Complex::Complex::One()] = {{t + "A", 1}};
+        //         symbolic_complex[Complex::Complex::Angle(boost::rational<boost::multiprecision::cpp_int>(1, 8))] = {{t + "B", 1}};
+        //         symbolic_complex[Complex::Complex::Angle(boost::rational<boost::multiprecision::cpp_int>(2, 8))] = {{t + "C", 1}};
+        //         symbolic_complex[Complex::Complex::Angle(boost::rational<boost::multiprecision::cpp_int>(3, 8))] = {{t + "D", 1}};
+        //     }
+        //     else // is a complex number
+        //         symbolic_complex[it -> second] = {{"1", 1}};
+        // }
+        SymbolicComplexParser scp(t, constants);
+        symbolic_complex = scp.getSymbolicComplex();
+        for (const auto &var: scp.getNewVars())
+            aut.vars.insert(var);
         ++it2;
     }
     typename Automata<Symbolic>::State pow_of_two = 1;

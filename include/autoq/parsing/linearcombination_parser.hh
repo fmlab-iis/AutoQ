@@ -6,9 +6,9 @@
 #include <cctype>
 #include <cmath>
 #include <boost/rational.hpp>
-#include "autoq/symbol/symbolic.hh"
+#include "autoq/complex/symbolic_complex.hh"
 
-using AUTOQ::Symbol::linear_combination;
+using AUTOQ::Complex::linear_combination;
 
 namespace AUTOQ
 {

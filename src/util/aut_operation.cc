@@ -1904,7 +1904,7 @@ bool AUTOQ::is_scaled_spec_satisfied(SymbolicAutomata R, SymbolicAutomata Q) {
 
     using State = SymbolicAutomata::State;
     using StateSet = SymbolicAutomata::StateSet;
-    using SymbolicComplex = AUTOQ::Symbol::SymbolicComplex;
+    using SymbolicComplex = AUTOQ::Complex::SymbolicComplex;
     using StateScaleSet = std::set<std::pair<State, unsigned>>; // int <-> std::pair<SymbolicComplex, SymbolicComplex>
     StateSet As_finalStates(Q.finalStates.begin(), Q.finalStates.end());
     std::map<State, std::set<StateScaleSet>> processed; // Line 1: ← ∅;
@@ -1915,10 +1915,10 @@ bool AUTOQ::is_scaled_spec_satisfied(SymbolicAutomata R, SymbolicAutomata Q) {
     auto transitions2 = R.transitions;
     for (const auto &tr : transitions2) {
         if (tr.first.symbol().is_leaf()) {
-            AUTOQ::Symbol::SymbolicComplex complex_new;
-            for (const auto &c_lc : tr.first.symbol().complex) { // std::map<Complex::Complex, AUTOQ::Symbol::linear_combination>
+            AUTOQ::Complex::SymbolicComplex complex_new;
+            for (const auto &c_lc : tr.first.symbol().complex) { // std::map<Complex::Complex, AUTOQ::Complex::linear_combination>
                 auto lc = c_lc.second;
-                AUTOQ::Symbol::linear_combination lc_new;
+                AUTOQ::Complex::linear_combination lc_new;
                 for (const auto &v_i : lc) { // std::map<std::string, boost::multiprecision::cpp_int>
                     if (R.vars.contains(v_i.first))
                         lc_new[v_i.first + "_R"] = v_i.second;
@@ -1939,10 +1939,10 @@ bool AUTOQ::is_scaled_spec_satisfied(SymbolicAutomata R, SymbolicAutomata Q) {
     transitions2 = Q.transitions;
     for (const auto &tr : transitions2) {
         if (tr.first.symbol().is_leaf()) {
-            AUTOQ::Symbol::SymbolicComplex complex_new;
-            for (const auto &c_lc : tr.first.symbol().complex) { // std::map<Complex::Complex, AUTOQ::Symbol::linear_combination>
+            AUTOQ::Complex::SymbolicComplex complex_new;
+            for (const auto &c_lc : tr.first.symbol().complex) { // std::map<Complex::Complex, AUTOQ::Complex::linear_combination>
                 auto lc = c_lc.second;
-                AUTOQ::Symbol::linear_combination lc_new;
+                AUTOQ::Complex::linear_combination lc_new;
                 for (const auto &v_i : lc) { // std::map<std::string, boost::multiprecision::cpp_int>
                     if (Q.vars.contains(v_i.first))
                         lc_new[v_i.first + "_Q"] = v_i.second;

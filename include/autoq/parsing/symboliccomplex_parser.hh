@@ -1,5 +1,5 @@
-#ifndef _AUTOQ_COMPLEX_PARSER_HH_
-#define _AUTOQ_COMPLEX_PARSER_HH_
+#ifndef _AUTOQ_SYMBOLICCOMPLEX_PARSER_HH_
+#define _AUTOQ_SYMBOLICCOMPLEX_PARSER_HH_
 
 #include <iostream>
 #include <string>
@@ -7,40 +7,44 @@
 #include <cmath>
 #include <boost/rational.hpp>
 #include "autoq/complex/complex.hh"
+#include "autoq/complex/symbolic_complex.hh"
 
 using AUTOQ::Complex::Complex;
+using AUTOQ::Complex::SymbolicComplex;
 
 typedef boost::rational<boost::multiprecision::cpp_int> rational;
 
-class ComplexParser {
+namespace AUTOQ {
+	namespace Parsing {
+        class SymbolicComplexParser;
+	}
+}
+
+class AUTOQ::Parsing::SymbolicComplexParser {
 public:
-    ComplexParser(const std::string &input) : input_(input), index_(0), constMap_(std::map<std::string, Complex>()) {
+    SymbolicComplexParser(const std::string &input) : input_(input), index_(0), constMap_(std::map<std::string, Complex::Complex>()) {
         parse();
     }
-    ComplexParser(const std::string &input, const std::map<std::string, Complex> &constMap) : input_(input), index_(0), constMap_(constMap) {
+    SymbolicComplexParser(const std::string &input, const std::map<std::string, Complex::Complex> &constMap) : input_(input), index_(0), constMap_(constMap) {
         parse();
     }
-    Complex getComplex() const {
-        return resultC;
+    SymbolicComplex getSymbolicComplex() const {
+        return result;
     }
-    std::string getVariable() const {
-        return resultV;
+    std::set<std::string> getNewVars() const {
+        return used_vars;
     }
 
 private:
     const std::string &input_;
     size_t index_;
-    Complex resultC; // complex
-    std::string resultV; // variable
-    const std::map<std::string, Complex> &constMap_;
+    SymbolicComplex result;
+    const std::map<std::string, Complex::Complex> &constMap_;
+    std::set<std::string> used_vars;
 
     void parse() {
         skipWhitespace();
-        try {
-            resultC = parseExpression();
-        } catch (std::exception& e) {
-            resultV = input_;
-        }
+        result = parseExpression();
     }
 
     void skipWhitespace() {
@@ -49,14 +53,14 @@ private:
         }
     }
 
-    Complex parseExpression() {
-        Complex left = parseTerm();
+    SymbolicComplex parseExpression() {
+        SymbolicComplex left = parseTerm();
         while (index_ < input_.length()) {
             skipWhitespace();
             char op = input_[index_];
             if (op == '+' || op == '-') {
                 index_++;
-                Complex right = parseTerm();
+                SymbolicComplex right = parseTerm();
                 if (op == '+') {
                     left = left + right;
                 } else {
@@ -69,22 +73,20 @@ private:
         return left;
     }
 
-    Complex parseTerm() {
-        Complex left = parseFactor();
+    SymbolicComplex parseTerm() {
+        SymbolicComplex left = parseFactor();
         while (index_ < input_.length()) {
             skipWhitespace();
             char op = input_[index_];
             if (op == '*' || op == '/') {
                 index_++;
-                Complex right = parseFactor();
+                SymbolicComplex right = parseFactor();
                 if (op == '*') {
                     left = left * right;
+                } else if (right.size() != 1 || right.begin()->second != Complex::linear_combination({{"1", 1}})) {
+                    throw std::runtime_error(AUTOQ_LOG_PREFIX + "AutoQ does not support this kind of division!");
                 } else {
-                    if (!right.isZero()) {
-                        left = left / right;
-                    } else {
-                        throw std::runtime_error(AUTOQ_LOG_PREFIX + "Division by zero");
-                    }
+                    left = left / right.begin()->first;
                 }
             } else {
                 break;
@@ -93,18 +95,22 @@ private:
         return left;
     }
 
-    Complex fastPower(Complex base, int exponent) {
+    SymbolicComplex fastPower(SymbolicComplex base, int exponent) {
         assert(exponent >= 0);
-        if (exponent == 0) return 1;
+        if (exponent == 0) {
+            SymbolicComplex result;
+            result[Complex::Complex::One()] = {{"1", 1}};
+            return result;
+        }
         if (exponent % 2 == 0) {
-            Complex temp = fastPower(base, exponent / 2);
+            SymbolicComplex temp = fastPower(base, exponent / 2);
             return temp * temp;
         } else {
-            Complex temp = fastPower(base, (exponent - 1) / 2);
+            SymbolicComplex temp = fastPower(base, (exponent - 1) / 2);
             return base * temp * temp;
         }
     }
-    Complex parseFactor() {
+    SymbolicComplex parseFactor() {
         skipWhitespace();
         char nextChar = input_[index_];
 
@@ -112,17 +118,17 @@ private:
         if (nextChar == '-')
             index_++;
 
-        Complex left = parsePrimary();
+        SymbolicComplex left = parsePrimary();
         while (index_ < input_.length()) {
             skipWhitespace();
             char op = input_[index_];
             if (op == '^') {
                 index_++;
-                Complex right = parsePrimary();
+                rational right = parseNumber();
                 if (nextChar == '-')
-                    return fastPower(left, static_cast<int>(right.toInt())) * -1;
+                    return fastPower(left, static_cast<int>(right.numerator())) * -1;
                 else
-                    return fastPower(left, static_cast<int>(right.toInt()));
+                    return fastPower(left, static_cast<int>(right.numerator()));
             } else {
                 break;
             }
@@ -133,21 +139,14 @@ private:
             return left;
     }
 
-    // template <typename T>
-    // rational others_to_rational(const T &in) {
-    //     if constexpr(std::is_convertible_v<T, rational>)
-    //         return rational(in);
-    //     else // temporary conversion for double, may need additional enhancements
-    //         return rational(static_cast<boost::multiprecision::cpp_int>(in * 1000000), 1000000);
-    // }
-    Complex parsePrimary() {
+    SymbolicComplex parsePrimary() {
         skipWhitespace();
         if (index_ >= input_.length()) {
             throw std::runtime_error(AUTOQ_LOG_PREFIX + "Unexpected end of input");
         }
         if (input_[index_] == '(') {
             index_++;
-            Complex result = parseExpression();
+            SymbolicComplex result = parseExpression();
             if (index_ >= input_.length() || input_[index_] != ')') {
                 throw std::runtime_error(AUTOQ_LOG_PREFIX + "Missing closing parenthesis");
             }
@@ -172,19 +171,19 @@ private:
                     }
                     index_++;
                     // assert(x.imag() == 0);
-                    return Complex::Angle(x.to_rational());
+                    return SymbolicComplex::MySymbolicComplexConstructor(Complex::Complex::Angle(x.to_rational()));
                 } else {
                     throw std::runtime_error(AUTOQ_LOG_PREFIX + "Invalid syntax for A function");
                 }
             } else if (function == "sqrt2") {
-                return Complex::sqrt2();
+                return SymbolicComplex::MySymbolicComplexConstructor(Complex::Complex::sqrt2());
             } else if (constMap_.count(function) > 0) {
-                return constMap_.at(function);
+                return SymbolicComplex::MySymbolicComplexConstructor(constMap_.at(function));
             } else {
-                throw std::runtime_error(AUTOQ_LOG_PREFIX + "Unknown variable: " + function);
+                return SymbolicComplex::MySymbolicComplexConstructor(function, used_vars);
             }
         } else if (std::isdigit(input_[index_]) || input_[index_] == '-') {
-            return Complex(parseNumber());
+            return SymbolicComplex::MySymbolicComplexConstructor(Complex::Complex(parseNumber()));
         } else {
             throw std::runtime_error(AUTOQ_LOG_PREFIX + "Unexpected character: " + std::string(1, input_[index_]));
         }
