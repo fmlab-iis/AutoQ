@@ -31,6 +31,8 @@ concept is_complex = requires (const T &x, T y, int z, boost::rational<boost::mu
     { x == x } -> std::same_as<bool>;
     { x < x } -> std::same_as<bool>;
     { x.isZero() } -> std::same_as<bool>;
+    { x.real() } -> std::same_as<T>;
+    { x.imag() } -> std::same_as<T>;
 };
 
 namespace AUTOQ

@@ -193,12 +193,29 @@ struct AUTOQ::Complex::FiveTuple : stdvectorboostmultiprecisioncpp_int {
     bool isZero() const {
         return at(0)==0 && at(1)==0 && at(2)==0 && at(3)==0;
     }
+    FiveTuple real() const {
+        // Sum up the following three 5-tuples.
+        // {at(0), 0, 0, 0, at(4)} = {0, at(0), 0, -at(0), at(4)+1}
+        // {at(1), 0, 0, 0, at(4)+1}
+        // {-at(3), 0, 0, 0, at(4)+1}
+        // Result: {at(1)-at(3), at(0), 0, -at(0), at(4)+1}
+        return {at(1)-at(3), at(0), 0, -at(0), at(4)+1};
+    }
+    FiveTuple imag() const {
+        // Sum up the following three 5-tuples.
+        // {0, 0, at(2), 0, at(4)} = {0, at(2), 0, at(2), at(4)+1}
+        // {0, 0, at(1), 0, at(4)+1}
+        // {0, 0, at(3), 0, at(4)+1}
+        // Result: {0, at(2), at(1)+at(3), at(2), at(4)+1}
+        return {0, at(2), at(1)+at(3), at(2), at(4)+1};
+    }
 
 private:
     FiveTuple binary_operation(const FiveTuple &o, bool add) const {
-        assert((at(4) == o.at(4)) ||
+        if (!((at(4) == o.at(4)) ||
             (at(0)==0 && at(1)==0 && at(2)==0 && at(3)==0 && at(4)<=o.at(4)) ||
-            (o.at(0)==0 && o.at(1)==0 && o.at(2)==0 && o.at(3)==0 && at(4)>=o.at(4)));
+            (o.at(0)==0 && o.at(1)==0 && o.at(2)==0 && o.at(3)==0 && at(4)>=o.at(4))))
+            throw std::runtime_error(AUTOQ_LOG_PREFIX + "Two different k's when doing the binary operation!");
         FiveTuple symbol;
         for (int i=0; i<4; i++) {
             if (add) symbol.push_back(at(i) + o.at(i));

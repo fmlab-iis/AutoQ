@@ -24,6 +24,7 @@
 #include <autoq/parsing/complex_parser.hh>
 #include <autoq/parsing/symboliccomplex_parser.hh>
 #include <autoq/parsing/linearcombination_parser.hh>
+#include <autoq/parsing/constraint_parser.hh>
 #include <autoq/aut_description.hh>
 #include <boost/algorithm/string/predicate.hpp>
 #include <autoq/complex/symbolic_complex.hh>
@@ -42,6 +43,7 @@ using AUTOQ::Complex::SymbolicComplex;
 using AUTOQ::Parsing::TimbukParser;
 using AUTOQ::Parsing::SymbolicComplexParser;
 using AUTOQ::Parsing::LinearCombinationParser;
+using AUTOQ::Parsing::ConstraintParser;
 
 /**
  * @brief  Split a string at a delimiter
@@ -1105,7 +1107,14 @@ AUTOQ::Automata<Symbol> TimbukParser<Symbol>::ReadAutomaton(const std::string& f
     } else {
         throw std::runtime_error(AUTOQ_LOG_PREFIX + "[ERROR] The filename extension is not supported.");
     }
-    result.constraints += constraints; // = is also okay, since only the variable definitions will not produce constraints.
+
+    std::stringstream ss(trim(constraints));
+    std::string constraint;
+    while (std::getline(ss, constraint, '\n')) {
+        result.constraints += ConstraintParser(constraint).getSMTexpression();
+    }
+    if (!result.constraints.empty())
+        result.constraints = "(and " + result.constraints + ")";
     return result;
 }
 

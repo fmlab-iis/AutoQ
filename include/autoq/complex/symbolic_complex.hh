@@ -111,6 +111,10 @@ struct AUTOQ::Complex::SymbolicComplex : std::map<Complex, AUTOQ::Complex::linea
         result[c] = {{ "1", 1 }};
         return result;
     }
+    static SymbolicComplex MySymbolicComplexConstructor(const std::string &name) {
+        std::set<std::string> vars;
+        return MySymbolicComplexConstructor(name, vars);
+    }
     static SymbolicComplex MySymbolicComplexConstructor(const std::string &name, std::set<std::string> &vars) {
         vars.insert(name + "R");
         vars.insert(name + "I");
@@ -188,6 +192,22 @@ struct AUTOQ::Complex::SymbolicComplex : std::map<Complex, AUTOQ::Complex::linea
         result += ")";
         return result;
     }
+    SymbolicComplex real() const {
+        SymbolicComplex result, result2;
+        for (const auto &kv : *this) {
+            auto k = kv.first.real();
+            auto v = kv.second;
+            if (k.isZero()) continue;
+            result2[k] = result2[k] + v;
+        }
+        for (const auto &kv : result2) {
+            auto k = kv.first;
+            auto v = kv.second;
+            if (result2[k].trueMustBeZero()) continue;
+            result[k] = v;
+        }
+        return result;
+    }
     std::string imagToSMT() const { // std::map<Complex, AUTOQ::Complex::linear_combination> complex;
         if (empty()) return "0";
         std::string result = "(+";
@@ -197,6 +217,22 @@ struct AUTOQ::Complex::SymbolicComplex : std::map<Complex, AUTOQ::Complex::linea
             result += " (* " + k.imagToSMT() + " " + v.toSMT() + ")";
         }
         result += ")";
+        return result;
+    }
+    SymbolicComplex imag() const {
+        SymbolicComplex result, result2;
+        for (const auto &kv : *this) {
+            auto k = kv.first.imag();
+            auto v = kv.second;
+            if (k.isZero()) continue;
+            result2[k] = result2[k] + v;
+        }
+        for (const auto &kv : result2) {
+            auto k = kv.first;
+            auto v = kv.second;
+            if (result2[k].trueMustBeZero()) continue;
+            result[k] = v;
+        }
         return result;
     }
     void fraction_simplification() {
