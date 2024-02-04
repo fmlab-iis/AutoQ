@@ -23,9 +23,11 @@ namespace AUTOQ {
 class AUTOQ::Parsing::SymbolicComplexParser {
 public:
     SymbolicComplexParser(const std::string &input) : input_(input), index_(0), constMap_(std::map<std::string, Complex::Complex>()) {
+        std::erase_if(input_, [](unsigned char ch) { return std::isspace(ch); });
         parse();
     }
     SymbolicComplexParser(const std::string &input, const std::map<std::string, Complex::Complex> &constMap) : input_(input), index_(0), constMap_(constMap) {
+        std::erase_if(input_, [](unsigned char ch) { return std::isspace(ch); });
         parse();
     }
     SymbolicComplex getSymbolicComplex() const {
@@ -36,27 +38,19 @@ public:
     }
 
 private:
-    const std::string &input_;
+    std::string input_;
     size_t index_;
     SymbolicComplex result;
     const std::map<std::string, Complex::Complex> &constMap_;
     std::set<std::string> used_vars;
 
     void parse() {
-        skipWhitespace();
         result = parseExpression();
-    }
-
-    void skipWhitespace() {
-        while (index_ < input_.length() && std::isspace(input_[index_])) {
-            index_++;
-        }
     }
 
     SymbolicComplex parseExpression() {
         SymbolicComplex left = parseTerm();
         while (index_ < input_.length()) {
-            skipWhitespace();
             char op = input_[index_];
             if (op == '+' || op == '-') {
                 index_++;
@@ -76,7 +70,6 @@ private:
     SymbolicComplex parseTerm() {
         SymbolicComplex left = parseFactor();
         while (index_ < input_.length()) {
-            skipWhitespace();
             char op = input_[index_];
             if (op == '*' || op == '/') {
                 index_++;
@@ -111,7 +104,6 @@ private:
         }
     }
     SymbolicComplex parseFactor() {
-        skipWhitespace();
         char nextChar = input_[index_];
 
         // Handle unary minus
@@ -120,7 +112,6 @@ private:
 
         SymbolicComplex left = parsePrimary();
         while (index_ < input_.length()) {
-            skipWhitespace();
             char op = input_[index_];
             if (op == '^') {
                 index_++;
@@ -140,7 +131,6 @@ private:
     }
 
     SymbolicComplex parsePrimary() {
-        skipWhitespace();
         if (index_ >= input_.length()) {
             throw std::runtime_error(AUTOQ_LOG_PREFIX + "Unexpected end of input");
         }
@@ -161,7 +151,6 @@ private:
             if (function == "ei2pi") {
                 if (index_ < input_.length() && input_[index_] == '(') {
                     index_++;
-                    skipWhitespace();
                     if (index_ >= input_.length() || (!std::isdigit(input_[index_]) && input_[index_] != '-')) {
                         throw std::runtime_error(AUTOQ_LOG_PREFIX + "Invalid argument for A function");
                     }

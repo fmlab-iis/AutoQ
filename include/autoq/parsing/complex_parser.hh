@@ -15,9 +15,11 @@ typedef boost::rational<boost::multiprecision::cpp_int> rational;
 class ComplexParser {
 public:
     ComplexParser(const std::string &input) : input_(input), index_(0), constMap_(std::map<std::string, Complex>()) {
+        std::erase_if(input_, [](unsigned char ch) { return std::isspace(ch); });
         parse();
     }
     ComplexParser(const std::string &input, const std::map<std::string, Complex> &constMap) : input_(input), index_(0), constMap_(constMap) {
+        std::erase_if(input_, [](unsigned char ch) { return std::isspace(ch); });
         parse();
     }
     Complex getComplex() const {
@@ -28,14 +30,13 @@ public:
     }
 
 private:
-    const std::string &input_;
+    std::string input_;
     size_t index_;
     Complex resultC; // complex
     std::string resultV; // variable
     const std::map<std::string, Complex> &constMap_;
 
     void parse() {
-        skipWhitespace();
         try {
             resultC = parseExpression();
         } catch (std::exception& e) {
@@ -43,16 +44,9 @@ private:
         }
     }
 
-    void skipWhitespace() {
-        while (index_ < input_.length() && std::isspace(input_[index_])) {
-            index_++;
-        }
-    }
-
     Complex parseExpression() {
         Complex left = parseTerm();
         while (index_ < input_.length()) {
-            skipWhitespace();
             char op = input_[index_];
             if (op == '+' || op == '-') {
                 index_++;
@@ -72,7 +66,6 @@ private:
     Complex parseTerm() {
         Complex left = parseFactor();
         while (index_ < input_.length()) {
-            skipWhitespace();
             char op = input_[index_];
             if (op == '*' || op == '/') {
                 index_++;
@@ -105,7 +98,6 @@ private:
         }
     }
     Complex parseFactor() {
-        skipWhitespace();
         char nextChar = input_[index_];
 
         // Handle unary minus
@@ -114,7 +106,6 @@ private:
 
         Complex left = parsePrimary();
         while (index_ < input_.length()) {
-            skipWhitespace();
             char op = input_[index_];
             if (op == '^') {
                 index_++;
@@ -141,7 +132,6 @@ private:
     //         return rational(static_cast<boost::multiprecision::cpp_int>(in * 1000000), 1000000);
     // }
     Complex parsePrimary() {
-        skipWhitespace();
         if (index_ >= input_.length()) {
             throw std::runtime_error(AUTOQ_LOG_PREFIX + "Unexpected end of input");
         }
@@ -162,7 +152,6 @@ private:
             if (function == "ei2pi") {
                 if (index_ < input_.length() && input_[index_] == '(') {
                     index_++;
-                    skipWhitespace();
                     if (index_ >= input_.length() || (!std::isdigit(input_[index_]) && input_[index_] != '-')) {
                         throw std::runtime_error(AUTOQ_LOG_PREFIX + "Invalid argument for A function");
                     }

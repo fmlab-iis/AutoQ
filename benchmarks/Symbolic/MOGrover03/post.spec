@@ -1,7 +1,4 @@
-Predicates
-p1 := (and (< (* $R $R) 0.1) (= $I 0))
-p2 := (and (= $R 0) (= $I 0))
-p3 := (and (> (* $R $R) 0.9) (= $I 0))
+Root States 0
 Transitions
 [p1] -> 49
 [p2] -> 48
@@ -61,3 +58,9 @@ Transitions
 [1](7, 2) -> 0
 [1](8, 2) -> 0
 [1](9, 2) -> 0
+Constraints
+imag(p1) = 0
+real(p1) ^ 2 < 1/8
+p2 = 0
+imag(p3) = 0
+real(p3) ^ 2 > 7/8

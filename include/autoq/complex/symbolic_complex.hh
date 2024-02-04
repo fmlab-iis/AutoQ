@@ -61,9 +61,9 @@ struct AUTOQ::Complex::linear_combination : std::map<std::string, boost::multipr
                 } else if (kv2.first == "1") {
                     ans[kv1.first] += kv1.second * kv2.second;
                 } else if (kv1.first < kv2.first) {
-                    ans[kv1.first + "*" + kv2.first] += kv1.second * kv2.second;
+                    ans["(* " + kv1.first + " " + kv2.first + ")"] += kv1.second * kv2.second;
                 } else {
-                    ans[kv2.first + "*" + kv1.first] += kv1.second * kv2.second;
+                    ans["(* " + kv2.first + " " + kv1.first + ")"] += kv1.second * kv2.second;
                 }
             }
         }

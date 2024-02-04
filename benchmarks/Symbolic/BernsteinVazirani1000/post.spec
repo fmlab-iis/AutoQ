@@ -1,5 +1,4 @@
-Predicates
-p1 := (= $I 0)
+Root States 0
 Transitions
 [1](1, 2) -> 0
 [2](3, 3) -> 1
@@ -2001,4 +2000,7 @@ Transitions
 [1000](1999, 1999) -> 1997
 [1000](2000, 1999) -> 1998
 [p1] -> 1999
-[p1] -> 2000
+[p2] -> 2000
+Constraints
+imag(p1) = 0
+imag(p2) = 0

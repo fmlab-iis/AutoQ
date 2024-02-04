@@ -1,6 +1,7 @@
-Numbers
-c0 := (0 + 0 * A(1/8) + 0 * A(2/8) + 0 * A(3/8)) / (V2 ^ 0)
-c1 := (1 + 0 * A(1/8) + 0 * A(2/8) + 0 * A(3/8)) / (V2 ^ 0)
+Constants
+c0 := 0
+c1 := 1
+Root States 0
 Transitions
 [1](2, 1) -> 0
 [2](3, 3) -> 1
@@ -83,4 +84,3 @@ Transitions
 [40](80, 79) -> 78
 [c0] -> 79
 [c1] -> 80
-Constraints

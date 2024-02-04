@@ -29,7 +29,9 @@ struct AUTOQ::Complex::FiveTuple : stdvectorboostmultiprecisioncpp_int {
                 at(4) += 2;
                 d /= 2;
             }
-            assert(d == 1); // Assume the denominator is a power of 2!
+            if (d != 1) {   // Assume the denominator is a power of 2!
+                throw std::runtime_error(AUTOQ_LOG_PREFIX + "The input number cannot be represented with the current data structure!");
+            }
             at(0) = r.numerator();
         }
     static FiveTuple Angle(boost::rational<boost::multiprecision::cpp_int> theta) {
@@ -167,19 +169,23 @@ struct AUTOQ::Complex::FiveTuple : stdvectorboostmultiprecisioncpp_int {
         return boost::rational<boost::multiprecision::cpp_int>(at(0), boost::multiprecision::pow(boost::multiprecision::cpp_int(2), static_cast<int>(at(4)/2)));
     }
     std::string realToSMT() const {
+        std::string denominator = std::to_string(std::pow(std::sqrt(2.0), static_cast<int>(at(4))));
+        if (denominator == "inf") return "0";
         std::string result = "(/ (+ ";
         result += at(0).str();
         result += " (* " + std::to_string(std::sqrt(2.0) / 2.0) + " " + at(1).str() + ")";
         result += " (* (- " + std::to_string(std::sqrt(2.0) / 2.0) + ") " + at(3).str() + ")";
-        result += ") " + std::to_string(std::pow(std::sqrt(2.0), static_cast<int>(at(4)))) + ")";
+        result += ") " + denominator + ")";
         return result;
     }
     std::string imagToSMT() const {
+        std::string denominator = std::to_string(std::pow(std::sqrt(2.0), static_cast<int>(at(4))));
+        if (denominator == "inf") return "0";
         std::string result = "(/ (+";
         result += " (* " + std::to_string(std::sqrt(2.0) / 2.0) + " " + at(1).str() + ") ";
         result += at(2).str();
         result += " (* " + std::to_string(std::sqrt(2.0) / 2.0) + " " + at(3).str() + ")";
-        result += ") " + std::to_string(std::pow(std::sqrt(2.0), static_cast<int>(at(4)))) + ")";
+        result += ") " + denominator + ")";
         return result;
     }
     double abs2() const {

@@ -20,28 +20,22 @@ namespace AUTOQ
 
 class AUTOQ::Parsing::LinearCombinationParser {
 public:
-    LinearCombinationParser(const std::string& input) : input_(input), index_(0) {}
+    LinearCombinationParser(const std::string& input) : input_(input), index_(0) {
+        std::erase_if(input_, [](unsigned char ch) { return std::isspace(ch); });
+    }
 
     linear_combination parse() {
-        skipWhitespace();
         linear_combination result = parseExpression();
         return result;
     }
 
 private:
-    const std::string& input_;
+    std::string input_;
     size_t index_;
-
-    void skipWhitespace() {
-        while (index_ < input_.length() && std::isspace(input_[index_])) {
-            index_++;
-        }
-    }
 
     linear_combination parseExpression() {
         linear_combination left = parseTerm();
         while (index_ < input_.length()) {
-            skipWhitespace();
             char op = input_[index_];
             if (op == '+' || op == '-') {
                 index_++;
@@ -61,7 +55,6 @@ private:
     linear_combination parseTerm() {
         linear_combination left = parseFactor();
         while (index_ < input_.length()) {
-            skipWhitespace();
             char op = input_[index_];
             if (op == '*') {
                 index_++;
@@ -96,7 +89,6 @@ private:
     linear_combination parseFactor() {
         linear_combination left = parsePrimary();
         while (index_ < input_.length()) {
-            skipWhitespace();
             char op = input_[index_];
             if (op == '^') {
                 index_++;
@@ -117,7 +109,6 @@ private:
     //         return boost::rational<boost::multiprecision::cpp_int>(static_cast<boost::multiprecision::cpp_int>(in * 1000000), 1000000);
     // }
     linear_combination parsePrimary() {
-        skipWhitespace();
         if (index_ >= input_.length()) {
             throw std::runtime_error(AUTOQ_LOG_PREFIX + "Unexpected end of input");
         }

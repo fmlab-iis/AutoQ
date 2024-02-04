@@ -45,6 +45,7 @@ try {
     Q.remove_useless();
     Q.reduce();
     verify &= is_scaled_spec_satisfied(aut, Q);
+    // aut.print(); Q.print();
 
     if (latex) {
         std::cout << aut.qubitNum << " & " << AUTOQ::Automata<AUTOQ::Symbol::Symbolic>::gateCount
