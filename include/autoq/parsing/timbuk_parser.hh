@@ -38,7 +38,7 @@ class AUTOQ::Parsing::TimbukParser
 {
 public:   // methods
     static AUTOQ::Automata<Symbol> ReadAutomaton(const std::string& filepath);
-    static AUTOQ::Automata<Symbol> parse_hsl_from_istream(std::istream *is);
+    static AUTOQ::Automata<Symbol> parse_hsl_from_istream(std::istream *is, const std::map<std::string, AUTOQ::Complex::Complex> &constants = {});
 
 private:
     // Disallow creating an instance of this object

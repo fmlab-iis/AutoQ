@@ -452,13 +452,11 @@ Automata<Symbol> parse_timbuk(const std::string& str) {
 }
 
 template <typename Symbol>
-Automata<Symbol> parse_automaton(const std::string& str) {
+Automata<Symbol> parse_automaton(const std::string& str, const std::map<std::string, Complex> &constants) {
 try {
-	bool start_numbers = false;
     bool start_transitions = false;
     bool already_root_states = false;
     Automata<Symbol> result;
-    std::map<std::string, Complex> constants;
     std::map<std::string, std::string> predicates;
     std::map<std::string, typename Automata<Symbol>::State> states;
     std::set<std::string> result_finalStates;
@@ -468,7 +466,7 @@ try {
 		std::string str = trim(line);
 		if (str.empty()) { continue; }
 
-		if (!start_transitions) {	// processing constants
+		if (!start_transitions) {
             if (std::regex_search(str, std::regex("Root +States"))) { // processing root states
                 while (!str.empty()) {
                     std::string state = read_word(str);
@@ -483,7 +481,6 @@ try {
                 already_root_states = true;
                 continue;
             }
-
             if (str == "Transitions") {
                 if (!already_root_states) {
                     throw std::runtime_error(AUTOQ_LOG_PREFIX + "Root states not specified.");
@@ -491,68 +488,7 @@ try {
                 start_transitions = true;
                 continue;
             }
-
-            if (!start_numbers) {
-                std::string first_word = read_word(str);
-                if constexpr(std::is_same_v<Symbol, Predicate>) {
-                    if ("Predicates" == first_word) {
-                        start_numbers = true;
-                        continue;
-                    } else {	// guard
-                        throw std::runtime_error(AUTOQ_LOG_PREFIX + "Line \"" + line +
-                            "\" contains an unexpected string.");
-                    }
-                } else {
-                    if ("Constants" == first_word) {
-                        start_numbers = true;
-                        continue;
-                    } else {	// guard
-                        throw std::runtime_error(AUTOQ_LOG_PREFIX + "Line \"" + line +
-                            "\" contains an unexpected string.");
-                    }
-                }
-            }
-
-            size_t arrow_pos = str.find(":=");
-			if (std::string::npos != arrow_pos) { // Variables may appear without values in the symbolic case.
-                std::string lhs = trim(str.substr(0, arrow_pos));
-                std::string rhs = trim(str.substr(arrow_pos + 2));
-                if (lhs.empty() || rhs.empty()) {
-                    if constexpr(std::is_same_v<Symbol, Predicate>)
-                        throw std::runtime_error(AUTOQ_LOG_PREFIX + "Invalid predicate \"" + line + "\".");
-                    else
-                        throw std::runtime_error(AUTOQ_LOG_PREFIX + "Invalid number \"" + line + "\".");
-                }
-                if constexpr(!std::is_same_v<Symbol, Predicate>) {
-                    constants[lhs] = ComplexParser(rhs).getComplex();
-                    // std::cout << lhs << " " << constants[lhs] << "\n";
-                } else
-                    predicates[lhs] = rhs;
-            }
         } else {	// processing transitions
-            #ifdef COMPLEX_FiveTuple
-            // Unify k's for all complex numbers if 5-tuple is used
-            // for speeding up binary operations.
-            boost::multiprecision::cpp_int max_k = INT_MIN;
-            if constexpr(std::is_same_v<Complex, AUTOQ::Complex::FiveTuple>) {
-                for (const auto &kv : constants) {
-                    if (kv.second.at(0)!=0 || kv.second.at(1)!=0 || kv.second.at(2)!=0 || kv.second.at(3)!=0)
-                        if (max_k < kv.second.at(4))
-                            max_k = kv.second.at(4);
-                }
-                if (max_k == INT_MIN) max_k = 0; // IMPORTANT: if not modified, resume to 0.
-                for (auto &kv : constants) {
-                    if (kv.second.at(0)==0 && kv.second.at(1)==0 && kv.second.at(2)==0 && kv.second.at(3)==0)
-                        kv.second.at(4) = max_k;
-                    else {
-                        for (int i=0; i<4; i++)
-                            kv.second.at(i) <<= static_cast<int>((max_k - kv.second.at(4)) / 2);
-                        kv.second.at(4) = max_k;
-                    }
-                }
-            }
-            #endif
-
 			std::string invalid_trans_str = AUTOQ_LOG_PREFIX +
 				"Invalid transition \"" + line + "\".";
 
@@ -724,37 +660,17 @@ try {
 }
 
 template <typename Symbol>
-Automata<Symbol> TimbukParser<Symbol>::parse_hsl_from_istream(std::istream *is) {
-    bool start_numbers = false;
+Automata<Symbol> TimbukParser<Symbol>::parse_hsl_from_istream(std::istream *is, const std::map<std::string, AUTOQ::Complex::Complex> &constants) {
     bool start_transitions = false;
     Automata<Symbol> aut_final;
     std::string line;
-    std::map<std::string, Complex::Complex> constants;
     while (std::getline(*is, line)) {
 		line = trim(line);
 		if (line.empty()) { continue; }
-		if (!start_transitions) {	// processing constants
+		if (!start_transitions) {
             if (std::regex_search(line, std::regex("Extended +Dirac"))) {
                 start_transitions = true;
                 continue;
-            } else if (!start_numbers) {
-                std::string first_word = read_word(line);
-                if ("Constants" == first_word) {
-                    start_numbers = true;
-                    continue;
-                } else {	// guard
-                    throw std::runtime_error(AUTOQ_LOG_PREFIX + "Line \"" + line +
-                        "\" contains an unexpected string.");
-                }
-            }
-            size_t arrow_pos = line.find(":=");
-			if (std::string::npos != arrow_pos) { // Variables may appear without values in the symbolic case.
-                std::string lhs = trim(line.substr(0, arrow_pos));
-                std::string rhs = trim(line.substr(arrow_pos + 2));
-                if (lhs.empty() || rhs.empty()) {
-                    throw std::runtime_error(AUTOQ_LOG_PREFIX + "Invalid number \"" + line + "\".");
-                }
-                constants[lhs] = ComplexParser(rhs).getComplex();
             }
         }   // processing states
         else if (std::regex_search(line, std::regex("\\\\/ *\\|i\\|="))) { // if startswith "\/ |i|="
@@ -799,9 +715,9 @@ Automata<Symbol> TimbukParser<Symbol>::parse_hsl_from_istream(std::istream *is) 
 }
 
 template <typename Symbol>
-Automata<Symbol> parse_hsl(const std::string& str) {
+Automata<Symbol> parse_hsl(const std::string& str, const std::map<std::string, Complex> &constants) {
     std::istringstream inputStream(str); // delimited by '\n'
-    auto aut = TimbukParser<Symbol>::parse_hsl_from_istream(&inputStream);
+    auto aut = TimbukParser<Symbol>::parse_hsl_from_istream(&inputStream, constants);
     // aut.print(str);
     return aut;
 }
@@ -1090,6 +1006,50 @@ AUTOQ::Automata<Symbol> TimbukParser<Symbol>::ReadAutomaton(const std::string& f
     }
     std::string fileContents((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
     file.close();
+
+    std::map<std::string, Complex::Complex> constants;
+    if (!boost::algorithm::ends_with(filepath, ".aut") &&
+        fileContents.find("Constants") != std::string::npos) {
+        size_t found2 = std::min(fileContents.find("Extended"), fileContents.find("Root"));
+        auto constants_str = trim(fileContents.substr(9, found2 - 9)); // "Constants".length()
+        fileContents = fileContents.substr(found2);
+
+        std::stringstream ss(constants_str);
+        std::string str;
+        while (std::getline(ss, str, '\n')) {
+            size_t arrow_pos = str.find(":=");
+            if (std::string::npos != arrow_pos) { // Variables may appear without values in the symbolic case.
+                std::string lhs = trim(str.substr(0, arrow_pos));
+                std::string rhs = trim(str.substr(arrow_pos + 2));
+                if (lhs.empty() || rhs.empty()) {
+                    throw std::runtime_error(AUTOQ_LOG_PREFIX + "Invalid number \"" + str + "\".");
+                }
+                constants[lhs] = ComplexParser(rhs).getComplex();
+            }
+        }
+
+        #ifdef COMPLEX_FiveTuple
+        // Unify k's for all complex numbers if 5-tuple is used
+        // for speeding up binary operations.
+        boost::multiprecision::cpp_int max_k = INT_MIN;
+        for (const auto &kv : constants) {
+            if (kv.second.at(0)!=0 || kv.second.at(1)!=0 || kv.second.at(2)!=0 || kv.second.at(3)!=0)
+                if (max_k < kv.second.at(4))
+                    max_k = kv.second.at(4);
+        }
+        if (max_k == INT_MIN) max_k = 0; // IMPORTANT: if not modified, resume to 0.
+        for (auto &kv : constants) {
+            if (kv.second.at(0)==0 && kv.second.at(1)==0 && kv.second.at(2)==0 && kv.second.at(3)==0)
+                kv.second.at(4) = max_k;
+            else {
+                for (int i=0; i<4; i++)
+                    kv.second.at(i) <<= static_cast<int>((max_k - kv.second.at(4)) / 2);
+                kv.second.at(4) = max_k;
+            }
+        }
+        #endif
+    }
+
     size_t found = fileContents.find("Constraints");
     if (found != std::string::npos) {
         automaton = fileContents.substr(0, found);
@@ -1099,11 +1059,11 @@ AUTOQ::Automata<Symbol> TimbukParser<Symbol>::ReadAutomaton(const std::string& f
         constraints = "";
     }
     if (boost::algorithm::ends_with(filepath, ".spec")) {
-        result = parse_automaton<Symbol>(automaton);
+        result = parse_automaton<Symbol>(automaton, constants);
     } else if (boost::algorithm::ends_with(filepath, ".aut")) {
         result = parse_timbuk<Symbol>(automaton);
     } else if (boost::algorithm::ends_with(filepath, ".hsl")) {
-        result = parse_hsl<Symbol>(automaton);
+        result = parse_hsl<Symbol>(automaton, constants);
     } else {
         throw std::runtime_error(AUTOQ_LOG_PREFIX + "[ERROR] The filename extension is not supported.");
     }
@@ -1111,7 +1071,7 @@ AUTOQ::Automata<Symbol> TimbukParser<Symbol>::ReadAutomaton(const std::string& f
     std::stringstream ss(trim(constraints));
     std::string constraint;
     while (std::getline(ss, constraint, '\n')) {
-        result.constraints += ConstraintParser(constraint).getSMTexpression();
+        result.constraints += ConstraintParser(constraint, constants).getSMTexpression();
     }
     if (!result.constraints.empty())
         result.constraints = "(and " + result.constraints + ")";
