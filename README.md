@@ -54,14 +54,14 @@ The compiled command-line binaries are located in `${PROJECT_ROOT}/build/cli/`. 
 ```
 $ ./build/cli/autoq_cav24_concrete benchmarks/control_mini/if-else/pre.hsl benchmarks/control_mini/if-else/circuit.qasm benchmarks/control_mini/if-else/post.hsl
 The quantum program has [2] qubits and [5] gates.
-The verification process [passed] with [0.0s] and [14MB] memory usage.
+The verification process [passed] with a running time of [0.0s] and a memory usage of [14MB].
 ```
 
 2. `$ ./build/cli/autoq_cav24_symbolic P.{aut|hsl|spec} C.qasm Q.{aut|hsl|spec}`
 ```
 $ ./build/cli/autoq_cav24_symbolic benchmarks/Grover_while/03/pre.spec benchmarks/Grover_while/03/circuit.qasm benchmarks/Grover_while/03/post.spec
 The quantum program has [7] qubits and [50] gates.
-The verification process [passed] with [3.1s] and [14MB] memory usage.
+The verification process [passed] with a running time of [3.1s] and a memory usage of [14MB].
 ```
 
 These two binaries both support the `-l` option, which is used for printing the statistics whose format is suitable for tables in LaTeX.

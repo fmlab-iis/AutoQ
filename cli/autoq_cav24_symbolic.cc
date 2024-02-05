@@ -51,7 +51,7 @@ try {
         std::cout << aut.qubitNum << " & " << AUTOQ::Automata<AUTOQ::Symbol::Symbolic>::gateCount
         << " & " << (verify ? "Passed" : "Failed") << " & " << toString(chrono::steady_clock::now() - start) << " & " << getPeakRSS() / 1024 / 1024 << "MB\n";
     } else {
-        std::cout << "The quantum program has [" << aut.qubitNum << "] qubits and [" << AUTOQ::Automata<AUTOQ::Symbol::Symbolic>::gateCount << "] gates.\nThe verification process [" << (verify ? "passed" : "failed") << "] with [" << toString(chrono::steady_clock::now() - start) << "] and [" << getPeakRSS() / 1024 / 1024 << "MB] memory usage.\n";
+        std::cout << "The quantum program has [" << aut.qubitNum << "] qubits and [" << AUTOQ::Automata<AUTOQ::Symbol::Concrete>::gateCount << "] gates.\nThe verification process [" << (verify ? "passed" : "failed") << "] with a running time of [" << toString(chrono::steady_clock::now() - start) << "] and a memory usage of [" << getPeakRSS() / 1024 / 1024 << "MB].\n";
     }
     return 0;
 } catch (std::exception &e) {
