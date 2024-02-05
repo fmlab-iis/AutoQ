@@ -63,7 +63,8 @@ bool AUTOQ::Util::ShellCmd(const std::string &cmd, std::string &result) {
     // Open pipe to file
     FILE* pipe = popen(cmd.c_str(), "r");
     if (!pipe) {
-        return false;
+        std::cout << cmd << std::endl;
+        throw std::runtime_error(AUTOQ_LOG_PREFIX + "popen() failed!");
     }
 
     // read till end of process:

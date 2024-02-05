@@ -143,7 +143,7 @@ set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -std=c++20")
 #                                 PROJECT
 ##############################################################################
 
-project(libautoq)
+project(autoq)
 
 # Include CTest so that sophisticated testing can be done now
 include(CTest)

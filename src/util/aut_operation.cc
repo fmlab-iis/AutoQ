@@ -18,6 +18,7 @@
 #include <regex>
 #include <bit>
 #include <boost/dynamic_bitset.hpp>
+#include <z3++.h>
 
 using namespace AUTOQ;
 using namespace AUTOQ::Util;
