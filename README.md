@@ -29,29 +29,21 @@ Our program currently supports $X$, $Y$, $Z$, $H$, $T$, $T^\dagger$, $S$, $S^\da
 ---
 
 ## Installation and Compilation
-In order to compile the library and the command-line interface to the library, we need to run<br>
+
+1. Install the following dependencies via the command line.<br>
 `$ sudo apt install git make cmake g++ libboost-filesystem-dev libboost-test-dev`.
 
-Also notice that the installed Z3 via `$ sudo apt install z3` may not be the latest one.<br>
-To resolve this issue, we use the following commands instead.
-```
-$ wget https://github.com/Z3Prover/z3/releases/download/z3-4.12.1/z3-4.12.1-x64-glibc-2.35.zip
-$ unzip z3-4.12.1-x64-glibc-2.35.zip
-$ sudo cp z3-4.12.1-x64-glibc-2.35/bin/z3 /usr/bin/
-```
+2. We need the Z3 solver to solve the constraints when the automaton contains some symbolic variables. Since the installation process of Z3 may take a lot of work, I have provided the [prebuilt shared library](https://github.com/alan23273850/AutoQ/blob/CAV24/libz3.so.4.12) of [z3-4.12.5](https://github.com/Z3Prover/z3/releases/tag/z3-4.12.5) and the corresponding [header files](https://github.com/alan23273850/AutoQ/tree/CAV24/include/z3) for users' convenience.
 
-Then, in the project's root directory, execute `$ mkdir build`.
+3. Finally, in the project's root directory, choose one of the following command to run.
 
-Finally, choose one of the following command to run.
-
-1. `$ make release`: For compiling the source code of the library and the command-line
-interface with compiler optimizations turned on, issue this command in the root directory of this project.<br>
-2. `$ make debug`: In order to compile the library into a form suitable for debugging (i.e., with
+    - `$ make release -j8` (with `8` replaced with the number of threads you want):<br>For compiling the source code of the library and the command-line interface with compiler optimizations turned on.
+    - `$ make debug -j8` (with `8` replaced with the number of threads you want):<br>For compiling the library into a form suitable for debugging (i.e., with
 optimizations turned off and some additional runtime checks enabled).
 
-Since `$ make release` will ignore assertions in source codes, one should always use `$ make release` for better performance when conducting experiments.
+Since `$ make release -j8` will ignore assertions in source codes, one should always use `$ make release -j8` for better performance when conducting experiments.
 
-It is recommended to run `$ make test` from the repository's root directory after compiling the code to run several unit tests and check that the compiled code passes them all. This project has also been tested on Ubuntu 22.04.3 LTS. It should work on other Linux distributions as well.
+It is recommended to run `$ make test` in the repository's root directory after compiling the source codes to run several unit tests and check that the implementation is correct. This project has also been tested on Ubuntu 22.04.3 LTS. It should work on other Linux distributions as well.
 
 ---
 
