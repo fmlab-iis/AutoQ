@@ -56,13 +56,24 @@ std::string AUTOQ::Util::ReadFile(const std::string& fileName)
 	return str;
 }
 
+// const int MAX_ARG_STRLEN = 131070; // in fact is 131072 on the Internet
 std::string AUTOQ::Util::ShellCmd(const std::string &cmd) {
+    // int length = cmd.length();
+    // if (length > MAX_ARG_STRLEN) {
+    //     std::vector<std::string> args;
+    //     for (int i=0; i<length; i+=MAX_ARG_STRLEN) {
+    //         args.push_back(cmd.substr(i, MAX_ARG_STRLEN));
+    //     }
+    //     return AUTOQ::Util::ShellCmd(args);
+    // }
+
     char buffer[512];
     std::string result = "";
 
     // Open pipe to file
     FILE* pipe = popen(cmd.c_str(), "r");
     if (!pipe) {
+        std::cout << cmd << std::endl;
         throw std::runtime_error(AUTOQ_LOG_PREFIX + "popen() failed!");
     }
 

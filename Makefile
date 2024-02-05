@@ -3,16 +3,19 @@ BUILD_DIR=build
 # TEST_FLAGS=-j 8
 TEST_FLAGS=--output-on-failure
 
-.PHONY: debug release clean test
+.PHONY: debug release clean test create_folder
 
-debug:
+create_folder:
+	@mkdir -p $(BUILD_DIR)
+
+debug: create_folder
 	cd $(BUILD_DIR) && cmake -DCMAKE_BUILD_TYPE=Debug .. && $(MAKE) $(MAKE_FLAGS)
 
-release:
+release: create_folder
 	cd $(BUILD_DIR) && cmake -DCMAKE_BUILD_TYPE=Release .. && $(MAKE) $(MAKE_FLAGS)
 
-test:
+test: create_folder
 	cd $(BUILD_DIR) && ctest $(TEST_FLAGS)
 
-clean:
+clean: create_folder
 	cd $(BUILD_DIR) && rm -rf *

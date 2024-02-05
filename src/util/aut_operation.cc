@@ -18,6 +18,7 @@
 #include <bit>
 #include <filesystem>
 #include <boost/dynamic_bitset.hpp>
+#include <z3++.h>
 
 #define MIN
 
@@ -1500,12 +1501,18 @@ bool AUTOQ::call_SMT_solver(const std::string &var_defs, const std::string &asse
     std::string smt_input = "bash -c \"z3 <(echo '" + var_defs + "(assert " + assertion + ")(check-sat)')\"";
     // auto start = chrono::steady_clock::now();
     // std::cout << smt_input << "\n";
-    std::string result = ShellCmd(smt_input);
+    // std::string result = ShellCmd(smt_input);
     // std::cout << result << "\n";
     // auto duration = chrono::steady_clock::now() - start;
     // std::cout << toString2(duration) << "\n";
-    if (result == "unsat\n") return false;
-    else if (result == "sat\n") return true;
+
+    // std::cout << Z3_get_full_version() << "\n";
+    z3::context c;
+    z3::solver s(c);
+    s.from_string((var_defs + "(assert " + assertion + ")").c_str());
+    auto result = s.check();
+    if (result == z3::unsat) return false;
+    else if (result == z3::sat) return true;
     else {
         std::cout << smt_input << "\n";
         std::cout << result << "-\n";
