@@ -1,4 +1,4 @@
 OPENQASM 3;
 include "stdgates.inc";
-qubit[1] qb;
-bit[1] outcome;
+qubit[2] qb;
+bit[2] outcome;
