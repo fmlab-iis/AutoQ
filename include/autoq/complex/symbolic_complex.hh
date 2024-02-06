@@ -105,6 +105,8 @@ struct AUTOQ::Complex::linear_combination : std::map<std::string, boost::multipr
 };
 
 struct AUTOQ::Complex::SymbolicComplex : std::map<Complex, AUTOQ::Complex::linear_combination> {
+    std::string smt_real;
+
     static SymbolicComplex MySymbolicComplexConstructor(const Complex &c) {
         if (c.isZero()) return {}; // IMPORTANT: keep the keys nonzero to simplify the structure very much!
         SymbolicComplex result;
@@ -124,6 +126,15 @@ struct AUTOQ::Complex::SymbolicComplex : std::map<Complex, AUTOQ::Complex::linea
         return result;
     }
     SymbolicComplex operator+(const SymbolicComplex &o) const {
+        if (!smt_real.empty() || !o.smt_real.empty()) {
+            if (smt_real.empty() || o.smt_real.empty()) {
+                throw std::runtime_error(AUTOQ_LOG_PREFIX + "The two operand types are not consistent!");
+            }
+            SymbolicComplex result;
+            result.smt_real = "(+ " + smt_real + " " + o.smt_real + ")";
+            return result;
+        }
+        //
         auto complex2 = *this;
         for (const auto &kv : o) {
             complex2[kv.first] = complex2[kv.first] + kv.second;
@@ -133,6 +144,15 @@ struct AUTOQ::Complex::SymbolicComplex : std::map<Complex, AUTOQ::Complex::linea
         return complex2;
     }
     SymbolicComplex operator-(const SymbolicComplex &o) const {
+        if (!smt_real.empty() || !o.smt_real.empty()) {
+            if (smt_real.empty() || o.smt_real.empty()) {
+                throw std::runtime_error(AUTOQ_LOG_PREFIX + "The two operand types are not consistent!");
+            }
+            SymbolicComplex result;
+            result.smt_real = "(- " + smt_real + " " + o.smt_real + ")";
+            return result;
+        }
+        //
         auto complex2 = *this;
         for (const auto &kv : o) {
             complex2[kv.first] = complex2[kv.first] - kv.second;
@@ -142,6 +162,15 @@ struct AUTOQ::Complex::SymbolicComplex : std::map<Complex, AUTOQ::Complex::linea
         return complex2;
     }
     SymbolicComplex operator*(const SymbolicComplex &o) const {
+        if (!smt_real.empty() || !o.smt_real.empty()) {
+            if (smt_real.empty() || o.smt_real.empty()) {
+                throw std::runtime_error(AUTOQ_LOG_PREFIX + "The two operand types are not consistent!");
+            }
+            SymbolicComplex result;
+            result.smt_real = "(* " + smt_real + " " + o.smt_real + ")";
+            return result;
+        }
+        //
         AUTOQ::Complex::SymbolicComplex complex2;
         for (const auto &kv1 : *this) {
             for (const auto &kv2 : o) {
@@ -182,6 +211,8 @@ struct AUTOQ::Complex::SymbolicComplex : std::map<Complex, AUTOQ::Complex::linea
         return os;
     }
     std::string realToSMT() const { // std::map<Complex, AUTOQ::Complex::linear_combination> complex;
+        if (!smt_real.empty()) return smt_real;
+        //
         if (empty()) return "0";
         std::string result = "(+";
         for (const auto &kv : *this) {
@@ -193,6 +224,8 @@ struct AUTOQ::Complex::SymbolicComplex : std::map<Complex, AUTOQ::Complex::linea
         return result;
     }
     SymbolicComplex real() const {
+        if (!smt_real.empty()) return *this;
+        //
         SymbolicComplex result, result2;
         for (const auto &kv : *this) {
             auto k = kv.first.real();
@@ -209,7 +242,8 @@ struct AUTOQ::Complex::SymbolicComplex : std::map<Complex, AUTOQ::Complex::linea
         return result;
     }
     std::string imagToSMT() const { // std::map<Complex, AUTOQ::Complex::linear_combination> complex;
-        if (empty()) return "0";
+        if (!smt_real.empty() || empty()) return "0";
+        //
         std::string result = "(+";
         for (const auto &kv : *this) {
             auto k = kv.first;
@@ -220,6 +254,12 @@ struct AUTOQ::Complex::SymbolicComplex : std::map<Complex, AUTOQ::Complex::linea
         return result;
     }
     SymbolicComplex imag() const {
+        if (!smt_real.empty()) {
+            SymbolicComplex result;
+            result.smt_real = "0";
+            return result;
+        }
+        //
         SymbolicComplex result, result2;
         for (const auto &kv : *this) {
             auto k = kv.first.imag();

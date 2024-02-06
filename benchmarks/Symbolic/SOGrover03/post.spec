@@ -19,7 +19,7 @@ Transitions
 [4](9, 9) -> 6
 Constraints
 imag(p1) = 0
-real(p1) ^ 2 < 1/8
+abs(p1) < 1/8
 p2 = 0
 imag(p3) = 0
-real(p3) ^ 2 > 7/8
+abs(p3) > 7/8

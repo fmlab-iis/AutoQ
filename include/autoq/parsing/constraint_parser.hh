@@ -255,6 +255,23 @@ private:
                 } else {
                     throw std::runtime_error(AUTOQ_LOG_PREFIX + "Invalid syntax for imag function");
                 }
+            } else if (function == "abs") {
+                if (index_ < input_.length() && input_[index_] == '(') {
+                    index_++;
+                    if (index_ >= input_.length()) {
+                        throw std::runtime_error(AUTOQ_LOG_PREFIX + "Invalid argument for abs function");
+                    }
+                    auto x = parseExpression();
+                    if (index_ >= input_.length() || input_[index_] != ')') {
+                        throw std::runtime_error(AUTOQ_LOG_PREFIX + "Missing closing parenthesis for abs function");
+                    }
+                    index_++;
+                    SymbolicComplex result;
+                    result.smt_real = "(abs " + x.realToSMT() + ")";
+                    return result;
+                } else {
+                    throw std::runtime_error(AUTOQ_LOG_PREFIX + "Invalid syntax for imag function");
+                }
             } else if (function == "sqrt2") {
                 return SymbolicComplex::MySymbolicComplexConstructor(Complex::Complex::sqrt2());
             } else if (constMap_.count(function) > 0) {
