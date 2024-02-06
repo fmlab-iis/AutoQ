@@ -3,7 +3,7 @@
 
 ---
 
-AutoQ 2.0 is a command-line utility written in C++ for verifying partial correctness of quantum programs automatically based on non-deterministic finite tree automata (TA) along with the concept of Hoare-style proof systems. Given a triple $\\{P\\}\ C\ \\{Q\\}$, where $P$ and $Q$ are the pre- and post-conditions recognizing sets of (pure) quantum states (represented by TA) and $C$ is a quantum program, AutoQ 2.0 can check whether all the quantum states in $P$ reach some state in $Q$ after the program $C$ is executed. That is, $C(P)\subseteq Q$.
+AutoQ 2.0 is a command-line utility written in C++ for verifying partial correctness of quantum programs automatically based on non-deterministic finite tree automata (TA) along with the concept of Hoare-style proof systems. Consider a triple $\\{P\\}\ C\ \\{Q\\}$, where $P$ and $Q$ are the pre- and post-condition recognizing sets of (pure) quantum states (represented by TA) and $C$ is a quantum program. Let $\mathcal L(.)$ denote the function mapping from a condition $x$ to the set of all quantum states satisfying $x$ (characterized by $x$). Then AutoQ 2.0 essentially checks whether all the quantum states in $\mathcal L(P)$ reach some state in $\mathcal L(Q)$ after the program $C$ is executed. If we further let $C(.)$ denote the function mapping from a condition $x$ to the evolution of $x$ after a program segment $C$ is executed, then AutoQ 2.0 simply checks whether $\mathcal L(C(P)) \subseteq \mathcal L(Q)$.
 
 The following is a mini illustration of the functionality of this tool.
 ```
@@ -22,7 +22,7 @@ h qb[1];
 //   Q1: {|10>/√2 - |11>/√2, |10>/√2 + |00>/√2} -> pass
 //   Q2: {|10>/√2 - |11>/√2, |10>/√2 - |00>/√2} -> fail
 ```
-The program starts from an initial set of quantum states $P$. Right after executing each gate, AutoQ 2.0 computes and stores the evolution of these quantum states for later use. At the end of the quantum program, AutoQ 2.0 checks whether the set $Q$ contains the set $C(P)$. In the above example, if we take the postcondition $Q_1 = C(P)$, the verification passes. If we take another postcondition $Q_2$ such that there is some quantum state $|10\rangle/\sqrt2 + |00\rangle/\sqrt2 \in C(P)$ but $\not\in Q_2$, the verification fails.
+The program starts from an initial set of quantum states $\mathcal L(P)$. Right after executing each gate, AutoQ 2.0 computes and stores the evolution of these quantum states for later use. At the end of the quantum program, AutoQ 2.0 checks whether the set $\mathcal L(Q)$ contains the set $\mathcal L(C(P))$. In the above example, if we take the postcondition $Q_1 = C(P)$, the verification passes. If we take another postcondition $Q_2$ such that there is some quantum state $|10\rangle/\sqrt2 + |00\rangle/\sqrt2 \in \mathcal L(C(P))$ but $\not\in \mathcal L(Q_2)$, the verification fails.
 
 Our program currently supports $X$, $Y$, $Z$, $H$, $T$, $T^\dagger$, $S$, $S^\dagger$, $R_x(\pi/2)$, $R_y(\pi/2)$, $CX$, $CZ$, $CCX$, $SWAP$ quantum gates. The version of OpenQASM should be 3.0.
 
