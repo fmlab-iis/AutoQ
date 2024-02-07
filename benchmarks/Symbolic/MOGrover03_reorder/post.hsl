@@ -2,6 +2,6 @@ Extended Dirac
 \/ |i|=3 : |i> # vH |i> + vL |*> # |000>
 Constraints
 imag(vL) = 0
-abs(vL) < 0.1
+real(vL) ^ 2 < 1/8
 imag(vH) = 0
-abs(vH) > 0.9
+real(vH) ^ 2 > 7/8
