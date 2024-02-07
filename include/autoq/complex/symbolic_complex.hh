@@ -171,6 +171,23 @@ struct AUTOQ::Complex::SymbolicComplex : std::map<Term, Complex> {
         if (empty()) return 0;
         return begin()->second.to_rational();
     }
+    boost::multiprecision::cpp_int max_k() const {
+        boost::multiprecision::cpp_int k = INT_MIN;
+        for (const auto &kv : *this) {
+            if (k < kv.second.at(4))
+                k = kv.second.at(4);
+        }
+        return k;
+    }
+    void adjust_k_and_discard(boost::multiprecision::cpp_int k) {
+        fraction_simplification();
+        for (auto &kv : *this) {
+            auto &c = kv.second;
+            while (c.at(4) < k)
+                c.increase_k();
+            c.at(4) = 0;
+        }
+    }
 };
 
 #endif

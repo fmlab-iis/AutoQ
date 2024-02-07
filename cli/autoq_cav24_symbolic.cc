@@ -28,9 +28,9 @@ int main(int argc, char **argv) {
     bool latex = false; // Add a boolean flag option (no value)
     std::string pre, circuit, post;
     app.add_flag("-l,--latex", latex, "Print the statistics for tables in LaTeX");
-    app.add_option("pre.{aut|hsl|spec}", pre, "the precondition file")->required()->type_name("");
+    app.add_option("pre.{hsl|spec}", pre, "the precondition file")->required()->type_name("");
     app.add_option("circuit.qasm", circuit, "the OpenQASM 3.0 circuit file")->required()->type_name("");
-    app.add_option("post.{aut|hsl|spec}", post, "the postcondition file")->required()->type_name("");
+    app.add_option("post.{hsl|spec}", post, "the postcondition file")->required()->type_name("");
 
     CLI11_PARSE(app, argc, argv); // Parse the command-line arguments
 
@@ -45,7 +45,7 @@ try {
     Q.remove_useless();
     Q.reduce();
     verify &= is_scaled_spec_satisfied(aut, Q);
-    // aut.print(); Q.print();
+    // aut.print_language(); Q.print_language();
 
     if (latex) {
         std::cout << aut.qubitNum << " & " << AUTOQ::Automata<AUTOQ::Symbol::Symbolic>::gateCount

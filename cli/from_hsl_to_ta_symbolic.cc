@@ -11,10 +11,10 @@ using AUTOQ::Parsing::TimbukParser;
 int main(int argc, char **argv) {
 try {
     if (argc >= 2 && ((strcmp(argv[1], "-h")==0) || (strcmp(argv[1], "--help")==0))) {
-        std::cout << R"(usage: ./hsl_concrete [-h] [input.{aut|hsl|spec}]
+        std::cout << R"(usage: ./hsl_concrete [-h] [input.{hsl|spec}]
 
 positional arguments:
-  input.{aut|hsl|spec}      the input high-level specification language
+  input.{hsl|spec}          the input high-level specification language
                             If this file is not provided, the user should provide the language
                             via stdin.
 

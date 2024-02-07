@@ -165,6 +165,7 @@ private:
     // void General_Single_Qubit_Gate(int t, const AUTOQ::Complex::Complex &a, const AUTOQ::Complex::Complex &b, const AUTOQ::Complex::Complex &c, const AUTOQ::Complex::Complex &d);
 
 public:
+    void k_unification();
     void fraction_simplification();
     void omega_multiplication(int rotation=1);
     void divide_by_the_square_root_of_two();

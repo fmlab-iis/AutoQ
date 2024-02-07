@@ -216,19 +216,35 @@ struct AUTOQ::Complex::FiveTuple : stdvectorboostmultiprecisioncpp_int {
         // Result: {0, at(2), at(1)+at(3), at(2), at(4)+1}
         return {0, at(2), at(1)+at(3), at(2), at(4)+1};
     }
+    void increase_k() {
+        FiveTuple symbol;
+        symbol.at(1) += at(0);
+        symbol.at(3) -= at(0);
+        symbol.at(0) += at(1);
+        symbol.at(2) += at(1);
+        symbol.at(1) += at(2);
+        symbol.at(3) += at(2);
+        symbol.at(2) += at(3);
+        symbol.at(0) -= at(3);
+        symbol.at(4) += at(4) + 1;
+        *this = symbol;
+    }
 
 private:
-    FiveTuple binary_operation(const FiveTuple &o, bool add) const {
-        if (!((at(4) == o.at(4)) ||
-            (at(0)==0 && at(1)==0 && at(2)==0 && at(3)==0 && at(4)<=o.at(4)) ||
-            (o.at(0)==0 && o.at(1)==0 && o.at(2)==0 && o.at(3)==0 && at(4)>=o.at(4))))
-            throw std::runtime_error(AUTOQ_LOG_PREFIX + "Two different k's when doing the binary operation!");
+    FiveTuple binary_operation(FiveTuple o, bool add) const {
+        auto This = *this;
+        while (This.at(4) < o.at(4)) {
+            This.increase_k();
+        }
+        while (This.at(4) > o.at(4)) {
+            o.increase_k();
+        }
         FiveTuple symbol;
         for (int i=0; i<4; i++) {
-            if (add) symbol.at(i) = at(i) + o.at(i);
-            else symbol.at(i) = at(i) - o.at(i);
+            if (add) symbol.at(i) = This.at(i) + o.at(i);
+            else symbol.at(i) = This.at(i) - o.at(i);
         }
-        symbol.at(4) = std::max(at(4), o.at(4)); // remember to push k
+        symbol.at(4) = This.at(4); // remember to push k
         return symbol;
     }
 public:

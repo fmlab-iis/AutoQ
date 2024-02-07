@@ -64,6 +64,8 @@ The quantum program has [7] qubits and [50] gates.
 The verification process [passed] with a running time of [3.1s] and a memory usage of [14MB].
 ```
 
+***If your NFTA do not contain symbolic variables, we strongly recommend you use `autoq_cav24_concrete` instead of `autoq_cav24_symbolic` due to the limits of floating-point accuracy.***
+
 These two binaries both support the `-l` option, which is used for printing the statistics whose format is suitable for tables in LaTeX.
 
 ---

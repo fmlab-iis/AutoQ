@@ -1065,6 +1065,55 @@ void AUTOQ::Automata<Symbol>::fraction_simplification() {
     if (opLog) std::cout << __FUNCTION__ << "：" << stateNum << " states " << count_transitions() << " transitions\n";
 }
 
+template <typename Symbol>
+void AUTOQ::Automata<Symbol>::k_unification() {
+}
+
+template <>
+void AUTOQ::Automata<AUTOQ::Symbol::Symbolic>::k_unification() {
+    // Step 1: Get the maximum k.
+    boost::multiprecision::cpp_int k = INT_MIN;
+    for (const auto &t : transitions) {
+        const SymbolTag &symbol_tag = t.first;
+        if (symbol_tag.is_leaf()) {
+            auto c = symbol_tag.symbol().complex;
+            c.fraction_simplification();
+            auto k2 = c.max_k();
+            if (k < k2)
+                k = k2;
+        }
+    }
+
+    // Step 2: Adjust all complex numbers' k to its maximum, and then directly remove them.
+    std::vector<SymbolTag> to_be_removed;
+    TransitionMap to_be_inserted;
+    for (const auto &t : transitions) {
+        const SymbolTag &s = t.first;
+        if (s.is_leaf()) {
+            SymbolTag symbol_tag = s;
+            symbol_tag.symbol().complex.adjust_k_and_discard(k);
+            if (t.first != symbol_tag) {
+                to_be_removed.push_back(t.first);
+                for (const auto &out_ins : t.second) {
+                    const auto &out = out_ins.first;
+                    for (const auto &in : out_ins.second) {
+                        to_be_inserted[symbol_tag][out].insert(in);
+                    }
+                }
+            }
+        }
+    }
+    for (const auto &t : to_be_removed) transitions.erase(t);
+    for (const auto &t : to_be_inserted) {
+        for (const auto &kv : t.second)
+            for (const auto &in : kv.second)
+                transitions[t.first][kv.first].insert(in);
+    }
+    // remove_useless();
+    // reduce();
+    if (opLog) std::cout << __FUNCTION__ << "：" << stateNum << " states " << count_transitions() << " transitions\n";
+}
+
 /**************** Equivalence Checking ****************/
 // namespace
 // { // anonymous namespace
@@ -1511,6 +1560,7 @@ bool AUTOQ::call_SMT_solver(const std::string &var_defs, const std::string &asse
     z3::solver s(c);
     s.from_string((var_defs + "(assert " + assertion + ")").c_str());
     auto result = s.check();
+    // std::cout << result << "\n";
     if (result == z3::unsat) return false;
     else if (result == z3::sat) return true;
     else {
@@ -1907,6 +1957,8 @@ bool AUTOQ::is_scaled_spec_satisfied(const TreeAutomata &R, TreeAutomata Q) {
 }
 bool AUTOQ::is_scaled_spec_satisfied(SymbolicAutomata R, SymbolicAutomata Q) {
     Q = Q.Union(AUTOQ::SymbolicAutomata::zero_amplitude(Q.qubitNum));
+    R.k_unification(); Q.k_unification();
+    // R.print("R:\n"); Q.print("Q:\n");
 
     // if (R.StrictlyEqual(Q)) return true;
     auto start = chrono::steady_clock::now();
@@ -2076,6 +2128,8 @@ bool AUTOQ::is_scaled_spec_satisfied(SymbolicAutomata R, SymbolicAutomata Q) {
             if (formulas.empty()) { // Check if the intersection is empty
                 auto duration = chrono::steady_clock::now() - start;
                 // std::cout << toString2(duration) << "\n";
+                // R.print_language("R:\n");
+                // Q.print_language("Q:\n");
                 return false;
             }
             std::string assertion = "(not (or";
@@ -2126,6 +2180,8 @@ bool AUTOQ::is_scaled_spec_satisfied(SymbolicAutomata R, SymbolicAutomata Q) {
             if (call_SMT_solver(define_varR, assertion)) {
                 auto duration = chrono::steady_clock::now() - start;
                 // std::cout << toString2(duration) << "\n";
+                // R.print_language("R:\n");
+                // Q.print_language("Q:\n");
                 return false;
             }
         }
