@@ -3,7 +3,7 @@
 
 ---
 
-AutoQ 2.0 is a command-line utility written in C++ for verifying partial correctness of quantum programs automatically based on non-deterministic finite tree automata (TA) along with the concept of Hoare-style proof systems. Consider a triple $\\{P\\}\ C\ \\{Q\\}$, where $P$ and $Q$ are the pre- and post-condition recognizing sets of (pure) quantum states (represented by TA) and $C$ is a quantum program. Let $\mathcal L(.)$ denote the function mapping from a condition $x$ to the set of all quantum states satisfying $x$ (characterized by $x$). Then AutoQ 2.0 essentially checks whether all the quantum states in $\mathcal L(P)$ reach some state in $\mathcal L(Q)$ after the program $C$ is executed. If we further let $C(.)$ denote the function mapping from a condition $x$ to the evolution of $x$ after a program segment $C$ is executed, then AutoQ 2.0 simply checks whether $\mathcal L(C(P)) \subseteq \mathcal L(Q)$.
+AutoQ 2.0 is a command-line utility written in C++ for verifying partial correctness of quantum programs automatically based on non-deterministic finite tree automata (NFTA) along with the concept of Hoare-style proof systems. Consider a triple $\\{P\\}\ C\ \\{Q\\}$, where $P$ and $Q$ are the pre- and post-condition recognizing sets of (pure) quantum states (represented by NFTA) and $C$ is a quantum program. Let $\mathcal L(.)$ denote the function mapping from a condition $x$ to the set of all quantum states satisfying $x$ (characterized by $x$). Then AutoQ 2.0 essentially checks whether all the quantum states in $\mathcal L(P)$ reach some state in $\mathcal L(Q)$ after the program $C$ is executed. If we further let $C(.)$ denote the function mapping from a condition $x$ to the evolution of $x$ after a program segment $C$ is executed, then AutoQ 2.0 simply checks whether $\mathcal L(C(P)) \subseteq \mathcal L(Q)$.
 
 The following is a mini illustration of the functionality of this tool.
 ```
@@ -33,7 +33,7 @@ Our program currently supports $X$, $Y$, $Z$, $H$, $T$, $T^\dagger$, $S$, $S^\da
 1. Install the following dependencies via the command line.<br>
 `$ sudo apt install git make cmake g++ libboost-filesystem-dev libboost-test-dev`.
 
-2. We need the Z3 solver to solve the constraints when the automaton contains some symbolic variables. Since the installation process of Z3 may take a lot of work, I have provided the [prebuilt shared library](https://github.com/alan23273850/AutoQ/blob/CAV24/libz3.so.4.12) of [z3-4.12.5](https://github.com/Z3Prover/z3/releases/tag/z3-4.12.5) and the corresponding [header files](https://github.com/alan23273850/AutoQ/tree/CAV24/include/z3) for users' convenience.
+2. We need the Z3 solver to solve the constraints when the NFTA contains some symbolic variables. Since the installation process of Z3 may take a lot of work, I have provided the [prebuilt shared library](https://github.com/alan23273850/AutoQ/blob/CAV24/libz3.so.4.12) of [z3-4.12.5](https://github.com/Z3Prover/z3/releases/tag/z3-4.12.5) and the corresponding [header files](https://github.com/alan23273850/AutoQ/tree/CAV24/include/z3) for users' convenience.
 
 3. Finally, in the project's root directory, choose one of the following command to run.
 
@@ -70,7 +70,7 @@ These two binaries both support the `-l` option, which is used for printing the 
 
 ## How to describe a set of quantum states? `*.hsl`
 
-AutoQ 2.0 provides two file extensions `*.hsl` and `*.spec` for users to indicate which format they use to describe a set of quantum states. The easiest one is `*.hsl`, which does not require users to have a background in tree automata. This file may contain multiple lines. Each line represents a quantum state. A quantum state is naturally described by a linear combination of computational basis states with complex coefficients. Coefficients here can be expressed in [addition `+`], [subtraction `-`], [multiplication `*`] operations on [rationals], $[e^{i2\pi(r)}\ |\ r=k/8,\ k\in\mathbb Z]$ and the [exponentiation `^`] operation with "nonnegative" exponents. Operator precedence follows the standard convention. You can also do $/\sqrt2 ^ k$ by writing `/ sqrt2 ^ k` after the above operations are already done if you wish. Nevertheless, due to the automatic scaling in the verification process, users do not need $/\sqrt2 ^ k$.
+AutoQ 2.0 provides two file extensions `*.hsl` and `*.spec` for users to indicate which format they use to describe a set of quantum states. The easiest one is `*.hsl`, which does not require users to have a background in NFTA. This file may contain multiple lines. Each line represents a quantum state. A quantum state is naturally described by a linear combination of computational basis states with complex coefficients. Coefficients here can be expressed in [addition `+`], [subtraction `-`], [multiplication `*`] operations on [rationals], $[e^{i2\pi(r)}\ |\ r=k/8,\ k\in\mathbb Z]$ and the [exponentiation `^`] operation with "nonnegative" exponents. Operator precedence follows the standard convention. You can also do $/\sqrt2 ^ k$ by writing `/ sqrt2 ^ k` after the above operations are already done if you wish. Nevertheless, due to the automatic scaling in the verification process, users do not need $/\sqrt2 ^ k$.
 
 ### # Extended Dirac
 Here is one example.
@@ -103,7 +103,7 @@ c0 |00> + c0 |11> + v |*>
 Constraints
 imag(v) = 0
 ```
-the above file describes (at least) all quantum states which are linear combinations of $|01\rangle$ and $|10\rangle$ where both of them have the same real amplitude. The *Constraints* section may contain multiple lines. Each line consists of a boolean formula that will be automatically conjoined (with the *and* operator) eventually. Each formula is expressed in logical operations [not `!`], [and `&`], [or `|`] on boolean subformulae. These subformulae are expressed in comparison operations [greater than `>`], [less than `<`] on real numbers and the [equal `=`] operation on complex numbers. Operator precedence follows the standard convention. AutoQ 2.0 also supports the functions `real(.)` and `imag(.)` to extract the real part and the imaginary part of a complex number and `abs(.)` to get the absolute value of a ***real*** number. A description file contains a quantum state $|s\rangle$ only if $|s\rangle$ satisfies all the boolean formulae in the *Constraints* section.
+the above file describes (at least) all quantum states which are linear combinations of $|01\rangle$ and $|10\rangle$ where both of them have the same real amplitude. The *Constraints* section may contain multiple lines. Each line consists of a boolean formula that will be automatically conjoined (with the *and* operator) eventually. Each formula is expressed in logical operations [not `!`], [and `&`], [or `|`] on boolean subformulae. These subformulae are expressed in comparison operations [greater than `>`], [less than `<`] on real numbers and the [equal `=`] operation on complex numbers. Operator precedence follows the standard convention. AutoQ 2.0 also supports the functions `real(.)` and `imag(.)` to extract the real part and the imaginary part of a complex number and `abs(.)` to get the absolute value of a ***real*** number. ***It is noteworthy that our `abs(.)` cannot undergo arithmetic operations with other numbers due to its branching nature. If the SMT solver cannot solve the constraints including this term, remember to change to `(.) ^ 2` instead.*** A description file contains a quantum state $|s\rangle$ only if $|s\rangle$ satisfies all the boolean formulae in the *Constraints* section.
 
 ### # Tensor Products and Existentially Quantified Variables
 For convenience, AutoQ 2.0 also supports the ***tensor product operator*** `#`. The usage is very easy: just put `#` between two quantum states $|x\rangle$ and $|y\rangle$ in a line to denote the quantum state $|x\rangle \otimes |y\rangle$. AutoQ 2.0 also supports the ***existentially quantified variable*** `\/ |i|=n :` over all $n$-bit binary strings. This variable is used to constrain all basis states $|i\rangle$ appearing after this notation in a line. If there is some quantum state $|s\rangle$ satisfying this line for some $i$, then we say $|s\rangle$ is described in this line.
@@ -186,7 +186,7 @@ while (outcome[0]) { // I: {|0>/√2 + |1>/√2} (**)
 // M[0]_0(I): {|0>}
 ```
 
-Unlike the if-else block, the automaton does not split into two when AutoQ 2.0 encounter a while loop. Let $S$ be the set of quantum states right before the while loop and $I$ be the ***loop invariant specified in a file***. $\color{red}\text{The lines (*) and (**) are still mandatory.}$ Instead, AutoQ 2.0 checks whether (1) $S \subseteq I$ and (2) $LoopBody(M[target]_0(I)) \subseteq I$ $\big(\text{resp., }LoopBody(M[target]_1(I)) \subseteq I\big)$ if the variable in the control statement is (resp., not) prepended with the negation operator. After this while loop, AutoQ 2.0 continues with the remaining execution with the set $M[target]_1(I)$ $\big(\text{resp., }M[target]_0(I)\big)$.
+Unlike the if-else block, the NFTA does not split into two when AutoQ 2.0 encounter a while loop. Let $S$ be the set of quantum states right before the while loop and $I$ be the ***loop invariant specified in a file***. $\color{red}\text{The lines (*) and (**) are still mandatory.}$ Instead, AutoQ 2.0 checks whether (1) $S \subseteq I$ and (2) $LoopBody(M[target]_0(I)) \subseteq I$ $\big(\text{resp., }LoopBody(M[target]_1(I)) \subseteq I\big)$ if the variable in the control statement is (resp., not) prepended with the negation operator. After this while loop, AutoQ 2.0 continues with the remaining execution with the set $M[target]_1(I)$ $\big(\text{resp., }M[target]_0(I)\big)$.
 
 Please refer to [this example](https://github.com/alan23273850/AutoQ/tree/CAV24/benchmarks/control_mini/while) for more details.
 
@@ -194,90 +194,39 @@ Please refer to [this example](https://github.com/alan23273850/AutoQ/tree/CAV24/
 
 ## Appendix - Internal Structures
 
-The following figure demonstrates how we use a tree to represent a $3$-qubit quantum state so that an automaton can encode a set of quantum states.
+The following figure demonstrates how we use a tree to represent a $3$-qubit quantum state so that an NFTA can encode a set of quantum states.
 
 <img width="412" alt="image" src="https://user-images.githubusercontent.com/10044077/214999182-7e3882d2-47cf-49cb-aa3e-45295072b3f8.png">
 
-TO BE EDITED: Briefly explain what non-deterministic finite tree automaton (TA) is and how it can be used for representing a set of quantum states.
+TO BE EDITED: Briefly explain what NFTA is and how it can be used for representing a set of quantum states.
 
 ---
 
-## Appendix - Automata Format `*.spec`
+## Appendix - NFTA Format `*.spec`
 
-Since the underlying structure of a set of quantum states is still a TA in AutoQ 2.0, we reserve the `*.spec` format for users to describe a set of quantum states with a TA. The *Constants* and *Constraints* sections remain, but the *Extended Dirac* section should be replaced with two new sections *Root States* and *Transitions* now. (Automaton) states in a TA can be arbitrary strings (no need to enclose with double quotation marks).
+Since the underlying structure of a set of quantum states is still an NFTA in AutoQ 2.0, we reserve the `*.spec` format for users to describe a set of quantum states with an NFTA. The *Constants* and *Constraints* sections remain, but the *Extended Dirac* section should be replaced with two new sections *Root States* and *Transitions* now. (Unary) states in an NFTA can be arbitrary strings (no need to enclose with double quotation marks).
 
 ### # Root States
 This section is responsible for specifying a set of root states. It should contain only one line starting with "Root States" and ending with a set of root states separated by whitespaces.
 
 ### # Transitions
-This section is responsible for specifying a set of transitions. One transition per line. A (bottom-up) transition $f(q_1, q_2, ..., q_n) \to q$ is written as `[f](q_1, q_2, ..., q_n) -> q`. Note that in this tool, a symbol can only be a positive integer $i$ with arity $2$ for specifying the $i$-th qubit and can be any expression describing a complex number with arity $0$ for specifying the amplitude of some computational basis states.
+This section is responsible for specifying a set of transitions. One transition per line. A (bottom-up) transition $f(q_1, q_2, ..., q_n) \to q$ is written as `[f](q1, q2, ..., qn) -> q`. Note that in this tool, a symbol can only be a positive integer $i$ with arity $2$ for specifying the $i$-th qubit and can be any expression describing a complex number with arity $0$ for specifying the amplitude of some computational basis states.
 
 We close this section with the following example.
 ```
-Root States 0
+Root States aR bR
 Transitions
-[1](1, 2) -> 0
-[1](2, 3) -> 0
-[1](2, 4) -> 0
-[1](2, 5) -> 0
-[1](2, 6) -> 0
-[1](7, 2) -> 0
-[1](8, 2) -> 0
-[1](9, 2) -> 0
-[2](10, 10) -> 2
-[2](10, 11) -> 7
-[2](10, 12) -> 4
-[2](10, 13) -> 9
-[2](10, 14) -> 6
-[2](15, 10) -> 1
-[2](16, 10) -> 3
-[2](17, 10) -> 8
-[2](18, 10) -> 5
-[3](19, 19) -> 10
-[3](19, 20) -> 17
-[3](19, 21) -> 18
-[3](19, 22) -> 13
-[3](19, 23) -> 14
-[3](24, 19) -> 15
-[3](25, 19) -> 16
-[3](26, 19) -> 11
-[3](27, 19) -> 12
-[4](28, 28) -> 19
-[4](29, 30) -> 24
-[4](30, 29) -> 25
-[4](30, 31) -> 27
-[4](30, 32) -> 21
-[4](30, 33) -> 23
-[4](31, 30) -> 26
-[4](32, 30) -> 20
-[4](33, 30) -> 22
-[5](34, 34) -> 28
-[5](35, 35) -> 30
-[5](35, 36) -> 31
-[5](35, 37) -> 33
-[5](36, 35) -> 29
-[5](37, 35) -> 32
-[6](38, 38) -> 34
-[6](39, 38) -> 35
-[6](40, 38) -> 36
-[6](41, 38) -> 37
-[7](42, 42) -> 38
-[7](43, 43) -> 39
-[7](43, 44) -> 41
-[7](44, 43) -> 40
-[8](45, 45) -> 42
-[8](46, 45) -> 43
-[8](47, 45) -> 44
-[9](48, 48) -> 45
-[9](48, 49) -> 46
-[9](48, 50) -> 47
-[p1] -> 49
-[p2] -> 48
-[p3] -> 50
+[1](aL1, aL1) -> aR
+[2](qLow, q0) -> aL1
+[1](bL1, bL1) -> bR
+[2](q0, qHigh) -> bL1
+[p0] -> q0
+[p1] -> qLow
+[p2] -> qHigh
 Constraints
+p0 = 0
 imag(p1) = 0
-real(p1) ^ 2 < 1/8
-p2 = 0
+abs(p1) < 1/8
 imag(p3) = 0
-real(p3) ^ 2 > 7/8
+abs(p3) > 7/8
 ```
