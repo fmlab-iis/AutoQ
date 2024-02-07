@@ -1520,95 +1520,97 @@ bool AUTOQ::call_SMT_solver(const std::string &var_defs, const std::string &asse
     }
 }
 bool AUTOQ::is_spec_satisfied(const Constraint &C, const SymbolicAutomata &Ae, const PredicateAutomata &As) {
-    using State = SymbolicAutomata::State;
-    using StateSet = SymbolicAutomata::StateSet;
-    using StateVector = SymbolicAutomata::StateVector;
-    StateSet As_finalStates(As.finalStates.begin(), As.finalStates.end());
-    std::vector<std::pair<State, StateSet>> processed; // ← ∅;
-    std::queue<std::pair<State, StateSet>> worklist;
-    for (const auto &te : Ae.transitions) {
-        if (te.first.is_leaf()) {
-            StateSet ss;
-            for (const auto &out_ins : te.second) {
-                // if (out_ins.second.contains({})) {
-                    ss.insert(out_ins.first);
-                // }
-            }
-            for (const auto &qe: ss) {
-                StateSet Us;
-                for (const auto &ps : As.transitions) {
-                    if (ps.first.is_leaf()) {
-                        if (check_validity(C, ps.first.symbol(), te.first.symbol())) { // C ⇒ ps(te)
-                            for (const auto &kv : ps.second) {
-                                // if (kv.second.contains({}))
-                                    Us.insert(kv.first);
-                            }
-                        }
-                    }
-                } // compute Us above!
-                worklist.push({qe, Us});
-            }
-        }
-    } // antichainize Worklist
-    while (!worklist.empty()) {
-        auto qeUs = worklist.front();
-        worklist.pop();
-        if (std::find(processed.begin(), processed.end(), qeUs) == processed.end()) { // not found
-            processed.push_back(qeUs);
-            for (const auto &te : Ae.transitions) {
-                if (te.first.is_internal()) {
-                    const auto &alpha = te.first;
-                    auto qeUs1 = qeUs;
-                    for (auto qeUs2 : processed) {
-                        bool flip = false;
-                        do {
-                            // Assume Ae and As have the same internal symbols!
-                            StateSet Hs;
-                            std::map<StateVector, StateSet> svss;
-                            for (const auto &out_ins : As.transitions.at({AUTOQ::Symbol::Predicate(alpha.symbol().complex.at(Complex::Complex::One()).at("1")), {}})) {
-                                for (const auto &in : out_ins.second) {
-                                    svss[in].insert(out_ins.first);
-                                }
-                            }
-                            for (const auto &in_out : svss) {
-                                assert(in_out.first.size() == 2);
-                                if (qeUs1.second.find(in_out.first[0]) != qeUs1.second.end()
-                                    && qeUs2.second.find(in_out.first[1]) != qeUs2.second.end()) {
-                                        Hs.insert(in_out.second.begin(), in_out.second.end());
-                                    }
-                            } // compute Hs above!
-                            StateVector output;
-                            std::set_intersection(Hs.begin(), Hs.end(), As_finalStates.begin(), As_finalStates.end(), std::back_inserter(output));
-                            // output.resize(it - output.begin());
-                            bool Hs_Rs_no_intersection = output.empty();
-                            // check the above boolean value!
-                            StateSet ss;
-                            for (const auto &out_ins : te.second) {
-                                if (out_ins.second.contains({qeUs1.first, qeUs2.first})) {
-                                    ss.insert(out_ins.first);
-                                }
-                            }
-                            for (const auto &q : ss) { // He
-                                auto qHs = std::make_pair(q, Hs);
-                                if (std::find(processed.begin(), processed.end(), qHs) == processed.end()) { // not found
-                                    if (std::find(Ae.finalStates.begin(), Ae.finalStates.end(), q) != Ae.finalStates.end()
-                                        && Hs_Rs_no_intersection) {
-                                        return false;
-                                    }
-                                    worklist.push(qHs);
-                                    // antichainize Worklist and Processed
-                                }
-                            }
-                            // perform swap
-                            std::swap(qeUs1, qeUs2);
-                            flip = !flip;
-                        } while (flip);
-                    }
-                }
-            }
-        }
-    }
-    return true;
+    AUTOQ_ERROR("PredicateAutomata are deprecated now!");
+    exit(1);
+    // using State = SymbolicAutomata::State;
+    // using StateSet = SymbolicAutomata::StateSet;
+    // using StateVector = SymbolicAutomata::StateVector;
+    // StateSet As_finalStates(As.finalStates.begin(), As.finalStates.end());
+    // std::vector<std::pair<State, StateSet>> processed; // ← ∅;
+    // std::queue<std::pair<State, StateSet>> worklist;
+    // for (const auto &te : Ae.transitions) {
+    //     if (te.first.is_leaf()) {
+    //         StateSet ss;
+    //         for (const auto &out_ins : te.second) {
+    //             // if (out_ins.second.contains({})) {
+    //                 ss.insert(out_ins.first);
+    //             // }
+    //         }
+    //         for (const auto &qe: ss) {
+    //             StateSet Us;
+    //             for (const auto &ps : As.transitions) {
+    //                 if (ps.first.is_leaf()) {
+    //                     if (check_validity(C, ps.first.symbol(), te.first.symbol())) { // C ⇒ ps(te)
+    //                         for (const auto &kv : ps.second) {
+    //                             // if (kv.second.contains({}))
+    //                                 Us.insert(kv.first);
+    //                         }
+    //                     }
+    //                 }
+    //             } // compute Us above!
+    //             worklist.push({qe, Us});
+    //         }
+    //     }
+    // } // antichainize Worklist
+    // while (!worklist.empty()) {
+    //     auto qeUs = worklist.front();
+    //     worklist.pop();
+    //     if (std::find(processed.begin(), processed.end(), qeUs) == processed.end()) { // not found
+    //         processed.push_back(qeUs);
+    //         for (const auto &te : Ae.transitions) {
+    //             if (te.first.is_internal()) {
+    //                 const auto &alpha = te.first;
+    //                 auto qeUs1 = qeUs;
+    //                 for (auto qeUs2 : processed) {
+    //                     bool flip = false;
+    //                     do {
+    //                         // Assume Ae and As have the same internal symbols!
+    //                         StateSet Hs;
+    //                         std::map<StateVector, StateSet> svss;
+    //                         for (const auto &out_ins : As.transitions.at({AUTOQ::Symbol::Predicate(alpha.symbol().complex.at(Complex::Complex::One()).at("1")), {}})) {
+    //                             for (const auto &in : out_ins.second) {
+    //                                 svss[in].insert(out_ins.first);
+    //                             }
+    //                         }
+    //                         for (const auto &in_out : svss) {
+    //                             assert(in_out.first.size() == 2);
+    //                             if (qeUs1.second.find(in_out.first[0]) != qeUs1.second.end()
+    //                                 && qeUs2.second.find(in_out.first[1]) != qeUs2.second.end()) {
+    //                                     Hs.insert(in_out.second.begin(), in_out.second.end());
+    //                                 }
+    //                         } // compute Hs above!
+    //                         StateVector output;
+    //                         std::set_intersection(Hs.begin(), Hs.end(), As_finalStates.begin(), As_finalStates.end(), std::back_inserter(output));
+    //                         // output.resize(it - output.begin());
+    //                         bool Hs_Rs_no_intersection = output.empty();
+    //                         // check the above boolean value!
+    //                         StateSet ss;
+    //                         for (const auto &out_ins : te.second) {
+    //                             if (out_ins.second.contains({qeUs1.first, qeUs2.first})) {
+    //                                 ss.insert(out_ins.first);
+    //                             }
+    //                         }
+    //                         for (const auto &q : ss) { // He
+    //                             auto qHs = std::make_pair(q, Hs);
+    //                             if (std::find(processed.begin(), processed.end(), qHs) == processed.end()) { // not found
+    //                                 if (std::find(Ae.finalStates.begin(), Ae.finalStates.end(), q) != Ae.finalStates.end()
+    //                                     && Hs_Rs_no_intersection) {
+    //                                     return false;
+    //                                 }
+    //                                 worklist.push(qHs);
+    //                                 // antichainize Worklist and Processed
+    //                             }
+    //                         }
+    //                         // perform swap
+    //                         std::swap(qeUs1, qeUs2);
+    //                         flip = !flip;
+    //                     } while (flip);
+    //                 }
+    //             }
+    //         }
+    //     }
+    // }
+    // return true;
 }
 
 struct PairComparator {
@@ -1923,16 +1925,16 @@ bool AUTOQ::is_scaled_spec_satisfied(SymbolicAutomata R, SymbolicAutomata Q) {
     for (const auto &tr : transitions2) {
         if (tr.first.symbol().is_leaf()) {
             AUTOQ::Complex::SymbolicComplex complex_new;
-            for (const auto &c_lc : tr.first.symbol().complex) { // std::map<Complex::Complex, AUTOQ::Complex::linear_combination>
-                auto lc = c_lc.second;
-                AUTOQ::Complex::linear_combination lc_new;
-                for (const auto &v_i : lc) { // std::map<std::string, boost::multiprecision::cpp_int>
+            for (const auto &t_c : tr.first.symbol().complex) { // Term -> Complex
+                auto term = t_c.first;
+                AUTOQ::Complex::Term term2;
+                for (const auto &v_i : term) { // std::string -> boost::multiprecision::cpp_int
                     if (R.vars.contains(v_i.first))
-                        lc_new[v_i.first + "_R"] = v_i.second;
+                        term2[v_i.first + "_R"] = v_i.second;
                     else
-                        lc_new[v_i.first] = v_i.second;
+                        term2[v_i.first] = v_i.second;
                 }
-                complex_new[c_lc.first] = lc_new;
+                complex_new[term2] = t_c.second;
             }
             R.transitions.erase(tr.first.symbol());
             R.transitions[AUTOQ::Symbol::Symbolic(complex_new)] = tr.second;
@@ -1947,16 +1949,16 @@ bool AUTOQ::is_scaled_spec_satisfied(SymbolicAutomata R, SymbolicAutomata Q) {
     for (const auto &tr : transitions2) {
         if (tr.first.symbol().is_leaf()) {
             AUTOQ::Complex::SymbolicComplex complex_new;
-            for (const auto &c_lc : tr.first.symbol().complex) { // std::map<Complex::Complex, AUTOQ::Complex::linear_combination>
-                auto lc = c_lc.second;
-                AUTOQ::Complex::linear_combination lc_new;
-                for (const auto &v_i : lc) { // std::map<std::string, boost::multiprecision::cpp_int>
+            for (const auto &t_c : tr.first.symbol().complex) { // Term -> Complex
+                auto term = t_c.first;
+                AUTOQ::Complex::Term term2;
+                for (const auto &v_i : term) { // std::string -> boost::multiprecision::cpp_int
                     if (Q.vars.contains(v_i.first))
-                        lc_new[v_i.first + "_Q"] = v_i.second;
+                        term2[v_i.first + "_Q"] = v_i.second;
                     else
-                        lc_new[v_i.first] = v_i.second;
+                        term2[v_i.first] = v_i.second;
                 }
-                complex_new[c_lc.first] = lc_new;
+                complex_new[term2] = t_c.second;
             }
             Q.transitions.erase(tr.first.symbol());
             Q.transitions[AUTOQ::Symbol::Symbolic(complex_new)] = tr.second;

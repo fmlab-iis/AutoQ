@@ -7,108 +7,46 @@
 
 namespace AUTOQ {
 	namespace Complex {
-        struct linear_combination;
         struct SymbolicComplex;
+        struct Term;
 	}
 }
 
-// Symbolic symbol
-typedef std::map<std::string, boost::multiprecision::cpp_int> stdmapstdstringboostmultiprecisioncpp_int;
-struct AUTOQ::Complex::linear_combination : std::map<std::string, boost::multiprecision::cpp_int> {
-    using stdmapstdstringboostmultiprecisioncpp_int::stdmapstdstringboostmultiprecisioncpp_int;
-    bool trueMustBeZero() const {
+struct AUTOQ::Complex::Term : std::map<std::string, boost::multiprecision::cpp_int> {
+    Term operator+(Term o) const {
         for (const auto &kv : *this) {
-            if (kv.second != 0)
-                return false;
+            o[kv.first] += kv.second;
+            // if (o[kv.first] == 0)
+            //     o.erase(kv.first);
         }
-        return true;
+        return o;
     }
-    linear_combination operator+(linear_combination b) const {
+    std::string expand() const { // can only be used in (* ...)
+        if (empty()) return "1";
+        std::string result;
         for (const auto &kv : *this) {
-            auto k = kv.first;
+            const auto &s = kv.first;
             auto v = kv.second;
-            b[k] += v;
-            if (b[k] == 0)
-                b.erase(k);
-        }
-        return b;
-    }
-    linear_combination operator-(const linear_combination &b) const {
-        auto a = *this; // copy!
-        for (const auto &kv : b) {
-            auto k = kv.first;
-            auto v = kv.second;
-            a[k] -= v;
-            if (a[k] == 0)
-                a.erase(k);
-        }
-        return a;
-    }
-    linear_combination operator*(int c) const {
-        linear_combination result;
-        for (const auto &kv : *this) {
-            if (c != 0)
-                result[kv.first] = kv.second * c;
+            while (v > 0) {
+                result += " " + s;
+                v--;
+            }
         }
         return result;
     }
-    linear_combination operator*(const linear_combination &b) const {
-        linear_combination ans;
-        for (const auto &kv1 : *this) {
-            for (const auto &kv2 : b) {
-                if (kv1.first == "1") {
-                    ans[kv2.first] += kv1.second * kv2.second;
-                } else if (kv2.first == "1") {
-                    ans[kv1.first] += kv1.second * kv2.second;
-                } else if (kv1.first < kv2.first) {
-                    ans["(* " + kv1.first + " " + kv2.first + ")"] += kv1.second * kv2.second;
-                } else {
-                    ans["(* " + kv2.first + " " + kv1.first + ")"] += kv1.second * kv2.second;
-                }
-            }
-        }
-        return ans;
-    }
-    friend std::ostream& operator<<(std::ostream& os, const linear_combination& obj) {
-        // os << AUTOQ::Util::Convert::ToString(static_cast<stdmapstdstringboostmultiprecisioncpp_int>(obj));
-        if (obj.empty()) {
-            os << "0";
-            return os;
-        }
-        for (auto kv = obj.begin(); kv != obj.end(); ++kv) {
-            if (kv->first == "1")
-                os << kv->second;
-            else {
-                if (kv->second != 1)
-                    os << kv->second;
-                os << kv->first;
-            }
-            if (std::next(kv) != obj.end())
-                os << ' ';
-        }
+    friend std::ostream& operator<<(std::ostream& os, const Term& obj) {
+        os << obj.expand();
         return os;
     }
-    std::string toSMT() const { // std::map<std::string, boost::multiprecision::cpp_int>
-        if (empty()) return "0";
-        std::string result = "(+";
-        for (const auto &kv : *this) {
-            auto k = kv.first;
-            auto v = kv.second;
-            result += " (* " + k + " " + v.str() + ")";
-        }
-        result += ")";
-        return result;
-    }
-    boost::multiprecision::cpp_int toInt() const {
-        return at("1");
-    }
 };
-
-struct AUTOQ::Complex::SymbolicComplex : std::map<Complex, AUTOQ::Complex::linear_combination> {
+struct AUTOQ::Complex::SymbolicComplex : std::map<Term, Complex> {
+    static SymbolicComplex MySymbolicComplexConstructor(int i) {
+        return MySymbolicComplexConstructor(Complex(i));
+    }
     static SymbolicComplex MySymbolicComplexConstructor(const Complex &c) {
         if (c.isZero()) return {}; // IMPORTANT: keep the keys nonzero to simplify the structure very much!
         SymbolicComplex result;
-        result[c] = {{ "1", 1 }};
+        result[Term()] = c;
         return result;
     }
     static SymbolicComplex MySymbolicComplexConstructor(const std::string &name) {
@@ -119,54 +57,51 @@ struct AUTOQ::Complex::SymbolicComplex : std::map<Complex, AUTOQ::Complex::linea
         vars.insert(name + "R");
         vars.insert(name + "I");
         SymbolicComplex result;
-        result[Complex::One()] = {{name + "R", 1}};
-        result[Complex::Angle(rational(2, 8))] = {{name + "I", 1}};
+        Term key; key[name + "R"] = 1;
+        result[key] = Complex::One();
+        key.clear(); key[name + "I"] = 1;
+        result[key] = Complex::Angle(rational(2, 8));
         return result;
     }
-    SymbolicComplex operator+(const SymbolicComplex &o) const {
-        auto complex2 = *this;
-        for (const auto &kv : o) {
-            complex2[kv.first] = complex2[kv.first] + kv.second;
-            if (complex2[kv.first].trueMustBeZero())
-                complex2.erase(kv.first);
+    SymbolicComplex operator+(SymbolicComplex o) const {
+        for (const auto &kv : *this) {
+            o[kv.first] = o[kv.first] + kv.second;
+            if (o[kv.first].isZero())
+                o.erase(kv.first);
         }
-        return complex2;
+        return o;
     }
     SymbolicComplex operator-(const SymbolicComplex &o) const {
-        auto complex2 = *this;
+        auto result = *this;
         for (const auto &kv : o) {
-            complex2[kv.first] = complex2[kv.first] - kv.second;
-            if (complex2[kv.first].trueMustBeZero())
-                complex2.erase(kv.first);
+            result[kv.first] = result[kv.first] - kv.second;
+            if (result[kv.first].isZero())
+                result.erase(kv.first);
         }
-        return complex2;
+        return result;
     }
     SymbolicComplex operator*(const SymbolicComplex &o) const {
-        AUTOQ::Complex::SymbolicComplex complex2;
+        AUTOQ::Complex::SymbolicComplex result;
+        std::set<Term> keys;
         for (const auto &kv1 : *this) {
             for (const auto &kv2 : o) {
-                complex2[kv1.first * kv2.first] = complex2[kv1.first * kv2.first] + kv1.second * kv2.second;
+                auto key = kv1.first + kv2.first;
+                keys.insert(key);
+                result[key] = result[key] + kv1.second * kv2.second;
             }
         }
-        AUTOQ::Complex::SymbolicComplex complex1;
-        for (const auto &kv : complex2) {
-            auto k = kv.first;
-            auto v = kv.second;
-            if (k.isZero() || v.trueMustBeZero()) continue;
-            complex1[k] = v;
+        for (const auto &key : keys) {
+            if (result.at(key).isZero())
+                result.erase(key);
         }
-        return complex1;
-        /* This operator also explains why our number is a mapping
-        from "complex" to "linear combination" instead of a mapping
-        from "variable" to "complex". If we adopt the latter mapping,
-        the multiplication of two variables cannot be a "variable" anymore. */
+        return result;
     }
     SymbolicComplex operator/(const Complex &o) const {
-        AUTOQ::Complex::SymbolicComplex complex2;
+        AUTOQ::Complex::SymbolicComplex result;
         for (const auto &kv : *this) {
-            complex2[kv.first / o] = kv.second;
+            result[kv.first] = kv.second / o;
         }
-        return complex2;
+        return result;
     }
     SymbolicComplex operator*(int c) const {
         SymbolicComplex result;
@@ -178,104 +113,63 @@ struct AUTOQ::Complex::SymbolicComplex : std::map<Complex, AUTOQ::Complex::linea
         return result;
     }
     friend std::ostream& operator<<(std::ostream& os, const SymbolicComplex& obj) {
-        os << AUTOQ::Util::Convert::ToString(static_cast<std::map<Complex, AUTOQ::Complex::linear_combination>>(obj));
+        os << AUTOQ::Util::Convert::ToString(static_cast<std::map<Term, Complex>>(obj));
         return os;
     }
-    std::string realToSMT() const { // std::map<Complex, AUTOQ::Complex::linear_combination> complex;
+    std::string realToSMT() const {
         if (empty()) return "0";
         std::string result = "(+";
         for (const auto &kv : *this) {
             auto k = kv.first;
             auto v = kv.second;
-            result += " (* " + k.realToSMT() + " " + v.toSMT() + ")";
+            result += " (* " + k.expand() + " " + v.realToSMT() + ")";
         }
         result += ")";
         return result;
     }
     SymbolicComplex real() const {
-        SymbolicComplex result, result2;
+        SymbolicComplex result;
         for (const auto &kv : *this) {
-            auto k = kv.first.real();
-            auto v = kv.second;
-            if (k.isZero()) continue;
-            result2[k] = result2[k] + v;
-        }
-        for (const auto &kv : result2) {
             auto k = kv.first;
-            auto v = kv.second;
-            if (result2[k].trueMustBeZero()) continue;
+            auto v = kv.second.real();
+            if (v.isZero()) continue;
             result[k] = v;
         }
         return result;
     }
-    std::string imagToSMT() const { // std::map<Complex, AUTOQ::Complex::linear_combination> complex;
+    std::string imagToSMT() const {
         if (empty()) return "0";
         std::string result = "(+";
         for (const auto &kv : *this) {
             auto k = kv.first;
             auto v = kv.second;
-            result += " (* " + k.imagToSMT() + " " + v.toSMT() + ")";
+            result += " (* " + k.expand() + " " + v.imagToSMT() + ")";
         }
         result += ")";
         return result;
     }
     SymbolicComplex imag() const {
-        SymbolicComplex result, result2;
+        SymbolicComplex result;
         for (const auto &kv : *this) {
-            auto k = kv.first.imag();
-            auto v = kv.second;
-            if (k.isZero()) continue;
-            result2[k] = result2[k] + v;
-        }
-        for (const auto &kv : result2) {
             auto k = kv.first;
-            auto v = kv.second;
-            if (result2[k].trueMustBeZero()) continue;
+            auto v = kv.second.imag();
+            if (v.isZero()) continue;
             result[k] = v;
         }
         return result;
     }
     void fraction_simplification() {
-        SymbolicComplex complex2;
-        for (const auto &kv : *this) {
-            auto k = kv.first;
-            auto v = kv.second;
-            if (k.isZero() || v.trueMustBeZero()) continue;
-            k.fraction_simplification();
-            #ifdef COMPLEX_FiveTuple
-            if (k.at(0) < 0) {
-                k = k * (-1);
-                complex2[k] = complex2[k] - v;
-            } else
-            #endif
-                complex2[k] = complex2[k] + v;
+        for (auto &kv : *this) {
+            kv.second.fraction_simplification();
         }
-        #ifdef COMPLEX_FiveTuple
-        *this = complex2;
-        complex2.clear();
-        for (const auto &kv : *this) {
-            auto k = kv.first;
-            auto v = kv.second;
-            while (k.at(4) >= 2) {
-                int denominator = 2;
-                for (const auto &vc : v) {
-                    auto coe = vc.second;
-                    if (coe % 2 != 0)
-                        denominator = 1;
-                }
-                if (denominator == 1) break;
-                k.at(4) = k.at(4) - 2;
-                for (auto &vc : v) {
-                    vc.second /= 2;
-                }
-            }
-            complex2[k] = complex2[k] + v;
-        }
-        #endif
-        *this = complex2;
+    }
+    bool isConst() const {
+        return empty() || size() == 1 && begin()->first.empty();
     }
     rational to_rational() const {
-        return this->begin()->first.to_rational();
+        assert(isConst());
+        if (empty()) return 0;
+        return begin()->second.to_rational();
     }
 };
 

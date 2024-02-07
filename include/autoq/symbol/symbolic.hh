@@ -19,8 +19,8 @@ public:
 
     // Notice that if we do not use is_convertible_v, type int will not be accepted in this case.
     template <typename T, typename = std::enable_if_t<std::is_convertible<T, boost::multiprecision::cpp_int>::value>>
-        Symbolic(T qubit) : internal(true), complex({{Complex::Complex::One(), AUTOQ::Complex::linear_combination({{"1", qubit}})}}) {}
-    Symbolic(const std::map<Complex::Complex, AUTOQ::Complex::linear_combination> &c) : internal(false), complex(c) {}
+        Symbolic(T qubit) : internal(true), complex(AUTOQ::Complex::SymbolicComplex::MySymbolicComplexConstructor(qubit)) {}
+    Symbolic(const std::map<AUTOQ::Complex::Term, AUTOQ::Complex::Complex> &c) : internal(false), complex(c) {}
     Symbolic(const AUTOQ::Complex::SymbolicComplex &c) : internal(false), complex(c) {}
     Symbolic() : internal(false), complex() {} // prevent the compiler from complaining about the lack of default constructor
     // Symbolic() : internal(false), complex({{Complex::Complex::Zero(), AUTOQ::Complex::linear_combination({{"1", 1}})}}) {} // prevent the compiler from complaining about the lack of default constructor
@@ -29,7 +29,7 @@ public:
     boost::multiprecision::cpp_int qubit() const {
         assert(internal);
         // assert(complex.imag() == 0);
-        return complex.at(Complex::Complex::One()).at("1");
+        return complex.begin()->second.toInt();
     }
     void back_to_zero() { complex.clear(); }
     friend std::ostream& operator<<(std::ostream& os, const Symbolic& obj) {
@@ -59,59 +59,29 @@ public:
     }
     void omega_multiplication(int rotation=1) {
         if (rotation > 0) {
-            AUTOQ::Complex::SymbolicComplex complex2;
-            for (const auto &kv : complex) {
-                auto k = kv.first;
-                auto v = kv.second;
-                complex2[k.counterclockwise(boost::rational<boost::multiprecision::cpp_int>(rotation, 8))] = v;
-            }
-            complex = complex2;
+            for (auto &kv : complex)
+                kv.second.counterclockwise(boost::rational<boost::multiprecision::cpp_int>(rotation, 8));
         }
         if (rotation < 0) {
-            AUTOQ::Complex::SymbolicComplex complex2;
-            for (const auto &kv : complex) {
-                auto k = kv.first;
-                auto v = kv.second;
-                complex2[k.clockwise(boost::rational<boost::multiprecision::cpp_int>(rotation, 8))] = v;
-            }
-            complex = complex2;
+            for (auto &kv : complex)
+                kv.second.clockwise(boost::rational<boost::multiprecision::cpp_int>(-rotation, 8));
         }
     }
     void divide_by_the_square_root_of_two() {
-        AUTOQ::Complex::SymbolicComplex complex2;
-        for (const auto &kv : complex) {
-            auto k = kv.first;
-            auto v = kv.second;
-            complex2[k.divide_by_the_square_root_of_two()] = v;
+        for (auto &kv : complex) {
+            kv.second.divide_by_the_square_root_of_two();
         }
-        complex = complex2;
     }
     void negate() {
-        AUTOQ::Complex::SymbolicComplex complex2;
-        for (const auto &kv : complex) {
-            auto k = kv.first;
-            auto v = kv.second;
-            complex2[k * (-1)] = v;
+        for (auto &kv : complex) {
+            kv.second = kv.second * -1;
         }
-        complex = complex2;
     }
     void degree45cw() {
-        AUTOQ::Complex::SymbolicComplex complex2;
-        for (const auto &kv : complex) {
-            auto k = kv.first;
-            auto v = kv.second;
-            complex2[k.clockwise(boost::rational<boost::multiprecision::cpp_int>(1, 8))] = v;
-        }
-        complex = complex2;
+        omega_multiplication(-1);
     }
     void degree90cw() {
-        AUTOQ::Complex::SymbolicComplex complex2;
-        for (const auto &kv : complex) {
-            auto k = kv.first;
-            auto v = kv.second;
-            complex2[k.clockwise(boost::rational<boost::multiprecision::cpp_int>(1, 4))] = v;
-        }
-        complex = complex2;
+        omega_multiplication(-2);
     }
 };
 

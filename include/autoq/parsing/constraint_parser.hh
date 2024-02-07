@@ -137,10 +137,10 @@ private:
                 SymbolicComplex right = parseFactor();
                 if (op == '*') {
                     left = left * right;
-                } else if (right.size() != 1 || right.begin()->second != Complex::linear_combination({{"1", 1}})) {
-                    throw std::runtime_error(AUTOQ_LOG_PREFIX + "AutoQ does not support this kind of division!");
+                } else if (right.isConst()) {
+                    left = left / right.begin()->second;
                 } else {
-                    left = left / right.begin()->first;
+                    throw std::runtime_error(AUTOQ_LOG_PREFIX + "AutoQ does not support this kind of division!");
                 }
             } else {
                 break;
@@ -152,9 +152,7 @@ private:
     SymbolicComplex fastPower(SymbolicComplex base, int exponent) {
         assert(exponent >= 0);
         if (exponent == 0) {
-            SymbolicComplex result;
-            result[Complex::Complex::One()] = {{"1", 1}};
-            return result;
+            return SymbolicComplex::MySymbolicComplexConstructor(1);
         }
         if (exponent % 2 == 0) {
             SymbolicComplex temp = fastPower(base, exponent / 2);

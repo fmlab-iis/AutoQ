@@ -34,6 +34,7 @@ struct AUTOQ::Complex::FiveTuple : stdvectorboostmultiprecisioncpp_int {
             }
             at(0) = r.numerator();
         }
+    FiveTuple() : FiveTuple(0) {}
     static FiveTuple Angle(boost::rational<boost::multiprecision::cpp_int> theta) {
         theta -= theta.numerator() / theta.denominator();
         while (theta >= 1)
@@ -62,11 +63,11 @@ struct AUTOQ::Complex::FiveTuple : stdvectorboostmultiprecisioncpp_int {
     FiveTuple operator-(const FiveTuple &o) const { return binary_operation(o, false); }
     FiveTuple operator*(const FiveTuple &o) const {
         FiveTuple symbol;
-        symbol.push_back(at(0)*o.at(0) - at(1)*o.at(3) - at(2)*o.at(2) - at(3)*o.at(1));
-        symbol.push_back(at(0)*o.at(1) + at(1)*o.at(0) - at(2)*o.at(3) - at(3)*o.at(2));
-        symbol.push_back(at(0)*o.at(2) + at(1)*o.at(1) + at(2)*o.at(0) - at(3)*o.at(3));
-        symbol.push_back(at(0)*o.at(3) + at(1)*o.at(2) + at(2)*o.at(1) + at(3)*o.at(0));
-        symbol.push_back(at(4) + o.at(4)); // remember to push k
+        symbol.at(0) = at(0)*o.at(0) - at(1)*o.at(3) - at(2)*o.at(2) - at(3)*o.at(1);
+        symbol.at(1) = at(0)*o.at(1) + at(1)*o.at(0) - at(2)*o.at(3) - at(3)*o.at(2);
+        symbol.at(2) = at(0)*o.at(2) + at(1)*o.at(1) + at(2)*o.at(0) - at(3)*o.at(3);
+        symbol.at(3) = at(0)*o.at(3) + at(1)*o.at(2) + at(2)*o.at(1) + at(3)*o.at(0);
+        symbol.at(4) = at(4) + o.at(4); // remember to push k
         return symbol;
     }
     FiveTuple operator/(FiveTuple o) const {
@@ -224,10 +225,10 @@ private:
             throw std::runtime_error(AUTOQ_LOG_PREFIX + "Two different k's when doing the binary operation!");
         FiveTuple symbol;
         for (int i=0; i<4; i++) {
-            if (add) symbol.push_back(at(i) + o.at(i));
-            else symbol.push_back(at(i) - o.at(i));
+            if (add) symbol.at(i) = at(i) + o.at(i);
+            else symbol.at(i) = at(i) - o.at(i);
         }
-        symbol.push_back(std::max(at(4), o.at(4))); // remember to push k
+        symbol.at(4) = std::max(at(4), o.at(4)); // remember to push k
         return symbol;
     }
 public:
