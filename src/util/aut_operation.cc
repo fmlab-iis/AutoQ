@@ -2090,25 +2090,33 @@ bool AUTOQ::is_scaled_spec_satisfied(SymbolicAutomata R, SymbolicAutomata Q) {
                 }
                 assert(!current.empty());
                 std::string ratio_constraint = "(and";
+                for (unsigned i=1; i<current.size(); ++i) {
+                    const auto &c1u = ratioMap[current[i-1]].first;
+                    const auto &c1d = ratioMap[current[i-1]].second;
+                    const auto &c2u = ratioMap[current[i]].first;
+                    const auto &c2d = ratioMap[current[i]].second;
+                    ratio_constraint += " (= " + (c1u * c2d).realToSMT() + " " + (c1d * c2u).realToSMT() + ")";
+                    ratio_constraint += " (= " + (c1u * c2d).imagToSMT() + " " + (c1d * c2u).imagToSMT() + ")";
+                }
                 for (unsigned i=0; i<current.size(); ++i) {
-                    const auto &c1 = ratioMap[current[i]].first;
-                    const auto &c2 = ratioMap[current[i]].second; // want to assert: c1 = c2 * scale
-                    const auto &rhsR = "(- (* " + c2.realToSMT() + " scaleR) (* " + c2.imagToSMT() + " scaleI))";
-                    const auto &rhsI = "(+ (* " + c2.realToSMT() + " scaleI) (* " + c2.imagToSMT() + " scaleR))";
-                    ratio_constraint += " (= " + c1.realToSMT() + " " + rhsR + ")";
-                    ratio_constraint += " (= " + c1.imagToSMT() + " " + rhsI + ")";
+                    const auto &cu = ratioMap[current[i]].first;
+                    const auto &cd = ratioMap[current[i]].second;
+                    ratio_constraint += "(or (and (= " + cu.realToSMT() + " 0)(= " + cu.imagToSMT() + " 0)(= " + cd.realToSMT() + " 0)(= " + cd.imagToSMT() + " 0))" // cu == 0 && cd == 0
+                        + " (and (or (not (= " + cu.realToSMT() + " 0))(not (= " + cu.imagToSMT() + " 0)))(or (not (= " + cd.realToSMT() + " 0))(not (= " + cd.imagToSMT() + " 0)))))"; // cu != 0 && cd != 0
                 }
                 ratio_constraint += ")"; // 𝜓
                 std::string implies_constraint = "(or (not " + R.constraints + ") (and " + Q.constraints + " " + ratio_constraint + "))"; // 𝜑𝑟 ⇒ (𝜑𝑞 ∧ 𝜓)
-                std::string and_scale_cannot_be_zero = "(and (or (not (= scaleR 0)) (not (= scaleI 0))) " + implies_constraint + ")"; // (scaleR ≠ 0 ∨ scaleI ≠ 0) ∧ (𝜑𝑟 ⇒ (𝜑𝑞 ∧ 𝜓))
-                std::string formula_constraint = "(exists (";
-                for (const auto &var : Q.vars) // (forall ((x1 σ1) (x2 σ2) ··· (xn σn)) (exists ((x1 σ1) (x2 σ2) ··· (xn σn)) ϕ))
-                    formula_constraint += "(" + var + "_Q Real)";
-                formula_constraint += "(scaleR Real)";
-                formula_constraint += "(scaleI Real)";
-                formula_constraint += ") ";
-                formula_constraint += and_scale_cannot_be_zero;
-                formula_constraint += ")";
+                std::string formula_constraint;
+                if (!Q.vars.empty()) {
+                    formula_constraint = "(exists (";
+                    for (const auto &var : Q.vars) // (forall ((x1 σ1) (x2 σ2) ··· (xn σn)) (exists ((x1 σ1) (x2 σ2) ··· (xn σn)) ϕ))
+                        formula_constraint += "(" + var + "_Q Real)";
+                    formula_constraint += ") ";
+                    formula_constraint += implies_constraint;
+                    formula_constraint += ")";
+                } else {
+                    formula_constraint = implies_constraint;
+                }
                 assertion += " " + formula_constraint;
             }
             assertion += "))";
@@ -2318,43 +2326,44 @@ std::vector<std::vector<std::string>> AUTOQ::Automata<Symbol>::print(const std::
     }
     return ans;
 }
-template <>
-std::vector<std::vector<std::string>> AUTOQ::Automata<Concrete>::print(const std::map<typename AUTOQ::Automata<Concrete>::State, std::set<typename AUTOQ::Automata<Concrete>::Symbol>> &leafSymbolMap, int qubit, typename AUTOQ::Automata<Concrete>::State state) const {
-    if (qubit == static_cast<int>(qubitNum + 1)) {
-        std::vector<std::vector<std::string>> ans;
-        for (const auto &t : leafSymbolMap.at(state)) {
-            std::string result;
-            bool start = false;
-            for (unsigned i=0; i<t.complex.size()-1; i++) {
-                if (i == 0 && t.complex.at(0) == 0 && t.complex.at(1) == 0 && t.complex.at(2) == 0 && t.complex.at(3) == 0 || t.complex.at(i) != 0) {
-                    if (start) result += " + ";
-                    result += t.complex.at(i).str();
-                    if (i >= 1) result += " * A(" + std::to_string(i) + "/8)";
-                    start = true;
-                }
-            }
-            ans.push_back({result});
-        }
-        return ans;
-    }
-    std::vector<std::vector<std::string>> ans;
-    for (const auto &out_ins : transitions.at({qubit})) {
-        if (out_ins.first == state) {
-            for (const auto &in : out_ins.second) {
-                auto v1 = print(leafSymbolMap, qubit + 1, in.at(0));
-                auto v2 = print(leafSymbolMap, qubit + 1, in.at(1));
-                for (const auto &s1 : v1) {
-                    for (const auto &s2 : v2) {
-                        auto v = s1;
-                        v.insert(v.end(), s2.begin(), s2.end());
-                        ans.push_back(v);
-                    }
-                }
-            }
-        }
-    }
-    return ans;
-}
+// template <>
+// std::vector<std::vector<std::string>> AUTOQ::Automata<Concrete>::print(const std::map<typename AUTOQ::Automata<Concrete>::State, std::set<typename AUTOQ::Automata<Concrete>::Symbol>> &leafSymbolMap, int qubit, typename AUTOQ::Automata<Concrete>::State state) const {
+//     if (qubit == static_cast<int>(qubitNum + 1)) {
+//         std::vector<std::vector<std::string>> ans;
+//         for (const auto &t : leafSymbolMap.at(state)) {
+//             std::string result = "(";
+//             bool start = false;
+//             for (unsigned i=0; i<t.complex.size()-1; i++) {
+//                 if (i == 0 && t.complex.at(0) == 0 && t.complex.at(1) == 0 && t.complex.at(2) == 0 && t.complex.at(3) == 0 || t.complex.at(i) != 0) {
+//                     if (start) result += " + ";
+//                     result += t.complex.at(i).str();
+//                     if (i >= 1) result += " * ei2pi(" + std::to_string(i) + "/8)";
+//                     start = true;
+//                 }
+//             }
+//             result += ") / sqrt2 ^ " + t.complex.at(4).str();
+//             ans.push_back({result});
+//         }
+//         return ans;
+//     }
+//     std::vector<std::vector<std::string>> ans;
+//     for (const auto &out_ins : transitions.at({qubit})) {
+//         if (out_ins.first == state) {
+//             for (const auto &in : out_ins.second) {
+//                 auto v1 = print(leafSymbolMap, qubit + 1, in.at(0));
+//                 auto v2 = print(leafSymbolMap, qubit + 1, in.at(1));
+//                 for (const auto &s1 : v1) {
+//                     for (const auto &s2 : v2) {
+//                         auto v = s1;
+//                         v.insert(v.end(), s2.begin(), s2.end());
+//                         ans.push_back(v);
+//                     }
+//                 }
+//             }
+//         }
+//     }
+//     return ans;
+// }
 
 template <typename Symbol>
 void AUTOQ::Automata<Symbol>::print_language(const char *str) const {
