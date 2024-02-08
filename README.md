@@ -48,25 +48,16 @@ It is recommended to run `$ make test` in the repository's root directory after 
 ---
 
 ## Command-Line Binaries
-The compiled command-line binaries are located in `${PROJECT_ROOT}/build/cli/`. The corresponding source codes are located in `${PROJECT_ROOT}/cli/`. The major two are `${PROJECT_ROOT}/cli/autoq_cav24_concrete.cc` and `${PROJECT_ROOT}/cli/autoq_cav24_symbolic.cc`. The others are auxiliary tools but not well-documented.
+The compiled command-line binaries are located in `${PROJECT_ROOT}/build/cli/`. The corresponding source codes are located in `${PROJECT_ROOT}/cli/`. The major one is `${PROJECT_ROOT}/cli/autoq_cav24.cc`. The others are auxiliary tools but not well-documented.
 
-1. `$ ./build/cli/autoq_cav24_concrete P.{hsl|spec} C.qasm Q.{hsl|spec}`
+The usage is `$ ./build/cli/autoq_cav24 P.{hsl|spec} C.qasm Q.{hsl|spec}`.
 ```
-$ ./build/cli/autoq_cav24_concrete benchmarks/control_mini/if-else/pre.hsl benchmarks/control_mini/if-else/circuit.qasm benchmarks/control_mini/if-else/post.hsl
-The quantum program has [2] qubits and [5] gates.
-The verification process [passed] with a running time of [0.0s] and a memory usage of [14MB].
-```
-
-2. `$ ./build/cli/autoq_cav24_symbolic P.{hsl|spec} C.qasm Q.{hsl|spec}`
-```
-$ ./build/cli/autoq_cav24_symbolic benchmarks/Grover_while/03/pre.spec benchmarks/Grover_while/03/circuit.qasm benchmarks/Grover_while/03/post.spec
+$ ./build/cli/autoq_cav24 benchmarks/Grover_while/03/pre.spec benchmarks/Grover_while/03/circuit.qasm benchmarks/Grover_while/03/post.spec
 The quantum program has [7] qubits and [50] gates.
-The verification process [passed] with a running time of [3.1s] and a memory usage of [14MB].
+The verification process [passed] with a running time of [0.6s] and a memory usage of [44MB].
 ```
 
-***If your NFTA do not contain symbolic variables, we strongly recommend you use `autoq_cav24_concrete` instead of `autoq_cav24_symbolic` due to the limits of floating-point accuracy.***
-
-These two binaries both support the `-l` option, which is used for printing the statistics whose format is suitable for tables in LaTeX.
+This binary also supports the `-l` option, which is used for printing the statistics whose format is suitable for tables in LaTeX.
 
 ---
 
