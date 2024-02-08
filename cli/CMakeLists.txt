@@ -38,13 +38,8 @@ include_directories(../include)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/version.cc.in
    ${CMAKE_CURRENT_BINARY_DIR}/version.cc @ONLY)
 
-add_executable(autoq_cav24_symbolic
-  autoq_cav24_symbolic.cc
-  ${CMAKE_CURRENT_BINARY_DIR}/version.cc
-)
-
-add_executable(autoq_cav24_concrete
-  autoq_cav24_concrete.cc
+add_executable(autoq_cav24
+  autoq_cav24.cc
   ${CMAKE_CURRENT_BINARY_DIR}/version.cc
 )
 
@@ -86,8 +81,7 @@ endif()
 
 # endforeach()
 
-target_link_libraries(autoq_cav24_symbolic autoq)
-target_link_libraries(autoq_cav24_concrete autoq)
+target_link_libraries(autoq_cav24 autoq)
 target_link_libraries(from_hsl_to_ta_concrete autoq)
 target_link_libraries(from_hsl_to_ta_symbolic autoq)
 target_link_libraries(from_hsl_to_ta_predicate autoq)

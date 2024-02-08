@@ -234,6 +234,7 @@ public:
     static bool check_inclusion(const Automata& lhsPath, const Automata& rhsPath);
 
     bool execute(const std::string& filename);
+    static void check_the_invariants_types(const std::string& filename);
     void print_language(const char *str="") const;
     std::vector<std::vector<std::string>> print(const std::map<typename AUTOQ::Automata<Symbol>::State, std::set<typename AUTOQ::Automata<Symbol>::Symbol>> &leafSymbolMap, int qubit, typename AUTOQ::Automata<Symbol>::State state) const;
 };

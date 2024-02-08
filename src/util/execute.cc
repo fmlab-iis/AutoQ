@@ -249,6 +249,23 @@ bool AUTOQ::Automata<Symbol>::execute(const std::string& filename) {
     return verify;
 }
 
+template <typename Symbol>
+void AUTOQ::Automata<Symbol>::check_the_invariants_types(const std::string& filename) {
+    std::ifstream qasm(filename);
+    if (!qasm.is_open()) throw std::runtime_error(AUTOQ_LOG_PREFIX + "[ERROR] Failed to open file " + std::string(filename) + ".");
+    std::string line;
+    while (getline(qasm, line)) {
+        line = AUTOQ::Util::trim(line);
+        if (line.find("while") == 0) { // while (!result) { // loop-invariant.{spec|hsl}
+            const std::regex spec("// *(.*)");
+            std::regex_iterator<std::string::iterator> it2(line.begin(), line.end(), spec);
+            std::string dir = (std::filesystem::current_path() / filename).parent_path().string();
+            AUTOQ::Parsing::TimbukParser<Symbol>::ReadAutomaton(dir + std::string("/") + it2->str(1));
+        }
+    }
+    qasm.close();
+}
+
 // https://bytefreaks.net/programming-2/c/c-undefined-reference-to-templated-class-function
 template struct AUTOQ::Automata<AUTOQ::Symbol::Concrete>;
 template struct AUTOQ::Automata<AUTOQ::Symbol::Symbolic>;
