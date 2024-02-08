@@ -4,7 +4,7 @@ from ctypes import c_wchar_p
 from multiprocessing import Manager, Process, Semaphore, Lock
 
 # name = 'Table2.tex'
-TIMEOUT = 60 * 30
+TIMEOUT = 60 * 60
 NUM_OF_THREADS = 10
 TA_EXE = '../../build/cli/autoq_cav24 -l'
 
