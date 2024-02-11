@@ -37,6 +37,12 @@ namespace AUTOQ
     typedef Automata<Symbol::Predicate> PredicateAutomata;
 }
 
+template <typename T> constexpr auto not_predicate = requires (T x) {
+  x - x;
+  x + x;
+  x.fraction_simplification();
+};
+
 template <typename TT>
 struct AUTOQ::Automata
 {
@@ -159,29 +165,29 @@ public:   // methods
 
 private:
     void state_renumbering();
-    Automata binary_operation(const Automata &o, bool add);
+    Automata binary_operation(const Automata &o, bool add) requires not_predicate<TT>;
     void swap_forward(const int k);
     void swap_backward(const int k);
     // void General_Single_Qubit_Gate(int t, const AUTOQ::Complex::Complex &a, const AUTOQ::Complex::Complex &b, const AUTOQ::Complex::Complex &c, const AUTOQ::Complex::Complex &d);
 
 public:
     void k_unification();
-    void fraction_simplification();
-    void omega_multiplication(int rotation=1);
-    void divide_by_the_square_root_of_two();
-    void branch_restriction(int k, bool positive_has_value=true);
+    void fraction_simplification() requires not_predicate<TT>;
+    void omega_multiplication(int rotation=1) requires not_predicate<TT>;
+    void divide_by_the_square_root_of_two() requires not_predicate<TT>;
+    void branch_restriction(int k, bool positive_has_value=true) requires not_predicate<TT>;
     void value_restriction(int k, bool branch);
-    void semi_determinize();
-    void semi_undeterminize();
-    Automata operator+(const Automata &o);
-    Automata operator-(const Automata &o);
-    Automata operator*(int c);
+    void semi_determinize() requires not_predicate<TT>;
+    void semi_undeterminize() requires not_predicate<TT>;
+    Automata operator+(const Automata &o) requires not_predicate<TT>;
+    Automata operator-(const Automata &o) requires not_predicate<TT>;
+    Automata operator*(int c) requires not_predicate<TT>;
     Automata Union(const Automata &o) const; // U is in uppercase since "union" is a reserved keyword.
     void print(const std::string &prompt="") const;
     int transition_size();
 
     /// simulation-based reduction
-    void sim_reduce();
+    void sim_reduce() requires not_predicate<TT>;
     /// lightweight size reduction, done upwards; returns @p true iff the automaton changed
     bool light_reduce_up();
     /// lightweight upwareds size reduction, iterated until change happens, returns @p true iff the automaton changed
@@ -226,12 +232,12 @@ public:
     static Automata zero_one_zero(int n);
 
     /* Equivalence Checking */
-    static bool check_equal(const Automata& lhsPath, const Automata& rhsPath);
+    static bool check_equal(const Automata& lhsPath, const Automata& rhsPath) requires not_predicate<TT>;
     static bool check_equal_aut(Automata lhs, Automata rhs);
     static bool check_inclusion(const std::string& lhsPath, const std::string& rhsPath);
     static bool check_inclusion(const Automata& lhsPath, const std::string& rhsPath);
     static bool check_inclusion(const std::string& lhsPath, const Automata& rhsPath);
-    static bool check_inclusion(const Automata& lhsPath, const Automata& rhsPath);
+    static bool check_inclusion(const Automata& lhsPath, const Automata& rhsPath) requires not_predicate<TT>;
 
     bool execute(const std::string& filename);
     static void check_the_invariants_types(const std::string& filename);

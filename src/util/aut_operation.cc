@@ -243,7 +243,7 @@ void AUTOQ::Automata<Symbol>::remove_useless(bool only_bottom_up) {
 }
 
 template <typename Symbol>
-void AUTOQ::Automata<Symbol>::omega_multiplication(int rotation) {
+void AUTOQ::Automata<Symbol>::omega_multiplication(int rotation) requires not_predicate<Symbol> {
     TransitionMap transitions_new;
     for (const auto &t_old : transitions) {
         const SymbolTag &symbol_tag = t_old.first;
@@ -263,7 +263,7 @@ void AUTOQ::Automata<Symbol>::omega_multiplication(int rotation) {
 }
 
 template <typename Symbol>
-void AUTOQ::Automata<Symbol>::divide_by_the_square_root_of_two() {
+void AUTOQ::Automata<Symbol>::divide_by_the_square_root_of_two() requires not_predicate<Symbol> {
     std::vector<SymbolTag> to_be_removed;
     TransitionMap to_be_inserted;
     for (const auto &t : transitions) {
@@ -284,7 +284,7 @@ void AUTOQ::Automata<Symbol>::divide_by_the_square_root_of_two() {
 }
 
 template <typename Symbol>
-void AUTOQ::Automata<Symbol>::branch_restriction(int k, bool positive_has_value) {
+void AUTOQ::Automata<Symbol>::branch_restriction(int k, bool positive_has_value) requires not_predicate<Symbol> {
     auto start = std::chrono::steady_clock::now();
     State num_of_states = stateNum;
     if (stateNum > std::numeric_limits<State>::max() / 2)
@@ -344,7 +344,7 @@ void AUTOQ::Automata<Symbol>::branch_restriction(int k, bool positive_has_value)
 }
 
 template <typename Symbol>
-void AUTOQ::Automata<Symbol>::semi_determinize() {
+void AUTOQ::Automata<Symbol>::semi_determinize() requires not_predicate<Symbol> {
     if (isTopdownDeterministic) return;
     TransitionMap transitions_copy = transitions;
     for (const auto &t : transitions_copy) {
@@ -369,7 +369,7 @@ void AUTOQ::Automata<Symbol>::semi_determinize() {
 }
 
 template <typename Symbol>
-void AUTOQ::Automata<Symbol>::semi_undeterminize() {
+void AUTOQ::Automata<Symbol>::semi_undeterminize() requires not_predicate<Symbol> {
     if (isTopdownDeterministic) return;
     TransitionMap transitions_copy = transitions;
     for (const auto &t : transitions_copy) {
@@ -398,7 +398,7 @@ void AUTOQ::Automata<Symbol>::semi_undeterminize() {
         else i = it->second; \
     } else i = a * o.stateNum + b;
 template <typename Symbol>
-AUTOQ::Automata<Symbol> AUTOQ::Automata<Symbol>::binary_operation(const Automata<Symbol> &o, bool add) {
+AUTOQ::Automata<Symbol> AUTOQ::Automata<Symbol>::binary_operation(const Automata<Symbol> &o, bool add) requires not_predicate<Symbol> {
     auto start = std::chrono::steady_clock::now();
     AUTOQ::Automata<Symbol> result;
     result.name = name;
@@ -566,15 +566,15 @@ AUTOQ::Automata<Symbol> AUTOQ::Automata<Symbol>::binary_operation(const Automata
     return result;
 }
 template <typename Symbol>
-AUTOQ::Automata<Symbol> Automata<Symbol>::operator+(const Automata &o) {
+AUTOQ::Automata<Symbol> Automata<Symbol>::operator+(const Automata &o) requires not_predicate<Symbol> {
     return binary_operation(o, true);
 }
 template <typename Symbol>
-AUTOQ::Automata<Symbol> Automata<Symbol>::operator-(const Automata &o) {
+AUTOQ::Automata<Symbol> Automata<Symbol>::operator-(const Automata &o) requires not_predicate<Symbol> {
     return binary_operation(o, false);
 }
 template <typename Symbol>
-AUTOQ::Automata<Symbol> AUTOQ::Automata<Symbol>::operator*(int c) {
+AUTOQ::Automata<Symbol> AUTOQ::Automata<Symbol>::operator*(int c) requires not_predicate<Symbol> {
     auto result = *this;
     std::vector<SymbolTag> to_be_removed;
     TransitionMap to_be_inserted;
@@ -1035,7 +1035,7 @@ void AUTOQ::Automata<Symbol>::value_restriction(int k, bool branch) {
 }
 
 template <typename Symbol>
-void AUTOQ::Automata<Symbol>::fraction_simplification() {
+void AUTOQ::Automata<Symbol>::fraction_simplification() requires not_predicate<Symbol> {
     std::vector<SymbolTag> to_be_removed;
     TransitionMap to_be_inserted;
     for (const auto &t : transitions) {
@@ -1188,7 +1188,7 @@ void AUTOQ::Automata<AUTOQ::Symbol::Symbolic>::k_unification() {
 //   }
 
   template <typename Symbol>
-  bool AUTOQ::Automata<Symbol>::check_inclusion(const Automata<Symbol>& R, const Automata<Symbol>& Q)
+  bool AUTOQ::Automata<Symbol>::check_inclusion(const Automata<Symbol>& R, const Automata<Symbol>& Q) requires not_predicate<Symbol>
   {
     using State = Automata<Symbol>::State;
     using StateSet = Automata<Symbol>::StateSet;
@@ -1440,7 +1440,7 @@ void AUTOQ::Automata<AUTOQ::Symbol::Symbolic>::k_unification() {
 
   /** checks language equivalence of two TAs */
   template <typename Symbol>
-  bool AUTOQ::Automata<Symbol>::check_equal(const Automata<Symbol>& lhsPath, const Automata<Symbol>& rhsPath)
+  bool AUTOQ::Automata<Symbol>::check_equal(const Automata<Symbol>& lhsPath, const Automata<Symbol>& rhsPath) requires not_predicate<Symbol>
   {
     return check_inclusion(lhsPath, rhsPath) && check_inclusion(rhsPath, lhsPath);
   }
@@ -1456,7 +1456,7 @@ void AUTOQ::Automata<AUTOQ::Symbol::Symbolic>::k_unification() {
 /******************************************************/
 
 // template <typename Symbol>
-// void AUTOQ::Automata<Symbol>::sim_reduce()
+// void AUTOQ::Automata<Symbol>::sim_reduce() requires not_predicate<Symbol>
 // {
 //   using State = typename Automata<Symbol>::State;
 //   using DiscontBinaryRelOnStates = typename Util::DiscontBinaryRelation<State>;
@@ -2454,3 +2454,4 @@ void AUTOQ::Automata<Symbol>::print_language(const char *str) const {
 // https://bytefreaks.net/programming-2/c/c-undefined-reference-to-templated-class-function
 template struct AUTOQ::Automata<AUTOQ::Symbol::Concrete>;
 template struct AUTOQ::Automata<AUTOQ::Symbol::Symbolic>;
+template struct AUTOQ::Automata<AUTOQ::Symbol::Predicate>;
