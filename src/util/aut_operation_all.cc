@@ -3,6 +3,7 @@
 #include <autoq/symbol/predicate.hh>
 #include <autoq/aut_description.hh>
 #include <autoq/serialization/timbuk_serializer.hh>
+#include <boost/dynamic_bitset.hpp> // used in print_language
 
 #include "simulation/explicit_lts.hh"
 
@@ -503,6 +504,104 @@ int AUTOQ::Automata<Symbol>::transition_size() {
         }
     }
     return answer;
+}
+
+template <typename Symbol>
+std::vector<std::vector<std::string>> AUTOQ::Automata<Symbol>::print(const std::map<typename AUTOQ::Automata<Symbol>::State, std::set<typename AUTOQ::Automata<Symbol>::Symbol>> &leafSymbolMap, int qubit, typename AUTOQ::Automata<Symbol>::State state) const {
+    if (qubit == static_cast<int>(qubitNum + 1)) {
+        std::vector<std::vector<std::string>> ans;
+        for (const auto &t : leafSymbolMap.at(state)) {
+            std::stringstream ss;
+            ss << t;
+            ans.push_back({ss.str()});
+        }
+        return ans;
+    }
+    std::vector<std::vector<std::string>> ans;
+    for (const auto &out_ins : transitions.at({qubit})) {
+        if (out_ins.first == state) {
+            for (const auto &in : out_ins.second) {
+                auto v1 = print(leafSymbolMap, qubit + 1, in.at(0));
+                auto v2 = print(leafSymbolMap, qubit + 1, in.at(1));
+                for (const auto &s1 : v1) {
+                    for (const auto &s2 : v2) {
+                        auto v = s1;
+                        v.insert(v.end(), s2.begin(), s2.end());
+                        ans.push_back(v);
+                    }
+                }
+            }
+        }
+    }
+    return ans;
+}
+// template <>
+// std::vector<std::vector<std::string>> AUTOQ::Automata<Concrete>::print(const std::map<typename AUTOQ::Automata<Concrete>::State, std::set<typename AUTOQ::Automata<Concrete>::Symbol>> &leafSymbolMap, int qubit, typename AUTOQ::Automata<Concrete>::State state) const {
+//     if (qubit == static_cast<int>(qubitNum + 1)) {
+//         std::vector<std::vector<std::string>> ans;
+//         for (const auto &t : leafSymbolMap.at(state)) {
+//             std::string result = "(";
+//             bool start = false;
+//             for (unsigned i=0; i<t.complex.size()-1; i++) {
+//                 if (i == 0 && t.complex.at(0) == 0 && t.complex.at(1) == 0 && t.complex.at(2) == 0 && t.complex.at(3) == 0 || t.complex.at(i) != 0) {
+//                     if (start) result += " + ";
+//                     result += t.complex.at(i).str();
+//                     if (i >= 1) result += " * ei2pi(" + std::to_string(i) + "/8)";
+//                     start = true;
+//                 }
+//             }
+//             result += ") / sqrt2 ^ " + t.complex.at(4).str();
+//             ans.push_back({result});
+//         }
+//         return ans;
+//     }
+//     std::vector<std::vector<std::string>> ans;
+//     for (const auto &out_ins : transitions.at({qubit})) {
+//         if (out_ins.first == state) {
+//             for (const auto &in : out_ins.second) {
+//                 auto v1 = print(leafSymbolMap, qubit + 1, in.at(0));
+//                 auto v2 = print(leafSymbolMap, qubit + 1, in.at(1));
+//                 for (const auto &s1 : v1) {
+//                     for (const auto &s2 : v2) {
+//                         auto v = s1;
+//                         v.insert(v.end(), s2.begin(), s2.end());
+//                         ans.push_back(v);
+//                     }
+//                 }
+//             }
+//         }
+//     }
+//     return ans;
+// }
+
+template <typename Symbol>
+void AUTOQ::Automata<Symbol>::print_language(const char *str) const {
+    std::cout << str;
+    std::map<typename AUTOQ::Automata<Symbol>::State, std::set<typename AUTOQ::Automata<Symbol>::Symbol>> leafSymbolMap;
+    for (const auto &t : transitions) { // construct the map from state to leaf symbol
+        if (t.first.is_leaf()) {
+            for (const auto &out_ins : t.second) {
+                // if (out_ins.second.contains({}))
+                    leafSymbolMap[out_ins.first].insert(t.first.symbol());
+            }
+        }
+    }
+    for (const auto &s : finalStates) {
+        auto v = print(leafSymbolMap, 1, s);
+        for (const auto &s : v) {
+            std::map<std::string, int> count;
+            for (unsigned i=0; i<s.size(); i++)
+                count[s[i]]++;
+            auto ptr = std::max_element(count.begin(), count.end(), [](const auto &x, const auto &y) {
+                return x.second < y.second;
+            });
+            for (unsigned i=0; i<s.size(); i++) {
+                if (s[i] != (ptr->first))
+                    std::cout << boost::dynamic_bitset(qubitNum, i) << ":" << s[i] << " | ";
+            }
+            std::cout << "*:" << (ptr->first) << std::endl;
+        }
+    }
 }
 
 // https://bytefreaks.net/programming-2/c/c-undefined-reference-to-templated-class-function
