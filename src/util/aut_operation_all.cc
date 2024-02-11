@@ -5,6 +5,7 @@
 #include <autoq/symbol/predicate.hh>
 #include <autoq/aut_description.hh>
 #include <autoq/serialization/timbuk_serializer.hh>
+#include <boost/dynamic_bitset.hpp> // used in print_language
 
 #include "simulation/explicit_lts.hh"
 
