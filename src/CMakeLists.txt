@@ -60,6 +60,7 @@ add_library(autoq STATIC
 	# symbolic_tree_aut_base_core.cc
 	util/simulation/explicit_lts_sim.cc
     util/execute.cc
+    util/aut_instance.cc
 	util/aut_operation.cc
     util/aut_operation_all.cc
 	util/gate_operation.cc
