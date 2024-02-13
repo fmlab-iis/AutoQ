@@ -16,19 +16,19 @@
 
 // AUTOQ headers
 #include "autoq/autoq.hh"
-// #include "autoq/aut_base.hh"
 
 namespace AUTOQ
 {
 	namespace Util
 	{
 		std::string ReadFile(const std::string& fileName);
-        bool ShellCmd(const std::string &cmd, std::string &result);
+        std::string ShellCmd(const std::string &cmd);
         #if 0
-        bool ShellCmd(const std::vector<std::string> &cmd, std::string &result);
+        std::string ShellCmd(const std::vector<std::string> &cmd);
         #endif
-        std::string trim(const std::string& str);
         std::string print_duration(const std::chrono::steady_clock::duration &tp);
+        size_t getPeakRSS();
+        size_t getCurrentRSS();
 	}
 }
 

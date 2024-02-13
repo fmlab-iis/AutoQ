@@ -13,28 +13,10 @@
 #include "autoq/util/util.hh"
 
 // Standard library headers
-#include <regex>
+#include <sstream>
 #include <fstream>
 #include <sys/types.h>
 #include <sys/wait.h>
-
-/**
- * @brief  Trim whitespaces from a string (both left and right)
- */
-std::string AUTOQ::Util::trim(const std::string& str)
-{
-	std::string result = str;
-
-	// trim from start
-	result.erase(result.begin(), std::find_if(result.begin(), result.end(),
-		[](int ch) {return !std::isspace(ch);}));
-
-	// trim from end
-	result.erase(std::find_if(result.rbegin(), result.rend(),
-		[](int ch) {return !std::isspace(ch);}).base(), result.end());
-
-	return result;
-}
 
 std::string AUTOQ::Util::ReadFile(const std::string& fileName)
 {
@@ -56,9 +38,19 @@ std::string AUTOQ::Util::ReadFile(const std::string& fileName)
 	return str;
 }
 
-bool AUTOQ::Util::ShellCmd(const std::string &cmd, std::string &result) {
+// const int MAX_ARG_STRLEN = 131070; // in fact is 131072 on the Internet
+std::string AUTOQ::Util::ShellCmd(const std::string &cmd) {
+    // int length = cmd.length();
+    // if (length > MAX_ARG_STRLEN) {
+    //     std::vector<std::string> args;
+    //     for (int i=0; i<length; i+=MAX_ARG_STRLEN) {
+    //         args.push_back(cmd.substr(i, MAX_ARG_STRLEN));
+    //     }
+    //     return AUTOQ::Util::ShellCmd(args);
+    // }
+
     char buffer[512];
-    result = "";
+    std::string result = "";
 
     // Open pipe to file
     FILE* pipe = popen(cmd.c_str(), "r");
@@ -75,22 +67,22 @@ bool AUTOQ::Util::ShellCmd(const std::string &cmd, std::string &result) {
     }
 
     pclose(pipe);
-    return true;
+    return result;
 }
 
 // removed due to compilation issue
 #if 0
-bool AUTOQ::Util::ShellCmd(const std::vector<std::string> &cmd, std::string &result) {
+std::string AUTOQ::Util::ShellCmd(const std::vector<std::string> &cmd) {
     int pipefd[2];
+    std::string result = "";
+
     if (pipe(pipefd) == -1) {
-        std::cout << "[ERROR] Failed to create pipe." << std::endl;
-        return false;
+        throw std::runtime_error(AUTOQ_LOG_PREFIX + "popen() failed!");
     }
 
     pid_t pid = fork();
     if (pid == -1) {
-        std::cout << "[ERROR] Failed to fork." << std::endl;
-        return false;
+        throw std::runtime_error(AUTOQ_LOG_PREFIX + "fork() failed!");
     } else if (pid == 0) { // Child process
         close(pipefd[0]); // Close unused read end
         // Redirect standard output to the write end of the pipe
@@ -108,7 +100,7 @@ bool AUTOQ::Util::ShellCmd(const std::vector<std::string> &cmd, std::string &res
         execvp(args[0], const_cast<char**>(args));
         // If execvp() fails, this block will be executed
         delete[] args; // Free the array itself
-        std::cout << "[ERROR] Failed to execute command." << std::endl;
+        std::cerr << "[ERROR] Failed to execute command." << std::endl;
         exit(1);
     } else { // Parent process
         close(pipefd[1]); // Close unused write end
@@ -125,7 +117,7 @@ bool AUTOQ::Util::ShellCmd(const std::vector<std::string> &cmd, std::string &res
         close(pipefd[0]);
         waitpid(pid, nullptr, 0); // Wait for the child process to finish
     }
-    return true;
+    return result;
 }
 #endif
 

@@ -1,4 +1,4 @@
-#include <autoq/util/util.hh>
+#include <autoq/util/string.hh>
 #include <autoq/aut_description.hh>
 #include <autoq/parsing/timbuk_parser.hh>
 #include <istream>
@@ -36,7 +36,7 @@ optional arguments:
         in = &file;
     }
     while (std::getline(*in, line)) {
-        line = AUTOQ::Util::trim(line);
+        line = AUTOQ::String::trim(line);
         if (line.substr(0, 4) == "|i|=") { // if startswith "|i|="
             std::istringstream iss(line);
             std::string length; iss >> length; length = length.substr(4);

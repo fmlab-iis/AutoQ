@@ -8,7 +8,6 @@
 #include <autoq/util/util.hh>
 #include <autoq/complex/ntuple.hh>
 #include <autoq/complex/complex.hh>
-#include <util_sim.h>
 #include <sys/wait.h>
 #include <unistd.h>
 #include <chrono>
@@ -216,7 +215,7 @@ int main(int argc, char **argv) {
         if (latex) {
             aut.print_stats();
         } else {
-            std::cout << "The quantum program has [" << aut.qubitNum << "] qubits and [" << AUTOQ::TreeAutomata::gateCount << "] gates.\nThe verification process [" << (verify ? "passed" : "failed") << "] in [" << AUTOQ::Util::Convert::toString(chrono::steady_clock::now() - start) << "] with [" << getPeakRSS() / 1024 / 1024 << "MB] memory usage.\n";
+            std::cout << "The quantum program has [" << aut.qubitNum << "] qubits and [" << AUTOQ::TreeAutomata::gateCount << "] gates.\nThe verification process [" << (verify ? "passed" : "failed") << "] in [" << AUTOQ::Util::Convert::toString(chrono::steady_clock::now() - start) << "] with [" << AUTOQ::Util::getPeakRSS() / 1024 / 1024 << "MB] memory usage.\n";
         }
     } else if (executionS->parsed()) {
         runConcrete = false;
@@ -246,7 +245,7 @@ int main(int argc, char **argv) {
         if (latex) {
             aut.print_stats();
         } else {
-            std::cout << "The quantum program has [" << aut.qubitNum << "] qubits and [" << AUTOQ::SymbolicAutomata::gateCount << "] gates.\nThe verification process [" << (verify ? "passed" : "failed") << "] in [" << AUTOQ::Util::Convert::toString(chrono::steady_clock::now() - start) << "] with [" << getPeakRSS() / 1024 / 1024 << "MB] memory usage.\n";
+            std::cout << "The quantum program has [" << aut.qubitNum << "] qubits and [" << AUTOQ::SymbolicAutomata::gateCount << "] gates.\nThe verification process [" << (verify ? "passed" : "failed") << "] in [" << AUTOQ::Util::Convert::toString(chrono::steady_clock::now() - start) << "] with [" << AUTOQ::Util::getPeakRSS() / 1024 / 1024 << "MB] memory usage.\n";
         }
     } else if (equivalence_checking->parsed()) {
         runConcrete = true;
@@ -273,7 +272,7 @@ int main(int argc, char **argv) {
             //     std::cout << AUTOQ::Util::Convert::toString(chrono::steady_clock::now() - start) << " & " << (result ? "T" : "F") << "\n";
             // }
         } else {
-            std::cout << "The two quantum programs are verified to be [" << (result ? "equal" : "unequal") << "] in [" << AUTOQ::Util::Convert::toString(chrono::steady_clock::now() - start) << "] with [" << getPeakRSS() / 1024 / 1024 << "MB] memory usage.\n";
+            std::cout << "The two quantum programs are verified to be [" << (result ? "equal" : "unequal") << "] in [" << AUTOQ::Util::Convert::toString(chrono::steady_clock::now() - start) << "] with [" << AUTOQ::Util::getPeakRSS() / 1024 / 1024 << "MB] memory usage.\n";
         }
     }
     /**************/

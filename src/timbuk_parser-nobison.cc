@@ -14,7 +14,7 @@
 
 // AUTOQ headers
 #include "autoq/autoq.hh"
-#include "autoq/util/util.hh"
+#include "autoq/util/string.hh"
 #include "autoq/complex/complex.hh"
 #include "autoq/complex/fivetuple.hh"
 #include "autoq/symbol/concrete.hh"
@@ -36,7 +36,7 @@ using AUTOQ::TreeAutomata;
 using AUTOQ::SymbolicAutomata;
 using AUTOQ::PredicateAutomata;
 using AUTOQ::Util::Convert;
-using AUTOQ::Util::trim;
+using AUTOQ::String::trim;
 using AUTOQ::Complex::Complex;
 
 /**
@@ -1172,7 +1172,7 @@ Automata<Symbol> TimbukParser<Symbol>::ReadAutomaton(const char* filepath)
         if (!file) // in case the file could not be open
             throw std::runtime_error("[ERROR] Failed to open file " + std::string(filepath) + ".");
         while (std::getline(file, line)) {
-            line = AUTOQ::Util::trim(line);
+            line = AUTOQ::String::trim(line);
             if (line.substr(0, 4) == "|i|=") { // if startswith "|i|="
                 std::istringstream iss(line);
                 std::string length; iss >> length; length = length.substr(4);
