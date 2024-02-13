@@ -1,10 +1,9 @@
 #include <fstream>
 #include <iostream>
-#include <autoq/parsing/timbuk_parser.hh>
-#include <autoq/serialization/timbuk_serializer.hh>
-#include <autoq/aut_description.hh>
-#include <autoq/inclusion.hh>
-#include <autoq/util/util.hh>
+#include "autoq/parsing/timbuk_parser.hh"
+#include "autoq/serialization/timbuk_serializer.hh"
+#include "autoq/aut_description.hh"
+#include "autoq/util/util.hh"
 #include <util_sim.h>
 #include <sys/wait.h>
 #include <unistd.h>

@@ -1,7 +1,7 @@
-#include <autoq/aut_description.hh>
-#include <autoq/complex/complex.hh>
-#include <autoq/symbol/concrete.hh>
-#include <autoq/symbol/symbolic.hh>
+#include "autoq/aut_description.hh"
+#include "autoq/complex/complex.hh"
+#include "autoq/symbol/concrete.hh"
+#include "autoq/symbol/symbolic.hh"
 
 template <>
 AUTOQ::TreeAutomata AUTOQ::TreeAutomata::uniform(int n) {
@@ -16,7 +16,6 @@ AUTOQ::TreeAutomata AUTOQ::TreeAutomata::uniform(int n) {
     aut.stateNum = n+1;
 
     // aut.minimize();
-    // aut.isTopdownDeterministic = true;
     return aut;
 }
 
@@ -62,7 +61,6 @@ AUTOQ::TreeAutomata AUTOQ::TreeAutomata::random(int n) {
     aut.stateNum = state_counter*2 + 1;
 
     // aut.minimize();
-    // aut.isTopdownDeterministic = true;
     return aut;
 }
 
@@ -99,7 +97,6 @@ AUTOQ::TreeAutomata AUTOQ::TreeAutomata::zero(int n) {
     aut.stateNum = n*2 + 1;
 
     // aut.minimize();
-    // aut.isTopdownDeterministic = true;
     return aut;
 }
 
@@ -187,7 +184,6 @@ AUTOQ::TreeAutomata AUTOQ::TreeAutomata::zero_zero_one_zero(int n) {
         aut.stateNum = 4*n + 3;
     }
 	aut.finalStates.insert(0);
-    // aut.isTopdownDeterministic = true;
     return aut;
 }
 
@@ -220,7 +216,6 @@ AUTOQ::TreeAutomata AUTOQ::TreeAutomata::zero_one_zero(int n) {
         aut.stateNum = 2*n + 3;
     }
 	aut.finalStates.insert(0);
-    // aut.isTopdownDeterministic = true;
     return aut;
 }
 

@@ -1,8 +1,8 @@
 #ifndef _AUTOQ_SYMBOLIC_HH_
 #define _AUTOQ_SYMBOLIC_HH_
 
-#include <autoq/util/convert.hh>
-#include <autoq/complex/symbolic_complex.hh>
+#include "autoq/util/convert.hh"
+#include "autoq/complex/symbolic_complex.hh"
 #include <boost/multiprecision/cpp_int.hpp>
 
 namespace AUTOQ {
@@ -32,6 +32,11 @@ public:
         return complex.begin()->second.toInt();
     }
     void back_to_zero() { complex.clear(); }
+    std::string str() const {
+        std::stringstream ss;
+        ss << *this;
+        return ss.str();
+    }
     friend std::ostream& operator<<(std::ostream& os, const Symbolic& obj) {
         os << AUTOQ::Util::Convert::ToString(obj.complex);
         return os;

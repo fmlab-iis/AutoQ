@@ -24,7 +24,7 @@
 #include "explicit_lts.hh"
 #include "binary_relation.hh"
 #include "smart_set.hh"
-#include <autoq/util/convert.hh>
+#include "autoq/util/convert.hh"
 
 
 #include "caching_allocator.hh"

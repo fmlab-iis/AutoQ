@@ -9,8 +9,8 @@
  *****************************************************************************/
 
 // AUTOQ headers
-#include <autoq/autoq.hh>
-#include <autoq/util/util.hh>
+#include "autoq/autoq.hh"
+#include "autoq/util/util.hh"
 
 // Standard library headers
 #include <regex>
@@ -135,92 +135,32 @@ std::string AUTOQ::Util::ShellCmd(const std::vector<std::string> &cmd) {
     return result;
 }
 
-// AUTOQ::AutBase::StateDict AUTOQ::Util::CreateProductStringToStateMap(
-// 	const AUTOQ::AutBase::StateDict& lhsCont,
-// 	const AUTOQ::AutBase::StateDict& rhsCont,
-// 	const AutBase::ProductTranslMap& translMap)
-// {
-// 	typedef AUTOQ::AutBase::StateDict StateDict;
-
-// 	StateDict result;
-
-// 	for (auto mapElem : translMap)
-// 	{
-// 		const auto& key = mapElem.first;
-
-// 		StateDict::ConstIteratorBwd itLhs;
-// 		if ((itLhs = lhsCont.FindBwd(key.first)) == lhsCont.EndBwd())
-// 		{
-// 			assert(false);  // fail gracefully
-// 		}
-
-// 		StateDict::ConstIteratorBwd itRhs;
-// 		if ((itRhs = rhsCont.FindBwd(key.second)) == rhsCont.EndBwd())
-// 		{
-// 			assert(false);  // fail gracefully
-// 		}
-
-// 		std::string prodStateStr = '[' + itLhs->second + "_1|" +
-// 			itRhs->second + "_2]";
-// 		result.insert(std::make_pair(prodStateStr, mapElem.second));
-// 	}
-
-// 	return result;
-// }
-
-
-// AUTOQ::AutBase::StateDict AUTOQ::Util::CreateUnionStringToStateMap(
-// 	const AUTOQ::AutBase::StateDict& lhsCont,
-// 	const AUTOQ::AutBase::StateDict& rhsCont,
-// 	const AutBase::StateToStateMap* translMapLhs,
-// 	const AutBase::StateToStateMap* translMapRhs)
-// {
-// 	typedef AUTOQ::AutBase::StateType StateType;
-// 	typedef AUTOQ::AutBase::StateToStateMap StateToStateMap;
-// 	typedef AUTOQ::AutBase::StateDict StateDict;
-
-// 	StateDict result;
-
-// 	for (auto dictElem : lhsCont)
-// 	{
-// 		StateType state = dictElem.second;
-// 		if (translMapLhs != nullptr)
-// 		{	// in case there should be translation
-// 			StateToStateMap::const_iterator itTransl;
-// 			if ((itTransl = translMapLhs->find(state)) == translMapLhs->end())
-// 			{
-// 				assert(false);    // fail gracefully
-// 			}
-
-// 			state = itTransl->second;
-// 		}
-
-// 		if (!result.insert(std::make_pair(dictElem.first + "_1", state)).second)
-// 		{	// in the case there is already something
-// 			assert(false);
-// 		}
-
-// 	}
-
-// 	for (auto dictElem : rhsCont)
-// 	{
-// 		StateType state = dictElem.second;
-// 		if (translMapRhs != nullptr)
-// 		{	// in case there should be translation
-// 			StateToStateMap::const_iterator itTransl;
-// 			if ((itTransl = translMapRhs->find(state)) == translMapRhs->end())
-// 			{
-// 				assert(false);    // fail gracefully
-// 			}
-
-// 			state = itTransl->second;
-// 		}
-
-// 		if (!result.insert(std::make_pair(dictElem.first + "_2", state)).second)
-// 		{	// in the case there is already something
-// 			assert(false);
-// 		}
-// 	}
-
-// 	return result;
-// }
+std::string AUTOQ::Util::print_duration(const std::chrono::steady_clock::duration &tp) {
+    using namespace std;
+    using namespace std::chrono;
+    nanoseconds ns = duration_cast<nanoseconds>(tp);
+    typedef duration<int, ratio<86400>> days;
+    std::stringstream ss;
+    char fill = ss.fill();
+    ss.fill('0');
+    auto d = duration_cast<days>(ns);
+    ns -= d;
+    auto h = duration_cast<hours>(ns);
+    ns -= h;
+    auto m = duration_cast<minutes>(ns);
+    ns -= m;
+    auto s = duration_cast<seconds>(ns);
+    ns -= s;
+    auto ms = duration_cast<milliseconds>(ns);
+    // auto s = duration<float, std::ratio<1, 1>>(ns);
+    if (d.count() > 0 || h.count() > 0)
+        ss << d.count() << 'd' << h.count() << 'h' << m.count() << 'm' << s.count() << 's';
+    else if (m.count() == 0 && s.count() < 10) {
+        ss << s.count() << '.' << ms.count() / 100 << "s";
+    } else {
+        if (m.count() > 0) ss << m.count() << 'm';
+        ss << s.count() << 's';// << " & ";
+    }
+    ss.fill(fill);
+    return ss.str();
+}

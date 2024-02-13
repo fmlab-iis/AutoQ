@@ -27,6 +27,13 @@ struct AUTOQ::Symbol::Predicate : std::string {
         if (*this == "false" || o == "false") return "false";
         return Predicate(std::string("(and " + *this + " " + o + ")").c_str());
     }
+    void fraction_simplification() {}
+    std::string str() const {
+        throw std::runtime_error(AUTOQ_LOG_PREFIX + "Predicate::str() is not implemented");
+        // std::stringstream ss;
+        // ss << *this;
+        // return ss.str();
+    }
 };
 
 #endif

@@ -12,11 +12,11 @@
 #define _AUTOQ_TIMBUK_PARSER_HH_
 
 // AUTOQ headers
-#include <autoq/autoq.hh>
-#include <autoq/util/convert.hh>
-#include <autoq/util/triple.hh>
-#include <autoq/aut_description.hh>
-#include <autoq/complex/complex.hh>
+#include "autoq/autoq.hh"
+#include "autoq/util/convert.hh"
+#include "autoq/util/triple.hh"
+#include "autoq/aut_description.hh"
+#include "autoq/complex/complex.hh"
 
 namespace AUTOQ
 {

@@ -34,37 +34,18 @@ endforeach()
 include_directories(../include)
 
 add_library(autoq STATIC
-	# aut_base.cc
-	# explicit_tree_aut_core.cc
-	# explicit_tree_comp_down.cc
-	# explicit_tree_incl_down.cc
-	# explicit_tree_incl_up.cc
-	# explicit_lts_sim.cc
-	# explicit_tree_aut.cc
-	# explicit_tree_candidate.cc
-	# explicit_tree_union.cc
-	# explicit_tree_isect.cc
-	# explicit_tree_isect_bu.cc
-	# explicit_tree_incl.cc
-	# explicit_tree_unreach.cc
-	# explicit_tree_useless.cc
-	# explicit_tree_sim.cc
-	# convert.cc
-	# incl_param.cc
-	# symbolic.cc
 	timbuk_parser-nobison.cc
 	timbuk_serializer.cc
-	util.cc
-    memory_usage.cpp
-	# sym_var_asgn.cc
-	# symbolic_tree_aut_base_core.cc
-	util/simulation/explicit_lts_sim.cc
-    util/execute.cc
-    util/aut_inclusion.cc
-    util/aut_instance.cc
-	util/aut_operation.cc
-    util/aut_operation_all.cc
-	util/gate_operation.cc
+	util/util.cc
+    util/memory.cpp
+	simulation/explicit_lts_sim.cc
+    reduce.cc
+    execute.cc
+    inclusion.cc
+    instance.cc
+	composition_based.cc
+    query.cc
+	quantum_gate.cc
 )
 
 # set_target_properties(autoq PROPERTIES

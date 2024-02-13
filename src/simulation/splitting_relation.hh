@@ -15,7 +15,7 @@
 #include <vector>
 
 // AUTOQ headers
-#include <autoq/autoq.hh>
+#include "autoq/autoq.hh"
 
 #include "caching_allocator.hh"
 

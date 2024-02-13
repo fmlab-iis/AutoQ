@@ -12,8 +12,8 @@
 #define _AUTOQ_SMART_SET_HH_
 
 // AUTOQ headers
-#include <autoq/autoq.hh>
-#include <autoq/util/convert.hh>
+#include "autoq/autoq.hh"
+#include "autoq/util/convert.hh"
 
 // Standard library headers
 #include <algorithm>

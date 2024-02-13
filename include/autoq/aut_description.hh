@@ -13,15 +13,9 @@
 
 // AUTOQ headers
 #include <chrono>
-#include <algorithm>
-#include <autoq/autoq.hh>
-#include <autoq/symbol/concrete.hh>
-#include <autoq/symbol/symbolic.hh>
-#include <autoq/symbol/predicate.hh>
-#include <autoq/util/triple.hh>
-#include <autoq/util/two_way_dict.hh>
-#include <boost/multiprecision/cpp_int.hpp>
-#include <autoq/complex/complex.hh>
+#include "autoq/symbol/concrete.hh"
+#include "autoq/symbol/symbolic.hh"
+#include "autoq/symbol/predicate.hh"
 
 namespace AUTOQ
 {
@@ -38,15 +32,15 @@ namespace AUTOQ
 }
 
 template <typename T> constexpr auto not_predicate = requires (T x) {
-  x - x;
-  x + x;
-  x.fraction_simplification();
+    x - x;
+    x + x;
+    x.fraction_simplification();
 };
 
 template <typename TT>
 struct AUTOQ::Automata
 {
-public:   // data types
+// data types
     typedef int64_t State; // TODO: will make the program slightly slower. We wish to make another dynamic type.
 	typedef std::vector<State> StateVector;
 	typedef std::set<State> StateSet;
@@ -89,119 +83,81 @@ public:   // data types
             return os;
         }
     };
-    typedef std::map<SymbolTag, std::map<State, std::set<StateVector>>> TransitionMap;
-    typedef std::map<SymbolTag, std::map<StateVector, StateSet>> TransitionMap2;
+    typedef std::map<SymbolTag, std::map<State, std::set<StateVector>>> TopDownTransitions;
+    typedef std::map<SymbolTag, std::map<StateVector, StateSet>> BottomUpTransitions;
 
-public:   // data members
-	std::string name;
+// data members
+	unsigned qubitNum;
+    std::string name;
     StateSet finalStates;
     State stateNum;
-    unsigned qubitNum;
-	TransitionMap transitions;
-    bool isTopdownDeterministic;
-    inline static int gateCount;
-    inline static bool gateLog, opLog;
-    inline static std::chrono::steady_clock::duration binop_time, branch_rest_time, value_rest_time;
-    /* Notice inline is very convenient for declaring and defining a static member variable together! */
-    inline static bool disableRenumbering = false;
+	TopDownTransitions transitions;
     std::set<std::string> vars;
     std::string constraints;
 
-public:   // methods
+    inline static int gateCount;
+    inline static bool gateLog, opLog;
+    inline static bool disableRenumbering = false;
+    inline static std::chrono::steady_clock::duration binop_time, branch_rest_time, value_rest_time;
+    /* Notice inline is very convenient for declaring and defining a static member variable together! */
 
-	Automata() :
-		name(),
+// methods
+    /****************************/
+	Automata() : // initialization
+		qubitNum(),
+        name(),
 		finalStates(),
         stateNum(),
-        qubitNum(),
 		transitions(),
-        isTopdownDeterministic(false),
         vars(),
         constraints()
 	{ }
+    /****************************/
 
-	/**
-	 * @brief  Relaxed equivalence check
-	 *
-	 * Checks whether the final states and transitions of two automata descriptions match.
-	 */
-	bool operator==(const Automata& rhs) const
-	{
-		return (finalStates == rhs.finalStates) && (transitions == rhs.transitions);
-	}
+	/******************************************************/
+    /* inclusion.cc: checks language inclusion of two TAs */
+    bool operator<=(const Automata &o) const;
+    bool operator>=(const Automata &o) const { return o <= *this; }
+	bool operator==(const Automata &o) const { return (*this <= o) && (o <= *this); }
+    bool operator!=(const Automata &o) const { return !(*this == o); }
+    bool operator<(const Automata &o) const { return (*this <= o) && !(o <= *this); }
+    bool operator>(const Automata &o) const { return o < *this; }
+    // The above comparison is done after fraction_simplification() is called.
+    // The comparison below is done when global phases are allowed.
+    bool operator<<=(Automata o) const requires not_predicate<TT>;
+    /******************************************************/
 
-	/**
-	 * @brief  Strict equivalence check
-	 *
-	 * Checks whether all components of two automata descriptions match.
-	 */
-	bool StrictlyEqual(const Automata& rhs) const
-	{
-		return
-			(name == rhs.name) &&
-			(finalStates == rhs.finalStates) &&
-            (stateNum == rhs.stateNum) &&
-            (qubitNum == rhs.qubitNum) &&
-			(transitions == rhs.transitions) &&
-            // (isTopdownDeterministic == rhs.isTopdownDeterministic) &&
-            (vars == rhs.vars) &&
-            (constraints == rhs.constraints);
-	}
-
-	std::string ToString() const
-	{
-		std::string result;
-		result += "name: " + name + "\n";
-		result += "number of states: " + Util::Convert::ToString(stateNum) + "\n";
-		result += "final states: " + Util::Convert::ToString(finalStates) + "\n";
-		result += "transitions: \n";
-		for (const auto &trans : transitions)
-		{
-			result += Util::Convert::ToString(trans) + "\n";
-		}
-
-		return result;
-	}
-
-private:
-    void state_renumbering();
-    Automata binary_operation(const Automata &o, bool add) requires not_predicate<TT>;
+    /******************************************************/
+    /* composition_based.cc: composition-based operations */
     void swap_forward(const int k);
     void swap_backward(const int k);
-    // void General_Single_Qubit_Gate(int t, const AUTOQ::Complex::Complex &a, const AUTOQ::Complex::Complex &b, const AUTOQ::Complex::Complex &c, const AUTOQ::Complex::Complex &d);
-
-public:
-    void k_unification();
-    void fraction_simplification() requires not_predicate<TT>;
     void omega_multiplication(int rotation=1) requires not_predicate<TT>;
     void divide_by_the_square_root_of_two() requires not_predicate<TT>;
     void branch_restriction(int k, bool positive_has_value=true) requires not_predicate<TT>;
     void value_restriction(int k, bool branch);
     void semi_determinize() requires not_predicate<TT>;
     void semi_undeterminize() requires not_predicate<TT>;
-    Automata operator+(const Automata &o) requires not_predicate<TT>;
-    Automata operator-(const Automata &o) requires not_predicate<TT>;
-    Automata operator*(int c) requires not_predicate<TT>;
-    Automata Union(const Automata &o) const; // U is in uppercase since "union" is a reserved keyword.
-    void print(const std::string &prompt="") const;
-    int transition_size();
+    Automata operator+(const Automata &o) const requires not_predicate<TT>;
+    Automata operator-(const Automata &o) const requires not_predicate<TT>;
+    Automata operator*(int c) const requires not_predicate<TT>;
+    Automata operator||(const Automata &o) const; // use the logical OR operator to denote "union"
+    /******************************************************/
 
-    /// simulation-based reduction
-    void sim_reduce() requires not_predicate<TT>;
-    /// lightweight size reduction, done upwards; returns @p true iff the automaton changed
-    bool light_reduce_up();
-    /// lightweight upwareds size reduction, iterated until change happens, returns @p true iff the automaton changed
-    bool light_reduce_up_iter();
-    /// lightweight size reduction, done downwards; returns @p true iff the automaton changed
-    bool light_reduce_down();
-    /// lightweight downwards size reduction, iterated until change happens, returns @p true iff the automaton changed
-    bool light_reduce_down_iter();
-    /// reduces the automaton using a prefered reduction
-    void reduce();
+    /********************************************/
+    /* reduce.cc: applying reduction algorithms */
+    bool light_reduce_up(); /// lightweight size reduction, done upwards; returns @p true iff the automaton changed
+    bool light_reduce_up_iter(); /// lightweight upwareds size reduction, iterated until change happens, returns @p true iff the automaton changed
+    bool light_reduce_down(); /// lightweight size reduction, done downwards; returns @p true iff the automaton changed
+    bool light_reduce_down_iter(); /// lightweight downwards size reduction, iterated until change happens, returns @p true iff the automaton changed
+    void reduce(); /// reduces the automaton using a prefered reduction
     void remove_useless(bool only_bottom_up=false);
+    void state_renumbering();
+    void k_unification();
+    void fraction_simplification();
+    /********************************************/
 
-    int count_states() const;
-    int count_transitions() const;
+    /**********************************************/
+    /* quantum_gate.cc: quantum gates abstraction */
     void X(int t);
     void Y(int t);
     void Z(int t, bool opt=true);
@@ -210,18 +166,19 @@ public:
     void T(int t);
     void Rx(int t);
     void Ry(int t);
-    void CNOT(int c, int t, bool opt=true);
+    void CX(int c, int t, bool opt=true);
     void CZ(int c, int t);
-    void Toffoli(int c, int c2, int t);
-    // void Fredkin(int c, int t, int t2);
+    void CCX(int c, int c2, int t);
     void randG(int G, int A, int B=0, int C=0);
     void Tdg(int t);
     void Sdg(int t);
     void swap(int t1, int t2);
     void CK(int c, int t);
     Automata measure(int t, bool outcome) const;
+    /**********************************************/
 
-    /* Produce an automaton instance. */
+    /***********************************************/
+    /* aut_instance.cc: produce automata instances */
     static Automata uniform(int n);
     static Automata basis(int n);
     static Automata random(int n);
@@ -230,19 +187,21 @@ public:
     static Automata basis_zero_one_zero(int n);
     static Automata zero_zero_one_zero(int n);
     static Automata zero_one_zero(int n);
+    /***********************************************/
 
-    /* Equivalence Checking */
-    static bool check_equal(const Automata& lhsPath, const Automata& rhsPath) requires not_predicate<TT>;
-    static bool check_equal_aut(Automata lhs, Automata rhs);
-    static bool check_inclusion(const std::string& lhsPath, const std::string& rhsPath);
-    static bool check_inclusion(const Automata& lhsPath, const std::string& rhsPath);
-    static bool check_inclusion(const std::string& lhsPath, const Automata& rhsPath);
-    static bool check_inclusion(const Automata& lhsPath, const Automata& rhsPath) requires not_predicate<TT>;
-
+    /****************************************************/
+    /* execute.cc: the main function for gate execution */
     bool execute(const std::string& filename);
     static void check_the_invariants_types(const std::string& filename);
-    void print_language(const char *str="") const;
-    std::vector<std::vector<std::string>> print(const std::map<typename AUTOQ::Automata<Symbol>::State, std::set<typename AUTOQ::Automata<Symbol>::Symbol>> &leafSymbolMap, int qubit, typename AUTOQ::Automata<Symbol>::State state) const;
+    /****************************************************/
+
+    /**************************************************/
+    /* query.cc: all utility functions related to TAs */
+    int count_states() const;
+    int count_transitions() const;
+    void print(const std::string &prompt="") const;
+    void print_language(const std::string &prompt="") const;
+    /**************************************************/
 };
 
 

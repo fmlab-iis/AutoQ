@@ -1,9 +1,10 @@
-#include <autoq/aut_description.hh>
-#include <autoq/symbol/concrete.hh>
-#include <autoq/symbol/symbolic.hh>
-#include <autoq/util/util.hh>
-#include <autoq/inclusion.hh>
-#include <autoq/parsing/timbuk_parser.hh>
+#include "autoq/util/util.hh"
+#include "autoq/aut_description.hh"
+#include "autoq/symbol/concrete.hh"
+#include "autoq/symbol/symbolic.hh"
+#include "autoq/parsing/timbuk_parser.hh"
+
+#include <regex>
 #include <fstream>
 #include <filesystem>
 
@@ -85,7 +86,7 @@ bool AUTOQ::Automata<Symbol>::execute(const std::string& filename) {
                 pos.push_back(1 + atoi(it->str().c_str()));
                 ++it;
             }
-            CNOT(pos[0], pos[1]);
+            CX(pos[0], pos[1]);
         } else if (line.find("cz ") == 0) {
             std::regex_iterator<std::string::iterator> it(line.begin(), line.end(), digit);
             std::vector<int> pos;
@@ -109,7 +110,7 @@ bool AUTOQ::Automata<Symbol>::execute(const std::string& filename) {
                 pos.push_back(1 + atoi(it->str().c_str()));
                 ++it;
             }
-            Toffoli(pos[0], pos[1], pos[2]);
+            CCX(pos[0], pos[1], pos[2]);
         } else if (line.find("swap ") == 0) {
             std::regex_iterator<std::string::iterator> it(line.begin(), line.end(), digit);
             std::vector<int> pos;
@@ -142,7 +143,7 @@ bool AUTOQ::Automata<Symbol>::execute(const std::string& filename) {
             // this->print_language("P:\n");
             // I.print_language("I:\n");
             this->remove_useless(); this->reduce(); I.remove_useless(); I.reduce();
-            bool t = is_scaled_spec_satisfied(*this, I);
+            bool t = (*this <<= I);
             verify &= t;
             if (!t) {
                 AUTOQ_ERROR("[ERROR] P ⊈ I.");
@@ -175,7 +176,7 @@ bool AUTOQ::Automata<Symbol>::execute(const std::string& filename) {
                 // measure_to_continue.print_language("C(measure_to_continue):\n");
                 // I.print_language("I:\n");
                 // measure_to_continue.remove_useless(); measure_to_continue.reduce(); // I.remove_useless(); I.reduce();
-                bool t = is_scaled_spec_satisfied(*this, I);
+                bool t = (*this <<= I);
                 verify &= t;
                 if (!t) {
                     AUTOQ_ERROR("[ERROR] C(measure_to_continue) ⊈ I.");
@@ -196,10 +197,10 @@ bool AUTOQ::Automata<Symbol>::execute(const std::string& filename) {
             } else if (inIfBlock) {
                 inIfBlock = false;
                 result_after_if = *this; // this automaton is used to be merged with the result automaton after the "else" block if the "else" block is present.
-                *this = this->Union(measure_to_else); // if the "else" block is absent, then that branch is simply the other measurement outcome.
+                *this = this->operator||(measure_to_else); // if the "else" block is absent, then that branch is simply the other measurement outcome.
             } else if (inElseBlock) {
                 inElseBlock = false;
-                *this = this->Union(result_after_if); // merge the else-branch result with the if-branch result
+                *this = this->operator||(result_after_if); // merge the else-branch result with the if-branch result
             }
         } else if (line.find("if") == 0) { // if (!result) {
             if (previous_line.find("measure") == std::string::npos)

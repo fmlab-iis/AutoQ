@@ -1,6 +1,6 @@
-#include <autoq/util/util.hh>
-#include <autoq/aut_description.hh>
-#include <autoq/parsing/timbuk_parser.hh>
+#include "autoq/util/util.hh"
+#include "autoq/aut_description.hh"
+#include "autoq/parsing/timbuk_parser.hh"
 #include <istream>
 #include <fstream>
 

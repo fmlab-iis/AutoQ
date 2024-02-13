@@ -13,20 +13,20 @@
 #include <fstream>
 
 // AUTOQ headers
-#include <autoq/autoq.hh>
-#include <autoq/util/util.hh>
-#include <autoq/complex/complex.hh>
-#include <autoq/complex/fivetuple.hh>
-#include <autoq/symbol/concrete.hh>
-#include <autoq/symbol/symbolic.hh>
-#include <autoq/symbol/predicate.hh>
-#include <autoq/parsing/timbuk_parser.hh>
-#include <autoq/parsing/complex_parser.hh>
-#include <autoq/parsing/symboliccomplex_parser.hh>
-#include <autoq/parsing/constraint_parser.hh>
-#include <autoq/aut_description.hh>
+#include "autoq/autoq.hh"
+#include "autoq/util/util.hh"
+#include "autoq/complex/complex.hh"
+#include "autoq/complex/fivetuple.hh"
+#include "autoq/symbol/concrete.hh"
+#include "autoq/symbol/symbolic.hh"
+#include "autoq/symbol/predicate.hh"
+#include "autoq/parsing/timbuk_parser.hh"
+#include "autoq/parsing/complex_parser.hh"
+#include "autoq/parsing/symboliccomplex_parser.hh"
+#include "autoq/parsing/constraint_parser.hh"
+#include "autoq/aut_description.hh"
 #include <boost/algorithm/string/predicate.hpp>
-#include <autoq/complex/symbolic_complex.hh>
+#include "autoq/complex/symbolic_complex.hh"
 
 using AUTOQ::Symbol::Concrete;
 using AUTOQ::Symbol::Symbolic;
@@ -652,7 +652,7 @@ Automata<Symbol> TimbukParser<Symbol>::parse_hsl_from_istream(std::istream *is, 
             bool reach_all_zero;
             do {
                 auto aut = TimbukParser<Symbol>::from_line_to_automaton(std::regex_replace(line, std::regex("\\|i>"), "|" + i + ">"), constants);
-                aut_final = aut_final.Union(aut);
+                aut_final = aut_final.operator||(aut);
                 aut_final.reduce();
 
                 // the following performs -1 on the binary string i
@@ -672,7 +672,7 @@ Automata<Symbol> TimbukParser<Symbol>::parse_hsl_from_istream(std::istream *is, 
             } while (!reach_all_zero);
         } else {
             auto aut = TimbukParser<Symbol>::from_line_to_automaton(line, constants);
-            aut_final = aut_final.Union(aut);
+            aut_final = aut_final.operator||(aut);
             aut_final.reduce();
         }
     }
@@ -906,7 +906,7 @@ Automata<Symbol> TimbukParser<Symbol>::from_line_to_automaton(std::string line, 
         auto aut2 = from_tree_to_automaton(tree, constants);
 
         // let aut2 be tensor producted with aut here
-        typename Automata<Symbol>::TransitionMap aut_leaves;
+        typename Automata<Symbol>::TopDownTransitions aut_leaves;
         for (const auto &t : aut.transitions) {
             if (t.first.is_leaf()) {
                 aut_leaves[t.first] = t.second;

@@ -1,26 +1,27 @@
-#include <autoq/aut_description.hh>
-#include <autoq/complex/complex.hh>
-#include <autoq/symbol/concrete.hh>
-#include <autoq/symbol/symbolic.hh>
-#include <autoq/symbol/predicate.hh>
-#include <autoq/util/util.hh>
-#include <autoq/inclusion.hh>
-#include <autoq/parsing/timbuk_parser.hh>
-#include <autoq/serialization/timbuk_serializer.hh>
+#include "autoq/util/util.hh"
+#include "autoq/aut_description.hh"
+#include "autoq/complex/complex.hh"
+#include "autoq/symbol/concrete.hh"
+#include "autoq/symbol/symbolic.hh"
+#include "autoq/symbol/predicate.hh"
+#include "autoq/parsing/timbuk_parser.hh"
+#include "autoq/serialization/timbuk_serializer.hh"
+
 #include <z3++.h>
+#include <regex>
 
 #define MIN
 
 template <typename Symbol>
-bool AUTOQ::Automata<Symbol>::check_inclusion(const Automata<Symbol>& R, const Automata<Symbol>& Q) requires not_predicate<Symbol> {
+bool AUTOQ::Automata<Symbol>::operator<=(const Automata<Symbol> &Q) const {
     using State = Automata<Symbol>::State;
     using StateSet = Automata<Symbol>::StateSet;
     StateSet As_finalStates(Q.finalStates.begin(), Q.finalStates.end());
     std::map<State, std::set<StateSet>> processed; // Line 1: ← ∅;
     std::map<State, std::set<StateSet>> worklist;
 
-    Automata<Symbol>::TransitionMap2 R_transitions;
-    for (const auto &t : R.transitions) {
+    Automata<Symbol>::BottomUpTransitions R_transitions;
+    for (const auto &t : this->transitions) {
         const auto &symbol_tag = t.first;
         for (const auto &out_ins : t.second) {
             auto s = out_ins.first;
@@ -28,7 +29,7 @@ bool AUTOQ::Automata<Symbol>::check_inclusion(const Automata<Symbol>& R, const A
                 R_transitions[symbol_tag][in].insert(s);
         }
     }
-    Automata<Symbol>::TransitionMap2 Q_transitions;
+    Automata<Symbol>::BottomUpTransitions Q_transitions;
     for (const auto &t : Q.transitions) {
         const auto &symbol_tag = t.first;
         for (const auto &out_ins : t.second) {
@@ -42,18 +43,16 @@ bool AUTOQ::Automata<Symbol>::check_inclusion(const Automata<Symbol>& R, const A
     // Line 2-4: Construct the initial worklist!
     for (const auto &tr : R_transitions) {
         if (tr.first.is_leaf()) {
-            const auto &vr = tr.first;
-            auto cr = vr.symbol().complex;
-            cr.fraction_simplification();
+            auto vr = tr.first;
+            vr.symbol().fraction_simplification();
             for (const auto &sr : tr.second.at({})) {
                 StateSet Uq;
                 for (const auto &tq : Q_transitions) {
                     if (tq.first.is_leaf()) {
-                        const auto &vq = tq.first;
-                        auto cq = vq.symbol().complex;
-                        cq.fraction_simplification();
+                        auto vq = tq.first;
+                        vq.symbol().fraction_simplification();
                         // if (cr.valueEqual(cq)) {
-                        if (cr == cq) {
+                        if (vr == vq) {
                             for (const auto &uq : tq.second.at({})) {
                                 Uq.insert(uq);
                             }
@@ -94,7 +93,7 @@ bool AUTOQ::Automata<Symbol>::check_inclusion(const Automata<Symbol>& R, const A
         it->second.erase(it->second.begin());
         /*********************************************/
         // Line 7
-        if (R.finalStates.contains(sr)) {
+        if (this->finalStates.contains(sr)) {
             StateSet ss;
             for (const auto &uq : Uq) {
                 ss.insert(uq);
@@ -261,77 +260,14 @@ bool AUTOQ::Automata<Symbol>::check_inclusion(const Automata<Symbol>& R, const A
     return true;
 }
 
-/** checks language equivalence of two TAs */
-template <typename Symbol>
-bool AUTOQ::Automata<Symbol>::check_equal(const Automata<Symbol>& lhsPath, const Automata<Symbol>& rhsPath) requires not_predicate<Symbol> {
-    return check_inclusion(lhsPath, rhsPath) && check_inclusion(rhsPath, lhsPath);
-}
-
-template <>
-bool AUTOQ::TreeAutomata::check_equal_aut(AUTOQ::TreeAutomata lhs, AUTOQ::TreeAutomata rhs) {
-    return check_equal(lhs, rhs);
-}
-
-#include <chrono>
-std::string toString2(std::chrono::steady_clock::duration tp) {
-    using namespace std;
-    using namespace std::chrono;
-    nanoseconds ns = duration_cast<nanoseconds>(tp);
-    typedef duration<int, ratio<86400>> days;
-    std::stringstream ss;
-    char fill = ss.fill();
-    ss.fill('0');
-    auto d = duration_cast<days>(ns);
-    ns -= d;
-    auto h = duration_cast<hours>(ns);
-    ns -= h;
-    auto m = duration_cast<minutes>(ns);
-    ns -= m;
-    auto s = duration_cast<seconds>(ns);
-    ns -= s;
-    auto ms = duration_cast<milliseconds>(ns);
-    // auto s = duration<float, std::ratio<1, 1>>(ns);
-    if (d.count() > 0 || h.count() > 0)
-        ss << d.count() << 'd' << h.count() << 'h' << m.count() << 'm' << s.count() << 's';
-    else if (m.count() == 0 && s.count() < 10) {
-        ss << s.count() << '.' << ms.count() / 100 << "s";
-    } else {
-        if (m.count() > 0) ss << m.count() << 'm';
-        ss << s.count() << 's';// << " & ";
-    }
-    ss.fill(fill);
-    return ss.str();
-}
-
-bool AUTOQ::check_validity(Constraint C, const PredicateAutomata::Symbol &ps, const SymbolicAutomata::Symbol &te) {
-    std::string str(ps);
-    auto regToExpr = C.to_exprs(te);
-    for (const auto &kv : regToExpr) // example: z3 <(echo '(declare-fun x () Int)(declare-fun z () Int)(assert (= z (+ x 3)))(check-sat)')
-        str = std::regex_replace(str, std::regex(kv.first), kv.second);
-    // std::cout << std::string(C) + "(assert (not " + str + "))(check-sat)\n";
-    std::string smt_input = "bash -c \"z3 <(echo '" + std::string(C) + "(assert (not " + str + "))(check-sat)')\"";
-    // auto startSim = chrono::steady_clock::now();
-    str = AUTOQ::Util::ShellCmd(smt_input);
-    // std::cout << smt_input << "\n";
-    // std::cout << str << "\n";
-    // auto durationSim = chrono::steady_clock::now() - startSim;
-    // std::cout << toString2(durationSim) << "\n";
-    if (str == "unsat\n") return true;
-    else if (str == "sat\n") return false;
-    else {
-        std::cout << smt_input << "\n";
-        std::cout << str << "-\n";
-        throw std::runtime_error(AUTOQ_LOG_PREFIX + "[ERROR] The solver Z3 did not correctly return SAT or UNSAT.\nIt's probably because the specification automaton is NOT a predicate automaton.");
-    }
-}
-bool AUTOQ::call_SMT_solver(const std::string &var_defs, const std::string &assertion) {
+bool call_smt_solver(const std::string &var_defs, const std::string &assertion) {
     std::string smt_input = "bash -c \"z3 <(echo '" + var_defs + "(assert " + assertion + ")(check-sat)')\"";
     // auto start = chrono::steady_clock::now();
     // std::cout << smt_input << "\n";
     // std::string result = ShellCmd(smt_input);
     // std::cout << result << "\n";
     // auto duration = chrono::steady_clock::now() - start;
-    // std::cout << toString2(duration) << "\n";
+    // std::cout << AUTOQ::Util::print_duration(duration) << "\n";
 
     // std::cout << Z3_get_full_version() << "\n";
     z3::context c;
@@ -347,99 +283,6 @@ bool AUTOQ::call_SMT_solver(const std::string &var_defs, const std::string &asse
         throw std::runtime_error(AUTOQ_LOG_PREFIX + "[ERROR] The solver Z3 did not correctly return SAT or UNSAT.");
     }
 }
-bool AUTOQ::is_spec_satisfied(const Constraint &C, const SymbolicAutomata &Ae, const PredicateAutomata &As) {
-    AUTOQ_ERROR("PredicateAutomata are deprecated now!");
-    exit(1);
-    // using State = SymbolicAutomata::State;
-    // using StateSet = SymbolicAutomata::StateSet;
-    // using StateVector = SymbolicAutomata::StateVector;
-    // StateSet As_finalStates(As.finalStates.begin(), As.finalStates.end());
-    // std::vector<std::pair<State, StateSet>> processed; // ← ∅;
-    // std::queue<std::pair<State, StateSet>> worklist;
-    // for (const auto &te : Ae.transitions) {
-    //     if (te.first.is_leaf()) {
-    //         StateSet ss;
-    //         for (const auto &out_ins : te.second) {
-    //             // if (out_ins.second.contains({})) {
-    //                 ss.insert(out_ins.first);
-    //             // }
-    //         }
-    //         for (const auto &qe: ss) {
-    //             StateSet Us;
-    //             for (const auto &ps : As.transitions) {
-    //                 if (ps.first.is_leaf()) {
-    //                     if (check_validity(C, ps.first.symbol(), te.first.symbol())) { // C ⇒ ps(te)
-    //                         for (const auto &kv : ps.second) {
-    //                             // if (kv.second.contains({}))
-    //                                 Us.insert(kv.first);
-    //                         }
-    //                     }
-    //                 }
-    //             } // compute Us above!
-    //             worklist.push({qe, Us});
-    //         }
-    //     }
-    // } // antichainize Worklist
-    // while (!worklist.empty()) {
-    //     auto qeUs = worklist.front();
-    //     worklist.pop();
-    //     if (std::find(processed.begin(), processed.end(), qeUs) == processed.end()) { // not found
-    //         processed.push_back(qeUs);
-    //         for (const auto &te : Ae.transitions) {
-    //             if (te.first.is_internal()) {
-    //                 const auto &alpha = te.first;
-    //                 auto qeUs1 = qeUs;
-    //                 for (auto qeUs2 : processed) {
-    //                     bool flip = false;
-    //                     do {
-    //                         // Assume Ae and As have the same internal symbols!
-    //                         StateSet Hs;
-    //                         std::map<StateVector, StateSet> svss;
-    //                         for (const auto &out_ins : As.transitions.at({AUTOQ::Symbol::Predicate(alpha.symbol().complex.at(Complex::Complex::One()).at("1")), {}})) {
-    //                             for (const auto &in : out_ins.second) {
-    //                                 svss[in].insert(out_ins.first);
-    //                             }
-    //                         }
-    //                         for (const auto &in_out : svss) {
-    //                             assert(in_out.first.size() == 2);
-    //                             if (qeUs1.second.find(in_out.first[0]) != qeUs1.second.end()
-    //                                 && qeUs2.second.find(in_out.first[1]) != qeUs2.second.end()) {
-    //                                     Hs.insert(in_out.second.begin(), in_out.second.end());
-    //                                 }
-    //                         } // compute Hs above!
-    //                         StateVector output;
-    //                         std::set_intersection(Hs.begin(), Hs.end(), As_finalStates.begin(), As_finalStates.end(), std::back_inserter(output));
-    //                         // output.resize(it - output.begin());
-    //                         bool Hs_Rs_no_intersection = output.empty();
-    //                         // check the above boolean value!
-    //                         StateSet ss;
-    //                         for (const auto &out_ins : te.second) {
-    //                             if (out_ins.second.contains({qeUs1.first, qeUs2.first})) {
-    //                                 ss.insert(out_ins.first);
-    //                             }
-    //                         }
-    //                         for (const auto &q : ss) { // He
-    //                             auto qHs = std::make_pair(q, Hs);
-    //                             if (std::find(processed.begin(), processed.end(), qHs) == processed.end()) { // not found
-    //                                 if (std::find(Ae.finalStates.begin(), Ae.finalStates.end(), q) != Ae.finalStates.end()
-    //                                     && Hs_Rs_no_intersection) {
-    //                                     return false;
-    //                                 }
-    //                                 worklist.push(qHs);
-    //                                 // antichainize Worklist and Processed
-    //                             }
-    //                         }
-    //                         // perform swap
-    //                         std::swap(qeUs1, qeUs2);
-    //                         flip = !flip;
-    //                     } while (flip);
-    //                 }
-    //             }
-    //         }
-    //     }
-    // }
-    // return true;
-}
 
 struct PairComparator {
     bool operator()(const std::pair<AUTOQ::TreeAutomata::State, std::pair<AUTOQ::Complex::Complex, AUTOQ::Complex::Complex>> &lhs, const std::pair<AUTOQ::TreeAutomata::State, std::pair<AUTOQ::Complex::Complex, AUTOQ::Complex::Complex>> &rhs) const {
@@ -453,8 +296,9 @@ struct PairComparator {
         ));
     }
 };
-bool AUTOQ::is_scaled_spec_satisfied(const TreeAutomata &R, TreeAutomata Q) {
-    Q = Q.Union(AUTOQ::TreeAutomata::zero_amplitude(Q.qubitNum));
+template <>
+bool AUTOQ::TreeAutomata::operator<<=(TreeAutomata Q) const {
+    Q = Q.operator||(AUTOQ::TreeAutomata::zero_amplitude(Q.qubitNum));
 
     using State = TreeAutomata::State;
     using StateSet = TreeAutomata::StateSet;
@@ -463,8 +307,8 @@ bool AUTOQ::is_scaled_spec_satisfied(const TreeAutomata &R, TreeAutomata Q) {
     std::map<State, std::set<StateScaleSet>> processed; // Line 1: ← ∅;
     std::map<State, std::set<StateScaleSet>> worklist;
 
-    TreeAutomata::TransitionMap2 R_transitions;
-    for (const auto &t : R.transitions) {
+    TreeAutomata::BottomUpTransitions R_transitions;
+    for (const auto &t : this->transitions) {
         const auto &symbol_tag = t.first;
         for (const auto &out_ins : t.second) {
             auto s = out_ins.first;
@@ -472,7 +316,7 @@ bool AUTOQ::is_scaled_spec_satisfied(const TreeAutomata &R, TreeAutomata Q) {
                 R_transitions[symbol_tag][in].insert(s);
         }
     }
-    TreeAutomata::TransitionMap2 Q_transitions;
+    TreeAutomata::BottomUpTransitions Q_transitions;
     for (const auto &t : Q.transitions) {
         const auto &symbol_tag = t.first;
         for (const auto &out_ins : t.second) {
@@ -548,7 +392,7 @@ bool AUTOQ::is_scaled_spec_satisfied(const TreeAutomata &R, TreeAutomata Q) {
         it->second.erase(it->second.begin());
         /*********************************************/
         // Line 7
-        if (R.finalStates.contains(sr)) {
+        if (this->finalStates.contains(sr)) {
             StateSet ss;
             for (const auto &uq_c : Uq) {
                 auto uq = uq_c.first;
@@ -733,8 +577,10 @@ bool AUTOQ::is_scaled_spec_satisfied(const TreeAutomata &R, TreeAutomata Q) {
     }
     return true;
 }
-bool AUTOQ::is_scaled_spec_satisfied(SymbolicAutomata R, SymbolicAutomata Q) {
-    Q = Q.Union(AUTOQ::SymbolicAutomata::zero_amplitude(Q.qubitNum));
+template <>
+bool AUTOQ::SymbolicAutomata::operator<<=(SymbolicAutomata Q) const {
+    SymbolicAutomata R = *this;
+    Q = Q.operator||(AUTOQ::SymbolicAutomata::zero_amplitude(Q.qubitNum));
     R.k_unification(); Q.k_unification();
     // R.print("R:\n"); Q.print("Q:\n");
 
@@ -804,7 +650,7 @@ bool AUTOQ::is_scaled_spec_satisfied(SymbolicAutomata R, SymbolicAutomata Q) {
     for (const auto &var : Q.vars)
         all_var_definitions += "(declare-fun " + var + "_Q () Real)";
 
-    SymbolicAutomata::TransitionMap2 R_transitions;
+    SymbolicAutomata::BottomUpTransitions R_transitions;
     for (const auto &t : R.transitions) {
         const auto &symbol_tag = t.first;
         for (const auto &out_ins : t.second) {
@@ -813,7 +659,7 @@ bool AUTOQ::is_scaled_spec_satisfied(SymbolicAutomata R, SymbolicAutomata Q) {
                 R_transitions[symbol_tag][in].insert(s);
         }
     }
-    SymbolicAutomata::TransitionMap2 Q_transitions;
+    SymbolicAutomata::BottomUpTransitions Q_transitions;
     for (const auto &t : Q.transitions) {
         const auto &symbol_tag = t.first;
         for (const auto &out_ins : t.second) {
@@ -842,7 +688,7 @@ bool AUTOQ::is_scaled_spec_satisfied(SymbolicAutomata R, SymbolicAutomata Q) {
                         // std::cout << cq.imagToSMT() << "\n";
                         // std::cout << cr.realToSMT() << "\n";
                         // std::cout << cr.imagToSMT() << "\n";
-                        if (call_SMT_solver(all_var_definitions, // existential filter for efficiency
+                        if (call_smt_solver(all_var_definitions, // existential filter for efficiency
                                 "(or (and (= " + cq.realToSMT() + " 0)(= " + cq.imagToSMT() + " 0)(= " + cr.realToSMT() + " 0)(= " + cr.imagToSMT() + " 0))" // cq == 0 && cr == 0
                                  + " (and (or (not (= " + cq.realToSMT() + " 0))(not (= " + cq.imagToSMT() + " 0)))(or (not (= " + cr.realToSMT() + " 0))(not (= " + cr.imagToSMT() + " 0)))))") // cq != 0 && cr != 0
                         ) {
@@ -905,7 +751,7 @@ bool AUTOQ::is_scaled_spec_satisfied(SymbolicAutomata R, SymbolicAutomata Q) {
             }
             if (formulas.empty()) { // Check if the intersection is empty
                 auto duration = std::chrono::steady_clock::now() - start;
-                // std::cout << toString2(duration) << "\n";
+                // std::cout << AUTOQ::Util::print_duration(duration) << "\n";
                 // R.print_language("R:\n");
                 // Q.print_language("Q:\n");
                 return false;
@@ -955,9 +801,9 @@ bool AUTOQ::is_scaled_spec_satisfied(SymbolicAutomata R, SymbolicAutomata Q) {
             std::string define_varR;
             for (const auto &var : R.vars)
                 define_varR += "(declare-fun " + var + "_R () Real)";
-            if (call_SMT_solver(define_varR, assertion)) {
+            if (call_smt_solver(define_varR, assertion)) {
                 auto duration = std::chrono::steady_clock::now() - start;
-                // std::cout << toString2(duration) << "\n";
+                // std::cout << AUTOQ::Util::print_duration(duration) << "\n";
                 // R.print_language("R:\n");
                 // Q.print_language("Q:\n");
                 return false;
@@ -1127,7 +973,7 @@ bool AUTOQ::is_scaled_spec_satisfied(SymbolicAutomata R, SymbolicAutomata Q) {
         }
     }
     auto duration = std::chrono::steady_clock::now() - start;
-    // std::cout << toString2(duration) << "\n";
+    // std::cout << AUTOQ::Util::print_duration(duration) << "\n";
     return true;
 }
 

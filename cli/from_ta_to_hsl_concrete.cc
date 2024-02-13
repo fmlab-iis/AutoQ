@@ -1,5 +1,5 @@
-#include <autoq/aut_description.hh>
-#include <autoq/parsing/timbuk_parser.hh>
+#include "autoq/aut_description.hh"
+#include "autoq/parsing/timbuk_parser.hh"
 
 using namespace std;
 using AUTOQ::TreeAutomata;

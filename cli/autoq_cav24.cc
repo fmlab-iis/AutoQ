@@ -1,10 +1,9 @@
 #include <fstream>
 #include <iostream>
-#include <autoq/parsing/timbuk_parser.hh>
-#include <autoq/serialization/timbuk_serializer.hh>
-#include <autoq/aut_description.hh>
-#include <autoq/inclusion.hh>
-#include <autoq/util/util.hh>
+#include "autoq/parsing/timbuk_parser.hh"
+#include "autoq/serialization/timbuk_serializer.hh"
+#include "autoq/aut_description.hh"
+#include "autoq/util/util.hh"
 #include <util_sim.h>
 #include <sys/wait.h>
 #include <unistd.h>
@@ -54,7 +53,7 @@ try {
         bool verify = aut.execute(circuit);
         Q.remove_useless();
         Q.reduce();
-        verify &= is_scaled_spec_satisfied(aut, Q);
+        verify &= (aut <<= Q);
         if (latex) {
             std::cout << aut.qubitNum << " & " << AUTOQ::Automata<AUTOQ::Symbol::Concrete>::gateCount
             << " & " << (verify ? "Passed" : "Failed") << " & " << toString(chrono::steady_clock::now() - start) << " & " << getPeakRSS() / 1024 / 1024 << "MB\n";
@@ -70,7 +69,7 @@ try {
         AUTOQ::Automata<AUTOQ::Symbol::Symbolic> Q = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Symbolic>::ReadAutomaton(post);
         Q.remove_useless();
         Q.reduce();
-        verify &= is_scaled_spec_satisfied(aut, Q);
+        verify &= (aut <<= Q);
         // aut.print_language(); Q.print_language();
         if (latex) {
             std::cout << aut.qubitNum << " & " << AUTOQ::Automata<AUTOQ::Symbol::Symbolic>::gateCount

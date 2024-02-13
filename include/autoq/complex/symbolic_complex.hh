@@ -1,8 +1,8 @@
 #ifndef _AUTOQ_SYMBOLICCOMPLEX_HH_
 #define _AUTOQ_SYMBOLICCOMPLEX_HH_
 
-#include <autoq/util/convert.hh>
-#include <autoq/complex/complex.hh>
+#include "autoq/util/convert.hh"
+#include "autoq/complex/complex.hh"
 #include <boost/multiprecision/cpp_int.hpp>
 
 namespace AUTOQ {

@@ -12,8 +12,7 @@
 #define _AUTOQ_TIMBUK_SERIALIZER_HH_
 
 // AUTOQ headers
-#include <autoq/autoq.hh>
-#include <autoq/serialization/abstr_serializer.hh>
+#include "autoq/autoq.hh"
 
 namespace AUTOQ
 {

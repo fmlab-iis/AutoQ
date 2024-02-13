@@ -11,21 +11,19 @@
 // AUTOQ headers
 #include <cmath>
 #include <fstream>
-#include <autoq/autoq.hh>
-#include <autoq/inclusion.hh>
-#include <autoq/util/util.hh>
-#include <autoq/complex/complex.hh>
-#include <autoq/symbol/concrete.hh>
-#include <autoq/aut_description.hh>
-#include <autoq/parsing/timbuk_parser.hh>
-#include <autoq/serialization/timbuk_serializer.hh>
+#include <boost/filesystem.hpp>
+
+#include "autoq/autoq.hh"
+#include "autoq/util/util.hh"
+#include "autoq/complex/complex.hh"
+#include "autoq/symbol/concrete.hh"
+#include "autoq/aut_description.hh"
+#include "autoq/parsing/timbuk_parser.hh"
+#include "autoq/serialization/timbuk_serializer.hh"
 
 #define BOOST_TEST_DYN_LINK
 #define BOOST_TEST_MODULE AutType
 #include <boost/test/unit_test.hpp>
-
-using AUTOQ::Complex::Complex;
-using AUTOQ::Symbol::Concrete;
 
 int size = 7; // the number of qubits.
 
@@ -43,12 +41,12 @@ BOOST_AUTO_TEST_CASE(X_gate_twice_to_identity)
 
                 if (i < loop-1) {
                     if (before.name == "Random")
-                        BOOST_REQUIRE_MESSAGE(!AUTOQ::TreeAutomata::check_equal(before, after), "\n" +
+                        BOOST_REQUIRE_MESSAGE(before != after, "\n" +
                         AUTOQ::Serialization::TimbukSerializer::Serialize(before) +
                         AUTOQ::Serialization::TimbukSerializer::Serialize(after));
                 }
                 else {
-                    BOOST_REQUIRE_MESSAGE(AUTOQ::TreeAutomata::check_equal(before, after), "\n" +
+                    BOOST_REQUIRE_MESSAGE(before == after, "\n" +
                         AUTOQ::Serialization::TimbukSerializer::Serialize(before) +
                         AUTOQ::Serialization::TimbukSerializer::Serialize(after));
 				}
@@ -68,12 +66,12 @@ BOOST_AUTO_TEST_CASE(Y_gate_twice_to_identity)
                 after.Y(t);
 
                 if (i < loop-1) {
-                    BOOST_REQUIRE_MESSAGE(!AUTOQ::TreeAutomata::check_equal(before, after), "\n" +
+                    BOOST_REQUIRE_MESSAGE(before != after, "\n" +
                         AUTOQ::Serialization::TimbukSerializer::Serialize(before) +
                         AUTOQ::Serialization::TimbukSerializer::Serialize(after));
 				}
                 else {
-                    BOOST_REQUIRE_MESSAGE(AUTOQ::TreeAutomata::check_equal(before, after), "\n" +
+                    BOOST_REQUIRE_MESSAGE(before == after, "\n" +
                         AUTOQ::Serialization::TimbukSerializer::Serialize(before) +
                         AUTOQ::Serialization::TimbukSerializer::Serialize(after));
 				}
@@ -91,12 +89,12 @@ BOOST_AUTO_TEST_CASE(Z_gate_twice_to_identity)
             after.Z(size/2);
 
             if (i < loop-1) {
-                BOOST_REQUIRE_MESSAGE(!AUTOQ::TreeAutomata::check_equal(before, after), "\n" +
+                BOOST_REQUIRE_MESSAGE(before != after, "\n" +
                         AUTOQ::Serialization::TimbukSerializer::Serialize(before) +
                         AUTOQ::Serialization::TimbukSerializer::Serialize(after));
 			}
             else {
-                BOOST_REQUIRE_MESSAGE(AUTOQ::TreeAutomata::check_equal(before, after), "\n" +
+                BOOST_REQUIRE_MESSAGE(before == after, "\n" +
                         AUTOQ::Serialization::TimbukSerializer::Serialize(before) +
                         AUTOQ::Serialization::TimbukSerializer::Serialize(after));
 			}
@@ -115,12 +113,12 @@ BOOST_AUTO_TEST_CASE(H_gate_twice_to_identity)
                 after.H(t);
 
                 if (i < loop-1) {
-                    BOOST_REQUIRE_MESSAGE(!AUTOQ::TreeAutomata::check_equal(before, after), "\n" +
+                    BOOST_REQUIRE_MESSAGE(before != after, "\n" +
                         AUTOQ::Serialization::TimbukSerializer::Serialize(before) +
                         AUTOQ::Serialization::TimbukSerializer::Serialize(after));
                 }
                 else {
-                    BOOST_REQUIRE_MESSAGE(AUTOQ::TreeAutomata::check_equal(before, after), "\n" +
+                    BOOST_REQUIRE_MESSAGE(before == after, "\n" +
                         AUTOQ::Serialization::TimbukSerializer::Serialize(before) +
                         AUTOQ::Serialization::TimbukSerializer::Serialize(after));
                 }
@@ -138,11 +136,11 @@ BOOST_AUTO_TEST_CASE(S_gate_fourth_to_identity)
             after.S(size/2);
 
             if (i < loop-1) {
-                BOOST_REQUIRE_MESSAGE(!AUTOQ::TreeAutomata::check_equal(before, after), "\n" +
+                BOOST_REQUIRE_MESSAGE(before != after, "\n" +
                         AUTOQ::Serialization::TimbukSerializer::Serialize(before) +
                         AUTOQ::Serialization::TimbukSerializer::Serialize(after));
             } else {
-                BOOST_REQUIRE_MESSAGE(AUTOQ::TreeAutomata::check_equal(before, after), "\n" +
+                BOOST_REQUIRE_MESSAGE(before == after, "\n" +
                         AUTOQ::Serialization::TimbukSerializer::Serialize(before) +
                         AUTOQ::Serialization::TimbukSerializer::Serialize(after));
             }
@@ -162,7 +160,7 @@ BOOST_AUTO_TEST_CASE(Sdg_gate_equal_to_S_three_times)
         AUTOQ::TreeAutomata after1 = before, after2 = before;
         for (int i=0; i<3; i++) after1.S(size/2);
         after2.Sdg(size/2);
-        BOOST_REQUIRE_MESSAGE(AUTOQ::TreeAutomata::check_equal(after1, after2), "\n" +
+        BOOST_REQUIRE_MESSAGE(after1 == after2, "\n" +
                         AUTOQ::Serialization::TimbukSerializer::Serialize(after1) +
                         AUTOQ::Serialization::TimbukSerializer::Serialize(after2));
     }
@@ -177,11 +175,11 @@ BOOST_AUTO_TEST_CASE(T_gate_eighth_to_identity)
             after.T(size/2);
 
             if (i < loop-1) {
-                BOOST_REQUIRE_MESSAGE(!AUTOQ::TreeAutomata::check_equal(before, after), "\n" +
+                BOOST_REQUIRE_MESSAGE(before != after, "\n" +
                         AUTOQ::Serialization::TimbukSerializer::Serialize(before) +
                         AUTOQ::Serialization::TimbukSerializer::Serialize(after));
             } else {
-                BOOST_REQUIRE_MESSAGE(AUTOQ::TreeAutomata::check_equal(before, after), "\n" +
+                BOOST_REQUIRE_MESSAGE(before == after, "\n" +
                         AUTOQ::Serialization::TimbukSerializer::Serialize(before) +
                         AUTOQ::Serialization::TimbukSerializer::Serialize(after));
             }
@@ -201,7 +199,7 @@ BOOST_AUTO_TEST_CASE(Tdg_gate_equal_to_T_seven_times)
         AUTOQ::TreeAutomata after1 = before, after2 = before;
         for (int i=0; i<7; i++) after1.T(size/2);
         after2.Tdg(size/2);
-        BOOST_REQUIRE_MESSAGE(AUTOQ::TreeAutomata::check_equal(after1, after2), "\n" +
+        BOOST_REQUIRE_MESSAGE(after1 == after2, "\n" +
                         AUTOQ::Serialization::TimbukSerializer::Serialize(after1) +
                         AUTOQ::Serialization::TimbukSerializer::Serialize(after2));
     }
@@ -218,7 +216,7 @@ BOOST_AUTO_TEST_CASE(swap_gate_simply_exchanges_basis)
                                 AUTOQ::TreeAutomata::zero_one_zero(size)}) {
         AUTOQ::TreeAutomata after = before;
         after.swap(size*1/3, size*2/3);
-        BOOST_REQUIRE_MESSAGE(AUTOQ::TreeAutomata::check_equal(before, after), "\n" +
+        BOOST_REQUIRE_MESSAGE(before == after, "\n" +
                         AUTOQ::Serialization::TimbukSerializer::Serialize(before) +
                         AUTOQ::Serialization::TimbukSerializer::Serialize(after));
     }
@@ -235,12 +233,12 @@ BOOST_AUTO_TEST_CASE(Rx_gate_eighth_to_identity)
                 after.Rx(t);
 
                 if (i < loop-1) {
-                    BOOST_REQUIRE_MESSAGE(!AUTOQ::TreeAutomata::check_equal(before, after), "\n" +
+                    BOOST_REQUIRE_MESSAGE(before != after, "\n" +
                         AUTOQ::Serialization::TimbukSerializer::Serialize(before) +
                         AUTOQ::Serialization::TimbukSerializer::Serialize(after));
                 }
                 else {
-                    BOOST_REQUIRE_MESSAGE(AUTOQ::TreeAutomata::check_equal(before, after), "\n" +
+                    BOOST_REQUIRE_MESSAGE(before == after, "\n" +
                         AUTOQ::Serialization::TimbukSerializer::Serialize(before) +
                         AUTOQ::Serialization::TimbukSerializer::Serialize(after));
 				}
@@ -260,12 +258,12 @@ BOOST_AUTO_TEST_CASE(Ry_gate_eighth_to_identity)
                 after.Ry(t);
 
                 if (i < loop-1) {
-                    BOOST_REQUIRE_MESSAGE(!AUTOQ::TreeAutomata::check_equal(before, after), "\n" +
+                    BOOST_REQUIRE_MESSAGE(before != after, "\n" +
                         AUTOQ::Serialization::TimbukSerializer::Serialize(before) +
                         AUTOQ::Serialization::TimbukSerializer::Serialize(after));
                 }
                 else {
-                    BOOST_REQUIRE_MESSAGE(AUTOQ::TreeAutomata::check_equal(before, after), "\n" +
+                    BOOST_REQUIRE_MESSAGE(before == after, "\n" +
                         AUTOQ::Serialization::TimbukSerializer::Serialize(before) +
                         AUTOQ::Serialization::TimbukSerializer::Serialize(after));
 				}
@@ -283,15 +281,15 @@ BOOST_AUTO_TEST_CASE(CNOT_gate_twice_to_identity)
         AUTOQ::TreeAutomata after = before;
         int loop = 2;
         for (int i=0; i<loop; i++) {
-            after.CNOT(n*2/3, n/3);
+            after.CX(n*2/3, n/3);
 
             if (i < loop-1) {
                 if (before.name == "Random")
-                    BOOST_REQUIRE_MESSAGE(!AUTOQ::TreeAutomata::check_equal(before, after), "\n" +
+                    BOOST_REQUIRE_MESSAGE(before != after, "\n" +
                         AUTOQ::Serialization::TimbukSerializer::Serialize(before) +
                         AUTOQ::Serialization::TimbukSerializer::Serialize(after));
             } else {
-                BOOST_REQUIRE_MESSAGE(AUTOQ::TreeAutomata::check_equal(before, after), "\n" +
+                BOOST_REQUIRE_MESSAGE(before == after, "\n" +
                         AUTOQ::Serialization::TimbukSerializer::Serialize(before) +
                         AUTOQ::Serialization::TimbukSerializer::Serialize(after));
             }
@@ -308,11 +306,11 @@ BOOST_AUTO_TEST_CASE(CZ_gate_twice_to_identity)
             after.CZ(size*2/3, size/3);
 
             if (i < loop-1) {
-                BOOST_REQUIRE_MESSAGE(!AUTOQ::TreeAutomata::check_equal(before, after), "\n" +
+                BOOST_REQUIRE_MESSAGE(before != after, "\n" +
                         AUTOQ::Serialization::TimbukSerializer::Serialize(before) +
                         AUTOQ::Serialization::TimbukSerializer::Serialize(after));
             } else {
-                BOOST_REQUIRE_MESSAGE(AUTOQ::TreeAutomata::check_equal(before, after), "\n" +
+                BOOST_REQUIRE_MESSAGE(before == after, "\n" +
                         AUTOQ::Serialization::TimbukSerializer::Serialize(before) +
                         AUTOQ::Serialization::TimbukSerializer::Serialize(after));
             }
@@ -330,15 +328,15 @@ BOOST_AUTO_TEST_CASE(Toffoli_gate_twice_to_identity)
             AUTOQ::TreeAutomata after = before;
             int loop = 2;
             for (int i=0; i<loop; i++) {
-                after.Toffoli(v[0], v[1], v[2]);
+                after.CCX(v[0], v[1], v[2]);
 
                 if (i < loop-1) {
                     if (before.name == "Random")
-                        BOOST_REQUIRE_MESSAGE(!AUTOQ::TreeAutomata::check_equal(before, after), "\n" +
+                        BOOST_REQUIRE_MESSAGE(before != after, "\n" +
                         AUTOQ::Serialization::TimbukSerializer::Serialize(before) +
                         AUTOQ::Serialization::TimbukSerializer::Serialize(after));
                 } else {
-                    BOOST_REQUIRE_MESSAGE(AUTOQ::TreeAutomata::check_equal(before, after), "\n" +
+                    BOOST_REQUIRE_MESSAGE(before == after, "\n" +
                         AUTOQ::Serialization::TimbukSerializer::Serialize(before) +
                         AUTOQ::Serialization::TimbukSerializer::Serialize(after));
                 }
@@ -381,8 +379,8 @@ BOOST_AUTO_TEST_CASE(Bernstein_Vazirani)
     aut.Z(n+1);
     for (int i=1; i<=n; i++) {
         auto aut2 = aut;
-        aut2.CNOT(i, n+1);
-        aut = aut.Union(aut2);
+        aut2.CX(i, n+1);
+        aut = aut.operator||(aut2);
     }
     for (int i=1; i<=n; i++) {
         aut.H(i);
@@ -395,22 +393,22 @@ BOOST_AUTO_TEST_CASE(Bernstein_Vazirani)
     ans.finalStates.insert(0);
     for (unsigned level=1; level<ans.qubitNum; level++) { /* Note that < does not include ans.qubitNum! */
         if (level >= 2)
-            ans.transitions[Concrete(level)][2*level - 3].insert({2*level - 1, 2*level - 1});
-        ans.transitions[Concrete(level)][2*level - 2].insert({2*level - 1, 2*level});
-        ans.transitions[Concrete(level)][2*level - 2].insert({2*level, 2*level - 1});
+            ans.transitions[AUTOQ::Symbol::Concrete(level)][2*level - 3].insert({2*level - 1, 2*level - 1});
+        ans.transitions[AUTOQ::Symbol::Concrete(level)][2*level - 2].insert({2*level - 1, 2*level});
+        ans.transitions[AUTOQ::Symbol::Concrete(level)][2*level - 2].insert({2*level, 2*level - 1});
     }
     ans.stateNum = 2*(ans.qubitNum-1) + 1;
-    ans.transitions[Concrete(Complex::Zero())][ans.stateNum++].insert({{}});
-    ans.transitions[Concrete(Complex::One().divide_by_the_square_root_of_two())][ans.stateNum++].insert({{}});
-    ans.transitions[Concrete(Complex::One().divide_by_the_square_root_of_two() * (-1))][ans.stateNum++].insert({{}});
-    ans.transitions[Concrete(ans.qubitNum)][static_cast<AUTOQ::TreeAutomata::State>(2*(ans.qubitNum-1) - 1)].insert({ans.stateNum - 3, ans.stateNum - 3});
-    ans.transitions[Concrete(ans.qubitNum)][static_cast<AUTOQ::TreeAutomata::State>(2*(ans.qubitNum-1))].insert({ans.stateNum - 2, ans.stateNum - 1});
+    ans.transitions[AUTOQ::Symbol::Concrete(AUTOQ::Complex::Complex::Zero())][ans.stateNum++].insert({{}});
+    ans.transitions[AUTOQ::Symbol::Concrete(AUTOQ::Complex::Complex::One().divide_by_the_square_root_of_two())][ans.stateNum++].insert({{}});
+    ans.transitions[AUTOQ::Symbol::Concrete(AUTOQ::Complex::Complex::One().divide_by_the_square_root_of_two() * (-1))][ans.stateNum++].insert({{}});
+    ans.transitions[AUTOQ::Symbol::Concrete(ans.qubitNum)][static_cast<AUTOQ::TreeAutomata::State>(2*(ans.qubitNum-1) - 1)].insert({ans.stateNum - 3, ans.stateNum - 3});
+    ans.transitions[AUTOQ::Symbol::Concrete(ans.qubitNum)][static_cast<AUTOQ::TreeAutomata::State>(2*(ans.qubitNum-1))].insert({ans.stateNum - 2, ans.stateNum - 1});
 
     // std::ofstream fileRhs("reference_answers/Bernstein_Vazirani" + std::to_string(n) + ".aut");
 	// fileRhs << AUTOQ::Serialization::TimbukSerializer::Serialize(ans);
 	// fileRhs.close();
 
-    BOOST_REQUIRE_MESSAGE(AUTOQ::TreeAutomata::check_equal(aut, ans), "\n" +
+    BOOST_REQUIRE_MESSAGE(aut == ans, "\n" +
                         AUTOQ::Serialization::TimbukSerializer::Serialize(aut) +
                         AUTOQ::Serialization::TimbukSerializer::Serialize(ans));
 }
@@ -455,22 +453,22 @@ BOOST_AUTO_TEST_CASE(Grover_Search)
 
     for (int iter=1; iter <= M_PI / (4 * asin(1 / pow(2, n/2.0))); iter++) {
         /****************************************/
-        for (int i=1; i<=n; i++) aut.CNOT(i, n+i);
+        for (int i=1; i<=n; i++) aut.CX(i, n+i);
         /* multi-controlled NOT gate */
         if (n >= 3) {
-            aut.Toffoli(n+1, n+2, 2*n+2);
+            aut.CCX(n+1, n+2, 2*n+2);
             for (int i=3; i<=n; i++)
-                aut.Toffoli(n+i, 2*n+i-1, 2*n+i);
-            aut.CNOT(3*n, 2*n+1);
+                aut.CCX(n+i, 2*n+i-1, 2*n+i);
+            aut.CX(3*n, 2*n+1);
             for (int i=n; i>=3; i--)
-                aut.Toffoli(n+i, 2*n+i-1, 2*n+i);
-            aut.Toffoli(n+1, n+2, 2*n+2);
+                aut.CCX(n+i, 2*n+i-1, 2*n+i);
+            aut.CCX(n+1, n+2, 2*n+2);
         } else {
             assert(n == 2);
-            aut.Toffoli(3, 4, 5);
+            aut.CCX(3, 4, 5);
         }
         /*****************************/
-        for (int i=1; i<=n; i++) aut.CNOT(i, n+i);
+        for (int i=1; i<=n; i++) aut.CX(i, n+i);
         /****************************************/
 
         /************************************/
@@ -478,16 +476,16 @@ BOOST_AUTO_TEST_CASE(Grover_Search)
         for (int i=n+1; i<=2*n; i++) aut.X(i);
         /* multi-controlled Z gate */
         if (n >= 3) {
-            aut.Toffoli(n+1, n+2, 2*n+2);
+            aut.CCX(n+1, n+2, 2*n+2);
             for (int i=3; i<n; i++) // Note that < does not include n!
-                aut.Toffoli(n+i, 2*n+i-1, 2*n+i);
+                aut.CCX(n+i, 2*n+i-1, 2*n+i);
             aut.CZ(3*n-1, 2*n);
             for (int i=n-1; i>=3; i--)
-                aut.Toffoli(n+i, 2*n+i-1, 2*n+i);
-            aut.Toffoli(n+1, n+2, 2*n+2);
+                aut.CCX(n+i, 2*n+i-1, 2*n+i);
+            aut.CCX(n+1, n+2, 2*n+2);
         // } else if (n == 3) {
         //     aut.H(2*n);
-        //     aut.Toffoli(4, 5, 6);
+        //     aut.CCX(4, 5, 6);
         //     aut.H(2*n);
         } else {
             assert(n == 2);
@@ -503,24 +501,13 @@ BOOST_AUTO_TEST_CASE(Grover_Search)
     for (int i=1; i<=n; i++) aut.X(i);
     /********************************/
 
-    // std::ofstream fileRhs("reference_answers/Grover" + std::to_string(n) + ".aut");
-    // aut.fraction_simplification();
-	// fileRhs << AUTOQ::Serialization::TimbukSerializer::Serialize(aut);
-	// fileRhs.close();
-
-    // char cwd[PATH_MAX];
-    // if (getcwd(cwd, sizeof(cwd)) != NULL) {
-    //     printf("Current working dir: %s\n", cwd);
-    // } else {
-    //     perror("getcwd() error");
-    // }
-
-    auto ans = AUTOQ::Parsing::TimbukParser<AUTOQ::TreeAutomata::Symbol>::ReadAutomaton("../../reference_answers/Grover" + std::to_string(n) + ".spec");
+    const auto &file = boost::filesystem::canonical(boost::filesystem::path(__FILE__).parent_path()).string() + "/../reference_answers/Grover" + std::to_string(n) + ".spec";
+    auto ans = AUTOQ::Parsing::TimbukParser<AUTOQ::TreeAutomata::Symbol>::ReadAutomaton(file);
     // int n = (aut.qubitNum + 1) / 3;
     // aut.print();
 
     /******************************** Answer Validation *********************************/
-    BOOST_REQUIRE_MESSAGE(AUTOQ::TreeAutomata::check_equal(aut, ans), "\n" +
+    BOOST_REQUIRE_MESSAGE(aut == ans, "\n" +
                         AUTOQ::Serialization::TimbukSerializer::Serialize(aut) +
                         AUTOQ::Serialization::TimbukSerializer::Serialize(ans));
     // std::map<AUTOQ::TreeAutomata::State, AUTOQ::TreeAutomata::StateVector> edge;
@@ -620,16 +607,16 @@ BOOST_AUTO_TEST_CASE(Grover_Search_only_one_oracle)
         }
         /* multi-controlled NOT gate */
         if (n >= 3) {
-            aut.Toffoli(1, 2, n+2);
+            aut.CCX(1, 2, n+2);
             for (int i=3; i<=n; i++)
-                aut.Toffoli(i, n+i-1, n+i);
-            aut.CNOT(2*n, n+1);
+                aut.CCX(i, n+i-1, n+i);
+            aut.CX(2*n, n+1);
             for (int i=n; i>=3; i--)
-                aut.Toffoli(i, n+i-1, n+i);
-            aut.Toffoli(1, 2, n+2);
+                aut.CCX(i, n+i-1, n+i);
+            aut.CCX(1, 2, n+2);
         } else {
             assert(n == 2);
-            aut.Toffoli(1, 2, 3);
+            aut.CCX(1, 2, 3);
         }
         /********************************/
         for (int i=1; i<=n; i++) {
@@ -643,16 +630,16 @@ BOOST_AUTO_TEST_CASE(Grover_Search_only_one_oracle)
         for (int i=1; i<=n; i++) aut.X(i);
         /* multi-controlled Z gate */
         if (n >= 3) {
-            aut.Toffoli(1, 2, n+2);
+            aut.CCX(1, 2, n+2);
             for (int i=3; i<n; i++) // Note that < does not include n!
-                aut.Toffoli(i, n+i-1, n+i);
+                aut.CCX(i, n+i-1, n+i);
             aut.CZ(2*n-1, n);
             for (int i=n-1; i>=3; i--)
-                aut.Toffoli(i, n+i-1, n+i);
-            aut.Toffoli(1, 2, n+2);
+                aut.CCX(i, n+i-1, n+i);
+            aut.CCX(1, 2, n+2);
         // } else if (n == 3) {
         //     aut.H(2*n);
-        //     aut.Toffoli(4, 5, 6);
+        //     aut.CCX(4, 5, 6);
         //     aut.H(2*n);
         } else {
             assert(n == 2);

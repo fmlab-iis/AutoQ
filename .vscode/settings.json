@@ -73,7 +73,8 @@
         "stop_token": "cpp",
         "csignal": "cpp",
         "any": "cpp",
-        "future": "cpp"
+        "future": "cpp",
+        "source_location": "cpp"
     },
     "cmake.configureOnOpen": false
 }

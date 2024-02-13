@@ -12,7 +12,7 @@
 #define _AUTOQ_CONVERT_HH_
 
 // AUTOQ headers
-#include <autoq/autoq.hh>
+#include "autoq/autoq.hh"
 
 // Standard library headers
 #include <cassert>
