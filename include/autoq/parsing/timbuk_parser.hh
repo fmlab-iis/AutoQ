@@ -12,9 +12,6 @@
 #define _AUTOQ_TIMBUK_PARSER_HH_
 
 // AUTOQ headers
-#include "autoq/autoq.hh"
-#include "autoq/util/convert.hh"
-#include "autoq/util/triple.hh"
 #include "autoq/aut_description.hh"
 #include "autoq/complex/complex.hh"
 
@@ -23,7 +20,7 @@ namespace AUTOQ
 	namespace Parsing
 	{
 		template <typename Symbol>
-        class TimbukParser;
+        struct TimbukParser;
 	}
 }
 
@@ -34,17 +31,10 @@ namespace AUTOQ
  * This class is a parser for automata in the Timbuk format.
  */
 template <typename Symbol>
-class AUTOQ::Parsing::TimbukParser
+struct AUTOQ::Parsing::TimbukParser
 {
-public:   // methods
     static AUTOQ::Automata<Symbol> ReadAutomaton(const std::string& filepath);
     static AUTOQ::Automata<Symbol> parse_hsl_from_istream(std::istream *is, const std::map<std::string, AUTOQ::Complex::Complex> &constants = {});
-
-private:
-    // Disallow creating an instance of this object
-    TimbukParser() {}
-    static AUTOQ::Automata<Symbol> from_tree_to_automaton(std::string tree, const std::map<std::string, AUTOQ::Complex::Complex> &constants = {});
-    static AUTOQ::Automata<Symbol> from_line_to_automaton(std::string line, const std::map<std::string, AUTOQ::Complex::Complex> &constants = {});
 };
 
 #endif

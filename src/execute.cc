@@ -1,4 +1,4 @@
-#include "autoq/util/util.hh"
+#include "autoq/util/string.hh"
 #include "autoq/aut_description.hh"
 #include "autoq/symbol/concrete.hh"
 #include "autoq/symbol/symbolic.hh"
@@ -24,7 +24,7 @@ bool AUTOQ::Automata<Symbol>::execute(const std::string& filename) {
     if (!qasm.is_open()) throw std::runtime_error(AUTOQ_LOG_PREFIX + "[ERROR] Failed to open file " + std::string(filename) + ".");
     std::string line, previous_line;
     while (getline(qasm, line)) {
-        line = AUTOQ::Util::trim(line);
+        line = AUTOQ::String::trim(line);
         if (inGateDef) {
             if (line.find("}") != std::string::npos) {
                 inGateDef = false;
@@ -128,7 +128,7 @@ bool AUTOQ::Automata<Symbol>::execute(const std::string& filename) {
             const std::regex varR("\\((.*)\\)");
             std::regex_iterator<std::string::iterator> it(line.begin(), line.end(), varR);
             assert(it != END);
-            std::string var = AUTOQ::Util::trim(it->str(1));
+            std::string var = AUTOQ::String::trim(it->str(1));
             bool negate = (var.at(0) == '!'); // whether the variable is negated
             if (negate)
                 var = var.substr(1);
@@ -209,7 +209,7 @@ bool AUTOQ::Automata<Symbol>::execute(const std::string& filename) {
             const std::regex varR("\\((.*)\\)");
             std::regex_iterator<std::string::iterator> it(line.begin(), line.end(), varR);
             assert(it != END);
-            std::string var = AUTOQ::Util::trim(it->str(1));
+            std::string var = AUTOQ::String::trim(it->str(1));
             bool negate = (var.at(0) == '!'); // whether the variable is negated
             if (negate)
                 var = var.substr(1);
@@ -256,7 +256,7 @@ void AUTOQ::Automata<Symbol>::check_the_invariants_types(const std::string& file
     if (!qasm.is_open()) throw std::runtime_error(AUTOQ_LOG_PREFIX + "[ERROR] Failed to open file " + std::string(filename) + ".");
     std::string line;
     while (getline(qasm, line)) {
-        line = AUTOQ::Util::trim(line);
+        line = AUTOQ::String::trim(line);
         if (line.find("while") == 0) { // while (!result) { // loop-invariant.{spec|hsl}
             const std::regex spec("// *(.*)");
             std::regex_iterator<std::string::iterator> it2(line.begin(), line.end(), spec);

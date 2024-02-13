@@ -36,6 +36,7 @@ include_directories(../include)
 add_library(autoq STATIC
 	timbuk_parser-nobison.cc
 	timbuk_serializer.cc
+    util/string.cc
 	util/util.cc
     util/memory.cpp
 	simulation/explicit_lts_sim.cc

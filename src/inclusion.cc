@@ -1,4 +1,4 @@
-#include "autoq/util/util.hh"
+#include "autoq/util/string.hh"
 #include "autoq/aut_description.hh"
 #include "autoq/complex/complex.hh"
 #include "autoq/symbol/concrete.hh"
@@ -618,7 +618,7 @@ bool AUTOQ::SymbolicAutomata::operator<<=(SymbolicAutomata Q) const {
     }
     for (const auto &var : R.vars)
         R.constraints = std::regex_replace(R.constraints, std::regex("(\\b" + var + "\\b)"), var + "_R");
-    if (AUTOQ::Util::trim(R.constraints).empty()) R.constraints = "true";
+    if (AUTOQ::String::trim(R.constraints).empty()) R.constraints = "true";
     /*********************************************************/
     // Rename the variables in Q's transitions and constraints!
     transitions2 = Q.transitions;
@@ -642,7 +642,7 @@ bool AUTOQ::SymbolicAutomata::operator<<=(SymbolicAutomata Q) const {
     }
     for (const auto &var : Q.vars)
         Q.constraints = std::regex_replace(Q.constraints, std::regex("(\\b" + var + "\\b)"), var + "_Q");
-    if (AUTOQ::Util::trim(Q.constraints).empty()) Q.constraints = "true";
+    if (AUTOQ::String::trim(Q.constraints).empty()) Q.constraints = "true";
     /*********************************************************/
     std::string all_var_definitions;
     for (const auto &var : R.vars)

@@ -11,7 +11,7 @@ size_t peakSize    = getPeakRSS( );
 */
 
 
-#include "util_sim.h"
+#include "autoq/util/util.hh"
 
 #if defined(_WIN32)
 #include <windows.h>
@@ -43,7 +43,7 @@ size_t peakSize    = getPeakRSS( );
  * memory use) measured in bytes, or zero if the value cannot be
  * determined on this OS.
  */
-size_t getPeakRSS()
+size_t AUTOQ::Util::getPeakRSS()
 {
 #if defined(_WIN32)
     /* Windows -------------------------------------------------- */
