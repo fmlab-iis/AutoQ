@@ -8,7 +8,7 @@
 #include <queue> // used in remove_useless
 
 template <typename Symbol>
-void AUTOQ::Automata<Symbol>::omega_multiplication(int rotation) requires not_predicate<Symbol> {
+void AUTOQ::Automata<Symbol>::omega_multiplication(int rotation) {
     TopDownTransitions transitions_new;
     for (const auto &t_old : transitions) {
         const SymbolTag &symbol_tag = t_old.first;
@@ -28,7 +28,7 @@ void AUTOQ::Automata<Symbol>::omega_multiplication(int rotation) requires not_pr
 }
 
 template <typename Symbol>
-void AUTOQ::Automata<Symbol>::divide_by_the_square_root_of_two() requires not_predicate<Symbol> {
+void AUTOQ::Automata<Symbol>::divide_by_the_square_root_of_two() {
     std::vector<SymbolTag> to_be_removed;
     TopDownTransitions to_be_inserted;
     for (const auto &t : transitions) {
@@ -49,7 +49,7 @@ void AUTOQ::Automata<Symbol>::divide_by_the_square_root_of_two() requires not_pr
 }
 
 template <typename Symbol>
-void AUTOQ::Automata<Symbol>::branch_restriction(int k, bool positive_has_value) requires not_predicate<Symbol> {
+void AUTOQ::Automata<Symbol>::branch_restriction(int k, bool positive_has_value) {
     auto start = std::chrono::steady_clock::now();
     State num_of_states = stateNum;
     if (stateNum > std::numeric_limits<State>::max() / 2)
@@ -109,7 +109,7 @@ void AUTOQ::Automata<Symbol>::branch_restriction(int k, bool positive_has_value)
 }
 
 template <typename Symbol>
-void AUTOQ::Automata<Symbol>::semi_determinize() requires not_predicate<Symbol> {
+void AUTOQ::Automata<Symbol>::semi_determinize() {
     TopDownTransitions transitions_copy = transitions;
     for (const auto &t : transitions_copy) {
         const SymbolTag &symbol_tag = t.first;
@@ -133,7 +133,7 @@ void AUTOQ::Automata<Symbol>::semi_determinize() requires not_predicate<Symbol> 
 }
 
 template <typename Symbol>
-void AUTOQ::Automata<Symbol>::semi_undeterminize() requires not_predicate<Symbol> {
+void AUTOQ::Automata<Symbol>::semi_undeterminize() {
     TopDownTransitions transitions_copy = transitions;
     for (const auto &t : transitions_copy) {
         const SymbolTag &symbol_tag = t.first;
@@ -161,7 +161,7 @@ void AUTOQ::Automata<Symbol>::semi_undeterminize() requires not_predicate<Symbol
         else i = it->second; \
     } else i = a * y.stateNum + b;
 template <typename Symbol>
-AUTOQ::Automata<Symbol> binary_operation(const AUTOQ::Automata<Symbol> &x, const AUTOQ::Automata<Symbol> &y, bool add) requires not_predicate<Symbol> {
+AUTOQ::Automata<Symbol> binary_operation(const AUTOQ::Automata<Symbol> &x, const AUTOQ::Automata<Symbol> &y, bool add) {
     using State = typename AUTOQ::Automata<Symbol>::State;
     using StateVector = typename AUTOQ::Automata<Symbol>::StateVector;
 
@@ -331,15 +331,15 @@ AUTOQ::Automata<Symbol> binary_operation(const AUTOQ::Automata<Symbol> &x, const
     return result;
 }
 template <typename Symbol>
-AUTOQ::Automata<Symbol> AUTOQ::Automata<Symbol>::operator+(const Automata &o) const requires not_predicate<Symbol> {
+AUTOQ::Automata<Symbol> AUTOQ::Automata<Symbol>::operator+(const Automata &o) const {
     return binary_operation(*this, o, true);
 }
 template <typename Symbol>
-AUTOQ::Automata<Symbol> AUTOQ::Automata<Symbol>::operator-(const Automata &o) const requires not_predicate<Symbol> {
+AUTOQ::Automata<Symbol> AUTOQ::Automata<Symbol>::operator-(const Automata &o) const {
     return binary_operation(*this, o, false);
 }
 template <typename Symbol>
-AUTOQ::Automata<Symbol> AUTOQ::Automata<Symbol>::operator*(int c) const requires not_predicate<Symbol> {
+AUTOQ::Automata<Symbol> AUTOQ::Automata<Symbol>::operator*(int c) const {
     auto result = *this;
     std::vector<SymbolTag> to_be_removed;
     TopDownTransitions to_be_inserted;
@@ -616,4 +616,3 @@ AUTOQ::Automata<Symbol> AUTOQ::Automata<Symbol>::operator||(const Automata<Symbo
 // https://bytefreaks.net/programming-2/c/c-undefined-reference-to-templated-class-function
 template struct AUTOQ::Automata<AUTOQ::Symbol::Concrete>;
 template struct AUTOQ::Automata<AUTOQ::Symbol::Symbolic>;
-template struct AUTOQ::Automata<AUTOQ::Symbol::Predicate>;

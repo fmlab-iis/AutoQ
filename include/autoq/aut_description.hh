@@ -31,12 +31,6 @@ namespace AUTOQ
     typedef Automata<Symbol::Predicate> PredicateAutomata;
 }
 
-template <typename T> constexpr auto not_predicate = requires (T x) {
-    x - x;
-    x + x;
-    x.fraction_simplification();
-};
-
 template <typename TT>
 struct AUTOQ::Automata
 {
@@ -124,22 +118,22 @@ struct AUTOQ::Automata
     bool operator>(const Automata &o) const { return o < *this; }
     // The above comparison is done after fraction_simplification() is called.
     // The comparison below is done when global phases are allowed.
-    bool operator<<=(Automata o) const requires not_predicate<TT>;
+    bool operator<<=(Automata o) const;
     /******************************************************/
 
     /******************************************************/
     /* composition_based.cc: composition-based operations */
     void swap_forward(const int k);
     void swap_backward(const int k);
-    void omega_multiplication(int rotation=1) requires not_predicate<TT>;
-    void divide_by_the_square_root_of_two() requires not_predicate<TT>;
-    void branch_restriction(int k, bool positive_has_value=true) requires not_predicate<TT>;
+    void omega_multiplication(int rotation=1);
+    void divide_by_the_square_root_of_two();
+    void branch_restriction(int k, bool positive_has_value=true);
     void value_restriction(int k, bool branch);
-    void semi_determinize() requires not_predicate<TT>;
-    void semi_undeterminize() requires not_predicate<TT>;
-    Automata operator+(const Automata &o) const requires not_predicate<TT>;
-    Automata operator-(const Automata &o) const requires not_predicate<TT>;
-    Automata operator*(int c) const requires not_predicate<TT>;
+    void semi_determinize();
+    void semi_undeterminize();
+    Automata operator+(const Automata &o) const;
+    Automata operator-(const Automata &o) const;
+    Automata operator*(int c) const;
     Automata operator||(const Automata &o) const; // use the logical OR operator to denote "union"
     /******************************************************/
 
