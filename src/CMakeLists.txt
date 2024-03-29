@@ -47,6 +47,7 @@ add_library(autoq STATIC
 	composition_based.cc
     query.cc
 	quantum_gate.cc
+    general.cc
 )
 
 # set_target_properties(autoq PROPERTIES
