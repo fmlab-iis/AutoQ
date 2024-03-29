@@ -3,7 +3,7 @@
 
 ---
 
-AutoQ 2.0 is a command-line utility written in C++ for verifying partial correctness of quantum programs automatically based on non-deterministic finite tree automata (NFTA) along with the concept of Hoare-style proof systems. Consider a triple $\\{P\\}\ C\ \\{Q\\}$, where $P$ and $Q$ are the pre- and post-condition recognizing sets of (pure) quantum states (represented by NFTA) and $C$ is a quantum program. Let $\mathcal L(.)$ denote the function mapping from a condition $x$ to the set of all quantum states satisfying $x$ (characterized by $x$). Then AutoQ 2.0 essentially checks whether all the quantum states in $\mathcal L(P)$ reach some state in $\mathcal L(Q)$ after the program $C$ is executed. If we further let $C(.)$ denote the function mapping from a condition $x$ to the evolution of $x$ after a program segment $C$ is executed, then AutoQ 2.0 simply checks whether $\mathcal L(C(P)) \subseteq \mathcal L(Q)$.
+AutoQ 2.0 is a command-line utility written in C++ for verifying partial correctness of quantum programs automatically based on non-deterministic finite tree automata (NFTA) along with the concept of Hoare-style proof systems. Consider a triple $\\{P\\}\ C\ \\{Q\\}$, where $P$ and $Q$ are the pre- and post-condition recognizing sets of (pure) quantum states (represented by NFTA) and $C$ is a quantum program. Let $\mathcal L(.)$ denote the mapping from a condition $x$ to the set of all quantum states satisfying $x$ (characterized by $x$). Then AutoQ 2.0 essentially checks whether all the quantum states in $\mathcal L(P)$ reach some state in $\mathcal L(Q)$ after the program $C$ is executed. If we further let $C(.)$ denote the mapping from a condition $x$ to the evolution of $x$ after a program segment $C$ is executed, then AutoQ 2.0 simply checks whether $\mathcal L(C(P)) \subseteq \mathcal L(Q)$.
 
 The following is a mini illustration of the functionality of this tool.
 ```
@@ -129,9 +129,9 @@ Finally, we should be noticed that not all strings described by `*.hsl` are vali
 
 ## The Extension to Quantum Programs
 
-The extension from quantum circuits to quantum programs mainly relies on the additional support for control flow statements such as ***branching (if-else)*** and ***looping (while)***. In each case, the control flow can only be decided by the ***measurement outcome***. A measurement outcome can be read from a classical bit, on which the outcome of a ***measurement operator*** on a target qubit is stored.
+AutoQ 1.0 only supports quantum circuits, but AutoQ 2.0 also supports quantum programs in addition. The extension focuses on the additional support for control flow statements such as ***branching (if-else)*** and ***looping (while)***. In this section, we will introduce these two kinds of control flow statements, along with ***measurement***, which is used to decide the control flow path.
 
-### Measurement
+### # Measurement
 ```
 ...
 qubit[1] qb; // quantum bit
@@ -142,62 +142,90 @@ outcome[0] = measure qb[0];
 // S0: {|0>/√2}
 // S1: {|1>/√2}
 ```
-Our implementation of measurement operators is relatively easy! Let $S$ be the set of quantum states right before the measurement operator. This operator will produces two sets $S_0$ and $S_1$ where $S_0$ is produced by collapsing amplitudes of all computational basis states whose target bit in their representation is $1$ to $0$ (***without*** normalizing other non-zero amplitudes) and $S_1$ is produced by collapsing amplitudes of all computational basis states whose target bit in their representation is $0$ to $0$ (***without*** normalizing other non-zero amplitudes). Denote the operator used for producing $S_0$ (resp., $S_1$) by $M[target]_0$ $\big(\text{resp., }M[target]_1\big)$ for simplicity.
+The usage of a measurement operator should be `[a classical bit: c] = measure [a quantum bit: q];`.
 
-An interesting thing is that not normalizing other non-zero amplitudes is reasonable since there is only one positive scaling factor that can be used to normalize an invalid quantum state. In other words, each non-normalized quantum state also represents a unique valid quantum state.
+The evolution of the set of quantum states in AutoQ 2.0 is described as follows. Let $S$ be the set of quantum states right before the measurement operator. There are two possible outcomes `q=0` and `q=1` of this operator, so after the measurement we define one set $\displaystyle S_0 \coloneqq \\Bigg\\{\ |s'\rangle = \sum_{i\in\\{0,1\\}^n,\ i_q=0} a_i\ |i\rangle\ \Bigg|\ |s\rangle \in S,\ |s\rangle = \sum_{i\in\\{0,1\\}^n} a_i\ |i\rangle \\Bigg\\}$ and another set $\displaystyle S_1 \coloneqq \\Bigg\\{\ |s'\rangle = \sum_{i\in\\{0,1\\}^n,\ i_q=1} a_i\ |i\rangle\ \Bigg|\ |s\rangle \in S,\ |s\rangle = \sum_{i\in\\{0,1\\}^n} a_i\ |i\rangle \\Bigg\\}$. A careful reader may notice that for computational simplicity, AutoQ 2.0 does not normalize the amplitudes after measurements, but it is still reasonable since there is only one positive scaling factor that can be used to normalize an invalid quantum state. In other words, each non-normalized quantum state also represents a unique valid quantum state.
 
-This operator can only be used along with the ***control statement*** of the following structures. Please refer to them for more details.
+***This operator cannot be used standalone in AutoQ 2.0***, it can only be used along with ***branching (if-else)*** and ***looping (while)*** introduced below. Please refer to them for more details.
 
-### Branching (if-else)
+### # Branching (if-else)
 ```
 ...
 qubit[1] qb; // quantum bit
 bit[1] outcome; // classical bit
 ...
 // S: {|0>/√2 + |1>/√2}
-outcome[0] = measure qb[0]; // (*)
-if (!outcome[0]) { // S0: {|0>}
+outcome[0] = measure qb[0];
+if (!outcome[0]) { // S0: {|0>/√2}
     x qb[0];
-} // S0': {|1>}
-else { // S1: {|1>}
+} // S0': {|1>/√2}
+else { // S1: {|1>/√2}
     h qb[0];
-} // S1': {|0>/√2 - |1>/√2}
-// (S0')∪(S1'): {|1>, |0>/√2 - |1>/√2}
+} // S1': {|0>/2 - |1>/2}
+// (S0')∪(S1'): {|1>/√2, |0>/2 - |1>/2}
 ```
+The usage of an if-else block in general should be
+```
+[a classical bit: c] = measure [a quantum bit: q];
+if (c) {
+    ...
+}
+else {
+    ...
+}
+```
+, but sometimes `if (c)` may be replaced with `if (!c)` and sometimes the `else {...}` block may be omitted. The reason why we need a measurement operator at the beginning is that we need to produce $S_0$ and $S_1$ explained in the *Measurement* section before entering the if-else block.
 
-Before the if-else block, there is a set of quantum states $S$ up to that line. $\color{red}\text{The line (*) is mandatory for the control statement.}$ The measurement operator produces $S_0$ and $S_1$ according to the previous section. Then AutoQ 2.0 executes the if block with $S_0$ (resp., $S_1$) as its initial set, and executes the else block with $S_1$ (resp., $S_0$) as its initial set, if the variable in the control statement is (resp., not) prepended with the negation operator. At the end of this if-else block, the resulting set $(S_0')\cup(S_1')$ is the union of the two resulting sets $S_0'$ after the if block (resp., the else block) and $S_1'$ after the else block (resp., the if block). The remaining execution is then continued with this set.
+AutoQ 2.0 will execute the `if` block with $S_1$ as its initial set and produce the resulting set $S_1'$, and will execute the `else` block with $S_0$ as its initial set and produce the resulting set $S_0'$. Right after this if-else block, AutoQ 2.0 will obtain the union $(S_0')\cup(S_1')$, and the remaining execution is then continued with this set. If `if (c)` is replaced with `if (!c)`, then the `if` (resp., `else`) block will be executed with $S_0$ (resp., $S_1$) as its initial set.
 
-Note that the statement "else {" cannot be on the same line with the closing bracket "}" of the previous if block since AutoQ 2.0 needs to detect the termination of the previous if block. Also note that the else block can be omitted. In this case, we can simply see that block as an identity gate. Please refer to [this example](https://github.com/alan23273850/AutoQ/tree/CAV24/benchmarks/control_mini/if-else) for more details.
+If the `else` block is omitted, AutoQ 2.0 simply sees that block as an identity gate.
 
-### Looping (while)
+A subtle thing should be noticed is that the statement `else {` cannot be on the same line with the closing bracket `}` of the previous `if` block since AutoQ 2.0 needs to detect the termination of the previous `if` block. Please refer to [this example](https://github.com/alan23273850/AutoQ/tree/CAV24/benchmarks/control_mini/if-else) for its usage.
+
+### # Looping (while)
 ```
 ...
 qubit[1] qb; // quantum bit
 bit[1] outcome; // classical bit
 ...
 // S: {|0>/√2 + |1>/√2}
-outcome[0] = measure qb[0]; // (*)
-while (outcome[0]) { // I: {|0>/√2 + |1>/√2} (**)
+outcome[0] = measure qb[0];
+while (outcome[0]) { // I: {|0>/√2 + |1>/√2}
     h qb[0];
     z qb[0];
-    outcome[0] = measure qb[0]; // (*)
+    outcome[0] = measure qb[0];
 }
-// M[0]_0(I): {|0>}
+// {|0>/√2}
 ```
+The usage of a while loop in general should be
+```
+[a classical bit: c] = measure [a quantum bit: q];
+while (c) { // invariant.{hsl|spec}
+    ...
+    c = measure q;
+}
+```
+, but sometimes `while (c)` may be replaced with `while (!c)`.
 
-Unlike the if-else block, the NFTA does not split into two when AutoQ 2.0 encounters a while loop. Let $S$ be the set of quantum states right before the while loop and $I$ be the ***loop invariant specified in a file***. $\color{red}\text{The lines (*) and (**) are still mandatory.}$ Instead, AutoQ 2.0 checks whether (1) $S \subseteq I$ and (2) $LoopBody(M[target]_0(I)) \subseteq I$ $\big(\text{resp., }LoopBody(M[target]_1(I)) \subseteq I\big)$ if the variable in the control statement is (resp., not) prepended with the negation operator. After this while loop, AutoQ 2.0 continues with the remaining execution with the set $M[target]_1(I)$ $\big(\text{resp., }M[target]_0(I)\big)$.
+Unlike the if-else block, the NFTA does not split into two after a while loop. Instead, AutoQ 2.0 first checks whether the set of quantum states $S$ prior to the measurement operator is included in the set of quantum states $I$ specified in the invariant file `invariant.{hsl|spec}` (i.e., $S \subseteq I$). If the answer is no, the verification of the whole quantum program fails. Otherwise, AutoQ 2.0 continues to check whether the set evolution after $\displaystyle\\Bigg\\{\ \sum_{i\in\\{0,1\\}^n,\ i_q=1} a_i\ |i\rangle\ \Bigg|\ |s\rangle \in I,\ |s\rangle = \sum_{i\in\\{0,1\\}^n} a_i\ |i\rangle \\Bigg\\}$ running through the loop body is still included in $I$. If the answer is still yes, then the verification of this loop passes and AutoQ 2.0 continues the remaining execution with $\displaystyle\\Bigg\\{\ \sum_{i\in\\{0,1\\}^n,\ i_q=0} a_i\ |i\rangle\ \Bigg|\ |s\rangle \in I,\ |s\rangle = \sum_{i\in\\{0,1\\}^n} a_i\ |i\rangle \\Bigg\\}$ after this while loop.
 
-The file paths for specifying loop invariants are relative to the circuit file's location. Please refer to [this example](https://github.com/alan23273850/AutoQ/tree/CAV24/benchmarks/control_mini/while) for more details.
+If `while (c)` is replaced with `while (!c)`, then $i_q=1$ and $i_q=0$ should be interchanged in the above description.
+
+The file paths for specifying loop invariants are relative to the circuit file's location. Please refer to [this example](https://github.com/alan23273850/AutoQ/tree/CAV24/benchmarks/control_mini/while) for its usage.
 
 ---
 
 ## Appendix - Internal Structures
 
-The following figure demonstrates how we use a tree to represent a $3$-qubit quantum state so that an NFTA can encode a set of quantum states.
+The following figure demonstrates how we use a tree to represent a $3$-qubit quantum state so that an NFTA can encode a set of quantum states. The symbol $000$ stores the amplitude of the computational basis state $|000\rangle$, $001$ stores the amplitude of the computational basis state $|001\rangle$, etc.
 
-<img width="412" alt="image" src="https://user-images.githubusercontent.com/10044077/214999182-7e3882d2-47cf-49cb-aa3e-45295072b3f8.png">
+<img width="350" alt="image" src="https://user-images.githubusercontent.com/10044077/214999182-7e3882d2-47cf-49cb-aa3e-45295072b3f8.png">
 
-TO BE EDITED: Briefly explain what NFTA is and how it can be used for representing a set of quantum states.
+Please refer to [Example 1.1.3](https://inria.hal.science/hal-03367725v1/document#page=23) for a better understanding of NFTA. In short, the only difference between NFTA and NFA is that NFAs must have a starting state, but NFTAs do not. The tree language recognition procedure checks if an NFTA $\mathcal A$ accepts a tree $T$ (not necessarily binary) by iteratively reducing each component in a tree
+
+<img width="350" alt="image" src="https://github.com/alan23273850/AutoQ/assets/10044077/db966d58-37ad-4b0d-be40-f57febf82634">
+
+to a (unary) state $q$ provided that the transition (rule) $f(q_1, q_2, ..., q_n) \to q$ is present in $\mathcal A$ until no further reductions can be performed. There are many ways to reduce a tree, so we say $\mathcal A$ accepts $T$ if there exists a sequence of reductions such that the eventual resulting (unary) state is an $\mathcal A$'s final state (called ***root state*** in AutoQ 2.0). Leaf symbols (amplitudes) have no children, so they can only be reduced with $0$-arity transitions.
 
 ---
 
@@ -213,17 +241,18 @@ This section is responsible for specifying a set of transitions. One transition 
 
 We close this section with the following example.
 ```
+Constants
+c0 := 0
 Root States aR bR
 Transitions
 [1](aL1, aL1) -> aR
 [2](qLow, q0) -> aL1
 [1](bL1, bL1) -> bR
 [2](q0, qHigh) -> bL1
-[p0] -> q0
+[c0] -> q0
 [p1] -> qLow
 [p2] -> qHigh
 Constraints
-p0 = 0
 imag(p1) = 0
 p1 ^ 2 < 1/8
 imag(p2) = 0
