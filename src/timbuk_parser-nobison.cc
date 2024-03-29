@@ -835,7 +835,7 @@ AUTOQ::Automata<Symbol> from_line_to_automaton(std::string line, const std::map<
                 // }
             }
             for (const auto &t2 : aut2.transitions) {
-                int Q = aut.qubitNum + t2.first.symbol().qubit(); // we need to shift the qubit number
+                int Q = static_cast<int>(aut.qubitNum + t2.first.symbol().qubit()); // we need to shift the qubit number
                 if (t2.first.is_internal()) { // if the to-be-appended transition is internal, then
                     for (const auto &kv : t2.second) { // for each pair of top -> ...
                         auto top = kv.first;
