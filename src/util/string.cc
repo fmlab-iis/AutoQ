@@ -1,4 +1,5 @@
 #include <cassert>
+#include <algorithm>
 #include "autoq/util/util.hh"
 #include "autoq/util/string.hh"
 #include "autoq/util/convert.hh"
