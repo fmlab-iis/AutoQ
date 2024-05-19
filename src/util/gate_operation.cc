@@ -234,9 +234,10 @@ void AUTOQ::Automata<Symbol>::General_Single_Qubit_Gate(int t, std::function<Sym
                             // std::cout << "(" << stateNum + in_out1.first.at(0)*stateNum + in_out2.first.at(0) << ")("
                             //                  << stateNum + in_out1.first.at(1)*stateNum + in_out2.first.at(1) << ")("
                             //                  << top1 << ")(" << top2 << ")(" << stateNum + top1*stateNum + top2 << ")\n";
-                            // auto &nt = result.transitions[{it->first.symbol(), it->first.tag() | it2->first.tag()}];
+                            // auto &nt = result.transitions[{it->first.symbol(), it->first.tag() & it2->first.tag()}];
                             if (possible_previous_level_states[stateNum + top1*stateNum + top2]) {
-                                qcfi[stateNum + top1*stateNum + top2][it->first.tag() | it2->first.tag()].push_back({it->first.symbol(), {stateNum + in1.at(0)*stateNum + in2.at(0), stateNum + in1.at(1)*stateNum + in2.at(1)}});
+                                if (it->first.tag() & it2->first.tag())
+                                    qcfi[stateNum + top1*stateNum + top2][it->first.tag() & it2->first.tag()].push_back({it->first.symbol(), {stateNum + in1.at(0)*stateNum + in2.at(0), stateNum + in1.at(1)*stateNum + in2.at(1)}});
                                 // nt[{stateNum + in_out1.first.at(0)*stateNum + in_out2.first.at(0),
                                 //     stateNum + in_out1.first.at(1)*stateNum + in_out2.first.at(1)}]
                                 //     .insert(stateNum + top1*stateNum + top2); // (s1, s2, +) -> stateNum + s1 * stateNum + s2
@@ -244,7 +245,8 @@ void AUTOQ::Automata<Symbol>::General_Single_Qubit_Gate(int t, std::function<Sym
                                 // possible_next_level_states[stateNum + in_out1.first.at(1)*stateNum + in_out2.first.at(1)] = true;
                             }
                             if (possible_previous_level_states[stateNum + stateNum*stateNum + top1*stateNum + top2]) {
-                                qcfi[stateNum + stateNum*stateNum + top1*stateNum + top2][it->first.tag() | it2->first.tag()].push_back({it->first.symbol(), {stateNum + stateNum*stateNum + in1.at(0)*stateNum + in2.at(0), stateNum + stateNum*stateNum + in1.at(1)*stateNum + in2.at(1)}});
+                                if (it->first.tag() & it2->first.tag())
+                                    qcfi[stateNum + stateNum*stateNum + top1*stateNum + top2][it->first.tag() & it2->first.tag()].push_back({it->first.symbol(), {stateNum + stateNum*stateNum + in1.at(0)*stateNum + in2.at(0), stateNum + stateNum*stateNum + in1.at(1)*stateNum + in2.at(1)}});
                                 // nt[{stateNum + stateNum*stateNum + in_out1.first.at(0)*stateNum + in_out2.first.at(0),
                                 //     stateNum + stateNum*stateNum + in_out1.first.at(1)*stateNum + in_out2.first.at(1)}]
                                 //     .insert(stateNum + stateNum*stateNum + top1*stateNum + top2); // (s1, s2, -) -> stateNum + stateNum^2 + s1 * stateNum + s2
@@ -257,27 +259,27 @@ void AUTOQ::Automata<Symbol>::General_Single_Qubit_Gate(int t, std::function<Sym
             }
         }
         if (std::next(it, 1) == transitions.end() || std::next(it, 1)->first.is_leaf() || it->first.symbol().qubit() != std::next(it, 1)->first.symbol().qubit()) { // this layer is finished!
-            std::map<State, std::set<Tag>> delete_colors;
+            // std::map<State, std::set<Tag>> delete_colors;
+            // for (const auto &q_ : qcfi) {
+            //     for (auto c_ptr = q_.second.rbegin(); c_ptr != q_.second.rend(); ++c_ptr) {
+            //         if (c_ptr->second.size() >= 2) {
+            //             delete_colors[q_.first].insert(c_ptr->first);
+            //         }
+            //         else {
+            //             for (auto c_ptr2 = q_.second.begin(); c_ptr2 != q_.second.end(); ++c_ptr2) {
+            //                 if (c_ptr2->first >= c_ptr->first) break;
+            //                 if ((c_ptr->first & c_ptr2->first) == c_ptr->first) {
+            //                     delete_colors[q_.first].insert(c_ptr->first);
+            //                     break;
+            //                 }
+            //             }
+            //         }
+            //     }
+            // }
             for (const auto &q_ : qcfi) {
-                for (auto c_ptr = q_.second.rbegin(); c_ptr != q_.second.rend(); ++c_ptr) {
-                    if (c_ptr->second.size() >= 2) {
-                        delete_colors[q_.first].insert(c_ptr->first);
-                    }
-                    else {
-                        for (auto c_ptr2 = q_.second.begin(); c_ptr2 != q_.second.end(); ++c_ptr2) {
-                            if (c_ptr2->first >= c_ptr->first) break;
-                            if ((c_ptr->first | c_ptr2->first) == c_ptr->first) {
-                                delete_colors[q_.first].insert(c_ptr->first);
-                                break;
-                            }
-                        }
-                    }
-                }
-            }
-            for (const auto &q_ : qcfi) {
-                const auto &dc_q = delete_colors[q_.first];
+                // const auto &dc_q = delete_colors[q_.first];
                 for (const auto &c_ : q_.second) {
-                    if (std::find(dc_q.begin(), dc_q.end(), c_.first) != dc_q.end()) continue;
+                    // if (std::find(dc_q.begin(), dc_q.end(), c_.first) != dc_q.end()) continue;
                     for (const auto &f_i : c_.second) {
                         result.transitions[{f_i.first, c_.first}][q_.first].insert(f_i.second);
                         for (const auto &s : f_i.second)
@@ -312,43 +314,47 @@ void AUTOQ::Automata<Symbol>::General_Single_Qubit_Gate(int t, std::function<Sym
                             // std::cout << (it->first.symbol() + it2->first.symbol()).divide_by_the_square_root_of_two() << "C\n";
                             // std::cout << (it->first.symbol() - it2->first.symbol()).divide_by_the_square_root_of_two() << "D\n";
                             // std::cout << "(" << stateNum << ")(" << top1 << ")(" << top2 << ")(" << stateNum + top1*stateNum + top2 << ")(" << stateNum + stateNum*stateNum + top1*stateNum + top2 << ")\n";
-                            if (possible_previous_level_states[stateNum + top1*stateNum + top2])
-                                qcfi[stateNum + top1*stateNum + top2][it->first.tag() | it2->first.tag()].push_back({L(it->first.symbol(), it2->first.symbol()), {}});
+                            if (possible_previous_level_states[stateNum + top1*stateNum + top2]) {
+                                if (it->first.tag() & it2->first.tag())
+                                    qcfi[stateNum + top1*stateNum + top2][it->first.tag() & it2->first.tag()].push_back({L(it->first.symbol(), it2->first.symbol()), {}});
                                 // result.transitions[{(it->first.symbol() + it2->first.symbol()).divide_by_the_square_root_of_two(),
-                                //                     it->first.tag() | it2->first.tag()}][{}]
+                                //                     it->first.tag() & it2->first.tag()}][{}]
                                 //     .insert(stateNum + top1*stateNum + top2); // (s1, s2, +) -> stateNum + s1 * stateNum + s2
-                            if (possible_previous_level_states[stateNum + stateNum*stateNum + top1*stateNum + top2])
-                                qcfi[stateNum + stateNum*stateNum + top1*stateNum + top2][it->first.tag() | it2->first.tag()].push_back({R(it->first.symbol(), it2->first.symbol()), {}});
+                            }
+                            if (possible_previous_level_states[stateNum + stateNum*stateNum + top1*stateNum + top2]) {
+                                if (it->first.tag() & it2->first.tag())
+                                    qcfi[stateNum + stateNum*stateNum + top1*stateNum + top2][it->first.tag() & it2->first.tag()].push_back({R(it->first.symbol(), it2->first.symbol()), {}});
                                 // result.transitions[{(it->first.symbol() - it2->first.symbol()).divide_by_the_square_root_of_two(),
-                                //                     it->first.tag() | it2->first.tag()}][{}]
+                                //                     it->first.tag() & it2->first.tag()}][{}]
                                 //     .insert(stateNum + stateNum*stateNum + top1*stateNum + top2); // (s1, s2, -) -> stateNum + stateNum^2 + s1 * stateNum + s2
+                            }
                         // }
                     // }
                 }
             }
         }
     }
-    std::map<State, std::set<Tag>> delete_colors;
+    // std::map<State, std::set<Tag>> delete_colors;
+    // for (const auto &q_ : qcfi) {
+    //     for (auto c_ptr = q_.second.rbegin(); c_ptr != q_.second.rend(); ++c_ptr) {
+    //         if (c_ptr->second.size() >= 2) {
+    //             delete_colors[q_.first].insert(c_ptr->first);
+    //         }
+    //         else {
+    //             for (auto c_ptr2 = q_.second.begin(); c_ptr2 != q_.second.end(); ++c_ptr2) {
+    //                 if (c_ptr2->first >= c_ptr->first) break;
+    //                 if ((c_ptr->first & c_ptr2->first) == c_ptr->first) {
+    //                     delete_colors[q_.first].insert(c_ptr->first);
+    //                     break;
+    //                 }
+    //             }
+    //         }
+    //     }
+    // }
     for (const auto &q_ : qcfi) {
-        for (auto c_ptr = q_.second.rbegin(); c_ptr != q_.second.rend(); ++c_ptr) {
-            if (c_ptr->second.size() >= 2) {
-                delete_colors[q_.first].insert(c_ptr->first);
-            }
-            else {
-                for (auto c_ptr2 = q_.second.begin(); c_ptr2 != q_.second.end(); ++c_ptr2) {
-                    if (c_ptr2->first >= c_ptr->first) break;
-                    if ((c_ptr->first | c_ptr2->first) == c_ptr->first) {
-                        delete_colors[q_.first].insert(c_ptr->first);
-                        break;
-                    }
-                }
-            }
-        }
-    }
-    for (const auto &q_ : qcfi) {
-        const auto &dc_q = delete_colors[q_.first];
+        // const auto &dc_q = delete_colors[q_.first];
         for (const auto &c_ : q_.second) {
-            if (std::find(dc_q.begin(), dc_q.end(), c_.first) != dc_q.end()) continue;
+            // if (std::find(dc_q.begin(), dc_q.end(), c_.first) != dc_q.end()) continue;
             for (const auto &f_i : c_.second) {
                 result.transitions[{f_i.first, c_.first}][q_.first].insert(f_i.second);
                 // for (const auto &s : f_i.second)
@@ -559,7 +565,7 @@ void AUTOQ::Automata<Symbol>::Ry(int t) {
 //                             if (possible_previous_level_states[T]) {
 //                                 construct_product_state_id(in_out1.first.at(0), in_out2.first.at(0), L);
 //                                 construct_product_state_id(in_out1.first.at(1), in_out2.first.at(1), R);
-//                                 fqci[it->first.symbol()][T][it->first.tag() | it2->first.tag()].push_back({L, R});
+//                                 fqci[it->first.symbol()][T][it->first.tag() & it2->first.tag()].push_back({L, R});
 //                             }
 //                         }
 //                     }
@@ -577,7 +583,7 @@ void AUTOQ::Automata<Symbol>::Ry(int t) {
 //                         else {
 //                             for (auto q_ptr2 = q_.second.begin(); q_ptr2 != q_.second.end(); ++q_ptr2) {
 //                                 if (q_ptr2->first >= q_ptr->first) break;
-//                                 if ((q_ptr->first | q_ptr2->first) == q_ptr->first) {
+//                                 if ((q_ptr->first & q_ptr2->first) == q_ptr->first) {
 //                                     delete_colors[f_.first][q_.first].push_back(q_ptr->first);
 //                                     break;
 //                                 }
@@ -622,7 +628,7 @@ void AUTOQ::Automata<Symbol>::Ry(int t) {
 //                         for (const auto &top2 : in_out2.second) {
 //                             construct_product_state_id(top1, top2, T);
 //                             if (possible_previous_level_states[T])
-//                                 fqci[it->first.symbol()][T][it->first.tag() | it2->first.tag()].push_back({in_out1.first.at(0), stateNum + in_out2.first.at(1)});
+//                                 fqci[it->first.symbol()][T][it->first.tag() & it2->first.tag()].push_back({in_out1.first.at(0), stateNum + in_out2.first.at(1)});
 //                                 // IMPORTANT: Aut2's state ids must be added by aut1's state number to become the global state ids.
 //                         }
 //                     }
@@ -641,7 +647,7 @@ void AUTOQ::Automata<Symbol>::Ry(int t) {
 //                 else {
 //                     for (auto q_ptr2 = q_.second.begin(); q_ptr2 != q_.second.end(); ++q_ptr2) {
 //                         if (q_ptr2->first >= q_ptr->first) break;
-//                         if ((q_ptr->first | q_ptr2->first) == q_ptr->first) {
+//                         if ((q_ptr->first & q_ptr2->first) == q_ptr->first) {
 //                             delete_colors[f_.first][q_.first].push_back(q_ptr->first);
 //                             break;
 //                         }
@@ -703,7 +709,7 @@ void AUTOQ::Automata<Symbol>::Ry(int t) {
 //                         else {
 //                             for (auto q_ptr2 = q_.second.begin(); q_ptr2 != q_.second.end(); ++q_ptr2) {
 //                                 if (q_ptr2->first >= q_ptr->first) break;
-//                                 if ((q_ptr->first | q_ptr2->first) == q_ptr->first) {
+//                                 if ((q_ptr->first & q_ptr2->first) == q_ptr->first) {
 //                                     delete_colors[f_.first][q_.first].push_back(q_ptr->first);
 //                                     break;
 //                                 }
@@ -758,7 +764,7 @@ void AUTOQ::Automata<Symbol>::Ry(int t) {
 //                 else {
 //                     for (auto q_ptr2 = q_.second.begin(); q_ptr2 != q_.second.end(); ++q_ptr2) {
 //                         if (q_ptr2->first >= q_ptr->first) break;
-//                         if ((q_ptr->first | q_ptr2->first) == q_ptr->first) {
+//                         if ((q_ptr->first & q_ptr2->first) == q_ptr->first) {
 //                             delete_colors[f_.first][q_.first].push_back(q_ptr->first);
 //                             break;
 //                         }

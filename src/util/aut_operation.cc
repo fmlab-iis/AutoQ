@@ -1177,7 +1177,7 @@ void AUTOQ::Automata<Symbol>::fraction_simplification() {
                 /************************************************************/
                 // Check if the current combination is color-consistent.
                 // If not, skip this one and continue to the next combination.
-                unsigned all_used_colors = 0;
+                unsigned all_used_colors = ~0;
                 bool color_consistent = true;
                 // Check if there is no any children state derived from the current combination.
                 // If it is true, then we shall not create new vertices derived from this one,
@@ -1188,22 +1188,23 @@ void AUTOQ::Automata<Symbol>::fraction_simplification() {
                     // AUTOQ_DEBUG(AUTOQ::Util::Convert::ToString(kv.second->first)
                     //         + AUTOQ::Util::Convert::ToString(kv.second->second)
                     //         + " -> " + AUTOQ::Util::Convert::ToString(kv.first));
-                    all_used_colors |= kv.second->first.tag();
+                    all_used_colors &= kv.second->first.tag();
                     if (kv.second->second.size() > 0)
                         is_leaf_vertex = false;
                 }
-                for (const auto &qA_c : possible_colors_for_qA) { // for each fixed qA
-                    int counter = 0;
-                    for (const auto &color : qA_c.second) { // loop through all possible colors
-                        if ((color | all_used_colors) == all_used_colors) { // color is a subset of all_used_colors
-                            counter++;
-                            if (counter >= 2) {
-                                color_consistent = false;
-                                break;
-                            }
-                        }
-                    }
-                }
+                color_consistent = (all_used_colors != 0);
+                // for (const auto &qA_c : possible_colors_for_qA) { // for each fixed qA
+                //     int counter = 0;
+                //     for (const auto &color : qA_c.second) { // loop through all possible colors
+                //         if ((color | all_used_colors) == all_used_colors) { // color is a subset of all_used_colors
+                //             counter++;
+                //             if (counter >= 2) {
+                //                 color_consistent = false;
+                //                 break;
+                //             }
+                //         }
+                //     }
+                // }
                 /*************************************************************************/
                 // Only pick this combination of A's transitions if it is color-consistent.
                 // AUTOQ_DEBUG("ARE " << (color_consistent ? "" : "NOT ") << "COLOR-CONSISTENT.");
@@ -1279,29 +1280,30 @@ void AUTOQ::Automata<Symbol>::fraction_simplification() {
                             // Check if the current combination is color-consistent.
                             // If not, simply construct the unique cell without B's states!
                             bool color_consistent2 = true;
-                            unsigned all_used_colors = 0;
+                            unsigned all_used_colors = ~0;
                             // AUTOQ_DEBUG("B's CURRENTLY CONSIDERED TRANSITIONS: ");
                             for (const auto &kv : B_transition_combinations) { // Print the current combination
                                 // AUTOQ_DEBUG(AUTOQ::Util::Convert::ToString(kv.second.begin()->first)
                                 //     + "[" + AUTOQ::Util::Convert::ToString(kv.second.begin()->second->first) + "]"
                                 //     + AUTOQ::Util::Convert::ToString(kv.second.begin()->second->second)
                                 //     + " -> " + AUTOQ::Util::Convert::ToString(kv.first));
-                                all_used_colors |= kv.second.begin()->second->first;
+                                all_used_colors &= kv.second.begin()->second->first;
                             }
-                            for (const auto &qB_c : possible_colors_for_qB) { // for each fixed qB
-                                int counter = 0;
-                                for (const auto &color : qB_c.second) { // loop through all possible colors
-                                    if ((color | all_used_colors) == all_used_colors) { // color is a subset of all_used_colors
-                                        counter++;
-                                        if (counter >= 2) {
-                                            color_consistent2 = false;
-                                            break;
-                                        }
-                                    }
-                                }
-                                if (!color_consistent2)
-                                    break; // shortcut
-                            }
+                            color_consistent2 = (all_used_colors != 0);
+                            // for (const auto &qB_c : possible_colors_for_qB) { // for each fixed qB
+                            //     int counter = 0;
+                            //     for (const auto &color : qB_c.second) { // loop through all possible colors
+                            //         if ((color | all_used_colors) == all_used_colors) { // color is a subset of all_used_colors
+                            //             counter++;
+                            //             if (counter >= 2) {
+                            //                 color_consistent2 = false;
+                            //                 break;
+                            //             }
+                            //         }
+                            //     }
+                            //     if (!color_consistent2)
+                            //         break; // shortcut
+                            // }
                             /*************************************************************/
                             // AUTOQ_DEBUG("ARE " << (color_consistent2 ? "" : "NOT ") << "COLOR-CONSISTENT.");
                             // If consistent, equivalize the two input vectors of each equivalent transition pair.

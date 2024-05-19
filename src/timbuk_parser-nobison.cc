@@ -767,7 +767,7 @@ Automata<Symbol> parse_automaton(const std::string& str)
                 const auto &q = q_fins.first;
                 const auto &fins = q_fins.second;
                 if (fins.size() == 1) {
-                    result.transitions[{fins.at(0).first, typename Automata<Symbol>::Tag(0)}][q].insert(fins.at(0).second);
+                    result.transitions[{fins.at(0).first, typename Automata<Symbol>::Tag(1)}][q].insert(fins.at(0).second);
                 } else {
                     for (const auto &fin : fins) { // loop through all transitions under "q"
                         if (currentColor == Automata<Symbol>::Tag_MAX) {
@@ -776,6 +776,7 @@ Automata<Symbol> parse_automaton(const std::string& str)
                             exit(1);
                         }
                         currentColor = (currentColor == 0) ? 1 : (currentColor << 1);
+                        currentColor = 1;
                         result.transitions[{fin.first, typename Automata<Symbol>::Tag(currentColor)}][q].insert(fin.second);
                     }
                 }
