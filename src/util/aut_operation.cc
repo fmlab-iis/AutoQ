@@ -1693,28 +1693,32 @@ std::vector<std::pair<std::map<int, typename AUTOQ::Automata<Symbol>::Tag>, std:
                                 std::map<int, typename AUTOQ::Automata<Symbol>::Tag> colorsLtR; // construct all newly used colors in each layer of L+R so far
                                 for (const auto &kv : colorsL) { // in fact d > qubit
                                     const auto d = kv.first; // in fact will loop through each layer below this layer
-                                    colorsLtR[d] = kv.second | colorsR.at(d); // of course union the left color"s" and the right color"s"
-                                    for (const auto &qCOL : dqCOLORs.at(d)) { // inspect all top states q used in this layer
-                                        // and check if there are at least two transitions under this q included in colorsLtR[d]
-                                        // if yes, then fail (this LR cannot be used in the future).
-                                        int count = 0;
-                                        for (const auto &color : qCOL.second) { // loop through all transitions
-                                            count += (colorsLtR[d] == (colorsLtR[d] | color)); // color is included in colorsLtR[d]
-                                            if (count >= 2) goto FAIL;
-                                        }
-                                    }
+                                    colorsLtR[d] = kv.second & colorsR.at(d); // of course union the left color"s" and the right color"s"
+                                    if (colorsLtR[d] == 0)
+                                        goto FAIL;
+                                    // for (const auto &qCOL : dqCOLORs.at(d)) { // inspect all top states q used in this layer
+                                    //     // and check if there are at least two transitions under this q included in colorsLtR[d]
+                                    //     // if yes, then fail (this LR cannot be used in the future).
+                                    //     int count = 0;
+                                    //     for (const auto &color : qCOL.second) { // loop through all transitions
+                                    //         count += (colorsLtR[d] == (colorsLtR[d] | color)); // color is included in colorsLtR[d]
+                                    //         if (count >= 2) goto FAIL;
+                                    //     }
+                                    // }
                                 }
                                 // so far has merged all used colors in L+R so far
-                                colorsLtR[qubit] |= tr.first.tag(); // now we want to add the color of the used transition in this layer
-                                for (const auto &qCOL : dqCOLORs.at(qubit)) { // inspect all top states q used in this layer
-                                    // and check if there are at least two transitions under this q included in colorsLtR[qubit]
-                                    // if yes, then fail (this LtR cannot be used in the future).
-                                    int count = 0;
-                                    for (const auto &color : qCOL.second) { // loop through all transitions
-                                        count += (colorsLtR[qubit] == (colorsLtR[qubit] | color)); // color is included in colorsLtR[qubit]
-                                        if (count >= 2) goto FAIL;
-                                    }
-                                }
+                                colorsLtR[qubit] = tr.first.tag(); // now we want to add the color of the used transition in this layer
+                                if (colorsLtR[qubit] == 0)
+                                    goto FAIL;
+                                // for (const auto &qCOL : dqCOLORs.at(qubit)) { // inspect all top states q used in this layer
+                                //     // and check if there are at least two transitions under this q included in colorsLtR[qubit]
+                                //     // if yes, then fail (this LtR cannot be used in the future).
+                                //     int count = 0;
+                                //     for (const auto &color : qCOL.second) { // loop through all transitions
+                                //         count += (colorsLtR[qubit] == (colorsLtR[qubit] | color)); // color is included in colorsLtR[qubit]
+                                //         if (count >= 2) goto FAIL;
+                                //     }
+                                // }
                                 subtreeL.insert(subtreeL.end(), subtreeR.begin(), subtreeR.end());
                                 answers.push_back({colorsLtR, subtreeL}); // now subtreeL actually becomes subtreeLtR
                                 FAIL: {}
