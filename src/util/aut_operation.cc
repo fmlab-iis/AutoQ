@@ -668,6 +668,30 @@ AUTOQ::TreeAutomata AUTOQ::TreeAutomata::basis(int n) {
 }
 
 template <>
+AUTOQ::TreeAutomata AUTOQ::TreeAutomata::prefix_basis(int n) {
+    TreeAutomata aut;
+    aut.name = "Prefix Basis";
+    aut.qubitNum = n;
+
+    aut.transitions[{1, 1}][0].insert({2, 3});
+    aut.transitions[{1, 2}][0].insert({3, 1});
+    for (int L=2; L<=n; L++) {
+        aut.transitions[{L, 1}][3*L-3].insert({3*L-1, 3*L-0});
+        aut.transitions[{L, 2}][3*L-3].insert({3*L-0, 3*L-2});
+        aut.transitions[{L, 3}][3*L-5].insert({3*L-2, 3*L-2});
+        aut.transitions[{L, 3}][3*L-4].insert({3*L-1, 3*L-1});
+    }
+    aut.transitions[{Concrete(Complex::Complex::One()), 1}][3*n-3].insert({{}});
+    aut.transitions[{Concrete(Complex::Complex::One()), 1}][3*n-4].insert({{}});
+    aut.transitions[{Concrete(Complex::Complex::Zero()), 1}][3*n-5].insert({{}});
+    aut.finalStates.push_back(0);
+    aut.stateNum = 3*n - 2;
+
+    // aut.minimize();
+    return aut;
+}
+
+template <>
 AUTOQ::TreeAutomata AUTOQ::TreeAutomata::random(int n) {
     TreeAutomata aut;
     aut.name = "Random";
@@ -1515,6 +1539,116 @@ void AUTOQ::Automata<Symbol>::execute(const char *filename) {
     }
     qasm.close();
 }
+
+// template <typename Symbol>
+// void AUTOQ::Automata<Symbol>::reverse_execute(const char *filename) {
+//     // initialize_stats();
+
+//     std::ifstream qasm(filename);
+//     const std::regex digit("\\d+");
+//     const std::regex_iterator<std::string::iterator> END;
+//     if (!qasm.is_open()) throw std::runtime_error("[ERROR] Failed to open file " + std::string(filename) + ".");
+//     std::string line, previous_line;
+//     std::vector<std::string> lines;
+//     while (getline(qasm, line)) {
+//         lines.push_back(line);
+//     } // use the reverse iterator to read the file in reverse order
+//     for (auto rit = lines.rbegin(); rit != lines.rend(); ++rit) {
+//         line = *rit;
+//         if (line.find("OPENQASM") == 0 || line.find("include ") == 0|| line.find("//") == 0) continue;
+//         if (line.find("qreg ") == 0) {
+//             continue;
+//             // std::regex_iterator<std::string::iterator> it(line.begin(), line.end(), digit);
+//             // while (it != END) {
+//             //     if (atoi(it->str().c_str()) != static_cast<int>(qubitNum))
+//             //         throw std::runtime_error("[ERROR] The number of qubits in the automaton does not match the number of qubits in the circuit.");
+//             //     ++it;
+//             // }
+//         } else if (line.find("x ") == 0) {
+//             std::smatch match_pieces;
+//             if (std::regex_search(line, match_pieces, digit))
+//                 X(1 + atoi(match_pieces[0].str().c_str())); // X = X^-1
+//         } else if (line.find("y ") == 0) {
+//             std::smatch match_pieces;
+//             if (std::regex_search(line, match_pieces, digit))
+//                 Ydg(1 + atoi(match_pieces[0].str().c_str())); // Y = Y^-1
+//         } else if (line.find("z ") == 0) {
+//             std::smatch match_pieces;
+//             if (std::regex_search(line, match_pieces, digit))
+//                 Z(1 + atoi(match_pieces[0].str().c_str())); // Z = Z^-1
+//         } else if (line.find("h ") == 0) {
+//             std::smatch match_pieces;
+//             if (std::regex_search(line, match_pieces, digit))
+//                 H(1 + atoi(match_pieces[0].str().c_str())); // H = H^-1
+//         } else if (line.find("s ") == 0) {
+//             std::smatch match_pieces;
+//             if (std::regex_search(line, match_pieces, digit))
+//                 Sdg(1 + atoi(match_pieces[0].str().c_str())); // Sdg = S^-1
+//         } else if (line.find("sdg ") == 0) {
+//             std::smatch match_pieces;
+//             if (std::regex_search(line, match_pieces, digit))
+//                 S(1 + atoi(match_pieces[0].str().c_str())); // S = Sdg^-1
+//         } else if (line.find("t ") == 0) {
+//             std::smatch match_pieces;
+//             if (std::regex_search(line, match_pieces, digit))
+//                 Tdg(1 + atoi(match_pieces[0].str().c_str())); // Tdg = T^-1
+//         } else if (line.find("tdg ") == 0) {
+//             std::smatch match_pieces;
+//             if (std::regex_search(line, match_pieces, digit))
+//                 T(1 + atoi(match_pieces[0].str().c_str())); // T = Tdg^-1
+//         } else if (line.find("rx(pi/2) ") == 0 || line.find("rx(pi / 2)") == 0) {
+//             std::smatch match_pieces;
+//             if (std::regex_search(line, match_pieces, digit))
+//                 Rx(1 + atoi(match_pieces[0].str().c_str()));
+//         } else if (line.find("ry(pi/2) ") == 0 || line.find("ry(pi / 2)") == 0) {
+//             std::smatch match_pieces;
+//             if (std::regex_search(line, match_pieces, digit))
+//                 Ry(1 + atoi(match_pieces[0].str().c_str()));
+//         } else if (line.find("cx ") == 0 || line.find("CX ") == 0 ) {
+//             std::regex_iterator<std::string::iterator> it(line.begin(), line.end(), digit);
+//             std::vector<int> pos;
+//             while (it != END) {
+//                 pos.push_back(1 + atoi(it->str().c_str()));
+//                 ++it;
+//             }
+//             CNOT(pos[0], pos[1]); // CX = CX^-1
+//         } else if (line.find("cz ") == 0) {
+//             std::regex_iterator<std::string::iterator> it(line.begin(), line.end(), digit);
+//             std::vector<int> pos;
+//             while (it != END) {
+//                 pos.push_back(1 + atoi(it->str().c_str()));
+//                 ++it;
+//             }
+//             CZ(pos[0], pos[1]); // CZ = CZ^-1
+//         } else if (line.find("ccx ") == 0) {
+//             std::regex_iterator<std::string::iterator> it(line.begin(), line.end(), digit);
+//             std::vector<int> pos;
+//             while (it != END) {
+//                 pos.push_back(1 + atoi(it->str().c_str()));
+//                 ++it;
+//             }
+//             Toffoli(pos[0], pos[1], pos[2]); // CCX = CCX^-1
+//         } else if (line.find("swap ") == 0) {
+//             std::regex_iterator<std::string::iterator> it(line.begin(), line.end(), digit);
+//             std::vector<int> pos;
+//             while (it != END) {
+//                 pos.push_back(1 + atoi(it->str().c_str()));
+//                 ++it;
+//             }
+//             swap(pos[0], pos[1]); // SWAP = SWAP^-1
+//         } else if (line.find("PRINT_STATS") == 0) {
+//             print_stats(previous_line, true);
+//         } else if (line.find("PRINT_AUT") == 0) {
+//             print_aut();
+//         } else if (line.find("STOP") == 0) {
+//             break;
+//         } else if (line.length() > 0)
+//             throw std::runtime_error("[ERROR] unsupported gate: " + line + ".");
+//         previous_line = line;
+//         stop_execute = std::chrono::steady_clock::now();
+//     }
+//     qasm.close();
+// }
 
 // std::string exec(const char* cmd) {
 //     std::array<char, 128> buffer;

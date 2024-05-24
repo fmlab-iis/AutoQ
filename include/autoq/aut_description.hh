@@ -209,6 +209,7 @@ public:
     /* Produce an automaton instance. */
     static Automata uniform(int n);
     static Automata basis(int n);
+    static Automata prefix_basis(int n);
     static Automata random(int n);
     static Automata zero(int n);
     static Automata basis_zero_one_zero(int n);
@@ -224,6 +225,7 @@ public:
     static bool check_inclusion(Automata autA, Automata autB);
 
     void execute(const char *filename);
+    // void reverse_execute(const char *filename);
     void print_language(const char *str="") const;
 };
 
