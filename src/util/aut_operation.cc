@@ -681,13 +681,13 @@ AUTOQ::TreeAutomata AUTOQ::TreeAutomata::prefix_basis(int n) {
         aut.transitions[{L, 3}][3*L-5].insert({3*L-2, 3*L-2});
         aut.transitions[{L, 3}][3*L-4].insert({3*L-1, 3*L-1});
     }
-    aut.transitions[{Concrete(Complex::Complex::One()), 1}][3*n-3].insert({{}});
-    aut.transitions[{Concrete(Complex::Complex::One()), 1}][3*n-4].insert({{}});
-    aut.transitions[{Concrete(Complex::Complex::Zero()), 1}][3*n-5].insert({{}});
+    aut.transitions[{Concrete(Complex::Complex::One()), 1}][3*n-0].insert({{}});
+    aut.transitions[{Concrete(Complex::Complex::One()), 1}][3*n-1].insert({{}});
+    aut.transitions[{Concrete(Complex::Complex::Zero()), 1}][3*n-2].insert({{}});
     aut.finalStates.push_back(0);
-    aut.stateNum = 3*n - 2;
+    aut.stateNum = 3*n + 1;
 
-    // aut.minimize();
+    aut.reduce();
     return aut;
 }
 

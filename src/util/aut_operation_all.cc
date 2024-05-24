@@ -453,19 +453,46 @@ int AUTOQ::Automata<Symbol>::count_transitions() {
 }
 
 template <typename Symbol>
+void AUTOQ::Automata<Symbol>::union_all_colors_for_a_given_transition() {
+    std::map<Symbol, std::map<State, std::map<StateVector, Tag>>> new_transitions;
+    for (const auto &t : transitions) {
+        for (const auto &out_ins : t.second) {
+            for (const auto &in : out_ins.second) {
+                new_transitions[t.first.symbol()][out_ins.first][in] |= t.first.tag();
+            }
+        }
+    }
+    transitions.clear();
+    for (const auto &t : new_transitions) {
+        for (const auto &out_inc : t.second) {
+            for (const auto &inc : out_inc.second) {
+                transitions[{t.first, inc.second}][out_inc.first].insert(inc.first);
+            }
+        }
+    }
+}
+
+template <typename Symbol>
 void AUTOQ::Automata<Symbol>::reduce() {
     auto start = std::chrono::steady_clock::now();
     // AUTOQ_DEBUG("before light_reduce_down: " + Convert::ToString(count_aut_states(*this)));
     // this->sim_reduce(); return;
-    this->light_reduce_up_iter();
 
-    Automata old = *this;
-    this->light_reduce_down_iter();
-    // AUTOQ_DEBUG("after light_reduce_down: " + Convert::ToString(count_aut_states(*this)));
+    while (true) {
+        this->light_reduce_up_iter();
 
-    compact_aut(*this);
-    // assert(check_equal_aut(old, *this));
+        Automata old = *this;
+        this->light_reduce_down_iter();
+        // AUTOQ_DEBUG("after light_reduce_down: " + Convert::ToString(count_aut_states(*this)));
 
+        compact_aut(*this);
+        // assert(check_equal_aut(old, *this));
+
+        auto a = *this; //transition_size();
+        this->union_all_colors_for_a_given_transition();
+        auto b = *this; //transition_size();
+        if (a == b) break;
+    }
     auto duration = std::chrono::steady_clock::now() - start;
     if (opLog) std::cout << __FUNCTION__ << "：" << stateNum << " states " << count_transitions() << " transitions\n";
 }
