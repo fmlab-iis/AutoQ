@@ -491,10 +491,11 @@ void AUTOQ::Automata<Symbol>::reduce() {
         compact_aut(*this);
         // assert(check_equal_aut(old, *this));
 
-        auto a = *this; //transition_size();
-        this->union_all_colors_for_a_given_transition();
-        auto b = *this; //transition_size();
-        if (a == b) break;
+        // auto a = *this; //transition_size();
+        // this->union_all_colors_for_a_given_transition();
+        // auto b = *this; //transition_size();
+        // if (a == b)
+        break;
     }
     auto duration = std::chrono::steady_clock::now() - start;
     total_reduce_time += duration;
