@@ -13,6 +13,7 @@
 
 // AUTOQ headers
 #include <chrono>
+#include <cstdlib>
 #include <algorithm>
 #include <autoq/autoq.hh>
 #include <autoq/symbol/concrete.hh>
@@ -107,7 +108,18 @@ public:   // methods
         qubitNum(0),
 		transitions(),
         isTopdownDeterministic(false)
-	{ }
+	{
+        auto envptr = std::getenv("LOG");
+        if (envptr != nullptr) {
+            auto envstr = std::string(envptr);
+            if (envstr.find("gate") != std::string::npos) {
+                gateLog = true;
+            }
+            if (envstr.find("op") != std::string::npos) {
+                opLog = true;
+            }
+        }
+    }
 
 	/**
 	 * @brief  Relaxed equivalence check
