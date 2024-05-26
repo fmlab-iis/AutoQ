@@ -299,6 +299,7 @@ void AUTOQ::Automata<Symbol>::remove_useless(bool only_bottom_up) {
      *********************/
     state_renumbering();
     auto duration = std::chrono::steady_clock::now() - start;
+    total_removeuseless_time += duration;
     if (opLog) std::cout << __FUNCTION__ << "：" << stateNum << " states " << count_transitions() << " transitions\n";
 }
 
@@ -1379,6 +1380,7 @@ void AUTOQ::Automata<Symbol>::fraction_simplification() {
                             auto stop_include = std::chrono::steady_clock::now();
                             include_status = "X";
                             // AUTOQ_DEBUG("UNFORTUNATELY B HAS NO POSSIBLE TRANSITION COMBINATIONS, SO THE INCLUSION DOES NOT HOLD :(");
+                            total_include_time += stop_include - start_include;
                             return false;
                         }
                     } else if (created.contains(vertex2)) {
@@ -1409,6 +1411,7 @@ void AUTOQ::Automata<Symbol>::fraction_simplification() {
         auto stop_include = std::chrono::steady_clock::now();
         include_status = AUTOQ::Util::Convert::toString(stop_include - start_include);
         // AUTOQ_DEBUG("FORTUNATELY FOR EACH (MAXIMAL) PATH B HAS POSSIBLE SIMULTANEOUS TRANSITION COMBINATIONS, SO THE INCLUSION DOES HOLD :)");
+        total_include_time += stop_include - start_include;
         return true;
     }
 

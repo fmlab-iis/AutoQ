@@ -62,6 +62,7 @@ void AUTOQ::Automata<Symbol>::X(int t) {
     }
     gateCount++;
     auto duration = std::chrono::steady_clock::now() - start;
+    total_gate_time += duration;
     if (gateLog) std::cout << "X" << t << "：" << stateNum << " states " << count_transitions() << " transitions " << toString(duration) << "\n";
 }
 
@@ -112,6 +113,7 @@ void AUTOQ::Automata<Symbol>::Y(int t) {
     reduce();
     gateCount++;
     auto duration = std::chrono::steady_clock::now() - start;
+    total_gate_time += duration;
     if (gateLog) std::cout << "Y" << t << "：" << stateNum << " states " << count_transitions() << " transitions " << toString(duration) << "\n";
 }
 
@@ -161,6 +163,7 @@ void AUTOQ::Automata<Symbol>::Z(int t, bool opt) {
     }
     gateCount++;
     auto duration = std::chrono::steady_clock::now() - start;
+    total_gate_time += duration;
     if (gateLog) std::cout << "Z" << t << "：" << stateNum << " states " << count_transitions() << " transitions " << toString(duration) << "\n";
 }
 
@@ -381,6 +384,7 @@ void AUTOQ::Automata<Symbol>::H(int t) {
         [](const Symbol &l, const Symbol &r) -> Symbol { return (l - r).divide_by_the_square_root_of_two(); });
     gateCount++;
     auto duration = std::chrono::steady_clock::now() - start;
+    total_gate_time += duration;
     if (gateLog) std::cout << "H" << t << "：" << stateNum << " states " << count_transitions() << " transitions " << toString(duration) << "\n";
 }
 
@@ -427,6 +431,7 @@ void AUTOQ::Automata<Symbol>::S(int t) {
     reduce();
     gateCount++;
     auto duration = std::chrono::steady_clock::now() - start;
+    total_gate_time += duration;
     if (gateLog) std::cout << "S" << t << "：" << stateNum << " states " << count_transitions() << " transitions " << toString(duration) << "\n";
 }
 
@@ -473,6 +478,7 @@ void AUTOQ::Automata<Symbol>::T(int t) {
     reduce();
     gateCount++;
     auto duration = std::chrono::steady_clock::now() - start;
+    total_gate_time += duration;
     if (gateLog) std::cout << "T" << t << "：" << stateNum << " states " << count_transitions() << " transitions " << toString(duration) << "\n";
 }
 
@@ -488,6 +494,7 @@ void AUTOQ::Automata<Symbol>::Rx(int t) {
         [](Symbol l, const Symbol &r) -> Symbol { return (r - l.omega_multiplication(2)).divide_by_the_square_root_of_two(); });
     gateCount++;
     auto duration = std::chrono::steady_clock::now() - start;
+    total_gate_time += duration;
     if (gateLog) std::cout << "Rx" << t << "：" << stateNum << " states " << count_transitions() << " transitions " << toString(duration) << "\n";
 }
 
@@ -503,6 +510,7 @@ void AUTOQ::Automata<Symbol>::Ry(int t) {
         [](const Symbol &l, const Symbol &r) -> Symbol { return (l + r).divide_by_the_square_root_of_two(); });
     gateCount++;
     auto duration = std::chrono::steady_clock::now() - start;
+    total_gate_time += duration;
     if (gateLog) std::cout << "Ry" << t << "：" << stateNum << " states " << count_transitions() << " transitions " << toString(duration) << "\n";
 }
 
@@ -809,6 +817,7 @@ void AUTOQ::Automata<Symbol>::CNOT(int c, int t, bool opt) {
     } else {
         auto aut2 = *this;
         aut2.X(t); gateCount--; // prevent repeated counting
+        auto start = std::chrono::steady_clock::now();
         for (const auto &tr : aut2.transitions) {
             const SymbolTag &symbol_tag = tr.first;
             if (!(symbol_tag.is_internal() && symbol_tag.symbol().qubit() <= c)) {
@@ -843,6 +852,8 @@ void AUTOQ::Automata<Symbol>::CNOT(int c, int t, bool opt) {
             remove_useless();
             reduce();
         }
+        auto duration = std::chrono::steady_clock::now() - start;
+        total_gate_time += duration;
     }
     gateCount++;
     auto duration = std::chrono::steady_clock::now() - start;
@@ -855,11 +866,11 @@ void AUTOQ::Automata<Symbol>::CZ(int c, int t) {
         system(("echo 'cz qubits[" + std::to_string(c-1) + "], qubits[" + std::to_string(t-1) + "];' >> " + QASM_FILENAME).c_str());
         return;
     #endif
-    auto start = std::chrono::steady_clock::now();
     assert(c != t);
     if (c > t) std::swap(c, t);
     auto aut2 = *this;
     aut2.Z(t, false); gateCount--; // prevent repeated counting
+    auto start = std::chrono::steady_clock::now();
     for (const auto &tr : aut2.transitions) {
         const SymbolTag &symbol_tag = tr.first;
         if (!(symbol_tag.is_internal() && symbol_tag.symbol().qubit() <= c)) {
@@ -894,6 +905,7 @@ void AUTOQ::Automata<Symbol>::CZ(int c, int t) {
     reduce();
     gateCount++;
     auto duration = std::chrono::steady_clock::now() - start;
+    total_gate_time += duration;
     if (gateLog) std::cout << "CZ" << c << "," << t << "：" << stateNum << " states " << count_transitions() << " transitions " << toString(duration) << "\n";
 }
 
@@ -909,6 +921,7 @@ void AUTOQ::Automata<Symbol>::Toffoli(int c, int c2, int t) {
     if (c2 < t) { // c < c2 < t
         auto aut2 = *this;
         aut2.CNOT(c2, t, false); gateCount--; // prevent repeated counting
+        auto start = std::chrono::steady_clock::now();
         for (const auto &tr : aut2.transitions) {
             const SymbolTag &symbol_tag = tr.first;
             if (!(symbol_tag.is_internal() && symbol_tag.symbol().qubit() <= c)) {
@@ -941,6 +954,8 @@ void AUTOQ::Automata<Symbol>::Toffoli(int c, int c2, int t) {
         stateNum += aut2.stateNum;
         remove_useless();
         reduce();
+        auto duration = std::chrono::steady_clock::now() - start;
+        total_gate_time += duration;
     } else if (t < c) { // t < c < c2
         H(c2); gateCount--;
         H(t); gateCount--;
@@ -1015,6 +1030,7 @@ void AUTOQ::Automata<Symbol>::Tdg(int t) {
     reduce();
     gateCount++;
     auto duration = std::chrono::steady_clock::now() - start;
+    total_gate_time += duration;
     if (gateLog) std::cout << "Tdg" << t << "：" << stateNum << " states " << count_transitions() << " transitions " << toString(duration) << "\n";
 }
 
@@ -1074,6 +1090,7 @@ void AUTOQ::Automata<Symbol>::Sdg(int t) {
     reduce();
     gateCount++;
     auto duration = std::chrono::steady_clock::now() - start;
+    total_gate_time += duration;
     if (gateLog) std::cout << "Sdg" << t << "：" << stateNum << " states " << count_transitions() << " transitions " << toString(duration) << "\n";
 }
 
@@ -1089,6 +1106,7 @@ void AUTOQ::Automata<Symbol>::swap(int t1, int t2) {
     CNOT(t1, t2); gateCount--; // prevent repeated counting
     gateCount++;
     auto duration = std::chrono::steady_clock::now() - start;
+    // total_gate_time += 0;
     if (gateLog) std::cout << "swap" << t1 << "," << t2 << "：" << stateNum << " states " << count_transitions() << " transitions " << toString(duration) << "\n";
 }
 
