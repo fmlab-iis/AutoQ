@@ -1078,6 +1078,11 @@ Automata<Symbol> TimbukParser<Symbol>::from_line_to_automaton(std::string line) 
 }
 
 template <typename Symbol>
+Automata<Symbol> TimbukParser<Symbol>::FromFileToAutomata(const std::string& filepath)
+{
+    return FromFileToAutomata(filepath.c_str());
+}
+template <typename Symbol>
 Automata<Symbol> TimbukParser<Symbol>::FromFileToAutomata(const char* filepath)
 {
     if (boost::algorithm::ends_with(filepath, ".aut")

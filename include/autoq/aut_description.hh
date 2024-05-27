@@ -238,6 +238,7 @@ public:
     // static bool check_inclusion(const std::string& lhsPath, const Automata& rhsPath);
     static bool check_inclusion(Automata autA, Automata autB);
 
+    void execute(const std::string& filename);
     void execute(const char *filename);
     // void reverse_execute(const char *filename);
     void print_language(const char *str="") const;

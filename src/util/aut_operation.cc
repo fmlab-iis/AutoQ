@@ -1440,6 +1440,10 @@ void AUTOQ::Automata<InitialSymbol>::initialize_stats() {
 }
 
 template <typename Symbol>
+void AUTOQ::Automata<Symbol>::execute(const std::string& filename) {
+    execute(filename.c_str());
+}
+template <typename Symbol>
 void AUTOQ::Automata<Symbol>::execute(const char *filename) {
     initialize_stats();
 

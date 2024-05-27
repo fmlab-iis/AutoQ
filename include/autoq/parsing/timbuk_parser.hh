@@ -44,6 +44,7 @@ public:   // methods
 	 */
     static bool findAndSplitSubstring(const std::string& filename, std::string& automaton, std::string& constraint);
 	static AUTOQ::Automata<Symbol> ParseString(const std::string& str);
+    static AUTOQ::Automata<Symbol> FromFileToAutomata(const std::string& filepath);
     static AUTOQ::Automata<Symbol> FromFileToAutomata(const char* filepath);
     static AUTOQ::Automata<Symbol> from_tree_to_automaton(std::string tree);
     static AUTOQ::Automata<Symbol> from_line_to_automaton(std::string line);
