@@ -203,4 +203,3 @@ Transitions
 [100](200, 199) -> 198
 [c0] -> 199
 [c1] -> 200
-Constraints

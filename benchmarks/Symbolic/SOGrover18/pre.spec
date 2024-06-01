@@ -75,4 +75,3 @@ Transitions
 [36](72, 71) -> 70
 [c0] -> 71
 [c1] -> 72
-Constraints

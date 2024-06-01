@@ -67,4 +67,3 @@ Transitions
 [32](64, 63) -> 62
 [c0] -> 63
 [c1] -> 64
-Constraints
