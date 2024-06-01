@@ -82,9 +82,9 @@ int main(int argc, char **argv) {
         aut.print_aut();
     } else if (verificationC->parsed()) {
         runConcrete = true;
-        AUTOQ::TreeAutomata aut = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Concrete>::FromFileToAutomata(pre);
-        aut.execute(circuit);
+        auto aut = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Concrete>::FromFileToAutomata(pre);
         auto aut2 = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Concrete>::FromFileToAutomata(post);
+        aut.execute(circuit);
         bool verify = AUTOQ::TreeAutomata::check_inclusion(aut, aut2);
         if (latex) {
             aut.print_stats();
@@ -99,9 +99,8 @@ int main(int argc, char **argv) {
     } else if (verificationS->parsed()) {
         runConcrete = false;
         AUTOQ::SymbolicAutomata aut = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Symbolic>::FromFileToAutomata(pre);
-        aut.execute(circuit);
-
         AUTOQ::PredicateAutomata spec = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Predicate>::FromFileToAutomata(post);
+
         std::stringstream buffer;
         if (!constraint.empty()) {
             std::ifstream t(constraint);
@@ -110,6 +109,8 @@ int main(int argc, char **argv) {
             buffer << t.rdbuf();
         }
         AUTOQ::Constraint C(buffer.str().c_str());
+
+        aut.execute(circuit);
         // std::cout << "OUTPUT AUTOMATON:\n";
         // std::cout << "=================\n";
         // aut.print_aut();
@@ -123,8 +124,8 @@ int main(int argc, char **argv) {
     } else if (equivalence_checking->parsed()) {
         runConcrete = true;
         AUTOQ::TreeAutomata aut = AUTOQ::TreeAutomata::prefix_basis(extract_qubit(circuit1));
-        aut.execute(circuit1);
         AUTOQ::TreeAutomata aut2 = AUTOQ::TreeAutomata::prefix_basis(extract_qubit(circuit2));
+        aut.execute(circuit1);
         aut2.execute(circuit2);
         bool result = AUTOQ::TreeAutomata::check_inclusion(aut, aut2);
         if (latex) {
