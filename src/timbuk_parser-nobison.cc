@@ -769,6 +769,8 @@ Automata<Symbol> parse_automaton(const std::string& str)
                 if (fins.size() == 1) {
                     result.transitions[{fins.at(0).first, typename Automata<Symbol>::Tag(1)}][q].insert(fins.at(0).second);
                 } else {
+                    AUTOQ_ERROR("We don't know how to assign the colors to the transitions so far!");
+                    exit(1);
                     for (const auto &fin : fins) { // loop through all transitions under "q"
                         if (currentColor == Automata<Symbol>::Tag_MAX) {
                             AUTOQ_ERROR("Colors are not enough!");
