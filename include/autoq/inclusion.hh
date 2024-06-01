@@ -43,7 +43,7 @@ struct AUTOQ::Constraint {
 };
 
 namespace AUTOQ {
-    bool is_spec_satisfied(const Constraint &C, const SymbolicAutomata &Ae, const PredicateAutomata &As);
+    bool check_inclusion(const Constraint &C, SymbolicAutomata Ae, PredicateAutomata As);
     bool check_validity(Constraint C, const PredicateAutomata::Symbol &ps, const SymbolicAutomata::Symbol &te);
 }
 

@@ -74,11 +74,14 @@ int main(int argc, char **argv) {
     CLI11_PARSE(app, argc, argv); // Parse the command-line arguments
 
     auto start = chrono::steady_clock::now();
+    bool runConcrete; // or runSymbolic
     if (executionC->parsed()) {
+        runConcrete = true;
         AUTOQ::TreeAutomata aut = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Concrete>::FromFileToAutomata(pre);
         aut.execute(circuit);
         aut.print_aut();
     } else if (verificationC->parsed()) {
+        runConcrete = true;
         AUTOQ::TreeAutomata aut = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Concrete>::FromFileToAutomata(pre);
         aut.execute(circuit);
         auto aut2 = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Concrete>::FromFileToAutomata(post);
@@ -86,13 +89,15 @@ int main(int argc, char **argv) {
         if (latex) {
             aut.print_stats();
         } else {
-            std::cout << "The quantum program has [" << aut.qubitNum << "] qubits and [" << AUTOQ::Automata<AUTOQ::Symbol::Concrete>::gateCount << "] gates.\nThe verification process [" << (verify ? "passed" : "failed") << "] in [" << toString(chrono::steady_clock::now() - start) << "] with [" << getPeakRSS() / 1024 / 1024 << "MB] memory usage.\n";
+            std::cout << "The quantum program has [" << aut.qubitNum << "] qubits and [" << AUTOQ::TreeAutomata::gateCount << "] gates.\nThe verification process [" << (verify ? "passed" : "failed") << "] in [" << toString(chrono::steady_clock::now() - start) << "] with [" << getPeakRSS() / 1024 / 1024 << "MB] memory usage.\n";
         }
     } else if (executionS->parsed()) {
+        runConcrete = false;
         AUTOQ::SymbolicAutomata aut = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Symbolic>::FromFileToAutomata(pre);
         aut.execute(circuit);
         aut.print_aut();
     } else if (verificationS->parsed()) {
+        runConcrete = false;
         AUTOQ::SymbolicAutomata aut = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Symbolic>::FromFileToAutomata(pre);
         aut.execute(circuit);
 
@@ -105,12 +110,18 @@ int main(int argc, char **argv) {
             buffer << t.rdbuf();
         }
         AUTOQ::Constraint C(buffer.str().c_str());
-        std::cout << "OUTPUT AUTOMATON:\n";
-        std::cout << "=================\n";
-        aut.print_aut();
-        std::cout << "=================\n";
-        std::cout << "-\n" << AUTOQ::is_spec_satisfied(C, aut, spec) << " " << toString(chrono::steady_clock::now() - start) << " " << getPeakRSS() / 1024 / 1024 << "MB\n";
+        // std::cout << "OUTPUT AUTOMATON:\n";
+        // std::cout << "=================\n";
+        // aut.print_aut();
+        // std::cout << "=================\n";
+        bool verify = AUTOQ::check_inclusion(C, aut, spec);
+        if (latex) {
+            aut.print_stats();
+        } else {
+            std::cout << "The quantum program has [" << aut.qubitNum << "] qubits and [" << AUTOQ::SymbolicAutomata::gateCount << "] gates.\nThe verification process [" << (verify ? "passed" : "failed") << "] in [" << toString(chrono::steady_clock::now() - start) << "] with [" << getPeakRSS() / 1024 / 1024 << "MB] memory usage.\n";
+        }
     } else if (equivalence_checking->parsed()) {
+        runConcrete = true;
         AUTOQ::TreeAutomata aut = AUTOQ::TreeAutomata::prefix_basis(extract_qubit(circuit1));
         aut.execute(circuit1);
         AUTOQ::TreeAutomata aut2 = AUTOQ::TreeAutomata::prefix_basis(extract_qubit(circuit2));
@@ -131,11 +142,18 @@ int main(int argc, char **argv) {
     }
     /**************/
     if (long_time) {
-        std::cout << "=\n"
-                  << "The total time spent on gate operations (excluding remove_useless and reduce) is [" << toString(AUTOQ::TreeAutomata::total_gate_time - AUTOQ::TreeAutomata::total_removeuseless_time - AUTOQ::TreeAutomata::total_reduce_time) << "].\n"
-                  << "The total time spent on remove_useless(...) is [" << toString(AUTOQ::TreeAutomata::total_removeuseless_time) << "].\n"
-                  << "The total time spent on reduce(...) is [" << toString(AUTOQ::TreeAutomata::total_reduce_time) << "].\n"
-                  << "The total time spent on check_inclusion(...) is [" << toString(AUTOQ::TreeAutomata::total_include_time) << "].\n";
+        if (runConcrete)
+            std::cout << "=\n"
+                    << "The total time spent on gate operations (excluding remove_useless and reduce) is [" << toString(AUTOQ::TreeAutomata::total_gate_time - AUTOQ::TreeAutomata::total_removeuseless_time - AUTOQ::TreeAutomata::total_reduce_time) << "].\n"
+                    << "The total time spent on remove_useless(...) is [" << toString(AUTOQ::TreeAutomata::total_removeuseless_time) << "].\n"
+                    << "The total time spent on reduce(...) is [" << toString(AUTOQ::TreeAutomata::total_reduce_time) << "].\n"
+                    << "The total time spent on check_inclusion(...) is [" << toString(AUTOQ::TreeAutomata::total_include_time) << "].\n";
+        else
+            std::cout << "=\n"
+                    << "The total time spent on gate operations (excluding remove_useless and reduce) is [" << toString(AUTOQ::SymbolicAutomata::total_gate_time - AUTOQ::SymbolicAutomata::total_removeuseless_time - AUTOQ::SymbolicAutomata::total_reduce_time) << "].\n"
+                    << "The total time spent on remove_useless(...) is [" << toString(AUTOQ::SymbolicAutomata::total_removeuseless_time) << "].\n"
+                    << "The total time spent on reduce(...) is [" << toString(AUTOQ::SymbolicAutomata::total_reduce_time) << "].\n"
+                    << "The total time spent on check_inclusion(...) is [" << toString(AUTOQ::SymbolicAutomata::total_include_time) << "].\n";
     }
     /**************/
     return 0;
