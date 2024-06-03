@@ -144,43 +144,47 @@ static std::pair<std::string, int> parse_colonned_token(std::string str)
 // TODO: need to be refined later (because of already eliminating the square brackets)
 SymbolicAutomata::Symbol from_string_to_Symbolic(const std::string& str)
 {
-	std::vector<AUTOQ::Symbol::linear_combination> temp;
+	// std::vector<AUTOQ::Symbol::linear_combination> temp;
     if (str[0] == '[') {
-        for (int i=1; i<static_cast<int>(str.length()); i++) {
-            size_t j = str.find(',', i);
-            if (j == std::string::npos) j = str.length()-1;
-            try {
-                auto v = boost::lexical_cast<boost::multiprecision::cpp_int>(str.substr(i, j-i).c_str());
-                // if (v == 0)
-                //     temp.push_back(AUTOQ::Symbol::linear_combination());
-                // else
-                    temp.push_back({{"1", v}});
-            } catch (boost::bad_lexical_cast& e) {
-                temp.push_back({{str.substr(i, j-i).c_str(), 1}});
-            }
-            i = j;
-        }
+        AUTOQ_ERROR("This case has been deprecated!");
+        exit(1);
+        // for (int i=1; i<static_cast<int>(str.length()); i++) {
+        //     size_t j = str.find(',', i);
+        //     if (j == std::string::npos) j = str.length()-1;
+        //     try {
+        //         auto v = boost::lexical_cast<boost::multiprecision::cpp_int>(str.substr(i, j-i).c_str());
+        //         // if (v == 0)
+        //         //     temp.push_back(AUTOQ::Symbol::linear_combination());
+        //         // else
+        //             temp.push_back({{"1", v}});
+        //     } catch (boost::bad_lexical_cast& e) {
+        //         temp.push_back({{str.substr(i, j-i).c_str(), 1}});
+        //     }
+        //     i = j;
+        // }
     } else {
         try {
             auto v = boost::lexical_cast<boost::multiprecision::cpp_int>(str.c_str());
             // if (v == 0)
             //     temp.push_back(AUTOQ::Symbol::linear_combination());
             // else
-                temp.push_back({{"1", v}});
+                // temp.push_back({{"1", v}});
+            return SymbolicAutomata::Symbol(v);
         } catch (boost::bad_lexical_cast& e) {
-            temp.push_back({{str.c_str(), 1}});
+            // temp.push_back({{str.c_str(), 1}});
+            return SymbolicAutomata::Symbol(AUTOQ::Complex::SymbolicComplex::MySymbolicComplexConstructor(str));
         }
     }
-    if (temp.size() == 5) return SymbolicAutomata::Symbol({{Complex::Angle(0).divide_by_the_square_root_of_two(static_cast<int>(temp.at(4).at("1"))), temp.at(0)},
-                                                           {Complex::Angle(boost::rational<boost::multiprecision::cpp_int>(1, 8)).divide_by_the_square_root_of_two(static_cast<int>(temp.at(4).at("1"))), temp.at(1)},
-                                                           {Complex::Angle(boost::rational<boost::multiprecision::cpp_int>(2, 8)).divide_by_the_square_root_of_two(static_cast<int>(temp.at(4).at("1"))), temp.at(2)},
-                                                           {Complex::Angle(boost::rational<boost::multiprecision::cpp_int>(3, 8)).divide_by_the_square_root_of_two(static_cast<int>(temp.at(4).at("1"))), temp.at(3)}});
-    assert(temp.size() == 1);
-    const auto &tt = temp.at(0);
-    if (tt.find("1") != tt.end() && tt.at("1") > 0)
-        return SymbolicAutomata::Symbol(static_cast<int>(tt.at("1")));
-    else
-        return SymbolicAutomata::Symbol({{Complex::One(), tt}});
+    // if (temp.size() == 5) return SymbolicAutomata::Symbol({{Complex::Angle(0).divide_by_the_square_root_of_two(static_cast<int>(temp.at(4).at("1"))), temp.at(0)},
+    //                                                        {Complex::Angle(boost::rational<boost::multiprecision::cpp_int>(1, 8)).divide_by_the_square_root_of_two(static_cast<int>(temp.at(4).at("1"))), temp.at(1)},
+    //                                                        {Complex::Angle(boost::rational<boost::multiprecision::cpp_int>(2, 8)).divide_by_the_square_root_of_two(static_cast<int>(temp.at(4).at("1"))), temp.at(2)},
+    //                                                        {Complex::Angle(boost::rational<boost::multiprecision::cpp_int>(3, 8)).divide_by_the_square_root_of_two(static_cast<int>(temp.at(4).at("1"))), temp.at(3)}});
+    // assert(temp.size() == 1);
+    // const auto &tt = temp.at(0);
+    // if (tt.find("1") != tt.end() && tt.at("1") > 0)
+    //     return SymbolicAutomata::Symbol(static_cast<int>(tt.at("1")));
+    // else
+    //     return SymbolicAutomata::Symbol({{Complex::One(), tt}});
 }
 
 PredicateAutomata::Symbol from_string_to_Predicate(const std::string& lhs)
@@ -633,12 +637,14 @@ Automata<Symbol> parse_automaton(const std::string& str)
                                 std::istringstream ss(lhs); // Create a stringstream from the input string
                                 std::string token; // Tokenize the input string using a comma delimiter
                                 std::getline(ss, token, ',');
-                                Symbolic symb(Symbolic::ComplexType{{numbers.at(token), {{"1", 1}}}});
+                                // Symbolic symb(Symbolic::ComplexType{{numbers.at(token), {{"1", 1}}}});
+                                Symbolic symb(AUTOQ::Complex::SymbolicComplex::MySymbolicComplexConstructor(numbers.at(token)));
                                 std::getline(ss, token, ',');
                                 auto color = boost::lexical_cast<SymbolicAutomata::Tag>(token);
                                 result.transitions[{symb, SymbolicAutomata::Tag(color)}][t].insert(std::vector<SymbolicAutomata::State>());
                             } else {
-                                Symbolic symb(Symbolic::ComplexType{{numbers.at(lhs), {{"1", 1}}}});
+                                // Symbolic symb(Symbolic::ComplexType{{numbers.at(lhs), {{"1", 1}}}});
+                                Symbolic symb(AUTOQ::Complex::SymbolicComplex::MySymbolicComplexConstructor(numbers.at(lhs)));
                                 dqfin[0][t].push_back({symb, std::vector<SymbolicAutomata::State>()});
                             }
                         } catch (...) {
@@ -646,12 +652,14 @@ Automata<Symbol> parse_automaton(const std::string& str)
                                 std::istringstream ss(lhs); // Create a stringstream from the input string
                                 std::string token; // Tokenize the input string using a comma delimiter
                                 std::getline(ss, token, ',');
-                                Symbolic symb(Symbolic::ComplexType{{Complex::One(), {{token, 1}}}});
+                                // Symbolic symb(Symbolic::ComplexType{{Complex::One(), {{token, 1}}}});
+                                Symbolic symb(AUTOQ::Complex::SymbolicComplex::MySymbolicComplexConstructor(token));
                                 std::getline(ss, token, ',');
                                 auto color = boost::lexical_cast<SymbolicAutomata::Tag>(token);
                                 result.transitions[{symb, SymbolicAutomata::Tag(color)}][t].insert(std::vector<SymbolicAutomata::State>());
                             } else {
-                                Symbolic symb(Symbolic::ComplexType{{Complex::One(), {{lhs, 1}}}});
+                                // Symbolic symb(Symbolic::ComplexType{{Complex::One(), {{lhs, 1}}}});
+                                Symbolic symb(AUTOQ::Complex::SymbolicComplex::MySymbolicComplexConstructor(lhs));
                                 dqfin[0][t].push_back({symb, std::vector<SymbolicAutomata::State>()});
                             }
                         }
@@ -1040,21 +1048,25 @@ Automata<Symbol> TimbukParser<Symbol>::from_line_to_automaton(std::string line) 
         }
 
         // append aut2 to each leaf transition of aut
-        for (const auto &t : aut_leaves) {
+        for (const auto &aut_leaf_trans : aut_leaves) {
+            typename Automata<Symbol>::StateSet bottom_states_corresponding_to_this_leaf_trans;
+            for (const auto &out_ins : aut_leaf_trans.second) { // for (const auto &s2 : aut_leaf_trans.second.at({})) // simply apply these states
+                // if (out_ins.second.contains({})) {
+                    bottom_states_corresponding_to_this_leaf_trans.insert(out_ins.first);
+                // }
+            }
             for (const auto &t2 : aut2.transitions) {
+                int Q = aut.qubitNum + t2.first.symbol().qubit(); // we need to shift the qubit number
                 if (t2.first.is_internal()) { // if the to-be-appended transition is internal, then
-                    int Q = aut.qubitNum + static_cast<int>(t2.first.symbol().qubit()); // we need to shift the qubit number
-                    for (const auto &kv : t2.second) { // for each pair of top state -> set of children
+                    for (const auto &kv : t2.second) { // for each pair of top -> ...
                         auto top = kv.first;
                         for (auto in : kv.second) {
                             for (auto &e : in)
                                 e += aut.stateNum;
-                            // above shift the state number of the child states first,
-                            if (top == 0) { // if to be connected to leaf states of aut, then
-                                for (const auto &q_ins : t.second) {
-                                    if (q_ins.second.contains({})) // simply apply these states
-                                        aut.transitions[Symbol(Q)][q_ins.first].insert(in);
-                                }
+                            // above shift the state number of vec_in first,
+                            if (std::find(aut2.finalStates.begin(), aut2.finalStates.end(), top) != aut2.finalStates.end()) { // if to be connected to leaf states of aut, then
+                                for (const auto &s2 : bottom_states_corresponding_to_this_leaf_trans) // simply apply these states
+                                    aut.transitions[Symbol(Q)][s2].insert(in);
                             }
                             else // and then shift the state number of the top state
                                 aut.transitions[Symbol(Q)][top + aut.stateNum].insert(in);
@@ -1066,7 +1078,7 @@ Automata<Symbol> TimbukParser<Symbol>::from_line_to_automaton(std::string line) 
                         for (auto in : kv.second) {
                             for (auto &e : in)
                                 e += aut.stateNum;
-                            aut.transitions[t.first.symbol() * t2.first.symbol()][top + aut.stateNum].insert(in);
+                            aut.transitions[aut_leaf_trans.first.symbol() * t2.first.symbol()][top + aut.stateNum].insert(in);
                         }
                     }
                 }

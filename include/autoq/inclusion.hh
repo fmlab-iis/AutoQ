@@ -22,21 +22,11 @@ struct AUTOQ::Constraint {
         std::map<std::string, std::string> result;
         result["\\$R"] = "0";
         result["\\$I"] = "0";
-        for (const auto &cl : s.complex) { // cl: complex -> linear combination
-            std::string exprR = "0";
-            std::string exprI = "0";
-            for (const auto &kv : cl.second) { // kv: variable -> integer
-                if (kv.first == std::string("1"))
-                    exprR = "(+ " + exprR + " (* " + kv.second.str() + " " + kv.first + "))";
-                else {
-                    exprR = "(+ " + exprR + " (* " + kv.second.str() + " " + kv.first + "R))";
-                    exprI = "(+ " + exprI + " (* " + kv.second.str() + " " + kv.first + "I))";
-                }
-            }
-            result["\\$R"] = "(+ " + result["\\$R"] + " (* " + cl.first.realToSMT() + " " + exprR + "))";
-            result["\\$R"] = "(- " + result["\\$R"] + " (* " + cl.first.imagToSMT() + " " + exprI + "))";
-            result["\\$I"] = "(+ " + result["\\$I"] + " (* " + cl.first.realToSMT() + " " + exprI + "))";
-            result["\\$I"] = "(+ " + result["\\$I"] + " (* " + cl.first.imagToSMT() + " " + exprR + "))";
+        for (const auto &tc : s.complex) { // tc: term -> complex
+            const auto &term = tc.first;
+            const auto &value = tc.second;
+            result["\\$R"] = "(+ " + result["\\$R"] + " (* " + term.expand() + " " + value.realToSMT() + "))";
+            result["\\$I"] = "(+ " + result["\\$I"] + " (* " + term.expand() + " " + value.imagToSMT() + "))";
         }
         return result;
     }
