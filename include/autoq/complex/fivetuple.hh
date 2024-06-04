@@ -172,7 +172,11 @@ struct AUTOQ::Complex::FiveTuple : stdvectorboostmultiprecisioncpp_int {
         result += at(0).str();
         result += " (* " + std::to_string(std::sqrt(2.0) / 2.0) + " " + at(1).str() + ")";
         result += " (* (- " + std::to_string(std::sqrt(2.0) / 2.0) + ") " + at(3).str() + ")";
-        result += ") " + std::to_string(std::pow(std::sqrt(2.0), static_cast<int>(at(4)))) + ")";
+        boost::multiprecision::cpp_int num = boost::multiprecision::pow(boost::multiprecision::cpp_int(2), static_cast<int>(at(4)/2));
+        if (at(4) % 2 == 0)
+            result += ") " + num.str() + ")";
+        else
+            result += ") (* " + std::to_string(std::sqrt(2.0)) + " " + num.str() + ") )";
         return result;
     }
     std::string imagToSMT() const {
@@ -180,7 +184,11 @@ struct AUTOQ::Complex::FiveTuple : stdvectorboostmultiprecisioncpp_int {
         result += " (* " + std::to_string(std::sqrt(2.0) / 2.0) + " " + at(1).str() + ") ";
         result += at(2).str();
         result += " (* " + std::to_string(std::sqrt(2.0) / 2.0) + " " + at(3).str() + ")";
-        result += ") " + std::to_string(std::pow(std::sqrt(2.0), static_cast<int>(at(4)))) + ")";
+        boost::multiprecision::cpp_int num = boost::multiprecision::pow(boost::multiprecision::cpp_int(2), static_cast<int>(at(4)/2));
+        if (at(4) % 2 == 0)
+            result += ") " + num.str() + ")";
+        else
+            result += ") (* " + std::to_string(std::sqrt(2.0)) + " " + num.str() + ") )";
         return result;
     }
     double abs2() const {
