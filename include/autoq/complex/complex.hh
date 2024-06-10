@@ -2,6 +2,7 @@
 #define _AUTOQ_COMPLEX_HH_
 
 #include <autoq/complex/plain.hh>
+#include <autoq/complex/ntuple.hh>
 #include <autoq/complex/fivetuple.hh>
 
 template <typename T>
@@ -30,8 +31,8 @@ concept is_complex = requires (const T &x, T y, int z, boost::rational<boost::mu
     { x == x } -> std::same_as<bool>;
     { x < x } -> std::same_as<bool>;
     { x.isZero() } -> std::same_as<bool>;
-    { x.real() } -> std::same_as<T>;
-    { x.imag() } -> std::same_as<T>;
+    // { x.real() } -> std::same_as<T>;
+    // { x.imag() } -> std::same_as<T>;
 };
 
 namespace AUTOQ
@@ -39,11 +40,14 @@ namespace AUTOQ
     namespace Complex
     {
         /* Users can define multiple types of amplitudes in the following line, */
+        struct nTuple;
         struct FiveTuple;
         struct Plain;
-        #if COMPLEX == 1
+        #ifdef COMPLEX_nTuple
+            using Complex = nTuple;
+        #elif defined COMPLEX_FiveTuple
             using Complex = FiveTuple;
-        #else
+        #elif defined COMPLEX_Plain
             using Complex = Plain;
         #endif
         // but we can use only one type at a same time.

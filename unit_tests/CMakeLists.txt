@@ -15,7 +15,7 @@ set(compiler_flags_list
   -Wold-style-cast
   -fdiagnostics-show-option
   # -march=native
-  -DCOMPLEX=1
+  -DCOMPLEX_nTuple
 )
 
 set(compiler_flags "")

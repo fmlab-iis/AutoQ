@@ -11,6 +11,7 @@
 #include <chrono>
 #include <iomanip>
 #include <regex>
+#include <fenv.h>
 
 #include <CLI11.hpp>
 
@@ -39,6 +40,8 @@ int extract_qubit(const std::string& filename) {
 }
 
 int main(int argc, char **argv) {
+    feenableexcept(FE_ALL_EXCEPT & ~FE_INEXACT);
+
     CLI::App app{" "}; //{"My CLI App"};
     std::string pre, circuit, post, constraint, circuit1, circuit2;
 

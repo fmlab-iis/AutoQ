@@ -128,16 +128,16 @@ struct AUTOQ::Complex::SymbolicComplex : std::map<Term, Complex> {
         result += ")";
         return result;
     }
-    SymbolicComplex real() const {
-        SymbolicComplex result;
-        for (const auto &kv : *this) {
-            auto k = kv.first;
-            auto v = kv.second.real();
-            if (v.isZero()) continue;
-            result[k] = v;
-        }
-        return result;
-    }
+    // SymbolicComplex real() const {
+    //     SymbolicComplex result;
+    //     for (const auto &kv : *this) {
+    //         auto k = kv.first;
+    //         auto v = kv.second.real();
+    //         if (v.isZero()) continue;
+    //         result[k] = v;
+    //     }
+    //     return result;
+    // }
     std::string imagToSMT() const {
         if (empty()) return "0";
         std::string result = "(+";
@@ -149,16 +149,16 @@ struct AUTOQ::Complex::SymbolicComplex : std::map<Term, Complex> {
         result += ")";
         return result;
     }
-    SymbolicComplex imag() const {
-        SymbolicComplex result;
-        for (const auto &kv : *this) {
-            auto k = kv.first;
-            auto v = kv.second.imag();
-            if (v.isZero()) continue;
-            result[k] = v;
-        }
-        return result;
-    }
+    // SymbolicComplex imag() const {
+    //     SymbolicComplex result;
+    //     for (const auto &kv : *this) {
+    //         auto k = kv.first;
+    //         auto v = kv.second.imag();
+    //         if (v.isZero()) continue;
+    //         result[k] = v;
+    //     }
+    //     return result;
+    // }
     void fraction_simplification() {
         for (auto &kv : *this) {
             kv.second.fraction_simplification();

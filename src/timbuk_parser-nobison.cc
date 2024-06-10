@@ -507,27 +507,48 @@ Automata<Symbol> parse_automaton(const std::string& str)
                     predicates[lhs] = rhs;
             }
         } else {	// processing transitions
-            #if COMPLEX == 1
-            // Unify k's for all complex numbers if 5-tuple is used
-            // for speeding up binary operations.
-            boost::multiprecision::cpp_int max_k = INT_MIN;
-            if constexpr(std::is_same_v<Complex, AUTOQ::Complex::FiveTuple>) {
-                for (const auto &kv : numbers) {
-                    if (kv.second.at(0)!=0 || kv.second.at(1)!=0 || kv.second.at(2)!=0 || kv.second.at(3)!=0)
-                        if (max_k < kv.second.at(4))
-                            max_k = kv.second.at(4);
-                }
-                if (max_k == INT_MIN) max_k = 0; // IMPORTANT: if not modified, resume to 0.
-                for (auto &kv : numbers) {
-                    if (kv.second.at(0)==0 && kv.second.at(1)==0 && kv.second.at(2)==0 && kv.second.at(3)==0)
-                        kv.second.at(4) = max_k;
-                    else {
-                        for (int i=0; i<4; i++)
-                            kv.second.at(i) <<= static_cast<int>((max_k - kv.second.at(4)) / 2);
-                        kv.second.at(4) = max_k;
+            #ifdef COMPLEX_FiveTuple
+                // Unify k's for all complex numbers if 5-tuple is used
+                // for speeding up binary operations.
+                boost::multiprecision::cpp_int max_k = INT_MIN;
+                if constexpr(std::is_same_v<Complex, AUTOQ::Complex::FiveTuple>) {
+                    for (const auto &kv : numbers) {
+                        if (kv.second.at(0)!=0 || kv.second.at(1)!=0 || kv.second.at(2)!=0 || kv.second.at(3)!=0)
+                            if (max_k < kv.second.at(4))
+                                max_k = kv.second.at(4);
+                    }
+                    if (max_k == INT_MIN) max_k = 0; // IMPORTANT: if not modified, resume to 0.
+                    for (auto &kv : numbers) {
+                        if (kv.second.at(0)==0 && kv.second.at(1)==0 && kv.second.at(2)==0 && kv.second.at(3)==0)
+                            kv.second.at(4) = max_k;
+                        else {
+                            for (int i=0; i<4; i++)
+                                kv.second.at(i) <<= static_cast<int>((max_k - kv.second.at(4)) / 2);
+                            kv.second.at(4) = max_k;
+                        }
                     }
                 }
-            }
+            #elif defined COMPLEX_nTuple
+                // Unify k's for all complex numbers if n-tuple is used
+                // for speeding up binary operations.
+                boost::multiprecision::cpp_int max_k = INT_MIN;
+                if constexpr(std::is_same_v<Complex, AUTOQ::Complex::nTuple>) {
+                    for (const auto &kv : numbers) {
+                        if (std::any_of(kv.second.begin(), std::prev(kv.second.end()), [](auto item) { return item != 0; }))
+                            if (max_k < kv.second.back())
+                                max_k = kv.second.back();
+                    }
+                    if (max_k == INT_MIN) max_k = 0; // IMPORTANT: if not modified, resume to 0.
+                    for (auto &kv : numbers) {
+                        if (std::all_of(kv.second.begin(), std::prev(kv.second.end()), [](auto item) { return item == 0; }))
+                            kv.second.back() = max_k;
+                        else {
+                            for (int i=0; i<kv.second.size()-1; i++)
+                                kv.second.at(i) <<= static_cast<int>((max_k - kv.second.back()) / 2);
+                            kv.second.back() = max_k;
+                        }
+                    }
+                }
             #endif
 
 			std::string invalid_trans_str = std::string(__FUNCTION__) +

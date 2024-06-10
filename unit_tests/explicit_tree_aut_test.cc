@@ -418,7 +418,7 @@ BOOST_AUTO_TEST_CASE(Toffoli_gate_twice_to_identity)
 void dfs(const std::map<AUTOQ::TreeAutomata::State, AUTOQ::TreeAutomata::StateVector> &edge,
          const std::map<AUTOQ::TreeAutomata::State, AUTOQ::TreeAutomata::SymbolTag> &leaf,
          const AUTOQ::TreeAutomata::StateVector &layer,
-         #if COMPLEX == 3
+         #if defined COMPLEX_Plain
          std::vector<float128> &prob) {
          #else
          std::vector<double> &prob) {
