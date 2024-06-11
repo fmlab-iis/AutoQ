@@ -45,6 +45,7 @@ public:
     Concrete operator+(const Concrete &o) const { return Concrete(complex.operator+(o.complex)); }
     Concrete operator-(const Concrete &o) const { return Concrete(complex.operator-(o.complex)); }
     Concrete operator*(const Concrete &o) const { return Concrete(complex.operator*(o.complex)); }
+    bool valueEqual(const Concrete &o) const { return internal == o.internal && complex.valueEqual(o.complex); }
     bool operator==(const Concrete &o) const { return internal == o.internal && complex == o.complex; }
     bool operator<(const Concrete &o) const {
         if (internal && !o.internal) return true;

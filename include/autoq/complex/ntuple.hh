@@ -17,7 +17,7 @@ namespace AUTOQ
 	}
 }
 
-const int N = 4; // the smallest angle unit = pi / N
+const int N = 4; // the smallest angle unit = pi / N. Notice that N >= 4.
 typedef std::vector<boost::multiprecision::cpp_int> stdvectorboostmultiprecisioncpp_int;
 struct AUTOQ::Complex::nTuple : stdvectorboostmultiprecisioncpp_int {
     using stdvectorboostmultiprecisioncpp_int::stdvectorboostmultiprecisioncpp_int;
@@ -213,8 +213,47 @@ struct AUTOQ::Complex::nTuple : stdvectorboostmultiprecisioncpp_int {
     bool isZero() const {
         return std::all_of(this->begin(), std::prev(this->end()), [](auto item) { return item == 0; });
     }
+    bool valueEqual(nTuple o) const {
+        if (this->back() >= o.back()) {
+            o.adjust_k(this->back() - o.back());
+            return *this == o;
+        } else {
+            auto This = *this;
+            This.adjust_k(o.back() - This.back());
+            return This == o;
+        }
+    }
 
 private:
+    void adjust_k(boost::multiprecision::cpp_int dk) {
+        if (dk < 0) {
+            AUTOQ_ERROR("The parameter dk should not be less than 0!");
+            exit(1);
+        }
+        while (dk > 0) {
+            nTuple ans;
+            for (int i=0; i<=N-1; i++) {
+                int targetAngle = i - N/4;
+                boost::multiprecision::cpp_int targetAmplitude = this->at(i);
+                while (targetAngle < 0) {
+                    targetAngle += N;
+                    targetAmplitude *= -1;
+                }
+                ans.at(targetAngle) += targetAmplitude;
+                /*************************************/
+                targetAngle = i + N/4;
+                targetAmplitude = this->at(i);
+                while (targetAngle >= N) {
+                    targetAngle -= N;
+                    targetAmplitude *= -1;
+                }
+                ans.at(targetAngle) += targetAmplitude;
+            }
+            ans.back() = this->back() + 1;
+            *this = ans;
+            dk--;
+        }
+    }
     nTuple binary_operation(const nTuple &o, bool add) const {
         assert((back() == o.back()) ||
             (isZero() && back()<=o.back()) ||
