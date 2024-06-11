@@ -10,6 +10,7 @@
 
 // AUTOQ headers
 #include <autoq/autoq.hh>
+#include <autoq/symbol/index.hh>
 #include <autoq/symbol/concrete.hh>
 #include <autoq/symbol/symbolic.hh>
 #include <autoq/symbol/predicate.hh>
@@ -30,7 +31,8 @@ using std::for_each;
 template <typename Symbol>
 std::string TimbukSerializer::Serialize(Automata<Symbol> desc)
 {
-    if constexpr(!std::is_same_v<Symbol, AUTOQ::Symbol::Predicate>) {
+    if constexpr(!std::is_same_v<Symbol, AUTOQ::Symbol::Predicate>
+              && !std::is_same_v<Symbol, AUTOQ::Symbol::Index>) {
         desc.fraction_simplification();
     }
 
@@ -102,3 +104,4 @@ std::string TimbukSerializer::Serialize(Automata<Symbol> desc)
 template std::string TimbukSerializer::Serialize(TreeAutomata desc);
 template std::string TimbukSerializer::Serialize(SymbolicAutomata desc);
 template std::string TimbukSerializer::Serialize(PredicateAutomata desc);
+template std::string TimbukSerializer::Serialize(IndexAutomata desc);

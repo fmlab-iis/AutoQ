@@ -16,6 +16,7 @@
 #include <cstdlib>
 #include <algorithm>
 #include <autoq/autoq.hh>
+#include <autoq/symbol/index.hh>
 #include <autoq/symbol/concrete.hh>
 #include <autoq/symbol/symbolic.hh>
 #include <autoq/symbol/predicate.hh>
@@ -30,11 +31,13 @@ namespace AUTOQ
         struct Concrete;
         struct Symbolic;
         struct Predicate;
+        struct Index;
     }
     template <typename TT> struct Automata;
     typedef Automata<Symbol::Concrete> TreeAutomata;
     typedef Automata<Symbol::Symbolic> SymbolicAutomata;
     typedef Automata<Symbol::Predicate> PredicateAutomata;
+    typedef Automata<Symbol::Index> IndexAutomata;
 }
 
 template <typename TT>
@@ -271,6 +274,14 @@ namespace std {
     };
     template <> struct hash<typename AUTOQ::SymbolicAutomata::SymbolTag> {
         size_t operator()(const AUTOQ::SymbolicAutomata::SymbolTag& obj) const {
+            std::size_t seed = 0;
+            boost::hash_combine(seed, obj.first);
+            boost::hash_combine(seed, obj.second);
+            return seed;
+        }
+    };
+    template <> struct hash<typename AUTOQ::IndexAutomata::SymbolTag> {
+        size_t operator()(const AUTOQ::IndexAutomata::SymbolTag& obj) const {
             std::size_t seed = 0;
             boost::hash_combine(seed, obj.first);
             boost::hash_combine(seed, obj.second);

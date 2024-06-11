@@ -1,3 +1,4 @@
+#include <autoq/symbol/index.hh>
 #include <autoq/symbol/concrete.hh>
 #include <autoq/symbol/symbolic.hh>
 #include <autoq/symbol/predicate.hh>
@@ -563,3 +564,4 @@ int AUTOQ::Automata<Symbol>::transition_size() {
 template struct AUTOQ::Automata<AUTOQ::Symbol::Concrete>;
 template struct AUTOQ::Automata<AUTOQ::Symbol::Symbolic>;
 template struct AUTOQ::Automata<AUTOQ::Symbol::Predicate>;
+template struct AUTOQ::Automata<AUTOQ::Symbol::Index>;
