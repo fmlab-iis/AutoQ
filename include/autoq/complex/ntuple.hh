@@ -17,9 +17,9 @@ namespace AUTOQ
 	}
 }
 
-const int N = 4; // the smallest angle unit = pi / N. Notice that N >= 4.
 typedef std::vector<boost::multiprecision::cpp_int> stdvectorboostmultiprecisioncpp_int;
 struct AUTOQ::Complex::nTuple : stdvectorboostmultiprecisioncpp_int {
+    inline static int N = 1; // the smallest angle unit = pi / N. Notice that N >= 4 if adjust_k is to be executed.
     using stdvectorboostmultiprecisioncpp_int::stdvectorboostmultiprecisioncpp_int;
     typedef typename AUTOQ::Complex::nTuple::value_type Entry;
     // Notice that if we do not use is_convertible_v, type int will not be accepted in this case.
@@ -223,6 +223,18 @@ struct AUTOQ::Complex::nTuple : stdvectorboostmultiprecisioncpp_int {
             return This == o;
         }
     }
+    nTuple& multiply_cos(const boost::rational<boost::multiprecision::cpp_int> &theta) {
+        auto c1 = *this;
+        auto c2 = *this;
+        *this = (c1.counterclockwise(theta) + c2.counterclockwise(-theta)).divide_by_the_square_root_of_two(2);
+        return *this;
+    }
+    nTuple& multiply_isin(const boost::rational<boost::multiprecision::cpp_int> &theta) {
+        auto c1 = *this;
+        auto c2 = *this;
+        *this = (c1.counterclockwise(theta) - c2.counterclockwise(-theta)).divide_by_the_square_root_of_two(2);
+        return *this;
+    }
 
 private:
     void adjust_k(boost::multiprecision::cpp_int dk) {
@@ -231,6 +243,10 @@ private:
             exit(1);
         }
         while (dk > 0) {
+            if (N < 4) {
+                AUTOQ_ERROR("To do adjust_k, N should be at least 4.");
+                exit(1);
+            }
             nTuple ans;
             for (int i=0; i<=N-1; i++) {
                 int targetAngle = i - N/4;
@@ -255,9 +271,12 @@ private:
         }
     }
     nTuple binary_operation(const nTuple &o, bool add) const {
-        assert((back() == o.back()) ||
-            (isZero() && back()<=o.back()) ||
-            (o.isZero() && back()>=o.back()));
+        assert(((back() == o.back()) ||
+              (isZero() && back()<=o.back()) ||
+              (o.isZero() && back()>=o.back())));// {
+        //     AUTOQ_ERROR("The two nTuples should have the same k!");
+        //     exit(1);
+        // }
         nTuple symbol;
         for (int i=0; i<N; i++) {
             if (add) symbol.at(i) = at(i) + o.at(i);

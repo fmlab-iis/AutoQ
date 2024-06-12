@@ -57,6 +57,11 @@ public:
     void fraction_simplification() {
         complex.fraction_simplification();
     }
+    Symbolic counterclockwise(const boost::rational<boost::multiprecision::cpp_int> &theta) {
+        for (auto &kv : complex)
+            kv.second.counterclockwise(theta);
+        return *this;
+    }
     Symbolic omega_multiplication(int rotation=1) {
         if (rotation > 0) {
             for (auto &kv : complex)
@@ -84,6 +89,16 @@ public:
     }
     void degree90cw() {
         omega_multiplication(-2);
+    }
+    Symbolic multiply_cos(const boost::rational<boost::multiprecision::cpp_int> &theta) {
+        for (auto &kv : complex)
+            kv.second.multiply_cos(theta);
+        return *this;
+    }
+    Symbolic multiply_isin(const boost::rational<boost::multiprecision::cpp_int> &theta) {
+        for (auto &kv : complex)
+            kv.second.multiply_isin(theta);
+        return *this;
     }
 };
 

@@ -57,11 +57,23 @@ public:
         if (rotation < 0) complex.clockwise(boost::rational<boost::multiprecision::cpp_int>(rotation, 8));
         return *this;
     }
+    Concrete counterclockwise(const boost::rational<boost::multiprecision::cpp_int> &theta) {
+        complex.counterclockwise(theta);
+        return *this;
+    }
     void fraction_simplification() { complex.fraction_simplification(); }
     Concrete divide_by_the_square_root_of_two() { complex.divide_by_the_square_root_of_two(); return *this; }
     void negate() { complex = complex * (-1); }
     void degree45cw() { complex.clockwise(boost::rational<boost::multiprecision::cpp_int>(1, 8)); }
     void degree90cw() { complex.clockwise(boost::rational<boost::multiprecision::cpp_int>(1, 4)); }
+    Concrete multiply_cos(const boost::rational<boost::multiprecision::cpp_int> &theta) {
+        complex.multiply_cos(theta);
+        return *this;
+    }
+    Concrete multiply_isin(const boost::rational<boost::multiprecision::cpp_int> &theta) {
+        complex.multiply_isin(theta);
+        return *this;
+    }
 };
 
 namespace boost {

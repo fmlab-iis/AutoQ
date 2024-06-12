@@ -6,6 +6,7 @@
 #include <autoq/symbol/predicate.hh>
 #include <autoq/util/util.hh>
 #include <autoq/inclusion.hh>
+#include <autoq/parsing/complex_parser.hh>
 #include <autoq/serialization/timbuk_serializer.hh>
 
 #include "simulation/explicit_lts.hh"
@@ -637,9 +638,9 @@ AUTOQ::TreeAutomata AUTOQ::TreeAutomata::uniform(int n) {
     aut.name = "Uniform";
     aut.qubitNum = n;
     for (int level=1; level<=n; level++) {
-        aut.transitions[{level}][level-1].insert({level, level});
+        aut.transitions[{level, 1}][level-1].insert({level, level});
     }
-    aut.transitions[Concrete(Complex::Complex::One().divide_by_the_square_root_of_two(n))][n].insert({{}});
+    aut.transitions[SymbolTag(Concrete(Complex::Complex::One().divide_by_the_square_root_of_two(n)), 1)][n].insert({{}});
     aut.finalStates.push_back(0);
     aut.stateNum = n+1;
 
@@ -656,12 +657,12 @@ AUTOQ::TreeAutomata AUTOQ::TreeAutomata::basis(int n) {
 
     for (int level=1; level<=n; level++) {
         if (level >= 2)
-            aut.transitions[{level}][2*level - 3].insert({2*level - 1, 2*level - 1});
+            aut.transitions[{level, 0b11}][2*level - 3].insert({2*level - 1, 2*level - 1});
         aut.transitions[{level, 0b01}][2*level - 2].insert({2*level - 1, 2*level});
         aut.transitions[{level, 0b10}][2*level - 2].insert({2*level, 2*level - 1});
     }
-    aut.transitions[Concrete(Complex::Complex::One())][2*n].insert({{}});
-    aut.transitions[Concrete(Complex::Complex::Zero())][2*n - 1].insert({{}});
+    aut.transitions[SymbolTag(Concrete(Complex::Complex::One()), 1)][2*n].insert({{}});
+    aut.transitions[SymbolTag(Concrete(Complex::Complex::Zero()), 1)][2*n - 1].insert({{}});
     aut.finalStates.push_back(0);
     aut.stateNum = 2*n + 1;
 
@@ -702,13 +703,13 @@ AUTOQ::TreeAutomata AUTOQ::TreeAutomata::random(int n) {
     State state_counter = 0;
     for (int level=1; level<=n; level++) {
         for (int i=0; i<pow_of_two; i++) {
-            aut.transitions[{level}][state_counter].insert({state_counter*2+1, state_counter*2+2});
+            aut.transitions[{level, 1}][state_counter].insert({state_counter*2+1, state_counter*2+2});
             state_counter++;
         }
         pow_of_two *= 2;
     }
     for (State i=state_counter; i<=state_counter*2; i++) {
-        aut.transitions[Concrete(Complex::Complex::Rand())][i].insert({{}});
+        aut.transitions[SymbolTag(Concrete(Complex::Complex::Rand()), 1)][i].insert({{}});
     }
     aut.finalStates.push_back(0);
     aut.stateNum = state_counter*2 + 1;
@@ -741,13 +742,13 @@ AUTOQ::TreeAutomata AUTOQ::TreeAutomata::zero(int n) {
     aut.name = "Zero";
     aut.qubitNum = n;
     aut.finalStates.push_back(0);
-    aut.transitions[{1}][0].insert({2,1});
+    aut.transitions[{1,1}][0].insert({2,1});
     for (int level=2; level<=n; level++) {
-        aut.transitions[{level}][level*2-3].insert({level*2-1, level*2-1});
-        aut.transitions[{level}][level*2-2].insert({level*2, level*2-1});
+        aut.transitions[{level,1}][level*2-3].insert({level*2-1, level*2-1});
+        aut.transitions[{level,1}][level*2-2].insert({level*2, level*2-1});
     }
-    aut.transitions[Concrete(Complex::Complex::Zero())][n*2-1].insert({{}});
-    aut.transitions[Concrete(Complex::Complex::One())][n*2].insert({{}});
+    aut.transitions[SymbolTag(Concrete(Complex::Complex::Zero()), 1)][n*2-1].insert({{}});
+    aut.transitions[SymbolTag(Concrete(Complex::Complex::One()), 1)][n*2].insert({{}});
     aut.stateNum = n*2 + 1;
 
     // aut.minimize();
@@ -764,28 +765,28 @@ AUTOQ::TreeAutomata AUTOQ::TreeAutomata::basis_zero_one_zero(int n) {
 
     for (int level=1; level<=n; level++) {
         if (level >= 2)
-            aut.transitions[{level}][2*level - 3].insert({2*level - 1, 2*level - 1});
+            aut.transitions[{level, 0b11}][2*level - 3].insert({2*level - 1, 2*level - 1});
         aut.transitions[{level, 0b01}][2*level - 2].insert({2*level - 1, 2*level});
         aut.transitions[{level, 0b10}][2*level - 2].insert({2*level, 2*level - 1});
     }
     for (int level=1; level<=n; level++) {
-        aut.transitions[{n + level}][2*n + 2*level-3].insert({2*n + 2*level-1, 2*n + 2*level-1});
-        aut.transitions[{n + level}][2*n + 2*level-2].insert({2*n + 2*level, 2*n + 2*level-1});
+        aut.transitions[{n + level, 1}][2*n + 2*level-3].insert({2*n + 2*level-1, 2*n + 2*level-1});
+        aut.transitions[{n + level, 1}][2*n + 2*level-2].insert({2*n + 2*level, 2*n + 2*level-1});
     }
-    aut.transitions[{n + (n+1)}][2*n + 2*(n+1)-3].insert({2*n + 2*(n+1)-1, 2*n + 2*(n+1)-1});
-    aut.transitions[{n + (n+1)}][2*n + 2*(n+1)-2].insert({2*n + 2*(n+1)-1, 2*n + 2*(n+1)});
+    aut.transitions[{n + (n+1), 1}][2*n + 2*(n+1)-3].insert({2*n + 2*(n+1)-1, 2*n + 2*(n+1)-1});
+    aut.transitions[{n + (n+1), 1}][2*n + 2*(n+1)-2].insert({2*n + 2*(n+1)-1, 2*n + 2*(n+1)});
     if (n >= 3) {
         for (int level=n+2; level<=2*n; level++) {
-            aut.transitions[{n + level}][2*n + 2*level-3].insert({2*n + 2*level-1, 2*n + 2*level-1});
-            aut.transitions[{n + level}][2*n + 2*level-2].insert({2*n + 2*level, 2*n + 2*level-1});
+            aut.transitions[{n + level, 1}][2*n + 2*level-3].insert({2*n + 2*level-1, 2*n + 2*level-1});
+            aut.transitions[{n + level, 1}][2*n + 2*level-2].insert({2*n + 2*level, 2*n + 2*level-1});
         }
-        aut.transitions[Concrete(Complex::Complex::One())][6*n].insert({{}});
-        aut.transitions[Concrete(Complex::Complex::Zero())][6*n - 1].insert({{}});
+        aut.transitions[SymbolTag(Concrete(Complex::Complex::One()), 1)][6*n].insert({{}});
+        aut.transitions[SymbolTag(Concrete(Complex::Complex::Zero()), 1)][6*n - 1].insert({{}});
         aut.stateNum = 6*n + 1;
     } else {
         assert(n == 2);
-        aut.transitions[Concrete(Complex::Complex::One())][4*n + 2].insert({{}});
-        aut.transitions[Concrete(Complex::Complex::Zero())][4*n + 1].insert({{}});
+        aut.transitions[SymbolTag(Concrete(Complex::Complex::One()), 1)][4*n + 2].insert({{}});
+        aut.transitions[SymbolTag(Concrete(Complex::Complex::Zero()), 1)][4*n + 1].insert({{}});
         aut.stateNum = 4*n + 3;
     }
 	aut.finalStates.push_back(0);
@@ -799,29 +800,29 @@ AUTOQ::TreeAutomata AUTOQ::TreeAutomata::zero_zero_one_zero(int n) {
     aut.name = "Zero_Zero_One_Zero";
     aut.qubitNum = n + (n+1) + (n>=3) * (n-1);
 
-    aut.transitions[{1}][0].insert({2,1});
+    aut.transitions[{1, 1}][0].insert({2,1});
     for (int level=2; level<=n; level++) {
-        aut.transitions[{level}][level*2-3].insert({level*2-1, level*2-1});
-        aut.transitions[{level}][level*2-2].insert({level*2, level*2-1});
+        aut.transitions[{level, 1}][level*2-3].insert({level*2-1, level*2-1});
+        aut.transitions[{level, 1}][level*2-2].insert({level*2, level*2-1});
     }
     for (int level=1; level<=n; level++) {
-        aut.transitions[{n + level}][2*n + 2*level-3].insert({2*n + 2*level-1, 2*n + 2*level-1});
-        aut.transitions[{n + level}][2*n + 2*level-2].insert({2*n + 2*level, 2*n + 2*level-1});
+        aut.transitions[{n + level, 1}][2*n + 2*level-3].insert({2*n + 2*level-1, 2*n + 2*level-1});
+        aut.transitions[{n + level, 1}][2*n + 2*level-2].insert({2*n + 2*level, 2*n + 2*level-1});
     }
-    aut.transitions[{n + (n+1)}][2*n + 2*(n+1)-3].insert({2*n + 2*(n+1)-1, 2*n + 2*(n+1)-1});
-    aut.transitions[{n + (n+1)}][2*n + 2*(n+1)-2].insert({2*n + 2*(n+1)-1, 2*n + 2*(n+1)});
+    aut.transitions[{n + (n+1), 1}][2*n + 2*(n+1)-3].insert({2*n + 2*(n+1)-1, 2*n + 2*(n+1)-1});
+    aut.transitions[{n + (n+1), 1}][2*n + 2*(n+1)-2].insert({2*n + 2*(n+1)-1, 2*n + 2*(n+1)});
     if (n >= 3) {
         for (int level=n+2; level<=2*n; level++) {
-            aut.transitions[{n + level}][2*n + 2*level-3].insert({2*n + 2*level-1, 2*n + 2*level-1});
-            aut.transitions[{n + level}][2*n + 2*level-2].insert({2*n + 2*level, 2*n + 2*level-1});
+            aut.transitions[{n + level, 1}][2*n + 2*level-3].insert({2*n + 2*level-1, 2*n + 2*level-1});
+            aut.transitions[{n + level, 1}][2*n + 2*level-2].insert({2*n + 2*level, 2*n + 2*level-1});
         }
-        aut.transitions[Concrete(Complex::Complex::One())][6*n].insert({{}});
-        aut.transitions[Concrete(Complex::Complex::Zero())][6*n - 1].insert({{}});
+        aut.transitions[SymbolTag(Concrete(Complex::Complex::One()), 1)][6*n].insert({{}});
+        aut.transitions[SymbolTag(Concrete(Complex::Complex::Zero()), 1)][6*n - 1].insert({{}});
         aut.stateNum = 6*n + 1;
     } else {
         assert(n == 2);
-        aut.transitions[Concrete(Complex::Complex::One())][4*n + 2].insert({{}});
-        aut.transitions[Concrete(Complex::Complex::Zero())][4*n + 1].insert({{}});
+        aut.transitions[SymbolTag(Concrete(Complex::Complex::One()), 1)][4*n + 2].insert({{}});
+        aut.transitions[SymbolTag(Concrete(Complex::Complex::Zero()), 1)][4*n + 1].insert({{}});
         aut.stateNum = 4*n + 3;
     }
 	aut.finalStates.push_back(0);
@@ -836,25 +837,25 @@ AUTOQ::TreeAutomata AUTOQ::TreeAutomata::zero_one_zero(int n) {
     aut.name = "Zero_One_Zero";
     aut.qubitNum = (n+1) + (n>=3) * (n-1);
 
-    aut.transitions[{1}][0].insert({2,1});
+    aut.transitions[{1, 1}][0].insert({2,1});
     for (int level=2; level<=n; level++) {
-        aut.transitions[{level}][level*2-3].insert({level*2-1, level*2-1});
-        aut.transitions[{level}][level*2-2].insert({level*2, level*2-1});
+        aut.transitions[{level, 1}][level*2-3].insert({level*2-1, level*2-1});
+        aut.transitions[{level, 1}][level*2-2].insert({level*2, level*2-1});
     }
-    aut.transitions[{n+1}][2*n-1].insert({2*(n+1)-1, 2*(n+1)-1});
-    aut.transitions[{n+1}][2*n].insert({2*(n+1)-1, 2*(n+1)});
+    aut.transitions[{n+1, 1}][2*n-1].insert({2*(n+1)-1, 2*(n+1)-1});
+    aut.transitions[{n+1, 1}][2*n].insert({2*(n+1)-1, 2*(n+1)});
     if (n >= 3) {
         for (int level=n+2; level<=2*n; level++) {
-            aut.transitions[{level}][2*(level-1)-1].insert({2*level-1, 2*level-1});
-            aut.transitions[{level}][2*(level-1)].insert({2*level, 2*level-1});
+            aut.transitions[{level, 1}][2*(level-1)-1].insert({2*level-1, 2*level-1});
+            aut.transitions[{level, 1}][2*(level-1)].insert({2*level, 2*level-1});
         }
-        aut.transitions[Concrete(Complex::Complex::One())][4*n].insert({{}});
-        aut.transitions[Concrete(Complex::Complex::Zero())][4*n - 1].insert({{}});
+        aut.transitions[SymbolTag(Concrete(Complex::Complex::One()), 1)][4*n].insert({{}});
+        aut.transitions[SymbolTag(Concrete(Complex::Complex::Zero()), 1)][4*n - 1].insert({{}});
         aut.stateNum = 4*n + 1;
     } else {
         assert(n == 2);
-        aut.transitions[Concrete(Complex::Complex::One())][2*n + 2].insert({{}});
-        aut.transitions[Concrete(Complex::Complex::Zero())][2*n + 1].insert({{}});
+        aut.transitions[SymbolTag(Concrete(Complex::Complex::One()), 1)][2*n + 2].insert({{}});
+        aut.transitions[SymbolTag(Concrete(Complex::Complex::Zero()), 1)][2*n + 1].insert({{}});
         aut.stateNum = 2*n + 3;
     }
 	aut.finalStates.push_back(0);
@@ -1543,10 +1544,16 @@ void AUTOQ::Automata<Symbol>::execute(const char *filename) {
 
     std::ifstream qasm(filename);
     const std::regex digit("\\d+");
+    const std::regex rx(R"(rx\((.+)\).+\[(\d+)\];)");
+    const std::regex rz(R"(rz\((.+)\).+\[(\d+)\];)");
     const std::regex_iterator<std::string::iterator> END;
     if (!qasm.is_open()) throw std::runtime_error("[ERROR] Failed to open file " + std::string(filename) + ".");
     std::string line, previous_line;
+    int lineno = 1;
     while (getline(qasm, line)) {
+        AUTOQ_DEBUG("[" << (lineno++) << "]: " << line);
+        std::smatch match_rx; std::regex_search(line, match_rx, rx);
+        std::smatch match_rz; std::regex_search(line, match_rz, rz);
         if (line.find("OPENQASM") == 0 || line.find("include ") == 0|| line.find("//") == 0) continue;
         if (line.find("qreg ") == 0) {
             std::regex_iterator<std::string::iterator> it(line.begin(), line.end(), digit);
@@ -1557,44 +1564,69 @@ void AUTOQ::Automata<Symbol>::execute(const char *filename) {
             }
         } else if (line.find("x ") == 0) {
             std::smatch match_pieces;
-            if (std::regex_search(line, match_pieces, digit))
-                X(1 + atoi(match_pieces[0].str().c_str()));
+            std::regex_search(line, match_pieces, digit);
+            X(1 + atoi(match_pieces[0].str().c_str()));
         } else if (line.find("y ") == 0) {
             std::smatch match_pieces;
-            if (std::regex_search(line, match_pieces, digit))
-                Y(1 + atoi(match_pieces[0].str().c_str()));
+            std::regex_search(line, match_pieces, digit);
+            Y(1 + atoi(match_pieces[0].str().c_str()));
         } else if (line.find("z ") == 0) {
             std::smatch match_pieces;
-            if (std::regex_search(line, match_pieces, digit))
-                Z(1 + atoi(match_pieces[0].str().c_str()));
+            std::regex_search(line, match_pieces, digit);
+            Z(1 + atoi(match_pieces[0].str().c_str()));
         } else if (line.find("h ") == 0) {
             std::smatch match_pieces;
-            if (std::regex_search(line, match_pieces, digit))
-                H(1 + atoi(match_pieces[0].str().c_str()));
+            std::regex_search(line, match_pieces, digit);
+            H(1 + atoi(match_pieces[0].str().c_str()));
         } else if (line.find("s ") == 0) {
             std::smatch match_pieces;
-            if (std::regex_search(line, match_pieces, digit))
-                S(1 + atoi(match_pieces[0].str().c_str()));
+            std::regex_search(line, match_pieces, digit);
+            S(1 + atoi(match_pieces[0].str().c_str()));
         } else if (line.find("sdg ") == 0) {
             std::smatch match_pieces;
-            if (std::regex_search(line, match_pieces, digit))
-                Sdg(1 + atoi(match_pieces[0].str().c_str()));
+            std::regex_search(line, match_pieces, digit);
+            Sdg(1 + atoi(match_pieces[0].str().c_str()));
         } else if (line.find("t ") == 0) {
             std::smatch match_pieces;
-            if (std::regex_search(line, match_pieces, digit))
-                T(1 + atoi(match_pieces[0].str().c_str()));
+            std::regex_search(line, match_pieces, digit);
+            T(1 + atoi(match_pieces[0].str().c_str()));
         } else if (line.find("tdg ") == 0) {
             std::smatch match_pieces;
-            if (std::regex_search(line, match_pieces, digit))
-                Tdg(1 + atoi(match_pieces[0].str().c_str()));
-        } else if (line.find("rx(pi/2) ") == 0 || line.find("rx(pi / 2)") == 0) {
-            std::smatch match_pieces;
-            if (std::regex_search(line, match_pieces, digit))
-                Rx(1 + atoi(match_pieces[0].str().c_str()));
+            std::regex_search(line, match_pieces, digit);
+            Tdg(1 + atoi(match_pieces[0].str().c_str()));
+        } else if (match_rx.size() == 3) {
+            std::string angle = match_rx[1];
+            size_t pos = angle.find("pi");
+            if (pos != std::string::npos) {
+                angle.replace(pos, 2, "(1/2)");
+            } else if (angle != "0") {
+                AUTOQ_ERROR("The angle in rx gate is not a multiple of pi!");
+                exit(1);
+            }
+            std::string qubit = match_rx[2];
+            // AUTOQ_DEBUG("rx(" << angle << ") @ " << qubit);
+            Rx(ComplexParser(angle).parse().to_rational(), 1 + atoi(qubit.c_str()));
+        } else if (match_rz.size() == 3) {
+            std::string angle = match_rz[1];
+            size_t pos = angle.find("pi");
+            if (pos != std::string::npos) {
+                angle.replace(pos, 2, "(1/2)");
+            } else if (angle != "0") {
+                AUTOQ_ERROR("The angle in rz gate is not a multiple of pi!");
+                exit(1);
+            }
+            std::string qubit = match_rz[2];
+            // AUTOQ_DEBUG("rz(" << angle << ") @ " << qubit);
+            Rz(ComplexParser(angle).parse().to_rational(), 1 + atoi(qubit.c_str()));
         } else if (line.find("ry(pi/2) ") == 0 || line.find("ry(pi / 2)") == 0) {
-            std::smatch match_pieces;
-            if (std::regex_search(line, match_pieces, digit))
-                Ry(1 + atoi(match_pieces[0].str().c_str()));
+            std::regex_iterator<std::string::iterator> it(line.begin(), line.end(), digit);
+            std::vector<int> pos;
+            while (it != END) {
+                pos.push_back(1 + atoi(it->str().c_str()));
+                ++it;
+            }
+            // AUTOQ_DEBUG("ry(pi/2) @ " << pos[1]);
+            Ry(1 + pos[1]);
         } else if (line.find("cx ") == 0 || line.find("CX ") == 0 ) {
             std::regex_iterator<std::string::iterator> it(line.begin(), line.end(), digit);
             std::vector<int> pos;
@@ -1636,6 +1668,7 @@ void AUTOQ::Automata<Symbol>::execute(const char *filename) {
         } else if (line.length() > 0)
             throw std::runtime_error("[ERROR] unsupported gate: " + line + ".");
         previous_line = line;
+        // print_stats(previous_line, true);
         stop_execute = std::chrono::steady_clock::now();
     }
     qasm.close();
@@ -1667,43 +1700,43 @@ void AUTOQ::Automata<Symbol>::execute(const char *filename) {
 //             // }
 //         } else if (line.find("x ") == 0) {
 //             std::smatch match_pieces;
-//             if (std::regex_search(line, match_pieces, digit))
+//             std::regex_search(line, match_pieces, digit);
 //                 X(1 + atoi(match_pieces[0].str().c_str())); // X = X^-1
 //         } else if (line.find("y ") == 0) {
 //             std::smatch match_pieces;
-//             if (std::regex_search(line, match_pieces, digit))
+//             std::regex_search(line, match_pieces, digit);
 //                 Ydg(1 + atoi(match_pieces[0].str().c_str())); // Y = Y^-1
 //         } else if (line.find("z ") == 0) {
 //             std::smatch match_pieces;
-//             if (std::regex_search(line, match_pieces, digit))
+//             std::regex_search(line, match_pieces, digit);
 //                 Z(1 + atoi(match_pieces[0].str().c_str())); // Z = Z^-1
 //         } else if (line.find("h ") == 0) {
 //             std::smatch match_pieces;
-//             if (std::regex_search(line, match_pieces, digit))
+//             std::regex_search(line, match_pieces, digit);
 //                 H(1 + atoi(match_pieces[0].str().c_str())); // H = H^-1
 //         } else if (line.find("s ") == 0) {
 //             std::smatch match_pieces;
-//             if (std::regex_search(line, match_pieces, digit))
+//             std::regex_search(line, match_pieces, digit);
 //                 Sdg(1 + atoi(match_pieces[0].str().c_str())); // Sdg = S^-1
 //         } else if (line.find("sdg ") == 0) {
 //             std::smatch match_pieces;
-//             if (std::regex_search(line, match_pieces, digit))
+//             std::regex_search(line, match_pieces, digit);
 //                 S(1 + atoi(match_pieces[0].str().c_str())); // S = Sdg^-1
 //         } else if (line.find("t ") == 0) {
 //             std::smatch match_pieces;
-//             if (std::regex_search(line, match_pieces, digit))
+//             std::regex_search(line, match_pieces, digit);
 //                 Tdg(1 + atoi(match_pieces[0].str().c_str())); // Tdg = T^-1
 //         } else if (line.find("tdg ") == 0) {
 //             std::smatch match_pieces;
-//             if (std::regex_search(line, match_pieces, digit))
+//             std::regex_search(line, match_pieces, digit);
 //                 T(1 + atoi(match_pieces[0].str().c_str())); // T = Tdg^-1
 //         } else if (line.find("rx(pi/2) ") == 0 || line.find("rx(pi / 2)") == 0) {
 //             std::smatch match_pieces;
-//             if (std::regex_search(line, match_pieces, digit))
+//             std::regex_search(line, match_pieces, digit);
 //                 Rx(1 + atoi(match_pieces[0].str().c_str()));
 //         } else if (line.find("ry(pi/2) ") == 0 || line.find("ry(pi / 2)") == 0) {
 //             std::smatch match_pieces;
-//             if (std::regex_search(line, match_pieces, digit))
+//             std::regex_search(line, match_pieces, digit);
 //                 Ry(1 + atoi(match_pieces[0].str().c_str()));
 //         } else if (line.find("cx ") == 0 || line.find("CX ") == 0 ) {
 //             std::regex_iterator<std::string::iterator> it(line.begin(), line.end(), digit);

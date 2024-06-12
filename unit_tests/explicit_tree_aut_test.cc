@@ -29,6 +29,17 @@ using AUTOQ::Symbol::Concrete;
 
 int size = 7; // the number of qubits.
 
+struct F {
+    F() {
+        BOOST_TEST_MESSAGE("Setup fixture.");
+        if constexpr(std::is_same_v<AUTOQ::Complex::Complex, AUTOQ::Complex::nTuple>) {
+            AUTOQ::Complex::nTuple::N = 4;
+        }
+    }
+    ~F() { BOOST_TEST_MESSAGE("Teardown fixture."); }
+};
+BOOST_TEST_GLOBAL_FIXTURE(F);
+
 BOOST_AUTO_TEST_CASE(X_gate_twice_to_identity)
 {
     int n = size;
@@ -232,7 +243,7 @@ BOOST_AUTO_TEST_CASE(Rx_gate_eighth_to_identity)
         for (auto t : {1, n/2+1, n}) {
             AUTOQ::TreeAutomata after = before;
             for (int i=0; i<loop; i++) {
-                after.Rx(t);
+                after.Rx(boost::rational<boost::multiprecision::cpp_int>(1, 4), t);
 
                 if (i < loop-1) {
                     BOOST_REQUIRE_MESSAGE(!AUTOQ::TreeAutomata::check_equal(before, after), "\n" +
@@ -792,3 +803,5 @@ BOOST_AUTO_TEST_CASE(Grover_Search_only_one_oracle)
 //         }
 //     }
 // }
+
+// BOOST_AUTO_TEST_SUITE_END()

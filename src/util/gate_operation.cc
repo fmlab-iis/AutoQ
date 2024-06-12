@@ -1,5 +1,7 @@
-#include <autoq/aut_description.hh>
 #include <functional>
+#include <boost/rational.hpp>
+#include <autoq/aut_description.hh>
+#include <boost/multiprecision/cpp_int.hpp>
 
 // #define TO_QASM
 #define QASM_FILENAME "circuit.qasm"
@@ -125,7 +127,7 @@ void AUTOQ::Automata<Symbol>::Z(int t, bool opt) {
     #endif
     auto start = std::chrono::steady_clock::now();
     TransitionMap transitions_copy = transitions;
-    for (const auto &tr : transitions_copy) {
+    for (const auto &tr : transitions_copy) { // copy the lower part and correspondingly modify all amplitudes
         SymbolTag symbol_tag = tr.first;
         if (symbol_tag.is_leaf())
             symbol_tag.symbol().negate();
@@ -141,7 +143,7 @@ void AUTOQ::Automata<Symbol>::Z(int t, bool opt) {
             }
         }
     }
-    for (auto &tr : transitions) {
+    for (auto &tr : transitions) { // change the right child of transitions on the target qubit to the copied one
         if (tr.first.is_leaf() || (tr.first.is_internal() && tr.first.symbol().qubit() > t)) break;
         if (tr.first.is_internal() && tr.first.symbol().qubit() == t) {
             for (auto &out_ins : tr.second) {
@@ -483,15 +485,15 @@ void AUTOQ::Automata<Symbol>::T(int t) {
 }
 
 template <typename Symbol>
-void AUTOQ::Automata<Symbol>::Rx(int t) {
+void AUTOQ::Automata<Symbol>::Rx(const boost::rational<boost::multiprecision::cpp_int> &theta, int t) {
     #ifdef TO_QASM
-        system(("echo 'rx(pi/2) qubits[" + std::to_string(t-1) + "];' >> " + QASM_FILENAME).c_str());
+        system(("echo 'rx(...) qubits[" + std::to_string(t-1) + "];' >> " + QASM_FILENAME).c_str());
         return;
     #endif
     auto start = std::chrono::steady_clock::now();
     General_Single_Qubit_Gate(t,
-        [](const Symbol &l, Symbol r) -> Symbol { return (l - r.omega_multiplication(2)).divide_by_the_square_root_of_two(); },
-        [](Symbol l, const Symbol &r) -> Symbol { return (r - l.omega_multiplication(2)).divide_by_the_square_root_of_two(); });
+        [theta](Symbol l, Symbol r) -> Symbol { return l.multiply_cos(theta/2) - r.multiply_isin(theta/2); },
+        [theta](Symbol l, Symbol r) -> Symbol { return r.multiply_cos(theta/2) - l.multiply_isin(theta/2); });
     gateCount++;
     auto duration = std::chrono::steady_clock::now() - start;
     total_gate_time += duration;
@@ -512,6 +514,65 @@ void AUTOQ::Automata<Symbol>::Ry(int t) {
     auto duration = std::chrono::steady_clock::now() - start;
     total_gate_time += duration;
     if (gateLog) std::cout << "Ry" << t << "：" << stateNum << " states " << count_transitions() << " transitions " << toString(duration) << "\n";
+}
+
+// https://quantumcomputinguk.org/tutorials/introduction-to-the-rz-gate-with-code
+template <typename Symbol>
+void AUTOQ::Automata<Symbol>::Rz(const boost::rational<boost::multiprecision::cpp_int> &theta, int t) {
+    #ifdef TO_QASM
+        system(("echo 'rz(...) qubits[" + std::to_string(t-1) + "];' >> " + QASM_FILENAME).c_str());
+        return;
+    #endif
+    auto start = std::chrono::steady_clock::now();
+    // General_Single_Qubit_Gate(t,
+    //     [theta](Symbol l, const Symbol &r) -> Symbol { return l.counterclockwise(-theta / 2); },
+    //     [theta](const Symbol &l, Symbol r) -> Symbol { return r.counterclockwise(theta / 2); });
+    TransitionMap transitions_copy;
+    for (const auto &tr : transitions) { // copy the lower part and correspondingly modify all (left & right) amplitudes
+        SymbolTag symbol_tag1 = tr.first;
+        if (symbol_tag1.is_leaf())
+            symbol_tag1.symbol().counterclockwise(-theta / 2);
+        SymbolTag symbol_tag2 = tr.first;
+        if (symbol_tag2.is_leaf())
+            symbol_tag2.symbol().counterclockwise(theta / 2);
+        for (const auto &out_ins : tr.second) {
+            for (auto in : out_ins.second) {
+                transitions_copy[symbol_tag1][out_ins.first].insert(in);
+            }
+            if (!(symbol_tag2.is_internal() && symbol_tag2.symbol().qubit() <= t)) {
+                const auto &q = out_ins.first + stateNum;
+                auto &tsq = transitions_copy[symbol_tag2][q];
+                for (auto in : out_ins.second) {
+                    for (auto &e : in)
+                        e += stateNum;
+                    tsq.insert(in);
+                }
+            }
+        }
+    }
+    transitions = transitions_copy;
+    for (auto &tr : transitions) { // change the right child of transitions on the target qubit to the copied one
+        if (tr.first.is_leaf() || (tr.first.is_internal() && tr.first.symbol().qubit() > t)) break;
+        if (tr.first.is_internal() && tr.first.symbol().qubit() == t) {
+            for (auto &out_ins : tr.second) {
+                std::vector<StateVector> vec(out_ins.second.begin(), out_ins.second.end());
+                for (auto &in : vec) {
+                    assert(in.size() == 2);
+                    if (in.at(0) < stateNum && in.at(1) < stateNum) {
+                        in.at(1) += stateNum;
+                    }
+                }
+                out_ins.second = std::set<StateVector>(vec.begin(), vec.end());
+            }
+        }
+    }
+    stateNum *= 2;
+    remove_useless();
+    reduce();
+    gateCount++;
+    auto duration = std::chrono::steady_clock::now() - start;
+    total_gate_time += duration;
+    if (gateLog) std::cout << "Rz" << t << "：" << stateNum << " states " << count_transitions() << " transitions " << toString(duration) << "\n";
 }
 
 // IMPORTANT: Leave the space of size stateNum + aut2.stateNum for the original two automata!
@@ -1164,7 +1225,7 @@ void AUTOQ::Automata<Symbol>::randG(int G, int A, int B, int C) {
         case 3: H(a); break;
         case 4: S(a); break;
         case 5: T(a); break;
-        case 6: Rx(a); break;
+        case 6: Rx(boost::rational<boost::multiprecision::cpp_int>(1, 4), a); break;
         case 7: Ry(a); break;
         case 8: CNOT(a, b); break;
         case 9: CZ(a, b); break;
