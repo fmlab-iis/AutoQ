@@ -1551,7 +1551,7 @@ void AUTOQ::Automata<Symbol>::execute(const char *filename) {
     std::string line, previous_line;
     int lineno = 1;
     while (getline(qasm, line)) {
-        AUTOQ_DEBUG("[" << (lineno++) << "]: " << line);
+        // AUTOQ_DEBUG("[" << (lineno++) << "]: " << line);
         std::smatch match_rx; std::regex_search(line, match_rx, rx);
         std::smatch match_rz; std::regex_search(line, match_rz, rz);
         if (line.find("OPENQASM") == 0 || line.find("include ") == 0|| line.find("//") == 0) continue;

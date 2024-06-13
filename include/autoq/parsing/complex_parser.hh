@@ -149,7 +149,10 @@ private:
             } else {
                 throw std::runtime_error("Unknown function: " + function);
             }
-        } else if (std::isdigit(input_[index_]) || input_[index_] == '-') {
+        } else if (input_[index_] == '-') {
+            index_++;
+            return parsePrimary() * -1;
+        } else if (std::isdigit(input_[index_])) {
             return Complex(parseNumber());
         } else {
             throw std::runtime_error("Unexpected character: " + std::string(1, input_[index_]));
@@ -158,7 +161,7 @@ private:
 
     boost::rational<boost::multiprecision::cpp_int> parseNumber() {
         size_t start = index_;
-        while (index_ < input_.length() && (std::isdigit(input_[index_]) || input_[index_] == '.' || input_[index_] == '-')) {
+        while (index_ < input_.length() && (std::isdigit(input_[index_]) || input_[index_] == '.'/* || input_[index_] == '-'*/)) {
             index_++;
         }
         std::string numStr = input_.substr(start, index_ - start);
@@ -170,13 +173,14 @@ private:
                 break; // assume only one decimal point
             }
         }
+        /*
         if (numStr.at(0) == '-') {
             while (numStr.at(1) == '0' && numStr.length() >= 3)
                 numStr.erase(1, 1);
-        } else {
+        } else {*/
             while (numStr.at(0) == '0' && numStr.length() >= 2)
                 numStr.erase(0, 1);
-        }
+        // }
         return boost::rational<boost::multiprecision::cpp_int>(boost::multiprecision::cpp_int(numStr), boost::multiprecision::pow(boost::multiprecision::cpp_int(10), d));
     }
 };

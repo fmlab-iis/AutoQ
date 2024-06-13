@@ -234,7 +234,8 @@ int main(int argc, char **argv) {
                 std::cout << toString(AUTOQ::TreeAutomata::total_gate_time - AUTOQ::TreeAutomata::total_removeuseless_time - AUTOQ::TreeAutomata::total_reduce_time) << ","
                           << toString(AUTOQ::TreeAutomata::total_removeuseless_time) << ","
                           << toString(AUTOQ::TreeAutomata::total_reduce_time) << ","
-                          << toString(AUTOQ::TreeAutomata::total_include_time) << " & " << (result ? "T" : "F") << "\n";
+                          << toString(AUTOQ::TreeAutomata::total_include_time) << ","
+                          << toString(chrono::steady_clock::now() - start) << " & " << (result ? "T" : "F") << "\n";
             } else {
                 std::cout << toString(chrono::steady_clock::now() - start) << " & " << (result ? "T" : "F") << "\n";
             }
