@@ -534,18 +534,18 @@ Automata<Symbol> parse_automaton(const std::string& str)
                 boost::multiprecision::cpp_int max_k = INT_MIN;
                 if constexpr(std::is_same_v<Complex, AUTOQ::Complex::nTuple>) {
                     for (const auto &kv : numbers) {
-                        if (std::any_of(kv.second.begin(), std::prev(kv.second.end()), [](auto item) { return item != 0; }))
-                            if (max_k < kv.second.back())
-                                max_k = kv.second.back();
+                        if (std::any_of(kv.second.begin(), kv.second.end(), [](const auto &kv2) { return kv2.second != 0; }))
+                            if (max_k < kv.second.k)
+                                max_k = kv.second.k;
                     }
                     if (max_k == INT_MIN) max_k = 0; // IMPORTANT: if not modified, resume to 0.
                     for (auto &kv : numbers) {
-                        if (std::all_of(kv.second.begin(), std::prev(kv.second.end()), [](auto item) { return item == 0; }))
-                            kv.second.back() = max_k;
+                        if (kv.second.isZero())
+                            kv.second.k = max_k;
                         else {
-                            for (int i=0; i<kv.second.size()-1; i++)
-                                kv.second.at(i) <<= static_cast<int>((max_k - kv.second.back()) / 2);
-                            kv.second.back() = max_k;
+                            for (auto &kv2 : kv.second)
+                                kv2.second <<= static_cast<int>((max_k - kv.second.k) / 2);
+                            kv.second.k = max_k;
                         }
                     }
                 }

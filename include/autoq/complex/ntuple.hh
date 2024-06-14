@@ -2,10 +2,10 @@
 #define _AUTOQ_NTUPLE_HH_
 
 #include <cmath>
-#include <vector>
 #include <algorithm>
 #include <boost/rational.hpp>
 #include <autoq/util/convert.hh>
+#include <autoq/util/mapped_vector.hh>
 #include <boost/integer/common_factor.hpp>
 #include <boost/multiprecision/cpp_int.hpp>
 
@@ -17,58 +17,68 @@ namespace AUTOQ
 	}
 }
 
-typedef std::vector<boost::multiprecision::cpp_int> stdvectorboostmultiprecisioncpp_int;
-struct AUTOQ::Complex::nTuple : stdvectorboostmultiprecisioncpp_int {
-    inline static int N = 1; // the smallest angle unit = pi / N. Notice that N >= 4 if adjust_k is to be executed.
-    using stdvectorboostmultiprecisioncpp_int::stdvectorboostmultiprecisioncpp_int;
-    typedef typename AUTOQ::Complex::nTuple::value_type Entry;
+struct AUTOQ::Complex::nTuple : AUTOQ::Util::mapped_vector<boost::multiprecision::cpp_int> {
+    inline static int N = 4; // the smallest angle unit = pi / N. Notice that N >= 4 if adjust_k is to be executed.
+    boost::multiprecision::cpp_int k = 0;
     // Notice that if we do not use is_convertible_v, type int will not be accepted in this case.
-    template <typename T, typename = std::enable_if_t<std::is_convertible<T, boost::rational<Entry>>::value>>
-        nTuple(T in) : stdvectorboostmultiprecisioncpp_int(N+1, 0) {
-            boost::rational<boost::multiprecision::cpp_int> r = in;
-            auto d = r.denominator();
-            while (d > 0 && d % 2 == 0) {
-                back() += 2;
-                d /= 2;
-            }
-            if (d != 1) { // Assume the denominator is a power of 2!
-                AUTOQ_ERROR("The denominator is not a power of 2!");
+    template <typename T>
+        nTuple(T in) {
+            k = 0;
+            if constexpr(std::is_convertible<T, boost::rational<boost::multiprecision::cpp_int>>::value) {
+                boost::rational<boost::multiprecision::cpp_int> r = in;
+                auto d = r.denominator();
+                while (d > 0 && d % 2 == 0) {
+                    k += 2;
+                    d >>= 1;
+                }
+                if (d != 1) { // Assume the denominator is a power of 2!
+                    AUTOQ_ERROR("The denominator is not a power of 2!");
+                    exit(1);
+                }
+                // The above just transform the denominator d into √2^back().
+                const auto &x = r.numerator();
+                if (x != 0)
+                    operator[](0) = x;
+            } else {
+                AUTOQ_ERROR(in << " cannot be converted to a complex number!");
                 exit(1);
             }
-            // The above just transform the denominator d into √2^back().
-            front() = r.numerator();
         }
     nTuple() : nTuple(0) {}
-    static nTuple Angle(boost::rational<boost::multiprecision::cpp_int> theta) {
+    static nTuple Angle(const boost::rational<boost::multiprecision::cpp_int> &theta) {
         return nTuple(1).counterclockwise(theta);
     }
     static nTuple One() { return nTuple(1); }
     static nTuple Zero() { return nTuple(0); }
     static nTuple Rand() {
-        auto ini = nTuple(0);
-        std::for_each(ini.begin(), std::prev(ini.end()), [](auto &n) { n = rand() % 5; });
-        return ini;
+        auto number = nTuple(0);
+        number[rand() % N] = rand() % 5;
+        return number;
     }
     static nTuple sqrt2() { return nTuple(1).divide_by_the_square_root_of_two(-1); }
     friend std::ostream& operator<<(std::ostream& os, const nTuple& obj) {
-        os << AUTOQ::Util::Convert::ToString(static_cast<stdvectorboostmultiprecisioncpp_int>(obj));
+        os << "[";
+        for (const auto &kv : obj)
+            os << " " << kv.second << "*ei2pi(" << kv.first << "/" << N << ")";
+        os << "]";
         return os;
     }
     nTuple operator+(const nTuple &o) const { return binary_operation(o, true); }
     nTuple operator-(const nTuple &o) const { return binary_operation(o, false); }
     nTuple operator*(const nTuple &o) const {
         nTuple symbol;
-        for (int i=0; i<N; i++)
-            for (int j=0; j<N; j++) {
-                int targetAngle = i + j;
-                boost::multiprecision::cpp_int targetAmplitude = this->at(i) * o.at(j);
+        for (const auto &kv1 : *this) {
+            for (const auto &kv2 : o) {
+                int targetAngle = kv1.first + kv2.first;
+                boost::multiprecision::cpp_int targetAmplitude = kv1.second * kv2.second;
                 while (targetAngle >= N) {
                     targetAngle -= N;
                     targetAmplitude = -targetAmplitude;
                 }
-                symbol.at(targetAngle) += targetAmplitude;
+                symbol[targetAngle] += targetAmplitude;
             }
-        symbol.back() = this->back() + o.back(); // remember to set k
+        }
+        symbol.k = this->k + o.k; // remember to set k
         return symbol;
     }
     nTuple operator/(nTuple denominator) const {
@@ -76,10 +86,11 @@ struct AUTOQ::Complex::nTuple : stdvectorboostmultiprecisioncpp_int {
         int grid = 1;
         // std::cout << AUTOQ::Util::Convert::ToString(numerator) << std::endl;
         // std::cout << AUTOQ::Util::Convert::ToString(denominator) << std::endl;
-        while (!std::all_of(std::next(denominator.begin()), std::prev(denominator.end()), [](auto item) { return item == 0; })) {
+        while (!std::all_of(denominator.begin(), denominator.end(), [](const auto &kv) { return kv.first == 0 || kv.second == 0; })) {
             auto temp = denominator;
-            for (int i=1; grid*i<=N-1; i+=2) {
-                temp.at(grid*i) *= -1;
+            for (auto &kv : temp) {
+                if (kv.first % grid == 0 && (kv.first / grid) % 2 == 1)
+                    kv.second *= -1;
             }
             numerator = numerator * temp;
             denominator = denominator * temp;
@@ -91,18 +102,18 @@ struct AUTOQ::Complex::nTuple : stdvectorboostmultiprecisioncpp_int {
         }
         // Now, denominator is a real number.
         // That is, only front() and back() are non-zero.
-        numerator.back() -= denominator.back();
-        denominator.back() = 0;
-        if (denominator.front() == 0) {
+        numerator.k -= denominator.k;
+        denominator.k = 0;
+        if (denominator.find(0) == denominator.end()) {
             AUTOQ_ERROR("The denominator should not be zero!");
             exit(1);
         }
-        while (denominator.front() % 2 == 0) {
-            denominator.front() /= 2;
-            numerator.back() += 2;
+        while (denominator[0] % 2 == 0) {
+            denominator[0] >>= 1;
+            numerator.k += 2;
         }
-        if (std::all_of(numerator.begin(), std::prev(numerator.end()), [denominator](auto item) { return item % denominator.front() == 0; })) {
-            std::for_each(numerator.begin(), std::prev(numerator.end()), [denominator](auto &n) { n /= denominator.front(); });
+        if (std::all_of(numerator.begin(), numerator.end(), [&denominator](const auto &kv) mutable { return kv.second % denominator[0] == 0; })) {
+            std::for_each(numerator.begin(), numerator.end(), [&denominator](auto &kv) mutable { kv.second /= denominator[0]; });
             // numerator.fraction_simplification();
             return numerator;
         } else {
@@ -111,22 +122,22 @@ struct AUTOQ::Complex::nTuple : stdvectorboostmultiprecisioncpp_int {
         }
     }
     nTuple& fraction_simplification() { // TODO: still necessary for inclusion checking
-        if (isZero()) back() = 0;
+        if (isZero()) k = 0;
         else {
-            if (back() < 0) {
-                int k = (1 + static_cast<int>(-back()))/2;
-                std::for_each(this->begin(), std::prev(this->end()), [k](auto &n) { n *= boost::multiprecision::pow(boost::multiprecision::cpp_int(2), k); });
-                back() += k * 2;
+            if (k < 0) {
+                int dk2 = (1 + static_cast<int>(-k))/2;
+                std::for_each(begin(), end(), [dk2](auto &kv) { kv.second *= boost::multiprecision::pow(boost::multiprecision::cpp_int(2), dk2); });
+                k += dk2 * 2;
             }
-            while (std::all_of(this->begin(), std::prev(this->end()), [](auto item) { return (item & 1) == 0; }) && back() >= 2) {
-                std::for_each(this->begin(), std::prev(this->end()), [](auto &n) { n /= 2; });
-                back() -= 2;
+            while (std::all_of(begin(), end(), [](const auto &kv) { return (kv.second & 1) == 0; }) && k >= 2) {
+                std::for_each(begin(), end(), [](auto &kv) { kv.second >>= 1; });
+                k -= 2;
             }
         }
         return *this;
     }
     nTuple& divide_by_the_square_root_of_two(int times=1) {
-        back() += times;
+        k += times;
         return *this;
     }
     nTuple& clockwise(boost::rational<boost::multiprecision::cpp_int> theta) {
@@ -140,6 +151,8 @@ struct AUTOQ::Complex::nTuple : stdvectorboostmultiprecisioncpp_int {
         return counterclockwise(1 - theta);
     }
     nTuple& counterclockwise(boost::rational<boost::multiprecision::cpp_int> theta) {
+        // std::cout << theta << std::endl;
+        // std::cout << N << std::endl;
         theta -= theta.numerator() / theta.denominator();
         while (theta >= 1)
             theta -= 1;
@@ -153,35 +166,39 @@ struct AUTOQ::Complex::nTuple : stdvectorboostmultiprecisioncpp_int {
         auto t = static_cast<int>(N*2 * theta.numerator() / theta.denominator());
         // Solve theta = t / (N*2).
         nTuple result;
-        for (int i=0; i<N; i++) {
-            int targetAngle = i + t;
-            auto targetAmplitude = this->at(i);
+        for (const auto &kv : *this) {
+            int targetAngle = kv.first + t;
+            auto targetAmplitude = kv.second;
             while (targetAngle >= N) {
                 targetAngle -= N;
                 targetAmplitude *= -1;
             }
-            result.at(targetAngle) += targetAmplitude;
+            result[targetAngle] += targetAmplitude;
         }
-        result.back() = this->back();
+        result.k = k;
         *this = result;
         return *this;
     }
     boost::multiprecision::cpp_int toInt() const { // TODO: fake solution
-        return front();
+        return at0();
     }
     boost::rational<boost::multiprecision::cpp_int> to_rational() const { // TODO: fake solution
-        if (back() < 0) {
+        if (k < 0) {
             AUTOQ_ERROR("We assume the denominator should not be less than 1 here!");
             exit(1);
         }
-        return boost::rational<boost::multiprecision::cpp_int>(front(), boost::multiprecision::pow(boost::multiprecision::cpp_int(2), static_cast<int>(back()/2)));
+        return boost::rational<boost::multiprecision::cpp_int>(at0(), boost::multiprecision::pow(boost::multiprecision::cpp_int(2), static_cast<int>(k/2)));
     }
     std::string realToSMT() const {
         std::string result = "(/ (+ ";
-        for (int i=0; i<N; i++)
-            result += " (* " + std::to_string(std::cos(M_PI * i/N)) + " " + at(i).str() + ")";
-        boost::multiprecision::cpp_int num = boost::multiprecision::pow(boost::multiprecision::cpp_int(2), static_cast<int>(back()/2));
-        if (back() % 2 == 0)
+        if (empty()) {
+            result += " 0";
+        } else {
+            for (const auto &kv : *this)
+                result += " (* " + std::to_string(std::cos(M_PI * kv.first/N)) + " " + kv.second.str() + ")";
+        }
+        boost::multiprecision::cpp_int num = boost::multiprecision::pow(boost::multiprecision::cpp_int(2), static_cast<int>(k/2));
+        if (k % 2 == 0)
             result += ") " + num.str() + ")";
         else
             result += ") (* " + std::to_string(std::sqrt(2.0)) + " " + num.str() + ") )";
@@ -189,37 +206,41 @@ struct AUTOQ::Complex::nTuple : stdvectorboostmultiprecisioncpp_int {
     }
     std::string imagToSMT() const {
         std::string result = "(/ (+";
-        for (int i=0; i<N; i++)
-            result += " (* " + std::to_string(std::sin(M_PI * i/N)) + " " + at(i).str() + ")";
-        boost::multiprecision::cpp_int num = boost::multiprecision::pow(boost::multiprecision::cpp_int(2), static_cast<int>(back()/2));
-        if (back() % 2 == 0)
+        if (empty()) {
+            result += " 0";
+        } else {
+            for (const auto &kv : *this)
+                result += " (* " + std::to_string(std::sin(M_PI * kv.first/N)) + " " + kv.second.str() + ")";
+        }
+        boost::multiprecision::cpp_int num = boost::multiprecision::pow(boost::multiprecision::cpp_int(2), static_cast<int>(k/2));
+        if (k % 2 == 0)
             result += ") " + num.str() + ")";
         else
             result += ") (* " + std::to_string(std::sqrt(2.0)) + " " + num.str() + ") )";
         return result;
     }
     double abs2() const {
-        double denominator = std::pow(std::sqrt(2.0), static_cast<double>(back()));
+        double denominator = std::pow(std::sqrt(2.0), static_cast<double>(k));
         double numerator_real = 0;
-        for (int i=0; i<N; i++)
-            numerator_real += std::cos(M_PI * i/N) * static_cast<double>(at(i));
+        for (const auto &kv : *this)
+            numerator_real += std::cos(M_PI * kv.first/N) * static_cast<double>(kv.second);
         numerator_real /= denominator;
         double numerator_imag = 0;
-        for (int i=0; i<N; i++)
-            numerator_imag += std::sin(M_PI * i/N) * static_cast<double>(at(i));
+        for (const auto &kv : *this)
+            numerator_imag += std::sin(M_PI * kv.first/N) * static_cast<double>(kv.second);
         numerator_imag /= denominator;
         return numerator_real * numerator_real + numerator_imag * numerator_imag;
     }
     bool isZero() const {
-        return std::all_of(this->begin(), std::prev(this->end()), [](auto item) { return item == 0; });
+        return std::all_of(begin(), end(), [](const auto &kv) { return kv.second == 0; });
     }
     bool valueEqual(nTuple o) const {
-        if (this->back() >= o.back()) {
-            o.adjust_k(this->back() - o.back());
+        if (k >= o.k) {
+            o.adjust_k(k - o.k);
             return *this == o;
         } else {
             auto This = *this;
-            This.adjust_k(o.back() - This.back());
+            This.adjust_k(o.k - This.k);
             return This == o;
         }
     }
@@ -235,6 +256,9 @@ struct AUTOQ::Complex::nTuple : stdvectorboostmultiprecisioncpp_int {
         *this = (c1.counterclockwise(theta) - c2.counterclockwise(-theta)).divide_by_the_square_root_of_two(2);
         return *this;
     }
+    bool operator==(const auto &rhs) const {
+        return k == rhs.k && AUTOQ::Util::mapped_vector<boost::multiprecision::cpp_int>::operator==(rhs);
+    }
 
 private:
     void adjust_k(boost::multiprecision::cpp_int dk) {
@@ -248,42 +272,42 @@ private:
                 exit(1);
             }
             nTuple ans;
-            for (int i=0; i<=N-1; i++) {
-                int targetAngle = i - N/4;
-                boost::multiprecision::cpp_int targetAmplitude = this->at(i);
+            for (const auto &kv : *this) {
+                int targetAngle = kv.first - N/4;
+                boost::multiprecision::cpp_int targetAmplitude = kv.second;
                 while (targetAngle < 0) {
                     targetAngle += N;
                     targetAmplitude *= -1;
                 }
-                ans.at(targetAngle) += targetAmplitude;
+                ans[targetAngle] += targetAmplitude;
                 /*************************************/
-                targetAngle = i + N/4;
-                targetAmplitude = this->at(i);
+                targetAngle = kv.first + N/4;
+                targetAmplitude = kv.second;
                 while (targetAngle >= N) {
                     targetAngle -= N;
                     targetAmplitude *= -1;
                 }
-                ans.at(targetAngle) += targetAmplitude;
+                ans[targetAngle] += targetAmplitude;
             }
-            ans.back() = this->back() + 1;
+            ans.k = k + 1;
             *this = ans;
             dk--;
         }
     }
     nTuple binary_operation(const nTuple &o, bool add) const {
-        assert(((back() == o.back()) ||
-              (isZero() && back()<=o.back()) ||
-              (o.isZero() && back()>=o.back())));// {
+        assert(((k == o.k) ||
+              (isZero() && k<=o.k) ||
+              (o.isZero() && k>=o.k)));// {
         //     AUTOQ_ERROR("The two nTuples should have the same k!");
         //     exit(1);
         // }
-        nTuple symbol;
-        for (int i=0; i<N; i++) {
-            if (add) symbol.at(i) = at(i) + o.at(i);
-            else symbol.at(i) = at(i) - o.at(i);
+        nTuple result = *this;
+        for (const auto &kv : o) {
+            if (add) result[kv.first] = result[kv.first] + kv.second;
+            else result[kv.first] = result[kv.first] - kv.second;
         }
-        symbol.back() = std::max(back(), o.back()); // remember to set k
-        return symbol;
+        result.k = std::max(k, o.k); // remember to set k
+        return result;
     }
 };
 
