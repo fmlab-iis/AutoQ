@@ -90,8 +90,8 @@ void adjust_N_in_nTuple(const std::string &filename) {
                 exit(1);
             }
             auto theta = ComplexParser(angle).parse().to_rational() / 2;
-            if (AUTOQ::Complex::nTuple::N < static_cast<int>(theta.denominator())) {
-                AUTOQ::Complex::nTuple::N = static_cast<int>(theta.denominator());
+            if (AUTOQ::Complex::nTuple::N < static_cast<decltype(AUTOQ::Complex::nTuple::N)>(theta.denominator())) {
+                AUTOQ::Complex::nTuple::N = static_cast<decltype(AUTOQ::Complex::nTuple::N)>(theta.denominator());
             }
         } else if (match_rz.size() == 3) {
             std::string angle = match_rz[1];
@@ -103,8 +103,8 @@ void adjust_N_in_nTuple(const std::string &filename) {
                 exit(1);
             }
             auto theta = ComplexParser(angle).parse().to_rational() / 2;
-            if (AUTOQ::Complex::nTuple::N < static_cast<int>(theta.denominator())) {
-                AUTOQ::Complex::nTuple::N = static_cast<int>(theta.denominator());
+            if (AUTOQ::Complex::nTuple::N < static_cast<decltype(AUTOQ::Complex::nTuple::N)>(theta.denominator())) {
+                AUTOQ::Complex::nTuple::N = static_cast<decltype(AUTOQ::Complex::nTuple::N)>(theta.denominator());
             }
         } else if (line.find("ry(pi/2) ") == 0 || line.find("ry(pi / 2)") == 0) {
         } else if (line.find("cx ") == 0 || line.find("CX ") == 0 ) {
