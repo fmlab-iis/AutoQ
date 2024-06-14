@@ -18,7 +18,7 @@ namespace AUTOQ
 }
 
 struct AUTOQ::Complex::nTuple : AUTOQ::Util::mapped_vector<boost::multiprecision::cpp_int> {
-    inline static int N = 4; // the smallest angle unit = pi / N. Notice that N >= 4 if adjust_k is to be executed.
+    inline static long long N = 4; // the smallest angle unit = pi / N. Notice that N >= 4 if adjust_k is to be executed.
     boost::multiprecision::cpp_int k = 0;
     // Notice that if we do not use is_convertible_v, type int will not be accepted in this case.
     template <typename T>
@@ -69,7 +69,7 @@ struct AUTOQ::Complex::nTuple : AUTOQ::Util::mapped_vector<boost::multiprecision
         nTuple symbol;
         for (const auto &kv1 : *this) {
             for (const auto &kv2 : o) {
-                int targetAngle = kv1.first + kv2.first;
+                auto targetAngle = kv1.first + kv2.first;
                 boost::multiprecision::cpp_int targetAmplitude = kv1.second * kv2.second;
                 while (targetAngle >= N) {
                     targetAngle -= N;
@@ -151,8 +151,6 @@ struct AUTOQ::Complex::nTuple : AUTOQ::Util::mapped_vector<boost::multiprecision
         return counterclockwise(1 - theta);
     }
     nTuple& counterclockwise(boost::rational<boost::multiprecision::cpp_int> theta) {
-        // std::cout << theta << std::endl;
-        // std::cout << N << std::endl;
         theta -= theta.numerator() / theta.denominator();
         while (theta >= 1)
             theta -= 1;
@@ -160,14 +158,14 @@ struct AUTOQ::Complex::nTuple : AUTOQ::Util::mapped_vector<boost::multiprecision
             theta += 1;
         // Ensure that theta is in [0, 1).
         if ((N*2 * theta).denominator() != 1) {
-            AUTOQ_ERROR("This angle is not supported!");
+            AUTOQ_ERROR("This angle (" << theta << ") is not supported under N = " << N << ".");
             exit(1);
         }
-        auto t = static_cast<int>(N*2 * theta.numerator() / theta.denominator());
+        auto t = static_cast<long long>(N*2 * theta.numerator() / theta.denominator());
         // Solve theta = t / (N*2).
         nTuple result;
         for (const auto &kv : *this) {
-            int targetAngle = kv.first + t;
+            auto targetAngle = kv.first + t;
             auto targetAmplitude = kv.second;
             while (targetAngle >= N) {
                 targetAngle -= N;
@@ -273,7 +271,7 @@ private:
             }
             nTuple ans;
             for (const auto &kv : *this) {
-                int targetAngle = kv.first - N/4;
+                long long targetAngle = kv.first - N/4;
                 boost::multiprecision::cpp_int targetAmplitude = kv.second;
                 while (targetAngle < 0) {
                     targetAngle += N;

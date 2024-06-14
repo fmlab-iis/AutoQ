@@ -13,7 +13,7 @@ namespace AUTOQ
 }
 
 template <typename T>
-struct AUTOQ::Util::mapped_vector : std::map<int, T>
+struct AUTOQ::Util::mapped_vector : std::map<long long, T>
 {
     T at0() const {
         const auto &it = this->find(0);
@@ -24,13 +24,13 @@ struct AUTOQ::Util::mapped_vector : std::map<int, T>
 
 	inline bool operator==(const mapped_vector& rhs2) const
 	{
-        std::map<int, T> lhs = *this;
+        std::map<long long, T> lhs = *this;
         for (const auto &kv : *this) {
             if (kv.second == 0) {
                 lhs.erase(kv.first);
             }
         }
-        std::map<int, T> rhs = rhs2;
+        std::map<long long, T> rhs = rhs2;
         for (const auto &kv : rhs2) {
             if (kv.second == 0) {
                 rhs.erase(kv.first);
