@@ -16,3 +16,9 @@ python_interface/__pycache__
 
 .vscode/*
 backup/*
+equivalence_or_not/tables/*
+equivalence_or_not/*/*.json
+POPL24/TABLES/Algorithms/*.pdf
+POPL24/TABLES/Algorithms/*.tex
+POPL24/TABLES/Algorithms/*.log
+POPL24/TABLES/Algorithms/*.aux
