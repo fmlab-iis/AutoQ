@@ -16,6 +16,8 @@
 #include <regex>
 #include <fenv.h>
 
+#include <fenv_darwin.h>
+
 #include <CLI11.hpp>
 
 using namespace std;
