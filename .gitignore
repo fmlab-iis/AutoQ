@@ -18,6 +18,8 @@ python_interface/__pycache__
 backup/*
 equivalence_or_not/tables/*
 equivalence_or_not/*/*.json
+dyadic/tables/*
+dyadic/*/*.json
 POPL24/TABLES/Algorithms/*.pdf
 POPL24/TABLES/Algorithms/*.tex
 POPL24/TABLES/Algorithms/*.log
