@@ -64,7 +64,7 @@ def CTA(root, semaphore, lock, counter):
             pass
         elif ret == 124:
             data['total'] = TIMEOUT
-            data['result'] = 'TIMEOUT'
+            # data['result'] = 'TIMEOUT', use gateCount instead.
         else:
             data['total'] = TIMEOUT
             data['result'] = 'ERROR'

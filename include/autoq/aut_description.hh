@@ -189,7 +189,8 @@ public:
     Automata Union(const Automata &o); // U is in uppercase since "union" is a reserved keyword.
     void print_aut(const char *str="") const;
     void print_stats(const std::string &str="", bool newline=false);
-    int transition_size();
+    int transition_size() const;
+    int leaf_size() const;
 
     /// simulation-based reduction
     void sim_reduce();
