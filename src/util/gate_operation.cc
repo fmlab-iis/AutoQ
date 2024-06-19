@@ -41,6 +41,146 @@ namespace {
     }
 }
 
+#define queryTopID(oldID, newID) \
+    State newID;    \
+    {   \
+        auto it = topStateMap.find(oldID);    \
+        if (it == topStateMap.end())    \
+            newID = oldID;    \
+        else    \
+            newID = it->second; \
+    }
+#define queryChildID(oldID, newID) \
+    State newID;    \
+    {   \
+        auto it = childStateMap.find(oldID);    \
+        if (it == childStateMap.end())    \
+            newID = oldID;    \
+        else    \
+            newID = it->second; \
+    }
+template <typename Symbol>
+void AUTOQ::Automata<Symbol>::diagonal_gate(int t, const std::function<void(Symbol*)> &multiply_by_c0, const std::function<void(Symbol*)> &multiply_by_c1) {
+    TransitionMap transitions2;
+    std::map<State, int> topStateIsLeftOrRight, childStateIsLeftOrRight; // 0b10: original tree, 0b01: copied tree, 0b11: both trees
+    std::map<State, State> topStateMap, childStateMap;
+    // If a state has only one tree, then its id does not change. In this case, it is not present in this map.
+    // If a state has two trees, then it presents in this map and its value is the id in the copied tree.
+
+    // Convert from TransitionMap to InternalTransitionMap.
+    InternalTransitionMap internalTransitions(qubitNum + 1); // only contains qubits from t to the bottom
+    TransitionMap leafTransitions;
+    for (const auto &tr : transitions) {
+        if (tr.first.is_internal()) {
+            if (tr.first.symbol().qubit() < t)
+                transitions2[tr.first] = tr.second;
+            else
+                internalTransitions[static_cast<int>(tr.first.symbol().qubit())][tr.first.tag()] = tr.second;
+        } else {
+            leafTransitions[tr.first] = tr.second;
+        }
+    }
+
+    // Assume the initial state numbers are already compact.
+    for (int q = t; q <= qubitNum; q++) {
+        if (q == t) {
+            /* Construct childStateIsLeftOrRight. */
+            for (const auto &tag_outins : internalTransitions[q]) {
+                for (const auto &out_ins : tag_outins.second) {
+                    for (const auto &in : out_ins.second) {
+                        assert(in.size() == 2);
+                        childStateIsLeftOrRight[in[0]] |= 0b10;
+                        childStateIsLeftOrRight[in[1]] |= 0b01;
+                    }
+                }
+            }
+            /**************************************/
+            /* Construct childStateMap. */
+            for (const auto &kv : childStateIsLeftOrRight) {
+                if (kv.second == 0b11) {
+                    childStateMap[kv.first] = stateNum;
+                    stateNum++;
+                }
+            }
+            /****************************/
+            for (const auto &tag_outins : internalTransitions[q]) {
+                auto &ref = transitions2[{Symbol(q), tag_outins.first}];
+                for (const auto &out_ins : tag_outins.second) {
+                    const auto &top = out_ins.first;
+                    for (const auto &in : out_ins.second) {
+                        assert(in.size() == 2);
+                        queryChildID(in[1], newIn1);
+                        ref[top].insert({in[0], newIn1});
+                    }
+                }
+            }
+        } else { // if (q > t) {
+            /* Construct childStateIsLeftOrRight. */
+            for (const auto &tag_outins : internalTransitions[q]) {
+                for (const auto &out_ins : tag_outins.second) {
+                    const auto &top = out_ins.first;
+                    for (const auto &in : out_ins.second) {
+                        assert(in.size() == 2);
+                        childStateIsLeftOrRight[in[0]] |= topStateIsLeftOrRight[top];
+                        childStateIsLeftOrRight[in[1]] |= topStateIsLeftOrRight[top];
+                    }
+                }
+            }
+            /**************************************/
+            /* Construct childStateMap. */
+            for (const auto &kv : childStateIsLeftOrRight) {
+                if (kv.second == 0b11) {
+                    childStateMap[kv.first] = stateNum;
+                    stateNum++;
+                }
+            }
+            /****************************/
+            for (const auto &tag_outins : internalTransitions[q]) {
+                auto &ref = transitions2[{Symbol(q), tag_outins.first}];
+                for (const auto &out_ins : tag_outins.second) {
+                    const auto &top = out_ins.first;
+                    if (topStateIsLeftOrRight[top] & 0b10) {
+                        ref[top] = out_ins.second;
+                    }
+                    if (topStateIsLeftOrRight[top] & 0b01) {
+                        queryTopID(top, newTop);
+                        for (const auto &in : out_ins.second) {
+                            assert(in.size() == 2);
+                            queryChildID(in[0], newIn0);
+                            queryChildID(in[1], newIn1);
+                            ref[newTop].insert({newIn0, newIn1});
+                        }
+                    }
+                }
+            }
+        }
+        /**********************************************/
+        topStateIsLeftOrRight = childStateIsLeftOrRight;
+        childStateIsLeftOrRight.clear();
+        topStateMap = childStateMap;
+        childStateMap.clear();
+        /**********************************************/
+    }
+    for (const auto &tr : leafTransitions) {
+        for (const auto &out_ins : tr.second) {
+            assert(out_ins.second.empty());
+            const auto &top = out_ins.first;
+            if (topStateIsLeftOrRight[top] & 0b10) {
+                SymbolTag symbol_tag = tr.first;
+                multiply_by_c0(&symbol_tag.symbol());
+                transitions2[symbol_tag][top].insert({{}});
+            }
+            if (topStateIsLeftOrRight[top] & 0b01) {
+                queryTopID(top, newTop);
+                SymbolTag symbol_tag = tr.first;
+                multiply_by_c1(&symbol_tag.symbol());
+                transitions2[symbol_tag][newTop].insert({{}});
+            }
+        }
+    }
+    transitions = transitions2;
+}
+
 template <typename Symbol>
 void AUTOQ::Automata<Symbol>::X(int t) {
     #ifdef TO_QASM
@@ -48,17 +188,15 @@ void AUTOQ::Automata<Symbol>::X(int t) {
         return;
     #endif
     auto start = std::chrono::steady_clock::now();
-    auto transitions_copy = transitions;
-    for (const auto &tr : transitions_copy) {
-        const auto &symbol_tag = tr.first;
-        if (symbol_tag.is_internal() && symbol_tag.symbol().qubit() == t) {
-            for (const auto &out_ins : tr.second) {
-                const auto &q = out_ins.first;
-                transitions[symbol_tag].erase(q);
+    for (auto &tr : transitions) {
+        if (tr.first.is_internal() && tr.first.symbol().qubit() == t) {
+            for (auto &out_ins : tr.second) {
+                std::set<StateVector> ins2;
                 for (const auto &in : out_ins.second) {
                     assert(in.size() == 2);
-                    transitions[symbol_tag][q].insert({in[1], in[0]});
+                    ins2.insert({in[1], in[0]});
                 }
+                out_ins.second = ins2;
             }
         }
     }
@@ -170,7 +308,7 @@ void AUTOQ::Automata<Symbol>::Z(int t, bool opt) {
 }
 
 template <typename Symbol>
-void AUTOQ::Automata<Symbol>::General_Single_Qubit_Gate(int t, std::function<Symbol(const Symbol&, const Symbol&)> L, std::function<Symbol(const Symbol&, const Symbol&)> R) {
+void AUTOQ::Automata<Symbol>::General_Single_Qubit_Gate(int t, const std::function<Symbol(const Symbol&, const Symbol&)> &L, const std::function<Symbol(const Symbol&, const Symbol&)> &R) {
     AUTOQ::Automata<Symbol> result;
     result.name = name;
     result.qubitNum = qubitNum;

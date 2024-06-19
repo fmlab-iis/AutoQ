@@ -87,6 +87,7 @@ public:   // data types
         }
     };
     typedef std::map<SymbolTag, std::map<State, std::set<StateVector>>> TransitionMap;
+    typedef std::vector<std::map<Tag, std::map<State, std::set<StateVector>>>> InternalTransitionMap; // Keys range from 1 to qubit().
 
 public:   // data members
 	std::string name;
@@ -172,8 +173,9 @@ private:
     // Automata binary_operation(const Automata &o, bool add);
     // void swap_forward(const int k);
     // void swap_backward(const int k);
-    void General_Single_Qubit_Gate(int t, std::function<Symbol(const Symbol&, const Symbol&)> L, std::function<Symbol(const Symbol&, const Symbol&)> R);
+    void General_Single_Qubit_Gate(int t, const std::function<Symbol(const Symbol&, const Symbol&)> &L, const std::function<Symbol(const Symbol&, const Symbol&)> &R);
     // void General_Controlled_Gate(int c, const AUTOQ::Automata<Symbol> &aut2);
+    void diagonal_gate(int t, const std::function<void(Symbol*)> &multiply_by_c0, const std::function<void(Symbol*)> &multiply_by_c1);
     void initialize_stats();
 
 public:
