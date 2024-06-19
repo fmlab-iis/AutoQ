@@ -163,7 +163,6 @@ void AUTOQ::Automata<Symbol>::diagonal_gate(int t, const std::function<void(Symb
     }
     for (const auto &tr : leafTransitions) {
         for (const auto &out_ins : tr.second) {
-            assert(out_ins.second.empty());
             const auto &top = out_ins.first;
             if (topStateIsLeftOrRight[top] & 0b10) {
                 SymbolTag symbol_tag = tr.first;
@@ -213,43 +212,9 @@ void AUTOQ::Automata<Symbol>::Y(int t) {
         return;
     #endif
     auto start = std::chrono::steady_clock::now();
-    TransitionMap transitions_copy = transitions;
-    for (const auto &tr : transitions_copy) {
-        SymbolTag symbol_tag = tr.first;
-        if (symbol_tag.is_leaf())
-            symbol_tag.symbol().negate();
-        if (!(symbol_tag.is_internal() && symbol_tag.symbol().qubit() <= t)) {
-            for (const auto &out_ins : tr.second) {
-                const auto &q = out_ins.first + stateNum;
-                for (auto in : out_ins.second) {
-                    for (unsigned i=0; i<in.size(); i++)
-                        in.at(i) += stateNum;
-                    transitions[symbol_tag][q].insert(in);
-                }
-            }
-        }
-    }
-    for (auto &tr : transitions) {
-        if (tr.first.is_leaf() || (tr.first.is_internal() && tr.first.symbol().qubit() > t)) break;
-        if (tr.first.is_internal() && tr.first.symbol().qubit() == t) {
-            for (auto &out_ins : tr.second) {
-                std::vector<StateVector> vec(out_ins.second.begin(), out_ins.second.end());
-                for (auto &in : vec) {
-                    assert(in.size() == 2);
-                    if (in.at(0) < stateNum && in.at(1) < stateNum) {
-                        std::swap(in.at(0), in.at(1));
-                        in.at(0) += stateNum;
-                        // out_ins.second.erase(in);
-                        // out_ins.second.insert({in.at(1)+stateNum, in.at(0)});
-                    }
-                }
-                out_ins.second = std::set<StateVector>(vec.begin(), vec.end());
-            }
-        }
-    }
-    stateNum *= 2;
-    omega_multiplication(2);
-    remove_useless();
+    X(t); gateCount--;
+    diagonal_gate(t, std::bind(&Symbol::degree90cw, std::placeholders::_1), std::bind(&Symbol::omega_multiplication, std::placeholders::_1, 2));
+    // remove_useless();
     reduce();
     gateCount++;
     auto duration = std::chrono::steady_clock::now() - start;
@@ -264,41 +229,9 @@ void AUTOQ::Automata<Symbol>::Z(int t, bool opt) {
         return;
     #endif
     auto start = std::chrono::steady_clock::now();
-    TransitionMap transitions_copy = transitions;
-    for (const auto &tr : transitions_copy) { // copy the lower part and correspondingly modify all amplitudes
-        SymbolTag symbol_tag = tr.first;
-        if (symbol_tag.is_leaf())
-            symbol_tag.symbol().negate();
-        if (!(symbol_tag.is_internal() && symbol_tag.symbol().qubit() <= t)) {
-            for (const auto &out_ins : tr.second) {
-                const auto &q = out_ins.first + stateNum;
-                auto &tsq = transitions[symbol_tag][q];
-                for (auto in : out_ins.second) {
-                    for (auto &e : in)
-                        e += stateNum;
-                    tsq.insert(in);
-                }
-            }
-        }
-    }
-    for (auto &tr : transitions) { // change the right child of transitions on the target qubit to the copied one
-        if (tr.first.is_leaf() || (tr.first.is_internal() && tr.first.symbol().qubit() > t)) break;
-        if (tr.first.is_internal() && tr.first.symbol().qubit() == t) {
-            for (auto &out_ins : tr.second) {
-                std::vector<StateVector> vec(out_ins.second.begin(), out_ins.second.end());
-                for (auto &in : vec) {
-                    assert(in.size() == 2);
-                    if (in.at(0) < stateNum && in.at(1) < stateNum) {
-                        in.at(1) += stateNum;
-                    }
-                }
-                out_ins.second = std::set<StateVector>(vec.begin(), vec.end());
-            }
-        }
-    }
-    stateNum *= 2;
+    diagonal_gate(t, [](Symbol*) {}, std::bind(&Symbol::negate, std::placeholders::_1));
     if (opt) {
-        remove_useless();
+        // remove_useless();
         reduce();
     }
     gateCount++;
@@ -535,39 +468,8 @@ void AUTOQ::Automata<Symbol>::S(int t) {
         return;
     #endif
     auto start = std::chrono::steady_clock::now();
-    auto aut2 = *this;
-    aut2.omega_multiplication(2);
-    for (const auto &tr : aut2.transitions) {
-        const SymbolTag &symbol_tag = tr.first;
-        if (!(symbol_tag.is_internal() && symbol_tag.symbol().qubit() <= t)) {
-            auto &ttf = transitions[symbol_tag];
-            for (const auto &out_ins : tr.second) {
-                const auto &q = out_ins.first + stateNum;
-                for (auto in : out_ins.second) {
-                    for (unsigned i=0; i<in.size(); i++)
-                        in.at(i) += stateNum;
-                    ttf[q].insert(in);
-                }
-            }
-        }
-    }
-    for (auto &tr : transitions) {
-        if (tr.first.is_leaf() || (tr.first.is_internal() && tr.first.symbol().qubit() > t)) break;
-        if (tr.first.is_internal() && tr.first.symbol().qubit() == t) {
-            for (auto &out_ins : tr.second) {
-                std::vector<StateVector> vec(out_ins.second.begin(), out_ins.second.end());
-                for (auto &in : vec) {
-                    assert(in.size() == 2);
-                    if (in.at(0) < stateNum && in.at(1) < stateNum) {
-                        in.at(1) += stateNum;
-                    }
-                }
-                out_ins.second = std::set<StateVector>(vec.begin(), vec.end());
-            }
-        }
-    }
-    stateNum += aut2.stateNum;
-    remove_useless();
+    diagonal_gate(t, [](Symbol*) {}, std::bind(&Symbol::omega_multiplication, std::placeholders::_1, 2));
+    // remove_useless();
     reduce();
     gateCount++;
     auto duration = std::chrono::steady_clock::now() - start;
@@ -582,39 +484,8 @@ void AUTOQ::Automata<Symbol>::T(int t) {
         return;
     #endif
     auto start = std::chrono::steady_clock::now();
-    auto aut2 = *this;
-    aut2.omega_multiplication();
-    for (const auto &tr : aut2.transitions) {
-        const SymbolTag &symbol_tag = tr.first;
-        if (!(symbol_tag.is_internal() && symbol_tag.symbol().qubit() <= t)) {
-            auto &ttf = transitions[symbol_tag];
-            for (const auto &out_ins : tr.second) {
-                const auto &q = out_ins.first + stateNum;
-                for (auto in : out_ins.second) {
-                    for (unsigned i=0; i<in.size(); i++)
-                        in.at(i) += stateNum;
-                    ttf[q].insert(in);
-                }
-            }
-        }
-    }
-    for (auto &tr : transitions) {
-        if (tr.first.is_leaf() || (tr.first.is_internal() && tr.first.symbol().qubit() > t)) break;
-        if (tr.first.is_internal() && tr.first.symbol().qubit() == t) {
-            for (auto &out_ins : tr.second) {
-                std::vector<StateVector> vec(out_ins.second.begin(), out_ins.second.end());
-                for (auto &in : vec) {
-                    assert(in.size() == 2);
-                    if (in.at(0) < stateNum && in.at(1) < stateNum) {
-                        in.at(1) += stateNum;
-                    }
-                }
-                out_ins.second = std::set<StateVector>(vec.begin(), vec.end());
-            }
-        }
-    }
-    stateNum += aut2.stateNum;
-    remove_useless();
+    diagonal_gate(t, [](Symbol*) {}, std::bind(&Symbol::omega_multiplication, std::placeholders::_1, 1));
+    // remove_useless();
     reduce();
     gateCount++;
     auto duration = std::chrono::steady_clock::now() - start;
@@ -665,47 +536,8 @@ void AUTOQ::Automata<Symbol>::Rz(const boost::rational<boost::multiprecision::cp
     // General_Single_Qubit_Gate(t,
     //     [theta](Symbol l, const Symbol &r) -> Symbol { return l.counterclockwise(-theta / 2); },
     //     [theta](const Symbol &l, Symbol r) -> Symbol { return r.counterclockwise(theta / 2); });
-    TransitionMap transitions_copy;
-    for (const auto &tr : transitions) { // copy the lower part and correspondingly modify all (left & right) amplitudes
-        SymbolTag symbol_tag1 = tr.first;
-        if (symbol_tag1.is_leaf())
-            symbol_tag1.symbol().counterclockwise(-theta / 2);
-        SymbolTag symbol_tag2 = tr.first;
-        if (symbol_tag2.is_leaf())
-            symbol_tag2.symbol().counterclockwise(theta / 2);
-        for (const auto &out_ins : tr.second) {
-            for (auto in : out_ins.second) {
-                transitions_copy[symbol_tag1][out_ins.first].insert(in);
-            }
-            if (!(symbol_tag2.is_internal() && symbol_tag2.symbol().qubit() <= t)) {
-                const auto &q = out_ins.first + stateNum;
-                auto &tsq = transitions_copy[symbol_tag2][q];
-                for (auto in : out_ins.second) {
-                    for (auto &e : in)
-                        e += stateNum;
-                    tsq.insert(in);
-                }
-            }
-        }
-    }
-    transitions = transitions_copy;
-    for (auto &tr : transitions) { // change the right child of transitions on the target qubit to the copied one
-        if (tr.first.is_leaf() || (tr.first.is_internal() && tr.first.symbol().qubit() > t)) break;
-        if (tr.first.is_internal() && tr.first.symbol().qubit() == t) {
-            for (auto &out_ins : tr.second) {
-                std::vector<StateVector> vec(out_ins.second.begin(), out_ins.second.end());
-                for (auto &in : vec) {
-                    assert(in.size() == 2);
-                    if (in.at(0) < stateNum && in.at(1) < stateNum) {
-                        in.at(1) += stateNum;
-                    }
-                }
-                out_ins.second = std::set<StateVector>(vec.begin(), vec.end());
-            }
-        }
-    }
-    stateNum *= 2;
-    remove_useless();
+    diagonal_gate(t, std::bind(&Symbol::counterclockwise, std::placeholders::_1, -theta / 2), std::bind(&Symbol::counterclockwise, std::placeholders::_1, theta / 2));
+    // remove_useless();
     reduce();
     gateCount++;
     auto duration = std::chrono::steady_clock::now() - start;
@@ -1180,52 +1012,8 @@ void AUTOQ::Automata<Symbol>::Tdg(int t) {
     //     return;
     // #endif
     auto start = std::chrono::steady_clock::now();
-    auto aut2 = *this;
-    TransitionMap transitions_new;
-    for (const auto &t_old : aut2.transitions) {
-        const SymbolTag &symbol_tag = t_old.first;
-        if (symbol_tag.is_leaf()) {
-            SymbolTag s = symbol_tag;
-            s.symbol().degree45cw();
-            transitions_new[s] = t_old.second;
-        } else {
-            // assert(symbol_tag.tag().size() <= 1);
-            transitions_new.insert(t_old);
-        }
-    }
-    aut2.transitions = transitions_new;
-    /******************************/
-    for (const auto &tr : aut2.transitions) {
-        const SymbolTag &symbol_tag = tr.first;
-        if (!(symbol_tag.is_internal() && symbol_tag.symbol().qubit() <= t)) {
-            auto &ttf = transitions[symbol_tag];
-            for (const auto &out_ins : tr.second) {
-                const auto &q = out_ins.first + stateNum;
-                for (auto in : out_ins.second) {
-                    for (unsigned i=0; i<in.size(); i++)
-                        in.at(i) += stateNum;
-                    ttf[q].insert(in);
-                }
-            }
-        }
-    }
-    for (auto &tr : transitions) {
-        if (tr.first.is_leaf() || (tr.first.is_internal() && tr.first.symbol().qubit() > t)) break;
-        if (tr.first.is_internal() && tr.first.symbol().qubit() == t) {
-            for (auto &out_ins : tr.second) {
-                std::vector<StateVector> vec(out_ins.second.begin(), out_ins.second.end());
-                for (auto &in : vec) {
-                    assert(in.size() == 2);
-                    if (in.at(0) < stateNum && in.at(1) < stateNum) {
-                        in.at(1) += stateNum;
-                    }
-                }
-                out_ins.second = std::set<StateVector>(vec.begin(), vec.end());
-            }
-        }
-    }
-    stateNum += aut2.stateNum;
-    remove_useless();
+    diagonal_gate(t, [](Symbol*) {}, std::bind(&Symbol::degree45cw, std::placeholders::_1));
+    // remove_useless();
     reduce();
     gateCount++;
     auto duration = std::chrono::steady_clock::now() - start;
@@ -1240,52 +1028,8 @@ void AUTOQ::Automata<Symbol>::Sdg(int t) {
     //     return;
     // #endif
     auto start = std::chrono::steady_clock::now();
-    auto aut2 = *this;
-    TransitionMap transitions_new;
-    for (const auto &t_old : aut2.transitions) {
-        const SymbolTag &symbol_tag = t_old.first;
-        if (symbol_tag.is_leaf()) {
-            SymbolTag s = symbol_tag;
-            s.symbol().degree90cw();
-            transitions_new[s] = t_old.second;
-        } else {
-            // assert(symbol_tag.tag().size() <= 1);
-            transitions_new.insert(t_old);
-        }
-    }
-    aut2.transitions = transitions_new;
-    /******************************/
-    for (const auto &tr : aut2.transitions) {
-        const SymbolTag &symbol_tag = tr.first;
-        if (!(symbol_tag.is_internal() && symbol_tag.symbol().qubit() <= t)) {
-            auto &ttf = transitions[symbol_tag];
-            for (const auto &out_ins : tr.second) {
-                const auto &q = out_ins.first + stateNum;
-                for (auto in : out_ins.second) {
-                    for (unsigned i=0; i<in.size(); i++)
-                        in.at(i) += stateNum;
-                    ttf[q].insert(in);
-                }
-            }
-        }
-    }
-    for (auto &tr : transitions) {
-        if (tr.first.is_leaf() || (tr.first.is_internal() && tr.first.symbol().qubit() > t)) break;
-        if (tr.first.is_internal() && tr.first.symbol().qubit() == t) {
-            for (auto &out_ins : tr.second) {
-                std::vector<StateVector> vec(out_ins.second.begin(), out_ins.second.end());
-                for (auto &in : vec) {
-                    assert(in.size() == 2);
-                    if (in.at(0) < stateNum && in.at(1) < stateNum) {
-                        in.at(1) += stateNum;
-                    }
-                }
-                out_ins.second = std::set<StateVector>(vec.begin(), vec.end());
-            }
-        }
-    }
-    stateNum += aut2.stateNum;
-    remove_useless();
+    diagonal_gate(t, [](Symbol*) {}, std::bind(&Symbol::degree90cw, std::placeholders::_1));
+    // remove_useless();
     reduce();
     gateCount++;
     auto duration = std::chrono::steady_clock::now() - start;

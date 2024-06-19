@@ -285,6 +285,31 @@ BOOST_AUTO_TEST_CASE(Ry_gate_eighth_to_identity)
     }
 }
 
+BOOST_AUTO_TEST_CASE(Rz_gate_eighth_to_identity)
+{
+    int n = size;
+    for (const auto &before : {AUTOQ::TreeAutomata::uniform(n), AUTOQ::TreeAutomata::basis(n)}) {
+        int loop = 8;
+        for (auto t : {1, n/2+1, n}) {
+            AUTOQ::TreeAutomata after = before;
+            for (int i=0; i<loop; i++) {
+                after.Rz(boost::rational<boost::multiprecision::cpp_int>(1, 4), t);
+
+                if (i < loop-1) {
+                    BOOST_REQUIRE_MESSAGE(!AUTOQ::TreeAutomata::check_equal(before, after), "\n" +
+                        AUTOQ::Serialization::TimbukSerializer::Serialize(before) +
+                        AUTOQ::Serialization::TimbukSerializer::Serialize(after));
+                }
+                else {
+                    BOOST_REQUIRE_MESSAGE(AUTOQ::TreeAutomata::check_equal(before, after), "\n" +
+                        AUTOQ::Serialization::TimbukSerializer::Serialize(before) +
+                        AUTOQ::Serialization::TimbukSerializer::Serialize(after));
+				}
+            }
+        }
+    }
+}
+
 BOOST_AUTO_TEST_CASE(CNOT_gate_twice_to_identity)
 {
     int n = size;
