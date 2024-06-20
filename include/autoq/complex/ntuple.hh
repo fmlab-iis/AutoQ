@@ -52,14 +52,16 @@ struct AUTOQ::Complex::nTuple : AUTOQ::Util::mapped_vector<boost::multiprecision
     static nTuple Zero() { return nTuple(0); }
     static nTuple Rand() {
         auto number = nTuple(0);
-        number[rand() % N] = rand() % 5;
+        auto val = rand() % 5;
+        if (val != 0)
+            number[rand() % N] = val;
         return number;
     }
     static nTuple sqrt2() { return nTuple(1).divide_by_the_square_root_of_two(-1); }
     friend std::ostream& operator<<(std::ostream& os, const nTuple& obj) {
         os << "[";
         for (const auto &kv : obj)
-            os << " " << kv.second << "*ei2pi(" << kv.first << "/" << N << ")";
+            os << " " << kv.second << "*eipi(" << kv.first << "/" << N << ")";
         os << "]";
         return os;
     }
@@ -76,6 +78,8 @@ struct AUTOQ::Complex::nTuple : AUTOQ::Util::mapped_vector<boost::multiprecision
                     targetAmplitude = -targetAmplitude;
                 }
                 symbol[targetAngle] += targetAmplitude;
+                if (symbol[targetAngle] == 0)
+                    symbol.erase(targetAngle);
             }
         }
         symbol.k = this->k + o.k; // remember to set k
@@ -172,6 +176,8 @@ struct AUTOQ::Complex::nTuple : AUTOQ::Util::mapped_vector<boost::multiprecision
                 targetAmplitude *= -1;
             }
             result[targetAngle] += targetAmplitude;
+            if (result[targetAngle] == 0)
+                result.erase(targetAngle);
         }
         result.k = k;
         *this = result;
@@ -278,6 +284,8 @@ private:
                     targetAmplitude *= -1;
                 }
                 ans[targetAngle] += targetAmplitude;
+                if (ans[targetAngle] == 0)
+                    ans.erase(targetAngle);
                 /*************************************/
                 targetAngle = kv.first + N/4;
                 targetAmplitude = kv.second;
@@ -286,6 +294,8 @@ private:
                     targetAmplitude *= -1;
                 }
                 ans[targetAngle] += targetAmplitude;
+                if (ans[targetAngle] == 0)
+                    ans.erase(targetAngle);
             }
             ans.k = k + 1;
             *this = ans;
@@ -303,6 +313,8 @@ private:
         for (const auto &kv : o) {
             if (add) result[kv.first] = result[kv.first] + kv.second;
             else result[kv.first] = result[kv.first] - kv.second;
+            if (result[kv.first] == 0)
+                result.erase(kv.first);
         }
         result.k = std::max(k, o.k); // remember to set k
         return result;

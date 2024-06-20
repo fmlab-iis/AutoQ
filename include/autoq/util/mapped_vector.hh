@@ -24,19 +24,7 @@ struct AUTOQ::Util::mapped_vector : std::map<long long, T>
 
 	inline bool operator==(const mapped_vector& rhs2) const
 	{
-        std::map<long long, T> lhs = *this;
-        for (const auto &kv : *this) {
-            if (kv.second == 0) {
-                lhs.erase(kv.first);
-            }
-        }
-        std::map<long long, T> rhs = rhs2;
-        for (const auto &kv : rhs2) {
-            if (kv.second == 0) {
-                rhs.erase(kv.first);
-            }
-        }
-		return lhs == rhs;
+        return static_cast<std::map<long long, T>>(*this) == static_cast<std::map<long long, T>>(rhs2);
 	}
 };
 
