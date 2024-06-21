@@ -846,41 +846,125 @@ void AUTOQ::Automata<Symbol>::CX(int c, int t, bool opt) {
         H(c); gateCount--;
         H(t); gateCount--;
     } else {
-        auto aut2 = *this;
-        aut2.X(t); gateCount--; // prevent repeated counting
-        auto start = std::chrono::steady_clock::now();
-        for (const auto &tr : aut2.transitions) {
-            const SymbolTag &symbol_tag = tr.first;
-            if (!(symbol_tag.is_internal() && symbol_tag.symbol().qubit() <= c)) {
-                auto &ttf = transitions[symbol_tag];
-                for (const auto &out_ins : tr.second) {
-                    const auto &q = out_ins.first + stateNum;
-                    for (auto in : out_ins.second) {
-                        for (unsigned i=0; i<in.size(); i++)
-                            in.at(i) += stateNum;
-                        ttf[q].insert(in);
-                    }
-                }
+        TransitionMap transitions2;
+        std::map<State, int> topStateIsLeftOrRight, childStateIsLeftOrRight; // 0b10: original tree, 0b01: copied tree, 0b11: both trees
+        std::map<State, State> topStateMap, childStateMap;
+        // If a state has only one tree, then its id does not change. In this case, it is not present in this map.
+        // If a state has two trees, then it presents in this map and its value is the id in the copied tree.
+
+        // Convert from TransitionMap to InternalTransitionMap.
+        InternalTransitionMap internalTransitions(qubitNum + 1); // only contains qubits from c to the bottom
+        TransitionMap leafTransitions;
+        for (const auto &tr : transitions) {
+            if (tr.first.is_internal()) {
+                if (tr.first.symbol().qubit() < c)
+                    transitions2[tr.first] = tr.second;
+                else
+                    internalTransitions[static_cast<int>(tr.first.symbol().qubit())][tr.first.tag()] = tr.second;
+            } else {
+                leafTransitions[tr.first] = tr.second;
             }
         }
-        for (auto &tr : transitions) {
-            if (tr.first.is_leaf() || (tr.first.is_internal() && tr.first.symbol().qubit() > c)) break;
-            if (tr.first.is_internal() && tr.first.symbol().qubit() == c) {
-                for (auto &out_ins : tr.second) {
-                    std::vector<StateVector> vec(out_ins.second.begin(), out_ins.second.end());
-                    for (auto &in : vec) {
-                        assert(in.size() == 2);
-                        if (in.at(0) < stateNum && in.at(1) < stateNum) {
-                            in.at(1) += stateNum;
+
+        // Assume the initial state numbers are already compact.
+        for (int q = c; q <= qubitNum; q++) {
+            if (q == c) {
+                /* Construct childStateIsLeftOrRight. */
+                for (const auto &tag_outins : internalTransitions[q]) {
+                    for (const auto &out_ins : tag_outins.second) {
+                        for (const auto &in : out_ins.second) {
+                            assert(in.size() == 2);
+                            childStateIsLeftOrRight[in[0]] |= 0b10;
+                            childStateIsLeftOrRight[in[1]] |= 0b01;
                         }
                     }
-                    out_ins.second = std::set<StateVector>(vec.begin(), vec.end());
+                }
+                /**************************************/
+                /* Construct childStateMap. */
+                for (const auto &kv : childStateIsLeftOrRight) {
+                    if (kv.second == 0b11) {
+                        childStateMap[kv.first] = stateNum;
+                        stateNum++;
+                    }
+                }
+                /****************************/
+                for (const auto &tag_outins : internalTransitions[q]) {
+                    auto &ref = transitions2[{Symbol(q), tag_outins.first}];
+                    for (const auto &out_ins : tag_outins.second) {
+                        const auto &top = out_ins.first;
+                        for (const auto &in : out_ins.second) {
+                            assert(in.size() == 2);
+                            queryChildID(in[1], newIn1);
+                            ref[top].insert({in[0], newIn1});
+                        }
+                    }
+                }
+            } else { // if (q > c) {
+                /* Construct childStateIsLeftOrRight. */
+                for (const auto &tag_outins : internalTransitions[q]) {
+                    for (const auto &out_ins : tag_outins.second) {
+                        const auto &top = out_ins.first;
+                        for (const auto &in : out_ins.second) {
+                            assert(in.size() == 2);
+                            childStateIsLeftOrRight[in[0]] |= topStateIsLeftOrRight[top];
+                            childStateIsLeftOrRight[in[1]] |= topStateIsLeftOrRight[top];
+                        }
+                    }
+                }
+                /**************************************/
+                /* Construct childStateMap. */
+                for (const auto &kv : childStateIsLeftOrRight) {
+                    if (kv.second == 0b11) {
+                        childStateMap[kv.first] = stateNum;
+                        stateNum++;
+                    }
+                }
+                /****************************/
+                for (const auto &tag_outins : internalTransitions[q]) {
+                    auto &ref = transitions2[{Symbol(q), tag_outins.first}];
+                    for (const auto &out_ins : tag_outins.second) {
+                        const auto &top = out_ins.first;
+                        if (topStateIsLeftOrRight[top] & 0b10) {
+                            ref[top] = out_ins.second;
+                        }
+                        if (topStateIsLeftOrRight[top] & 0b01) {
+                            queryTopID(top, newTop);
+                            for (const auto &in : out_ins.second) {
+                                assert(in.size() == 2);
+                                queryChildID(in[0], newIn0);
+                                queryChildID(in[1], newIn1);
+                                if (q == t) {
+                                    ref[newTop].insert({newIn1, newIn0});
+                                } else {
+                                    ref[newTop].insert({newIn0, newIn1});
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            /**********************************************/
+            topStateIsLeftOrRight = childStateIsLeftOrRight;
+            childStateIsLeftOrRight.clear();
+            topStateMap = childStateMap;
+            childStateMap.clear();
+            /**********************************************/
+        }
+        for (const auto &tr : leafTransitions) {
+            for (const auto &out_ins : tr.second) {
+                const auto &top = out_ins.first;
+                if (topStateIsLeftOrRight[top] & 0b10) {
+                    transitions2[tr.first][top].insert({{}});
+                }
+                if (topStateIsLeftOrRight[top] & 0b01) {
+                    queryTopID(top, newTop);
+                    transitions2[tr.first][newTop].insert({{}});
                 }
             }
         }
-        stateNum += aut2.stateNum;
+        transitions = transitions2;
         if (opt) {
-            remove_useless();
+            // remove_useless();
             reduce();
         }
         auto duration = std::chrono::steady_clock::now() - start;
