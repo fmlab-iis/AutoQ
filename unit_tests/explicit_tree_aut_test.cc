@@ -27,7 +27,7 @@
 using AUTOQ::Complex::Complex;
 using AUTOQ::Symbol::Concrete;
 
-int size = 7; // the number of qubits.
+int size = 14; // the number of qubits.
 
 struct F {
     F() {
@@ -358,9 +358,9 @@ BOOST_AUTO_TEST_CASE(CZ_gate_twice_to_identity)
 
 BOOST_AUTO_TEST_CASE(CCX_gate_twice_to_identity)
 {
-    for (const auto &before : {AUTOQ::TreeAutomata::uniform(3),
-                               AUTOQ::TreeAutomata::basis(3),
-                               AUTOQ::TreeAutomata::random(3)}) {
+    for (const auto &before : {AUTOQ::TreeAutomata::uniform(4),
+                               AUTOQ::TreeAutomata::basis(4),
+                               AUTOQ::TreeAutomata::random(4)}) {
         int v[] = {1,2,3};
         do {
             AUTOQ::TreeAutomata after = before;
