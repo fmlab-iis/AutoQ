@@ -253,9 +253,14 @@ bool AUTOQ::Automata<Symbol>::light_reduce_up()
             vecSetPairs[in].insert(out);
         }
     }
+		// AUTOQ_DEBUG("vecSetPairs = " + Convert::ToString(vecSetPairs));
     for (const auto& vecSetPair : vecSetPairs) {
       for (auto state : vecSetPair.second) {
         auto itBoolPair = index.insert({state, *vecSetPair.second.begin()});
+        // AUTOQ_DEBUG("adding possible merge: " + Convert::ToString(state) +
+        //   " -> " + Convert::ToString(*vecSetPair.second.begin()));
+        // std::string res = (itBoolPair.second)? "SUCCESS" : "FAILURE";
+        // AUTOQ_DEBUG(res);
         if (!itBoolPair.second &&                // insert didn't pass
           (itBoolPair.first->second != state) && // the merge is non-identity
           (itBoolPair.first->second != *vecSetPair.second.begin())
@@ -443,6 +448,84 @@ bool AUTOQ::Automata<Symbol>::light_reduce_down_iter()
   return 1 == iterations;
 }
 
+
+
+template <typename Symbol>
+bool AUTOQ::Automata<Symbol>::light_reduce_down_bisim()
+{
+  // AUTOQ_DEBUG("entering " + std::string(__func__));
+  using StateToStateMap = typename std::unordered_map<State, State>;
+  TopDownTA tdTA;
+
+  // compute top-down representation
+  for (const auto& symbMapPair : this->transitions) {
+    const auto& symb = symbMapPair.first;
+    for (const auto& out_ins : symbMapPair.second) {
+      const auto &parent = out_ins.first;
+      for (const auto& children : out_ins.second) {
+        tdTA.insert_trans(parent, symb, children);
+      }
+    }
+  }
+
+  StateToStateMap index;
+  // initialize index
+  for (const auto& stateSymbolMapPair : tdTA.transDown) {
+    index[stateSymbolMapPair.first] = stateSymbolMapPair.first;
+  }
+
+
+  // for each pair of states, check whether they are one-step bisimilar
+  for (auto it = tdTA.transDown.cbegin(); it != tdTA.transDown.cend(); ++it) {
+    auto jt = it;
+    ++jt;
+
+    for (; jt != tdTA.transDown.cend(); ++jt) {
+      if (index[jt->first] != jt->first) { // if the state is already merged
+        continue;
+      }
+
+      if (tdTA.states_have_same_down(it->first, jt->first)) {
+        // AUTOQ_DEBUG(Convert::ToString(it->first) + " and " +
+        //   Convert::ToString(jt->first) + " have the same DOWN");
+        index[jt->first] = it->first;
+      }
+    }
+  }
+
+  bool changed = false;
+  for (const auto& statePair : index) { // detect if there was some change
+    if (statePair.first != statePair.second) {
+      changed = true;
+      break;
+    }
+  }
+
+  // AUTOQ_DEBUG("index: " + Convert::ToString(index));
+  if (changed) {
+    // Automata old = *this;
+    reindex_aut_states(*this, index);
+    // assert(check_equal_aut(old, *this));
+  }
+
+  return changed;
+}
+
+
+template <typename Symbol>
+bool AUTOQ::Automata<Symbol>::light_reduce_down_bisim_iter()
+{
+  size_t iterations = 0;
+  bool changed = true;
+  while (changed) {
+    changed = this->light_reduce_down_bisim();
+    ++iterations;
+  }
+
+  return 1 == iterations;
+}
+
+
 template <typename Symbol>
 int AUTOQ::Automata<Symbol>::count_transitions() {
     int count = 0;
@@ -484,14 +567,26 @@ void AUTOQ::Automata<Symbol>::reduce() {
     auto envptr = std::getenv("RED");
     if (!(envptr != nullptr && std::string(envptr) == std::string("0"))) {
         while (true) {
+            // AUTOQ_DEBUG("before light_reduce_up: " + Convert::ToString(count_aut_states(*this)));
+            // this->print_aut();
             this->light_reduce_up_iter();
+            // AUTOQ_DEBUG("after light_reduce_up: " + Convert::ToString(count_aut_states(*this)));
 
-            Automata old = *this;
+            // Automata old = *this;
+            // AUTOQ_DEBUG("before light_reduce_down: " + Convert::ToString(count_aut_states(*this)));
             this->light_reduce_down_iter();
             // AUTOQ_DEBUG("after light_reduce_down: " + Convert::ToString(count_aut_states(*this)));
+            // this->print_aut();
+
+            // AUTOQ_DEBUG("before light_reduce_down_bisim: " + Convert::ToString(count_aut_states(*this)));
+            this->light_reduce_down_bisim_iter();
+            // AUTOQ_DEBUG("after light_reduce_down_bisim: " + Convert::ToString(count_aut_states(*this)));
+            // this->print_aut();
 
             compact_aut(*this);
             // assert(check_equal_aut(old, *this));
+
+            break;
 
             auto a = *this; //transition_size();
             this->union_all_colors_for_a_given_transition();

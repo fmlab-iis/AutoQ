@@ -88,6 +88,34 @@ public:   // data types
     };
     typedef std::map<SymbolTag, std::map<State, std::set<StateVector>>> TransitionMap;
 
+    /// top-down representation of transitions in the form q -> a -> {(q1,q2)}
+    struct TopDownTA
+    { // {{{
+      using SymbolDownMap = std::map<SymbolTag, std::set<StateVector>>;
+      std::map<State, SymbolDownMap> transDown;
+
+      void insert_trans(State parent, SymbolTag symb, StateVector children)
+      {
+        auto itBoolPairState = transDown.insert({parent, SymbolDownMap()});
+        SymbolDownMap& symbMap = itBoolPairState.first->second;
+        auto itBoolPairSymb = symbMap.insert({symb, {}});
+        std::set<StateVector>& stateVecSet = itBoolPairSymb.first->second;
+        stateVecSet.insert(children);
+      }
+
+      bool states_have_same_down(State lhs, State rhs) const
+      {
+        auto itLhs = this->transDown.find(lhs);
+        auto itRhs = this->transDown.find(rhs);
+        assert(itLhs != this->transDown.end());
+        assert(itRhs != this->transDown.end());
+        const SymbolDownMap& lhsDown = itLhs->second;
+        const SymbolDownMap& rhsDown = itRhs->second;
+
+        return lhsDown == rhsDown;
+      }
+    }; // struct TopDownTA }}}
+
 public:   // data members
 	std::string name;
     StateVector finalStates;
@@ -201,6 +229,10 @@ public:
     bool light_reduce_down();
     /// lightweight downwards size reduction, iterated until change happens, returns @p true iff the automaton changed
     bool light_reduce_down_iter();
+		/// lightweight bisimilarity-based reduction, done downwards; returns @p true iff the automaton changed
+		bool light_reduce_down_bisim();
+    /// lightweight downwards bisimlarity size reduction, iterated until change happens, returns @p true iff the automaton changed
+		bool light_reduce_down_bisim_iter();
     /// reduces the automaton using a prefered reduction
     void reduce();
     void union_all_colors_for_a_given_transition();
