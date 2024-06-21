@@ -1634,7 +1634,7 @@ void AUTOQ::Automata<Symbol>::execute(const char *filename) {
                 pos.push_back(1 + atoi(it->str().c_str()));
                 ++it;
             }
-            CNOT(pos[0], pos[1]);
+            CX(pos[0], pos[1]);
         } else if (line.find("cz ") == 0) {
             std::regex_iterator<std::string::iterator> it(line.begin(), line.end(), digit);
             std::vector<int> pos;
@@ -1650,7 +1650,7 @@ void AUTOQ::Automata<Symbol>::execute(const char *filename) {
                 pos.push_back(1 + atoi(it->str().c_str()));
                 ++it;
             }
-            Toffoli(pos[0], pos[1], pos[2]);
+            CCX(pos[0], pos[1], pos[2]);
         } else if (line.find("swap ") == 0) {
             std::regex_iterator<std::string::iterator> it(line.begin(), line.end(), digit);
             std::vector<int> pos;
@@ -1745,7 +1745,7 @@ void AUTOQ::Automata<Symbol>::execute(const char *filename) {
 //                 pos.push_back(1 + atoi(it->str().c_str()));
 //                 ++it;
 //             }
-//             CNOT(pos[0], pos[1]); // CX = CX^-1
+//             CX(pos[0], pos[1]); // CX = CX^-1
 //         } else if (line.find("cz ") == 0) {
 //             std::regex_iterator<std::string::iterator> it(line.begin(), line.end(), digit);
 //             std::vector<int> pos;
@@ -1761,7 +1761,7 @@ void AUTOQ::Automata<Symbol>::execute(const char *filename) {
 //                 pos.push_back(1 + atoi(it->str().c_str()));
 //                 ++it;
 //             }
-//             Toffoli(pos[0], pos[1], pos[2]); // CCX = CCX^-1
+//             CCX(pos[0], pos[1], pos[2]); // CCX = CCX^-1
 //         } else if (line.find("swap ") == 0) {
 //             std::regex_iterator<std::string::iterator> it(line.begin(), line.end(), digit);
 //             std::vector<int> pos;

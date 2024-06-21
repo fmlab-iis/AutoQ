@@ -832,7 +832,7 @@ void AUTOQ::Automata<Symbol>::Rz(const boost::rational<boost::multiprecision::cp
 // }
 
 template <typename Symbol>
-void AUTOQ::Automata<Symbol>::CNOT(int c, int t, bool opt) {
+void AUTOQ::Automata<Symbol>::CX(int c, int t, bool opt) {
     #ifdef TO_QASM
         system(("echo 'cx qubits[" + std::to_string(c-1) + "], qubits[" + std::to_string(t-1) + "];' >> " + QASM_FILENAME).c_str());
         return;
@@ -842,7 +842,7 @@ void AUTOQ::Automata<Symbol>::CNOT(int c, int t, bool opt) {
     if (c > t) {
         H(c); gateCount--;
         H(t); gateCount--;
-        CNOT(t, c); gateCount--;
+        CX(t, c); gateCount--;
         H(c); gateCount--;
         H(t); gateCount--;
     } else {
@@ -888,7 +888,7 @@ void AUTOQ::Automata<Symbol>::CNOT(int c, int t, bool opt) {
     }
     gateCount++;
     auto duration = std::chrono::steady_clock::now() - start;
-    if (gateLog) std::cout << "CNOT" << c << "," << t << "：" << stateNum << " states " << count_transitions() << " transitions " << toString(duration) << "\n";
+    if (gateLog) std::cout << "CX" << c << "," << t << "：" << stateNum << " states " << count_transitions() << " transitions " << toString(duration) << "\n";
 }
 
 template <typename Symbol>
@@ -941,7 +941,7 @@ void AUTOQ::Automata<Symbol>::CZ(int c, int t) {
 }
 
 template <typename Symbol>
-void AUTOQ::Automata<Symbol>::Toffoli(int c, int c2, int t) {
+void AUTOQ::Automata<Symbol>::CCX(int c, int c2, int t) {
     #ifdef TO_QASM
         system(("echo 'ccx qubits[" + std::to_string(c-1) + "], qubits[" + std::to_string(c2-1) + "], qubits[" + std::to_string(t-1) + "];' >> " + QASM_FILENAME).c_str());
         return;
@@ -951,7 +951,7 @@ void AUTOQ::Automata<Symbol>::Toffoli(int c, int c2, int t) {
     if (c > c2) std::swap(c, c2); // ensure c < c2
     if (c2 < t) { // c < c2 < t
         auto aut2 = *this;
-        aut2.CNOT(c2, t, false); gateCount--; // prevent repeated counting
+        aut2.CX(c2, t, false); gateCount--; // prevent repeated counting
         auto start = std::chrono::steady_clock::now();
         for (const auto &tr : aut2.transitions) {
             const SymbolTag &symbol_tag = tr.first;
@@ -990,19 +990,19 @@ void AUTOQ::Automata<Symbol>::Toffoli(int c, int c2, int t) {
     } else if (t < c) { // t < c < c2
         H(c2); gateCount--;
         H(t); gateCount--;
-        Toffoli(t, c, c2); gateCount--;
+        CCX(t, c, c2); gateCount--;
         H(c2); gateCount--;
         H(t); gateCount--;
     } else { // c < t < c2
         H(c2); gateCount--;
         H(t); gateCount--;
-        Toffoli(c, t, c2); gateCount--;
+        CCX(c, t, c2); gateCount--;
         H(c2); gateCount--;
         H(t); gateCount--;
     }
     gateCount++;
     auto duration = std::chrono::steady_clock::now() - start;
-    if (gateLog) std::cout << "Toffoli" << c << "," << c2 << "," << t << "：" << stateNum << " states " << count_transitions() << " transitions " << toString(duration) << "\n";
+    if (gateLog) std::cout << "CCX" << c << "," << c2 << "," << t << "：" << stateNum << " states " << count_transitions() << " transitions " << toString(duration) << "\n";
 }
 
 template <typename Symbol>
@@ -1044,9 +1044,9 @@ void AUTOQ::Automata<Symbol>::swap(int t1, int t2) {
     //     return;
     // #endif
     auto start = std::chrono::steady_clock::now();
-    CNOT(t1, t2); gateCount--; // prevent repeated counting
-    CNOT(t2, t1); gateCount--; // prevent repeated counting
-    CNOT(t1, t2); gateCount--; // prevent repeated counting
+    CX(t1, t2); gateCount--; // prevent repeated counting
+    CX(t2, t1); gateCount--; // prevent repeated counting
+    CX(t1, t2); gateCount--; // prevent repeated counting
     gateCount++;
     auto duration = std::chrono::steady_clock::now() - start;
     // total_gate_time += 0;
@@ -1109,9 +1109,9 @@ void AUTOQ::Automata<Symbol>::randG(int G, int A, int B, int C) {
         case 5: T(a); break;
         case 6: Rx(boost::rational<boost::multiprecision::cpp_int>(1, 4), a); break;
         case 7: Ry(a); break;
-        case 8: CNOT(a, b); break;
+        case 8: CX(a, b); break;
         case 9: CZ(a, b); break;
-        case 10: Toffoli(a, b, c); break;
+        case 10: CCX(a, b, c); break;
         // case 11: Fredkin(a, b, c); break;
         default: break;
     }

@@ -218,9 +218,9 @@ public:
     void Rx(const boost::rational<boost::multiprecision::cpp_int> &theta, int t);
     void Ry(int t);
     void Rz(const boost::rational<boost::multiprecision::cpp_int> &theta, int t);
-    void CNOT(int c, int t, bool opt=true);
+    void CX(int c, int t, bool opt=true);
     void CZ(int c, int t);
-    void Toffoli(int c, int c2, int t);
+    void CCX(int c, int c2, int t);
     // void Fredkin(int c, int t, int t2);
     void randG(int G, int A, int B=0, int C=0);
     void Tdg(int t);
