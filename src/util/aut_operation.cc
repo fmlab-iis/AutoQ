@@ -194,116 +194,116 @@ void AUTOQ::Automata<InitialSymbol>::state_renumbering() {
 //     }
 // }
 
-template <typename Symbol>
-void AUTOQ::Automata<Symbol>::remove_useless(bool only_bottom_up) {
-    auto start = std::chrono::steady_clock::now();
-    // remove_impossible_colors();
+// template <typename Symbol>
+// void AUTOQ::Automata<Symbol>::remove_useless(bool only_bottom_up) {
+//     auto start = std::chrono::steady_clock::now();
+//     // remove_impossible_colors();
 
-    /*********************************
-     * Part 0: Top-Down Data Structure
-     *********************************/
-    std::map<State, std::map<StateVector, std::set<SymbolTag>>> qifc;
-    for (const auto &tr : transitions) {
-        const auto &symbol_tag = tr.first;
-        for (const auto &out_ins : tr.second) {
-            const auto &out = out_ins.first;
-            for (const auto &in : out_ins.second) {
-                qifc[out][in].insert(symbol_tag);
-            }
-        }
-    }
+//     /*********************************
+//      * Part 0: Top-Down Data Structure
+//      *********************************/
+//     std::map<State, std::map<StateVector, std::set<SymbolTag>>> qifc;
+//     for (const auto &tr : transitions) {
+//         const auto &symbol_tag = tr.first;
+//         for (const auto &out_ins : tr.second) {
+//             const auto &out = out_ins.first;
+//             for (const auto &in : out_ins.second) {
+//                 qifc[out][in].insert(symbol_tag);
+//             }
+//         }
+//     }
 
-    /******************
-     * Part 1: Top-Down
-     ******************/
-    std::vector<bool> traversed(stateNum, false);
-    if (!only_bottom_up) {
-        std::map<State, std::map<StateVector, std::set<SymbolTag>>> qifc2;
-        std::queue<State> bfs(std::queue<State>::container_type(finalStates.begin(), finalStates.end()));
-        while (!bfs.empty()) {
-            auto top = bfs.front();
-            bfs.pop();
-            traversed[top] = true; // set flags for final states
-            for (const auto &in_ : qifc[top]) {
-                const auto &in = in_.first;
-                for (const auto &s : in) {
-                    if (!traversed[s]) {
-                        traversed[s] = true;
-                        bfs.push(s);
-                    }
-                }
-            }
-            qifc2[top] = qifc[top];
-        }
-        qifc = qifc2;
-    }
+//     /******************
+//      * Part 1: Top-Down
+//      ******************/
+//     std::vector<bool> traversed(stateNum, false);
+//     if (!only_bottom_up) {
+//         std::map<State, std::map<StateVector, std::set<SymbolTag>>> qifc2;
+//         std::queue<State> bfs(std::queue<State>::container_type(finalStates.begin(), finalStates.end()));
+//         while (!bfs.empty()) {
+//             auto top = bfs.front();
+//             bfs.pop();
+//             traversed[top] = true; // set flags for final states
+//             for (const auto &in_ : qifc[top]) {
+//                 const auto &in = in_.first;
+//                 for (const auto &s : in) {
+//                     if (!traversed[s]) {
+//                         traversed[s] = true;
+//                         bfs.push(s);
+//                     }
+//                 }
+//             }
+//             qifc2[top] = qifc[top];
+//         }
+//         qifc = qifc2;
+//     }
 
-    /*******************
-     * Part 2: Bottom-Up
-     *******************/
-    traversed = std::vector<bool>(stateNum, false);
-    TransitionMap transitions_new;
-    bool changed;
-    do {
-        changed = false;
-        for (const auto &q_ : qifc) {
-            const auto &q = q_.first;
-            for (const auto &in_ : q_.second) {
-                const auto &in = in_.first;
-                bool children_traversed = in.empty();
-                if (!children_traversed) { // has children!
-                    children_traversed = true;
-                    for (const auto &s : in) {
-                        if (!traversed[s]) {
-                            children_traversed = false;
-                            break;
-                        }
-                    }
-                }
-                if (children_traversed) {
-                    if (!traversed[q]) {
-                        traversed[q] = true;
-                        changed = true;
-                    }
-                }
-            }
-        }
-    } while(changed);
-    for (const auto &q_ : qifc) {
-        const auto &q = q_.first;
-        if (!traversed[q]) continue; // ensure q is traversed
-        for (const auto &in_ : q_.second) {
-            const auto &in = in_.first;
-            bool children_traversed = true;
-            for (const auto &s : in) {
-                if (!traversed[s]) {
-                    children_traversed = false;
-                    break;
-                }
-            }
-            if (children_traversed) {
-                for (const auto &symbol_tag : in_.second) {
-                    transitions_new[symbol_tag][q].insert(in);
-                }
-            }
-        }
-    }
-    transitions = transitions_new;
-    StateVector finalStates_new;
-    for (const auto &s : finalStates) {
-        if (traversed[s])
-            finalStates_new.push_back(s);
-    }
-    finalStates = finalStates_new;
+//     /*******************
+//      * Part 2: Bottom-Up
+//      *******************/
+//     traversed = std::vector<bool>(stateNum, false);
+//     TransitionMap transitions_new;
+//     bool changed;
+//     do {
+//         changed = false;
+//         for (const auto &q_ : qifc) {
+//             const auto &q = q_.first;
+//             for (const auto &in_ : q_.second) {
+//                 const auto &in = in_.first;
+//                 bool children_traversed = in.empty();
+//                 if (!children_traversed) { // has children!
+//                     children_traversed = true;
+//                     for (const auto &s : in) {
+//                         if (!traversed[s]) {
+//                             children_traversed = false;
+//                             break;
+//                         }
+//                     }
+//                 }
+//                 if (children_traversed) {
+//                     if (!traversed[q]) {
+//                         traversed[q] = true;
+//                         changed = true;
+//                     }
+//                 }
+//             }
+//         }
+//     } while(changed);
+//     for (const auto &q_ : qifc) {
+//         const auto &q = q_.first;
+//         if (!traversed[q]) continue; // ensure q is traversed
+//         for (const auto &in_ : q_.second) {
+//             const auto &in = in_.first;
+//             bool children_traversed = true;
+//             for (const auto &s : in) {
+//                 if (!traversed[s]) {
+//                     children_traversed = false;
+//                     break;
+//                 }
+//             }
+//             if (children_traversed) {
+//                 for (const auto &symbol_tag : in_.second) {
+//                     transitions_new[symbol_tag][q].insert(in);
+//                 }
+//             }
+//         }
+//     }
+//     transitions = transitions_new;
+//     StateVector finalStates_new;
+//     for (const auto &s : finalStates) {
+//         if (traversed[s])
+//             finalStates_new.push_back(s);
+//     }
+//     finalStates = finalStates_new;
 
-    /*********************
-     * Part 3: Renumbering
-     *********************/
-    state_renumbering();
-    auto duration = std::chrono::steady_clock::now() - start;
-    total_removeuseless_time += duration;
-    if (opLog) std::cout << __FUNCTION__ << "：" << stateNum << " states " << count_transitions() << " transitions\n";
-}
+//     /*********************
+//      * Part 3: Renumbering
+//      *********************/
+//     state_renumbering();
+//     auto duration = std::chrono::steady_clock::now() - start;
+//     total_removeuseless_time += duration;
+//     if (opLog) std::cout << __FUNCTION__ << "：" << stateNum << " states " << count_transitions() << " transitions\n";
+// }
 
 template <typename Symbol>
 void AUTOQ::Automata<Symbol>::omega_multiplication(int rotation) {
