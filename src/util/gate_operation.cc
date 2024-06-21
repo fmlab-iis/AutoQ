@@ -107,10 +107,11 @@ void AUTOQ::Automata<Symbol>::diagonal_gate(int t, const std::function<void(Symb
                 auto &ref = transitions2[{Symbol(q), tag_outins.first}];
                 for (const auto &out_ins : tag_outins.second) {
                     const auto &top = out_ins.first;
+                    auto &reftop = ref[top];
                     for (const auto &in : out_ins.second) {
                         assert(in.size() == 2);
                         queryChildID(in[1], newIn1);
-                        ref[top].insert({in[0], newIn1});
+                        reftop.insert({in[0], newIn1});
                     }
                 }
             }
@@ -119,10 +120,11 @@ void AUTOQ::Automata<Symbol>::diagonal_gate(int t, const std::function<void(Symb
             for (const auto &tag_outins : internalTransitions[q]) {
                 for (const auto &out_ins : tag_outins.second) {
                     const auto &top = out_ins.first;
+                    auto val = topStateIsLeftOrRight[top];
                     for (const auto &in : out_ins.second) {
                         assert(in.size() == 2);
-                        childStateIsLeftOrRight[in[0]] |= topStateIsLeftOrRight[top];
-                        childStateIsLeftOrRight[in[1]] |= topStateIsLeftOrRight[top];
+                        childStateIsLeftOrRight[in[0]] |= val;
+                        childStateIsLeftOrRight[in[1]] |= val;
                     }
                 }
             }
@@ -139,16 +141,18 @@ void AUTOQ::Automata<Symbol>::diagonal_gate(int t, const std::function<void(Symb
                 auto &ref = transitions2[{Symbol(q), tag_outins.first}];
                 for (const auto &out_ins : tag_outins.second) {
                     const auto &top = out_ins.first;
-                    if (topStateIsLeftOrRight[top] & 0b10) {
+                    auto val = topStateIsLeftOrRight[top];
+                    if (val & 0b10) {
                         ref[top] = out_ins.second;
                     }
-                    if (topStateIsLeftOrRight[top] & 0b01) {
-                        queryTopID(top, newTop);
+                    queryTopID(top, newTop);
+                    auto &refnewTop = ref[newTop];
+                    if (val & 0b01) {
                         for (const auto &in : out_ins.second) {
                             assert(in.size() == 2);
                             queryChildID(in[0], newIn0);
                             queryChildID(in[1], newIn1);
-                            ref[newTop].insert({newIn0, newIn1});
+                            refnewTop.insert({newIn0, newIn1});
                         }
                     }
                 }
@@ -164,15 +168,16 @@ void AUTOQ::Automata<Symbol>::diagonal_gate(int t, const std::function<void(Symb
     for (const auto &tr : leafTransitions) {
         for (const auto &out_ins : tr.second) {
             const auto &top = out_ins.first;
-            if (topStateIsLeftOrRight[top] & 0b10) {
+            auto val = topStateIsLeftOrRight[top];
+            if (val & 0b10) {
                 SymbolTag symbol_tag = tr.first;
                 multiply_by_c0(&symbol_tag.symbol());
                 transitions2[symbol_tag][top].insert({{}});
             }
-            if (topStateIsLeftOrRight[top] & 0b01) {
-                queryTopID(top, newTop);
+            if (val & 0b01) {
                 SymbolTag symbol_tag = tr.first;
                 multiply_by_c1(&symbol_tag.symbol());
+                queryTopID(top, newTop);
                 transitions2[symbol_tag][newTop].insert({{}});
             }
         }
@@ -892,10 +897,11 @@ void AUTOQ::Automata<Symbol>::CX(int c, int t, bool opt) {
                     auto &ref = transitions2[{Symbol(q), tag_outins.first}];
                     for (const auto &out_ins : tag_outins.second) {
                         const auto &top = out_ins.first;
+                        auto &reftop = ref[top];
                         for (const auto &in : out_ins.second) {
                             assert(in.size() == 2);
                             queryChildID(in[1], newIn1);
-                            ref[top].insert({in[0], newIn1});
+                            reftop.insert({in[0], newIn1});
                         }
                     }
                 }
@@ -904,10 +910,11 @@ void AUTOQ::Automata<Symbol>::CX(int c, int t, bool opt) {
                 for (const auto &tag_outins : internalTransitions[q]) {
                     for (const auto &out_ins : tag_outins.second) {
                         const auto &top = out_ins.first;
+                        auto val = topStateIsLeftOrRight[top];
                         for (const auto &in : out_ins.second) {
                             assert(in.size() == 2);
-                            childStateIsLeftOrRight[in[0]] |= topStateIsLeftOrRight[top];
-                            childStateIsLeftOrRight[in[1]] |= topStateIsLeftOrRight[top];
+                            childStateIsLeftOrRight[in[0]] |= val;
+                            childStateIsLeftOrRight[in[1]] |= val;
                         }
                     }
                 }
@@ -924,19 +931,21 @@ void AUTOQ::Automata<Symbol>::CX(int c, int t, bool opt) {
                     auto &ref = transitions2[{Symbol(q), tag_outins.first}];
                     for (const auto &out_ins : tag_outins.second) {
                         const auto &top = out_ins.first;
-                        if (topStateIsLeftOrRight[top] & 0b10) {
+                        auto val = topStateIsLeftOrRight[top];
+                        if (val & 0b10) {
                             ref[top] = out_ins.second;
                         }
-                        if (topStateIsLeftOrRight[top] & 0b01) {
+                        if (val & 0b01) {
                             queryTopID(top, newTop);
+                            auto &refnewTop = ref[newTop];
                             for (const auto &in : out_ins.second) {
                                 assert(in.size() == 2);
                                 queryChildID(in[0], newIn0);
                                 queryChildID(in[1], newIn1);
                                 if (q == t) {
-                                    ref[newTop].insert({newIn1, newIn0});
+                                    refnewTop.insert({newIn1, newIn0});
                                 } else {
-                                    ref[newTop].insert({newIn0, newIn1});
+                                    refnewTop.insert({newIn0, newIn1});
                                 }
                             }
                         }
@@ -951,14 +960,16 @@ void AUTOQ::Automata<Symbol>::CX(int c, int t, bool opt) {
             /**********************************************/
         }
         for (const auto &tr : leafTransitions) {
+            auto &ref = transitions2[tr.first];
             for (const auto &out_ins : tr.second) {
                 const auto &top = out_ins.first;
-                if (topStateIsLeftOrRight[top] & 0b10) {
-                    transitions2[tr.first][top].insert({{}});
+                auto val = topStateIsLeftOrRight[top];
+                if (val & 0b10) {
+                    ref[top].insert({{}});
                 }
-                if (topStateIsLeftOrRight[top] & 0b01) {
+                if (val & 0b01) {
                     queryTopID(top, newTop);
-                    transitions2[tr.first][newTop].insert({{}});
+                    ref[newTop].insert({{}});
                 }
             }
         }
@@ -1062,10 +1073,11 @@ void AUTOQ::Automata<Symbol>::CZ(int c, int t) {
                 auto &ref = transitions2[{Symbol(q), tag_outins.first}];
                 for (const auto &out_ins : tag_outins.second) {
                     const auto &top = out_ins.first;
+                    auto &reftop = ref[top];
                     for (const auto &in : out_ins.second) {
                         assert(in.size() == 2);
                         queryChildID(in[1], newIn1);
-                        ref[top].insert({in[0], newIn1});
+                        reftop.insert({in[0], newIn1});
                     }
                 }
             }
@@ -1074,10 +1086,11 @@ void AUTOQ::Automata<Symbol>::CZ(int c, int t) {
             for (const auto &tag_outins : internalTransitions[q]) {
                 for (const auto &out_ins : tag_outins.second) {
                     const auto &top = out_ins.first;
+                    auto val = topStateIsLeftOrRight[top];
                     for (const auto &in : out_ins.second) {
                         assert(in.size() == 2);
-                        childStateIsLeftOrRight[in[0]] |= topStateIsLeftOrRight[top];
-                        childStateIsLeftOrRight[in[1]] |= topStateIsLeftOrRight[top];
+                        childStateIsLeftOrRight[in[0]] |= val;
+                        childStateIsLeftOrRight[in[1]] |= val;
                     }
                 }
             }
@@ -1094,16 +1107,18 @@ void AUTOQ::Automata<Symbol>::CZ(int c, int t) {
                 auto &ref = transitions2[{Symbol(q), tag_outins.first}];
                 for (const auto &out_ins : tag_outins.second) {
                     const auto &top = out_ins.first;
-                    if (topStateIsLeftOrRight[top] & 0b10) {
+                    auto val = topStateIsLeftOrRight[top];
+                    if (val & 0b10) {
                         ref[top] = out_ins.second;
                     }
-                    if (topStateIsLeftOrRight[top] & 0b01) {
+                    if (val & 0b01) {
                         queryTopID(top, newTop);
+                        auto &refnewTop = ref[newTop];
                         for (const auto &in : out_ins.second) {
                             assert(in.size() == 2);
                             queryChildID(in[0], newIn0);
                             queryChildID(in[1], newIn1);
-                            ref[newTop].insert({newIn0, newIn1});
+                            refnewTop.insert({newIn0, newIn1});
                         }
                     }
                 }
@@ -1113,11 +1128,12 @@ void AUTOQ::Automata<Symbol>::CZ(int c, int t) {
             for (const auto &tag_outins : internalTransitions[q]) {
                 for (const auto &out_ins : tag_outins.second) {
                     const auto &top = out_ins.first;
+                    auto val = topStateIsLeftOrRight[top];
                     for (const auto &in : out_ins.second) {
                         assert(in.size() == 2);
-                        childStateIsLeftOrRight[in[0]] |= topStateIsLeftOrRight[top];
-                        childStateIsLeftOrRight[in[1]] |= topStateIsLeftOrRight[top];
-                        if (topStateIsLeftOrRight[top] & 0b01) {
+                        childStateIsLeftOrRight[in[0]] |= val;
+                        childStateIsLeftOrRight[in[1]] |= val;
+                        if (val & 0b01) {
                             childStateIsLeftOrRight2[in[0]] |= 0b10;
                             childStateIsLeftOrRight2[in[1]] |= 0b01;
                         }
@@ -1143,16 +1159,18 @@ void AUTOQ::Automata<Symbol>::CZ(int c, int t) {
                 auto &ref = transitions2[{Symbol(q), tag_outins.first}];
                 for (const auto &out_ins : tag_outins.second) {
                     const auto &top = out_ins.first;
-                    if (topStateIsLeftOrRight[top] & 0b10) {
+                    auto val = topStateIsLeftOrRight[top];
+                    if (val & 0b10) {
                         ref[top] = out_ins.second;
                     }
-                    if (topStateIsLeftOrRight[top] & 0b01) {
+                    if (val & 0b01) {
                         queryTopID(top, newTop);
+                        auto &refnewTop = ref[newTop];
                         for (const auto &in : out_ins.second) {
                             assert(in.size() == 2);
                             queryChildID(in[0], newIn0);
                             queryChildID2(in[1], newIN1);
-                            ref[newTop].insert({newIn0, newIN1});
+                            refnewTop.insert({newIn0, newIN1});
                         }
                     }
                 }
@@ -1162,12 +1180,14 @@ void AUTOQ::Automata<Symbol>::CZ(int c, int t) {
             for (const auto &tag_outins : internalTransitions[q]) {
                 for (const auto &out_ins : tag_outins.second) {
                     const auto &top = out_ins.first;
+                    auto val = topStateIsLeftOrRight[top];
+                    auto val2 = topStateIsLeftOrRight2[top];
                     for (const auto &in : out_ins.second) {
                         assert(in.size() == 2);
-                        childStateIsLeftOrRight[in[0]] |= topStateIsLeftOrRight[top];
-                        childStateIsLeftOrRight[in[1]] |= topStateIsLeftOrRight[top];
-                        childStateIsLeftOrRight2[in[0]] |= topStateIsLeftOrRight2[top];
-                        childStateIsLeftOrRight2[in[1]] |= topStateIsLeftOrRight2[top];
+                        childStateIsLeftOrRight[in[0]] |= val;
+                        childStateIsLeftOrRight[in[1]] |= val;
+                        childStateIsLeftOrRight2[in[0]] |= val2;
+                        childStateIsLeftOrRight2[in[1]] |= val2;
                     }
                 }
             }
@@ -1190,26 +1210,30 @@ void AUTOQ::Automata<Symbol>::CZ(int c, int t) {
                 auto &ref = transitions2[{Symbol(q), tag_outins.first}];
                 for (const auto &out_ins : tag_outins.second) {
                     const auto &top = out_ins.first;
-                    if (topStateIsLeftOrRight[top] & 0b10) {
+                    auto val = topStateIsLeftOrRight[top];
+                    if (val & 0b10) {
                         ref[top] = out_ins.second;
                     }
-                    if (topStateIsLeftOrRight[top] & 0b01) {
-                        if (topStateIsLeftOrRight2[top] & 0b10) {
+                    if (val & 0b01) {
+                        auto val2 = topStateIsLeftOrRight2[top];
+                        if (val2 & 0b10) {
                             queryTopID(top, newTop);
+                            auto &refnewTop = ref[newTop];
                             for (const auto &in : out_ins.second) {
                                 assert(in.size() == 2);
                                 queryChildID(in[0], newIn0);
                                 queryChildID(in[1], newIn1);
-                                ref[newTop].insert({newIn0, newIn1});
+                                refnewTop.insert({newIn0, newIn1});
                             }
                         }
-                        if (topStateIsLeftOrRight2[top] & 0b01) {
+                        if (val2 & 0b01) {
                             queryTopID2(top, newTop);
+                            auto &refnewTop = ref[newTop];
                             for (const auto &in : out_ins.second) {
                                 assert(in.size() == 2);
                                 queryChildID2(in[0], newIn0);
                                 queryChildID2(in[1], newIn1);
-                                ref[newTop].insert({newIn0, newIn1});
+                                refnewTop.insert({newIn0, newIn1});
                             }
                         }
                     }
@@ -1228,17 +1252,20 @@ void AUTOQ::Automata<Symbol>::CZ(int c, int t) {
         /**********************************************/
     }
     for (const auto &tr : leafTransitions) {
+        auto &ref = transitions2[tr.first];
         for (const auto &out_ins : tr.second) {
             const auto &top = out_ins.first;
-            if (topStateIsLeftOrRight[top] & 0b10) {
-                transitions2[tr.first][top].insert({{}});
+            auto val = topStateIsLeftOrRight[top];
+            if (val & 0b10) {
+                ref[top].insert({{}});
             }
-            if (topStateIsLeftOrRight[top] & 0b01) {
-                if (topStateIsLeftOrRight2[top] & 0b10) {
+            if (val & 0b01) {
+                auto val2 = topStateIsLeftOrRight2[top];
+                if (val2 & 0b10) {
                     queryTopID(top, newTop);
-                    transitions2[tr.first][newTop].insert({{}});
+                    ref[newTop].insert({{}});
                 }
-                if (topStateIsLeftOrRight2[top] & 0b01) {
+                if (val2 & 0b01) {
                     queryTopID2(top, newTop);
                     SymbolTag symbol_tag = tr.first;
                     symbol_tag.symbol().negate();
@@ -1314,10 +1341,11 @@ void AUTOQ::Automata<Symbol>::CCX(int c, int c2, int t) {
                     auto &ref = transitions2[{Symbol(q), tag_outins.first}];
                     for (const auto &out_ins : tag_outins.second) {
                         const auto &top = out_ins.first;
+                        auto &reftop = ref[top];
                         for (const auto &in : out_ins.second) {
                             assert(in.size() == 2);
                             queryChildID(in[1], newIn1);
-                            ref[top].insert({in[0], newIn1});
+                            reftop.insert({in[0], newIn1});
                         }
                     }
                 }
@@ -1326,10 +1354,11 @@ void AUTOQ::Automata<Symbol>::CCX(int c, int c2, int t) {
                 for (const auto &tag_outins : internalTransitions[q]) {
                     for (const auto &out_ins : tag_outins.second) {
                         const auto &top = out_ins.first;
+                        auto val = topStateIsLeftOrRight[top];
                         for (const auto &in : out_ins.second) {
                             assert(in.size() == 2);
-                            childStateIsLeftOrRight[in[0]] |= topStateIsLeftOrRight[top];
-                            childStateIsLeftOrRight[in[1]] |= topStateIsLeftOrRight[top];
+                            childStateIsLeftOrRight[in[0]] |= val;
+                            childStateIsLeftOrRight[in[1]] |= val;
                         }
                     }
                 }
@@ -1346,16 +1375,18 @@ void AUTOQ::Automata<Symbol>::CCX(int c, int c2, int t) {
                     auto &ref = transitions2[{Symbol(q), tag_outins.first}];
                     for (const auto &out_ins : tag_outins.second) {
                         const auto &top = out_ins.first;
-                        if (topStateIsLeftOrRight[top] & 0b10) {
+                        auto val = topStateIsLeftOrRight[top];
+                        if (val & 0b10) {
                             ref[top] = out_ins.second;
                         }
-                        if (topStateIsLeftOrRight[top] & 0b01) {
+                        if (val & 0b01) {
                             queryTopID(top, newTop);
+                            auto &refnewTop = ref[newTop];
                             for (const auto &in : out_ins.second) {
                                 assert(in.size() == 2);
                                 queryChildID(in[0], newIn0);
                                 queryChildID(in[1], newIn1);
-                                ref[newTop].insert({newIn0, newIn1});
+                                refnewTop.insert({newIn0, newIn1});
                             }
                         }
                     }
@@ -1365,11 +1396,12 @@ void AUTOQ::Automata<Symbol>::CCX(int c, int c2, int t) {
                 for (const auto &tag_outins : internalTransitions[q]) {
                     for (const auto &out_ins : tag_outins.second) {
                         const auto &top = out_ins.first;
+                        auto val = topStateIsLeftOrRight[top];
                         for (const auto &in : out_ins.second) {
                             assert(in.size() == 2);
-                            childStateIsLeftOrRight[in[0]] |= topStateIsLeftOrRight[top];
-                            childStateIsLeftOrRight[in[1]] |= topStateIsLeftOrRight[top];
-                            if (topStateIsLeftOrRight[top] & 0b01) {
+                            childStateIsLeftOrRight[in[0]] |= val;
+                            childStateIsLeftOrRight[in[1]] |= val;
+                            if (val & 0b01) {
                                 childStateIsLeftOrRight2[in[0]] |= 0b10;
                                 childStateIsLeftOrRight2[in[1]] |= 0b01;
                             }
@@ -1395,16 +1427,18 @@ void AUTOQ::Automata<Symbol>::CCX(int c, int c2, int t) {
                     auto &ref = transitions2[{Symbol(q), tag_outins.first}];
                     for (const auto &out_ins : tag_outins.second) {
                         const auto &top = out_ins.first;
-                        if (topStateIsLeftOrRight[top] & 0b10) {
+                        auto val = topStateIsLeftOrRight[top];
+                        if (val & 0b10) {
                             ref[top] = out_ins.second;
                         }
-                        if (topStateIsLeftOrRight[top] & 0b01) {
+                        if (val & 0b01) {
                             queryTopID(top, newTop);
+                            auto &refnewTop = ref[newTop];
                             for (const auto &in : out_ins.second) {
                                 assert(in.size() == 2);
                                 queryChildID(in[0], newIn0);
                                 queryChildID2(in[1], newIN1);
-                                ref[newTop].insert({newIn0, newIN1});
+                                refnewTop.insert({newIn0, newIN1});
                             }
                         }
                     }
@@ -1414,12 +1448,14 @@ void AUTOQ::Automata<Symbol>::CCX(int c, int c2, int t) {
                 for (const auto &tag_outins : internalTransitions[q]) {
                     for (const auto &out_ins : tag_outins.second) {
                         const auto &top = out_ins.first;
+                        auto val = topStateIsLeftOrRight[top];
+                        auto val2 = topStateIsLeftOrRight2[top];
                         for (const auto &in : out_ins.second) {
                             assert(in.size() == 2);
-                            childStateIsLeftOrRight[in[0]] |= topStateIsLeftOrRight[top];
-                            childStateIsLeftOrRight[in[1]] |= topStateIsLeftOrRight[top];
-                            childStateIsLeftOrRight2[in[0]] |= topStateIsLeftOrRight2[top];
-                            childStateIsLeftOrRight2[in[1]] |= topStateIsLeftOrRight2[top];
+                            childStateIsLeftOrRight[in[0]] |= val;
+                            childStateIsLeftOrRight[in[1]] |= val;
+                            childStateIsLeftOrRight2[in[0]] |= val2;
+                            childStateIsLeftOrRight2[in[1]] |= val2;
                         }
                     }
                 }
@@ -1442,29 +1478,33 @@ void AUTOQ::Automata<Symbol>::CCX(int c, int c2, int t) {
                     auto &ref = transitions2[{Symbol(q), tag_outins.first}];
                     for (const auto &out_ins : tag_outins.second) {
                         const auto &top = out_ins.first;
-                        if (topStateIsLeftOrRight[top] & 0b10) {
+                        auto val = topStateIsLeftOrRight[top];
+                        if (val & 0b10) {
                             ref[top] = out_ins.second;
                         }
-                        if (topStateIsLeftOrRight[top] & 0b01) {
-                            if (topStateIsLeftOrRight2[top] & 0b10) {
+                        if (val & 0b01) {
+                            auto val2 = topStateIsLeftOrRight2[top];
+                            if (val2 & 0b10) {
                                 queryTopID(top, newTop);
+                                auto &refnewTop = ref[newTop];
                                 for (const auto &in : out_ins.second) {
                                     assert(in.size() == 2);
                                     queryChildID(in[0], newIn0);
                                     queryChildID(in[1], newIn1);
-                                    ref[newTop].insert({newIn0, newIn1});
+                                    refnewTop.insert({newIn0, newIn1});
                                 }
                             }
-                            if (topStateIsLeftOrRight2[top] & 0b01) {
+                            if (val2 & 0b01) {
                                 queryTopID2(top, newTop);
+                                auto &refnewTop = ref[newTop];
                                 for (const auto &in : out_ins.second) {
                                     assert(in.size() == 2);
                                     queryChildID2(in[0], newIn0);
                                     queryChildID2(in[1], newIn1);
                                     if (q == t)
-                                        ref[newTop].insert({newIn1, newIn0});
+                                        refnewTop.insert({newIn1, newIn0});
                                     else
-                                        ref[newTop].insert({newIn0, newIn1});
+                                        refnewTop.insert({newIn0, newIn1});
                                 }
                             }
                         }
@@ -1484,19 +1524,22 @@ void AUTOQ::Automata<Symbol>::CCX(int c, int c2, int t) {
         }
         for (const auto &tr : leafTransitions) {
             const auto &symbol_tag = tr.first;
+            auto &ref = transitions2[symbol_tag];
             for (const auto &out_ins : tr.second) {
                 const auto &top = out_ins.first;
-                if (topStateIsLeftOrRight[top] & 0b10) {
-                    transitions2[symbol_tag][top].insert({{}});
+                auto val = topStateIsLeftOrRight[top];
+                if (val & 0b10) {
+                    ref[top].insert({{}});
                 }
-                if (topStateIsLeftOrRight[top] & 0b01) {
-                    if (topStateIsLeftOrRight2[top] & 0b10) {
+                if (val & 0b01) {
+                    auto val2 = topStateIsLeftOrRight2[top];
+                    if (val2 & 0b10) {
                         queryTopID(top, newTop);
-                        transitions2[symbol_tag][newTop].insert({{}});
+                        ref[newTop].insert({{}});
                     }
-                    if (topStateIsLeftOrRight2[top] & 0b01) {
-                        queryTopID2(top, newTop);
-                        transitions2[symbol_tag][newTop].insert({{}});
+                    if (val2 & 0b01) {
+                        queryTopID2(top, newTop2);
+                        ref[newTop2].insert({{}});
                     }
                 }
             }
