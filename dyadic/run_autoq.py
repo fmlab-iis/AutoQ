@@ -1,5 +1,5 @@
 #!/usr/bin/python3
-import json, os, subprocess, sys
+import json, os, subprocess, sys, time
 from multiprocessing import Manager, Process, Semaphore, Lock
 
 json_file = os.path.basename(__file__).split('.')[0].split('_')[1] + '.json'
@@ -53,7 +53,9 @@ def CTA(root, semaphore, lock, counter):
         p = subprocess.run(f'grep -P ".*(x |y |z |h |s |t |rx\(.+\) |ry\(.+\) |cx |cz |ccx |tdg |sdg |swap ).*\[\d+\];" ../origin/{root.split("qasm", 1)[0] + "qasm"} | wc -l', shell=True, capture_output=True, executable='/bin/bash')
         G = p.stdout.splitlines()[0].decode('utf-8')
         cmd = f'{EXE} -t eq ../origin/{root.split("qasm", 1)[0] + "qasm"} {root} --latex'#; print(cmd)
+        start = time.time()
         p = subprocess.run(cmd, shell=True, capture_output=True, executable='/bin/bash')
+        end = time.time()
         ret = p.returncode
         data = dict()
         try:
@@ -66,7 +68,7 @@ def CTA(root, semaphore, lock, counter):
             data['total'] = TIMEOUT
             # data['result'] = 'TIMEOUT', use gateCount instead.
         else:
-            data['total'] = TIMEOUT
+            data['total'] = round(end - start, 1)
             data['result'] = 'ERROR'
         data['q'] = q
         data['G'] = G
