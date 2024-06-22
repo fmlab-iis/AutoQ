@@ -245,8 +245,10 @@ void AUTOQ::Automata<Symbol>::Z(int t, bool opt) {
     if (gateLog) std::cout << "Z" << t << "：" << stateNum << " states " << count_transitions() << " transitions " << toString(duration) << "\n";
 }
 
+#define L(s1, s2) (stateNum + (s1) * stateNum + (s2))
+#define R(s1, s2) (stateNum + stateNum * stateNum + (s1) * stateNum + (s2))
 template <typename Symbol>
-void AUTOQ::Automata<Symbol>::General_Single_Qubit_Gate(int t, const std::function<Symbol(const Symbol&, const Symbol&)> &L, const std::function<Symbol(const Symbol&, const Symbol&)> &R) {
+void AUTOQ::Automata<Symbol>::General_Single_Qubit_Gate(int t, const std::function<Symbol(const Symbol&, const Symbol&)> &u1u2, const std::function<Symbol(const Symbol&, const Symbol&)> &u3u4) {
     AUTOQ::Automata<Symbol> result;
     result.name = name;
     result.qubitNum = qubitNum;
@@ -263,7 +265,6 @@ void AUTOQ::Automata<Symbol>::General_Single_Qubit_Gate(int t, const std::functi
     // We assume here transitions are ordered by symbols.
     // x_i are placed in the beginning, and leaves are placed in the end.
     // This traversal method is due to efficiency.
-
     auto it = transitions.begin(); // global pointer
     for (; it != transitions.end(); it++) { // iterate over all internal transitions of symbol < t
         assert(it->first.is_internal());
@@ -271,18 +272,18 @@ void AUTOQ::Automata<Symbol>::General_Single_Qubit_Gate(int t, const std::functi
         result.transitions.insert(*it);
     }
 
-    std::vector<bool> possible_next_level_states(2 * stateNum * stateNum + stateNum);
+    std::vector<bool> possible_next_level_states(R(stateNum-1, stateNum-1) + 1);
     assert(it->first.symbol().qubit() == t); // iterate over all internal transitions of symbol == t
     for (; it != transitions.end(); it++) {
         if (it->first.is_leaf() || it->first.symbol().qubit() > t) break;
+        auto &ref1 = result.transitions[it->first];
         for (const auto &out_ins : it->second) {
-            const auto &q = out_ins.first;
+            auto &ref2 = ref1[out_ins.first];
             for (const auto &in : out_ins.second) {
                 assert(in.size() == 2);
-                result.transitions[it->first][q].insert({stateNum + in.at(0)*stateNum + in.at(1),
-                                     stateNum + stateNum*stateNum + in.at(0)*stateNum + in.at(1)});
-                                    possible_next_level_states[stateNum + in.at(0)*stateNum + in.at(1)] = true;
-                possible_next_level_states[stateNum + stateNum*stateNum + in.at(0)*stateNum + in.at(1)] = true;
+                ref2.insert({L(in.at(0), in.at(1)), R(in.at(0), in.at(1))});
+                possible_next_level_states[L(in.at(0), in.at(1))] = true;
+                possible_next_level_states[R(in.at(0), in.at(1))] = true;
             }
         }
     }
@@ -292,75 +293,46 @@ void AUTOQ::Automata<Symbol>::General_Single_Qubit_Gate(int t, const std::functi
     std::vector<bool> possible_previous_level_states = possible_next_level_states;
     for (; it != transitions.end(); it++) { // iterate over all internal transitions of symbol > t
         if (it->first.is_leaf()) break; // assert internal transition
-        assert(it->first.symbol().qubit() > t);
-        if (it->first.symbol().qubit() != head->first.symbol().qubit()) { // change layer
+        auto qubit = it->first.symbol().qubit();
+        assert(qubit > t);
+        if (qubit != head->first.symbol().qubit()) { // change layer
             head = it;
             possible_previous_level_states = possible_next_level_states;
         }
         for (auto it2 = head; it2 != transitions.end(); it2++) {
             if (it2->first.is_leaf()) break; // another internal transition
-            if (it2->first.symbol().qubit() != it->first.symbol().qubit()) break; // ensure that the two symbols have the same qubit.
+            if (it2->first.symbol().qubit() != qubit) break; // ensure that the two symbols have the same qubit.
             assert(it->first.symbol() == it2->first.symbol());
+            auto color_intersection = it->first.tag() & it2->first.tag();
+            if (color_intersection == 0) continue;  // ignore empty colors
             for (const auto &out_ins1 : it->second) {
                 const auto &top1 = out_ins1.first;
                 // assert(out_ins1.first.size() == 2);
                 for (const auto &out_ins2 : it2->second) {
                     const auto &top2 = out_ins2.first;
                     // assert(out_ins2.first.size() == 2);
-                    for (const auto &in1 : out_ins1.second) {
-                        for (const auto &in2 : out_ins2.second) {
-                            // nt is short for the new transition
-                            // std::cout << AUTOQ::Util::Convert::ToString(in_out1.first) << "A\n";
-                            // std::cout << AUTOQ::Util::Convert::ToString(in_out2.first) << "B\n";
-                            // std::cout << "(" << stateNum + in_out1.first.at(0)*stateNum + in_out2.first.at(0) << ")("
-                            //                  << stateNum + in_out1.first.at(1)*stateNum + in_out2.first.at(1) << ")("
-                            //                  << top1 << ")(" << top2 << ")(" << stateNum + top1*stateNum + top2 << ")\n";
-                            // auto &nt = result.transitions[{it->first.symbol(), it->first.tag() & it2->first.tag()}];
-                            if (possible_previous_level_states[stateNum + top1*stateNum + top2]) {
-                                if (it->first.tag() & it2->first.tag())
-                                    qcfi[stateNum + top1*stateNum + top2][it->first.tag() & it2->first.tag()].push_back({it->first.symbol(), {stateNum + in1.at(0)*stateNum + in2.at(0), stateNum + in1.at(1)*stateNum + in2.at(1)}});
-                                // nt[{stateNum + in_out1.first.at(0)*stateNum + in_out2.first.at(0),
-                                //     stateNum + in_out1.first.at(1)*stateNum + in_out2.first.at(1)}]
-                                //     .insert(stateNum + top1*stateNum + top2); // (s1, s2, +) -> stateNum + s1 * stateNum + s2
-                                // possible_next_level_states[stateNum + in_out1.first.at(0)*stateNum + in_out2.first.at(0)] = true;
-                                // possible_next_level_states[stateNum + in_out1.first.at(1)*stateNum + in_out2.first.at(1)] = true;
+                    if (possible_previous_level_states[L(top1, top2)]) {
+                        auto &ref = qcfi[L(top1, top2)][color_intersection];
+                        for (const auto &in1 : out_ins1.second) {
+                            for (const auto &in2 : out_ins2.second) {
+                                ref.push_back({it->first.symbol(), {L(in1.at(0), in2.at(0)), L(in1.at(1), in2.at(1))}});
                             }
-                            if (possible_previous_level_states[stateNum + stateNum*stateNum + top1*stateNum + top2]) {
-                                if (it->first.tag() & it2->first.tag())
-                                    qcfi[stateNum + stateNum*stateNum + top1*stateNum + top2][it->first.tag() & it2->first.tag()].push_back({it->first.symbol(), {stateNum + stateNum*stateNum + in1.at(0)*stateNum + in2.at(0), stateNum + stateNum*stateNum + in1.at(1)*stateNum + in2.at(1)}});
-                                // nt[{stateNum + stateNum*stateNum + in_out1.first.at(0)*stateNum + in_out2.first.at(0),
-                                //     stateNum + stateNum*stateNum + in_out1.first.at(1)*stateNum + in_out2.first.at(1)}]
-                                //     .insert(stateNum + stateNum*stateNum + top1*stateNum + top2); // (s1, s2, -) -> stateNum + stateNum^2 + s1 * stateNum + s2
-                                // possible_next_level_states[stateNum + stateNum*stateNum + in_out1.first.at(0)*stateNum + in_out2.first.at(0)] = true;
-                                // possible_next_level_states[stateNum + stateNum*stateNum + in_out1.first.at(1)*stateNum + in_out2.first.at(1)] = true;
+                        }
+                    }
+                    if (possible_previous_level_states[R(top1, top2)]) {
+                        auto &ref = qcfi[R(top1, top2)][color_intersection];
+                        for (const auto &in1 : out_ins1.second) {
+                            for (const auto &in2 : out_ins2.second) {
+                                ref.push_back({it->first.symbol(), {R(in1.at(0), in2.at(0)), R(in1.at(1), in2.at(1))}});
                             }
                         }
                     }
                 }
             }
         }
-        if (std::next(it, 1) == transitions.end() || std::next(it, 1)->first.is_leaf() || it->first.symbol().qubit() != std::next(it, 1)->first.symbol().qubit()) { // this layer is finished!
-            // std::map<State, std::set<Tag>> delete_colors;
-            // for (const auto &q_ : qcfi) {
-            //     for (auto c_ptr = q_.second.rbegin(); c_ptr != q_.second.rend(); ++c_ptr) {
-            //         if (c_ptr->second.size() >= 2) {
-            //             delete_colors[q_.first].insert(c_ptr->first);
-            //         }
-            //         else {
-            //             for (auto c_ptr2 = q_.second.begin(); c_ptr2 != q_.second.end(); ++c_ptr2) {
-            //                 if (c_ptr2->first >= c_ptr->first) break;
-            //                 if ((c_ptr->first & c_ptr2->first) == c_ptr->first) {
-            //                     delete_colors[q_.first].insert(c_ptr->first);
-            //                     break;
-            //                 }
-            //             }
-            //         }
-            //     }
-            // }
+        if (std::next(it, 1) == transitions.end() || std::next(it, 1)->first.is_leaf() || qubit != std::next(it, 1)->first.symbol().qubit()) { // this layer is finished!
             for (const auto &q_ : qcfi) {
-                // const auto &dc_q = delete_colors[q_.first];
                 for (const auto &c_ : q_.second) {
-                    // if (std::find(dc_q.begin(), dc_q.end(), c_.first) != dc_q.end()) continue;
                     for (const auto &f_i : c_.second) {
                         result.transitions[{f_i.first, c_.first}][q_.first].insert(f_i.second);
                         for (const auto &s : f_i.second)
@@ -368,7 +340,6 @@ void AUTOQ::Automata<Symbol>::General_Single_Qubit_Gate(int t, const std::functi
                     }
                 }
             }
-
             qcfi = std::map<State, std::map<Tag, std::vector<std::pair<Symbol, StateVector>>>>();
         }
     }
@@ -380,70 +351,30 @@ void AUTOQ::Automata<Symbol>::General_Single_Qubit_Gate(int t, const std::functi
         assert(it->first.is_leaf()); // assert leaf transition
         for (auto it2 = head; it2 != transitions.end(); it2++) {
             assert(it2->first.is_leaf()); // another leaf transition
+            auto color_intersection = it->first.tag() & it2->first.tag();
+            if (color_intersection == 0) continue;  // ignore empty colors
             for (const auto &out_ins1 : it->second) {
                 const auto &top1 = out_ins1.first;
                 // assert(in_out1.first.size() == 0);
                 for (const auto &out_ins2 : it2->second) {
                     const auto &top2 = out_ins2.first;
-                    // assert(in_out2.first.size() == 0);
-                    // std::cout << AUTOQ::Util::Convert::ToString(in_out1.second) << "++\n";
-                    // for (const auto &top1 : out_ins1.second) {
-                        // std::cout << AUTOQ::Util::Convert::ToString(in_out2.second) << "==\n";
-                        // for (const auto &top2 : out_ins2.second) {
-                            // std::cout << it->first << "A\n";
-                            // std::cout << it2->first << "B\n";
-                            // std::cout << (it->first.symbol() + it2->first.symbol()).divide_by_the_square_root_of_two() << "C\n";
-                            // std::cout << (it->first.symbol() - it2->first.symbol()).divide_by_the_square_root_of_two() << "D\n";
-                            // std::cout << "(" << stateNum << ")(" << top1 << ")(" << top2 << ")(" << stateNum + top1*stateNum + top2 << ")(" << stateNum + stateNum*stateNum + top1*stateNum + top2 << ")\n";
-                            if (possible_previous_level_states[stateNum + top1*stateNum + top2]) {
-                                if (it->first.tag() & it2->first.tag())
-                                    qcfi[stateNum + top1*stateNum + top2][it->first.tag() & it2->first.tag()].push_back({L(it->first.symbol(), it2->first.symbol()), {}});
-                                // result.transitions[{(it->first.symbol() + it2->first.symbol()).divide_by_the_square_root_of_two(),
-                                //                     it->first.tag() & it2->first.tag()}][{}]
-                                //     .insert(stateNum + top1*stateNum + top2); // (s1, s2, +) -> stateNum + s1 * stateNum + s2
-                            }
-                            if (possible_previous_level_states[stateNum + stateNum*stateNum + top1*stateNum + top2]) {
-                                if (it->first.tag() & it2->first.tag())
-                                    qcfi[stateNum + stateNum*stateNum + top1*stateNum + top2][it->first.tag() & it2->first.tag()].push_back({R(it->first.symbol(), it2->first.symbol()), {}});
-                                // result.transitions[{(it->first.symbol() - it2->first.symbol()).divide_by_the_square_root_of_two(),
-                                //                     it->first.tag() & it2->first.tag()}][{}]
-                                //     .insert(stateNum + stateNum*stateNum + top1*stateNum + top2); // (s1, s2, -) -> stateNum + stateNum^2 + s1 * stateNum + s2
-                            }
-                        // }
-                    // }
+                    if (possible_previous_level_states[L(top1, top2)]) {
+                        qcfi[L(top1, top2)][color_intersection].push_back({u1u2(it->first.symbol(), it2->first.symbol()), {}});
+                    }
+                    if (possible_previous_level_states[R(top1, top2)]) {
+                        qcfi[R(top1, top2)][color_intersection].push_back({u3u4(it->first.symbol(), it2->first.symbol()), {}});
+                    }
                 }
             }
         }
     }
-    // std::map<State, std::set<Tag>> delete_colors;
-    // for (const auto &q_ : qcfi) {
-    //     for (auto c_ptr = q_.second.rbegin(); c_ptr != q_.second.rend(); ++c_ptr) {
-    //         if (c_ptr->second.size() >= 2) {
-    //             delete_colors[q_.first].insert(c_ptr->first);
-    //         }
-    //         else {
-    //             for (auto c_ptr2 = q_.second.begin(); c_ptr2 != q_.second.end(); ++c_ptr2) {
-    //                 if (c_ptr2->first >= c_ptr->first) break;
-    //                 if ((c_ptr->first & c_ptr2->first) == c_ptr->first) {
-    //                     delete_colors[q_.first].insert(c_ptr->first);
-    //                     break;
-    //                 }
-    //             }
-    //         }
-    //     }
-    // }
     for (const auto &q_ : qcfi) {
-        // const auto &dc_q = delete_colors[q_.first];
         for (const auto &c_ : q_.second) {
-            // if (std::find(dc_q.begin(), dc_q.end(), c_.first) != dc_q.end()) continue;
             for (const auto &f_i : c_.second) {
                 result.transitions[{f_i.first, c_.first}][q_.first].insert(f_i.second);
-                // for (const auto &s : f_i.second)
-                //     possible_next_level_states[s] = true;
             }
         }
     }
-
     result.stateNum = 2 * stateNum * stateNum + stateNum;
     result.state_renumbering();
     result.reduce();
