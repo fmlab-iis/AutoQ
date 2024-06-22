@@ -669,11 +669,9 @@ void AUTOQ::Automata<Symbol>::CX(int c, int t, bool opt) {
     auto start = std::chrono::steady_clock::now();
     assert(c != t);
     if (c > t) {
-        H(c); gateCount--;
-        H(t); gateCount--;
-        CX(t, c); gateCount--;
-        H(c); gateCount--;
-        H(t); gateCount--;
+        General_Controlled_Gate(c, t,
+            [](const Symbol &l, const Symbol &r) -> Symbol { return r; },
+            [](const Symbol &l, const Symbol &r) -> Symbol { return l; });
     } else {
         TransitionMap transitions2;
         std::map<State, int> topStateIsLeftOrRight, childStateIsLeftOrRight; // 0b10: original tree, 0b01: copied tree, 0b11: both trees
