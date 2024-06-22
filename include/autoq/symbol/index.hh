@@ -2,6 +2,7 @@
 #define _AUTOQ_INDEX_HH_
 
 #include <boost/functional/hash.hpp>
+#include <autoq/autoq.hh>
 
 namespace AUTOQ
 {
@@ -18,7 +19,13 @@ struct AUTOQ::Symbol::Index {
     Index(bool is_leaf_v, int index) : index(index), is_leaf_v(is_leaf_v) {}
     bool is_leaf() const { return is_leaf_v; }
     bool is_internal() const { return !is_leaf_v; }
-    int qubit() const { return is_leaf() ? 0 : index; }
+    int qubit() const {
+        if (is_leaf_v) {
+            AUTOQ_ERROR("Leaf symbols do not have qubit().");
+            exit(1);
+        }
+        return index;
+    }
     bool operator==(const Index &o) const { return is_leaf_v == o.is_leaf_v && index == o.index; }
     bool operator<(const Index &o) const {
         if (is_leaf_v && !o.is_leaf_v) return false;

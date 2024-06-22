@@ -2,6 +2,7 @@
 #define _AUTOQ_PREDICATE_HH_
 
 #include <string>
+#include <autoq/autoq.hh>
 #include <boost/multiprecision/cpp_int.hpp>
 
 namespace AUTOQ
@@ -20,7 +21,13 @@ struct AUTOQ::Symbol::Predicate : std::string {
     // boost::multiprecision::cpp_int k() const { return 0; } // for complying with the other two types in parse_timbuk
     bool is_leaf() const { return is_leaf_v; }
     bool is_internal() const { return !is_leaf_v; }
-    boost::multiprecision::cpp_int qubit() const { return is_leaf() ? 0 : boost::multiprecision::cpp_int(std::stoi(*this)); }
+    boost::multiprecision::cpp_int qubit() const {
+        if (is_leaf_v) {
+            AUTOQ_ERROR("Leaf symbols do not have qubit().");
+            exit(1);
+        }
+        return boost::multiprecision::cpp_int(std::stoi(*this));
+    }
     Predicate operator*(const Predicate &o) const {
         if (*this == "true") return o;
         if (o == "true") return *this;

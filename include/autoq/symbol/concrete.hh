@@ -2,6 +2,7 @@
 #define _AUTOQ_CONCRETE_HH_
 
 #include <vector>
+#include <autoq/autoq.hh>
 #include <autoq/util/convert.hh>
 #include <autoq/complex/complex.hh>
 #include <boost/multiprecision/cpp_int.hpp>
@@ -30,7 +31,10 @@ public:
     bool is_internal() const { return internal; }
     bool is_leaf() const { return !internal; }
     boost::multiprecision::cpp_int qubit() const {
-        assert(internal);
+        if (!internal) {
+            AUTOQ_ERROR("Leaf symbols do not have qubit().");
+            exit(1);
+        }
         // assert(complex.real().denominator() == 1);
         return complex.toInt(); //.numerator();
     }

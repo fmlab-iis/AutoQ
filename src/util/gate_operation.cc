@@ -384,6 +384,184 @@ void AUTOQ::Automata<Symbol>::General_Single_Qubit_Gate(int t, const std::functi
 }
 
 template <typename Symbol>
+void AUTOQ::Automata<Symbol>::General_Controlled_Gate(int c, int t, const std::function<Symbol(const Symbol&, const Symbol&)> &u1u2, const std::function<Symbol(const Symbol&, const Symbol&)> &u3u4) {
+    if (c <= t) {
+        AUTOQ_ERROR("We require c > t here.");
+        exit(1);
+    }
+
+    AUTOQ::Automata<Symbol> result;
+    result.name = name;
+    result.qubitNum = qubitNum;
+    result.isTopdownDeterministic = isTopdownDeterministic; // IMPORTANT: Avoid missing copying new fields afterwards.
+    result.finalStates = finalStates;
+
+    bool overflow = (stateNum > (std::numeric_limits<State>::max()-stateNum) / stateNum / 2); // want: 2 * stateNum^2 + stateNum <= max
+    if (overflow)
+        throw std::overflow_error("[ERROR] The number of states after multiplication is too large.");
+    // s < stateNum -> s
+    // (s1, s2, L) -> stateNum + s1 * stateNum + s2
+    // (s1, s2, R) -> stateNum + stateNum^2 + s1 * stateNum + s2 -> max == 2 * stateNum^2 + stateNum
+
+    // We assume here transitions are ordered by symbols.
+    // x_i are placed in the beginning, and leaves are placed in the end.
+    // This traversal method is due to efficiency.
+    auto it = transitions.begin(); // global pointer
+    for (; it != transitions.end(); it++) { // iterate over all internal transitions of symbol < t
+        if (it->first.symbol().is_leaf() || it->first.symbol().qubit() < t)
+            result.transitions.insert(*it);
+    }
+
+    std::vector<bool> possible_next_level_states(R(stateNum-1, stateNum-1) + 1);
+    assert(it->first.symbol().qubit() == t); // iterate over all internal transitions of symbol == t
+    for (; it != transitions.end(); it++) {
+        if (it->first.is_leaf() || it->first.symbol().qubit() > t) break;
+        auto &ref1 = result.transitions[it->first];
+        for (const auto &out_ins : it->second) {
+            auto &ref2 = ref1[out_ins.first];
+            for (const auto &in : out_ins.second) {
+                assert(in.size() == 2);
+                ref2.insert({L(in.at(0), in.at(1)), R(in.at(0), in.at(1))});
+                possible_next_level_states[L(in.at(0), in.at(1))] = true;
+                possible_next_level_states[R(in.at(0), in.at(1))] = true;
+            }
+        }
+    }
+
+    auto head = it;
+    std::map<State, std::map<Tag, std::map<Symbol, std::vector<StateVector>>>> qcfi;
+    std::vector<bool> possible_previous_level_states = possible_next_level_states;
+    for (; it != transitions.end(); it++) { // iterate over all internal transitions of symbol > t
+        if (it->first.is_leaf()) break; // assert internal transition
+        auto qubit = it->first.symbol().qubit();
+        assert(qubit > t);
+        if (qubit != head->first.symbol().qubit()) { // change layer
+            head = it;
+            possible_previous_level_states = possible_next_level_states;
+        }
+        for (auto it2 = head; it2 != transitions.end(); it2++) {
+            if (it2->first.is_leaf()) break; // another internal transition
+            if (it2->first.symbol().qubit() != qubit) break; // ensure that the two symbols have the same qubit.
+            assert(it->first.symbol() == it2->first.symbol());
+            auto color_intersection = it->first.tag() & it2->first.tag();
+            if (color_intersection == 0) continue;  // ignore empty colors
+            for (const auto &out_ins1 : it->second) {
+                const auto &top1 = out_ins1.first;
+                // assert(out_ins1.first.size() == 2);
+                for (const auto &out_ins2 : it2->second) {
+                    const auto &top2 = out_ins2.first;
+                    // assert(out_ins2.first.size() == 2);
+                    bool qubit_larger_than_c_has_done = false;
+                    if (possible_previous_level_states[L(top1, top2)]) {
+                        auto &ref = qcfi[L(top1, top2)][color_intersection][it->first.symbol()];
+                        if (qubit != c) {
+                            for (const auto &in1 : out_ins1.second) {
+                                for (const auto &in2 : out_ins2.second) {
+                                    ref.push_back({L(in1.at(0), in2.at(0)), L(in1.at(1), in2.at(1))});
+                                }
+                            }
+                        } else { // if (qubit == c)
+                            for (const auto &in1 : out_ins1.second) {
+                                for (const auto &in2 : out_ins2.second) {
+                                    ref.push_back({in1.at(0), L(in1.at(1), in2.at(1))});
+                                }
+                            }
+                        }
+                        if (qubit > c) {
+                            qubit_larger_than_c_has_done = true;
+                            if (possible_previous_level_states[top1]) {
+                                auto &ref = qcfi[top1][color_intersection][it->first.symbol()];
+                                ref.insert(ref.end(), out_ins1.second.begin(), out_ins1.second.end());
+                            }
+                            if (possible_previous_level_states[top2]) {
+                                auto &ref = qcfi[top2][color_intersection][it->first.symbol()]; // can also use it2->first.symbol()
+                                ref.insert(ref.end(), out_ins2.second.begin(), out_ins2.second.end());
+                            }
+                        }
+                    }
+                    if (possible_previous_level_states[R(top1, top2)]) {
+                        auto &ref = qcfi[R(top1, top2)][color_intersection][it->first.symbol()];
+                        if (qubit != c) {
+                            for (const auto &in1 : out_ins1.second) {
+                                for (const auto &in2 : out_ins2.second) {
+                                    ref.push_back({R(in1.at(0), in2.at(0)), R(in1.at(1), in2.at(1))});
+                                }
+                            }
+                        } else { // if (qubit == c)
+                            for (const auto &in1 : out_ins1.second) {
+                                for (const auto &in2 : out_ins2.second) {
+                                    ref.push_back({in1.at(0), R(in1.at(1), in2.at(1))});
+                                }
+                            }
+                        }
+                        if (!qubit_larger_than_c_has_done && qubit > c) {
+                            if (possible_previous_level_states[top1]) {
+                                auto &ref = qcfi[top1][color_intersection][it->first.symbol()];
+                                ref.insert(ref.end(), out_ins1.second.begin(), out_ins1.second.end());
+                            }
+                            if (possible_previous_level_states[top2]) {
+                                auto &ref = qcfi[top2][color_intersection][it->first.symbol()]; // can also use it2->first.symbol()
+                                ref.insert(ref.end(), out_ins2.second.begin(), out_ins2.second.end());
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        if (std::next(it, 1) == transitions.end() || std::next(it, 1)->first.is_leaf() || qubit != std::next(it, 1)->first.symbol().qubit()) { // this layer is finished!
+            for (const auto &q_ : qcfi) {
+                for (const auto &c_ : q_.second) {
+                    for (const auto &f_ : c_.second) {
+                        result.transitions[{f_.first, c_.first}][q_.first].insert(f_.second.begin(), f_.second.end());
+                        for (const auto &i : f_.second) {
+                            for (const auto &s : i)
+                                possible_next_level_states[s] = true;
+                        }
+                    }
+                }
+            }
+            qcfi.clear(); // = std::map<State, std::map<Tag, std::vector<std::pair<Symbol, StateVector>>>>();
+        }
+    }
+
+    head = it;
+    possible_previous_level_states = possible_next_level_states;
+    qcfi.clear(); // = std::map<State, std::map<Tag, std::vector<std::pair<Symbol, StateVector>>>>(); // may be redundant due to LINE 270
+    for (; it != transitions.end(); it++) { // iterate over all leaf transitions
+        assert(it->first.is_leaf()); // assert leaf transition
+        for (auto it2 = head; it2 != transitions.end(); it2++) {
+            assert(it2->first.is_leaf()); // another leaf transition
+            auto color_intersection = it->first.tag() & it2->first.tag();
+            if (color_intersection == 0) continue;  // ignore empty colors
+            for (const auto &out_ins1 : it->second) {
+                const auto &top1 = out_ins1.first;
+                // assert(in_out1.first.size() == 0);
+                for (const auto &out_ins2 : it2->second) {
+                    const auto &top2 = out_ins2.first;
+                    if (possible_previous_level_states[L(top1, top2)]) {
+                        qcfi[L(top1, top2)][color_intersection][u1u2(it->first.symbol(), it2->first.symbol())].push_back({});
+                    }
+                    if (possible_previous_level_states[R(top1, top2)]) {
+                        qcfi[R(top1, top2)][color_intersection][u3u4(it->first.symbol(), it2->first.symbol())].push_back({});
+                    }
+                }
+            }
+        }
+    }
+    for (const auto &q_ : qcfi) {
+        for (const auto &c_ : q_.second) {
+            for (const auto &f_ : c_.second) { // f_.second := a lot of input vectors
+                result.transitions[{f_.first, c_.first}][q_.first].insert(f_.second.begin(), f_.second.end());
+            }
+        }
+    }
+    result.stateNum = 2 * stateNum * stateNum + stateNum;
+    result.state_renumbering();
+    result.reduce();
+    *this = result;
+}
+
+template <typename Symbol>
 void AUTOQ::Automata<Symbol>::H(int t) {
     #ifdef TO_QASM
         system(("echo 'h qubits[" + std::to_string(t-1) + "];' >> " + QASM_FILENAME).c_str());
@@ -482,292 +660,6 @@ void AUTOQ::Automata<Symbol>::Rz(const boost::rational<boost::multiprecision::cp
     total_gate_time += duration;
     if (gateLog) std::cout << "Rz" << t << "：" << stateNum << " states " << count_transitions() << " transitions " << toString(duration) << "\n";
 }
-
-// IMPORTANT: Leave the space of size stateNum + aut2.stateNum for the original two automata!
-// #define construct_product_state_id(a, b, i) \
-//     State i = stateNum + aut2.stateNum + a * aut2.stateNum + b;
-// template <typename Symbol>
-// void AUTOQ::Automata<Symbol>::General_Controlled_Gate(int c, const AUTOQ::Automata<Symbol> &aut2) {
-//     AUTOQ::Automata<Symbol> result;
-//     result.name = name;
-//     result.qubitNum = qubitNum;
-//     result.isTopdownDeterministic = isTopdownDeterministic; // IMPORTANT: Avoid missing copying new fields afterwards.
-
-//     // std::map<std::pair<State, State>, State> stateOldToNew; // used only if overflow := true;
-//     bool overflow = (stateNum > std::numeric_limits<State>::max() / aut2.stateNum);
-//     if (!overflow)
-//         result.finalStates.reserve(finalStates.size() * aut2.finalStates.size()); // TODO: Can we set the initial capacity?
-//     else
-//         throw std::overflow_error("[ERROR] The number of states after multiplication is too large.");
-
-//     // We assume here transitions are ordered by symbols.
-//     // x_i are placed in the beginning, and leaves are placed in the end.
-//     // This traversal method is due to efficiency.
-//     std::vector<bool> possible_previous_level_states(stateNum + aut2.stateNum + stateNum * aut2.stateNum);
-//     std::vector<bool> possible_next_level_states(stateNum + aut2.stateNum + stateNum * aut2.stateNum);
-//     for (const auto &fs1 : finalStates) {
-//         for (const auto &fs2 : aut2.finalStates) {
-//             construct_product_state_id(fs1, fs2, s);
-//             possible_previous_level_states[s] = true;
-//         }
-//     }
-//     auto it = transitions.begin(); // global pointer
-//     auto head = aut2.transitions.begin();
-//     auto tail = head; // just borrow its type to declare the variable
-//     std::map<Symbol, std::map<State, std::map<Tag, std::vector<StateVector>>>> fqci;
-//     for (; it != transitions.end(); it++) { // iterate over all internal transitions of symbol < c
-//         if (it->first.is_leaf()) break; // assert internal transition
-//         if (it->first.symbol().qubit() >= c) {
-//             head = tail; // for future use
-//             break;
-//         }
-//         if (it->first.symbol().qubit() != head->first.symbol().qubit()) { // change layer
-//             head = tail;
-//             possible_previous_level_states = possible_next_level_states;
-//         }
-//         for (auto it2 = head; it2 != aut2.transitions.end(); it2++) {
-//             if (it2->first.is_leaf()) break; // another internal transition
-//             if (it2->first.symbol().qubit() != it->first.symbol().qubit()) {
-//                 tail = it2;
-//                 break; // ensure that the two symbols have the same qubit.
-//             }
-//             assert(it->first.symbol() == it2->first.symbol());
-//             for (const auto &in_out1 : it->second) {
-//                 assert(in_out1.first.size() == 2);
-//                 for (const auto &in_out2 : it2->second) {
-//                     assert(in_out2.first.size() == 2);
-//                     for (const auto &top1 : in_out1.second) {
-//                         for (const auto &top2 : in_out2.second) {
-//                             construct_product_state_id(top1, top2, T);
-//                             if (possible_previous_level_states[T]) {
-//                                 construct_product_state_id(in_out1.first.at(0), in_out2.first.at(0), L);
-//                                 construct_product_state_id(in_out1.first.at(1), in_out2.first.at(1), R);
-//                                 fqci[it->first.symbol()][T][it->first.tag() & it2->first.tag()].push_back({L, R});
-//                             }
-//                         }
-//                     }
-//                 }
-//             }
-//         }
-//         if (std::next(it, 1) == transitions.end() || std::next(it, 1)->first.is_leaf() || it->first.symbol().qubit() != std::next(it, 1)->first.symbol().qubit()) { // this layer is finished!
-//             std::map<Symbol, std::map<State, std::vector<Tag>>> delete_colors;
-//             for (const auto &f_ : fqci) {
-//                 for (const auto &q_ : f_.second) {
-//                     for (auto q_ptr = q_.second.rbegin(); q_ptr != q_.second.rend(); ++q_ptr) {
-//                         if (q_ptr->second.size() >= 2) {
-//                             delete_colors[f_.first][q_.first].push_back(q_ptr->first);
-//                         }
-//                         else {
-//                             for (auto q_ptr2 = q_.second.begin(); q_ptr2 != q_.second.end(); ++q_ptr2) {
-//                                 if (q_ptr2->first >= q_ptr->first) break;
-//                                 if ((q_ptr->first & q_ptr2->first) == q_ptr->first) {
-//                                     delete_colors[f_.first][q_.first].push_back(q_ptr->first);
-//                                     break;
-//                                 }
-//                             }
-//                         }
-//                     }
-//                 }
-//             }
-//             for (const auto &f_ : fqci) {
-//                 for (const auto &q_ : f_.second) {
-//                     for (const auto &c_ : q_.second) {
-//                         auto &dcfq = delete_colors[f_.first][q_.first];
-//                         if (std::find(dcfq.begin(), dcfq.end(), c_.first) != dcfq.end()) continue;
-//                         for (const auto &in : c_.second) {
-//                             if (it->first.symbol().qubit() == 1) // remember to add final states
-//                                 result.finalStates.push_back(q_.first);
-//                             result.transitions[{f_.first, c_.first}][in].insert(q_.first);
-//                             for (const auto &s : in)
-//                                 possible_next_level_states[s] = true;
-//                         }
-//                     }
-//                 }
-//             }
-//             fqci = std::map<Symbol, std::map<State, std::map<Tag, std::vector<StateVector>>>>();
-//         }
-//     }
-
-//     possible_previous_level_states = possible_next_level_states;
-//     for (; it != transitions.end(); it++) { // iterate over all internal transitions of symbol == c
-//         if (it->first.is_leaf()) break; // assert internal transition
-//         if (it->first.symbol().qubit() > c) break;
-//         auto it2 = head;
-//         for (; it2 != aut2.transitions.end(); it2++) {
-//             if (it2->first.is_leaf()) break; // another internal transition
-//             if (it2->first.symbol().qubit() != it->first.symbol().qubit()) break; // ensure that the two symbols have the same qubit.
-//             assert(it->first.symbol() == it2->first.symbol());
-//             for (const auto &in_out1 : it->second) {
-//                 assert(in_out1.first.size() == 2);
-//                 for (const auto &in_out2 : it2->second) {
-//                     assert(in_out2.first.size() == 2);
-//                     for (const auto &top1 : in_out1.second) {
-//                         for (const auto &top2 : in_out2.second) {
-//                             construct_product_state_id(top1, top2, T);
-//                             if (possible_previous_level_states[T])
-//                                 fqci[it->first.symbol()][T][it->first.tag() & it2->first.tag()].push_back({in_out1.first.at(0), stateNum + in_out2.first.at(1)});
-//                                 // IMPORTANT: Aut2's state ids must be added by aut1's state number to become the global state ids.
-//                         }
-//                     }
-//                 }
-//             }
-//         }
-//         tail = it2; // for future use
-//     }
-//     std::map<Symbol, std::map<State, std::vector<Tag>>> delete_colors;
-//     for (const auto &f_ : fqci) {
-//         for (const auto &q_ : f_.second) {
-//             for (auto q_ptr = q_.second.rbegin(); q_ptr != q_.second.rend(); ++q_ptr) {
-//                 if (q_ptr->second.size() >= 2) {
-//                     delete_colors[f_.first][q_.first].push_back(q_ptr->first);
-//                 }
-//                 else {
-//                     for (auto q_ptr2 = q_.second.begin(); q_ptr2 != q_.second.end(); ++q_ptr2) {
-//                         if (q_ptr2->first >= q_ptr->first) break;
-//                         if ((q_ptr->first & q_ptr2->first) == q_ptr->first) {
-//                             delete_colors[f_.first][q_.first].push_back(q_ptr->first);
-//                             break;
-//                         }
-//                     }
-//                 }
-//             }
-//         }
-//     }
-//     for (const auto &f_ : fqci) {
-//         for (const auto &q_ : f_.second) {
-//             for (const auto &c_ : q_.second) {
-//                 auto &dcfq = delete_colors[f_.first][q_.first];
-//                 if (std::find(dcfq.begin(), dcfq.end(), c_.first) != dcfq.end()) continue;
-//                 for (const auto &in : c_.second) {
-//                     if (c == 1) result.finalStates.push_back(q_.first);  // remember to add final states
-//                     result.transitions[{f_.first, c_.first}][in].insert(q_.first);
-//                     for (const auto &s : in)
-//                         possible_next_level_states[s] = true;
-//                 }
-//             }
-//         }
-//     }
-//     fqci = std::map<Symbol, std::map<State, std::map<Tag, std::vector<StateVector>>>>();
-
-//     auto it2 = tail; // global pointer now
-//     possible_previous_level_states = possible_next_level_states;
-//     for (; it != transitions.end(); it++) { // iterate over all internal transitions of symbol > c
-//         if (it->first.is_leaf()) break; // assert internal transition
-//         assert(it->first.symbol().qubit() > c);
-//         for (const auto &in_outs : it->second) {
-//             assert(in_outs.first.size() == 2);
-//             for (const auto &top : in_outs.second) {
-//                 if (possible_previous_level_states[top])
-//                     fqci[it->first.symbol()][top][it->first.tag()].push_back(in_outs.first);
-//             }
-//         }
-
-//         if (std::next(it, 1) == transitions.end() || std::next(it, 1)->first.is_leaf() || it->first.symbol().qubit() != std::next(it, 1)->first.symbol().qubit()) { // this layer is finished!
-//             for (; it2 != aut2.transitions.end(); it2++) {
-//                 if (it2->first.is_leaf()) break; // another internal transition
-//                 if (it2->first.symbol().qubit() != it->first.symbol().qubit()) break; // ensure that the two symbols have the same qubit.
-//                 assert(it->first.symbol() == it2->first.symbol());
-//                 for (const auto &in_outs : it2->second) {
-//                     assert(in_outs.first.size() == 2);
-//                     for (const auto &top : in_outs.second) {
-//                         if (possible_previous_level_states[top+stateNum]) // IMPORTANT: Aut2's state ids must be added by aut1's state number to become the global state ids.
-//                             fqci[it2->first.symbol()][top+stateNum][it2->first.tag()].push_back({in_outs.first.at(0)+stateNum, in_outs.first.at(1)+stateNum});
-//                     }
-//                 }
-//             }
-
-//             std::map<Symbol, std::map<State, std::vector<Tag>>> delete_colors;
-//             for (const auto &f_ : fqci) {
-//                 for (const auto &q_ : f_.second) {
-//                     for (auto q_ptr = q_.second.rbegin(); q_ptr != q_.second.rend(); ++q_ptr) {
-//                         if (q_ptr->second.size() >= 2) {
-//                             delete_colors[f_.first][q_.first].push_back(q_ptr->first);
-//                         }
-//                         else {
-//                             for (auto q_ptr2 = q_.second.begin(); q_ptr2 != q_.second.end(); ++q_ptr2) {
-//                                 if (q_ptr2->first >= q_ptr->first) break;
-//                                 if ((q_ptr->first & q_ptr2->first) == q_ptr->first) {
-//                                     delete_colors[f_.first][q_.first].push_back(q_ptr->first);
-//                                     break;
-//                                 }
-//                             }
-//                         }
-//                     }
-//                 }
-//             }
-//             for (const auto &f_ : fqci) {
-//                 for (const auto &q_ : f_.second) {
-//                     for (const auto &c_ : q_.second) {
-//                         auto &dcfq = delete_colors[f_.first][q_.first];
-//                         if (std::find(dcfq.begin(), dcfq.end(), c_.first) != dcfq.end()) continue;
-//                         for (const auto &in : c_.second) {
-//                             result.transitions[{f_.first, c_.first}][in].insert(q_.first);
-//                             for (const auto &s : in)
-//                                 possible_next_level_states[s] = true;
-//                         }
-//                     }
-//                 }
-//             }
-//             fqci = std::map<Symbol, std::map<State, std::map<Tag, std::vector<StateVector>>>>();
-//             possible_previous_level_states = possible_next_level_states;
-//         }
-//     }
-//     possible_previous_level_states = possible_next_level_states;
-//     for (; it != transitions.end(); it++) { // iterate over all leaf transitions of aut1
-//         for (const auto &in_outs : it->second) {
-//             assert(in_outs.first.size() == 0);
-//             for (const auto &top : in_outs.second) {
-//                 if (possible_previous_level_states[top])
-//                     fqci[it->first.symbol()][top][it->first.tag()].push_back({});
-//             }
-//         }
-//     }
-//     for (; it2 != aut2.transitions.end(); it2++) { // iterate over all leaf transitions of aut2
-//         for (const auto &in_outs : it2->second) {
-//             assert(in_outs.first.size() == 0);
-//             for (const auto &top : in_outs.second) {
-//                 if (possible_previous_level_states[top+stateNum]) // IMPORTANT: Aut2's state ids must be added by aut1's state number to become the global state ids.
-//                     fqci[it2->first.symbol()][top+stateNum][it2->first.tag()].push_back({});
-//             }
-//         }
-//     }
-//     delete_colors.clear();
-//     for (const auto &f_ : fqci) {
-//         for (const auto &q_ : f_.second) {
-//             for (auto q_ptr = q_.second.rbegin(); q_ptr != q_.second.rend(); ++q_ptr) {
-//                 if (q_ptr->second.size() >= 2) {
-//                     delete_colors[f_.first][q_.first].push_back(q_ptr->first);
-//                 }
-//                 else {
-//                     for (auto q_ptr2 = q_.second.begin(); q_ptr2 != q_.second.end(); ++q_ptr2) {
-//                         if (q_ptr2->first >= q_ptr->first) break;
-//                         if ((q_ptr->first & q_ptr2->first) == q_ptr->first) {
-//                             delete_colors[f_.first][q_.first].push_back(q_ptr->first);
-//                             break;
-//                         }
-//                     }
-//                 }
-//             }
-//         }
-//     }
-//     for (const auto &f_ : fqci) {
-//         for (const auto &q_ : f_.second) {
-//             for (const auto &c_ : q_.second) {
-//                 auto &dcfq = delete_colors[f_.first][q_.first];
-//                 if (std::find(dcfq.begin(), dcfq.end(), c_.first) != dcfq.end()) continue;
-//                 for (const auto &in : c_.second) {
-//                     result.transitions[{f_.first, c_.first}][in].insert(q_.first);
-//                     for (const auto &s : in)
-//                         possible_next_level_states[s] = true;
-//                 }
-//             }
-//         }
-//     }
-//     result.stateNum = stateNum + aut2.stateNum + stateNum * aut2.stateNum;
-//     result.state_renumbering();
-//     result.reduce();
-//     *this = result;
-// }
 
 template <typename Symbol>
 void AUTOQ::Automata<Symbol>::CX(int c, int t, bool opt) {
