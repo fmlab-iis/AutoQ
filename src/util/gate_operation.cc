@@ -406,10 +406,15 @@ void AUTOQ::Automata<Symbol>::General_Controlled_Gate(int c, int t, const std::f
     // We assume here transitions are ordered by symbols.
     // x_i are placed in the beginning, and leaves are placed in the end.
     // This traversal method is due to efficiency.
-    auto it = transitions.begin(); // global pointer
-    for (; it != transitions.end(); it++) { // iterate over all internal transitions of symbol < t
-        if (it->first.symbol().is_leaf() || it->first.symbol().qubit() < t)
-            result.transitions.insert(*it);
+    auto it = transitions.begin(); // global pointer, useless initial value only for declaring its type
+    bool it_has_been_assigned = false;
+    for (auto it0 = transitions.begin(); it0 != transitions.end(); it0++) { // iterate over all internal transitions of symbol < t
+        if (it0->first.symbol().is_leaf() || it0->first.symbol().qubit() < t)
+            result.transitions.insert(*it0);
+        if (!it_has_been_assigned && it0->first.symbol().qubit() >= t) {
+            it = it0;
+            it_has_been_assigned = true;
+        }
     }
 
     std::vector<bool> possible_next_level_states(R(stateNum-1, stateNum-1) + 1);
@@ -451,7 +456,6 @@ void AUTOQ::Automata<Symbol>::General_Controlled_Gate(int c, int t, const std::f
                 for (const auto &out_ins2 : it2->second) {
                     const auto &top2 = out_ins2.first;
                     // assert(out_ins2.first.size() == 2);
-                    bool qubit_larger_than_c_has_done = false;
                     if (possible_previous_level_states[L(top1, top2)]) {
                         auto &ref = qcfi[L(top1, top2)][color_intersection][it->first.symbol()];
                         if (qubit != c) {
@@ -467,17 +471,6 @@ void AUTOQ::Automata<Symbol>::General_Controlled_Gate(int c, int t, const std::f
                                 }
                             }
                         }
-                        if (qubit > c) {
-                            qubit_larger_than_c_has_done = true;
-                            if (possible_previous_level_states[top1]) {
-                                auto &ref = qcfi[top1][color_intersection][it->first.symbol()];
-                                ref.insert(ref.end(), out_ins1.second.begin(), out_ins1.second.end());
-                            }
-                            if (possible_previous_level_states[top2]) {
-                                auto &ref = qcfi[top2][color_intersection][it->first.symbol()]; // can also use it2->first.symbol()
-                                ref.insert(ref.end(), out_ins2.second.begin(), out_ins2.second.end());
-                            }
-                        }
                     }
                     if (possible_previous_level_states[R(top1, top2)]) {
                         auto &ref = qcfi[R(top1, top2)][color_intersection][it->first.symbol()];
@@ -490,20 +483,26 @@ void AUTOQ::Automata<Symbol>::General_Controlled_Gate(int c, int t, const std::f
                         } else { // if (qubit == c)
                             for (const auto &in1 : out_ins1.second) {
                                 for (const auto &in2 : out_ins2.second) {
-                                    ref.push_back({in1.at(0), R(in1.at(1), in2.at(1))});
+                                    ref.push_back({in2.at(0), R(in1.at(1), in2.at(1))});
                                 }
                             }
                         }
-                        if (!qubit_larger_than_c_has_done && qubit > c) {
-                            if (possible_previous_level_states[top1]) {
-                                auto &ref = qcfi[top1][color_intersection][it->first.symbol()];
-                                ref.insert(ref.end(), out_ins1.second.begin(), out_ins1.second.end());
-                            }
-                            if (possible_previous_level_states[top2]) {
-                                auto &ref = qcfi[top2][color_intersection][it->first.symbol()]; // can also use it2->first.symbol()
-                                ref.insert(ref.end(), out_ins2.second.begin(), out_ins2.second.end());
-                            }
-                        }
+                    }
+                }
+            }
+            if (qubit > c) {
+                for (const auto &out_ins : it->second) {
+                    const auto &top = out_ins.first;
+                    if (possible_previous_level_states[top]) {
+                        auto &ref = qcfi[top][color_intersection][it->first.symbol()];
+                        ref.insert(ref.end(), out_ins.second.begin(), out_ins.second.end());
+                    }
+                }
+                for (const auto &out_ins : it2->second) {
+                    const auto &top = out_ins.first;
+                    if (possible_previous_level_states[top]) {
+                        auto &ref = qcfi[top][color_intersection][it2->first.symbol()]; // can also use it->first.symbol()
+                        ref.insert(ref.end(), out_ins.second.begin(), out_ins.second.end());
                     }
                 }
             }
