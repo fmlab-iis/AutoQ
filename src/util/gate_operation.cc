@@ -378,7 +378,7 @@ void AUTOQ::Automata<Symbol>::General_Single_Qubit_Gate(int t, const std::functi
         }
     }
     result.stateNum = 2 * stateNum * stateNum + stateNum;
-    result.state_renumbering();
+    // result.state_renumbering();
     result.reduce();
     *this = result;
 }
@@ -555,7 +555,7 @@ void AUTOQ::Automata<Symbol>::General_Controlled_Gate(int c, int t, const std::f
         }
     }
     result.stateNum = 2 * stateNum * stateNum + stateNum;
-    result.state_renumbering();
+    // result.state_renumbering();
     result.reduce();
     *this = result;
 }
