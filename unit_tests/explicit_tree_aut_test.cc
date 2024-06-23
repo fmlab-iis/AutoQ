@@ -321,11 +321,10 @@ BOOST_AUTO_TEST_CASE(CX_gate_twice_to_identity)
         for (int i=0; i<loop; i++) {
             after.CX(n*2/3, n/3);
 
-            if (i < loop-1) {
-                if (before.name == "Random")
-                    BOOST_REQUIRE_MESSAGE(!AUTOQ::TreeAutomata::check_equal(before, after), "\n" +
-                        AUTOQ::Serialization::TimbukSerializer::Serialize(before) +
-                        AUTOQ::Serialization::TimbukSerializer::Serialize(after));
+            if (i < loop-1 && before.name == "Random") {
+                BOOST_REQUIRE_MESSAGE(!AUTOQ::TreeAutomata::check_equal(before, after), "\n" +
+                    AUTOQ::Serialization::TimbukSerializer::Serialize(before) +
+                    AUTOQ::Serialization::TimbukSerializer::Serialize(after));
             } else {
                 BOOST_REQUIRE_MESSAGE(AUTOQ::TreeAutomata::check_equal(before, after), "\n" +
                         AUTOQ::Serialization::TimbukSerializer::Serialize(before) +
