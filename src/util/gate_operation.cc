@@ -389,6 +389,15 @@ void AUTOQ::Automata<Symbol>::General_Controlled_Gate(int c, int t, const std::f
         AUTOQ_ERROR("We require c > t here.");
         exit(1);
     }
+    General_Controlled_Gate(c, c, t, u1u2, u3u4);
+}
+template <typename Symbol>
+void AUTOQ::Automata<Symbol>::General_Controlled_Gate(int c, int c2, int t, const std::function<Symbol(const Symbol&, const Symbol&)> &u1u2, const std::function<Symbol(const Symbol&, const Symbol&)> &u3u4) {
+    auto minC = std::min(c, c2);
+    if (minC <= t) {
+        AUTOQ_ERROR("We require all c's > t here.");
+        exit(1);
+    }
 
     AUTOQ::Automata<Symbol> result;
     result.name = name;
@@ -456,15 +465,16 @@ void AUTOQ::Automata<Symbol>::General_Controlled_Gate(int c, int t, const std::f
                 for (const auto &out_ins2 : it2->second) {
                     const auto &top2 = out_ins2.first;
                     // assert(out_ins2.first.size() == 2);
+                    bool qubit_is_NOT_a_control_qubit = (qubit != c) && (qubit != c2);
                     if (possible_previous_level_states[L(top1, top2)]) {
                         auto &ref = qcfi[L(top1, top2)][color_intersection][it->first.symbol()];
-                        if (qubit != c) {
+                        if (qubit_is_NOT_a_control_qubit) {
                             for (const auto &in1 : out_ins1.second) {
                                 for (const auto &in2 : out_ins2.second) {
                                     ref.push_back({L(in1.at(0), in2.at(0)), L(in1.at(1), in2.at(1))});
                                 }
                             }
-                        } else { // if (qubit == c)
+                        } else { // if (qubit_is_a_control_qubit)
                             for (const auto &in1 : out_ins1.second) {
                                 for (const auto &in2 : out_ins2.second) {
                                     ref.push_back({in1.at(0), L(in1.at(1), in2.at(1))});
@@ -474,13 +484,13 @@ void AUTOQ::Automata<Symbol>::General_Controlled_Gate(int c, int t, const std::f
                     }
                     if (possible_previous_level_states[R(top1, top2)]) {
                         auto &ref = qcfi[R(top1, top2)][color_intersection][it->first.symbol()];
-                        if (qubit != c) {
+                        if (qubit_is_NOT_a_control_qubit) {
                             for (const auto &in1 : out_ins1.second) {
                                 for (const auto &in2 : out_ins2.second) {
                                     ref.push_back({R(in1.at(0), in2.at(0)), R(in1.at(1), in2.at(1))});
                                 }
                             }
-                        } else { // if (qubit == c)
+                        } else { // if (qubit_is_a_control_qubit)
                             for (const auto &in1 : out_ins1.second) {
                                 for (const auto &in2 : out_ins2.second) {
                                     ref.push_back({in2.at(0), R(in1.at(1), in2.at(1))});
@@ -490,7 +500,7 @@ void AUTOQ::Automata<Symbol>::General_Controlled_Gate(int c, int t, const std::f
                     }
                 }
             }
-            if (qubit > c) {
+            if (qubit > minC) {
                 for (const auto &out_ins : it->second) {
                     const auto &top = out_ins.first;
                     if (possible_previous_level_states[top]) {
@@ -800,11 +810,10 @@ void AUTOQ::Automata<Symbol>::CX(int c, int t, bool opt) {
             // remove_useless();
             reduce();
         }
-        auto duration = std::chrono::steady_clock::now() - start;
-        total_gate_time += duration;
     }
     gateCount++;
     auto duration = std::chrono::steady_clock::now() - start;
+    total_gate_time += duration;
     if (gateLog) std::cout << "CX" << c << "," << t << "：" << stateNum << " states " << count_transitions() << " transitions " << toString(duration) << "\n";
 }
 
@@ -1368,14 +1377,10 @@ void AUTOQ::Automata<Symbol>::CCX(int c, int c2, int t) {
         }
         transitions = transitions2;
         reduce();
-        auto duration = std::chrono::steady_clock::now() - start;
-        total_gate_time += duration;
     } else if (t < c) { // t < c < c2
-        H(c2); gateCount--;
-        H(t); gateCount--;
-        CCX(t, c, c2); gateCount--;
-        H(c2); gateCount--;
-        H(t); gateCount--;
+        General_Controlled_Gate(c, c2, t,
+            [](const Symbol &l, const Symbol &r) -> Symbol { return r; },
+            [](const Symbol &l, const Symbol &r) -> Symbol { return l; });
     } else { // c < t < c2
         H(c2); gateCount--;
         H(t); gateCount--;
@@ -1385,6 +1390,7 @@ void AUTOQ::Automata<Symbol>::CCX(int c, int c2, int t) {
     }
     gateCount++;
     auto duration = std::chrono::steady_clock::now() - start;
+    total_gate_time += duration;
     if (gateLog) std::cout << "CCX" << c << "," << c2 << "," << t << "：" << stateNum << " states " << count_transitions() << " transitions " << toString(duration) << "\n";
 }
 
