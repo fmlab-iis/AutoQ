@@ -141,7 +141,7 @@ public:   // data types
           const std::set<StateVector>& lhsStateVectorSet = itLhsSymb->second;
           const std::set<StateVector>& rhsStateVectorSet = itRhsSymb->second;
 
-          auto normalize = [index](const StateVector& vec) {
+          auto normalize = [&index](const StateVector& vec) {
             StateVector res;
             for (State st : vec) {
               auto it = index.find(st);
