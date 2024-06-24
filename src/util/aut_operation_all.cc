@@ -67,7 +67,7 @@ namespace { // anonymous namespace
     }
 
     for (auto& tupleIndexPair : lhsMap)
-    {	// for n-ary transition (n > 1), decompose the hyperedge into n ordinary
+    { // for n-ary transition (n > 1), decompose the hyperedge into n ordinary
       // edges
       assert(tupleIndexPair.first);
 
@@ -216,7 +216,7 @@ void AUTOQ::Automata<Symbol>::sim_reduce()
   using DiscontBinaryRelOnStates = typename Util::DiscontBinaryRelation<State>;
   using StateToStateMap = typename std::unordered_map<State, State>;
 
-  DiscontBinaryRelOnStates sim = compute_down_sim(*this);
+  DiscontBinaryRelOnStates sim = ::compute_down_sim(*this);
 
   // TODO: this is probably not optimal, we could probably get the mapping of
   // states for collapsing in a faster way
@@ -253,7 +253,7 @@ bool AUTOQ::Automata<Symbol>::light_reduce_up()
             vecSetPairs[in].insert(out);
         }
     }
-		// AUTOQ_DEBUG("vecSetPairs = " + Convert::ToString(vecSetPairs));
+    // AUTOQ_DEBUG("vecSetPairs = " + Convert::ToString(vecSetPairs));
     for (const auto& vecSetPair : vecSetPairs) {
       for (auto state : vecSetPair.second) {
         auto itBoolPair = index.insert({state, *vecSetPair.second.begin()});
@@ -448,13 +448,101 @@ bool AUTOQ::Automata<Symbol>::light_reduce_down_iter()
   return 1 == iterations;
 }
 
+template <typename Symbol>
+AUTOQ::Automata<Symbol>::StateLevelMap AUTOQ::Automata<Symbol>::get_state_level_map(const TopDownTA& tdTA) const
+{
+  const int FLOATING_LEVEL = 0;
+  int current_level = 1;
+
+  StateLevelMap state_level_map;
+  for (const State& state : this->finalStates) {
+    bool res = state_level_map.insert_level_to_state(1, state);
+    assert(res);
+  }
+
+  while (!state_level_map.level_empty(current_level)) { // while current level non-empty
+    for (const auto& state : state_level_map.get_level(current_level)) {
+      auto it = tdTA.transDown.find(state);
+      if (tdTA.transDown.end() == it) { continue; }
+      const auto& symbolMap = it->second;
+      for (const auto& symbolSetPair : symbolMap) {
+        for (const auto& childVector : symbolSetPair.second) {
+          for (State child : childVector) {
+            bool res = state_level_map.insert_level_to_state(current_level+1, child);
+            assert(res);
+          }
+        }
+      }
+    }
+
+    ++current_level;
+  }
+
+  return state_level_map;
+}
+
+template <typename Symbol>
+bool AUTOQ::Automata<Symbol>::reduce_down_bisim_level()
+{
+  using StateToStateMap = typename std::unordered_map<State, State>;
+
+  TopDownTA tdTA = this->get_top_down_ta();
+  StateLevelMap state_level_map = this->get_state_level_map(tdTA);
+  // AUTOQ_DEBUG("state_level_map: " + state_level_map.ToString());
+
+  int level = state_level_map.get_max_level();
+  // AUTOQ_DEBUG("max_level: " + Convert::ToString(level));
+
+  StateToStateMap index;
+  // initialize index
+  for (const auto& stateSymbolMapPair : tdTA.transDown) {
+    index[stateSymbolMapPair.first] = stateSymbolMapPair.first;
+  }
+
+  for (; level > 0; --level) {
+    const std::set<State>& level_states = state_level_map.get_level(level);
+
+    // for each pair of states on the level, check whether they are one-step bisimilar
+    for (auto it = level_states.cbegin(); it != level_states.cend(); ++it) {
+      auto jt = it;
+      ++jt;
+
+      for (; jt != level_states.cend(); ++jt) {
+        if (index[*jt] != *jt) { // if the state is already merged
+          continue;
+        }
+
+        if (tdTA.states_have_same_down_wrt_index(index, *it, *jt)) {
+          // AUTOQ_DEBUG(Convert::ToString(it->first) + " and " +
+          //   Convert::ToString(jt->first) + " have the same DOWN");
+          index[*jt] = *it;
+        }
+      }
+    }
+  }
+
+  bool changed = false;
+  for (const auto& statePair : index) { // detect if there was some change
+    if (statePair.first != statePair.second) {
+      changed = true;
+      break;
+    }
+  }
+
+  // AUTOQ_DEBUG("index: " + Convert::ToString(index));
+  if (changed) {
+    // Automata old = *this;
+    reindex_aut_states(*this, index);
+    // assert(check_equal_aut(old, *this));
+  }
+
+  return changed;
+}
 
 
 template <typename Symbol>
-bool AUTOQ::Automata<Symbol>::light_reduce_down_bisim()
+AUTOQ::Automata<Symbol>::TopDownTA AUTOQ::Automata<Symbol>::get_top_down_ta() const
 {
-  // AUTOQ_DEBUG("entering " + std::string(__func__));
-  using StateToStateMap = typename std::unordered_map<State, State>;
   TopDownTA tdTA;
 
   // compute top-down representation
@@ -467,6 +555,18 @@ bool AUTOQ::Automata<Symbol>::light_reduce_down_bisim()
       }
     }
   }
+
+  return tdTA;
+}
+
+
+template <typename Symbol>
+bool AUTOQ::Automata<Symbol>::light_reduce_down_bisim()
+{
+  // AUTOQ_DEBUG("entering " + std::string(__func__));
+  using StateToStateMap = typename std::unordered_map<State, State>;
+
+  TopDownTA tdTA = this->get_top_down_ta();
 
   StateToStateMap index;
   // initialize index
@@ -559,8 +659,13 @@ void AUTOQ::Automata<Symbol>::union_all_colors_for_a_given_transition() {
 template <typename Symbol>
 void AUTOQ::Automata<Symbol>::reduce() {
     auto start = std::chrono::steady_clock::now();
-    // AUTOQ_DEBUG("before light_reduce_down: " + Convert::ToString(count_aut_states(*this)));
+    // static size_t reduce_num = 0;
+    // AUTOQ_DEBUG("reduction no: " + Convert::ToString(reduce_num));
+    // ++reduce_num;
+    AUTOQ_DEBUG("before reduce: " + Convert::ToString(count_aut_states(*this)));
+    // // AUTOQ_DEBUG("before light_reduce_down: " + Convert::ToString(count_aut_states(*this)));
     // this->sim_reduce();
+    // AUTOQ_DEBUG("after reduce: " + Convert::ToString(count_aut_states(*this)));
     // auto duration = std::chrono::steady_clock::now() - start;
     // total_reduce_time += duration;
     // return;
@@ -569,17 +674,18 @@ void AUTOQ::Automata<Symbol>::reduce() {
         while (true) {
             // AUTOQ_DEBUG("before light_reduce_up: " + Convert::ToString(count_aut_states(*this)));
             // this->print_aut();
-            this->light_reduce_up_iter();
+            // this->light_reduce_up_iter();
             // AUTOQ_DEBUG("after light_reduce_up: " + Convert::ToString(count_aut_states(*this)));
 
             // Automata old = *this;
             // AUTOQ_DEBUG("before light_reduce_down: " + Convert::ToString(count_aut_states(*this)));
-            this->light_reduce_down_iter();
+            // this->light_reduce_down_iter();
             // AUTOQ_DEBUG("after light_reduce_down: " + Convert::ToString(count_aut_states(*this)));
             // this->print_aut();
 
             // AUTOQ_DEBUG("before light_reduce_down_bisim: " + Convert::ToString(count_aut_states(*this)));
-            this->light_reduce_down_bisim_iter();
+            // this->light_reduce_down_bisim_iter();
+            this->reduce_down_bisim_level();
             // AUTOQ_DEBUG("after light_reduce_down_bisim: " + Convert::ToString(count_aut_states(*this)));
             // this->print_aut();
 
@@ -598,6 +704,7 @@ void AUTOQ::Automata<Symbol>::reduce() {
     auto duration = std::chrono::steady_clock::now() - start;
     total_reduce_time += duration;
     if (opLog) std::cout << __FUNCTION__ << "：" << stateNum << " states " << count_transitions() << " transitions\n";
+    AUTOQ_DEBUG("after reduce: " + Convert::ToString(count_aut_states(*this)));
 }
 
 template <typename Symbol>

@@ -45,11 +45,11 @@ struct AUTOQ::Automata
 {
 public:   // data types
     typedef int64_t State; // TODO: will make the program slightly slower. We wish to make another dynamic type.
-	typedef std::vector<State> StateVector;
-	typedef std::set<State> StateSet;
+  typedef std::vector<State> StateVector;
+  typedef std::set<State> StateSet;
 
     typedef TT Symbol;
-	typedef unsigned Tag;
+  typedef unsigned Tag;
     inline static constexpr auto Tag_MAX = 1 << (std::numeric_limits<Tag>::digits - 1);
     typedef std::pair<Symbol, Tag> stdpairSymbolTag;
     struct SymbolTag : stdpairSymbolTag {
@@ -93,6 +93,7 @@ public:   // data types
     { // {{{
       using SymbolDownMap = std::map<SymbolTag, std::set<StateVector>>;
       std::map<State, SymbolDownMap> transDown;
+      std::set<State> rootStates;
 
       void insert_trans(State parent, SymbolTag symb, StateVector children)
       {
@@ -114,14 +115,126 @@ public:   // data types
 
         return lhsDown == rhsDown;
       }
+
+      template <class Index>
+      bool states_have_same_down_wrt_index(const Index& index, State lhs, State rhs) const
+      {
+        auto itLhs = this->transDown.find(lhs);
+        auto itRhs = this->transDown.find(rhs);
+        assert(itLhs != this->transDown.end());
+        assert(itRhs != this->transDown.end());
+        const SymbolDownMap& lhsDown = itLhs->second;
+        const SymbolDownMap& rhsDown = itRhs->second;
+
+        if (lhsDown.size() != rhsDown.size()) {
+          return false;
+        }
+
+        auto itLhsSymb = lhsDown.cbegin();
+        auto itRhsSymb = rhsDown.cbegin();
+        for (; (itLhsSymb != lhsDown.cend() && itRhsSymb != rhsDown.cend());
+          ++itLhsSymb, ++itRhsSymb) { // go through both in a lockstep
+          if (itLhsSymb->first != itRhsSymb->first) {
+            return false;    // some symbol is missing
+          }
+
+          const std::set<StateVector>& lhsStateVectorSet = itLhsSymb->second;
+          const std::set<StateVector>& rhsStateVectorSet = itRhsSymb->second;
+
+          auto normalize = [index](const StateVector& vec) {
+            StateVector res;
+            for (State st : vec) {
+              auto it = index.find(st);
+              assert(index.end() != it);
+              res.push_back(it->second);
+            }
+
+            return res;
+          };
+
+          std::set<StateVector> lhsSVS_normalized;
+          std::set<StateVector> rhsSVS_normalized;
+
+          for (const StateVector& stVec : lhsStateVectorSet) {
+            lhsSVS_normalized.insert(normalize(stVec));
+          }
+          for (const StateVector& stVec : rhsStateVectorSet) {
+            rhsSVS_normalized.insert(normalize(stVec));
+          }
+
+          if (lhsSVS_normalized != rhsSVS_normalized) {
+            return false;
+          }
+        }
+
+        return itLhsSymb == lhsDown.cend() && itRhsSymb == rhsDown.cend();
+      }
     }; // struct TopDownTA }}}
 
+    TopDownTA get_top_down_ta() const;
+
+    struct StateLevelMap
+    { // {{{
+      using StateToLevelMap = std::unordered_map<State, int>;
+      using LevelToStatesMap = std::unordered_map<int, std::set<State>>;
+
+      StateToLevelMap state_to_level;
+      LevelToStatesMap level_to_states;
+
+      /// inserts a mapping (or returns @c false if not possible)
+      bool insert_level_to_state(int level, State state)
+      {
+        auto itBoolPair1 = state_to_level.insert({state, level});
+        if (!itBoolPair1.second && (itBoolPair1.first)->second != level) {
+          // if there is already a~different mapping
+          return false;
+        }
+
+        auto itBoolPair2 = level_to_states.insert({level, {}});
+        itBoolPair2.first->second.insert(state);
+
+        return true;
+      }
+
+      inline bool level_empty(int level) const
+      {
+        auto it = level_to_states.find(level);
+        return level_to_states.end() == it || it->second.empty();
+      }
+
+      inline const std::set<State>& get_level(int level) const
+      {
+        auto it = level_to_states.find(level);
+        assert(it != level_to_states.end());
+        return it->second;
+      }
+
+      inline int get_max_level() const
+      {
+        int max_level = 0;
+        for (const auto& level_states_pair : level_to_states) {
+          if (level_states_pair.first > max_level) {
+            max_level = level_states_pair.first;
+          }
+        }
+
+        return max_level;
+      }
+
+      inline std::string ToString() const
+      {
+        return Util::Convert::ToString(level_to_states);
+      }
+    }; // }}}
+
+    StateLevelMap get_state_level_map(const TopDownTA& tdTA) const;
+
 public:   // data members
-	std::string name;
+  std::string name;
     StateVector finalStates;
     State stateNum;
     unsigned qubitNum;
-	TransitionMap transitions;
+  TransitionMap transitions;
     bool isTopdownDeterministic;
     inline static int gateCount, stateBefore, transitionBefore;
     inline static bool gateLog, opLog;
@@ -133,14 +246,14 @@ public:   // data members
 
 public:   // methods
 
-	Automata() :
-		name(),
-		finalStates(),
+  Automata() :
+    name(),
+    finalStates(),
         stateNum(0),
         qubitNum(0),
-		transitions(),
+    transitions(),
         isTopdownDeterministic(false)
-	{
+  {
         auto envptr = std::getenv("LOG");
         if (envptr != nullptr) {
             auto envstr = std::string(envptr);
@@ -153,45 +266,45 @@ public:   // methods
         }
     }
 
-	/**
-	 * @brief  Relaxed equivalence check
-	 *
-	 * Checks whether the final states and transitions of two automata descriptions match.
-	 */
-	bool operator==(const Automata& rhs) const
-	{
-		return (finalStates == rhs.finalStates) && (transitions == rhs.transitions);
-	}
+  /**
+   * @brief  Relaxed equivalence check
+   *
+   * Checks whether the final states and transitions of two automata descriptions match.
+   */
+  bool operator==(const Automata& rhs) const
+  {
+    return (finalStates == rhs.finalStates) && (transitions == rhs.transitions);
+  }
 
-	/**
-	 * @brief  Strict equivalence check
-	 *
-	 * Checks whether all components of two automata descriptions match.
-	 */
-	bool StrictlyEqual(const Automata& rhs) const
-	{
-		return
-			(name == rhs.name) &&
-			(finalStates == rhs.finalStates) &&
+  /**
+   * @brief  Strict equivalence check
+   *
+   * Checks whether all components of two automata descriptions match.
+   */
+  bool StrictlyEqual(const Automata& rhs) const
+  {
+    return
+      (name == rhs.name) &&
+      (finalStates == rhs.finalStates) &&
             (stateNum == rhs.stateNum) &&
             (qubitNum == rhs.qubitNum) &&
-			(transitions == rhs.transitions);
-	}
+      (transitions == rhs.transitions);
+  }
 
-	std::string ToString() const
-	{
-		std::string result;
-		result += "name: " + name + "\n";
-		result += "number of states: " + Util::Convert::ToString(stateNum) + "\n";
-		result += "final states: " + Util::Convert::ToString(finalStates) + "\n";
-		result += "transitions: \n";
-		for (const auto &trans : transitions)
-		{
-			result += Util::Convert::ToString(trans) + "\n";
-		}
+  std::string ToString() const
+  {
+    std::string result;
+    result += "name: " + name + "\n";
+    result += "number of states: " + Util::Convert::ToString(stateNum) + "\n";
+    result += "final states: " + Util::Convert::ToString(finalStates) + "\n";
+    result += "transitions: \n";
+    for (const auto &trans : transitions)
+    {
+      result += Util::Convert::ToString(trans) + "\n";
+    }
 
-		return result;
-	}
+    return result;
+  }
 
 private:
     void state_renumbering();
@@ -229,10 +342,12 @@ public:
     bool light_reduce_down();
     /// lightweight downwards size reduction, iterated until change happens, returns @p true iff the automaton changed
     bool light_reduce_down_iter();
-		/// lightweight bisimilarity-based reduction, done downwards; returns @p true iff the automaton changed
-		bool light_reduce_down_bisim();
+    /// lightweight bisimilarity-based reduction, done downwards; returns @p true iff the automaton changed
+    bool light_reduce_down_bisim();
     /// lightweight downwards bisimlarity size reduction, iterated until change happens, returns @p true iff the automaton changed
-		bool light_reduce_down_bisim_iter();
+    bool light_reduce_down_bisim_iter();
+    /// bisimilarity-based reduction, done downwards, working with levels; returns @p true iff the automaton changed
+    bool reduce_down_bisim_level();
     /// reduces the automaton using a prefered reduction
     void reduce();
     void union_all_colors_for_a_given_transition();

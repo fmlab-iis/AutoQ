@@ -181,6 +181,8 @@ int main(int argc, char **argv) {
     if (executionC->parsed()) {
         runConcrete = true;
         AUTOQ::TreeAutomata aut = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Concrete>::FromFileToAutomata(pre);
+        aut.print_aut();
+        aut.reduce();
         aut.execute(circuit);
         aut.print_aut();
     } else if (verificationC->parsed()) {
