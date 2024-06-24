@@ -42,28 +42,28 @@ namespace {
 }
 
 #define queryTopID(oldID, newID) \
-    State newID;    \
-    {   \
-        auto it = topStateMap.find(oldID);    \
-        if (it == topStateMap.end())    \
-            newID = oldID;    \
-        else    \
-            newID = it->second; \
-    }
+    State newID = oldID + stateNum;
+    // {   \
+    //     auto it = topStateMap.find(oldID);    \
+    //     if (it == topStateMap.end())    \
+    //         newID = oldID;    \
+    //     else    \
+    //         newID = it->second; \
+    // }
 #define queryChildID(oldID, newID) \
-    State newID;    \
-    {   \
-        auto it = childStateMap.find(oldID);    \
-        if (it == childStateMap.end())    \
-            newID = oldID;    \
-        else    \
-            newID = it->second; \
-    }
+    State newID = oldID + stateNum;
+    // {   \
+    //     auto it = childStateMap.find(oldID);    \
+    //     if (it == childStateMap.end())    \
+    //         newID = oldID;    \
+    //     else    \
+    //         newID = it->second; \
+    // }
 template <typename Symbol>
 void AUTOQ::Automata<Symbol>::diagonal_gate(int t, const std::function<void(Symbol*)> &multiply_by_c0, const std::function<void(Symbol*)> &multiply_by_c1) {
     TransitionMap transitions2;
     std::map<State, int> topStateIsLeftOrRight, childStateIsLeftOrRight; // 0b10: original tree, 0b01: copied tree, 0b11: both trees
-    std::map<State, State> topStateMap, childStateMap;
+    // std::map<State, State> topStateMap, childStateMap;
     // If a state has only one tree, then its id does not change. In this case, it is not present in this map.
     // If a state has two trees, then it presents in this map and its value is the id in the copied tree.
 
@@ -96,12 +96,12 @@ void AUTOQ::Automata<Symbol>::diagonal_gate(int t, const std::function<void(Symb
             }
             /**************************************/
             /* Construct childStateMap. */
-            for (const auto &kv : childStateIsLeftOrRight) {
-                if (kv.second == 0b11) {
-                    childStateMap[kv.first] = stateNum;
-                    stateNum++;
-                }
-            }
+            // for (const auto &kv : childStateIsLeftOrRight) {
+            //     if (kv.second == 0b11) {
+            //         childStateMap[kv.first] = stateNum;
+            //         stateNum++;
+            //     }
+            // }
             /****************************/
             for (const auto &tag_outins : internalTransitions[q]) {
                 auto &ref = transitions2[{Symbol(q), tag_outins.first}];
@@ -130,12 +130,12 @@ void AUTOQ::Automata<Symbol>::diagonal_gate(int t, const std::function<void(Symb
             }
             /**************************************/
             /* Construct childStateMap. */
-            for (const auto &kv : childStateIsLeftOrRight) {
-                if (kv.second == 0b11) {
-                    childStateMap[kv.first] = stateNum;
-                    stateNum++;
-                }
-            }
+            // for (const auto &kv : childStateIsLeftOrRight) {
+            //     if (kv.second == 0b11) {
+            //         childStateMap[kv.first] = stateNum;
+            //         stateNum++;
+            //     }
+            // }
             /****************************/
             for (const auto &tag_outins : internalTransitions[q]) {
                 auto &ref = transitions2[{Symbol(q), tag_outins.first}];
@@ -161,8 +161,8 @@ void AUTOQ::Automata<Symbol>::diagonal_gate(int t, const std::function<void(Symb
         /**********************************************/
         topStateIsLeftOrRight = childStateIsLeftOrRight;
         childStateIsLeftOrRight.clear();
-        topStateMap = childStateMap;
-        childStateMap.clear();
+        // topStateMap = childStateMap;
+        // childStateMap.clear();
         /**********************************************/
     }
     for (const auto &tr : leafTransitions) {
@@ -183,6 +183,7 @@ void AUTOQ::Automata<Symbol>::diagonal_gate(int t, const std::function<void(Symb
         }
     }
     transitions = transitions2;
+    stateNum *= 2;
 }
 
 template <typename Symbol>
@@ -685,7 +686,7 @@ void AUTOQ::Automata<Symbol>::CX(int c, int t, bool opt) {
     } else {
         TransitionMap transitions2;
         std::map<State, int> topStateIsLeftOrRight, childStateIsLeftOrRight; // 0b10: original tree, 0b01: copied tree, 0b11: both trees
-        std::map<State, State> topStateMap, childStateMap;
+        // std::map<State, State> topStateMap, childStateMap;
         // If a state has only one tree, then its id does not change. In this case, it is not present in this map.
         // If a state has two trees, then it presents in this map and its value is the id in the copied tree.
 
@@ -718,12 +719,12 @@ void AUTOQ::Automata<Symbol>::CX(int c, int t, bool opt) {
                 }
                 /**************************************/
                 /* Construct childStateMap. */
-                for (const auto &kv : childStateIsLeftOrRight) {
-                    if (kv.second == 0b11) {
-                        childStateMap[kv.first] = stateNum;
-                        stateNum++;
-                    }
-                }
+                // for (const auto &kv : childStateIsLeftOrRight) {
+                //     if (kv.second == 0b11) {
+                //         childStateMap[kv.first] = stateNum;
+                //         stateNum++;
+                //     }
+                // }
                 /****************************/
                 for (const auto &tag_outins : internalTransitions[q]) {
                     auto &ref = transitions2[{Symbol(q), tag_outins.first}];
@@ -752,12 +753,12 @@ void AUTOQ::Automata<Symbol>::CX(int c, int t, bool opt) {
                 }
                 /**************************************/
                 /* Construct childStateMap. */
-                for (const auto &kv : childStateIsLeftOrRight) {
-                    if (kv.second == 0b11) {
-                        childStateMap[kv.first] = stateNum;
-                        stateNum++;
-                    }
-                }
+                // for (const auto &kv : childStateIsLeftOrRight) {
+                //     if (kv.second == 0b11) {
+                //         childStateMap[kv.first] = stateNum;
+                //         stateNum++;
+                //     }
+                // }
                 /****************************/
                 for (const auto &tag_outins : internalTransitions[q]) {
                     auto &ref = transitions2[{Symbol(q), tag_outins.first}];
@@ -787,8 +788,8 @@ void AUTOQ::Automata<Symbol>::CX(int c, int t, bool opt) {
             /**********************************************/
             topStateIsLeftOrRight = childStateIsLeftOrRight;
             childStateIsLeftOrRight.clear();
-            topStateMap = childStateMap;
-            childStateMap.clear();
+            // topStateMap = childStateMap;
+            // childStateMap.clear();
             /**********************************************/
         }
         for (const auto &tr : leafTransitions) {
@@ -806,6 +807,7 @@ void AUTOQ::Automata<Symbol>::CX(int c, int t, bool opt) {
             }
         }
         transitions = transitions2;
+        stateNum *= 2;
         if (opt) {
             // remove_useless();
             reduce();
@@ -818,35 +820,35 @@ void AUTOQ::Automata<Symbol>::CX(int c, int t, bool opt) {
 }
 
 #define queryTopID2(oldID, newID) \
-    State newID;    \
-    {   \
-        auto it = topStateMap2.find(oldID);    \
-        if (it == topStateMap2.end()) {   \
-            it = topStateMap.find(oldID);  \
-            if (it == topStateMap.end()) {    \
-                newID = oldID;    \
-            } else { \
-                newID = it->second; \
-            }   \
-        } else {   \
-            newID = it->second; \
-        }   \
-    }
+    State newID = oldID + stateNum * 2;
+    // {   \
+    //     auto it = topStateMap2.find(oldID);    \
+    //     if (it == topStateMap2.end()) {   \
+    //         it = topStateMap.find(oldID);  \
+    //         if (it == topStateMap.end()) {    \
+    //             newID = oldID;    \
+    //         } else { \
+    //             newID = it->second; \
+    //         }   \
+    //     } else {   \
+    //         newID = it->second; \
+    //     }   \
+    // }
 #define queryChildID2(oldID, newID) \
-    State newID;    \
-    {   \
-        auto it = childStateMap2.find(oldID);    \
-        if (it == childStateMap2.end()) {   \
-            it = childStateMap.find(oldID);  \
-            if (it == childStateMap.end()) {    \
-                newID = oldID;    \
-            } else { \
-                newID = it->second; \
-            }   \
-        } else {   \
-            newID = it->second; \
-        }   \
-    }
+    State newID = oldID + stateNum * 2;
+    // {   \
+    //     auto it = childStateMap2.find(oldID);    \
+    //     if (it == childStateMap2.end()) {   \
+    //         it = childStateMap.find(oldID);  \
+    //         if (it == childStateMap.end()) {    \
+    //             newID = oldID;    \
+    //         } else { \
+    //             newID = it->second; \
+    //         }   \
+    //     } else {   \
+    //         newID = it->second; \
+    //     }   \
+    // }
 template <typename Symbol>
 void AUTOQ::Automata<Symbol>::CZ(int c, int t) {
     #ifdef TO_QASM
@@ -858,9 +860,9 @@ void AUTOQ::Automata<Symbol>::CZ(int c, int t) {
     auto start = std::chrono::steady_clock::now();
     TransitionMap transitions2;
     std::map<State, int> topStateIsLeftOrRight, childStateIsLeftOrRight; // 0b10: original tree, 0b01: copied tree, 0b11: both trees
-    std::map<State, State> topStateMap, childStateMap;
+    // std::map<State, State> topStateMap, childStateMap;
     std::map<State, int> topStateIsLeftOrRight2, childStateIsLeftOrRight2; // 0b10: original tree, 0b01: copied tree, 0b11: both trees
-    std::map<State, State> topStateMap2, childStateMap2;
+    // std::map<State, State> topStateMap2, childStateMap2;
     // If a state has only one tree, then its id does not change. In this case, it is not present in this map.
     // If a state has two trees, then it presents in this map and its value is the id in the copied tree.
 
@@ -893,12 +895,12 @@ void AUTOQ::Automata<Symbol>::CZ(int c, int t) {
             }
             /**************************************/
             /* Construct childStateMap. */
-            for (const auto &kv : childStateIsLeftOrRight) {
-                if (kv.second == 0b11) {
-                    childStateMap[kv.first] = stateNum;
-                    stateNum++;
-                }
-            }
+            // for (const auto &kv : childStateIsLeftOrRight) {
+            //     if (kv.second == 0b11) {
+            //         childStateMap[kv.first] = stateNum;
+            //         stateNum++;
+            //     }
+            // }
             /****************************/
             for (const auto &tag_outins : internalTransitions[q]) {
                 auto &ref = transitions2[{Symbol(q), tag_outins.first}];
@@ -927,12 +929,12 @@ void AUTOQ::Automata<Symbol>::CZ(int c, int t) {
             }
             /**************************************/
             /* Construct childStateMap. */
-            for (const auto &kv : childStateIsLeftOrRight) {
-                if (kv.second == 0b11) {
-                    childStateMap[kv.first] = stateNum;
-                    stateNum++;
-                }
-            }
+            // for (const auto &kv : childStateIsLeftOrRight) {
+            //     if (kv.second == 0b11) {
+            //         childStateMap[kv.first] = stateNum;
+            //         stateNum++;
+            //     }
+            // }
             /****************************/
             for (const auto &tag_outins : internalTransitions[q]) {
                 auto &ref = transitions2[{Symbol(q), tag_outins.first}];
@@ -973,18 +975,18 @@ void AUTOQ::Automata<Symbol>::CZ(int c, int t) {
             }
             /**************************************/
             /* Construct childStateMap. */
-            for (const auto &kv : childStateIsLeftOrRight) {
-                if (kv.second == 0b11) {
-                    childStateMap[kv.first] = stateNum;
-                    stateNum++;
-                }
-            }
-            for (const auto &kv : childStateIsLeftOrRight2) {
-                if (kv.second == 0b11) {
-                    childStateMap2[kv.first] = stateNum;
-                    stateNum++;
-                }
-            }
+            // for (const auto &kv : childStateIsLeftOrRight) {
+            //     if (kv.second == 0b11) {
+            //         childStateMap[kv.first] = stateNum;
+            //         stateNum++;
+            //     }
+            // }
+            // for (const auto &kv : childStateIsLeftOrRight2) {
+            //     if (kv.second == 0b11) {
+            //         childStateMap2[kv.first] = stateNum;
+            //         stateNum++;
+            //     }
+            // }
             /****************************/
             for (const auto &tag_outins : internalTransitions[q]) {
                 auto &ref = transitions2[{Symbol(q), tag_outins.first}];
@@ -1024,18 +1026,18 @@ void AUTOQ::Automata<Symbol>::CZ(int c, int t) {
             }
             /**************************************/
             /* Construct childStateMap. */
-            for (const auto &kv : childStateIsLeftOrRight) {
-                if (kv.second == 0b11) {
-                    childStateMap[kv.first] = stateNum;
-                    stateNum++;
-                }
-            }
-            for (const auto &kv : childStateIsLeftOrRight2) {
-                if (kv.second == 0b11) {
-                    childStateMap2[kv.first] = stateNum;
-                    stateNum++;
-                }
-            }
+            // for (const auto &kv : childStateIsLeftOrRight) {
+            //     if (kv.second == 0b11) {
+            //         childStateMap[kv.first] = stateNum;
+            //         stateNum++;
+            //     }
+            // }
+            // for (const auto &kv : childStateIsLeftOrRight2) {
+            //     if (kv.second == 0b11) {
+            //         childStateMap2[kv.first] = stateNum;
+            //         stateNum++;
+            //     }
+            // }
             /****************************/
             for (const auto &tag_outins : internalTransitions[q]) {
                 auto &ref = transitions2[{Symbol(q), tag_outins.first}];
@@ -1074,12 +1076,12 @@ void AUTOQ::Automata<Symbol>::CZ(int c, int t) {
         /**********************************************/
         topStateIsLeftOrRight = childStateIsLeftOrRight;
         childStateIsLeftOrRight.clear();
-        topStateMap = childStateMap;
-        childStateMap.clear();
+        // topStateMap = childStateMap;
+        // childStateMap.clear();
         topStateIsLeftOrRight2 = childStateIsLeftOrRight2;
         childStateIsLeftOrRight2.clear();
-        topStateMap2 = childStateMap2;
-        childStateMap2.clear();
+        // topStateMap2 = childStateMap2;
+        // childStateMap2.clear();
         /**********************************************/
     }
     for (const auto &tr : leafTransitions) {
@@ -1106,6 +1108,7 @@ void AUTOQ::Automata<Symbol>::CZ(int c, int t) {
         }
     }
     transitions = transitions2;
+    stateNum *= 3;
     reduce();
     gateCount++;
     auto duration = std::chrono::steady_clock::now() - start;
@@ -1126,9 +1129,9 @@ void AUTOQ::Automata<Symbol>::CCX(int c, int c2, int t) {
         auto start = std::chrono::steady_clock::now();
         TransitionMap transitions2;
         std::map<State, int> topStateIsLeftOrRight, childStateIsLeftOrRight; // 0b10: original tree, 0b01: copied tree, 0b11: both trees
-        std::map<State, State> topStateMap, childStateMap;
+        // std::map<State, State> topStateMap, childStateMap;
         std::map<State, int> topStateIsLeftOrRight2, childStateIsLeftOrRight2; // 0b10: original tree, 0b01: copied tree, 0b11: both trees
-        std::map<State, State> topStateMap2, childStateMap2;
+        // std::map<State, State> topStateMap2, childStateMap2;
         // If a state has only one tree, then its id does not change. In this case, it is not present in this map.
         // If a state has two trees, then it presents in this map and its value is the id in the copied tree.
 
@@ -1161,12 +1164,12 @@ void AUTOQ::Automata<Symbol>::CCX(int c, int c2, int t) {
                 }
                 /**************************************/
                 /* Construct childStateMap. */
-                for (const auto &kv : childStateIsLeftOrRight) {
-                    if (kv.second == 0b11) {
-                        childStateMap[kv.first] = stateNum;
-                        stateNum++;
-                    }
-                }
+                // for (const auto &kv : childStateIsLeftOrRight) {
+                //     if (kv.second == 0b11) {
+                //         childStateMap[kv.first] = stateNum;
+                //         stateNum++;
+                //     }
+                // }
                 /****************************/
                 for (const auto &tag_outins : internalTransitions[q]) {
                     auto &ref = transitions2[{Symbol(q), tag_outins.first}];
@@ -1195,12 +1198,12 @@ void AUTOQ::Automata<Symbol>::CCX(int c, int c2, int t) {
                 }
                 /**************************************/
                 /* Construct childStateMap. */
-                for (const auto &kv : childStateIsLeftOrRight) {
-                    if (kv.second == 0b11) {
-                        childStateMap[kv.first] = stateNum;
-                        stateNum++;
-                    }
-                }
+                // for (const auto &kv : childStateIsLeftOrRight) {
+                //     if (kv.second == 0b11) {
+                //         childStateMap[kv.first] = stateNum;
+                //         stateNum++;
+                //     }
+                // }
                 /****************************/
                 for (const auto &tag_outins : internalTransitions[q]) {
                     auto &ref = transitions2[{Symbol(q), tag_outins.first}];
@@ -1241,18 +1244,18 @@ void AUTOQ::Automata<Symbol>::CCX(int c, int c2, int t) {
                 }
                 /**************************************/
                 /* Construct childStateMap. */
-                for (const auto &kv : childStateIsLeftOrRight) {
-                    if (kv.second == 0b11) {
-                        childStateMap[kv.first] = stateNum;
-                        stateNum++;
-                    }
-                }
-                for (const auto &kv : childStateIsLeftOrRight2) {
-                    if (kv.second == 0b11) {
-                        childStateMap2[kv.first] = stateNum;
-                        stateNum++;
-                    }
-                }
+                // for (const auto &kv : childStateIsLeftOrRight) {
+                //     if (kv.second == 0b11) {
+                //         childStateMap[kv.first] = stateNum;
+                //         stateNum++;
+                //     }
+                // }
+                // for (const auto &kv : childStateIsLeftOrRight2) {
+                //     if (kv.second == 0b11) {
+                //         childStateMap2[kv.first] = stateNum;
+                //         stateNum++;
+                //     }
+                // }
                 /****************************/
                 for (const auto &tag_outins : internalTransitions[q]) {
                     auto &ref = transitions2[{Symbol(q), tag_outins.first}];
@@ -1292,18 +1295,18 @@ void AUTOQ::Automata<Symbol>::CCX(int c, int c2, int t) {
                 }
                 /**************************************/
                 /* Construct childStateMap. */
-                for (const auto &kv : childStateIsLeftOrRight) {
-                    if (kv.second == 0b11) {
-                        childStateMap[kv.first] = stateNum;
-                        stateNum++;
-                    }
-                }
-                for (const auto &kv : childStateIsLeftOrRight2) {
-                    if (kv.second == 0b11) {
-                        childStateMap2[kv.first] = stateNum;
-                        stateNum++;
-                    }
-                }
+                // for (const auto &kv : childStateIsLeftOrRight) {
+                //     if (kv.second == 0b11) {
+                //         childStateMap[kv.first] = stateNum;
+                //         stateNum++;
+                //     }
+                // }
+                // for (const auto &kv : childStateIsLeftOrRight2) {
+                //     if (kv.second == 0b11) {
+                //         childStateMap2[kv.first] = stateNum;
+                //         stateNum++;
+                //     }
+                // }
                 /****************************/
                 for (const auto &tag_outins : internalTransitions[q]) {
                     auto &ref = transitions2[{Symbol(q), tag_outins.first}];
@@ -1345,12 +1348,12 @@ void AUTOQ::Automata<Symbol>::CCX(int c, int c2, int t) {
             /**********************************************/
             topStateIsLeftOrRight = childStateIsLeftOrRight;
             childStateIsLeftOrRight.clear();
-            topStateMap = childStateMap;
-            childStateMap.clear();
+            // topStateMap = childStateMap;
+            // childStateMap.clear();
             topStateIsLeftOrRight2 = childStateIsLeftOrRight2;
             childStateIsLeftOrRight2.clear();
-            topStateMap2 = childStateMap2;
-            childStateMap2.clear();
+            // topStateMap2 = childStateMap2;
+            // childStateMap2.clear();
             /**********************************************/
         }
         for (const auto &tr : leafTransitions) {
@@ -1376,6 +1379,7 @@ void AUTOQ::Automata<Symbol>::CCX(int c, int c2, int t) {
             }
         }
         transitions = transitions2;
+        stateNum *= 3;
         reduce();
     } else if (t < c) { // t < c < c2
         General_Controlled_Gate(c, c2, t,
