@@ -1,0 +1,15 @@
+# Function: decode24-enable
+# Used Library: MCT + MCF (gates: 3, quantum costs: 21)
+# This file has been taken from RevLib (www.revlib.org).
+.version 1.0
+.numvars 6
+.variables a b E c d e
+.inputs a b E 0 0 0
+.outputs g g e0 e2 e1 e3
+.constants ---000
+.garbage 11----
+.begin
+f3 a E c
+f3 b d E
+f3 b e c
+.end

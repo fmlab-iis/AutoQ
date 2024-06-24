@@ -1,0 +1,14 @@
+# Function: ex1
+# Used Library: MCT (gates: 4 , quantum costs: 8)
+# This file has been taken from RevLib (www.revlib.org).
+.version 1.0
+.numvars 3
+.variables a b c
+.inputs  a b c
+.outputs a b c
+.begin
+t2 a b
+t3 b c a
+t2 a b
+t1 a
+.end

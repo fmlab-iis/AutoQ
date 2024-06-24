@@ -1,0 +1,37 @@
+# A reversible ternary counter with bit-width 5
+# Used Library: MCT (gates: 20, quantum costs: 120)
+# This file have been taken from RevLib (www.revlib.org). 
+.version 1.0
+.numvars 16
+.variables  x15 x14 x13 x12 x11 x10 x9 x8 x7 x6 x5 x4 x3 x2 x1 x0
+.inputs  0 y4 x4 0 y3 x3 0 y2 x2 0 y1 x1 0 cnt y0 x0
+.outputs  cout y4 x4 g y3 x3 g y2 x2 g y1 x1 g g y0 x0
+.constants 0--0--0--0--0---
+.garbage ---1--1--1--11--
+.begin
+# bit position 0
+t3 x2 x1 x0
+t4 x0 x1 x2 x3
+t3 x0 x2 x1
+t2 x2 x0
+# bit position 1
+t3 x3 x5 x4
+t4 x4 x5 x3 x6
+t3 x4 x3 x5
+t2 x3 x4
+# bit position 2
+t3 x6 x8 x7
+t4 x7 x8 x6 x9
+t3 x7 x6 x8
+t2 x6 x7
+# bit position 3
+t3 x9 x11 x10
+t4 x10 x11 x9 x12
+t3 x10 x9 x11
+t2 x9 x10
+# bit position 4
+t3 x12 x14 x13
+t4 x13 x14 x12 x15
+t3 x13 x12 x14
+t2 x12 x13
+.end

@@ -1,0 +1,16 @@
+# Function: Peres gate
+# Used Library: EQ (gates: 4, quantum costs: 4)
+# This file have been taken from RevLib (www.revlib.org).
+.version 1.0
+.numvars 3
+.variables a b c
+.inputs a b c
+.outputs a b c
+.constants ---
+.garbage ---
+.begin
+v+ b a
+v+ c a
+t2 c b
+v b a
+.end

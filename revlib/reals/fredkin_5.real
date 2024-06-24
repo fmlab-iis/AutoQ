@@ -1,0 +1,19 @@
+# Function: Fredkin gate
+# Used Library: EQ (gates: 7  quantum costs: 7)
+# This file have been taken from RevLib (www.revlib.org).
+.version 1.0
+.numvars 3
+.variables a b c
+.inputs a b c
+.outputs a b c
+.constants ---
+.garbage ---
+.begin
+t2 c b
+v+ a c
+v+ b c
+t2 a b
+v b c
+t2 c b
+t2 a b
+.end

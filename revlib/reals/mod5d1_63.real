@@ -1,0 +1,21 @@
+# Function: 
+# Note: completely specified
+# Used Library: MCT (gates: 7, quantum costs: 11)
+# This file have been taken from RevLib (www.revlib.org).
+.version 1.0
+.numvars 5
+.variables a b c d e
+.inputs a b c d e
+.outputs a b c d e
+.constants -----
+.garbage -----
+.begin
+t2 d b
+t2 c a
+t2 b e
+t2 a e
+t3 b a e
+t2 d b
+t2 c a
+.end
+

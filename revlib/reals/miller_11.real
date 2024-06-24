@@ -1,0 +1,18 @@
+# Function: Miller gate
+# Used Library: MCT (gates: 5, quantum costs: 17)
+# This file have been taken from RevLib (www.revlib.org).
+.version 1.0
+.numvars 3
+.variables a b c
+.inputs a b c
+.outputs a b c
+.constants ---
+.garbage ---
+.begin
+t2 c b
+t3 b a c
+t3 c b a
+t3 b a c
+t2 c b
+.end
+

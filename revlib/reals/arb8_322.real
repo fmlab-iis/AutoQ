@@ -1,0 +1,66 @@
+# This circuit has been synthesized using the approach proposed in Robert Wille, Sebastian Offermann, Rolf Drechsler. SyReC: A Programming Language for Synthesis of Reversible Circuits. Forum on specification & Design Languages, 2010.
+# Control-logic has been realized using the "duplication"-method  (w/ add. constant lines).
+# This file has been generated using RevKit (www.revkit.org) and was taken from RevLib (www.revlib.org).
+.version 2.0
+.numvars 39
+.variables x0 x1 x2 x3 x4 x5 x6 x7 x8 x9 x10 x11 x12 x13 x14 x15 x16 x17 x18 x19 x20 x21 x22 x23 x24 x25 x26 x27 x28 x29 x30 x31 x32 x33 x34 x35 x36 x37 x38
+.inputs "r0.0" "r1.0" "r2.0" "r3.0" "r4.0" "r5.0" "r6.0" "r7.0" "a0.0" "a1.0" "a2.0" "a3.0" "a4.0" "a5.0" "a6.0" "a7.0" "dupl_a1.0" "dupl_a0.0" "const_1" "dupl_a2.0" "dupl_a1.0" "const_1" "dupl_a3.0" "dupl_a2.0" "const_1" "dupl_a4.0" "dupl_a3.0" "const_1" "dupl_a5.0" "dupl_a4.0" "const_1" "dupl_a6.0" "dupl_a5.0" "const_1" "dupl_a7.0" "dupl_a6.0" "const_1" "dupl_a7.0" "const_1" 
+.outputs "r0.0" "r1.0" "r2.0" "r3.0" "r4.0" "r5.0" "r6.0" "r7.0" "a0.0" "a1.0" "a2.0" "a3.0" "a4.0" "a5.0" "a6.0" "a7.0" "dupl_a1.0" "dupl_a0.0" "garbage" "dupl_a2.0" "dupl_a1.0" "garbage" "dupl_a3.0" "dupl_a2.0" "garbage" "dupl_a4.0" "dupl_a3.0" "garbage" "dupl_a5.0" "dupl_a4.0" "garbage" "dupl_a6.0" "dupl_a5.0" "garbage" "dupl_a7.0" "dupl_a6.0" "garbage" "dupl_a7.0" "garbage" 
+.constants --------0000000000100100100100100100101
+.garbage 11111111--------11111111111111111111111
+.inputbus r0 x0
+.inputbus r1 x1
+.inputbus r2 x2
+.inputbus r3 x3
+.inputbus r4 x4
+.inputbus r5 x5
+.inputbus r6 x6
+.inputbus r7 x7
+.outputbus a0 x8
+.outputbus a1 x9
+.outputbus a2 x10
+.outputbus a3 x11
+.outputbus a4 x12
+.outputbus a5 x13
+.outputbus a6 x14
+.outputbus a7 x15
+.begin
+t2 x9 x16
+t2 x8 x17
+t2 x18 x17
+t2 x10 x19
+t2 x9 x20
+t2 x21 x20
+t2 x11 x22
+t2 x10 x23
+t2 x24 x23
+t2 x12 x25
+t2 x11 x26
+t2 x27 x26
+t2 x13 x28
+t2 x12 x29
+t2 x30 x29
+t2 x14 x31
+t2 x13 x32
+t2 x33 x32
+t2 x15 x34
+t2 x14 x35
+t2 x36 x35
+t2 x15 x37
+t2 x38 x37
+f3 x7 x15 x37
+f3 x6 x15 x34
+f3 x6 x14 x35
+f3 x5 x14 x31
+f3 x5 x13 x32
+f3 x4 x13 x28
+f3 x4 x12 x29
+f3 x3 x12 x25
+f3 x3 x11 x26
+f3 x2 x11 x22
+f3 x2 x10 x23
+f3 x1 x10 x19
+f3 x1 x9 x20
+f3 x0 x9 x16
+f3 x0 x8 x17
+.end

@@ -1,0 +1,18 @@
+# Function: Toffoli gate
+# Used Library: EQ (gates: 5  quantum costs: 5)
+# This file have been taken from RevLib (www.revlib.org).
+.version 1.0
+.numvars 3
+.variables a b c
+.inputs a b c
+.outputs a b c
+.constants ---
+.garbage ---
+.begin
+v c a
+v b a
+t2 c b
+v+ b a
+t2 c b
+.end
+

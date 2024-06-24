@@ -1,0 +1,15 @@
+# Function: mod5mils
+# Used Library: MCT (gates: 5 , quantum costs: 13)
+# This file has been taken from RevLib (www.revlib.org).
+.version 1.0
+.numvars 5
+.variables a b c d e
+.inputs  a b c d e
+.outputs a b c d e
+.begin
+t1 d
+t2 b d
+t3 c d e
+t3 a d e
+t2 d e
+.end

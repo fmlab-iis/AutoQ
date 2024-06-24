@@ -1,0 +1,15 @@
+# Function: Fredkin gate
+# Used Library: MCT (gates: 3, quantum costs: 15)
+# This file have been taken from RevLib (www.revlib.org).
+.version 1.0
+.numvars 3
+.variables a b c
+.inputs a b c
+.outputs a b c
+.constants ---
+.garbage ---
+.begin
+t3 a c b
+t3 b a c
+t3 a c b
+.end

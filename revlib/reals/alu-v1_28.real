@@ -1,0 +1,30 @@
+# Function: alu (by Gupta et al.)
+# Note: 2nd line is function output.
+# a and b are inputs
+# c0 c1 c2 define the function (f) as follows:
+#  0  0  0 -> constant 1
+#  0  0  1 -> a OR b
+#  0  1  0 -> -a OR -b
+#  0  1  1 -> (a AND -b) OR (-a AND b)
+#  1  0  0 -> (a AND b) OR (-a AND -b)
+#  1  0  1 -> a AND b
+#  1  1  0 -> -a AND -b
+#  1  1  1 -> constant 0
+# Used Library: MCT (gates: 7  quantum costs: 15)
+# This file have been taken from RevLib (www.revlib.org). 
+.version 1.0
+.numvars 5
+.variables a b c d e
+.inputs c0 c1 c2 a b
+.outputs g f g g g
+.constants -----
+.garbage 1-111
+.begin
+t2 e d
+t2 b c
+t2 c e
+t3 e c b
+t2 b a
+t3 a d b
+t1 b
+.end

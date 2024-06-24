@@ -1,0 +1,28 @@
+# Function: 4gt13-v0
+# Checks, if input is greater than 13.
+# Note: Embedding with constant 0.
+# Used Library: MCT (gates: 14, quantum costs: 34)
+# This file have been taken from RevLib (www.revlib.org). 
+.version 1.0
+.numvars 5
+.variables a b c d e
+.inputs 0 b c d e
+.outputs g g g g f
+.constants 0----
+.garbage 1111-
+.begin
+t2 c b
+t2 b c
+t2 d c
+t2 c d
+t2 e d
+t2 d e
+t4 b c e a
+t3 c e a
+t3 b e a
+t2 e d
+t2 e c
+t2 e b
+t2 a e
+t2 e a
+.end

@@ -1,0 +1,108 @@
+# Function: reversible ripple carry adder bit width 16
+# Used Library: EQ (gates: 96, quantum costs: 96)
+# This file have been taken from RevLib (www.revlib.org). 
+.version 1.0
+.numvars 49
+.variables  x48 x47 x46 x45 x44 x43 x42 x41 x40 x39 x38 x37 x36 x35 x34 x33 x32 x31 x30 x29 x28 x27 x26 x25 x24 x23 x22 x21 x20 x19 x18 x17 x16 x15 x14 x13 x12 x11 x10 x9 x8 x7 x6 x5 x4 x3 x2 x1 x0
+.inputs  0 y15 x15 0 y14 x14 0 y13 x13 0 y12 x12 0 y11 x11 0 y10 x10 0 y9 x9 0 y8 x8 0 y7 x7 0 y6 x6 0 y5 x5 0 y4 x4 0 y3 x3 0 y2 x2 0 y1 x1 0 cin y0 x0
+.outputs  cout g g s15 g g s14 g g s13 g g s12 g g s11 g g s10 g g s9 g g s8 g g s7 g g s6 g g s5 g g s4 g g s3 g g s2 g g s1 s0 g g
+.constants 0--0--0--0--0--0--0--0--0--0--0--0--0--0--0--0---
+.garbage -11-11-11-11-11-11-11-11-11-11-11-11-11-11-11--11
+.begin
+v x0 x3
+v x1 x3
+v x2 x3
+t2 x0 x1
+t2 x1 x2
+v+ x2 x3
+v x4 x6
+v x5 x6
+v x3 x6
+t2 x4 x5
+t2 x5 x3
+v+ x3 x6
+v x7 x9
+v x8 x9
+v x6 x9
+t2 x7 x8
+t2 x8 x6
+v+ x6 x9
+v x10 x12
+v x11 x12
+v x9 x12
+t2 x10 x11
+t2 x11 x9
+v+ x9 x12
+v x13 x15
+v x14 x15
+v x12 x15
+t2 x13 x14
+t2 x14 x12
+v+ x12 x15
+v x16 x18
+v x17 x18
+v x15 x18
+t2 x16 x17
+t2 x17 x15
+v+ x15 x18
+v x19 x21
+v x20 x21
+v x18 x21
+t2 x19 x20
+t2 x20 x18
+v+ x18 x21
+v x22 x24
+v x23 x24
+v x21 x24
+t2 x22 x23
+t2 x23 x21
+v+ x21 x24
+v x25 x27
+v x26 x27
+v x24 x27
+t2 x25 x26
+t2 x26 x24
+v+ x24 x27
+v x28 x30
+v x29 x30
+v x27 x30
+t2 x28 x29
+t2 x29 x27
+v+ x27 x30
+v x31 x33
+v x32 x33
+v x30 x33
+t2 x31 x32
+t2 x32 x30
+v+ x30 x33
+v x34 x36
+v x35 x36
+v x33 x36
+t2 x34 x35
+t2 x35 x33
+v+ x33 x36
+v x37 x39
+v x38 x39
+v x36 x39
+t2 x37 x38
+t2 x38 x36
+v+ x36 x39
+v x40 x42
+v x41 x42
+v x39 x42
+t2 x40 x41
+t2 x41 x39
+v+ x39 x42
+v x43 x45
+v x44 x45
+v x42 x45
+t2 x43 x44
+t2 x44 x42
+v+ x42 x45
+v x46 x48
+v x47 x48
+v x45 x48
+t2 x46 x47
+t2 x47 x45
+v+ x45 x48
+.end

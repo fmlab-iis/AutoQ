@@ -1,0 +1,19 @@
+# Function: 1-bit adder/rd32
+# Note: Embedding with constant 1
+# Used Library: MCT (gates: 5, quantum costs: 13)
+# This file have been taken from RevLib (www.revlib.org).
+.version 1.0
+.numvars 4
+.variables a b c d
+.inputs a b c 1
+.outputs g g c d
+.constants ---1
+.garbage ----
+.begin
+t3 b a d
+t2 a b
+t3 c b d
+t1 d
+t2 b c
+.end
+

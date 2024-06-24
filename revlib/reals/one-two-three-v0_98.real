@@ -1,0 +1,21 @@
+# Function: one-two-three-v0
+# Note: Embedding with constant 00.
+# Used Library: MCT (gates: 8, quantum costs: 40)
+# This file have been taken from RevLib (www.revlib.org). 
+.version 1.0
+.numvars 5
+.variables a b c d e
+.inputs 0 0 c d e
+.outputs g g c d e
+.constants 00---
+.garbage 11---
+.begin
+t2 e b
+t3 e b a
+t2 d c
+t3 d c b
+t4 b a e d
+t3 d a e
+t3 a d c
+t3 c b d
+.end

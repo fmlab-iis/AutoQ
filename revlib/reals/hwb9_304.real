@@ -1,0 +1,712 @@
+# This file has been generated using RevKit 1.1 (www.revkit.org)
+# Command Line:
+# ./tools/bdd_synthesis.py --filename hwb9_65.pla --realname hwb9_65.real
+# Based on the approach proposed in R. Wille and R. Drechsler. BDD-based synthesis of reversible logic for large functions. In Design Automation Conf., pages 270-275, 2009.
+.version 2.0
+.numvars 170
+.variables x0 x1 x2 x3 x4 x5 x6 x7 x8 x9 x10 x11 x12 x13 x14 x15 x16 x17 x18 x19 x20 x21 x22 x23 x24 x25 x26 x27 x28 x29 x30 x31 x32 x33 x34 x35 x36 x37 x38 x39 x40 x41 x42 x43 x44 x45 x46 x47 x48 x49 x50 x51 x52 x53 x54 x55 x56 x57 x58 x59 x60 x61 x62 x63 x64 x65 x66 x67 x68 x69 x70 x71 x72 x73 x74 x75 x76 x77 x78 x79 x80 x81 x82 x83 x84 x85 x86 x87 x88 x89 x90 x91 x92 x93 x94 x95 x96 x97 x98 x99 x100 x101 x102 x103 x104 x105 x106 x107 x108 x109 x110 x111 x112 x113 x114 x115 x116 x117 x118 x119 x120 x121 x122 x123 x124 x125 x126 x127 x128 x129 x130 x131 x132 x133 x134 x135 x136 x137 x138 x139 x140 x141 x142 x143 x144 x145 x146 x147 x148 x149 x150 x151 x152 x153 x154 x155 x156 x157 x158 x159 x160 x161 x162 x163 x164 x165 x166 x167 x168 x169
+.inputs a b c d e f g h i 1 0 1 0 1 1 0 0 0 0 1 1 0 0 1 0 0 1 1 0 0 1 0 1 0 1 0 1 1 1 1 0 0 0 1 1 0 0 0 0 1 1 0 0 1 0 0 1 1 0 0 1 1 0 1 0 1 0 0 0 1 0 1 0 0 0 0 0 1 1 0 0 1 0 0 0 1 0 0 0 0 1 0 0 1 1 0 0 0 1 1 0 0 0 1 1 1 0 0 0 0 1 0 1 1 1 0 0 1 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 1 0 1 1 0 0 1 1 1 0 0 0 1 0 0 0 0 1 0 0 0 1 1 0 0 0 1 1 1 0 1 1 1 0 0 1 0
+.outputs  g g g g g g g g g g g g g g g g g g g g g g g g g g g g g g g g g g g g g g g g g g g g g g g g g g g g g g g g g g g g g g g g g i g g g g g a g g g g g g g g g g g g g g b g g g g g g g g g g g g c g g g g g g g g g g d g g g g g g g g g g g g g e g g g g g g g g g g g g g g f g g g g g g g g g g g g g g g g g g g g g g g g g g g g h g
+.constants ---------10101100001100100110010101011110001100001100100110011010100010100000110010001000010011000110001110000101110010010000100001001011001110001000010001100011101110010
+.garbage 11111111111111111111111111111111111111111111111111111111111111111-11111-11111111111111-111111111111-1111111111-1111111111111-11111111111111-11111111111111-1111111111111-1
+.begin
+t2 x6 x9
+t2 x7 x9
+t3 x6 x7 x10
+t2 x5 x11
+t2 x10 x11
+t3 x5 x9 x11
+t3 x5 x10 x11
+t2 x6 x12
+t3 x6 x7 x12
+t2 x7 x12
+t2 x5 x13
+t2 x12 x13
+t3 x5 x10 x13
+t3 x5 x12 x13
+t2 x8 x14
+t2 x13 x14
+t3 x8 x11 x14
+t3 x8 x13 x14
+t2 x2 x15
+t3 x2 x14 x15
+t2 x14 x15
+t2 x5 x16
+t3 x5 x12 x16
+t2 x12 x16
+t2 x8 x17
+t3 x8 x16 x17
+t2 x16 x17
+t2 x5 x18
+t3 x5 x10 x18
+t2 x10 x18
+t2 x8 x19
+t2 x18 x19
+t3 x8 x13 x19
+t3 x8 x18 x19
+t2 x2 x20
+t2 x19 x20
+t3 x2 x17 x20
+t3 x2 x19 x20
+t2 x20 x21
+t3 x0 x15 x21
+t3 x0 x20 x21
+t3 x5 x10 x22
+t2 x8 x23
+t2 x16 x23
+t3 x8 x22 x23
+t3 x8 x16 x23
+t2 x19 x24
+t3 x2 x23 x24
+t3 x2 x19 x24
+t2 x18 x25
+t3 x8 x16 x25
+t3 x8 x18 x25
+t3 x6 x7 x26
+t2 x6 x26
+t2 x5 x27
+t2 x26 x27
+t3 x5 x12 x27
+t3 x5 x26 x27
+t2 x27 x28
+t3 x8 x18 x28
+t3 x8 x27 x28
+t2 x28 x29
+t3 x2 x25 x29
+t3 x2 x28 x29
+t2 x0 x30
+t2 x29 x30
+t3 x0 x24 x30
+t3 x0 x29 x30
+t1 x30
+t3 x1 x30 x21
+t3 x1 x21 x30
+t2 x9 x31
+t3 x5 x12 x31
+t3 x5 x9 x31
+t2 x5 x32
+t2 x9 x32
+t2 x32 x33
+t3 x8 x31 x33
+t3 x8 x32 x33
+t2 x5 x34
+t2 x10 x34
+t2 x34 x35
+t3 x8 x31 x35
+t3 x8 x34 x35
+t2 x2 x36
+t2 x35 x36
+t3 x2 x33 x36
+t3 x2 x35 x36
+t2 x8 x37
+t2 x34 x37
+t3 x8 x32 x37
+t3 x8 x34 x37
+t2 x8 x38
+t2 x27 x38
+t3 x8 x34 x38
+t3 x8 x27 x38
+t2 x2 x39
+t2 x38 x39
+t3 x2 x37 x39
+t3 x2 x38 x39
+t2 x39 x40
+t3 x0 x36 x40
+t3 x0 x39 x40
+t2 x7 x41
+t3 x5 x6 x41
+t3 x5 x7 x41
+t2 x41 x42
+t3 x8 x27 x42
+t3 x8 x41 x42
+t2 x2 x43
+t2 x42 x43
+t3 x2 x38 x43
+t3 x2 x42 x43
+t2 x0 x44
+t2 x43 x44
+t3 x0 x39 x44
+t3 x0 x43 x44
+t2 x44 x45
+t3 x1 x40 x45
+t3 x1 x44 x45
+t2 x45 x30
+t3 x3 x30 x45
+t2 x10 x46
+t3 x5 x12 x46
+t3 x5 x10 x46
+t2 x46 x47
+t3 x8 x16 x47
+t3 x8 x46 x47
+t3 x5 x9 x48
+t2 x8 x49
+t2 x48 x49
+t3 x8 x11 x49
+t3 x8 x48 x49
+t2 x2 x50
+t2 x49 x50
+t3 x2 x47 x50
+t3 x2 x49 x50
+t2 x48 x51
+t3 x8 x46 x51
+t3 x8 x48 x51
+t2 x26 x52
+t3 x5 x9 x52
+t3 x5 x26 x52
+t2 x8 x53
+t2 x52 x53
+t3 x8 x48 x53
+t3 x8 x52 x53
+t2 x53 x54
+t3 x2 x51 x54
+t3 x2 x53 x54
+t2 x54 x55
+t3 x0 x50 x55
+t3 x0 x54 x55
+t2 x8 x56
+t2 x41 x56
+t3 x8 x52 x56
+t3 x8 x41 x56
+t2 x2 x57
+t2 x56 x57
+t3 x2 x53 x57
+t3 x2 x56 x57
+t2 x57 x58
+t3 x0 x54 x58
+t3 x0 x57 x58
+t2 x58 x59
+t3 x1 x55 x59
+t3 x1 x58 x59
+t3 x5 x12 x60
+t2 x5 x60
+t2 x8 x61
+t2 x60 x61
+t3 x8 x22 x61
+t3 x8 x60 x61
+t2 x52 x62
+t3 x8 x60 x62
+t3 x8 x52 x62
+t2 x2 x63
+t2 x62 x63
+t3 x2 x61 x63
+t3 x2 x62 x63
+t2 x56 x64
+t3 x2 x62 x64
+t3 x2 x56 x64
+t2 x0 x65
+t2 x64 x65
+t3 x0 x63 x65
+t3 x0 x64 x65
+t2 x26 x66
+t3 x5 x6 x66
+t3 x5 x26 x66
+t2 x10 x67
+t3 x5 x7 x67
+t3 x5 x10 x67
+t2 x67 x68
+t3 x8 x66 x68
+t3 x8 x67 x68
+t2 x2 x69
+t2 x68 x69
+t3 x2 x56 x69
+t3 x2 x68 x69
+t2 x69 x70
+t3 x0 x64 x70
+t3 x0 x69 x70
+t2 x1 x71
+t2 x70 x71
+t3 x1 x65 x71
+t3 x1 x70 x71
+t2 x71 x59
+t3 x3 x59 x71
+t2 x71 x45
+t3 x4 x45 x71
+t2 x29 x72
+t3 x0 x20 x72
+t3 x0 x29 x72
+t2 x42 x73
+t3 x2 x28 x73
+t3 x2 x42 x73
+t2 x73 x74
+t3 x0 x29 x74
+t3 x0 x73 x74
+t2 x74 x75
+t3 x1 x72 x75
+t3 x1 x74 x75
+t2 x68 x76
+t3 x2 x42 x76
+t3 x2 x68 x76
+t2 x0 x77
+t2 x76 x77
+t3 x0 x43 x77
+t3 x0 x76 x77
+t2 x1 x78
+t2 x77 x78
+t3 x1 x44 x78
+t3 x1 x77 x78
+t2 x78 x75
+t3 x3 x75 x78
+t1 x69
+t3 x0 x69 x57
+t3 x0 x57 x69
+t2 x69 x79
+t3 x1 x58 x79
+t3 x1 x69 x79
+t2 x9 x80
+t3 x5 x7 x80
+t3 x5 x9 x80
+t2 x80 x66
+t3 x8 x66 x80
+t2 x2 x81
+t2 x80 x81
+t3 x2 x56 x81
+t3 x2 x80 x81
+t2 x12 x82
+t3 x5 x26 x82
+t3 x5 x12 x82
+t2 x22 x83
+t3 x8 x82 x83
+t3 x8 x22 x83
+t2 x83 x84
+t3 x2 x68 x84
+t3 x2 x83 x84
+t2 x0 x85
+t2 x84 x85
+t3 x0 x81 x85
+t3 x0 x84 x85
+t2 x85 x86
+t3 x1 x70 x86
+t3 x1 x85 x86
+t1 x86
+t3 x3 x86 x79
+t3 x3 x79 x86
+t2 x86 x78
+t3 x4 x78 x86
+t2 x76 x73
+t3 x0 x73 x76
+t2 x76 x87
+t3 x1 x74 x87
+t3 x1 x76 x87
+t2 x80 x88
+t3 x2 x42 x88
+t3 x2 x80 x88
+t2 x84 x89
+t3 x0 x88 x89
+t3 x0 x84 x89
+t2 x1 x90
+t2 x89 x90
+t3 x1 x77 x90
+t3 x1 x89 x90
+t1 x90
+t3 x3 x90 x87
+t3 x3 x87 x90
+t1 x85
+t3 x1 x85 x69
+t3 x1 x69 x85
+t2 x13 x91
+t3 x8 x82 x91
+t3 x8 x13 x91
+t2 x91 x92
+t3 x2 x68 x92
+t3 x2 x91 x92
+t2 x0 x93
+t2 x92 x93
+t3 x0 x81 x93
+t3 x0 x92 x93
+t3 x5 x26 x94
+t2 x5 x94
+t2 x32 x95
+t3 x8 x94 x95
+t3 x8 x32 x95
+t2 x95 x96
+t3 x2 x80 x96
+t3 x2 x95 x96
+t3 x8 x46 x97
+t2 x97 x83
+t3 x2 x83 x97
+t2 x97 x96
+t3 x0 x96 x97
+t2 x1 x98
+t2 x97 x98
+t3 x1 x93 x98
+t3 x1 x97 x98
+t2 x3 x99
+t2 x98 x99
+t3 x3 x85 x99
+t3 x3 x98 x99
+t2 x99 x90
+t3 x4 x90 x99
+t2 x89 x76
+t3 x1 x76 x89
+t2 x92 x88
+t3 x0 x88 x92
+t2 x97 x92
+t3 x1 x92 x97
+t2 x97 x100
+t3 x3 x89 x100
+t3 x3 x97 x100
+t2 x11 x101
+t3 x8 x94 x101
+t3 x8 x11 x101
+t2 x101 x102
+t3 x2 x80 x102
+t3 x2 x101 x102
+t2 x8 x103
+t2 x31 x103
+t2 x103 x91
+t3 x2 x91 x103
+t2 x103 x102
+t3 x0 x102 x103
+t2 x8 x104
+t2 x11 x104
+t3 x8 x16 x104
+t3 x8 x11 x104
+t2 x104 x95
+t3 x2 x95 x104
+t2 x8 x105
+t2 x16 x105
+t3 x8 x46 x105
+t3 x8 x16 x105
+t3 x8 x22 x106
+t2 x106 x107
+t3 x2 x105 x107
+t3 x2 x106 x107
+t2 x107 x108
+t3 x0 x104 x108
+t3 x0 x107 x108
+t2 x108 x109
+t3 x1 x103 x109
+t3 x1 x108 x109
+t2 x3 x110
+t2 x109 x110
+t3 x3 x98 x110
+t3 x3 x109 x110
+t1 x110
+t3 x4 x110 x100
+t3 x4 x100 x110
+t2 x109 x97
+t3 x3 x97 x109
+t2 x23 x111
+t3 x2 x105 x111
+t3 x2 x23 x111
+t2 x111 x104
+t3 x0 x104 x111
+t2 x111 x103
+t3 x1 x103 x111
+t3 x8 x13 x112
+t2 x13 x112
+t2 x112 x101
+t3 x2 x101 x112
+t2 x8 x113
+t2 x46 x113
+t3 x8 x31 x113
+t3 x8 x46 x113
+t2 x8 x114
+t2 x11 x114
+t3 x8 x32 x114
+t3 x8 x11 x114
+t2 x114 x115
+t3 x2 x113 x115
+t3 x2 x114 x115
+t2 x115 x116
+t3 x0 x112 x116
+t3 x0 x115 x116
+t2 x8 x117
+t2 x32 x117
+t3 x8 x16 x117
+t3 x8 x32 x117
+t2 x22 x118
+t3 x8 x46 x118
+t3 x8 x22 x118
+t2 x118 x119
+t3 x2 x117 x119
+t3 x2 x118 x119
+t2 x8 x120
+t2 x31 x120
+t3 x8 x13 x120
+t3 x8 x31 x120
+t3 x2 x120 x121
+t2 x121 x122
+t3 x0 x119 x122
+t3 x0 x121 x122
+t2 x122 x123
+t3 x1 x116 x123
+t3 x1 x122 x123
+t2 x123 x124
+t3 x3 x111 x124
+t3 x3 x123 x124
+t2 x124 x109
+t3 x4 x109 x124
+t2 x2 x125
+t2 x17 x125
+t3 x2 x120 x125
+t3 x2 x17 x125
+t2 x125 x119
+t3 x0 x119 x125
+t2 x125 x116
+t3 x1 x116 x125
+t2 x125 x111
+t3 x3 x111 x125
+t2 x8 x32
+t1 x32
+t2 x32 x126
+t3 x2 x113 x126
+t3 x2 x32 x126
+t2 x126 x112
+t3 x0 x112 x126
+t2 x13 x127
+t3 x8 x46 x127
+t3 x8 x13 x127
+t2 x127 x128
+t3 x2 x117 x128
+t3 x2 x127 x128
+t1 x46
+t3 x8 x46 x13
+t3 x8 x13 x46
+t2 x31 x129
+t3 x8 x16 x129
+t3 x8 x31 x129
+t2 x2 x130
+t2 x129 x130
+t3 x2 x46 x130
+t3 x2 x129 x130
+t2 x130 x131
+t3 x0 x128 x131
+t3 x0 x130 x131
+t2 x131 x132
+t3 x1 x126 x132
+t3 x1 x131 x132
+t3 x8 x22 x133
+t2 x22 x133
+t2 x47 x134
+t3 x2 x133 x134
+t3 x2 x47 x134
+t2 x8 x135
+t2 x22 x135
+t3 x8 x11 x135
+t3 x8 x22 x135
+t2 x2 x136
+t2 x135 x136
+t3 x2 x14 x136
+t3 x2 x135 x136
+t2 x136 x137
+t3 x0 x134 x137
+t3 x0 x136 x137
+t2 x106 x138
+t3 x2 x33 x138
+t3 x2 x106 x138
+t2 x11 x31
+t3 x8 x31 x11
+t3 x2 x11 x139
+t2 x2 x139
+t1 x139
+t3 x0 x139 x138
+t3 x0 x138 x139
+t2 x139 x137
+t3 x1 x137 x139
+t2 x139 x132
+t3 x3 x132 x139
+t2 x139 x125
+t3 x4 x125 x139
+t2 x2 x140
+t2 x47 x140
+t3 x2 x46 x140
+t3 x2 x47 x140
+t2 x140 x128
+t3 x0 x128 x140
+t2 x140 x126
+t3 x1 x126 x140
+t2 x2 x141
+t2 x14 x141
+t2 x141 x134
+t3 x0 x134 x141
+t2 x23 x142
+t3 x2 x33 x142
+t3 x2 x23 x142
+t2 x129 x143
+t3 x2 x33 x143
+t3 x2 x129 x143
+t1 x143
+t3 x0 x143 x142
+t3 x0 x142 x143
+t2 x143 x141
+t3 x1 x141 x143
+t2 x143 x140
+t3 x3 x140 x143
+t2 x129 x144
+t3 x2 x133 x144
+t3 x2 x129 x144
+t2 x2 x145
+t2 x32 x145
+t3 x2 x135 x145
+t3 x2 x32 x145
+t2 x145 x146
+t3 x0 x144 x146
+t3 x0 x145 x146
+t2 x120 x147
+t3 x2 x11 x147
+t3 x2 x120 x147
+t2 x11 x148
+t3 x2 x127 x148
+t3 x2 x11 x148
+t1 x148
+t3 x0 x148 x147
+t3 x0 x147 x148
+t2 x148 x146
+t3 x1 x146 x148
+t2 x118 x149
+t3 x2 x17 x149
+t3 x2 x118 x149
+t2 x2 x150
+t2 x106 x150
+t3 x2 x46 x150
+t3 x2 x106 x150
+t1 x150
+t3 x0 x150 x149
+t3 x0 x149 x150
+t3 x2 x114 x151
+t2 x8 x152
+t3 x8 x60 x152
+t2 x60 x152
+t2 x152 x153
+t3 x2 x135 x153
+t3 x2 x152 x153
+t2 x0 x154
+t2 x153 x154
+t3 x0 x151 x154
+t3 x0 x153 x154
+t2 x154 x150
+t3 x1 x150 x154
+t2 x154 x148
+t3 x3 x148 x154
+t2 x154 x143
+t3 x4 x143 x154
+t2 x2 x155
+t2 x114 x155
+t3 x2 x135 x155
+t3 x2 x114 x155
+t2 x155 x144
+t3 x0 x144 x155
+t2 x46 x156
+t3 x2 x11 x156
+t3 x2 x46 x156
+t2 x127 x157
+t3 x2 x118 x157
+t3 x2 x127 x157
+t1 x157
+t3 x0 x157 x156
+t3 x0 x156 x157
+t2 x157 x155
+t3 x1 x155 x157
+t2 x127 x158
+t3 x2 x17 x158
+t3 x2 x127 x158
+t2 x2 x159
+t2 x120 x159
+t1 x159
+t3 x0 x159 x158
+t3 x0 x158 x159
+t2 x2 x160
+t2 x129 x160
+t3 x2 x32 x160
+t3 x2 x129 x160
+t2 x35 x32
+t3 x2 x32 x35
+t2 x0 x161
+t2 x35 x161
+t3 x0 x160 x161
+t3 x0 x35 x161
+t2 x161 x159
+t3 x1 x159 x161
+t2 x161 x157
+t3 x3 x157 x161
+t2 x2 x162
+t3 x2 x33 x162
+t2 x33 x162
+t2 x2 x163
+t2 x114 x163
+t3 x2 x23 x163
+t3 x2 x114 x163
+t1 x163
+t3 x0 x163 x162
+t3 x0 x162 x163
+t2 x2 x164
+t2 x11 x164
+t3 x2 x14 x164
+t3 x2 x11 x164
+t2 x49 x46
+t3 x2 x46 x49
+t2 x0 x165
+t2 x49 x165
+t3 x0 x164 x165
+t3 x0 x49 x165
+t2 x165 x163
+t3 x1 x163 x165
+t2 x106 x166
+t3 x2 x47 x166
+t3 x2 x106 x166
+t1 x152
+t3 x2 x152 x118
+t3 x2 x118 x152
+t2 x152 x167
+t3 x0 x166 x167
+t3 x0 x152 x167
+t2 x0 x168
+t2 x63 x168
+t3 x0 x153 x168
+t3 x0 x63 x168
+t1 x168
+t3 x1 x168 x167
+t3 x1 x167 x168
+t2 x168 x165
+t3 x3 x165 x168
+t2 x168 x161
+t3 x4 x161 x168
+t2 x2 x169
+t3 x2 x11 x169
+t2 x11 x169
+t1 x14
+t3 x2 x14 x106
+t3 x2 x106 x14
+t1 x14
+t3 x0 x14 x169
+t3 x0 x169 x14
+t1 x127
+t3 x2 x127 x135
+t3 x2 x135 x127
+t1 x24
+t3 x0 x24 x127
+t3 x0 x127 x24
+t2 x24 x14
+t3 x1 x14 x24
+t2 x120 x129
+t3 x2 x129 x120
+t2 x36 x120
+t3 x0 x120 x36
+t1 x39
+t3 x0 x39 x35
+t3 x0 x35 x39
+t1 x39
+t3 x1 x39 x36
+t3 x1 x36 x39
+t2 x39 x24
+t3 x3 x24 x39
+t2 x114 x17
+t3 x2 x17 x114
+t2 x50 x114
+t3 x0 x114 x50
+t1 x54
+t3 x0 x54 x49
+t3 x0 x49 x54
+t1 x54
+t3 x1 x54 x50
+t3 x1 x50 x54
+t2 x63 x152
+t3 x0 x152 x63
+t2 x65 x63
+t3 x1 x63 x65
+t2 x65 x54
+t3 x3 x54 x65
+t2 x65 x39
+t3 x4 x39 x65
+.end

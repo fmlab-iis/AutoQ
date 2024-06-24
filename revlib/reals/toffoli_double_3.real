@@ -1,0 +1,20 @@
+# Function: Doubled Toffoli gate
+# Used Library: EQ (gates: 7  quantum costs: 7)
+# This file have been taken from RevLib (www.revlib.org).
+.version 1.0
+.numvars 4
+.variables a b c d
+.inputs a b c d
+.outputs a b c d
+.constants ----
+.garbage ----
+.begin
+t2 c b
+t2 b a
+v+ a d
+t2 b a
+v a d
+v b d
+t2 c b
+.end
+

@@ -1,0 +1,31 @@
+# Function: cycle10_2
+# Used Library: MCT (gates: 19, quantum costs: 1202)
+# This file has been taken from RevLib (www.revlib.org).
+.version 1.0
+.numvars 12
+.variables  a b c d e f g h i j k l
+.inputs a b c d e f g h i j k l
+.outputs a b c d e f g h i j k l
+.constants ------------
+.garbage ------------
+.begin
+t10 b c d e f g h i l j
+t9 b c d e f g h l i
+t8 b c d e f g l h
+t7 b c d e f l g
+t6 b c d e l f
+t5 b c d l e
+t4 b c l d
+t3 b l c
+t2 l b
+t11 a b c d e f g h i k j
+t10 a b c d e f g h k i
+t9 a b c d e f g k h
+t8 a b c d e f k g
+t7 a b c d e k f
+t6 a b c d k e
+t5 a b c k d
+t4 a b k c
+t3 a k b
+t2 k a
+.end

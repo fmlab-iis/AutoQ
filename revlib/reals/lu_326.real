@@ -1,0 +1,590 @@
+# This circuit has been synthesized using the approach proposed in Robert Wille, Sebastian Offermann, Rolf Drechsler. SyReC: A Programming Language for Synthesis of Reversible Circuits. Forum on specification & Design Languages, 2010.
+# Control-logic has been realized using the "duplication"-method  (w/ add. constant lines).
+# The bit-width of data signals was set to 32.
+# This file has been generated using RevKit (www.revkit.org) and was taken from RevLib (www.revlib.org).
+.version 2.0
+.numvars 299
+.variables x0 x1 x2 x3 x4 x5 x6 x7 x8 x9 x10 x11 x12 x13 x14 x15 x16 x17 x18 x19 x20 x21 x22 x23 x24 x25 x26 x27 x28 x29 x30 x31 x32 x33 x34 x35 x36 x37 x38 x39 x40 x41 x42 x43 x44 x45 x46 x47 x48 x49 x50 x51 x52 x53 x54 x55 x56 x57 x58 x59 x60 x61 x62 x63 x64 x65 x66 x67 x68 x69 x70 x71 x72 x73 x74 x75 x76 x77 x78 x79 x80 x81 x82 x83 x84 x85 x86 x87 x88 x89 x90 x91 x92 x93 x94 x95 x96 x97 x98 x99 x100 x101 x102 x103 x104 x105 x106 x107 x108 x109 x110 x111 x112 x113 x114 x115 x116 x117 x118 x119 x120 x121 x122 x123 x124 x125 x126 x127 x128 x129 x130 x131 x132 x133 x134 x135 x136 x137 x138 x139 x140 x141 x142 x143 x144 x145 x146 x147 x148 x149 x150 x151 x152 x153 x154 x155 x156 x157 x158 x159 x160 x161 x162 x163 x164 x165 x166 x167 x168 x169 x170 x171 x172 x173 x174 x175 x176 x177 x178 x179 x180 x181 x182 x183 x184 x185 x186 x187 x188 x189 x190 x191 x192 x193 x194 x195 x196 x197 x198 x199 x200 x201 x202 x203 x204 x205 x206 x207 x208 x209 x210 x211 x212 x213 x214 x215 x216 x217 x218 x219 x220 x221 x222 x223 x224 x225 x226 x227 x228 x229 x230 x231 x232 x233 x234 x235 x236 x237 x238 x239 x240 x241 x242 x243 x244 x245 x246 x247 x248 x249 x250 x251 x252 x253 x254 x255 x256 x257 x258 x259 x260 x261 x262 x263 x264 x265 x266 x267 x268 x269 x270 x271 x272 x273 x274 x275 x276 x277 x278 x279 x280 x281 x282 x283 x284 x285 x286 x287 x288 x289 x290 x291 x292 x293 x294 x295 x296 x297 x298
+.inputs "op.0" "op.1" "x0.0" "x0.1" "x0.2" "x0.3" "x0.4" "x0.5" "x0.6" "x0.7" "x0.8" "x0.9" "x0.10" "x0.11" "x0.12" "x0.13" "x0.14" "x0.15" "x0.16" "x0.17" "x0.18" "x0.19" "x0.20" "x0.21" "x0.22" "x0.23" "x0.24" "x0.25" "x0.26" "x0.27" "x0.28" "x0.29" "x0.30" "x0.31" "x1.0" "x1.1" "x1.2" "x1.3" "x1.4" "x1.5" "x1.6" "x1.7" "x1.8" "x1.9" "x1.10" "x1.11" "x1.12" "x1.13" "x1.14" "x1.15" "x1.16" "x1.17" "x1.18" "x1.19" "x1.20" "x1.21" "x1.22" "x1.23" "x1.24" "x1.25" "x1.26" "x1.27" "x1.28" "x1.29" "x1.30" "x1.31" "x2.0" "x2.1" "x2.2" "x2.3" "x2.4" "x2.5" "x2.6" "x2.7" "x2.8" "x2.9" "x2.10" "x2.11" "x2.12" "x2.13" "x2.14" "x2.15" "x2.16" "x2.17" "x2.18" "x2.19" "x2.20" "x2.21" "x2.22" "x2.23" "x2.24" "x2.25" "x2.26" "x2.27" "x2.28" "x2.29" "x2.30" "x2.31" "const_0" "const_0" "const_0" "dupl_x0.0" "dupl_x0.1" "dupl_x0.2" "dupl_x0.3" "dupl_x0.4" "dupl_x0.5" "dupl_x0.6" "dupl_x0.7" "dupl_x0.8" "dupl_x0.9" "dupl_x0.10" "dupl_x0.11" "dupl_x0.12" "dupl_x0.13" "dupl_x0.14" "dupl_x0.15" "dupl_x0.16" "dupl_x0.17" "dupl_x0.18" "dupl_x0.19" "dupl_x0.20" "dupl_x0.21" "dupl_x0.22" "dupl_x0.23" "dupl_x0.24" "dupl_x0.25" "dupl_x0.26" "dupl_x0.27" "dupl_x0.28" "dupl_x0.29" "dupl_x0.30" "dupl_x0.31" "const_0" "const_0" "const_0" "const_0" "const_0" "const_0" "const_0" "const_0" "const_0" "const_0" "const_0" "const_0" "const_0" "const_0" "const_0" "const_0" "const_0" "const_0" "const_0" "const_0" "const_0" "const_0" "const_0" "const_0" "const_0" "const_0" "const_0" "const_0" "const_0" "const_0" "const_0" "const_0" "const_1" "const_0" "const_0" "dupl_x0.0" "dupl_x0.1" "dupl_x0.2" "dupl_x0.3" "dupl_x0.4" "dupl_x0.5" "dupl_x0.6" "dupl_x0.7" "dupl_x0.8" "dupl_x0.9" "dupl_x0.10" "dupl_x0.11" "dupl_x0.12" "dupl_x0.13" "dupl_x0.14" "dupl_x0.15" "dupl_x0.16" "dupl_x0.17" "dupl_x0.18" "dupl_x0.19" "dupl_x0.20" "dupl_x0.21" "dupl_x0.22" "dupl_x0.23" "dupl_x0.24" "dupl_x0.25" "dupl_x0.26" "dupl_x0.27" "dupl_x0.28" "dupl_x0.29" "dupl_x0.30" "dupl_x0.31" "const_0" "const_0" "const_0" "const_0" "const_0" "const_0" "const_0" "const_0" "const_0" "const_0" "const_0" "const_0" "const_0" "const_0" "const_0" "const_0" "const_0" "const_0" "const_0" "const_0" "const_0" "const_0" "const_0" "const_0" "const_0" "const_0" "const_0" "const_0" "const_0" "const_0" "const_0" "const_0" "const_0" "const_1" "const_0" "dupl_x0.0" "dupl_x0.1" "dupl_x0.2" "dupl_x0.3" "dupl_x0.4" "dupl_x0.5" "dupl_x0.6" "dupl_x0.7" "dupl_x0.8" "dupl_x0.9" "dupl_x0.10" "dupl_x0.11" "dupl_x0.12" "dupl_x0.13" "dupl_x0.14" "dupl_x0.15" "dupl_x0.16" "dupl_x0.17" "dupl_x0.18" "dupl_x0.19" "dupl_x0.20" "dupl_x0.21" "dupl_x0.22" "dupl_x0.23" "dupl_x0.24" "dupl_x0.25" "dupl_x0.26" "dupl_x0.27" "dupl_x0.28" "dupl_x0.29" "dupl_x0.30" "dupl_x0.31" "const_0" "const_0" "const_0" "const_0" "const_0" "const_0" "const_0" "const_0" "const_0" "const_0" "const_0" "const_0" "const_0" "const_0" "const_0" "const_0" "const_0" "const_0" "const_0" "const_0" "const_0" "const_0" "const_0" "const_0" "const_0" "const_0" "const_0" "const_0" "const_0" "const_0" "const_0" "const_0" 
+.outputs "op.0" "op.1" "x0.0" "x0.1" "x0.2" "x0.3" "x0.4" "x0.5" "x0.6" "x0.7" "x0.8" "x0.9" "x0.10" "x0.11" "x0.12" "x0.13" "x0.14" "x0.15" "x0.16" "x0.17" "x0.18" "x0.19" "x0.20" "x0.21" "x0.22" "x0.23" "x0.24" "x0.25" "x0.26" "x0.27" "x0.28" "x0.29" "x0.30" "x0.31" "x1.0" "x1.1" "x1.2" "x1.3" "x1.4" "x1.5" "x1.6" "x1.7" "x1.8" "x1.9" "x1.10" "x1.11" "x1.12" "x1.13" "x1.14" "x1.15" "x1.16" "x1.17" "x1.18" "x1.19" "x1.20" "x1.21" "x1.22" "x1.23" "x1.24" "x1.25" "x1.26" "x1.27" "x1.28" "x1.29" "x1.30" "x1.31" "x2.0" "x2.1" "x2.2" "x2.3" "x2.4" "x2.5" "x2.6" "x2.7" "x2.8" "x2.9" "x2.10" "x2.11" "x2.12" "x2.13" "x2.14" "x2.15" "x2.16" "x2.17" "x2.18" "x2.19" "x2.20" "x2.21" "x2.22" "x2.23" "x2.24" "x2.25" "x2.26" "x2.27" "x2.28" "x2.29" "x2.30" "x2.31" "garbage" "garbage" "garbage" "dupl_x0.0" "dupl_x0.1" "dupl_x0.2" "dupl_x0.3" "dupl_x0.4" "dupl_x0.5" "dupl_x0.6" "dupl_x0.7" "dupl_x0.8" "dupl_x0.9" "dupl_x0.10" "dupl_x0.11" "dupl_x0.12" "dupl_x0.13" "dupl_x0.14" "dupl_x0.15" "dupl_x0.16" "dupl_x0.17" "dupl_x0.18" "dupl_x0.19" "dupl_x0.20" "dupl_x0.21" "dupl_x0.22" "dupl_x0.23" "dupl_x0.24" "dupl_x0.25" "dupl_x0.26" "dupl_x0.27" "dupl_x0.28" "dupl_x0.29" "dupl_x0.30" "dupl_x0.31" "garbage" "garbage" "garbage" "garbage" "garbage" "garbage" "garbage" "garbage" "garbage" "garbage" "garbage" "garbage" "garbage" "garbage" "garbage" "garbage" "garbage" "garbage" "garbage" "garbage" "garbage" "garbage" "garbage" "garbage" "garbage" "garbage" "garbage" "garbage" "garbage" "garbage" "garbage" "garbage" "garbage" "garbage" "garbage" "dupl_x0.0" "dupl_x0.1" "dupl_x0.2" "dupl_x0.3" "dupl_x0.4" "dupl_x0.5" "dupl_x0.6" "dupl_x0.7" "dupl_x0.8" "dupl_x0.9" "dupl_x0.10" "dupl_x0.11" "dupl_x0.12" "dupl_x0.13" "dupl_x0.14" "dupl_x0.15" "dupl_x0.16" "dupl_x0.17" "dupl_x0.18" "dupl_x0.19" "dupl_x0.20" "dupl_x0.21" "dupl_x0.22" "dupl_x0.23" "dupl_x0.24" "dupl_x0.25" "dupl_x0.26" "dupl_x0.27" "dupl_x0.28" "dupl_x0.29" "dupl_x0.30" "dupl_x0.31" "garbage" "garbage" "garbage" "garbage" "garbage" "garbage" "garbage" "garbage" "garbage" "garbage" "garbage" "garbage" "garbage" "garbage" "garbage" "garbage" "garbage" "garbage" "garbage" "garbage" "garbage" "garbage" "garbage" "garbage" "garbage" "garbage" "garbage" "garbage" "garbage" "garbage" "garbage" "garbage" "garbage" "garbage" "garbage" "dupl_x0.0" "dupl_x0.1" "dupl_x0.2" "dupl_x0.3" "dupl_x0.4" "dupl_x0.5" "dupl_x0.6" "dupl_x0.7" "dupl_x0.8" "dupl_x0.9" "dupl_x0.10" "dupl_x0.11" "dupl_x0.12" "dupl_x0.13" "dupl_x0.14" "dupl_x0.15" "dupl_x0.16" "dupl_x0.17" "dupl_x0.18" "dupl_x0.19" "dupl_x0.20" "dupl_x0.21" "dupl_x0.22" "dupl_x0.23" "dupl_x0.24" "dupl_x0.25" "dupl_x0.26" "dupl_x0.27" "dupl_x0.28" "dupl_x0.29" "dupl_x0.30" "dupl_x0.31" "garbage" "garbage" "garbage" "garbage" "garbage" "garbage" "garbage" "garbage" "garbage" "garbage" "garbage" "garbage" "garbage" "garbage" "garbage" "garbage" "garbage" "garbage" "garbage" "garbage" "garbage" "garbage" "garbage" "garbage" "garbage" "garbage" "garbage" "garbage" "garbage" "garbage" "garbage" "garbage" 
+.constants --00000000000000000000000000000000----------------------------------------------------------------000000000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000000
+.garbage 11------------------------------------------------------------------------------------------------111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111
+.inputbus op x0 x1
+.inputbus x1 x34 x35 x36 x37 x38 x39 x40 x41 x42 x43 x44 x45 x46 x47 x48 x49 x50 x51 x52 x53 x54 x55 x56 x57 x58 x59 x60 x61 x62 x63 x64 x65
+.inputbus x2 x66 x67 x68 x69 x70 x71 x72 x73 x74 x75 x76 x77 x78 x79 x80 x81 x82 x83 x84 x85 x86 x87 x88 x89 x90 x91 x92 x93 x94 x95 x96 x97
+.outputbus x0 x2 x3 x4 x5 x6 x7 x8 x9 x10 x11 x12 x13 x14 x15 x16 x17 x18 x19 x20 x21 x22 x23 x24 x25 x26 x27 x28 x29 x30 x31 x32 x33
+.outputbus x1 x34 x35 x36 x37 x38 x39 x40 x41 x42 x43 x44 x45 x46 x47 x48 x49 x50 x51 x52 x53 x54 x55 x56 x57 x58 x59 x60 x61 x62 x63 x64 x65
+.outputbus x2 x66 x67 x68 x69 x70 x71 x72 x73 x74 x75 x76 x77 x78 x79 x80 x81 x82 x83 x84 x85 x86 x87 x88 x89 x90 x91 x92 x93 x94 x95 x96 x97
+.begin
+t2 x98 x0
+t1 x0
+t2 x99 x1
+t1 x1
+t3 x0 x1 x100
+t2 x98 x0
+t1 x0
+t2 x99 x1
+t1 x1
+t2 x2 x101
+t2 x3 x102
+t2 x4 x103
+t2 x5 x104
+t2 x6 x105
+t2 x7 x106
+t2 x8 x107
+t2 x9 x108
+t2 x10 x109
+t2 x11 x110
+t2 x12 x111
+t2 x13 x112
+t2 x14 x113
+t2 x15 x114
+t2 x16 x115
+t2 x17 x116
+t2 x18 x117
+t2 x19 x118
+t2 x20 x119
+t2 x21 x120
+t2 x22 x121
+t2 x23 x122
+t2 x24 x123
+t2 x25 x124
+t2 x26 x125
+t2 x27 x126
+t2 x28 x127
+t2 x29 x128
+t2 x30 x129
+t2 x31 x130
+t2 x32 x131
+t2 x33 x132
+t3 x34 x66 x133
+t3 x35 x67 x134
+t3 x36 x68 x135
+t3 x37 x69 x136
+t3 x38 x70 x137
+t3 x39 x71 x138
+t3 x40 x72 x139
+t3 x41 x73 x140
+t3 x42 x74 x141
+t3 x43 x75 x142
+t3 x44 x76 x143
+t3 x45 x77 x144
+t3 x46 x78 x145
+t3 x47 x79 x146
+t3 x48 x80 x147
+t3 x49 x81 x148
+t3 x50 x82 x149
+t3 x51 x83 x150
+t3 x52 x84 x151
+t3 x53 x85 x152
+t3 x54 x86 x153
+t3 x55 x87 x154
+t3 x56 x88 x155
+t3 x57 x89 x156
+t3 x58 x90 x157
+t3 x59 x91 x158
+t3 x60 x92 x159
+t3 x61 x93 x160
+t3 x62 x94 x161
+t3 x63 x95 x162
+t3 x64 x96 x163
+t3 x65 x97 x164
+t2 x133 x101
+t2 x134 x102
+t2 x135 x103
+t2 x136 x104
+t2 x137 x105
+t2 x138 x106
+t2 x139 x107
+t2 x140 x108
+t2 x141 x109
+t2 x142 x110
+t2 x143 x111
+t2 x144 x112
+t2 x145 x113
+t2 x146 x114
+t2 x147 x115
+t2 x148 x116
+t2 x149 x117
+t2 x150 x118
+t2 x151 x119
+t2 x152 x120
+t2 x153 x121
+t2 x154 x122
+t2 x155 x123
+t2 x156 x124
+t2 x157 x125
+t2 x158 x126
+t2 x159 x127
+t2 x160 x128
+t2 x161 x129
+t2 x162 x130
+t2 x163 x131
+t2 x164 x132
+t2 x165 x0
+t1 x0
+t2 x166 x1
+t1 x1
+t3 x0 x1 x167
+t2 x165 x0
+t1 x0
+t2 x166 x1
+t1 x1
+t2 x2 x168
+t2 x3 x169
+t2 x4 x170
+t2 x5 x171
+t2 x6 x172
+t2 x7 x173
+t2 x8 x174
+t2 x9 x175
+t2 x10 x176
+t2 x11 x177
+t2 x12 x178
+t2 x13 x179
+t2 x14 x180
+t2 x15 x181
+t2 x16 x182
+t2 x17 x183
+t2 x18 x184
+t2 x19 x185
+t2 x20 x186
+t2 x21 x187
+t2 x22 x188
+t2 x23 x189
+t2 x24 x190
+t2 x25 x191
+t2 x26 x192
+t2 x27 x193
+t2 x28 x194
+t2 x29 x195
+t2 x30 x196
+t2 x31 x197
+t2 x32 x198
+t2 x33 x199
+t2 x34 x200
+t2 x66 x200
+t3 x34 x66 x200
+t2 x35 x201
+t2 x67 x201
+t3 x35 x67 x201
+t2 x36 x202
+t2 x68 x202
+t3 x36 x68 x202
+t2 x37 x203
+t2 x69 x203
+t3 x37 x69 x203
+t2 x38 x204
+t2 x70 x204
+t3 x38 x70 x204
+t2 x39 x205
+t2 x71 x205
+t3 x39 x71 x205
+t2 x40 x206
+t2 x72 x206
+t3 x40 x72 x206
+t2 x41 x207
+t2 x73 x207
+t3 x41 x73 x207
+t2 x42 x208
+t2 x74 x208
+t3 x42 x74 x208
+t2 x43 x209
+t2 x75 x209
+t3 x43 x75 x209
+t2 x44 x210
+t2 x76 x210
+t3 x44 x76 x210
+t2 x45 x211
+t2 x77 x211
+t3 x45 x77 x211
+t2 x46 x212
+t2 x78 x212
+t3 x46 x78 x212
+t2 x47 x213
+t2 x79 x213
+t3 x47 x79 x213
+t2 x48 x214
+t2 x80 x214
+t3 x48 x80 x214
+t2 x49 x215
+t2 x81 x215
+t3 x49 x81 x215
+t2 x50 x216
+t2 x82 x216
+t3 x50 x82 x216
+t2 x51 x217
+t2 x83 x217
+t3 x51 x83 x217
+t2 x52 x218
+t2 x84 x218
+t3 x52 x84 x218
+t2 x53 x219
+t2 x85 x219
+t3 x53 x85 x219
+t2 x54 x220
+t2 x86 x220
+t3 x54 x86 x220
+t2 x55 x221
+t2 x87 x221
+t3 x55 x87 x221
+t2 x56 x222
+t2 x88 x222
+t3 x56 x88 x222
+t2 x57 x223
+t2 x89 x223
+t3 x57 x89 x223
+t2 x58 x224
+t2 x90 x224
+t3 x58 x90 x224
+t2 x59 x225
+t2 x91 x225
+t3 x59 x91 x225
+t2 x60 x226
+t2 x92 x226
+t3 x60 x92 x226
+t2 x61 x227
+t2 x93 x227
+t3 x61 x93 x227
+t2 x62 x228
+t2 x94 x228
+t3 x62 x94 x228
+t2 x63 x229
+t2 x95 x229
+t3 x63 x95 x229
+t2 x64 x230
+t2 x96 x230
+t3 x64 x96 x230
+t2 x65 x231
+t2 x97 x231
+t3 x65 x97 x231
+t2 x200 x168
+t2 x201 x169
+t2 x202 x170
+t2 x203 x171
+t2 x204 x172
+t2 x205 x173
+t2 x206 x174
+t2 x207 x175
+t2 x208 x176
+t2 x209 x177
+t2 x210 x178
+t2 x211 x179
+t2 x212 x180
+t2 x213 x181
+t2 x214 x182
+t2 x215 x183
+t2 x216 x184
+t2 x217 x185
+t2 x218 x186
+t2 x219 x187
+t2 x220 x188
+t2 x221 x189
+t2 x222 x190
+t2 x223 x191
+t2 x224 x192
+t2 x225 x193
+t2 x226 x194
+t2 x227 x195
+t2 x228 x196
+t2 x229 x197
+t2 x230 x198
+t2 x231 x199
+t2 x232 x0
+t1 x0
+t2 x233 x1
+t1 x1
+t3 x0 x1 x234
+t2 x232 x0
+t1 x0
+t2 x233 x1
+t1 x1
+t2 x2 x235
+t2 x3 x236
+t2 x4 x237
+t2 x5 x238
+t2 x6 x239
+t2 x7 x240
+t2 x8 x241
+t2 x9 x242
+t2 x10 x243
+t2 x11 x244
+t2 x12 x245
+t2 x13 x246
+t2 x14 x247
+t2 x15 x248
+t2 x16 x249
+t2 x17 x250
+t2 x18 x251
+t2 x19 x252
+t2 x20 x253
+t2 x21 x254
+t2 x22 x255
+t2 x23 x256
+t2 x24 x257
+t2 x25 x258
+t2 x26 x259
+t2 x27 x260
+t2 x28 x261
+t2 x29 x262
+t2 x30 x263
+t2 x31 x264
+t2 x32 x265
+t2 x33 x266
+t2 x34 x267
+t2 x35 x268
+t2 x36 x269
+t2 x37 x270
+t2 x38 x271
+t2 x39 x272
+t2 x40 x273
+t2 x41 x274
+t2 x42 x275
+t2 x43 x276
+t2 x44 x277
+t2 x45 x278
+t2 x46 x279
+t2 x47 x280
+t2 x48 x281
+t2 x49 x282
+t2 x50 x283
+t2 x51 x284
+t2 x52 x285
+t2 x53 x286
+t2 x54 x287
+t2 x55 x288
+t2 x56 x289
+t2 x57 x290
+t2 x58 x291
+t2 x59 x292
+t2 x60 x293
+t2 x61 x294
+t2 x62 x295
+t2 x63 x296
+t2 x64 x297
+t2 x65 x298
+t2 x66 x267
+t2 x67 x268
+t2 x68 x269
+t2 x69 x270
+t2 x70 x271
+t2 x71 x272
+t2 x72 x273
+t2 x73 x274
+t2 x74 x275
+t2 x75 x276
+t2 x76 x277
+t2 x77 x278
+t2 x78 x279
+t2 x79 x280
+t2 x80 x281
+t2 x81 x282
+t2 x82 x283
+t2 x83 x284
+t2 x84 x285
+t2 x85 x286
+t2 x86 x287
+t2 x87 x288
+t2 x88 x289
+t2 x89 x290
+t2 x90 x291
+t2 x91 x292
+t2 x92 x293
+t2 x93 x294
+t2 x94 x295
+t2 x95 x296
+t2 x96 x297
+t2 x97 x298
+t2 x267 x235
+t2 x268 x236
+t2 x269 x237
+t2 x270 x238
+t2 x271 x239
+t2 x272 x240
+t2 x273 x241
+t2 x274 x242
+t2 x275 x243
+t2 x276 x244
+t2 x277 x245
+t2 x278 x246
+t2 x279 x247
+t2 x280 x248
+t2 x281 x249
+t2 x282 x250
+t2 x283 x251
+t2 x284 x252
+t2 x285 x253
+t2 x286 x254
+t2 x287 x255
+t2 x288 x256
+t2 x289 x257
+t2 x290 x258
+t2 x291 x259
+t2 x292 x260
+t2 x293 x261
+t2 x294 x262
+t2 x295 x263
+t2 x296 x264
+t2 x297 x265
+t2 x298 x266
+t2 x34 x2
+t2 x35 x3
+t2 x36 x4
+t2 x37 x5
+t2 x38 x6
+t2 x39 x7
+t2 x40 x8
+t2 x41 x9
+t2 x42 x10
+t2 x43 x11
+t2 x44 x12
+t2 x45 x13
+t2 x46 x14
+t2 x47 x15
+t2 x48 x16
+t2 x49 x17
+t2 x50 x18
+t2 x51 x19
+t2 x52 x20
+t2 x53 x21
+t2 x54 x22
+t2 x55 x23
+t2 x56 x24
+t2 x57 x25
+t2 x58 x26
+t2 x59 x27
+t2 x60 x28
+t2 x61 x29
+t2 x62 x30
+t2 x63 x31
+t2 x64 x32
+t2 x65 x33
+t1 x2
+t1 x3
+t1 x4
+t1 x5
+t1 x6
+t1 x7
+t1 x8
+t1 x9
+t1 x10
+t1 x11
+t1 x12
+t1 x13
+t1 x14
+t1 x15
+t1 x16
+t1 x17
+t1 x18
+t1 x19
+t1 x20
+t1 x21
+t1 x22
+t1 x23
+t1 x24
+t1 x25
+t1 x26
+t1 x27
+t1 x28
+t1 x29
+t1 x30
+t1 x31
+t1 x32
+t1 x33
+f3 x234 x2 x235
+f3 x234 x3 x236
+f3 x234 x4 x237
+f3 x234 x5 x238
+f3 x234 x6 x239
+f3 x234 x7 x240
+f3 x234 x8 x241
+f3 x234 x9 x242
+f3 x234 x10 x243
+f3 x234 x11 x244
+f3 x234 x12 x245
+f3 x234 x13 x246
+f3 x234 x14 x247
+f3 x234 x15 x248
+f3 x234 x16 x249
+f3 x234 x17 x250
+f3 x234 x18 x251
+f3 x234 x19 x252
+f3 x234 x20 x253
+f3 x234 x21 x254
+f3 x234 x22 x255
+f3 x234 x23 x256
+f3 x234 x24 x257
+f3 x234 x25 x258
+f3 x234 x26 x259
+f3 x234 x27 x260
+f3 x234 x28 x261
+f3 x234 x29 x262
+f3 x234 x30 x263
+f3 x234 x31 x264
+f3 x234 x32 x265
+f3 x234 x33 x266
+f3 x167 x2 x168
+f3 x167 x3 x169
+f3 x167 x4 x170
+f3 x167 x5 x171
+f3 x167 x6 x172
+f3 x167 x7 x173
+f3 x167 x8 x174
+f3 x167 x9 x175
+f3 x167 x10 x176
+f3 x167 x11 x177
+f3 x167 x12 x178
+f3 x167 x13 x179
+f3 x167 x14 x180
+f3 x167 x15 x181
+f3 x167 x16 x182
+f3 x167 x17 x183
+f3 x167 x18 x184
+f3 x167 x19 x185
+f3 x167 x20 x186
+f3 x167 x21 x187
+f3 x167 x22 x188
+f3 x167 x23 x189
+f3 x167 x24 x190
+f3 x167 x25 x191
+f3 x167 x26 x192
+f3 x167 x27 x193
+f3 x167 x28 x194
+f3 x167 x29 x195
+f3 x167 x30 x196
+f3 x167 x31 x197
+f3 x167 x32 x198
+f3 x167 x33 x199
+f3 x100 x2 x101
+f3 x100 x3 x102
+f3 x100 x4 x103
+f3 x100 x5 x104
+f3 x100 x6 x105
+f3 x100 x7 x106
+f3 x100 x8 x107
+f3 x100 x9 x108
+f3 x100 x10 x109
+f3 x100 x11 x110
+f3 x100 x12 x111
+f3 x100 x13 x112
+f3 x100 x14 x113
+f3 x100 x15 x114
+f3 x100 x16 x115
+f3 x100 x17 x116
+f3 x100 x18 x117
+f3 x100 x19 x118
+f3 x100 x20 x119
+f3 x100 x21 x120
+f3 x100 x22 x121
+f3 x100 x23 x122
+f3 x100 x24 x123
+f3 x100 x25 x124
+f3 x100 x26 x125
+f3 x100 x27 x126
+f3 x100 x28 x127
+f3 x100 x29 x128
+f3 x100 x30 x129
+f3 x100 x31 x130
+f3 x100 x32 x131
+f3 x100 x33 x132
+.end

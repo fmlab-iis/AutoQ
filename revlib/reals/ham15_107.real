@@ -1,0 +1,144 @@
+# Function: ham15
+# Used Library: MCT (gates: 132, quantum costs: 1831)
+# This file have been taken from RevLib (www.revlib.org).
+.version 1.0
+.numvars 15
+.variables a b c d e f g h i j k l m n o
+.inputs a b c d e f g h i j k l m n o
+.outputs a b c d e f g h i j k l m n o
+.constants ---------------
+.garbage ---------------
+.begin
+t8 f j k l m n o b
+t7 f j l m n o b
+t6 j l m n o b
+t5 j m n o b
+t6 c j m n o b
+t5 c m n o b
+t6 c f m n o b
+t6 k l m n o c
+t5 f l n o c
+t6 c j l n o b
+t5 c l n o b
+t6 c f l n o b
+t5 h m n o b
+t4 m n o h
+t5 l m n o h
+t5 h m n o b
+t5 l m n o d
+t4 l n o d
+t5 f l n o d
+t4 l n o m
+t4 m n o b
+t7 f j k l n o b
+t6 f k l n o b
+t5 k l n o b
+t6 j k l n o b
+t5 l m n o j
+t4 m n o k
+t4 l n o c
+t4 l m o n
+t6 f k l m o c
+t5 k l m o c
+t4 l m o d
+t6 c j l m o b
+t5 j l m o b
+t4 j m o b
+t5 f l m o k
+t6 c f l m o b
+t5 l m n o f
+t5 f l n o c
+t6 c f j m o b
+t5 f j m o b
+t4 c n o b
+t5 l m n o a
+t4 f m o n
+t4 m n o l
+t5 f l m o b
+t4 l n o k
+t5 c j m o b
+t4 l m o c
+t4 f m o j
+t3 n o m
+t3 m o n
+t4 c m o b
+t3 m o c
+t4 m n o j
+t6 c j m n o b
+t4 c l o m
+t5 c k l o m
+t4 k l o m
+t3 m o l
+t3 m o c
+t3 l o m
+t3 m o k
+t5 k l m o c
+t5 c k m o l
+t3 f o l
+t3 f o m
+t5 f l m o d
+t2 o m
+t3 m o l
+t4 l m o d
+t4 l m n o
+t3 n o f
+t5 l m n o e
+t4 f m n o
+t2 o m
+t3 n o f
+t3 m n o
+t4 m n o f
+t3 f o m
+t2 o n
+t3 l n o
+t3 l n k
+t3 l n m
+t4 l m n j
+t5 l m n o g
+t3 m o n
+t3 m o l
+t2 n o
+t2 o l
+t4 l n o h
+t3 l m o
+t2 o n
+t5 l m n o i
+t2 l o
+t2 o l
+t2 m n
+t2 k o
+t3 m n j
+t2 n m
+t2 k n
+t2 n j
+t2 j n
+t2 j m
+t2 m i
+t2 i m
+t2 m l
+t2 j l
+t2 l h
+t2 h l
+t2 h k
+t2 k g
+t2 g k
+t2 g j
+t2 j f
+t2 f j
+t2 f i
+t2 i e
+t2 e i
+t2 e h
+t2 h d
+t2 d h
+t2 d g
+t2 g c
+t2 c g
+t2 c f
+t2 f b
+t2 b f
+t2 b e
+t2 e a
+t2 a e
+t2 a d
+.end

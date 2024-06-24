@@ -1,0 +1,37 @@
+# Function: hwb4
+# Used Library: MCT (gates: 24  quantum costs: 104)
+# This file have been taken from RevLib (www.revlib.org).
+.version 1.0
+.numvars 5
+.variables a b c d e
+.inputs a b c d e
+.outputs a b c d e
+.constants -----
+.garbage -----
+.begin
+t2 b e
+t2 d e
+t2 e c
+t3 a c b
+t2 c e
+t2 c a
+t1 d
+t2 d b
+t4 a b e d
+t3 a d e
+t3 a e d
+t1 d
+t4 b c e d
+t4 b d e c
+t4 c d e b
+t3 a d c
+t3 a b c
+t2 a e
+t1 b
+t4 b c d e
+t2 d a
+t2 b d
+t2 e b
+t2 c d
+.end
+

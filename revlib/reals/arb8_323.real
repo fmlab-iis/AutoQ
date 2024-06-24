@@ -1,0 +1,52 @@
+# This circuit has been synthesized using the approach proposed in Robert Wille, Sebastian Offermann, Rolf Drechsler. SyReC: A Programming Language for Synthesis of Reversible Circuits. Forum on specification & Design Languages, 2010.
+# Control-logic has been realized using the "controlled"-method (w/o add. constant lines).
+# This file has been generated using RevKit (www.revkit.org) and was taken from RevLib (www.revlib.org).
+.version 2.0
+.numvars 24
+.variables x0 x1 x2 x3 x4 x5 x6 x7 x8 x9 x10 x11 x12 x13 x14 x15 x16 x17 x18 x19 x20 x21 x22 x23
+.inputs "r0.0" "r1.0" "r2.0" "r3.0" "r4.0" "r5.0" "r6.0" "r7.0" "a0.0" "a1.0" "a2.0" "a3.0" "a4.0" "a5.0" "a6.0" "a7.0" "const_1" "const_1" "const_1" "const_1" "const_1" "const_1" "const_1" "const_1" 
+.outputs "r0.0" "r1.0" "r2.0" "r3.0" "r4.0" "r5.0" "r6.0" "r7.0" "a0.0" "a1.0" "a2.0" "a3.0" "a4.0" "a5.0" "a6.0" "a7.0" "garbage" "garbage" "garbage" "garbage" "garbage" "garbage" "garbage" "garbage" 
+.constants --------0000000011111111
+.garbage 11111111--------11111111
+.inputbus r0 x0
+.inputbus r1 x1
+.inputbus r2 x2
+.inputbus r3 x3
+.inputbus r4 x4
+.inputbus r5 x5
+.inputbus r6 x6
+.inputbus r7 x7
+.outputbus a0 x8
+.outputbus a1 x9
+.outputbus a2 x10
+.outputbus a3 x11
+.outputbus a4 x12
+.outputbus a5 x13
+.outputbus a6 x14
+.outputbus a7 x15
+.begin
+t3 x0 x16 x8
+t1 x0
+t4 x0 x1 x17 x9
+t2 x0 x1
+t5 x0 x1 x2 x18 x10
+t3 x0 x1 x2
+t6 x0 x1 x2 x3 x19 x11
+t4 x0 x1 x2 x3
+t7 x0 x1 x2 x3 x4 x20 x12
+t5 x0 x1 x2 x3 x4
+t8 x0 x1 x2 x3 x4 x5 x21 x13
+t6 x0 x1 x2 x3 x4 x5
+t9 x0 x1 x2 x3 x4 x5 x6 x22 x14
+t7 x0 x1 x2 x3 x4 x5 x6
+t10 x0 x1 x2 x3 x4 x5 x6 x7 x23 x15
+t8 x0 x1 x2 x3 x4 x5 x6 x7
+t8 x0 x1 x2 x3 x4 x5 x6 x7
+t7 x0 x1 x2 x3 x4 x5 x6
+t6 x0 x1 x2 x3 x4 x5
+t5 x0 x1 x2 x3 x4
+t4 x0 x1 x2 x3
+t3 x0 x1 x2
+t2 x0 x1
+t1 x0
+.end
