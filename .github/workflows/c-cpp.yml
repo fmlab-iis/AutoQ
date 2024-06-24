@@ -2,9 +2,11 @@ name: C/C++ CI
 
 on:
   push:
-    branches: [ "main" ]
+    branches:
+      - '**'
   pull_request:
-    branches: [ "main" ]
+    branches:
+      - '**'
 
 jobs:
   build:
@@ -20,4 +22,8 @@ jobs:
     - name: make debug
       run: make debug
     - name: make test
-      run: VATA_PATH=$PWD/vata make test
+      run: make test
+    - name: make release
+      run: make release
+    - name: make test
+      run: make test
