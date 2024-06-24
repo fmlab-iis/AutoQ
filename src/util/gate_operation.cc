@@ -1382,11 +1382,41 @@ void AUTOQ::Automata<Symbol>::CCX(int c, int c2, int t) {
             [](const Symbol &l, const Symbol &r) -> Symbol { return r; },
             [](const Symbol &l, const Symbol &r) -> Symbol { return l; });
     } else { // c < t < c2
-        H(c2); gateCount--;
-        H(t); gateCount--;
-        CCX(c, t, c2); gateCount--;
-        H(c2); gateCount--;
-        H(t); gateCount--;
+        auto aut2 = *this;
+        aut2.CX(c2, t, false); gateCount--; // prevent repeated counting
+        auto start = std::chrono::steady_clock::now();
+        for (const auto &tr : aut2.transitions) {
+            const SymbolTag &symbol_tag = tr.first;
+            if (!(symbol_tag.is_internal() && symbol_tag.symbol().qubit() <= c)) {
+                auto &ttf = transitions[symbol_tag];
+                for (const auto &out_ins : tr.second) {
+                    const auto &q = out_ins.first + stateNum;
+                    for (auto in : out_ins.second) {
+                        for (unsigned i=0; i<in.size(); i++)
+                            in.at(i) += stateNum;
+                        ttf[q].insert(in);
+                    }
+                }
+            }
+        }
+        for (auto &tr : transitions) {
+            if (tr.first.is_leaf() || (tr.first.is_internal() && tr.first.symbol().qubit() > c)) break;
+            if (tr.first.is_internal() && tr.first.symbol().qubit() == c) {
+                for (auto &out_ins : tr.second) {
+                    std::vector<StateVector> vec(out_ins.second.begin(), out_ins.second.end());
+                    for (auto &in : vec) {
+                        assert(in.size() == 2);
+                        if (in.at(0) < stateNum && in.at(1) < stateNum) {
+                            in.at(1) += stateNum;
+                        }
+                    }
+                    out_ins.second = std::set<StateVector>(vec.begin(), vec.end());
+                }
+            }
+        }
+        stateNum += aut2.stateNum;
+        remove_useless();
+        reduce();
     }
     gateCount++;
     auto duration = std::chrono::steady_clock::now() - start;
