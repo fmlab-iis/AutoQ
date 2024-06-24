@@ -491,12 +491,17 @@ bool AUTOQ::Automata<Symbol>::reduce_down_bisim_level()
   // AUTOQ_DEBUG("state_level_map: " + state_level_map.ToString());
 
   int level = state_level_map.get_max_level();
+  int max_state = state_level_map.get_max_state();
   // AUTOQ_DEBUG("max_level: " + Convert::ToString(level));
 
-  StateToStateMap index;
+  // StateToStateMap index;
   // initialize index
-  for (const auto& stateSymbolMapPair : tdTA.transDown) {
-    index[stateSymbolMapPair.first] = stateSymbolMapPair.first;
+  // for (const auto& stateSymbolMapPair : tdTA.transDown) {
+  //   index[stateSymbolMapPair.first] = stateSymbolMapPair.first;
+  // }
+  std::vector<State> index(max_state+1, 0);
+  for (size_t i = 0; i < max_state+1; ++i) {
+    index[i] = i;
   }
 
   for (; level > 0; --level) {
@@ -522,8 +527,14 @@ bool AUTOQ::Automata<Symbol>::reduce_down_bisim_level()
   }
 
   bool changed = false;
-  for (const auto& statePair : index) { // detect if there was some change
-    if (statePair.first != statePair.second) {
+  // for (const auto& statePair : index) { // detect if there was some change
+  //   if (statePair.first != statePair.second) {
+  //     changed = true;
+  //     break;
+  //   }
+  // }
+  for (size_t i = 0; i < max_state+1; ++i) {
+    if (index[i] != i) {
       changed = true;
       break;
     }

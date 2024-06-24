@@ -144,9 +144,10 @@ public:   // data types
           auto normalize = [&index](const StateVector& vec) {
             StateVector res;
             for (State st : vec) {
-              auto it = index.find(st);
-              assert(index.end() != it);
-              res.push_back(it->second);
+              // auto it = index.find(st);
+              // assert(index.end() != it);
+              // res.push_back(it->second);
+              res.push_back(index[st]);
             }
 
             return res;
@@ -209,7 +210,7 @@ public:   // data types
         return it->second;
       }
 
-      inline int get_max_level() const
+      int get_max_level() const
       {
         int max_level = 0;
         for (const auto& level_states_pair : level_to_states) {
@@ -219,6 +220,18 @@ public:   // data types
         }
 
         return max_level;
+      }
+
+      State get_max_state() const
+      {
+        State max_state = 0;
+        for (const auto& state_lvl_pair : state_to_level) {
+          if (state_lvl_pair.first > max_state) {
+            max_state = state_lvl_pair.first;
+          }
+        }
+
+        return max_state;
       }
 
       inline std::string ToString() const
