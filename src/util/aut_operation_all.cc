@@ -662,7 +662,7 @@ void AUTOQ::Automata<Symbol>::reduce() {
     // static size_t reduce_num = 0;
     // AUTOQ_DEBUG("reduction no: " + Convert::ToString(reduce_num));
     // ++reduce_num;
-    AUTOQ_DEBUG("before reduce: " + Convert::ToString(count_aut_states(*this)));
+    // AUTOQ_DEBUG("before reduce: " + Convert::ToString(count_aut_states(*this)));
     // // AUTOQ_DEBUG("before light_reduce_down: " + Convert::ToString(count_aut_states(*this)));
     // this->sim_reduce();
     // AUTOQ_DEBUG("after reduce: " + Convert::ToString(count_aut_states(*this)));
@@ -704,7 +704,7 @@ void AUTOQ::Automata<Symbol>::reduce() {
     auto duration = std::chrono::steady_clock::now() - start;
     total_reduce_time += duration;
     if (opLog) std::cout << __FUNCTION__ << "：" << stateNum << " states " << count_transitions() << " transitions\n";
-    AUTOQ_DEBUG("after reduce: " + Convert::ToString(count_aut_states(*this)));
+    // AUTOQ_DEBUG("after reduce: " + Convert::ToString(count_aut_states(*this)));
 }
 
 template <typename Symbol>
