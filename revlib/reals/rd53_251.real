@@ -1,0 +1,42 @@
+# Function: rd53_68
+# Used Library: MCT (Gates: 27, Quantum costs: 265)
+# This file have been taken from RevLib (www.revlib.org).
+.version  1.0
+# Created by tfc2real J. Rice Jan 2009
+# Parameters for Exorcism: -n 1 -r 1 -a 0 -b 1 -c 1
+# Templates applied in both directions
+.numvars 8
+.variables  s2 s1 s0 x5 x4 x3 x2 x1
+.inputs  0 0 0 x5 x4 x3 x2 x1
+.outputs  s2 s1 s0 x5 x4 x3 x2 x1
+.constants 000-----
+.garbage 11111---
+.begin
+t2 x2 s1
+t4 x1 x2 x5 s0
+t4 x1 x2 x5 s2
+t4 x2 x3 x4 s0
+t4 x2 x3 x4 s2
+t4 x1 x3 x5 s0
+t1 x5
+t3 x3 x5 s1
+t3 x3 x5 s2
+t1 x1
+t2 x1 s1
+t2 x1 s2
+t4 x1 x2 x5 s2
+t6 x1 x2 x3 x4 x5 s0
+t4 x1 x4 x5 s2
+t1 x5
+t1 x1
+t1 x4
+t2 x4 s1
+t4 x1 x4 x5 s0
+t4 x1 x4 x5 s2
+t1 x3
+t3 x3 x5 s1
+t3 x1 x3 s2
+t1 x2
+t4 x2 x3 x4 s2
+t6 x1 x2 x3 x4 x5 s0
+.end

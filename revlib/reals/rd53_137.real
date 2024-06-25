@@ -1,0 +1,28 @@
+# Function: rd53
+# Used Library: MCT (gates: 16, quantum costs: 65)
+# This file has been taken from RevLib (www.revlib.org).
+.version 1.0
+.numvars 7
+.variables  a b c d e f g
+.inputs x1 x2 x3 x4 x5 0 0 
+.outputs g g g g c0 c1 c2
+.constants -----00
+.garbage 1111---
+.begin
+t2 b f
+t2 b a
+t2 c b
+t3 a b f
+t2 c a
+t2 a e
+t2 a d
+t3 d e a
+t2 a f
+t1 b
+t4 a b c g
+t1 b
+t5 a b d e g
+t3 d e a
+t2 d a
+t2 a e
+.end

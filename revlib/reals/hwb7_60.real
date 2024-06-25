@@ -1,0 +1,179 @@
+# Function: hwb7
+# Used Library: MCF (gates: 166 quantum costs: 4170)
+# This file has been taken from RevLib (www.revlib.org).
+.version 1.0
+.numvars 7
+.variables a b c d e f g
+.inputs a b c d e f g
+.outputs a b c d e f g
+.constants -------
+.garbage -------
+.begin
+f7 c d e f g a b
+f7 b d e f g a c
+f6 d e f g b c
+f6 b e f g c d
+f6 b e f g a d
+f5 e f g b d
+f5 e f g a c
+f7 a b d f g c e
+f6 c d f g b e
+f6 d e f g a c
+f6 a d f g c e
+f5 d f g c e
+f5 e f g b d
+f6 a d f g b e
+f6 a e f g c d
+f5 d f g b e
+f5 d f g a e
+f5 e f g c d
+f6 b c f g a d
+f5 c f g a e
+f4 f g c e
+f5 b f g a c
+f4 f g b d
+f4 f g a d
+f7 a c d e g b f
+f6 b c e g d f
+f6 b c f g a e
+f6 c d e g a f
+f6 c d f g b e
+f5 d e g c f
+f5 e f g b d
+f6 a d e g b f
+f5 d e g b f
+f5 e f g c d
+f5 a d g e f
+f4 e g d f
+f4 f g a e
+f5 c e g b f
+f5 e f g a c
+f5 c e g a b
+f4 c g e f
+f5 b e g a d
+f5 d e g b c
+f4 b g e f
+f4 e g a f
+f6 b c d g a f
+f5 c d g b f
+f5 c f g a d
+f5 c d g a f
+f5 c f g d e
+f4 d g c f
+f5 a d g b f
+f5 a f g d e
+f4 b g d f
+f4 d g a e
+f4 e g c d
+f3 g d e
+f5 b c g a d
+f4 c g b d
+f4 a g c e
+f3 g c d
+f4 a g b d
+f3 g b f
+f3 g a b
+f6 b d e f c g
+f6 b d e g a f
+f6 a c d e f g
+f5 d e f c g
+f5 d f g b e
+f5 b d g a f
+f6 a b e f d g
+f6 a b f g c e
+f5 b e f d g
+f5 a e f d g
+f4 e f d g
+f4 e g a f
+f6 a c e f b g
+f6 a c e g d f
+f5 b e f c g
+f5 a c f e g
+f5 a c g d f
+f4 c f e g
+f4 c g d f
+f5 b e f a d
+f4 e f b g
+f4 f g d e
+f4 d g a f
+f4 a e f g
+f3 f e g
+f3 g b f
+f5 b c f d e
+f5 c d f a g
+f5 c f g d e
+f4 c f d e
+f5 a b f d g
+f5 a b g c f
+f4 a f d g
+f4 a g e f
+f3 f d g
+f3 g e f
+f5 a c f b d
+f4 c f b g
+f4 f g c e
+f4 e g d f
+f4 c f a g
+f4 c g b f
+f3 f c g
+f3 g d f
+f4 b f a g
+f4 f g b c
+f3 f b g
+f3 g c f
+f3 f a g
+f3 g b f
+f2 f g
+f6 a c d e b g
+f6 a c d g e f
+f5 c d e b f
+f5 c d e a f
+f5 c d f b e
+f4 c e d f
+f5 a d e b g
+f5 a e g c d
+f4 d e b g
+f4 e g d f
+f4 d e a f
+f4 e f c d
+f4 c f b e
+f3 e d g
+f3 g b e
+f5 a b e c d
+f4 c e b f
+f4 c f d e
+f4 c e a f
+f4 e f c d
+f4 d f b e
+f3 e c g
+f3 g d e
+f4 b e a f
+f4 b f c e
+f3 e b g
+f3 g c e
+f3 e a g
+f3 g b e
+f2 e f
+f5 b c d a e
+f4 b c d g
+f4 c d a g
+f4 c g b d
+f3 d c f
+f3 f b d
+f4 b d a g
+f4 b g c d
+f3 d b f
+f3 f c d
+f3 d a f
+f3 f b d
+f2 d e
+f4 b c a f
+f3 b c e
+f3 c a e
+f3 e b c
+f2 c d
+f3 b a d
+f2 b c
+f2 a b
+.end
+

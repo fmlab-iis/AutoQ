@@ -1,0 +1,18 @@
+# Function: graycode6
+# Used Library: NCT (gates: 5, quantum costs: 5)
+# This file have been taken from RevLib (www.revlib.org).
+.version 1.0
+.numvars 6
+.variables a b c d e f
+.inputs a b c d e f
+.outputs a b c d e f
+.constants ------
+.garbage ------
+.begin
+t2 b a
+t2 c b
+t2 d c
+t2 e d
+t2 f e
+.end
+

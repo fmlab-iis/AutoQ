@@ -1,0 +1,25 @@
+# Function: alu-vA_temp
+# Used Library: MCT (gates: 13, quantum costs: 101)
+# This file has been taken from RevLib (www.revlib.org).
+.version 1.0
+.numvars 5
+.variables a b c d e
+.inputs c0 c1 c2 a b
+.outputs f g g g g
+.constants -----
+.garbage -1111
+.begin
+t2 a c
+t3 a d c
+t3 a e c
+t4 c d e b
+t4 b d e c
+t4 b d e a
+t4 c d e b
+t4 a d e c
+t4 a d e b
+t3 c e a
+t3 c d a
+t2 c a
+t1 a
+.end

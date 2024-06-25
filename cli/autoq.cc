@@ -15,6 +15,7 @@
 #include <iomanip>
 #include <regex>
 #include <fenv.h>
+#include <csignal>
 
 #include <fenv_darwin.h>
 
@@ -123,7 +124,33 @@ void adjust_N_in_nTuple(const std::string &filename) {
     // AUTOQ_DEBUG(AUTOQ::Complex::nTuple::N);
 }
 
+AUTOQ::TreeAutomata aut;
+AUTOQ::TreeAutomata aut2;
+void timeout_handler(int signum) {
+    std::map<std::string, std::string> stats;
+    stats["gate"] = toString(AUTOQ::TreeAutomata::total_gate_time - AUTOQ::TreeAutomata::total_removeuseless_time - AUTOQ::TreeAutomata::total_reduce_time);
+    stats["removeuseless"] = toString(AUTOQ::TreeAutomata::total_removeuseless_time);
+    stats["reduce"] = toString(AUTOQ::TreeAutomata::total_reduce_time);
+    stats["include"] = toString(AUTOQ::TreeAutomata::total_include_time);
+    stats["total"] = "600";
+    stats["result"] = std::to_string(AUTOQ::TreeAutomata::gateCount);
+    stats["aut1.trans"] = std::to_string(aut.transition_size());
+    stats["aut1.leaves"] = std::to_string(aut.leaf_size());
+    stats["aut2.trans"] = std::to_string(aut2.transition_size());
+    stats["aut2.leaves"] = std::to_string(aut2.leaf_size());
+    std::cout << AUTOQ::Util::Convert::ToString2(stats) << std::endl;
+    exit(124); // Terminate the program
+}
+
+void set_timeout(unsigned int seconds) {
+    // Register the signal handler
+    signal(SIGALRM, timeout_handler);
+    // Set an alarm for the specified number of seconds
+    alarm(seconds);
+}
+
 int main(int argc, char **argv) {
+    set_timeout(600);
     feenableexcept(FE_ALL_EXCEPT & ~FE_INEXACT);
 
     CLI::App app{" "}; //{"My CLI App"};
@@ -228,18 +255,25 @@ int main(int argc, char **argv) {
         }
     } else if (equivalence_checking->parsed()) {
         runConcrete = true;
-        AUTOQ::TreeAutomata aut = AUTOQ::TreeAutomata::prefix_basis(extract_qubit(circuit1));
-        AUTOQ::TreeAutomata aut2 = AUTOQ::TreeAutomata::prefix_basis(extract_qubit(circuit2));
+        /*AUTOQ::TreeAutomata*/ aut = AUTOQ::TreeAutomata::prefix_basis(extract_qubit(circuit1));
+        /*AUTOQ::TreeAutomata*/ aut2 = AUTOQ::TreeAutomata::prefix_basis(extract_qubit(circuit2));
         aut.execute(circuit1);
         aut2.execute(circuit2);
         bool result = AUTOQ::TreeAutomata::check_inclusion(aut, aut2);
         if (latex) {
             if (short_time) {
-                std::cout << toString(AUTOQ::TreeAutomata::total_gate_time - AUTOQ::TreeAutomata::total_removeuseless_time - AUTOQ::TreeAutomata::total_reduce_time) << ","
-                          << toString(AUTOQ::TreeAutomata::total_removeuseless_time) << ","
-                          << toString(AUTOQ::TreeAutomata::total_reduce_time) << ","
-                          << toString(AUTOQ::TreeAutomata::total_include_time) << ","
-                          << toString(chrono::steady_clock::now() - start) << " & " << (result ? "T" : "F") << "\n";
+                std::map<std::string, std::string> stats;
+                stats["gate"] = toString(AUTOQ::TreeAutomata::total_gate_time - AUTOQ::TreeAutomata::total_removeuseless_time - AUTOQ::TreeAutomata::total_reduce_time);
+                stats["removeuseless"] = toString(AUTOQ::TreeAutomata::total_removeuseless_time);
+                stats["reduce"] = toString(AUTOQ::TreeAutomata::total_reduce_time);
+                stats["include"] = toString(AUTOQ::TreeAutomata::total_include_time);
+                stats["total"] = toString(chrono::steady_clock::now() - start);
+                stats["result"] = result ? "T" : "F";
+                stats["aut1.trans"] = std::to_string(aut.transition_size());
+                stats["aut1.leaves"] = std::to_string(aut.leaf_size());
+                stats["aut2.trans"] = std::to_string(aut2.transition_size());
+                stats["aut2.leaves"] = std::to_string(aut2.leaf_size());
+                std::cout << AUTOQ::Util::Convert::ToString2(stats) << std::endl;
             } else {
                 std::cout << toString(chrono::steady_clock::now() - start) << " & " << (result ? "T" : "F") << "\n";
             }

@@ -27,7 +27,7 @@
 using AUTOQ::Complex::Complex;
 using AUTOQ::Symbol::Concrete;
 
-int size = 7; // the number of qubits.
+int size = 14; // the number of qubits.
 
 struct F {
     F() {
@@ -52,13 +52,11 @@ BOOST_AUTO_TEST_CASE(X_gate_twice_to_identity)
             for (int i=0; i<loop; i++) {
                 after.X(t);
 
-                if (i < loop-1) {
-                    if (before.name == "Random")
-                        BOOST_REQUIRE_MESSAGE(!AUTOQ::TreeAutomata::check_equal(before, after), "\n" +
-                        AUTOQ::Serialization::TimbukSerializer::Serialize(before) +
-                        AUTOQ::Serialization::TimbukSerializer::Serialize(after));
-                }
-                else {
+                if (i < loop-1 && before.name == "Random") {
+                    BOOST_REQUIRE_MESSAGE(!AUTOQ::TreeAutomata::check_equal(before, after), "\n" +
+                    AUTOQ::Serialization::TimbukSerializer::Serialize(before) +
+                    AUTOQ::Serialization::TimbukSerializer::Serialize(after));
+                } else {
                     BOOST_REQUIRE_MESSAGE(AUTOQ::TreeAutomata::check_equal(before, after), "\n" +
                         AUTOQ::Serialization::TimbukSerializer::Serialize(before) +
                         AUTOQ::Serialization::TimbukSerializer::Serialize(after));
@@ -285,7 +283,32 @@ BOOST_AUTO_TEST_CASE(Ry_gate_eighth_to_identity)
     }
 }
 
-BOOST_AUTO_TEST_CASE(CNOT_gate_twice_to_identity)
+BOOST_AUTO_TEST_CASE(Rz_gate_eighth_to_identity)
+{
+    int n = size;
+    for (const auto &before : {AUTOQ::TreeAutomata::uniform(n), AUTOQ::TreeAutomata::basis(n)}) {
+        int loop = 8;
+        for (auto t : {1, n/2+1, n}) {
+            AUTOQ::TreeAutomata after = before;
+            for (int i=0; i<loop; i++) {
+                after.Rz(boost::rational<boost::multiprecision::cpp_int>(1, 4), t);
+
+                if (i < loop-1) {
+                    BOOST_REQUIRE_MESSAGE(!AUTOQ::TreeAutomata::check_equal(before, after), "\n" +
+                        AUTOQ::Serialization::TimbukSerializer::Serialize(before) +
+                        AUTOQ::Serialization::TimbukSerializer::Serialize(after));
+                }
+                else {
+                    BOOST_REQUIRE_MESSAGE(AUTOQ::TreeAutomata::check_equal(before, after), "\n" +
+                        AUTOQ::Serialization::TimbukSerializer::Serialize(before) +
+                        AUTOQ::Serialization::TimbukSerializer::Serialize(after));
+				}
+            }
+        }
+    }
+}
+
+BOOST_AUTO_TEST_CASE(CX_gate_twice_to_identity)
 {
     int n = size;
     for (const auto &before : {AUTOQ::TreeAutomata::uniform(n),
@@ -294,13 +317,12 @@ BOOST_AUTO_TEST_CASE(CNOT_gate_twice_to_identity)
         AUTOQ::TreeAutomata after = before;
         int loop = 2;
         for (int i=0; i<loop; i++) {
-            after.CNOT(n*2/3, n/3);
+            after.CX(n*2/3, n/3);
 
-            if (i < loop-1) {
-                if (before.name == "Random")
-                    BOOST_REQUIRE_MESSAGE(!AUTOQ::TreeAutomata::check_equal(before, after), "\n" +
-                        AUTOQ::Serialization::TimbukSerializer::Serialize(before) +
-                        AUTOQ::Serialization::TimbukSerializer::Serialize(after));
+            if (i < loop-1 && before.name == "Random") {
+                BOOST_REQUIRE_MESSAGE(!AUTOQ::TreeAutomata::check_equal(before, after), "\n" +
+                    AUTOQ::Serialization::TimbukSerializer::Serialize(before) +
+                    AUTOQ::Serialization::TimbukSerializer::Serialize(after));
             } else {
                 BOOST_REQUIRE_MESSAGE(AUTOQ::TreeAutomata::check_equal(before, after), "\n" +
                         AUTOQ::Serialization::TimbukSerializer::Serialize(before) +
@@ -331,23 +353,22 @@ BOOST_AUTO_TEST_CASE(CZ_gate_twice_to_identity)
     }
 }
 
-BOOST_AUTO_TEST_CASE(Toffoli_gate_twice_to_identity)
+BOOST_AUTO_TEST_CASE(CCX_gate_twice_to_identity)
 {
-    for (const auto &before : {AUTOQ::TreeAutomata::uniform(3),
-                               AUTOQ::TreeAutomata::basis(3),
-                               AUTOQ::TreeAutomata::random(3)}) {
-        int v[] = {1,2,3};
+    for (const auto &before : {AUTOQ::TreeAutomata::uniform(size*3/4+3),
+                               AUTOQ::TreeAutomata::basis(size*3/4+3),
+                               AUTOQ::TreeAutomata::random(size*3/4+3)}) {
+        int v[] = {1, size*3/8, size*3/4};
         do {
             AUTOQ::TreeAutomata after = before;
             int loop = 2;
             for (int i=0; i<loop; i++) {
-                after.Toffoli(v[0], v[1], v[2]);
+                after.CCX(v[0], v[1], v[2]);
 
-                if (i < loop-1) {
-                    if (before.name == "Random")
-                        BOOST_REQUIRE_MESSAGE(!AUTOQ::TreeAutomata::check_equal(before, after), "\n" +
-                        AUTOQ::Serialization::TimbukSerializer::Serialize(before) +
-                        AUTOQ::Serialization::TimbukSerializer::Serialize(after));
+                if (i < loop-1 && before.name == "Random") {
+                    BOOST_REQUIRE_MESSAGE(!AUTOQ::TreeAutomata::check_equal(before, after), "\n" +
+                    AUTOQ::Serialization::TimbukSerializer::Serialize(before) +
+                    AUTOQ::Serialization::TimbukSerializer::Serialize(after));
                 } else {
                     BOOST_REQUIRE_MESSAGE(AUTOQ::TreeAutomata::check_equal(before, after), "\n" +
                         AUTOQ::Serialization::TimbukSerializer::Serialize(before) +
@@ -392,7 +413,7 @@ BOOST_AUTO_TEST_CASE(Toffoli_gate_twice_to_identity)
 //     aut.Z(n+1);
 //     for (int i=1; i<=n; i++) {
 //         auto aut2 = aut;
-//         aut2.CNOT(i, n+1);
+//         aut2.CX(i, n+1);
 //         aut = aut.Union(aut2);
 //     }
 //     for (int i=1; i<=n; i++) {
@@ -466,22 +487,22 @@ BOOST_AUTO_TEST_CASE(Grover_Search)
 
     for (int iter=1; iter <= M_PI / (4 * asin(1 / pow(2, n/2.0))); iter++) {
         /****************************************/
-        for (int i=1; i<=n; i++) aut.CNOT(i, n+i);
+        for (int i=1; i<=n; i++) aut.CX(i, n+i);
         /* multi-controlled NOT gate */
         if (n >= 3) {
-            aut.Toffoli(n+1, n+2, 2*n+2);
+            aut.CCX(n+1, n+2, 2*n+2);
             for (int i=3; i<=n; i++)
-                aut.Toffoli(n+i, 2*n+i-1, 2*n+i);
-            aut.CNOT(3*n, 2*n+1);
+                aut.CCX(n+i, 2*n+i-1, 2*n+i);
+            aut.CX(3*n, 2*n+1);
             for (int i=n; i>=3; i--)
-                aut.Toffoli(n+i, 2*n+i-1, 2*n+i);
-            aut.Toffoli(n+1, n+2, 2*n+2);
+                aut.CCX(n+i, 2*n+i-1, 2*n+i);
+            aut.CCX(n+1, n+2, 2*n+2);
         } else {
             assert(n == 2);
-            aut.Toffoli(3, 4, 5);
+            aut.CCX(3, 4, 5);
         }
         /*****************************/
-        for (int i=1; i<=n; i++) aut.CNOT(i, n+i);
+        for (int i=1; i<=n; i++) aut.CX(i, n+i);
         /****************************************/
 
         /************************************/
@@ -489,16 +510,16 @@ BOOST_AUTO_TEST_CASE(Grover_Search)
         for (int i=n+1; i<=2*n; i++) aut.X(i);
         /* multi-controlled Z gate */
         if (n >= 3) {
-            aut.Toffoli(n+1, n+2, 2*n+2);
+            aut.CCX(n+1, n+2, 2*n+2);
             for (int i=3; i<n; i++) // Note that < does not include n!
-                aut.Toffoli(n+i, 2*n+i-1, 2*n+i);
+                aut.CCX(n+i, 2*n+i-1, 2*n+i);
             aut.CZ(3*n-1, 2*n);
             for (int i=n-1; i>=3; i--)
-                aut.Toffoli(n+i, 2*n+i-1, 2*n+i);
-            aut.Toffoli(n+1, n+2, 2*n+2);
+                aut.CCX(n+i, 2*n+i-1, 2*n+i);
+            aut.CCX(n+1, n+2, 2*n+2);
         // } else if (n == 3) {
         //     aut.H(2*n);
-        //     aut.Toffoli(4, 5, 6);
+        //     aut.CCX(4, 5, 6);
         //     aut.H(2*n);
         } else {
             assert(n == 2);
@@ -634,16 +655,16 @@ BOOST_AUTO_TEST_CASE(Grover_Search_only_one_oracle)
         }
         /* multi-controlled NOT gate */
         if (n >= 3) {
-            aut.Toffoli(1, 2, n+2);
+            aut.CCX(1, 2, n+2);
             for (int i=3; i<=n; i++)
-                aut.Toffoli(i, n+i-1, n+i);
-            aut.CNOT(2*n, n+1);
+                aut.CCX(i, n+i-1, n+i);
+            aut.CX(2*n, n+1);
             for (int i=n; i>=3; i--)
-                aut.Toffoli(i, n+i-1, n+i);
-            aut.Toffoli(1, 2, n+2);
+                aut.CCX(i, n+i-1, n+i);
+            aut.CCX(1, 2, n+2);
         } else {
             assert(n == 2);
-            aut.Toffoli(1, 2, 3);
+            aut.CCX(1, 2, 3);
         }
         /********************************/
         for (int i=1; i<=n; i++) {
@@ -657,16 +678,16 @@ BOOST_AUTO_TEST_CASE(Grover_Search_only_one_oracle)
         for (int i=1; i<=n; i++) aut.X(i);
         /* multi-controlled Z gate */
         if (n >= 3) {
-            aut.Toffoli(1, 2, n+2);
+            aut.CCX(1, 2, n+2);
             for (int i=3; i<n; i++) // Note that < does not include n!
-                aut.Toffoli(i, n+i-1, n+i);
+                aut.CCX(i, n+i-1, n+i);
             aut.CZ(2*n-1, n);
             for (int i=n-1; i>=3; i--)
-                aut.Toffoli(i, n+i-1, n+i);
-            aut.Toffoli(1, 2, n+2);
+                aut.CCX(i, n+i-1, n+i);
+            aut.CCX(1, 2, n+2);
         // } else if (n == 3) {
         //     aut.H(2*n);
-        //     aut.Toffoli(4, 5, 6);
+        //     aut.CCX(4, 5, 6);
         //     aut.H(2*n);
         } else {
             assert(n == 2);

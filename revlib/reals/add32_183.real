@@ -1,0 +1,140 @@
+# Function: reversible ripple carry adder bit width 32
+# Used Library: NCT (gates: 128, quantum costs: 384)
+# This file have been taken from RevLib (www.revlib.org). 
+.version 1.0
+.numvars 97
+.variables  x96 x95 x94 x93 x92 x91 x90 x89 x88 x87 x86 x85 x84 x83 x82 x81 x80 x79 x78 x77 x76 x75 x74 x73 x72 x71 x70 x69 x68 x67 x66 x65 x64 x63 x62 x61 x60 x59 x58 x57 x56 x55 x54 x53 x52 x51 x50 x49 x48 x47 x46 x45 x44 x43 x42 x41 x40 x39 x38 x37 x36 x35 x34 x33 x32 x31 x30 x29 x28 x27 x26 x25 x24 x23 x22 x21 x20 x19 x18 x17 x16 x15 x14 x13 x12 x11 x10 x9 x8 x7 x6 x5 x4 x3 x2 x1 x0
+.inputs  0 y31 x31 0 y30 x30 0 y29 x29 0 y28 x28 0 y27 x27 0 y26 x26 0 y25 x25 0 y24 x24 0 y23 x23 0 y22 x22 0 y21 x21 0 y20 x20 0 y19 x19 0 y18 x18 0 y17 x17 0 y16 x16 0 y15 x15 0 y14 x14 0 y13 x13 0 y12 x12 0 y11 x11 0 y10 x10 0 y9 x9 0 y8 x8 0 y7 x7 0 y6 x6 0 y5 x5 0 y4 x4 0 y3 x3 0 y2 x2 0 y1 x1 0 cin y0 x0
+.outputs  cout g g s31 g g s30 g g s29 g g s28 g g s27 g g s26 g g s25 g g s24 g g s23 g g s22 g g s21 g g s20 g g s19 g g s18 g g s17 g g s16 g g s15 g g s14 g g s13 g g s12 g g s11 g g s10 g g s9 g g s8 g g s7 g g s6 g g s5 g g s4 g g s3 g g s2 g g s1 s0 g g
+.constants 0--0--0--0--0--0--0--0--0--0--0--0--0--0--0--0--0--0--0--0--0--0--0--0--0--0--0--0--0--0--0--0---
+.garbage -11-11-11-11-11-11-11-11-11-11-11-11-11-11-11-11-11-11-11-11-11-11-11-11-11-11-11-11-11-11-11--11
+.begin
+t3 x0 x1 x3
+t2 x0 x1
+t3 x1 x2 x3
+t2 x1 x2
+t3 x4 x5 x6
+t2 x4 x5
+t3 x5 x3 x6
+t2 x5 x3
+t3 x7 x8 x9
+t2 x7 x8
+t3 x8 x6 x9
+t2 x8 x6
+t3 x10 x11 x12
+t2 x10 x11
+t3 x11 x9 x12
+t2 x11 x9
+t3 x13 x14 x15
+t2 x13 x14
+t3 x14 x12 x15
+t2 x14 x12
+t3 x16 x17 x18
+t2 x16 x17
+t3 x17 x15 x18
+t2 x17 x15
+t3 x19 x20 x21
+t2 x19 x20
+t3 x20 x18 x21
+t2 x20 x18
+t3 x22 x23 x24
+t2 x22 x23
+t3 x23 x21 x24
+t2 x23 x21
+t3 x25 x26 x27
+t2 x25 x26
+t3 x26 x24 x27
+t2 x26 x24
+t3 x28 x29 x30
+t2 x28 x29
+t3 x29 x27 x30
+t2 x29 x27
+t3 x31 x32 x33
+t2 x31 x32
+t3 x32 x30 x33
+t2 x32 x30
+t3 x34 x35 x36
+t2 x34 x35
+t3 x35 x33 x36
+t2 x35 x33
+t3 x37 x38 x39
+t2 x37 x38
+t3 x38 x36 x39
+t2 x38 x36
+t3 x40 x41 x42
+t2 x40 x41
+t3 x41 x39 x42
+t2 x41 x39
+t3 x43 x44 x45
+t2 x43 x44
+t3 x44 x42 x45
+t2 x44 x42
+t3 x46 x47 x48
+t2 x46 x47
+t3 x47 x45 x48
+t2 x47 x45
+t3 x49 x50 x51
+t2 x49 x50
+t3 x50 x48 x51
+t2 x50 x48
+t3 x52 x53 x54
+t2 x52 x53
+t3 x53 x51 x54
+t2 x53 x51
+t3 x55 x56 x57
+t2 x55 x56
+t3 x56 x54 x57
+t2 x56 x54
+t3 x58 x59 x60
+t2 x58 x59
+t3 x59 x57 x60
+t2 x59 x57
+t3 x61 x62 x63
+t2 x61 x62
+t3 x62 x60 x63
+t2 x62 x60
+t3 x64 x65 x66
+t2 x64 x65
+t3 x65 x63 x66
+t2 x65 x63
+t3 x67 x68 x69
+t2 x67 x68
+t3 x68 x66 x69
+t2 x68 x66
+t3 x70 x71 x72
+t2 x70 x71
+t3 x71 x69 x72
+t2 x71 x69
+t3 x73 x74 x75
+t2 x73 x74
+t3 x74 x72 x75
+t2 x74 x72
+t3 x76 x77 x78
+t2 x76 x77
+t3 x77 x75 x78
+t2 x77 x75
+t3 x79 x80 x81
+t2 x79 x80
+t3 x80 x78 x81
+t2 x80 x78
+t3 x82 x83 x84
+t2 x82 x83
+t3 x83 x81 x84
+t2 x83 x81
+t3 x85 x86 x87
+t2 x85 x86
+t3 x86 x84 x87
+t2 x86 x84
+t3 x88 x89 x90
+t2 x88 x89
+t3 x89 x87 x90
+t2 x89 x87
+t3 x91 x92 x93
+t2 x91 x92
+t3 x92 x90 x93
+t2 x92 x90
+t3 x94 x95 x96
+t2 x94 x95
+t3 x95 x93 x96
+t2 x95 x93
+.end

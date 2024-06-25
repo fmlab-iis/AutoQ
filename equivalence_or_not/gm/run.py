@@ -3,7 +3,7 @@ import os, re, subprocess
 from ctypes import c_wchar_p
 from multiprocessing import Manager, Process, Semaphore, Lock
 
-name = 'gm.tex'
+name = 'name.tex'
 TIMEOUT = 86400
 NUM_OF_CASES = 30
 NUM_OF_THREADS = NUM_OF_CASES
@@ -44,7 +44,8 @@ def CTA(root, stR, semaphore, lock, counter):
         else:
             stR.value = q + ' & ' + G + ' & ' + r'\multicolumn{6}{c}{\error}'
         lock.acquire()
-        counter.value+=1; print(counter.value, f'/ {NUM_OF_CASES}')
+        counter.value+=1; #print(counter.value, f'/ {NUM_OF_CASES}')
+        stR.value += ' & ' + str(counter.value) + '/' + str(NUM_OF_CASES)
         lock.release()
 def TA(root, stR, semaphore, lock, counter):
     with semaphore:

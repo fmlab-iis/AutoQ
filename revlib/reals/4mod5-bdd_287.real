@@ -1,0 +1,21 @@
+# This file has been generated using RevKit 1.1 (www.revkit.org)
+# Command Line:
+# ./tools/bdd_synthesis.py --filename 4mod5_8.pla --realname 4mod5_8.real
+# Based on the approach proposed in R. Wille and R. Drechsler. BDD-based synthesis of reversible logic for large functions. In Design Automation Conf., pages 270-275, 2009.
+.version 2.0
+.numvars 7
+.variables x0 x1 x2 x3 x4 x5 x6
+.inputs a b c d 1 0 1
+.outputs  g g g g g g e
+.constants ----101
+.garbage 111111-
+.begin
+t2 x3 x4
+t2 x1 x4
+t3 x0 x4 x5
+t3 x0 x4 x6
+t2 x4 x6
+t1 x6
+t3 x2 x6 x5
+t3 x2 x5 x6
+.end

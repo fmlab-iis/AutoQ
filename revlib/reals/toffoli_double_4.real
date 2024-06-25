@@ -1,0 +1,15 @@
+# Function: Doubled Toffoli gate
+# Used Library: MCT (gates: 2, quantum costs: 10)
+# This file have been taken from RevLib (www.revlib.org).
+.version 1.0
+.numvars 4
+.variables a b c d
+.inputs a b c d
+.outputs a b c d
+.constants ----
+.garbage ----
+.begin
+t3 c a d
+t3 b a d
+.end
+

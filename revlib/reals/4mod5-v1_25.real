@@ -1,0 +1,18 @@
+# Function: 4mod5
+# Note: Embedding with constant 1
+# Used Library: MCT (gates: 4, quantum costs: 7)
+# This file has been taken from RevLib (www.revlib.org).
+.version 1.0
+.numvars 5
+.variables a b c d e
+.inputs a b c d 1
+.outputs g g g g e
+.constants ----1
+.garbage 1111-
+.begin
+t2 a c
+t2 b d
+p c d e
+t2 d e
+.end
+

@@ -1,0 +1,20 @@
+# Function: decod24
+# Note: Embedding with constants 11
+# Used Library: MCT (gates: 7, quantum costs: 35)
+# This file has been taken from RevLib (www.revlib.org).
+.version 1.0
+.numvars 4
+.variables a b c d
+.inputs 1 1 c d
+.outputs a b c d
+.constants 11--
+.garbage ----
+.begin
+t4 d c b a
+t4 c b a d
+t3 a c b
+t1 b
+t1 a
+t2 d c
+t1 d
+.end

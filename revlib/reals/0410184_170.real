@@ -1,0 +1,84 @@
+# Function: 0410184
+# Used Library: EQ (gates: 74, quantum costs: 74)
+# This file have been taken from RevLib (www.revlib.org). 
+.version 1.0
+.numvars 14
+.variables x0 x1 x2 x3 x4 x5 x6 x7 x8 x9 x10 x11 x12 x13
+.inputs x0 x1 x2 x3 x4 x5 x6 x7 x8 x9 x10 x11 x12 x13
+.outputs x0 x1 x2 x3 x4 x5 x6 x7 x8 x9 x10 x11 x12 x13
+.begin
+t2 x3 x2
+t2 x4 x3
+v x0 x2
+t2 x0 x1
+v+ x1 x2
+t2 x0 x1
+v x1 x2
+t2 x5 x4
+t2 x6 x5
+v x2 x4
+t2 x3 x2
+v+ x3 x4
+v+ x2 x4
+t2 x7 x6
+t2 x8 x7
+v x4 x6
+t2 x5 x4
+v+ x5 x6
+v+ x4 x6
+t2 x9 x8
+t2 x10 x9
+v x6 x8
+t2 x7 x6
+v+ x7 x8
+v+ x6 x8
+v x8 x10
+t2 x9 x8
+v+ x9 x10
+v+ x8 x10
+t2 x12 x13
+t1 x3
+t1 x5
+t1 x7
+t1 x9
+t2 x10 x11
+t2 x12 x10
+v x11 x13
+v+ x10 x13
+t2 x11 x10
+v+ x10 x13
+v x8 x10
+v+ x9 x10
+t2 x8 x9
+v x9 x10
+v x6 x8
+v+ x7 x8
+t2 x6 x7
+v x7 x8
+t1 x9
+t2 x12 x11
+t2 x11 x10
+v x4 x6
+v+ x5 x6
+t2 x4 x5
+v x5 x6
+t1 x7
+t2 x10 x8
+v x2 x4
+v+ x3 x4
+t2 x2 x3
+v x3 x4
+t1 x5
+t2 x8 x6
+v x0 x2
+t2 x1 x0
+v+ x0 x2
+v x1 x2
+t1 x3
+t2 x6 x4
+t2 x4 x2
+t2 x4 x3
+t2 x6 x5
+t2 x8 x7
+t2 x10 x9
+.end

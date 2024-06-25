@@ -1,0 +1,126 @@
+# Function: rd84
+# Used Library: MCT (Gates: 111, Quantum costs: 2749)
+# This file have been taken from RevLib (www.revlib.org).
+.version  1.0
+# Created by tfc2real J. Rice Jan 2009
+# Parameters for Exorcism: -n 1 -r 1 -a 0 -b 1 -c 1
+# Templates applied in both directions
+.numvars 12
+.variables  s3 s2 s1 s0 x8 x7 x6 x5 x4 x3 x2 x1
+.inputs  0 0 0 0 x8 x7 x6 x5 x4 x3 x2 x1
+.outputs  s3 s2 s1 s0 x8 x7 x6 x5 x4 x3 x2 x1
+.constants 0000--------
+.garbage 11111111----
+.begin
+t2 x2 s1
+t2 x4 s1
+t2 x4 s3
+t4 x1 x2 x7 s0
+t4 x4 x5 x6 s0
+t3 x3 x8 s1
+t3 x1 x5 s0
+t3 x1 x5 s1
+t4 x1 x6 x8 s0
+t9 x1 x2 x3 x4 x5 x6 x7 x8 s2
+t9 x1 x2 x3 x4 x5 x6 x7 x8 s3
+t1 x4
+t3 x2 x4 s0
+t3 x2 x4 s3
+t4 x1 x3 x4 s0
+t4 x1 x3 x4 s3
+t5 x1 x2 x3 x4 s3
+t1 x6
+t4 x2 x3 x6 s0
+t3 x6 x7 s1
+t1 x5
+t4 x2 x5 x8 s0
+t8 x2 x3 x4 x5 x6 x7 x8 s3
+t7 x1 x2 x3 x4 x5 x6 s3
+t7 x1 x4 x5 x6 x7 x8 s3
+t4 x4 x5 x6 s0
+t4 x4 x5 x6 s3
+t1 x6
+t1 x4
+t1 x7
+t4 x4 x7 x8 s0
+t3 x6 x7 s0
+t3 x6 x7 s1
+t4 x3 x5 x7 s0
+t1 x8
+t5 x3 x5 x7 x8 s3
+t8 x1 x2 x3 x5 x6 x7 x8 s3
+t6 x4 x5 x6 x7 x8 s3
+t7 x1 x2 x4 x5 x7 x8 s3
+t1 x4
+t1 x6
+t7 x1 x3 x4 x6 x7 x8 s3
+t6 x2 x4 x6 x7 x8 s3
+t1 x7
+t4 x4 x7 x8 s0
+t1 x6
+t1 x3
+t3 x3 x8 s0
+t3 x3 x8 s1
+t7 x2 x3 x4 x5 x7 x8 s3
+t6 x2 x3 x4 x5 x8 s3
+t1 x4
+t1 x5
+t4 x3 x5 x7 s0
+t1 x1
+t4 x1 x3 x4 s0
+t5 x1 x3 x4 x8 s3
+t6 x1 x2 x3 x6 x8 s3
+t8 x1 x3 x4 x5 x6 x7 x8 s3
+t7 x1 x2 x3 x5 x7 x8 s3
+t1 x6
+t4 x1 x6 x8 s0
+t1 x8
+t1 x7
+t8 x1 x2 x3 x5 x6 x7 x8 s3
+t7 x1 x3 x4 x6 x7 x8 s3
+t1 x6
+t1 x5
+t3 x1 x5 s1
+t1 x4
+t7 x1 x3 x4 x5 x6 x7 s3
+t1 x7
+t1 x5
+t1 x2
+t7 x1 x2 x3 x4 x6 x8 s3
+t6 x1 x2 x4 x6 x8 s3
+t1 x8
+t4 x2 x5 x8 s0
+t8 x1 x2 x4 x5 x6 x7 x8 s3
+t4 x2 x3 x6 s0
+t6 x2 x3 x4 x5 x7 s3
+t1 x6
+t6 x2 x3 x6 x7 x8 s3
+t7 x1 x2 x4 x6 x7 x8 s3
+t6 x1 x2 x4 x6 x7 s3
+t1 x4
+t7 x2 x3 x4 x5 x6 x8 s3
+t1 x7
+t4 x1 x2 x7 s0
+t8 x1 x2 x4 x5 x6 x7 x8 s3
+t1 x8
+t1 x1
+t1 x6
+t8 x1 x2 x3 x4 x6 x7 x8 s3
+t7 x1 x2 x3 x6 x7 x8 s3
+t1 x3
+t1 x5
+t1 x1
+t9 x1 x2 x3 x4 x5 x6 x7 x8 s3
+t5 x1 x2 x5 x7 s3
+t1 x6
+t7 x1 x2 x3 x5 x6 x8 s3
+t6 x1 x2 x3 x5 x6 s3
+t1 x3
+t7 x1 x2 x3 x5 x6 x7 s3
+t6 x2 x3 x5 x6 x7 s3
+t7 x1 x2 x3 x4 x5 x6 s3
+t1 x6
+t1 x1
+t1 x4
+t8 x1 x2 x3 x4 x5 x6 x8 s3
+.end

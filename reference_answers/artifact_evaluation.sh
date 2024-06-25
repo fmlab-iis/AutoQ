@@ -19,7 +19,7 @@ for i in {2..8..2}; do VATA_PATH=/home/alan23273850/libvata/build/cli/vata build
 
 # Table 6. Running Time of Different Gates on the 1st Qubit of a 10-Qubit Circuit
 echo -e '\nTable 6:'
-echo 'X & Y & Z & H & S & T & Rx & Ry & CNOT & CZ & Toffoli\\ \hline'
+echo 'X & Y & Z & H & S & T & Rx & Ry & CX & CZ & CCX\\ \hline'
 for i in {1..11}; do VATA_PATH=/home/alan23273850/libvata/build/cli/vata build/cli/autoq 0 $i; done
 
 # Table 7. Running Time on Random Circuits

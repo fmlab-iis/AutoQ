@@ -1,0 +1,222 @@
+# Function: sym9
+# Used Library: MCT (gates: 210 , quantum costs: 4368)
+# This file has been taken from RevLib (www.revlib.org).
+.version 1.0
+.numvars 10
+.variables a b c d e f g h i j
+.inputs x1 x2 x3 x4 x5 x6 x7 x8 x9  0 
+.outputs g g g g g g g g g  s
+.constants ---------0
+.garbage 111111111-
+.begin
+t5 f g h i j
+t5 e g h i j
+t5 d g h i j
+t5 c g h i j
+t5 b g h i j
+t5 a g h i j
+t4 g h i j
+t5 e f h i j
+t5 d f h i j
+t5 c f h i j
+t5 b f h i j
+t5 a f h i j
+t4 f h i j
+t5 d e h i j
+t5 c e h i j
+t5 b e h i j
+t5 a e h i j
+t4 e h i j
+t5 c d h i j
+t5 b d h i j
+t5 a d h i j
+t4 d h i j
+t5 b c h i j
+t5 a c h i j
+t4 c h i j
+t5 a b h i j
+t4 b h i j
+t4 a h i j
+t5 e f g i j
+t5 d f g i j
+t5 c f g i j
+t5 b f g i j
+t5 a f g i j
+t4 f g i j
+t5 d e g i j
+t5 c e g i j
+t5 b e g i j
+t5 a e g i j
+t4 e g i j
+t5 c d g i j
+t5 b d g i j
+t5 a d g i j
+t4 d g i j
+t5 b c g i j
+t5 a c g i j
+t4 c g i j
+t5 a b g i j
+t4 b g i j
+t4 a g i j
+t5 d e f i j
+t5 c e f i j
+t5 b e f i j
+t5 a e f i j
+t4 e f i j
+t5 c d f i j
+t5 b d f i j
+t5 a d f i j
+t4 d f i j
+t5 b c f i j
+t5 a c f i j
+t4 c f i j
+t5 a b f i j
+t4 b f i j
+t4 a f i j
+t5 c d e i j
+t5 b d e i j
+t5 a d e i j
+t4 d e i j
+t5 b c e i j
+t5 a c e i j
+t4 c e i j
+t5 a b e i j
+t4 b e i j
+t4 a e i j
+t5 b c d i j
+t5 a c d i j
+t4 c d i j
+t5 a b d i j
+t4 b d i j
+t4 a d i j
+t5 a b c i j
+t4 b c i j
+t4 a c i j
+t4 a b i j
+t5 e f g h j
+t5 d f g h j
+t5 c f g h j
+t5 b f g h j
+t5 a f g h j
+t4 f g h j
+t5 d e g h j
+t5 c e g h j
+t5 b e g h j
+t5 a e g h j
+t4 e g h j
+t5 c d g h j
+t5 b d g h j
+t5 a d g h j
+t4 d g h j
+t5 b c g h j
+t5 a c g h j
+t4 c g h j
+t5 a b g h j
+t4 b g h j
+t4 a g h j
+t5 d e f h j
+t5 c e f h j
+t5 b e f h j
+t5 a e f h j
+t4 e f h j
+t5 c d f h j
+t5 b d f h j
+t5 a d f h j
+t4 d f h j
+t5 b c f h j
+t5 a c f h j
+t4 c f h j
+t5 a b f h j
+t4 b f h j
+t4 a f h j
+t5 c d e h j
+t5 b d e h j
+t5 a d e h j
+t4 d e h j
+t5 b c e h j
+t5 a c e h j
+t4 c e h j
+t5 a b e h j
+t4 b e h j
+t4 a e h j
+t5 b c d h j
+t5 a c d h j
+t4 c d h j
+t5 a b d h j
+t4 b d h j
+t4 a d h j
+t5 a b c h j
+t4 b c h j
+t4 a c h j
+t4 a b h j
+t5 d e f g j
+t5 c e f g j
+t5 b e f g j
+t5 a e f g j
+t4 e f g j
+t5 c d f g j
+t5 b d f g j
+t5 a d f g j
+t4 d f g j
+t5 b c f g j
+t5 a c f g j
+t4 c f g j
+t5 a b f g j
+t4 b f g j
+t4 a f g j
+t5 c d e g j
+t5 b d e g j
+t5 a d e g j
+t4 d e g j
+t5 b c e g j
+t5 a c e g j
+t4 c e g j
+t5 a b e g j
+t4 b e g j
+t4 a e g j
+t5 b c d g j
+t5 a c d g j
+t4 c d g j
+t5 a b d g j
+t4 b d g j
+t4 a d g j
+t5 a b c g j
+t4 b c g j
+t4 a c g j
+t4 a b g j
+t5 c d e f j
+t5 b d e f j
+t5 a d e f j
+t4 d e f j
+t5 b c e f j
+t5 a c e f j
+t4 c e f j
+t5 a b e f j
+t4 b e f j
+t4 a e f j
+t5 b c d f j
+t5 a c d f j
+t4 c d f j
+t5 a b d f j
+t4 b d f j
+t4 a d f j
+t5 a b c f j
+t4 b c f j
+t4 a c f j
+t4 a b f j
+t5 b c d e j
+t5 a c d e j
+t4 c d e j
+t5 a b d e j
+t4 b d e j
+t4 a d e j
+t5 a b c e j
+t4 b c e j
+t4 a c e j
+t4 a b e j
+t5 a b c d j
+t4 b c d j
+t4 a c d j
+t4 a b d j
+t4 a b c j
+.end

@@ -1,0 +1,60 @@
+# Function: cycle17_3
+# Used Library: MCT (gates: 48, quantum costs: 6063)
+# This file has been taken from RevLib (www.revlib.org).
+.version 1.0
+.numvars 20
+.variables  a b c d e f g h i j k l m n o p q r s t
+.inputs a b c d e f g h i j k l m n o p q r s t
+.outputs a b c d e f g h i j k l m n o p q r s t
+.constants --------------------
+.garbage --------------------
+.begin
+t16 c d e f g h i j k l m n o p t q
+t15 c d e f g h i j k l m n o t p
+t14 c d e f g h i j k l m n t o
+t13 c d e f g h i j k l m t n
+t12 c d e f g h i j k l t m
+t11 c d e f g h i j k t l
+t10 c d e f g h i j t k
+t9 c d e f g h i t j
+t8 c d e f g h t i
+t7 c d e f g t h
+t6 c d e f t g
+t5 c d e t f
+t4 c d t e
+t3 c t d
+t2 t c
+t17 b c d e f g h i j k l m n o p s q
+t16 b c d e f g h i j k l m n o s p
+t15 b c d e f g h i j k l m n s o
+t14 b c d e f g h i j k l m s n
+t13 b c d e f g h i j k l s m
+t12 b c d e f g h i j k s l
+t11 b c d e f g h i j s k
+t10 b c d e f g h i s j
+t9 b c d e f g h s i
+t8 b c d e f g s h
+t7 b c d e f s g
+t6 b c d e s f
+t5 b c d s e
+t4 b c s d
+t3 b s c
+t2 s b
+t18 a b c d e f g h i j k l m n o p r q
+t17 a b c d e f g h i j k l m n o r p
+t16 a b c d e f g h i j k l m n r o
+t15 a b c d e f g h i j k l m r n
+t14 a b c d e f g h i j k l r m
+t13 a b c d e f g h i j k r l
+t12 a b c d e f g h i j r k
+t11 a b c d e f g h i r j
+t10 a b c d e f g h r i
+t9 a b c d e f g r h
+t8 a b c d e f r g
+t7 a b c d e r f
+t6 a b c d r e
+t5 a b c r d
+t4 a b r c
+t3 a r b
+t2 r a
+.end

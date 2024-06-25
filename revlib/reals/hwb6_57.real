@@ -1,0 +1,78 @@
+# Function: hwb6
+# Used Library: MCF (gates: 65 quantum costs: 1171 )
+# This file has been taken from RevLib (www.revlib.org).
+.version 1.0
+.numvars 6
+.variables a b c d e f
+.inputs a b c d e f
+.outputs a b c d e f
+.constants ------
+.garbage ------
+.begin
+f4 a b d f
+f4 a e b f
+f4 c f a e
+f5 a c f b d
+f5 c e f a b
+f2 a b
+f6 c d e f a b
+f6 a d e f b c
+f5 d e f a c
+f2 a c
+f4 e f a c
+f6 a c e f b d
+f5 a e f c d
+f5 a e f b c
+f6 b c d f a e
+f5 a d f b e
+f4 a f d e
+f2 d e
+f4 d f a b
+f5 b c f d e
+f4 e f a c
+f4 e f b c
+f3 f d e
+f4 c f a d
+f4 d f b c
+f3 f a d
+f4 b f c e
+f4 e f a b
+f3 f c d
+f3 f b d
+f5 a c e d f
+f5 a c f b e
+f5 a d e b f
+f4 d e a f
+f5 b c e d f
+f5 b c f a e
+f3 d e f
+f4 d f c e
+f4 d f b e
+f3 a d f
+f4 a f c e
+f5 a b f c e
+f4 a b d f
+f4 a d b e
+f5 b c e a f
+f3 f a e
+f3 c d f
+f3 f a c
+f3 b d f
+f2 d f
+f3 d b c
+f4 a e c d
+f4 b e a d
+f2 a d
+f4 a e b c
+f3 e d f
+f3 c e f
+f3 f c d
+f3 b e f
+f3 f b c
+f3 d c e
+f4 d e b f
+f3 b d e
+f3 e b c
+f3 c b d
+.end
+

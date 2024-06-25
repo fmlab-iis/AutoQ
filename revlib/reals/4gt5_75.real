@@ -1,0 +1,19 @@
+# Function: 4gt5-v0
+# Checks, if input is greater than 5.
+# Note: Embedding with constant 0.
+# Used Library: MCT (gates: 5, quantum costs: 21)
+# This file have been taken from RevLib (www.revlib.org). 
+.version 1.0
+.numvars 5
+.variables a b c d e
+.inputs 0 b c d e
+.outputs g g g g f
+.constants 0----
+.garbage 1111-
+.begin
+t2 e b
+t2 d a
+t2 b e
+t3 c e d
+t4 d c a e
+.end

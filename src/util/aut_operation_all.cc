@@ -763,12 +763,22 @@ void AUTOQ::Automata<Symbol>::print_aut(const char *str) const {
 }
 
 template <typename Symbol>
-int AUTOQ::Automata<Symbol>::transition_size() {
+int AUTOQ::Automata<Symbol>::transition_size() const {
     int answer = 0;
     for (const auto &t : transitions) {
         for (const auto &in_out : t.second) {
             answer += in_out.second.size();
         }
+    }
+    return answer;
+}
+
+template <typename Symbol>
+int AUTOQ::Automata<Symbol>::leaf_size() const {
+    int answer = 0;
+    for (const auto &t : transitions) {
+        if (t.first.is_leaf())
+            answer++;
     }
     return answer;
 }

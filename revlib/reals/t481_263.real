@@ -1,0 +1,36 @@
+# Function: t481
+# Used Library: MCT (Gates: 21, Quantum costs: 237)
+# This file have been taken from RevLib (www.revlib.org).
+.version  1.0
+# Created by tfc2real J. Rice Jan 2009
+# Parameters for Exorcism: -n 1 -r 1 -a 0 -b 1 -c 1
+# Templates applied in both directions
+.numvars 17
+.variables  f0 x15 x14 x13 x12 x11 x10 x9 x8 x7 x6 x5 x4 x3 x2 x1 x0
+.inputs  0 x15 x14 x13 x12 x11 x10 x9 x8 x7 x6 x5 x4 x3 x2 x1 x0
+.outputs  f0 x15 x14 x13 x12 x11 x10 x9 x8 x7 x6 x5 x4 x3 x2 x1 x0
+.constants 0----------------
+.garbage 1111111111111111-
+.begin
+t1 f0
+t1 x15
+t3 x14 x15 f0
+t1 x12
+t3 x12 x13 f0
+t1 x11
+t5 x10 x11 x14 x15 f0
+t5 x10 x11 x12 x13 f0
+t1 x8
+t5 x8 x9 x14 x15 f0
+t5 x8 x9 x12 x13 f0
+t1 x3
+t3 x2 x3 f0
+t1 x7
+t5 x2 x3 x6 x7 f0
+t1 x0
+t3 x0 x1 f0
+t5 x0 x1 x6 x7 f0
+t1 x4
+t5 x2 x3 x4 x5 f0
+t5 x0 x1 x4 x5 f0
+.end

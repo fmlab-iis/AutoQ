@@ -1,0 +1,268 @@
+# Function: reversible ripple carry adder bit width 64
+# Used Library: NCT (gates: 256, quantum costs: 768)
+# This file have been taken from RevLib (www.revlib.org). 
+.version 1.0
+.numvars 193
+.variables  x192 x191 x190 x189 x188 x187 x186 x185 x184 x183 x182 x181 x180 x179 x178 x177 x176 x175 x174 x173 x172 x171 x170 x169 x168 x167 x166 x165 x164 x163 x162 x161 x160 x159 x158 x157 x156 x155 x154 x153 x152 x151 x150 x149 x148 x147 x146 x145 x144 x143 x142 x141 x140 x139 x138 x137 x136 x135 x134 x133 x132 x131 x130 x129 x128 x127 x126 x125 x124 x123 x122 x121 x120 x119 x118 x117 x116 x115 x114 x113 x112 x111 x110 x109 x108 x107 x106 x105 x104 x103 x102 x101 x100 x99 x98 x97 x96 x95 x94 x93 x92 x91 x90 x89 x88 x87 x86 x85 x84 x83 x82 x81 x80 x79 x78 x77 x76 x75 x74 x73 x72 x71 x70 x69 x68 x67 x66 x65 x64 x63 x62 x61 x60 x59 x58 x57 x56 x55 x54 x53 x52 x51 x50 x49 x48 x47 x46 x45 x44 x43 x42 x41 x40 x39 x38 x37 x36 x35 x34 x33 x32 x31 x30 x29 x28 x27 x26 x25 x24 x23 x22 x21 x20 x19 x18 x17 x16 x15 x14 x13 x12 x11 x10 x9 x8 x7 x6 x5 x4 x3 x2 x1 x0
+.inputs  0 y63 x63 0 y62 x62 0 y61 x61 0 y60 x60 0 y59 x59 0 y58 x58 0 y57 x57 0 y56 x56 0 y55 x55 0 y54 x54 0 y53 x53 0 y52 x52 0 y51 x51 0 y50 x50 0 y49 x49 0 y48 x48 0 y47 x47 0 y46 x46 0 y45 x45 0 y44 x44 0 y43 x43 0 y42 x42 0 y41 x41 0 y40 x40 0 y39 x39 0 y38 x38 0 y37 x37 0 y36 x36 0 y35 x35 0 y34 x34 0 y33 x33 0 y32 x32 0 y31 x31 0 y30 x30 0 y29 x29 0 y28 x28 0 y27 x27 0 y26 x26 0 y25 x25 0 y24 x24 0 y23 x23 0 y22 x22 0 y21 x21 0 y20 x20 0 y19 x19 0 y18 x18 0 y17 x17 0 y16 x16 0 y15 x15 0 y14 x14 0 y13 x13 0 y12 x12 0 y11 x11 0 y10 x10 0 y9 x9 0 y8 x8 0 y7 x7 0 y6 x6 0 y5 x5 0 y4 x4 0 y3 x3 0 y2 x2 0 y1 x1 0 cin y0 x0
+.outputs  cout g g s63 g g s62 g g s61 g g s60 g g s59 g g s58 g g s57 g g s56 g g s55 g g s54 g g s53 g g s52 g g s51 g g s50 g g s49 g g s48 g g s47 g g s46 g g s45 g g s44 g g s43 g g s42 g g s41 g g s40 g g s39 g g s38 g g s37 g g s36 g g s35 g g s34 g g s33 g g s32 g g s31 g g s30 g g s29 g g s28 g g s27 g g s26 g g s25 g g s24 g g s23 g g s22 g g s21 g g s20 g g s19 g g s18 g g s17 g g s16 g g s15 g g s14 g g s13 g g s12 g g s11 g g s10 g g s9 g g s8 g g s7 g g s6 g g s5 g g s4 g g s3 g g s2 g g s1 s0 g g
+.constants 0--0--0--0--0--0--0--0--0--0--0--0--0--0--0--0--0--0--0--0--0--0--0--0--0--0--0--0--0--0--0--0--0--0--0--0--0--0--0--0--0--0--0--0--0--0--0--0--0--0--0--0--0--0--0--0--0--0--0--0--0--0--0--0---
+.garbage -11-11-11-11-11-11-11-11-11-11-11-11-11-11-11-11-11-11-11-11-11-11-11-11-11-11-11-11-11-11-11-11-11-11-11-11-11-11-11-11-11-11-11-11-11-11-11-11-11-11-11-11-11-11-11-11-11-11-11-11-11-11-11--11
+.begin
+t3 x0 x1 x3
+t2 x0 x1
+t3 x1 x2 x3
+t2 x1 x2
+t3 x4 x5 x6
+t2 x4 x5
+t3 x5 x3 x6
+t2 x5 x3
+t3 x7 x8 x9
+t2 x7 x8
+t3 x8 x6 x9
+t2 x8 x6
+t3 x10 x11 x12
+t2 x10 x11
+t3 x11 x9 x12
+t2 x11 x9
+t3 x13 x14 x15
+t2 x13 x14
+t3 x14 x12 x15
+t2 x14 x12
+t3 x16 x17 x18
+t2 x16 x17
+t3 x17 x15 x18
+t2 x17 x15
+t3 x19 x20 x21
+t2 x19 x20
+t3 x20 x18 x21
+t2 x20 x18
+t3 x22 x23 x24
+t2 x22 x23
+t3 x23 x21 x24
+t2 x23 x21
+t3 x25 x26 x27
+t2 x25 x26
+t3 x26 x24 x27
+t2 x26 x24
+t3 x28 x29 x30
+t2 x28 x29
+t3 x29 x27 x30
+t2 x29 x27
+t3 x31 x32 x33
+t2 x31 x32
+t3 x32 x30 x33
+t2 x32 x30
+t3 x34 x35 x36
+t2 x34 x35
+t3 x35 x33 x36
+t2 x35 x33
+t3 x37 x38 x39
+t2 x37 x38
+t3 x38 x36 x39
+t2 x38 x36
+t3 x40 x41 x42
+t2 x40 x41
+t3 x41 x39 x42
+t2 x41 x39
+t3 x43 x44 x45
+t2 x43 x44
+t3 x44 x42 x45
+t2 x44 x42
+t3 x46 x47 x48
+t2 x46 x47
+t3 x47 x45 x48
+t2 x47 x45
+t3 x49 x50 x51
+t2 x49 x50
+t3 x50 x48 x51
+t2 x50 x48
+t3 x52 x53 x54
+t2 x52 x53
+t3 x53 x51 x54
+t2 x53 x51
+t3 x55 x56 x57
+t2 x55 x56
+t3 x56 x54 x57
+t2 x56 x54
+t3 x58 x59 x60
+t2 x58 x59
+t3 x59 x57 x60
+t2 x59 x57
+t3 x61 x62 x63
+t2 x61 x62
+t3 x62 x60 x63
+t2 x62 x60
+t3 x64 x65 x66
+t2 x64 x65
+t3 x65 x63 x66
+t2 x65 x63
+t3 x67 x68 x69
+t2 x67 x68
+t3 x68 x66 x69
+t2 x68 x66
+t3 x70 x71 x72
+t2 x70 x71
+t3 x71 x69 x72
+t2 x71 x69
+t3 x73 x74 x75
+t2 x73 x74
+t3 x74 x72 x75
+t2 x74 x72
+t3 x76 x77 x78
+t2 x76 x77
+t3 x77 x75 x78
+t2 x77 x75
+t3 x79 x80 x81
+t2 x79 x80
+t3 x80 x78 x81
+t2 x80 x78
+t3 x82 x83 x84
+t2 x82 x83
+t3 x83 x81 x84
+t2 x83 x81
+t3 x85 x86 x87
+t2 x85 x86
+t3 x86 x84 x87
+t2 x86 x84
+t3 x88 x89 x90
+t2 x88 x89
+t3 x89 x87 x90
+t2 x89 x87
+t3 x91 x92 x93
+t2 x91 x92
+t3 x92 x90 x93
+t2 x92 x90
+t3 x94 x95 x96
+t2 x94 x95
+t3 x95 x93 x96
+t2 x95 x93
+t3 x97 x98 x99
+t2 x97 x98
+t3 x98 x96 x99
+t2 x98 x96
+t3 x100 x101 x102
+t2 x100 x101
+t3 x101 x99 x102
+t2 x101 x99
+t3 x103 x104 x105
+t2 x103 x104
+t3 x104 x102 x105
+t2 x104 x102
+t3 x106 x107 x108
+t2 x106 x107
+t3 x107 x105 x108
+t2 x107 x105
+t3 x109 x110 x111
+t2 x109 x110
+t3 x110 x108 x111
+t2 x110 x108
+t3 x112 x113 x114
+t2 x112 x113
+t3 x113 x111 x114
+t2 x113 x111
+t3 x115 x116 x117
+t2 x115 x116
+t3 x116 x114 x117
+t2 x116 x114
+t3 x118 x119 x120
+t2 x118 x119
+t3 x119 x117 x120
+t2 x119 x117
+t3 x121 x122 x123
+t2 x121 x122
+t3 x122 x120 x123
+t2 x122 x120
+t3 x124 x125 x126
+t2 x124 x125
+t3 x125 x123 x126
+t2 x125 x123
+t3 x127 x128 x129
+t2 x127 x128
+t3 x128 x126 x129
+t2 x128 x126
+t3 x130 x131 x132
+t2 x130 x131
+t3 x131 x129 x132
+t2 x131 x129
+t3 x133 x134 x135
+t2 x133 x134
+t3 x134 x132 x135
+t2 x134 x132
+t3 x136 x137 x138
+t2 x136 x137
+t3 x137 x135 x138
+t2 x137 x135
+t3 x139 x140 x141
+t2 x139 x140
+t3 x140 x138 x141
+t2 x140 x138
+t3 x142 x143 x144
+t2 x142 x143
+t3 x143 x141 x144
+t2 x143 x141
+t3 x145 x146 x147
+t2 x145 x146
+t3 x146 x144 x147
+t2 x146 x144
+t3 x148 x149 x150
+t2 x148 x149
+t3 x149 x147 x150
+t2 x149 x147
+t3 x151 x152 x153
+t2 x151 x152
+t3 x152 x150 x153
+t2 x152 x150
+t3 x154 x155 x156
+t2 x154 x155
+t3 x155 x153 x156
+t2 x155 x153
+t3 x157 x158 x159
+t2 x157 x158
+t3 x158 x156 x159
+t2 x158 x156
+t3 x160 x161 x162
+t2 x160 x161
+t3 x161 x159 x162
+t2 x161 x159
+t3 x163 x164 x165
+t2 x163 x164
+t3 x164 x162 x165
+t2 x164 x162
+t3 x166 x167 x168
+t2 x166 x167
+t3 x167 x165 x168
+t2 x167 x165
+t3 x169 x170 x171
+t2 x169 x170
+t3 x170 x168 x171
+t2 x170 x168
+t3 x172 x173 x174
+t2 x172 x173
+t3 x173 x171 x174
+t2 x173 x171
+t3 x175 x176 x177
+t2 x175 x176
+t3 x176 x174 x177
+t2 x176 x174
+t3 x178 x179 x180
+t2 x178 x179
+t3 x179 x177 x180
+t2 x179 x177
+t3 x181 x182 x183
+t2 x181 x182
+t3 x182 x180 x183
+t2 x182 x180
+t3 x184 x185 x186
+t2 x184 x185
+t3 x185 x183 x186
+t2 x185 x183
+t3 x187 x188 x189
+t2 x187 x188
+t3 x188 x186 x189
+t2 x188 x186
+t3 x190 x191 x192
+t2 x190 x191
+t3 x191 x189 x192
+t2 x191 x189
+.end

@@ -1,0 +1,920 @@
+# Function: plus127mod8192
+# Used Library: MCT (gates: 910 , quantum costs: 73357)
+# This file has been taken from RevLib (www.revlib.org).
+.version 1.0
+.numvars 13
+.variables a b c d e f g h i j k l m
+.inputs  a b c d e f g h i j k l m
+.outputs a b c d e f g h i j k l m
+.begin
+t3 g h f
+t4 f g h e
+t5 e f g h d
+t6 d e f g h c
+t7 c d e f g h b
+t3 g i f
+t4 f g i e
+t5 e f g i d
+t6 d e f g i c
+t7 c d e f g i b
+t3 h i f
+t4 f h i e
+t5 e f h i d
+t6 d e f h i c
+t7 c d e f h i b
+t8 c d e f g h i b
+t3 g j f
+t4 f g j e
+t5 e f g j d
+t6 d e f g j c
+t7 c d e f g j b
+t3 h j f
+t4 f h j e
+t5 e f h j d
+t6 d e f h j c
+t7 c d e f h j b
+t8 c d e f g h j b
+t3 i j f
+t4 f i j e
+t5 e f i j d
+t6 d e f i j c
+t7 c d e f i j b
+t8 c d e f g i j b
+t5 g h i j f
+t8 c d e f h i j b
+t6 f g h i j e
+t7 e f g h i j d
+t8 d e f g h i j c
+t3 g k f
+t4 f g k e
+t5 e f g k d
+t6 d e f g k c
+t7 c d e f g k b
+t3 h k f
+t4 f h k e
+t5 e f h k d
+t6 d e f h k c
+t7 c d e f h k b
+t8 c d e f g h k b
+t3 i k f
+t4 f i k e
+t5 e f i k d
+t6 d e f i k c
+t7 c d e f i k b
+t8 c d e f g i k b
+t5 g h i k f
+t8 c d e f h i k b
+t6 f g h i k e
+t7 e f g h i k d
+t8 d e f g h i k c
+t3 j k f
+t4 f j k e
+t5 e f j k d
+t6 d e f j k c
+t7 c d e f j k b
+t8 c d e f g j k b
+t5 g h j k f
+t8 c d e f h j k b
+t6 f g h j k e
+t7 e f g h j k d
+t8 d e f g h j k c
+t5 g i j k f
+t8 c d e f i j k b
+t6 f g i j k e
+t7 e f g i j k d
+t8 d e f g i j k c
+t5 h i j k f
+t8 c d e h i j k b
+t6 f h i j k e
+t7 e f h i j k d
+t8 d e f h i j k c
+t9 d e f g h i j k c
+t10 c d e f g h i j k b
+t3 g l f
+t4 f g l e
+t5 e f g l d
+t6 d e f g l c
+t7 c d e f g l b
+t3 h l f
+t4 f h l e
+t5 e f h l d
+t6 d e f h l c
+t7 c d e f h l b
+t8 c d e f g h l b
+t3 i l f
+t4 f i l e
+t5 e f i l d
+t6 d e f i l c
+t7 c d e f i l b
+t8 c d e f g i l b
+t5 g h i l f
+t8 c d e f h i l b
+t6 f g h i l e
+t7 e f g h i l d
+t8 d e f g h i l c
+t3 j l f
+t4 f j l e
+t5 e f j l d
+t6 d e f j l c
+t7 c d e f j l b
+t8 c d e f g j l b
+t5 g h j l f
+t8 c d e f h j l b
+t6 f g h j l e
+t7 e f g h j l d
+t8 d e f g h j l c
+t5 g i j l f
+t8 c d e f i j l b
+t6 f g i j l e
+t7 e f g i j l d
+t8 d e f g i j l c
+t5 h i j l f
+t8 c d e h i j l b
+t6 f h i j l e
+t7 e f h i j l d
+t8 d e f h i j l c
+t9 d e f g h i j l c
+t10 c d e f g h i j l b
+t3 k l f
+t4 f k l e
+t5 e f k l d
+t6 d e f k l c
+t7 c d e f k l b
+t8 c d e f g k l b
+t5 g h k l f
+t8 c d e f h k l b
+t6 f g h k l e
+t7 e f g h k l d
+t8 d e f g h k l c
+t5 g i k l f
+t8 c d e f i k l b
+t6 f g i k l e
+t7 e f g i k l d
+t8 d e f g i k l c
+t5 h i k l f
+t8 c d e h i k l b
+t6 f h i k l e
+t7 e f h i k l d
+t8 d e f h i k l c
+t9 d e f g h i k l c
+t10 c d e f g h i k l b
+t5 g j k l f
+t8 c d e f j k l b
+t6 f g j k l e
+t7 e f g j k l d
+t8 d e f g j k l c
+t5 h j k l f
+t8 c d e h j k l b
+t6 f h j k l e
+t7 e f h j k l d
+t8 d e f h j k l c
+t9 d e f g h j k l c
+t10 c d e f g h j k l b
+t5 i j k l f
+t8 c d e i j k l b
+t6 f i j k l e
+t7 e f i j k l d
+t8 d e f i j k l c
+t9 d e f g i j k l c
+t10 c d e f g i j k l b
+t9 d e f h i j k l c
+t10 c d e f h i j k l b
+t7 g h i j k l f
+t8 f g h i j k l e
+t9 e f g h i j k l d
+t10 d e f g h i j k l c
+t11 c d e f g h i j k l b
+t3 g m f
+t4 f g m e
+t5 e f g m d
+t6 d e f g m c
+t7 c d e f g m b
+t3 h m f
+t4 f h m e
+t5 e f h m d
+t6 d e f h m c
+t7 c d e f h m b
+t8 c d e f g h m b
+t3 i m f
+t4 f i m e
+t5 e f i m d
+t6 d e f i m c
+t7 c d e f i m b
+t8 c d e f g i m b
+t5 g h i m f
+t8 c d e f h i m b
+t6 f g h i m e
+t7 e f g h i m d
+t8 d e f g h i m c
+t3 j m f
+t4 f j m e
+t5 e f j m d
+t6 d e f j m c
+t7 c d e f j m b
+t8 c d e f g j m b
+t5 g h j m f
+t8 c d e f h j m b
+t6 f g h j m e
+t7 e f g h j m d
+t8 d e f g h j m c
+t5 g i j m f
+t8 c d e f i j m b
+t6 f g i j m e
+t7 e f g i j m d
+t8 d e f g i j m c
+t5 h i j m f
+t8 c d e h i j m b
+t6 f h i j m e
+t7 e f h i j m d
+t8 d e f h i j m c
+t9 d e f g h i j m c
+t10 c d e f g h i j m b
+t3 k m f
+t4 f k m e
+t5 e f k m d
+t6 d e f k m c
+t7 c d e f k m b
+t8 c d e f g k m b
+t5 g h k m f
+t8 c d e f h k m b
+t6 f g h k m e
+t7 e f g h k m d
+t8 d e f g h k m c
+t5 g i k m f
+t8 c d e f i k m b
+t6 f g i k m e
+t7 e f g i k m d
+t8 d e f g i k m c
+t5 h i k m f
+t8 c d e h i k m b
+t6 f h i k m e
+t7 e f h i k m d
+t8 d e f h i k m c
+t9 d e f g h i k m c
+t10 c d e f g h i k m b
+t5 g j k m f
+t8 c d e f j k m b
+t6 f g j k m e
+t7 e f g j k m d
+t8 d e f g j k m c
+t5 h j k m f
+t8 c d e h j k m b
+t6 f h j k m e
+t7 e f h j k m d
+t8 d e f h j k m c
+t9 d e f g h j k m c
+t10 c d e f g h j k m b
+t5 i j k m f
+t8 c d e i j k m b
+t6 f i j k m e
+t7 e f i j k m d
+t8 d e f i j k m c
+t9 d e f g i j k m c
+t10 c d e f g i j k m b
+t9 d e f h i j k m c
+t10 c d e f h i j k m b
+t7 g h i j k m f
+t8 f g h i j k m e
+t9 e f g h i j k m d
+t10 d e f g h i j k m c
+t11 c d e f g h i j k m b
+t3 l m f
+t4 f l m e
+t5 e f l m d
+t6 d e f l m c
+t7 c d e f l m b
+t8 c d e f g l m b
+t5 g h l m f
+t8 c d e f h l m b
+t6 f g h l m e
+t7 e f g h l m d
+t8 d e f g h l m c
+t5 g i l m f
+t8 c d e f i l m b
+t6 f g i l m e
+t7 e f g i l m d
+t8 d e f g i l m c
+t5 h i l m f
+t8 c d e h i l m b
+t6 f h i l m e
+t7 e f h i l m d
+t8 d e f h i l m c
+t9 d e f g h i l m c
+t10 c d e f g h i l m b
+t5 g j l m f
+t8 c d e f j l m b
+t6 f g j l m e
+t7 e f g j l m d
+t8 d e f g j l m c
+t5 h j l m f
+t8 c d e h j l m b
+t6 f h j l m e
+t7 e f h j l m d
+t8 d e f h j l m c
+t9 d e f g h j l m c
+t10 c d e f g h j l m b
+t5 i j l m f
+t8 c d e i j l m b
+t6 f i j l m e
+t7 e f i j l m d
+t8 d e f i j l m c
+t9 d e f g i j l m c
+t10 c d e f g i j l m b
+t9 d e f h i j l m c
+t10 c d e f h i j l m b
+t7 g h i j l m f
+t8 f g h i j l m e
+t9 e f g h i j l m d
+t10 d e f g h i j l m c
+t11 c d e f g h i j l m b
+t5 g k l m f
+t8 c d e f k l m b
+t6 f g k l m e
+t7 e f g k l m d
+t8 d e f g k l m c
+t5 h k l m f
+t8 c d e h k l m b
+t6 f h k l m e
+t7 e f h k l m d
+t8 d e f h k l m c
+t9 d e f g h k l m c
+t10 c d e f g h k l m b
+t5 i k l m f
+t8 c d e i k l m b
+t6 f i k l m e
+t7 e f i k l m d
+t8 d e f i k l m c
+t9 d e f g i k l m c
+t10 c d e f g i k l m b
+t9 d e f h i k l m c
+t10 c d e f h i k l m b
+t7 g h i k l m f
+t8 f g h i k l m e
+t9 e f g h i k l m d
+t10 d e f g h i k l m c
+t11 c d e f g h i k l m b
+t5 j k l m f
+t8 c d e j k l m b
+t6 f j k l m e
+t7 e f j k l m d
+t8 d e f j k l m c
+t9 d e f g j k l m c
+t10 c d e f g j k l m b
+t9 d e f h j k l m c
+t10 c d e f h j k l m b
+t7 g h j k l m f
+t8 f g h j k l m e
+t9 e f g h j k l m d
+t10 d e f g h j k l m c
+t11 c d e f g h j k l m b
+t9 d e f i j k l m c
+t10 c d e f i j k l m b
+t7 g i j k l m f
+t8 f g i j k l m e
+t9 e f g i j k l m d
+t10 d e f g i j k l m c
+t11 c d e f g i j k l m b
+t7 h i j k l m f
+t8 f h i j k l m e
+t9 e f h i j k l m d
+t10 d e f h i j k l m c
+t11 c d e f h i j k l m b
+t10 c d g h i j k l m b
+t10 d e g h i j k l m c
+t11 c d e g h i j k l m b
+t10 d f g h i j k l m c
+t11 d e f g h i j k l m c
+t13 b c d e f g h i j k l m a
+t12 c d e f g h i j k l m b
+t12 b c e f g h i j k l m a
+t11 c e f g h i j k l m a
+t10 e f g h i j k l m d
+t11 c d f g h i j k l m b
+t9 f g h i j k l m e
+t12 b c d e f h i j k l m a
+t11 b c d f h i j k l m a
+t8 g h i j k l m f
+t10 c d e h i j k l m b
+t9 d e h i j k l m c
+t9 c d h i j k l m b
+t12 b c d e f g i j k l m a
+t11 b c d f g i j k l m a
+t10 c d e g i j k l m b
+t9 d e g i j k l m c
+t9 c d g i j k l m b
+t8 c d i j k l m b
+t8 e f i j k l m d
+t7 f i j k l m e
+t11 b c d e f i j k l m a
+t6 i j k l m f
+t12 b c d e f g h j k l m a
+t11 b c d f g h j k l m a
+t10 c d e g h j k l m b
+t9 d e g h j k l m c
+t9 c d g h j k l m b
+t8 c d h j k l m b
+t8 e f h j k l m d
+t7 f h j k l m e
+t11 b c d e f h j k l m a
+t6 h j k l m f
+t8 c d g j k l m b
+t8 e f g j k l m d
+t7 f g j k l m e
+t11 b c d e f g j k l m a
+t6 g j k l m f
+t10 b c d e f j k l m a
+t9 c d e f j k l m b
+t8 c d f j k l m b
+t9 b c d e j k l m a
+t12 b c d e f g h i k l m a
+t11 b c d f g h i k l m a
+t10 c d e g h i k l m b
+t9 d e g h i k l m c
+t9 c d g h i k l m b
+t8 c d h i k l m b
+t8 e f h i k l m d
+t7 f h i k l m e
+t11 b c d e f h i k l m a
+t6 h i k l m f
+t8 c d g i k l m b
+t8 e f g i k l m d
+t7 f g i k l m e
+t11 b c d e f g i k l m a
+t6 g i k l m f
+t10 b c d e f i k l m a
+t9 c d e f i k l m b
+t8 c d f i k l m b
+t9 b c d e i k l m a
+t8 c d g h k l m b
+t8 e f g h k l m d
+t7 f g h k l m e
+t11 b c d e f g h k l m a
+t6 g h k l m f
+t10 b c d e f h k l m a
+t9 c d e f h k l m b
+t8 c d f h k l m b
+t9 b c d e h k l m a
+t10 b c d e f g k l m a
+t9 c d e f g k l m b
+t8 c d f g k l m b
+t9 b c d e g k l m a
+t7 d e f k l m c
+t6 e f k l m d
+t5 f k l m e
+t4 k l m f
+t9 b c d e f k l m a
+t12 b c d e f g h i j l m a
+t11 b c d f g h i j l m a
+t10 c d e g h i j l m b
+t9 d e g h i j l m c
+t9 c d g h i j l m b
+t8 c d h i j l m b
+t8 e f h i j l m d
+t7 f h i j l m e
+t11 b c d e f h i j l m a
+t6 h i j l m f
+t8 c d g i j l m b
+t8 e f g i j l m d
+t7 f g i j l m e
+t11 b c d e f g i j l m a
+t6 g i j l m f
+t10 b c d e f i j l m a
+t9 c d e f i j l m b
+t8 c d f i j l m b
+t9 b c d e i j l m a
+t8 c d g h j l m b
+t8 e f g h j l m d
+t7 f g h j l m e
+t11 b c d e f g h j l m a
+t6 g h j l m f
+t10 b c d e f h j l m a
+t9 c d e f h j l m b
+t8 c d f h j l m b
+t9 b c d e h j l m a
+t10 b c d e f g j l m a
+t9 c d e f g j l m b
+t8 c d f g j l m b
+t9 b c d e g j l m a
+t7 d e f j l m c
+t6 e f j l m d
+t5 f j l m e
+t4 j l m f
+t9 b c d e f j l m a
+t8 c d g h i l m b
+t8 e f g h i l m d
+t7 f g h i l m e
+t11 b c d e f g h i l m a
+t6 g h i l m f
+t10 b c d e f h i l m a
+t9 c d e f h i l m b
+t8 c d f h i l m b
+t9 b c d e h i l m a
+t10 b c d e f g i l m a
+t9 c d e f g i l m b
+t8 c d f g i l m b
+t9 b c d e g i l m a
+t7 d e f i l m c
+t6 e f i l m d
+t5 f i l m e
+t4 i l m f
+t9 b c d e f i l m a
+t10 b c d e f g h l m a
+t9 c d e f g h l m b
+t8 c d f g h l m b
+t9 b c d e g h l m a
+t7 d e f h l m c
+t6 e f h l m d
+t5 f h l m e
+t4 h l m f
+t9 b c d e f h l m a
+t7 d e f g l m c
+t6 e f g l m d
+t5 f g l m e
+t4 g l m f
+t9 b c d e f g l m a
+t8 b c d e f l m a
+t12 b c d e f g h i j k m a
+t11 b c d f g h i j k m a
+t10 c d e g h i j k m b
+t9 d e g h i j k m c
+t9 c d g h i j k m b
+t8 c d h i j k m b
+t8 e f h i j k m d
+t7 f h i j k m e
+t11 b c d e f h i j k m a
+t6 h i j k m f
+t8 c d g i j k m b
+t8 e f g i j k m d
+t7 f g i j k m e
+t11 b c d e f g i j k m a
+t6 g i j k m f
+t10 b c d e f i j k m a
+t9 c d e f i j k m b
+t8 c d f i j k m b
+t9 b c d e i j k m a
+t8 c d g h j k m b
+t8 e f g h j k m d
+t7 f g h j k m e
+t11 b c d e f g h j k m a
+t6 g h j k m f
+t10 b c d e f h j k m a
+t9 c d e f h j k m b
+t8 c d f h j k m b
+t9 b c d e h j k m a
+t10 b c d e f g j k m a
+t9 c d e f g j k m b
+t8 c d f g j k m b
+t9 b c d e g j k m a
+t7 d e f j k m c
+t6 e f j k m d
+t5 f j k m e
+t4 j k m f
+t9 b c d e f j k m a
+t8 c d g h i k m b
+t8 e f g h i k m d
+t7 f g h i k m e
+t11 b c d e f g h i k m a
+t6 g h i k m f
+t10 b c d e f h i k m a
+t9 c d e f h i k m b
+t8 c d f h i k m b
+t9 b c d e h i k m a
+t10 b c d e f g i k m a
+t9 c d e f g i k m b
+t8 c d f g i k m b
+t9 b c d e g i k m a
+t7 d e f i k m c
+t6 e f i k m d
+t5 f i k m e
+t4 i k m f
+t9 b c d e f i k m a
+t10 b c d e f g h k m a
+t9 c d e f g h k m b
+t8 c d f g h k m b
+t9 b c d e g h k m a
+t7 d e f h k m c
+t6 e f h k m d
+t5 f h k m e
+t4 h k m f
+t9 b c d e f h k m a
+t7 d e f g k m c
+t6 e f g k m d
+t5 f g k m e
+t4 g k m f
+t9 b c d e f g k m a
+t8 b c d e f k m a
+t8 c d g h i j m b
+t8 e f g h i j m d
+t7 f g h i j m e
+t11 b c d e f g h i j m a
+t6 g h i j m f
+t10 b c d e f h i j m a
+t9 c d e f h i j m b
+t8 c d f h i j m b
+t9 b c d e h i j m a
+t10 b c d e f g i j m a
+t9 c d e f g i j m b
+t8 c d f g i j m b
+t9 b c d e g i j m a
+t7 d e f i j m c
+t6 e f i j m d
+t5 f i j m e
+t4 i j m f
+t9 b c d e f i j m a
+t10 b c d e f g h j m a
+t9 c d e f g h j m b
+t8 c d f g h j m b
+t9 b c d e g h j m a
+t7 d e f h j m c
+t6 e f h j m d
+t5 f h j m e
+t4 h j m f
+t9 b c d e f h j m a
+t7 d e f g j m c
+t6 e f g j m d
+t5 f g j m e
+t4 g j m f
+t9 b c d e f g j m a
+t8 b c d e f j m a
+t10 b c d e f g h i m a
+t9 c d e f g h i m b
+t8 c d f g h i m b
+t9 b c d e g h i m a
+t7 d e f h i m c
+t6 e f h i m d
+t5 f h i m e
+t4 h i m f
+t9 b c d e f h i m a
+t7 d e f g i m c
+t6 e f g i m d
+t5 f g i m e
+t4 g i m f
+t9 b c d e f g i m a
+t8 b c d e f i m a
+t7 d e f g h m c
+t6 e f g h m d
+t5 f g h m e
+t4 g h m f
+t9 b c d e f g h m a
+t8 b c d e f h m a
+t8 b c d e f g m a
+t7 b c d e f m a
+t6 c d e f m b
+t5 d e f m c
+t4 e f m d
+t3 f m e
+t2 m f
+t12 b c d e f g h i j k l a
+t11 b c d f g h i j k l a
+t10 c d e g h i j k l b
+t9 d e g h i j k l c
+t9 c d g h i j k l b
+t8 c d h i j k l b
+t8 e f h i j k l d
+t7 f h i j k l e
+t11 b c d e f h i j k l a
+t6 h i j k l f
+t8 c d g i j k l b
+t8 e f g i j k l d
+t7 f g i j k l e
+t11 b c d e f g i j k l a
+t6 g i j k l f
+t10 b c d e f i j k l a
+t9 c d e f i j k l b
+t8 c d f i j k l b
+t9 b c d e i j k l a
+t8 c d g h j k l b
+t8 e f g h j k l d
+t7 f g h j k l e
+t11 b c d e f g h j k l a
+t6 g h j k l f
+t10 b c d e f h j k l a
+t9 c d e f h j k l b
+t8 c d f h j k l b
+t9 b c d e h j k l a
+t10 b c d e f g j k l a
+t9 c d e f g j k l b
+t8 c d f g j k l b
+t9 b c d e g j k l a
+t7 d e f j k l c
+t6 e f j k l d
+t5 f j k l e
+t4 j k l f
+t9 b c d e f j k l a
+t8 c d g h i k l b
+t8 e f g h i k l d
+t7 f g h i k l e
+t11 b c d e f g h i k l a
+t6 g h i k l f
+t10 b c d e f h i k l a
+t9 c d e f h i k l b
+t8 c d f h i k l b
+t9 b c d e h i k l a
+t10 b c d e f g i k l a
+t9 c d e f g i k l b
+t8 c d f g i k l b
+t9 b c d e g i k l a
+t7 d e f i k l c
+t6 e f i k l d
+t5 f i k l e
+t4 i k l f
+t9 b c d e f i k l a
+t10 b c d e f g h k l a
+t9 c d e f g h k l b
+t8 c d f g h k l b
+t9 b c d e g h k l a
+t7 d e f h k l c
+t6 e f h k l d
+t5 f h k l e
+t4 h k l f
+t9 b c d e f h k l a
+t7 d e f g k l c
+t6 e f g k l d
+t5 f g k l e
+t4 g k l f
+t9 b c d e f g k l a
+t8 b c d e f k l a
+t8 c d g h i j l b
+t8 e f g h i j l d
+t7 f g h i j l e
+t11 b c d e f g h i j l a
+t6 g h i j l f
+t10 b c d e f h i j l a
+t9 c d e f h i j l b
+t8 c d f h i j l b
+t9 b c d e h i j l a
+t10 b c d e f g i j l a
+t9 c d e f g i j l b
+t8 c d f g i j l b
+t9 b c d e g i j l a
+t7 d e f i j l c
+t6 e f i j l d
+t5 f i j l e
+t4 i j l f
+t9 b c d e f i j l a
+t10 b c d e f g h j l a
+t9 c d e f g h j l b
+t8 c d f g h j l b
+t9 b c d e g h j l a
+t7 d e f h j l c
+t6 e f h j l d
+t5 f h j l e
+t4 h j l f
+t9 b c d e f h j l a
+t7 d e f g j l c
+t6 e f g j l d
+t5 f g j l e
+t4 g j l f
+t9 b c d e f g j l a
+t8 b c d e f j l a
+t10 b c d e f g h i l a
+t9 c d e f g h i l b
+t8 c d f g h i l b
+t9 b c d e g h i l a
+t7 d e f h i l c
+t6 e f h i l d
+t5 f h i l e
+t4 h i l f
+t9 b c d e f h i l a
+t7 d e f g i l c
+t6 e f g i l d
+t5 f g i l e
+t4 g i l f
+t9 b c d e f g i l a
+t8 b c d e f i l a
+t7 d e f g h l c
+t6 e f g h l d
+t5 f g h l e
+t4 g h l f
+t9 b c d e f g h l a
+t8 b c d e f h l a
+t8 b c d e f g l a
+t7 b c d e f l a
+t6 c d e f l b
+t5 d e f l c
+t4 e f l d
+t3 f l e
+t2 l f
+t8 c d g h i j k b
+t8 e f g h i j k d
+t7 f g h i j k e
+t11 b c d e f g h i j k a
+t6 g h i j k f
+t10 b c d e f h i j k a
+t9 c d e f h i j k b
+t8 c d f h i j k b
+t9 b c d e h i j k a
+t10 b c d e f g i j k a
+t9 c d e f g i j k b
+t8 c d f g i j k b
+t9 b c d e g i j k a
+t7 d e f i j k c
+t6 e f i j k d
+t5 f i j k e
+t4 i j k f
+t9 b c d e f i j k a
+t10 b c d e f g h j k a
+t9 c d e f g h j k b
+t8 c d f g h j k b
+t9 b c d e g h j k a
+t7 d e f h j k c
+t6 e f h j k d
+t5 f h j k e
+t4 h j k f
+t9 b c d e f h j k a
+t7 d e f g j k c
+t6 e f g j k d
+t5 f g j k e
+t4 g j k f
+t9 b c d e f g j k a
+t8 b c d e f j k a
+t10 b c d e f g h i k a
+t9 c d e f g h i k b
+t8 c d f g h i k b
+t9 b c d e g h i k a
+t7 d e f h i k c
+t6 e f h i k d
+t5 f h i k e
+t4 h i k f
+t9 b c d e f h i k a
+t7 d e f g i k c
+t6 e f g i k d
+t5 f g i k e
+t4 g i k f
+t9 b c d e f g i k a
+t8 b c d e f i k a
+t7 d e f g h k c
+t6 e f g h k d
+t5 f g h k e
+t4 g h k f
+t9 b c d e f g h k a
+t8 b c d e f h k a
+t8 b c d e f g k a
+t7 b c d e f k a
+t6 c d e f k b
+t5 d e f k c
+t4 e f k d
+t3 f k e
+t2 k f
+t10 b c d e f g h i j a
+t9 c d e f g h i j b
+t8 c d f g h i j b
+t9 b c d e g h i j a
+t7 d e f h i j c
+t6 e f h i j d
+t5 f h i j e
+t4 h i j f
+t9 b c d e f h i j a
+t7 d e f g i j c
+t6 e f g i j d
+t5 f g i j e
+t4 g i j f
+t9 b c d e f g i j a
+t8 b c d e f i j a
+t7 d e f g h j c
+t6 e f g h j d
+t5 f g h j e
+t4 g h j f
+t9 b c d e f g h j a
+t8 b c d e f h j a
+t8 b c d e f g j a
+t7 b c d e f j a
+t6 c d e f j b
+t5 d e f j c
+t4 e f j d
+t3 f j e
+t2 j f
+t7 d e f g h i c
+t6 e f g h i d
+t5 f g h i e
+t4 g h i f
+t9 b c d e f g h i a
+t8 b c d e f h i a
+t8 b c d e f g i a
+t7 b c d e f i a
+t6 c d e f i b
+t5 d e f i c
+t4 e f i d
+t3 f i e
+t2 i f
+t8 b c d e f g h a
+t7 b c d e f h a
+t6 c d e f h b
+t5 d e f h c
+t4 e f h d
+t3 f h e
+t2 h f
+t7 b c d e f g a
+t6 c d e f g b
+t5 d e f g c
+t4 e f g d
+t3 f g e
+t2 g f
+t1 m
+t2 m l
+t3 l m k
+t4 k l m j
+t5 j k l m i
+t6 i j k l m h
+t7 h i j k l m g
+.end

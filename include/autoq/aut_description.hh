@@ -87,6 +87,7 @@ public:   // data types
         }
     };
     typedef std::map<SymbolTag, std::map<State, std::set<StateVector>>> TransitionMap;
+    typedef std::vector<std::map<Tag, std::map<State, std::set<StateVector>>>> InternalTransitionMap; // Keys range from 1 to qubit().
 
     /// top-down representation of transitions in the form q -> a -> {(q1,q2)}
     struct TopDownTA
@@ -326,8 +327,10 @@ private:
     // Automata binary_operation(const Automata &o, bool add);
     // void swap_forward(const int k);
     // void swap_backward(const int k);
-    void General_Single_Qubit_Gate(int t, std::function<Symbol(const Symbol&, const Symbol&)> L, std::function<Symbol(const Symbol&, const Symbol&)> R);
-    // void General_Controlled_Gate(int c, const AUTOQ::Automata<Symbol> &aut2);
+    void General_Single_Qubit_Gate(int t, const std::function<Symbol(const Symbol&, const Symbol&)> &u1u2, const std::function<Symbol(const Symbol&, const Symbol&)> &u3u4);
+    void General_Controlled_Gate(int c, int t, const std::function<Symbol(const Symbol&, const Symbol&)> &u1u2, const std::function<Symbol(const Symbol&, const Symbol&)> &u3u4);
+    void General_Controlled_Gate(int c, int c2, int t, const std::function<Symbol(const Symbol&, const Symbol&)> &u1u2, const std::function<Symbol(const Symbol&, const Symbol&)> &u3u4);
+    void diagonal_gate(int t, const std::function<void(Symbol*)> &multiply_by_c0, const std::function<void(Symbol*)> &multiply_by_c1);
     void initialize_stats();
 
 public:
@@ -343,7 +346,8 @@ public:
     Automata Union(const Automata &o); // U is in uppercase since "union" is a reserved keyword.
     void print_aut(const char *str="") const;
     void print_stats(const std::string &str="", bool newline=false);
-    int transition_size();
+    int transition_size() const;
+    int leaf_size() const;
 
     /// simulation-based reduction
     void sim_reduce();
@@ -375,9 +379,9 @@ public:
     void Rx(const boost::rational<boost::multiprecision::cpp_int> &theta, int t);
     void Ry(int t);
     void Rz(const boost::rational<boost::multiprecision::cpp_int> &theta, int t);
-    void CNOT(int c, int t, bool opt=true);
+    void CX(int c, int t, bool opt=true);
     void CZ(int c, int t);
-    void Toffoli(int c, int c2, int t);
+    void CCX(int c, int c2, int t);
     // void Fredkin(int c, int t, int t2);
     void randG(int G, int A, int B=0, int C=0);
     void Tdg(int t);
