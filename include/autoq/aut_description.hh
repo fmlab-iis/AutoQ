@@ -92,7 +92,7 @@ public:   // data types
     struct TopDownTA
     { // {{{
       using SymbolDownMap = std::map<SymbolTag, std::set<StateVector>>;
-      std::map<State, SymbolDownMap> transDown;
+      std::unordered_map<State, SymbolDownMap> transDown;
       std::set<State> rootStates;
 
       void insert_trans(State parent, SymbolTag symb, StateVector children)
