@@ -13,21 +13,31 @@ jobs:
   #   runs-on: ubuntu-latest
   #   steps:
   #   - run: sudo apt-get install libboost-filesystem-dev && sudo apt-get install libboost-test-dev && sudo apt-get install z3
-  build-and-test-debug:
+  build-debug:
     # needs: setup
     runs-on: ubuntu-latest
     steps:
-    - run: sudo apt-get install libboost-filesystem-dev && sudo apt-get install libboost-test-dev && sudo apt-get install z3
-    - uses: actions/checkout@v4
-    - run: mkdir build
-    - run: make debug
-    - run: make test
-  build-and-test-release:
+    - with:
+      apt-get: libboost-filesystem-dev libboost-test-dev z3
+    - run: git clone https://github.com/alan23273850/AutoQ.git
+    - run: mv AutoQ AutoQ-debug
+    - run: cd AutoQ-debug && mkdir build && make debug
+  test-debug:
+    needs: build-debug
+    runs-on: ubuntu-latest
+    steps:
+    - run: cd AutoQ-debug && make test
+  build-release:
     # needs: setup
     runs-on: ubuntu-latest
     steps:
-    - run: sudo apt-get install libboost-filesystem-dev && sudo apt-get install libboost-test-dev && sudo apt-get install z3
-    - uses: actions/checkout@v4
-    - run: mkdir build
-    - run: make release
-    - run: make test
+    - with:
+      apt-get: libboost-filesystem-dev libboost-test-dev z3
+    - run: git clone https://github.com/alan23273850/AutoQ.git
+    - run: mv AutoQ AutoQ-release
+    - run: cd AutoQ-release && mkdir build && make release
+  test-release:
+    needs: build-release
+    runs-on: ubuntu-latest
+    steps:
+    - run: cd AutoQ-release && make test
