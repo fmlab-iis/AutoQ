@@ -378,7 +378,7 @@ void AUTOQ::Automata<Symbol>::General_Single_Qubit_Gate(int t, const std::functi
             }
         }
     }
-    result.stateNum = 2 * stateNum * stateNum + stateNum;
+    result.stateNum = R(stateNum-1, stateNum-1) + 1;
     // result.state_renumbering();
     result.reduce();
     *this = result;
@@ -565,9 +565,9 @@ void AUTOQ::Automata<Symbol>::General_Controlled_Gate(int c, int c2, int t, cons
             }
         }
     }
-    result.stateNum = 2 * stateNum * stateNum + stateNum;
-    // result.state_renumbering();
-    result.reduce();
+    result.stateNum = R(stateNum-1, stateNum-1) + 1;
+    // Notice that we cannot do operations including state_renumbering() here
+    // since this function may be used as a subroutine in another gate.
     *this = result;
 }
 
@@ -808,10 +808,10 @@ void AUTOQ::Automata<Symbol>::CX(int c, int t, bool opt) {
         }
         transitions = transitions2;
         stateNum *= 2;
-        if (opt) {
-            // remove_useless();
-            reduce();
-        }
+    }
+    if (opt) {
+        // remove_useless();
+        reduce();
     }
     gateCount++;
     auto duration = std::chrono::steady_clock::now() - start;
@@ -1380,7 +1380,6 @@ void AUTOQ::Automata<Symbol>::CCX(int c, int c2, int t) {
         }
         transitions = transitions2;
         stateNum *= 3;
-        reduce();
     } else if (t < c) { // t < c < c2
         General_Controlled_Gate(c, c2, t,
             [](const Symbol &l, const Symbol &r) -> Symbol { return r; },
@@ -1420,8 +1419,8 @@ void AUTOQ::Automata<Symbol>::CCX(int c, int c2, int t) {
         }
         stateNum += aut2.stateNum;
         remove_useless();
-        reduce();
     }
+    reduce();
     gateCount++;
     auto duration = std::chrono::steady_clock::now() - start;
     total_gate_time += duration;
