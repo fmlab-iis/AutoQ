@@ -9,21 +9,25 @@ on:
       - '**'
 
 jobs:
-  build:
-
+  # setup:
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #   - run: sudo apt-get install libboost-filesystem-dev && sudo apt-get install libboost-test-dev && sudo apt-get install z3
+  build-and-test-debug:
+    # needs: setup
     runs-on: ubuntu-latest
-
     steps:
-    - uses: actions/checkout@v3
-    - name: prerequisites
-      run: sudo apt install libboost-filesystem-dev && sudo apt install libboost-test-dev && sudo apt install z3
-    - name: mkdir build
-      run: mkdir build
-    - name: make debug
-      run: make debug
-    - name: make test
-      run: make test
-    - name: make release
-      run: make release
-    - name: make test
-      run: make test
+    - run: sudo apt-get install libboost-filesystem-dev && sudo apt-get install libboost-test-dev && sudo apt-get install z3
+    - uses: actions/checkout@v4
+    - run: mkdir build
+    - run: make debug
+    - run: make test
+  build-and-test-release:
+    # needs: setup
+    runs-on: ubuntu-latest
+    steps:
+    - run: sudo apt-get install libboost-filesystem-dev && sudo apt-get install libboost-test-dev && sudo apt-get install z3
+    - uses: actions/checkout@v4
+    - run: mkdir build
+    - run: make release
+    - run: make test
