@@ -12,22 +12,50 @@ jobs:
   # setup:
   #   runs-on: ubuntu-latest
   #   steps:
-  #   - run: sudo apt-get install libboost-filesystem-dev && sudo apt-get install libboost-test-dev && sudo apt-get install z3
-  build-and-test-debug:
+  #   - run: sudo apt-get install libboost-filesystem-dev libboost-test-dev z3
+  build-debug:
     # needs: setup
     runs-on: ubuntu-latest
     steps:
-    - run: sudo apt-get install libboost-filesystem-dev && sudo apt-get install libboost-test-dev && sudo apt-get install z3
-    - uses: actions/checkout@v4
-    - run: mkdir build
-    - run: make debug
-    - run: make test
-  build-and-test-release:
+    - run: sudo apt-get install libboost-filesystem-dev libboost-test-dev z3
+    - run: git clone https://github.com/alan23273850/AutoQ.git
+    - run: cd AutoQ && git checkout CTA_topdown && mkdir build && make debug
+    - run: cp /usr/lib/x86_64-linux-gnu/libboost_unit_test_framework.so.1.74.0 /home/runner/work/AutoQ/AutoQ/AutoQ/build/unit_tests/
+    - uses: actions/upload-artifact@v4
+      with:
+        name: AutoQ-debug
+        path: |
+          AutoQ/Makefile
+          AutoQ/build/
+          AutoQ/reference_answers/
+  test-debug:
+    needs: build-debug
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/download-artifact@v4
+      with:
+        name: AutoQ-debug
+    - run: cd build/unit_tests/ && chmod +x ./explicit_tree_aut_test && LD_LIBRARY_PATH=/home/runner/work/AutoQ/AutoQ/AutoQ/build/unit_tests/:$LD_LIBRARY_PATH ./explicit_tree_aut_test
+  build-release:
     # needs: setup
     runs-on: ubuntu-latest
     steps:
-    - run: sudo apt-get install libboost-filesystem-dev && sudo apt-get install libboost-test-dev && sudo apt-get install z3
-    - uses: actions/checkout@v4
-    - run: mkdir build
-    - run: make release
-    - run: make test
+    - run: sudo apt-get install libboost-filesystem-dev libboost-test-dev z3
+    - run: git clone https://github.com/alan23273850/AutoQ.git
+    - run: cd AutoQ && git checkout CTA_topdown && mkdir build && make release
+    - run: cp /usr/lib/x86_64-linux-gnu/libboost_unit_test_framework.so.1.74.0 /home/runner/work/AutoQ/AutoQ/AutoQ/build/unit_tests/
+    - uses: actions/upload-artifact@v4
+      with:
+        name: AutoQ-release
+        path: |
+          AutoQ/Makefile
+          AutoQ/build/
+          AutoQ/reference_answers/
+  test-release:
+    needs: build-release
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/download-artifact@v4
+      with:
+        name: AutoQ-release
+    - run: cd build/unit_tests/ && chmod +x ./explicit_tree_aut_test && LD_LIBRARY_PATH=/home/runner/work/AutoQ/AutoQ/AutoQ/build/unit_tests/:$LD_LIBRARY_PATH ./explicit_tree_aut_test
