@@ -473,6 +473,48 @@ void AUTOQ::Automata<Symbol>::union_all_colors_for_a_given_transition() {
     }
 }
 
+template <typename InitialSymbol>
+void AUTOQ::Automata<InitialSymbol>::state_renumbering() {
+    TransitionMap transitions_new;
+    std::map<State, State> stateOldToNew;
+    for (const auto &t : transitions) {
+        for (const auto &out_ins : t.second) {
+            const auto &out = out_ins.first;
+            State newOut = stateOldToNew.size();
+            auto itBoolPair = stateOldToNew.insert({out, newOut});
+            if (!itBoolPair.second) { // if insertion didn't happened
+                const auto& it = itBoolPair.first;
+                newOut = it->second;
+            }
+            for (auto in : out_ins.second) {
+                for (auto &e : in) {
+                    State newS = stateOldToNew.size();
+                    auto itBoolPair = stateOldToNew.insert({e, newS});
+                    if (!itBoolPair.second) { // if insertion didn't happened
+                        const auto& it = itBoolPair.first;
+                        newS = it->second;
+                    }
+                    e = newS;
+                }
+                transitions_new[t.first][newOut].insert(in);
+            }
+        }
+    }
+    transitions = transitions_new;
+    StateVector finalStates_new; // TODO: Can we set the initial capacity?
+    finalStates_new.reserve(finalStates.size());
+    for (const auto &s : finalStates) {
+        auto it = stateOldToNew.find(s);
+        if (it != stateOldToNew.end()) {
+            finalStates_new.push_back(it->second);
+        }
+        // We do not add the untouched final states here, since
+        // it could severely degrade the performance (either with or without sim_reduce()).
+    }
+    finalStates = finalStates_new;
+    stateNum = stateOldToNew.size();
+}
+
 template <typename Symbol>
 void AUTOQ::Automata<Symbol>::reduce() {
     auto start = std::chrono::steady_clock::now();
