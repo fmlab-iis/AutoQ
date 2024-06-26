@@ -65,7 +65,7 @@ Filename & """ + " & ".join(list(next(iter(merged_data.items()))[1].keys())) + "
 # Filename & q & G & G2 & """ + " & ".join(f"t ({f.split('/')[1].split('.json')[0]}) & s ({f.split('/')[1].split('.json')[0]})" for f in file_list) + """ \\\\ \\hline
     merged_data = dict(sorted(merged_data.items(), key=lambda item: (item[0].split('_')[0], int(item[1]['q']))))
     for filename, values in merged_data.items():
-        row = [filename.split('_')[0]] + list(values.values())
+        row = [filename.split('.qasm')[0]] + list(values.values())
         # , values['q'], values['G'], values['G2']]
         # for i in range(len(file_list)):
         #     row.append(values['t'][i] if i < len(values['t']) else '-')
