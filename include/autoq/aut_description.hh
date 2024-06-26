@@ -207,6 +207,7 @@ public:
     bool light_reduce_down_iter();
     /// reduces the automaton using a prefered reduction
     void reduce();
+    void bottom_up_reduce();
     void union_all_colors_for_a_given_transition();
 
     int count_transitions();
