@@ -6,7 +6,7 @@ json_file = os.path.basename(__file__).split('.')[0].split('_')[1] + '.json'
 TIMEOUT = 600
 p = subprocess.run(f'ls -l {sys.argv[1]}*.qasm | wc -l', shell=True, capture_output=True, executable='/bin/bash')
 NUM_OF_CASES = int(p.stdout.splitlines()[0].decode('utf-8'))
-NUM_OF_THREADS = NUM_OF_CASES
+NUM_OF_THREADS = min(200, NUM_OF_CASES)
 EXE = 'autoq'
 
 processes = []
@@ -50,7 +50,7 @@ def CTA(root, semaphore, lock, counter):
         q = p.stdout.splitlines()[0].decode('utf-8')
         p = subprocess.run(f'grep -P ".*(x |y |z |h |s |t |rx\(.+\) |ry\(.+\) |cx |cz |ccx |tdg |sdg |swap ).*\[\d+\];" {root} | wc -l', shell=True, capture_output=True, executable='/bin/bash')
         G2 = p.stdout.splitlines()[0].decode('utf-8')
-        p = subprocess.run(f'grep -P ".*(x |y |z |h |s |t |rx\(.+\) |ry\(.+\) |cx |cz |ccx |tdg |sdg |swap ).*\[\d+\];" ../origin/{root.split("qasm", 1)[0] + "qasm"} | wc -l', shell=True, capture_output=True, executable='/bin/bash')
+        p = subprocess.run(f'grep -P ".*(x |y |z |h |s |t |rx\(.+\) |ry\(.+\) |cx |cz |ccx |tdg |sdg |swap ).*\[\d+\];" {root} | wc -l', shell=True, capture_output=True, executable='/bin/bash')
         G = p.stdout.splitlines()[0].decode('utf-8')
         cmd = f'{EXE} -t eq ../origin/{root.split("qasm", 1)[0] + "qasm"} {root} --latex'#; print(cmd)
         start = time.time()

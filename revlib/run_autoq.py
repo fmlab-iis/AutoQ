@@ -4,8 +4,8 @@ from multiprocessing import Manager, Process, Semaphore, Lock
 
 json_file = os.path.basename(__file__).split('.')[0].split('_')[1] + '.json'
 TIMEOUT = 600
-p = subprocess.run(f'wc -l {sys.argv[1]}*.qasm | wc -l', shell=True, capture_output=True, executable='/bin/bash')
-NUM_OF_CASES = int(p.stdout.splitlines()[0].decode('utf-8')) - 1
+p = subprocess.run(f'ls -l {sys.argv[1]}*.qasm | wc -l', shell=True, capture_output=True, executable='/bin/bash')
+NUM_OF_CASES = int(p.stdout.splitlines()[0].decode('utf-8'))
 NUM_OF_THREADS = min(200, NUM_OF_CASES)
 EXE = 'autoq'
 

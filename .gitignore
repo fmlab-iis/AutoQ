@@ -22,6 +22,8 @@ dyadic/tables/*
 dyadic/*/*.json
 revlib/tables/*
 revlib/*/*.json
+benchmark_eq/**/tables/**
+benchmark_eq/**/*.json
 POPL24/TABLES/Algorithms/*.pdf
 POPL24/TABLES/Algorithms/*.tex
 POPL24/TABLES/Algorithms/*.log
