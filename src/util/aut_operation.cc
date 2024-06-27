@@ -1585,7 +1585,7 @@ void AUTOQ::Automata<Symbol>::execute(const char *filename) {
                 ++it;
             }
             // AUTOQ_DEBUG("ry(pi/2) @ " << pos[1]);
-            Ry(1 + pos[1]);
+            Ry(pos[1]);
         } else if (line.find("cx ") == 0 || line.find("CX ") == 0 ) {
             std::regex_iterator<std::string::iterator> it(line.begin(), line.end(), digit);
             std::vector<int> pos;
