@@ -123,6 +123,6 @@ private:
         return std::round(value * precision) / precision;
     }
 };
-#pragma GCC diagnostic pop
+//#pragma GCC diagnostic pop
 
 #endif

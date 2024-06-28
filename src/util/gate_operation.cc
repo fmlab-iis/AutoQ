@@ -60,7 +60,7 @@ namespace {
     //         newID = it->second; \
     // }
 template <typename Symbol>
-void AUTOQ::Automata<Symbol>::diagonal_gate(int t, const std::function<void(Symbol*)> &multiply_by_c0, const std::function<void(Symbol*)> &multiply_by_c1) {
+void AUTOQ::Automata<Symbol>::diagonal_gate(size_t t, const std::function<void(Symbol*)> &multiply_by_c0, const std::function<void(Symbol*)> &multiply_by_c1) {
     TransitionMap transitions2;
     std::map<State, int> topStateIsLeftOrRight, childStateIsLeftOrRight; // 0b10: original tree, 0b01: copied tree, 0b11: both trees
     // std::map<State, State> topStateMap, childStateMap;
@@ -82,7 +82,7 @@ void AUTOQ::Automata<Symbol>::diagonal_gate(int t, const std::function<void(Symb
     }
 
     // Assume the initial state numbers are already compact.
-    for (int q = t; q <= qubitNum; q++) {
+    for (size_t q = t; q <= qubitNum; q++) {
         if (q == t) {
             /* Construct childStateIsLeftOrRight. */
             for (const auto &tag_outins : internalTransitions[q]) {
@@ -1150,7 +1150,7 @@ void AUTOQ::Automata<Symbol>::CCX(int c, int c2, int t) {
         }
 
         // Assume the initial state numbers are already compact.
-        for (int q = c; q <= qubitNum; q++) {
+        for (size_t q = c; q <= qubitNum; q++) {
             if (q == c) {
                 /* Construct childStateIsLeftOrRight. */
                 for (const auto &tag_outins : internalTransitions[q]) {

@@ -1175,8 +1175,7 @@ void AUTOQ::Automata<Symbol>::fraction_simplification() {
         for (const auto &t : autA.transitions) {
             const auto &symbol_tag = t.first;
             const auto &symbol = symbol_tag.symbol();
-            int i = 0;
-            for (; i<=symbol_map.size(); i++) {
+            for (size_t i = 0; i<=symbol_map.size(); i++) {
                 if (i == symbol_map.size()) {
                     symbol_map.push_back(symbol);
                 }
@@ -1195,8 +1194,7 @@ void AUTOQ::Automata<Symbol>::fraction_simplification() {
         for (const auto &t : autB.transitions) {
             const auto &symbol_tag = t.first;
             const auto &symbol = symbol_tag.symbol();
-            int i = 0;
-            for (; i<=symbol_map.size(); i++) {
+            for (size_t i = 0; i<=symbol_map.size(); i++) {
                 if (i == symbol_map.size()) {
                     symbol_map.push_back(symbol);
                 }
