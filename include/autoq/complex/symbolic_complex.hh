@@ -165,7 +165,7 @@ struct AUTOQ::Complex::SymbolicComplex : std::map<Term, Complex> {
         }
     }
     bool isConst() const {
-        return empty() || size() == 1 && begin()->first.empty();
+        return empty() || (size() == 1 && begin()->first.empty());
     }
     rational to_rational() const {
         assert(isConst());
