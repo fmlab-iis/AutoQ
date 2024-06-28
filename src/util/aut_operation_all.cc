@@ -513,8 +513,10 @@ bool AUTOQ::Automata<Symbol>::reduce_down_bisim_level()
     const std::set<State>& level_states = state_level_map.get_level(level);
 
     std::unordered_map<State, typename TopDownTA::SymbolDownMap> level_normalized;
+    std::unordered_map<State, size_t> level_hashtab;
     // normalize transitions
     for (State st : level_states) {
+      size_t hash_accum = 0;
       typename TopDownTA::SymbolDownMap normalized_down;
 
       auto it = tdTA.transDown.find(st);
@@ -527,9 +529,14 @@ bool AUTOQ::Automata<Symbol>::reduce_down_bisim_level()
         }
 
         normalized_down.insert({symb, new_ssv});
+        boost::hash_combine(hash_accum, symb);
+        for (const auto& sv : new_ssv) {
+          boost::hash_combine(hash_accum, sv);
+        }
       }
 
       level_normalized.insert({st, std::move(normalized_down)});
+      level_hashtab.insert({st, hash_accum});
     }
 
 
@@ -543,6 +550,10 @@ bool AUTOQ::Automata<Symbol>::reduce_down_bisim_level()
           continue;
         }
 
+        // if hashes differ
+        if (level_hashtab[*it] != level_hashtab[*jt]) { continue; }
+
+        // otherwise do the expensive comparison
         auto itMap = level_normalized.find(*it);
         const auto& itSymbMap = itMap->second;
         auto jtMap = level_normalized.find(*jt);
@@ -553,11 +564,6 @@ bool AUTOQ::Automata<Symbol>::reduce_down_bisim_level()
           //   Convert::ToString(jt->first) + " have the same DOWN");
           index[*jt] = *it;
         }
-        // if (tdTA.states_have_same_down_wrt_index(index, *it, *jt)) {
-        //   // AUTOQ_DEBUG(Convert::ToString(it->first) + " and " +
-        //   //   Convert::ToString(jt->first) + " have the same DOWN");
-        //   index[*jt] = *it;
-        // }
       }
     }
   }
