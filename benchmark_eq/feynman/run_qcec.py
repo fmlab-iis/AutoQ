@@ -6,8 +6,8 @@ json_file = os.path.basename(__file__).split('.')[0].split('_')[1] + '.json'
 TIMEOUT = 600
 p = subprocess.run(f'ls -l {sys.argv[1]}*.qasm | wc -l', shell=True, capture_output=True, executable='/bin/bash')
 NUM_OF_CASES = int(p.stdout.splitlines()[0].decode('utf-8'))
-NUM_OF_THREADS = min(200, NUM_OF_CASES)
-EXE = 'autoq'
+NUM_OF_THREADS = NUM_OF_CASES
+EXE = 'python3 ../sub_qcec.py'
 
 processes = []
 def kill_processes():
@@ -52,7 +52,7 @@ def CTA(root, semaphore, lock, counter):
         G2 = p.stdout.splitlines()[0].decode('utf-8')
         p = subprocess.run(f'grep -P ".*(x |y |z |h |s |t |rx\(.+\) |ry\(.+\) |cx |cz |ccx |tdg |sdg |swap ).*\[\d+\];" ../origin/{root.split("qasm", 1)[0] + "qasm"} | wc -l', shell=True, capture_output=True, executable='/bin/bash')
         G = p.stdout.splitlines()[0].decode('utf-8')
-        cmd = f'{EXE} -t eq ../origin/{root.split("qasm", 1)[0] + "qasm"} {root} --latex'#; print(cmd)
+        cmd = f'timeout {TIMEOUT} {EXE} ../origin/{root.split("qasm", 1)[0] + "qasm"} {root}'#; print(cmd)
         begin = time.monotonic()
         p = subprocess.run(cmd, shell=True, capture_output=True, executable='/bin/bash')
         end = time.monotonic()
@@ -63,10 +63,10 @@ def CTA(root, semaphore, lock, counter):
         except:
             print(cmd, flush=True)
         if ret == 0:
-            pass
+            data['total'] = round(end - begin, 1)
         elif ret == 124:
             data['total'] = TIMEOUT
-            # data['result'] = 'TIMEOUT', use gateCount instead.
+            data['result'] = 'TIMEOUT'
         else:
             data['total'] = round(end - begin, 1)
             data['result'] = 'ERROR'
@@ -85,19 +85,24 @@ semaphore = Semaphore(NUM_OF_THREADS)
 manager = Manager()
 counter = manager.Value('i', 0)
 process_pool_large = []
+# string_pool_large = []
 lock = Lock()
 os.chdir(sys.argv[1]); os.remove(json_file) if os.path.exists(json_file) else None
 for root, dirnames, filenames in sorted(os.walk('.')):
     for file in filenames:
         if file.endswith('.qasm'):
             process_pool_small = []
+            # string_pool_small = [manager.Value(c_wchar_p, file)]
             for func in (CTA, ):#TA, svsim, symqv, CaAL):
                 semaphore.acquire(); semaphore.release()
+                # string_pool_small.append(manager.Value(c_wchar_p, ''))
+                # p = Process(target=func, args=(file, string_pool_small[-1], semaphore, lock, counter))
                 p = Process(target=func, args=(file, semaphore, lock, counter))
                 p.start()
                 processes.append(p.pid)
                 process_pool_small.append(p)
             process_pool_large.append((len(process_pool_large), process_pool_small))
+            # string_pool_large.append(string_pool_small)
 
 while len(process_pool_large) > 0:
     for i, pps in enumerate(process_pool_large):
