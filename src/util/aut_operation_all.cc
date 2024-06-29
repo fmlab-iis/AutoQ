@@ -509,11 +509,12 @@ bool AUTOQ::Automata<Symbol>::reduce_down_bisim_level()
     return res;
   };
 
+  std::vector<size_t> level_hashtab(max_state+1, 0);
   for (; level > 0; --level) {
     const std::set<State>& level_states = state_level_map.get_level(level);
 
     std::unordered_map<State, typename TopDownTA::SymbolDownMap> level_normalized;
-    std::unordered_map<State, size_t> level_hashtab;
+    // std::unordered_map<State, size_t> level_hashtab;
     // normalize transitions
     for (State st : level_states) {
       size_t hash_accum = 0;
@@ -536,7 +537,8 @@ bool AUTOQ::Automata<Symbol>::reduce_down_bisim_level()
       }
 
       level_normalized.insert({st, std::move(normalized_down)});
-      level_hashtab.insert({st, hash_accum});
+      level_hashtab[st] = hash_accum;
+      // level_hashtab.insert({st, hash_accum});
     }
 
 
