@@ -39,92 +39,19 @@ include_directories(../include)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/version.cc.in
    ${CMAKE_CURRENT_BINARY_DIR}/version.cc @ONLY)
 
-add_executable(autoq
-  autoq.cc
-#   parse_args.cc
-  ${CMAKE_CURRENT_BINARY_DIR}/version.cc
-)
-
-# add_executable(autoq_ec
-#   autoq_ec.cc
-#   ${CMAKE_CURRENT_BINARY_DIR}/version.cc
-# )
-
-# add_executable(autoq_pldi
-#   autoq_pldi.cc
-#   ${CMAKE_CURRENT_BINARY_DIR}/version.cc
-# )
-
-add_executable(caut_from_states
-  caut_from_states.cc
-  ${CMAKE_CURRENT_BINARY_DIR}/version.cc
-)
-
-add_executable(saut_from_states
-  saut_from_states.cc
-  ${CMAKE_CURRENT_BINARY_DIR}/version.cc
-)
-
-add_executable(paut_from_states
-  paut_from_states.cc
-  ${CMAKE_CURRENT_BINARY_DIR}/version.cc
-)
-
-add_executable(print_language
-  print_language.cc
-  ${CMAKE_CURRENT_BINARY_DIR}/version.cc
-)
+# Get all files in the current directory
+file(GLOB main_files "${CMAKE_CURRENT_SOURCE_DIR}/*.cc")
+# Loop through each file
+foreach(file ${main_files})
+    get_filename_component(binary ${file} NAME_WLE)
+    add_executable(${binary} ${file} ${CMAKE_CURRENT_BINARY_DIR}/version.cc)
+    get_target_property(sources ${binary} SOURCES)
+    foreach(src ${sources})
+        set_source_files_properties(${src} PROPERTIES COMPILE_FLAGS ${autoq_compiler_flags})
+    endforeach()
+    target_link_libraries(${binary} libautoq)
+endforeach()
 
 if (MAKE_STATIC_AUTOQ)
   SET(CMAKE_CXX_LINK_EXECUTABLE "${CMAKE_CXX_LINK_EXECUTABLE} -static")
 endif()
-
-get_target_property(autoq_sources autoq SOURCES)
-foreach(src ${autoq_sources})
-  set_source_files_properties(
-    ${src} PROPERTIES COMPILE_FLAGS ${autoq_compiler_flags})
-endforeach()
-
-# get_target_property(autoq_ec_sources autoq_ec SOURCES)
-# foreach(src ${autoq_ec_sources})
-#   set_source_files_properties(
-#     ${src} PROPERTIES COMPILE_FLAGS ${autoq_compiler_flags})
-# endforeach()
-
-# get_target_property(autoq_pldi_sources autoq_pldi SOURCES)
-# foreach(src ${autoq_pldi_sources})
-#   set_source_files_properties(
-#     ${src} PROPERTIES COMPILE_FLAGS ${autoq_compiler_flags})
-# endforeach()
-
-get_target_property(caut_from_states_sources caut_from_states SOURCES)
-foreach(src ${caut_from_states_sources})
-  set_source_files_properties(
-    ${src} PROPERTIES COMPILE_FLAGS ${autoq_compiler_flags})
-endforeach()
-
-get_target_property(saut_from_states_sources saut_from_states SOURCES)
-foreach(src ${saut_from_states_sources})
-  set_source_files_properties(
-    ${src} PROPERTIES COMPILE_FLAGS ${autoq_compiler_flags})
-endforeach()
-
-get_target_property(paut_from_states_sources paut_from_states SOURCES)
-foreach(src ${paut_from_states_sources})
-  set_source_files_properties(
-    ${src} PROPERTIES COMPILE_FLAGS ${autoq_compiler_flags})
-endforeach()
-
-get_target_property(print_language_sources print_language SOURCES)
-foreach(src ${print_language_sources})
-  set_source_files_properties(
-    ${src} PROPERTIES COMPILE_FLAGS ${autoq_compiler_flags})
-endforeach()
-
-target_link_libraries(autoq libautoq)
-# target_link_libraries(autoq_ec libautoq)
-# target_link_libraries(autoq_pldi libautoq)
-target_link_libraries(caut_from_states libautoq)
-target_link_libraries(saut_from_states libautoq)
-target_link_libraries(paut_from_states libautoq)
-target_link_libraries(print_language libautoq)
