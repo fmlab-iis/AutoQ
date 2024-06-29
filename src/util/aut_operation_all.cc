@@ -543,28 +543,32 @@ bool AUTOQ::Automata<Symbol>::reduce_down_bisim_level()
 
 
     // for each pair of states on the level, check whether they are one-step bisimilar
-    for (auto it = level_states.cbegin(); it != level_states.cend(); ++it) {
+    auto itEnd = level_states.cend();
+    for (auto it = level_states.cbegin(); it != itEnd; ++it) {
       auto jt = it;
       ++jt;
 
-      for (; jt != level_states.cend(); ++jt) {
-        if (index[*jt] != *jt) { // if the state is already merged
+      State itState = *it;
+
+      for (; jt != itEnd; ++jt) {
+        State jtState = *jt;
+        if (index[jtState] != jtState) { // if the state is already merged
           continue;
         }
 
         // if hashes differ
-        if (level_hashtab[*it] != level_hashtab[*jt]) { continue; }
+        if (level_hashtab[itState] != level_hashtab[jtState]) { continue; }
 
         // otherwise do the expensive comparison
-        auto itMap = level_normalized.find(*it);
+        auto itMap = level_normalized.find(itState);
         const auto& itSymbMap = itMap->second;
-        auto jtMap = level_normalized.find(*jt);
+        auto jtMap = level_normalized.find(jtState);
         const auto& jtSymbMap = jtMap->second;
 
         if (itSymbMap == jtSymbMap) {
           // AUTOQ_DEBUG(Convert::ToString(it->first) + " and " +
           //   Convert::ToString(jt->first) + " have the same DOWN");
-          index[*jt] = *it;
+          index[jtState] = itState;
         }
       }
     }
