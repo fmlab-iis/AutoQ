@@ -68,7 +68,7 @@ void AUTOQ::Automata<Symbol>::diagonal_gate(int t, const std::function<void(Symb
     // If a state has two trees, then it presents in this map and its value is the id in the copied tree.
 
     // Convert from TransitionMap to InternalTransitionMap.
-    InternalTransitionMap internalTransitions(qubitNum + 1); // only contains qubits from t to the bottom
+    InternalTransitionMap internalTransitions(qubitNum + 1 + (hasLoop ? 1 : 0)); // only contains qubits from t to the bottom
     TransitionMap leafTransitions;
     for (const auto &tr : transitions) {
         if (tr.first.is_internal()) {
@@ -82,7 +82,7 @@ void AUTOQ::Automata<Symbol>::diagonal_gate(int t, const std::function<void(Symb
     }
 
     // Assume the initial state numbers are already compact.
-    for (int q = t; q <= qubitNum; q++) {
+    for (int q = t; q <= qubitNum + (hasLoop ? 1 : 0); q++) {
         if (q == t) {
             /* Construct childStateIsLeftOrRight. */
             for (const auto &tag_outins : internalTransitions[q]) {

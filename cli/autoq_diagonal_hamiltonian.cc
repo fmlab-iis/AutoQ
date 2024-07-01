@@ -15,7 +15,7 @@ using AUTOQ::Util::ReadFile;
 
 int main(int argc, char **argv) {
     enum { P, Q1, Q0 };
-    AUTOQ::TreeAutomata aut;
+    AUTOQ::TreeAutomata aut, ans;
     aut.hasLoop = true;
     aut.finalStates.push_back(P);
     aut.stateNum = 3;
@@ -26,28 +26,19 @@ int main(int argc, char **argv) {
     aut.transitions[{AUTOQ::Complex::Complex::Zero(), 0b10}][Q0].insert({{}});
     aut.transitions[{AUTOQ::Complex::Complex::One(), 0b10}][Q1].insert({{}});
     // aut.print_aut("Pre-condition:\n");
+    ans = aut;
 
     aut.initialize_stats();
-    aut.unfold_top();
-    aut.H(1);
-    aut.fold();
-    aut.CX();
+    aut.phase(boost::rational<boost::multiprecision::cpp_int>(-1, 4)); // aut.print_aut("Phase(-pi/2):\n");
+    aut.CX(); // aut.print_aut("CX:\n");
+    aut.unfold_bottom(); // aut.print_aut("Unfold:\n");
+    aut.Z(2); // aut.print_aut("Z(2):\n");
+    aut.phase(boost::rational<boost::multiprecision::cpp_int>(1, 4)); // aut.print_aut("Phase(pi/2):\n");
+    aut.fold(); // aut.print_aut("Fold:\n");
+    aut.CX_inv(); // aut.print_aut("CX_inv:\n");
     AUTOQ::TreeAutomata::stop_execute = std::chrono::steady_clock::now();
     // aut.print_aut("Result:\n");
 
-    enum { p, qL, qR, q0 };
-    AUTOQ::TreeAutomata ans;
-    ans.hasLoop = true;
-    ans.finalStates.push_back(p);
-    ans.stateNum = 4;
-    ans.qubitNum = 0;
-    ans.transitions[{1, 0b01}][p].insert({qL, qR});
-    ans.transitions[{1, 0b01}][qL].insert({qL, q0});
-    ans.transitions[{AUTOQ::Complex::Complex::One().divide_by_the_square_root_of_two(), 0b10}][qL].insert({{}});
-    ans.transitions[{1, 0b01}][qR].insert({q0, qR});
-    ans.transitions[{AUTOQ::Complex::Complex::One().divide_by_the_square_root_of_two(), 0b10}][qR].insert({{}});
-    ans.transitions[{1, 0b01}][q0].insert({q0, q0});
-    ans.transitions[{AUTOQ::Complex::Complex::Zero(), 0b10}][q0].insert({{}});
     // ans.print_aut("Post-condition:\n");
 
     AUTOQ::TreeAutomata::check_equal(aut, ans);

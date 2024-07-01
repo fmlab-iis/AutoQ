@@ -2312,8 +2312,8 @@ void AUTOQ::Automata<Symbol>::unfold_bottom() {
         const auto &fc = fc_ois.first;
         const auto &ois = fc_ois.second;
         auto &transitions_result_fc = transitions_result[fc];
-        auto &transitions_result2 = fc.first.is_internal() ? transitions_result[{fc.first.qubit() + 1, fc.second}] : transitions_result_fc;
-        auto &transitions_result3 = fc.first.is_internal() ? transitions_result[{fc.first.qubit(), fc.second}] : transitions_result_fc;
+        auto &transitions_result_fc_shift = fc.first.is_internal() ? transitions_result[{fc.first.qubit(), fc.second << 2}] : transitions_result_fc; // TODO: temporary solution
+        auto &transitions_result_shift = fc.first.is_internal() ? transitions_result[{fc.first.qubit() + 1, fc.second}] : transitions_result_fc;
         for (const auto &oi : ois) {
             const auto &top = oi.first;
             const auto &ins = oi.second;
@@ -2321,16 +2321,14 @@ void AUTOQ::Automata<Symbol>::unfold_bottom() {
                 transitions_result_fc[top].insert(ins.begin(), ins.end());
             } else { // internal
                 if (fc.first.qubit() == 1) {
-                    transitions_result2[top + stateNum].insert(ins.begin(), ins.end());
-                } else {
-                    transitions_result2[top].insert(ins.begin(), ins.end());
-                }
-                if (fc.first.qubit() == 1) {
-                    auto &ref = transitions_result3[top + stateNum];
+                    auto &ref = transitions_result_fc_shift[top + stateNum];
                     for (auto in : ins) {
                         for_each(in.begin(), in.end(), [this](auto &n) { n += stateNum; });
                         ref.insert(in);
                     }
+                    transitions_result_shift[top + stateNum].insert(ins.begin(), ins.end());
+                } else {
+                    transitions_result_shift[top].insert(ins.begin(), ins.end());
                 }
             }
         }
