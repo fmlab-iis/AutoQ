@@ -131,7 +131,9 @@
 import json, os, sys
 
 def compare_function(input):
-    if 'MCToffoli' in input:
+    if 'OEGrover' in input:
+        return 10
+    elif 'MCToffoli' in input:
         return 9
     elif 'MOGrover' in input:
         return 6
@@ -214,13 +216,14 @@ def json_to_latex_table(tool_list, latex_filename):
     # Create the LaTeX table
     latex_code = """
 \\documentclass{article}
-\\usepackage{booktabs}
-\\usepackage{geometry}
-\\geometry{a4paper, margin=1in, paperwidth=150cm, paperheight=40cm}
 \\begin{document}
 
-\\begin{table}[h!]
-\\centering
+\\hoffset=-1in
+\\voffset=-1in
+\\setbox0\\hbox{
+
+\\""" + f"{latex_filename[:-len('.tex')]}" + """
+
 \\begin{tabular}{|l|c|c|""" + "c|" * len(headers) + """}
 \\hline
 Filename & q & G & """ + " & ".join(headers) + """ \\\\ \\hline
@@ -236,11 +239,14 @@ Filename & q & G & """ + " & ".join(headers) + """ \\\\ \\hline
 
     latex_code += """
 \\end{tabular}
-\\""" + f"caption{{{latex_filename[:-len('.tex')]}}}" + """
-%label{table:your_label_here}
-\\end{table}
 
-\\end{document}
+%label{table:your_label_here}
+}
+
+\\pdfpageheight=\\dimexpr\\ht0+\\dp0\\relax
+\\pdfpagewidth=\\wd0
+\\shipout\\box0
+\\stop
 """
 
     # Write the LaTeX code to a file
@@ -254,4 +260,6 @@ name = sys.argv[1].split('/')[0] # [:-len('.json')].replace('/', '-') #split('/'
 sys.argv.pop(0)
 json_to_latex_table(sys.argv, f'./tables/{name}.tex')
 os.chdir('./tables')
-os.system(f'pdflatex {name}.tex')
+os.system(f'pdflatex {name}.tex && vips copy {name}.pdf[dpi=600] {name}.jpg')
+
+# https://tex.stackexchange.com/questions/299005/automatic-page-size-to-fit-arbitrary-content

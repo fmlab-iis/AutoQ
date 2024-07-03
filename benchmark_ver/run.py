@@ -8,6 +8,7 @@ NUM_OF_CASES = int(p.stdout.splitlines()[0].decode('utf-8'))
 NUM_OF_THREADS = min(200, NUM_OF_CASES)
 CTA_EXE = 'autoq'
 TA_EXE = '../autoq_pldi'
+TA_SYMBOLIC_EXE = '../autoq_symbolic'
 VATA_EXE = '../../vata'
 SLIQSIM_EXE = '../test_SliQSim.py'
 SVSIM_EXE = '../test_SV-Sim.py'
@@ -56,7 +57,13 @@ def CTA(root, semaphore, lock, counter):
         data = dict()
         data['q'] = q
         data['G'] = G
-        cmd = f'timeout {TIMEOUT} {CTA_EXE} verC {root}/pre.spec {root}/circuit.qasm {root}/post.spec --latex'#; print(cmd)
+        cmd = ''
+        if 'MCToffoli' in root:
+            cmd = f'timeout {TIMEOUT} {CTA_EXE} verC {root}/pre0.spec {root}/circuit.qasm {root}/post0.spec --latex'; print(cmd)
+        elif 'OEGrover' in root:
+            cmd = f'timeout {TIMEOUT} {CTA_EXE} verS {root}/pre.spec {root}/circuit.qasm {root}/post.spec {root}/constraint.smt --latex'#; print(cmd)
+        else:
+            cmd = f'timeout {TIMEOUT} {CTA_EXE} verC {root}/pre.spec {root}/circuit.qasm {root}/post.spec --latex'#; print(cmd)
         begin = time.monotonic()
         p = subprocess.run(cmd, shell=True, capture_output=True, executable='/bin/bash')
         end = time.monotonic()
@@ -64,7 +71,7 @@ def CTA(root, semaphore, lock, counter):
         if ret == 0:
             output = ''
             try:
-                output = p.stdout.splitlines()[0].decode('utf-8')
+                output = p.stdout.splitlines()[-1].decode('utf-8')
             except:
                 print(cmd, flush=True)
             v = output.split(' & ')
@@ -81,6 +88,32 @@ def CTA(root, semaphore, lock, counter):
         else:
             data['total'] = round(end - begin, 1)
             data['result'] = 'ERROR'
+        if 'MCToffoli' in root:
+            cmd = f'timeout {TIMEOUT} {CTA_EXE} verC {root}/pre1.spec {root}/circuit.qasm {root}/post1.spec --latex'#; print(cmd)
+            begin = time.monotonic()
+            p = subprocess.run(cmd, shell=True, capture_output=True, executable='/bin/bash')
+            end = time.monotonic()
+            ret = p.returncode
+            if ret == 0:
+                output = ''
+                try:
+                    output = p.stdout.splitlines()[-1].decode('utf-8')
+                except:
+                    print(cmd, flush=True)
+                v = output.split(' & ')
+                v[3], v[4] = v[4], v[3]
+                data['before_state'] += '/' + v[2]
+                data['before_trans'] += '/' +  v[3]
+                data['after_state'] += '/' +  v[4]
+                data['after_trans'] += '/' +  v[5]
+                data['total'] += '/' +  v[6]
+                data['result'] += '/' +  v[7]
+            elif ret == 124:
+                data['total'] += '/' +  TIMEOUT
+                data['result'] += '/' +  'TIMEOUT'
+            else:
+                data['total'] += '/' +  round(end - begin, 1)
+                data['result'] += '/' +  'ERROR'
         lock.acquire()
         ##############################################
         append_key_value_to_json_file('lsta.json', root, data)
@@ -97,7 +130,11 @@ def TA(root, semaphore, lock, counter):
         data = dict()
         data['q'] = q
         data['G'] = G
-        cmd = f'VATA_PATH={VATA_EXE} timeout {TIMEOUT} {TA_EXE} {root}/pre.aut {root}/circuit.qasm {root}/post.aut'
+        cmd = ''
+        if 'OEGrover' in root:
+            cmd = f'VATA_PATH={VATA_EXE} timeout {TIMEOUT} {TA_SYMBOLIC_EXE} {root}/pre.aut {root}/circuit.qasm {root}/post.aut {root}/constraint2.smt'
+        else:
+            cmd = f'VATA_PATH={VATA_EXE} timeout {TIMEOUT} {TA_EXE} {root}/pre.aut {root}/circuit.qasm {root}/post.aut'
         begin = time.monotonic()
         p = subprocess.run(cmd, shell=True, capture_output=True, executable='/bin/bash')
         end = time.monotonic()
@@ -298,9 +335,11 @@ tools.append(symqv); os.remove('symqv.json') if os.path.exists('symqv.json') els
 tools.append(CaAL); os.remove('caal.json') if os.path.exists('caal.json') else None
 tools.append(SliQSim); os.remove('sliqsim.json') if os.path.exists('sliqsim.json') else None
 for root, dirnames, filenames in sorted(os.walk('.')):
+    # if 'MCToffoli' not in root: continue
     if len(dirnames) == 0 and 'circuit.qasm' in filenames:
         process_pool_small = []
         for func in tools:
+            if 'OEGrover' in root and func not in (CTA, TA): continue
             semaphore.acquire(); semaphore.release()
             p = Process(target=func, args=(root, semaphore, lock, counter))
             p.start()

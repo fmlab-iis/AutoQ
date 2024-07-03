@@ -185,6 +185,7 @@ int main(int argc, char **argv) {
     verificationS->add_option("circuit.qasm", circuit, "the OpenQASM 3.0 circuit file")->required()->type_name("")->check(CLI::ExistingFile);
     verificationS->add_option("post.{aut|hsl|spec}", post, "the postcondition file")->required()->type_name("");
     verificationS->add_option("constraint.smt", constraint, "the constraint file")->type_name("");
+    verificationS->add_flag("-l,--latex", latex, "Print the statistics for tables in LaTeX");
     verificationS->callback([&]() {
         adjust_N_in_nTuple(circuit);
     });
