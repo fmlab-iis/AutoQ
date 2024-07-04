@@ -134,7 +134,7 @@ def json_to_latex_table(tool_list, latex_filename):
                     data['result'] = data['total']
                 elif 'autoq' in tool:
                     if data['result'] != 'TIMEOUT':
-                        if data['result'] != 'V':
+                        if ('OEGrover' in file and data['result'] != '0') or ('OEGrover' not in file and data['result'] != 'V'):
                             data['result'] = 'WA'
                         else:
                             data['result'] = format_duration(parse_duration(str(data['total'])) + parse_duration(data['result']))
