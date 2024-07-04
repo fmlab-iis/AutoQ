@@ -52,7 +52,7 @@ def CTA(root, semaphore, lock, counter):
         G2 = p.stdout.splitlines()[0].decode('utf-8')
         p = subprocess.run(f'grep -P ".*(x |y |z |h |s |t |rx\(.+\) |ry\(.+\) |cx |cz |ccx |tdg |sdg |swap ).*\[\d+\];" ../origin/{root.split("qasm", 1)[0] + "qasm"} | wc -l', shell=True, capture_output=True, executable='/bin/bash')
         G = p.stdout.splitlines()[0].decode('utf-8')
-        cmd = f'timeout {TIMEOUT} {EXE} ../origin/{root.split("qasm", 1)[0] + "qasm"} {root}'; print(cmd)
+        cmd = f'timeout {TIMEOUT} {EXE} ../origin/{root.split("qasm", 1)[0] + "qasm"} {root}'#; print(cmd)
         begin = time.monotonic()
         p = subprocess.run(cmd, shell=True, capture_output=True, executable='/bin/bash')
         end = time.monotonic()
