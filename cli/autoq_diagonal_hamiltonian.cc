@@ -32,8 +32,7 @@ int main(int argc, char **argv) {
     aut.phase(boost::rational<boost::multiprecision::cpp_int>(-1, 4)); // aut.print_aut("Phase(-pi/2):\n");
     aut.CX(); // aut.print_aut("CX:\n");
     aut.unfold_bottom(); // aut.print_aut("Unfold:\n");
-    aut.Z(2); // aut.print_aut("Z(2):\n");
-    aut.phase(boost::rational<boost::multiprecision::cpp_int>(1, 4)); // aut.print_aut("Phase(pi/2):\n");
+    aut.Rz(boost::rational<boost::multiprecision::cpp_int>(-1, 2), 2); // aut.print_aut("Phase(pi/2):\n");
     aut.fold(); // aut.print_aut("Fold:\n");
     aut.CX_inv(); // aut.print_aut("CX_inv:\n");
     AUTOQ::TreeAutomata::stop_execute = std::chrono::steady_clock::now();
