@@ -123,10 +123,14 @@ def json_to_latex_table(tool_list, latex_filename):
         else:
             the_string_to_be_added += ' & ' + str(int(file.split('/')[2]))
         for tool, data in datas.items():
+            if 'before_state' in data:
+                del data['before_state']
             if 'before_trans' in data:
-                data['before_trans'] = '(' + data['before_trans'] + ')'
+                del data['before_trans'] #= '(' + data['before_trans'] + ')'
+            if 'after_state' in data:
+                del data['after_state']
             if 'after_trans' in data:
-                data['after_trans'] = '(' + data['after_trans'] + ')'
+                del data['after_trans'] #= '(' + data['after_trans'] + ')'
             if 'lsta' not in tool:
                 del data['q']
                 del data['G']
@@ -135,15 +139,28 @@ def json_to_latex_table(tool_list, latex_filename):
                 elif 'autoq' in tool:
                     if data['result'] != 'TIMEOUT':
                         assert data['result'] != 'V'
-                        data['result'] = format_duration(parse_duration(str(data['total'])) + parse_duration(data['result']))
+                        assert data['total'].count('/') == data['result'].count('/')
+                        if '/' in data['total']:
+                            print(data['total'], data['result'])
+                            data['result'] = format_duration(parse_duration(str(data['total'].split('/')[0])) + parse_duration(data['result'].split('/')[0])) + '/' + format_duration(parse_duration(str(data['total'].split('/')[1])) + parse_duration(data['result'].split('/')[1]))
+                            print(data['result'])
+                        else:
+                            data['result'] = format_duration(parse_duration(str(data['total'])) + parse_duration(data['result']))
                 del data['total']
+            else:
+                assert data['total'].count('/') == data['result'].count('/')
+                if '/' in data['total']:
+                    data['result2'] = format_duration(parse_duration(str(data['total'].split('/')[0])) + parse_duration(data['result'].split('/')[0])) + '/' + format_duration(parse_duration(str(data['total'].split('/')[1])) + parse_duration(data['result'].split('/')[1]))
+                else:
+                    data['result2'] = format_duration(parse_duration(str(data['total'])) + parse_duration(data['result']))
+                data['result2'] = r'\textbf{' + data['result2'] + r'}'
             if 'autoq' in tool:
                 data = {'result': data['result']}
-            print(file, tool, data, list(data.values()))
+            # print(file, tool, data, list(data.values()))
             the_string_to_be_added += ' & ' + ' & '.join(map(str, list(data.values())))
         the_string_to_be_added = the_string_to_be_added.replace('ERROR', r'\error')
         the_string_to_be_added = the_string_to_be_added.replace('TIMEOUT', r'\timeout')
-        the_string_to_be_added += (14 - the_string_to_be_added.count('&')) * ' & -'
+        the_string_to_be_added += (11 - the_string_to_be_added.count('&')) * ' & -'
         if file.split('/')[1] not in contents:
             contents[file.split('/')[1]] = the_string_to_be_added + '\\\\\n'
         else:
@@ -170,7 +187,7 @@ def json_to_latex_table(tool_list, latex_filename):
 \newcommand{\qbricks}[0]{\textsc{Qbricks}\xspace}
 \newcommand{\qiskit}[0]{\textsc{Qiskit}\xspace}
 \newcommand{\vata}[0]{\textsc{Vata}\xspace}
-\newcommand{\cta}[0]{\textsc{LSTA}\xspace}
+\newcommand{\tool}[0]{\textsc{LSTA}\xspace}
 \newcommand{\ta}[0]{\textsc{TA}\xspace}
 \newcommand{\correct}[0]{T\xspace}
 \newcommand{\wrong}[0]{F\xspace}
@@ -204,11 +221,11 @@ def json_to_latex_table(tool_list, latex_filename):
 \hoffset=-1in
 \voffset=-1in
 \setbox0\hbox{
-\begin{tabular}{crrrrrrrrrrrrrr}\hline
+\begin{tabular}{crrrrrrrrrrr}\hline
 \toprule
-  &&&& \multicolumn{6}{c}{\cta} & \multirow{2}{*}{\autoq} & \multirow{2}{*}{\sliqsim} & \multirow{2}{*}{SV-Sim} & \multirow{2}{*}{symQV} & \multirow{2}{*}{CaAL}\\
-  \cmidrule(lr){5-10}
-  & \multicolumn{1}{c}{$n$} & \multicolumn{1}{c}{\textbf{\#q}} & \multicolumn{1}{c}{\textbf{\#G}} & \multicolumn{2}{c}{\textbf{before}} & \multicolumn{2}{c}{\textbf{after}} & \multicolumn{1}{c}{$\post{C}$} & \multicolumn{1}{c}{$\subseteq$} \\
+  &&&& \multicolumn{3}{c}{\tool} & \multirow{2}{*}{\autoq} & \multirow{2}{*}{\sliqsim} & \multirow{2}{*}{SV-Sim} & \multirow{2}{*}{symQV} & \multirow{2}{*}{CaAL}\\
+  \cmidrule(lr){5-7}
+  & \multicolumn{1}{c}{$n$} & \multicolumn{1}{c}{\textbf{\#q}} & \multicolumn{1}{c}{\textbf{\#G}} & \multicolumn{1}{c}{$\post{C}$} & \multicolumn{1}{c}{$\subseteq$}  & \multicolumn{1}{c}{total} \\
 \midrule
   \multirow{ 5}{*}{\rotatebox[origin=c]{90}{\bvsingbench}}
 ''' + contents['BV'] + r'''\midrule

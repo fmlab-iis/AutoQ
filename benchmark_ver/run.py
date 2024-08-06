@@ -59,7 +59,7 @@ def CTA(root, semaphore, lock, counter):
         data['G'] = G
         cmd = ''
         if 'MCToffoli' in root:
-            cmd = f'timeout {TIMEOUT} {CTA_EXE} verC {root}/pre0.spec {root}/circuit.qasm {root}/post0.spec --latex'; print(cmd)
+            cmd = f'timeout {TIMEOUT} {CTA_EXE} verC {root}/pre0.spec {root}/circuit.qasm {root}/post0.spec --latex'#; print(cmd)
         elif 'OEGrover' in root:
             cmd = f'timeout {TIMEOUT} {CTA_EXE} verS {root}/pre.spec {root}/circuit.qasm {root}/post.spec {root}/constraint.smt --latex'#; print(cmd)
         else:
@@ -131,7 +131,9 @@ def TA(root, semaphore, lock, counter):
         data['q'] = q
         data['G'] = G
         cmd = ''
-        if 'OEGrover' in root:
+        if 'MCToffoli' in root:
+            cmd = f'VATA_PATH={VATA_EXE} timeout {TIMEOUT} {TA_EXE} {root}/pre0.aut {root}/circuit.qasm {root}/post0.aut'
+        elif 'OEGrover' in root:
             cmd = f'VATA_PATH={VATA_EXE} timeout {TIMEOUT} {TA_SYMBOLIC_EXE} {root}/pre.aut {root}/circuit.qasm {root}/post.aut {root}/constraint2.smt'
         else:
             cmd = f'VATA_PATH={VATA_EXE} timeout {TIMEOUT} {TA_EXE} {root}/pre.aut {root}/circuit.qasm {root}/post.aut'
@@ -159,6 +161,32 @@ def TA(root, semaphore, lock, counter):
         else:
             data['total'] = round(end - begin, 1)
             data['result'] = 'ERROR'
+        if 'MCToffoli' in root:
+            cmd = f'VATA_PATH={VATA_EXE} timeout {TIMEOUT} {TA_EXE} {root}/pre1.aut {root}/circuit.qasm {root}/post1.aut'
+            begin = time.monotonic()
+            p = subprocess.run(cmd, shell=True, capture_output=True, executable='/bin/bash')
+            end = time.monotonic()
+            ret = p.returncode
+            if ret == 0:
+                output = ''
+                try:
+                    output = p.stdout.splitlines()[-1].decode('utf-8')
+                except:
+                    print(cmd, flush=True)
+                v = output.split(' & ')
+                v[3], v[4] = v[4], v[3]
+                data['before_state'] += '/' + v[2]
+                data['before_trans'] += '/' +  v[3]
+                data['after_state'] += '/' +  v[4]
+                data['after_trans'] += '/' +  v[5]
+                data['total'] += '/' +  v[6]
+                data['result'] += '/' +  v[7]
+            elif ret == 124:
+                data['total'] += '/' +  TIMEOUT
+                data['result'] += '/' +  'TIMEOUT'
+            else:
+                data['total'] += '/' +  round(end - begin, 1)
+                data['result'] += '/' +  'ERROR'
         lock.acquire()
         ##############################################
         append_key_value_to_json_file('autoq.json', root, data)
