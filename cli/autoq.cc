@@ -153,36 +153,36 @@ int main(int argc, char **argv) {
     set_timeout(600);
     feenableexcept(FE_ALL_EXCEPT & ~FE_INEXACT);
 
-    CLI::App app{" "}; //{"My CLI App"};
+    CLI::App app{"AutoQ: An automata-based C++ tool for quantum program verification."};
     std::string pre, circuit, post, constraint, circuit1, circuit2;
 
-    CLI::App* executionC = app.add_subcommand("exC", "executionC");
+    CLI::App* executionC = app.add_subcommand("exC", "Concrete Execution");
     executionC->add_option("pre.{aut|hsl|spec}", pre, "the precondition file")->required()->type_name("");
-    executionC->add_option("circuit.qasm", circuit, "the OpenQASM 3.0 circuit file")->required()->type_name("")->check(CLI::ExistingFile);
+    executionC->add_option("circuit.qasm", circuit, "the OpenQASM 3.0 circuit file")->required()->type_name("");
     executionC->callback([&]() {
         adjust_N_in_nTuple(circuit);
     });
 
     bool latex = false;
-    CLI::App* verificationC = app.add_subcommand("verC", "verificationC");
+    CLI::App* verificationC = app.add_subcommand("verC", "Concrete Verification");
     verificationC->add_option("pre.{aut|hsl|spec}", pre, "the precondition file")->required()->type_name("");
-    verificationC->add_option("circuit.qasm", circuit, "the OpenQASM 3.0 circuit file")->required()->type_name("")->check(CLI::ExistingFile);
+    verificationC->add_option("circuit.qasm", circuit, "the OpenQASM 3.0 circuit file")->required()->type_name("");
     verificationC->add_option("post.{aut|hsl|spec}", post, "the postcondition file")->required()->type_name("");
     verificationC->add_flag("-l,--latex", latex, "Print the statistics for tables in LaTeX");
     verificationC->callback([&]() {
         adjust_N_in_nTuple(circuit);
     });
 
-    CLI::App* executionS = app.add_subcommand("exS", "executionS");
+    CLI::App* executionS = app.add_subcommand("exS", "Symbolic Execution");
     executionS->add_option("pre.{aut|hsl|spec}", pre, "the precondition file")->required()->type_name("");
-    executionS->add_option("circuit.qasm", circuit, "the OpenQASM 3.0 circuit file")->required()->type_name("")->check(CLI::ExistingFile);
+    executionS->add_option("circuit.qasm", circuit, "the OpenQASM 3.0 circuit file")->required()->type_name("");
     executionS->callback([&]() {
         adjust_N_in_nTuple(circuit);
     });
 
-    CLI::App* verificationS = app.add_subcommand("verS", "verificationS");
+    CLI::App* verificationS = app.add_subcommand("verS", "Symbolic Verification");
     verificationS->add_option("pre.{aut|hsl|spec}", pre, "the precondition file")->required()->type_name("");
-    verificationS->add_option("circuit.qasm", circuit, "the OpenQASM 3.0 circuit file")->required()->type_name("")->check(CLI::ExistingFile);
+    verificationS->add_option("circuit.qasm", circuit, "the OpenQASM 3.0 circuit file")->required()->type_name("");
     verificationS->add_option("post.{aut|hsl|spec}", post, "the postcondition file")->required()->type_name("");
     verificationS->add_option("constraint.smt", constraint, "the constraint file")->type_name("");
     verificationS->add_flag("-l,--latex", latex, "Print the statistics for tables in LaTeX");
@@ -190,18 +190,18 @@ int main(int argc, char **argv) {
         adjust_N_in_nTuple(circuit);
     });
 
-    CLI::App* equivalence_checking = app.add_subcommand("eq", "equivalence checking");
-    equivalence_checking->add_option("circuit1.qasm", circuit1, "the OpenQASM 2.0 circuit file")->required()->type_name("")->check(CLI::ExistingFile);
-    equivalence_checking->add_option("circuit2.qasm", circuit2, "the OpenQASM 2.0 circuit file")->required()->type_name("")->check(CLI::ExistingFile);
+    CLI::App* equivalence_checking = app.add_subcommand("eq", "Equivalence Checking");
+    equivalence_checking->add_option("circuit1.qasm", circuit1, "the OpenQASM 2.0 circuit file")->required()->type_name("");
+    equivalence_checking->add_option("circuit2.qasm", circuit2, "the OpenQASM 2.0 circuit file")->required()->type_name("");
     equivalence_checking->add_flag("-l,--latex", latex, "Print the statistics for tables in LaTeX");
     equivalence_checking->callback([&]() {
         adjust_N_in_nTuple(circuit1);
         adjust_N_in_nTuple(circuit2);
     });
 
-    bool short_time = false, long_time = false;
-    app.add_flag("-t", short_time, "print times");
-    app.add_flag("--time", long_time, "print times");
+    // bool short_time = false, long_time = false;
+    // app.add_flag("-t", short_time, "print times");
+    // app.add_flag("--time", long_time, "print times");
     CLI11_PARSE(app, argc, argv); // Parse the command-line arguments
 
     auto start = chrono::steady_clock::now();
@@ -260,41 +260,41 @@ int main(int argc, char **argv) {
         aut2.execute(circuit2);
         bool result = AUTOQ::TreeAutomata::check_inclusion(aut, aut2);
         if (latex) {
-            if (short_time) {
-                std::map<std::string, std::string> stats;
-                stats["gate"] = toString(AUTOQ::TreeAutomata::total_gate_time - AUTOQ::TreeAutomata::total_removeuseless_time - AUTOQ::TreeAutomata::total_reduce_time);
-                stats["removeuseless"] = toString(AUTOQ::TreeAutomata::total_removeuseless_time);
-                stats["reduce"] = toString(AUTOQ::TreeAutomata::total_reduce_time);
-                stats["include"] = toString(AUTOQ::TreeAutomata::total_include_time);
-                stats["total"] = toString(chrono::steady_clock::now() - start);
-                stats["result"] = result ? "T" : "F";
-                stats["aut1.trans"] = std::to_string(aut.transition_size());
-                stats["aut1.leaves"] = std::to_string(aut.leaf_size());
-                stats["aut2.trans"] = std::to_string(aut2.transition_size());
-                stats["aut2.leaves"] = std::to_string(aut2.leaf_size());
-                std::cout << AUTOQ::Util::Convert::ToString2(stats) << std::endl;
-            } else {
-                std::cout << toString(chrono::steady_clock::now() - start) << " & " << (result ? "T" : "F") << "\n";
-            }
+            // if (short_time) {
+            //     std::map<std::string, std::string> stats;
+            //     stats["gate"] = toString(AUTOQ::TreeAutomata::total_gate_time - AUTOQ::TreeAutomata::total_removeuseless_time - AUTOQ::TreeAutomata::total_reduce_time);
+            //     stats["removeuseless"] = toString(AUTOQ::TreeAutomata::total_removeuseless_time);
+            //     stats["reduce"] = toString(AUTOQ::TreeAutomata::total_reduce_time);
+            //     stats["include"] = toString(AUTOQ::TreeAutomata::total_include_time);
+            //     stats["total"] = toString(chrono::steady_clock::now() - start);
+            //     stats["result"] = result ? "T" : "F";
+            //     stats["aut1.trans"] = std::to_string(aut.transition_size());
+            //     stats["aut1.leaves"] = std::to_string(aut.leaf_size());
+            //     stats["aut2.trans"] = std::to_string(aut2.transition_size());
+            //     stats["aut2.leaves"] = std::to_string(aut2.leaf_size());
+            //     std::cout << AUTOQ::Util::Convert::ToString2(stats) << std::endl;
+            // } else {
+            //     std::cout << toString(chrono::steady_clock::now() - start) << " & " << (result ? "T" : "F") << "\n";
+            // }
         } else {
             std::cout << "The two quantum programs are verified to be [" << (result ? "equal" : "unequal") << "] in [" << toString(chrono::steady_clock::now() - start) << "] with [" << getPeakRSS() / 1024 / 1024 << "MB] memory usage.\n";
         }
     }
     /**************/
-    if (long_time) {
-        if (runConcrete)
-            std::cout << "=\n"
-                    << "The total time spent on gate operations (excluding remove_useless and reduce) is [" << toString(AUTOQ::TreeAutomata::total_gate_time - AUTOQ::TreeAutomata::total_removeuseless_time - AUTOQ::TreeAutomata::total_reduce_time) << "].\n"
-                    << "The total time spent on remove_useless(...) is [" << toString(AUTOQ::TreeAutomata::total_removeuseless_time) << "].\n"
-                    << "The total time spent on reduce(...) is [" << toString(AUTOQ::TreeAutomata::total_reduce_time) << "].\n"
-                    << "The total time spent on check_inclusion(...) is [" << toString(AUTOQ::TreeAutomata::total_include_time) << "].\n";
-        else
-            std::cout << "=\n"
-                    << "The total time spent on gate operations (excluding remove_useless and reduce) is [" << toString(AUTOQ::SymbolicAutomata::total_gate_time - AUTOQ::SymbolicAutomata::total_removeuseless_time - AUTOQ::SymbolicAutomata::total_reduce_time) << "].\n"
-                    << "The total time spent on remove_useless(...) is [" << toString(AUTOQ::SymbolicAutomata::total_removeuseless_time) << "].\n"
-                    << "The total time spent on reduce(...) is [" << toString(AUTOQ::SymbolicAutomata::total_reduce_time) << "].\n"
-                    << "The total time spent on check_inclusion(...) is [" << toString(AUTOQ::SymbolicAutomata::total_include_time) << "].\n";
-    }
+    // if (long_time) {
+    //     if (runConcrete)
+    //         std::cout << "=\n"
+    //                 << "The total time spent on gate operations (excluding remove_useless and reduce) is [" << toString(AUTOQ::TreeAutomata::total_gate_time - AUTOQ::TreeAutomata::total_removeuseless_time - AUTOQ::TreeAutomata::total_reduce_time) << "].\n"
+    //                 << "The total time spent on remove_useless(...) is [" << toString(AUTOQ::TreeAutomata::total_removeuseless_time) << "].\n"
+    //                 << "The total time spent on reduce(...) is [" << toString(AUTOQ::TreeAutomata::total_reduce_time) << "].\n"
+    //                 << "The total time spent on check_inclusion(...) is [" << toString(AUTOQ::TreeAutomata::total_include_time) << "].\n";
+    //     else
+    //         std::cout << "=\n"
+    //                 << "The total time spent on gate operations (excluding remove_useless and reduce) is [" << toString(AUTOQ::SymbolicAutomata::total_gate_time - AUTOQ::SymbolicAutomata::total_removeuseless_time - AUTOQ::SymbolicAutomata::total_reduce_time) << "].\n"
+    //                 << "The total time spent on remove_useless(...) is [" << toString(AUTOQ::SymbolicAutomata::total_removeuseless_time) << "].\n"
+    //                 << "The total time spent on reduce(...) is [" << toString(AUTOQ::SymbolicAutomata::total_reduce_time) << "].\n"
+    //                 << "The total time spent on check_inclusion(...) is [" << toString(AUTOQ::SymbolicAutomata::total_include_time) << "].\n";
+    // }
     /**************/
     return 0;
 }

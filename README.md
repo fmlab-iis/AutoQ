@@ -1,344 +1,274 @@
-# AutoQ: An automata-based C++ tool for quantum circuit verification
-<!-- [![Build Status](https://travis-ci.org/ondrik/libvata.svg?branch=master)](https://travis-ci.org/ondrik/libvata)-->
+# AutoQ: An automata-based C++ tool for quantum program verification.
 
 ---
 
-AutoQ is a command-line utility written in C++ for Hoare-style quantum circuit verification based on non-deterministic finite tree automata. The following figure demonstrates how we use a tree to represent a 3-qubit quantum state, so an automaton can be used to encode a set of quantum states. The symbol of each internal transition should be a positive integer $n$ indicating the $n$-th qubit, and the symbol of each leaf transition is a 5-tuple of integers $(a,b,c,d,k)$ describing the probability amplitude $(a+b\omega+c\omega^2+d\omega^3) / \sqrt2^k$ of some computational basis state, where $w = \cos(\pi/4) + i\sin(\pi/4)$.
+AutoQ is a command-line utility written in C++ for verifying partial correctness of quantum programs automatically based on non-deterministic finite tree automata (NFTA) along with the concept of Hoare-style proof systems. Consider a triple $\\{P\\}\ C\ \\{Q\\}$, where $P$ and $Q$ are the pre- and post-condition recognizing sets of (pure) quantum states (represented by NFTA) and $C$ is a quantum program. Let $\mathcal L(.)$ denote the mapping from a condition $x$ to the set of all quantum states satisfying $x$ (characterized by $x$). Then AutoQ essentially checks whether all the quantum states in $\mathcal L(P)$ reach some state in $\mathcal L(Q)$ after the program $C$ is executed. If we further let $C(.)$ denote the mapping from a condition $x$ to the evolution of $x$ after a program segment $C$ is executed, then AutoQ simply checks whether $\mathcal L(C(P)) \subseteq \mathcal L(Q)$.
 
-<img width="412" alt="image" src="https://user-images.githubusercontent.com/10044077/214999182-7e3882d2-47cf-49cb-aa3e-45295072b3f8.png">
+The following is a mini illustration of the functionality of this tool.
+```
+OPENQASM 2.0;
+include "qelib1.inc";
+qreg qb[2]; // quantum bits
 
-As for Hoare-style verification, there are three main components: `pre.aut`, `circuit.qasm` and `post.aut`. The first file `pre.aut` describes an automaton that encodes a set $P$ of quantum states. The second file `circuit.qasm` describes a quantum circuit $C$ in QASM format. Notice that this format is not able to initialize the initial quantum state. The last file `post.aut` describes an automaton that encodes another set $Q$ of quantum states. Finally this tool tries to check whether for each state $s$ in $P$, the output state $C(s)$ lies in the set $Q$. If the result is true, we say the specified property is correct.
+//    P: {|00>, 0.5|00> + 0.5|01> + 0.5|10> + 0.5|11>}
+x qb[0];
+//       {|10>, 0.5|10> + 0.5|11> + 0.5|00> + 0.5|01>}
+x qb[1];
+//       {|11>, 0.5|11> + 0.5|10> + 0.5|01> + 0.5|00>}
+h qb[1];
+// C(P): {|10>/√2 - |11>/√2, |10>/√2 + |00>/√2}
+/******************************************************/
+//   Q1: {|10>/√2 - |11>/√2, |10>/√2 + |00>/√2} -> pass
+//   Q2: {|10>/√2 - |11>/√2, |10>/√2 - |00>/√2} -> fail
+```
+The program starts from an initial set of quantum states $\mathcal L(P)$. Right after executing each gate, AutoQ computes and stores the evolution of these quantum states for later use. At the end of the quantum program, AutoQ checks whether the set $\mathcal L(Q)$ contains the set $\mathcal L(C(P))$. In the above example, if we take the postcondition $Q_1 = C(P)$, the verification passes. If we take another postcondition $Q_2$ such that there is some quantum state $|10\rangle/\sqrt2 + |00\rangle/\sqrt2 \in \mathcal L(C(P))$ but $\not\in \mathcal L(Q_2)$, the verification fails.
 
-This tool can also be generalized to support "symbolic" quantum states. In this case, we simply replace some entries of leaf transitions in `pre.aut` with fresh variables. File `constraint.smt` is responsible for imposing constraints on all fresh variables used in `pre.aut`. Let the output automaton produced by the quantum circuit along with input automaton `pre.aut` be `post.aut`. Then all symbols of leaf transitions in file `spec.aut`, which is used to verify `post.aut`, are predicates. Each predicate, however, has only four variables $\\\$a$, $\\\$b$, $\\\$c$ and $\\\$d$. When the predicate's truth value is evaluated for some leaf transition in `post.aut` whose computed symbol is $(a_{expr},b_{expr},c_{expr},d_{expr},k_{expr})$, these variables will be replaced by $a_{expr}/\sqrt2^{k_{expr}}$, $b_{expr}/\sqrt2^{k_{expr}}$, $c_{expr}/\sqrt2^{k_{expr}}$ and $d_{expr}/\sqrt2^{k_{expr}}$. We say the predicate is "true" for some leaf transition if it is always true under the constraint specified in `constraint.smt`; otherwise the predicate is "false." Similarly, this tool tries to check whether for each symbolic state $s$ in $P$, the output state $C(s)$ matches some tree in $Q$ such that all predicates in the tree are always true under `constraint.smt`. If the result is true, we say the specified property is correct.
+Our program currently supports $X$, $Y$, $Z$, $H$, $T$, $T^\dagger$, $S$, $S^\dagger$, $R_x(\pi/2)$, $R_y(\pi/2)$, $CX$, $CZ$, $CCX$, $SWAP$ quantum gates. The version of OpenQASM should be 2.0.
 
 ---
 
-## Prerequisites
-In order to compile the library and the command-line interface to the library,<br>
-the following commands need to be executed:
-```
-$ sudo apt install git
-$ sudo apt install make
-$ sudo apt install cmake
-$ sudo apt install g++
-$ sudo apt install libboost-filesystem-dev
-$ sudo apt install libboost-test-dev
-```
+## Installation and Compilation
 
-Also notice that the installed Z3 via `$ sudo apt install z3` may not be the latest one.  
-To resolve this issue, we use the following commands instead.  
-```
-$ wget https://github.com/Z3Prover/z3/releases/download/z3-4.12.1/z3-4.12.1-x64-glibc-2.35.zip
-$ unzip z3-4.12.1-x64-glibc-2.35.zip
-$ sudo cp z3-4.12.1-x64-glibc-2.35/bin/z3 /usr/bin/
-```
+1. Install the following dependencies via the command line.<br>
+`$ sudo apt install git make cmake g++ libboost-filesystem-dev libboost-test-dev`.
 
-Then in the project root directory, execute:
-```
-$ mkdir build
-```
+2. We need the Z3 solver to solve the constraints when the NFTA contains some symbolic variables. Since the installation process of Z3 may take a lot of work, I have provided the [prebuilt shared library](https://github.com/alan23273850/AutoQ/blob/CAV24/libz3.so.4.12) of [z3-4.12.5](https://github.com/Z3Prover/z3/releases/tag/z3-4.12.5) and the corresponding [header files](https://github.com/alan23273850/AutoQ/tree/CAV24/include/z3) for users' convenience. You don't have to do anything for this.
 
-This project has also been tested on Ubuntu 20.04.5 LTS and Ubuntu 22.04.1 LTS.<br>
-It should work on other Linux distributions as well.
+3. Finally, in the project's root directory, choose one of the following command to run.
+
+    - `$ make release`:<br>For compiling the source code of the library and the command-line interface with compiler optimizations turned on.
+    - `$ make debug`:<br>For compiling the library into a form suitable for debugging (i.e., with
+optimizations turned off and some additional runtime checks enabled).
+
+Since `$ make release` will ignore assertions in source codes, one should always use `$ make release` for better performance when conducting experiments.
+
+It is recommended to run `$ make test` in the repository's root directory after compiling the source codes to run several unit tests and check that the implementation is correct. This project has also been tested on Ubuntu 22.04.3 LTS. It should work on other Linux distributions as well.
 
 ---
 
-## Compiling
-For compiling the source code of the library and the command-line
-interface with compiler optimizations turned on, issue the following command
-in the root directory of this project:
+## Command-Line Binaries
+The compiled command-line binaries are located in `${PROJECT_ROOT}/build/cli/`. The corresponding source codes are located in `${PROJECT_ROOT}/cli/`. The major one is `${PROJECT_ROOT}/cli/autoq.cc`. The others are auxiliary tools but not well-documented.
 
+There are 5 modes listed in the following help message which can be accessed by typing their subcommands. Each mode (subcommand) also has their own usage which can be queried by typing, for instance, `$ ./build/cli/autoq verC -h`.
 ```
-  $ make release
-```
+$ ./build/cli/autoq -h
+AutoQ: An automata-based C++ tool for quantum program verification.
+Usage: autoq [OPTIONS] [SUBCOMMAND]
 
-In order to compile the library into a form suitable for debugging (i.e., with
-optimizations turned off and some additional runtime checks enabled, issue the
-following command:
+Options:
+  -h,--help                   Print this help message and exit
 
-```
-  $ make debug
-```
-
-It is recommended to run
-
-```
-  $ VATA_PATH=$PWD/vata make test
+Subcommands:
+  exC                         Concrete Execution
+  verC                        Concrete Verification
+  exS                         Symbolic Execution
+  verS                        Symbolic Verification
+  eq                          Equivalence Checking
 ```
 
-from the repository's root directory after compiling the code to run several
-unit tests and check that the compiled code passes them all.
-
----
-
-## Command-Line Interface
-The compiled command-line interface is located in
-
+The following is an example of *concrete verification*.
 ```
-$ ./build/cli/autoq
-```
-
-There are three modes: concrete probability amplitudes without specification, concrete probability amplitudes with specification, and symbolic probability amplitudes with specification. The program switches to one of this mode according to `argc`, the number of arguments.
-
-1. Concrete probability amplitudes without specification.
-```
-$ ./build/cli/autoq benchmarks/BernsteinVazirani/02/pre.aut benchmarks/BernsteinVazirani/02/circuit.qasm
-Ops [1]:2 [2]:2 [3]:2 [0,0,0,0,0]:0 [1,0,0,0,0]:0 
-Automaton Zero
-States 0 1 2 3 4 5 6 
-Final States 0 
-Transitions
-[1](1, 2) -> 0
-[2](3, 3) -> 1
-[2](4, 3) -> 2
-[3](5, 5) -> 3
-[3](5, 6) -> 4
-[0,0,0,0,0] -> 5
-[1,0,0,0,0] -> 6
-```
-The program simply prints the resulting concrete automaton.
-
-2. Concrete probability amplitudes with specification.
-```
-$ VATA_PATH=$PWD/vata ./build/cli/autoq benchmarks/Grover/02/pre.aut benchmarks/Grover/02/circuit.qasm benchmarks/Grover/02/post.aut
-Ops [1]:2 [2]:2 [3]:2 [-1,0,0,0,0]:0 [0,0,0,0,0]:0 
-Automaton Zero
-States 0 1 2 3 4 5 6 
-Final States 0 
-Transitions
-[1](1, 2) -> 0
-[2](3, 3) -> 2
-[2](3, 4) -> 1
-[3](5, 5) -> 3
-[3](5, 6) -> 4
-[-1,0,0,0,0] -> 6
-[0,0,0,0,0] -> 5
--
-0
-```
-```
-$ VATA_PATH=$PWD/vata ./build/cli/autoq benchmarks/BernsteinVazirani/02/pre.aut benchmarks/BernsteinVazirani/02/circuit.qasm benchmarks/BernsteinVazirani/02/post.aut
-Ops [1]:2 [2]:2 [3]:2 [0,0,0,0,0]:0 [1,0,0,0,0]:0 
-Automaton Zero
-States 0 1 2 3 4 5 6 
-Final States 0 
-Transitions
-[1](1, 2) -> 0
-[2](3, 3) -> 1
-[2](4, 3) -> 2
-[3](5, 5) -> 3
-[3](5, 6) -> 4
-[0,0,0,0,0] -> 5
-[1,0,0,0,0] -> 6
--
-1
-```
-The program first prints the resulting concrete automaton, and then the verification result, where `1` indicates $C(P)\subseteq Q$ and `0` otherwise. We can observe that the old file `benchmarks/Grover/02/post.aut` in fact does not meet the circuit's output. Notice that in this case environment variable `VATA_PATH` locating the binary built from [this commit](https://github.com/alan23273850/libvata/commit/22ce24661a4c4b1e684961330aa54288f7eda7ca) should be provided in order for AutoQ to run the inclusion checking algorithm. I've also provided [one](https://github.com/alan23273850/AutoQ/blob/main/vata) in the project root directory.
-
-3. Symbolic probability amplitudes with specification.
-```
-$ ./build/cli/autoq benchmarks/Symbolic/H2/pre.aut benchmarks/Symbolic/H2/circuit.qasm benchmarks/Symbolic/H2/spec.aut benchmarks/Symbolic/H2/constraint.smt
-Ops [1]:2 [a,b,c,d,3]:0 [e,f,g,h,3]:0 
-Automaton Zero
-States 0 1 2 
-Final States 0 
-Transitions
-[1](1, 2) -> 0
-[a,b,c,d,3] -> 1
-[e,f,g,h,3] -> 2
--
-1
-```
-The program first prints the resulting symbolic automaton, where each entry in 5-tuples is a human-readable format of the linear combination, and then the verification result, where `1` indicates that the inclusion checking algorithm returns `true` and `0` indicates `false`. In this case `VATA_PATH` is no longer required since we use another inclusion checking algorithm for symbolic automata.
-
----
-
-## Examples
-
-1. Run a [1+1-qubit version of the Bernstein-Vazirani algorithm](https://github.com/alan23273850/AutoQ/blob/main/benchmarks/BernsteinVazirani/01/circuit.qasm).
-
-The [initial automaton](https://github.com/alan23273850/AutoQ/blob/main/benchmarks/BernsteinVazirani/01/pre.aut) contains an initial $|00\rangle$ quantum state. Since the hidden string is $1$ (and the other qubit is auxiliary), so the [result automaton](https://github.com/alan23273850/AutoQ/blob/main/benchmarks/BernsteinVazirani/01/post.aut) should contain exactly one quantum state $|11\rangle$.
-
-2. [Two consecutive Hadamard gates together](https://github.com/alan23273850/AutoQ/blob/main/benchmarks/Symbolic/H2/circuit.qasm) acts as an identity transformation.
-
-The [initial automaton](https://github.com/alan23273850/AutoQ/blob/main/benchmarks/Symbolic/H2/pre.aut) contains an arbitrary quantum state $(a,b,c,d,3)|0\rangle + (e,f,g,h,3)|1\rangle$. *Please be careful that in symbolic verification all k's in symbols of all leaf transitions must be the same.* Since it uses 8 variables, we should declare them in the [constraint](https://github.com/alan23273850/AutoQ/blob/main/benchmarks/Symbolic/H2/constraint.smt). In this case, values of these variables are arbitrary, so no additional constraint is needed. The result automaton should also contain exactly one original quantum state $(a/\sqrt2^3,b/\sqrt2^3,c/\sqrt2^3,d/\sqrt2^3)|0\rangle$ $+$ $(e/\sqrt2^3,f/\sqrt2^3,g/\sqrt2^3,h/\sqrt2^3)|1\rangle$, so the [specification](https://github.com/alan23273850/AutoQ/blob/main/benchmarks/Symbolic/H2/spec.aut) about $|0\rangle$ should be $\\$a*\sqrt2^3=a$, $\\$b*\sqrt2^3=b$, $\\$c*\sqrt2^3=c$ and $\\$d*\sqrt2^3=d$, and the [specification](https://github.com/alan23273850/AutoQ/blob/main/benchmarks/Symbolic/H2/spec.aut) about $|1\rangle$ should be $\\$a*\sqrt2^3=e$, $\\$b*\sqrt2^3=f$, $\\$c*\sqrt2^3=g$ and $\\$d*\sqrt2^3=h$. Notice that I've implemented the function `pow_sqrt2_k n` in SMT so that one can directly compute $\sqrt2^n$ with it.
-
-A careful reader may have noticed that the above probability amplitudes may not satisfy $|(a,b,c,d,3)|^2 + |(e,f,g,h,3)|^2 = 1$, but it does not matter since the original constraint still contains all valid quantum states, so the verified property is still true under the real quantum world.
-
----
-
-## Automata Format
-AutoQ so far supports only the Timbuk format of tree automata. The format is
-specified by the following grammar with the start symbol \<file\>:
-
-```
-  <file>            : 'Final States' <state_list> <newline> 'Transitions' <newline> <transition_list>
-
-  <state_list>      : ' ' <state> ' ' <state> ... // a list of states
-
-  <state>           : {int ≥ 0} // nonnegative state id
-
-  <transition_list> : <transition> <transition> ... // a list of transitions
-
-  <transition>      : <symbol> '(' <state> ',' <state> ',' ... ')' ' -> ' <state> <newline> // a transition
-
-  <symbol>          : '[' {int > 0} ']' // a positive qubit id
-                    | '[' {int} ',' {int} ',' {int} ',' {int} ',' {int} ']' // a probability amplitude
-
-  <newline>         : '\n' // or another character acting as a newline character
-```
-
-Only final states and transitions are sufficient. In this repository some automaton files may have
-other information, but in fact they are no longer required. Also notice that there are two formats
-of \<symbol\>. The first format [n] indicates n-th qubit (counting from 1) of the circuit. It is an
-internal transition and must have two child states. The second format [a,b,c,d,k] indicates the
-probability amplitude $(a+b\omega+c\omega^2+d\omega^3) / \sqrt2^k$ of some computational basis state,
-where $w = \cos(\pi/4) + i\sin(\pi/4)$. It is a leaf transition and must have no any child state.
-In the whole file, all [\_,\_,\_,\_,k]'s of leaf transitions must be the same!
-
-An example could look like this:
-```
-Final States 0 
-Transitions
-[1](1, 2) -> 0
-[2](3, 3) -> 1
-[2](4, 3) -> 2
-[3](5, 5) -> 3
-[3](5, 6) -> 4
-[0,0,0,0,0] -> 5
-[1,0,0,0,0] -> 6
+$ ./build/cli/autoq verC benchmarks/Grover/03/pre.spec benchmarks/Grover/03/circuit.qasm benchmarks/Grover/03/post.spec
+The quantum program has [6] qubits and [54] gates.
+The verification process [passed] in [0.0s] with [16MB] memory usage.
 ```
 
 ---
 
-## Build an automaton from states
+## How to describe a set of quantum states? `*.hsl`
 
-We also provide two binaries for the user to construct an automaton that accepts all quantum states described by the user and rejects other quantum states. The binary `build/cli/caut_from_states` is for concrete probability amplitude, and `build/cli/saut_from_states` is for symbolic probability amplitude. One can describe a set of states with the following grammar starting from \<states\>:
+AutoQ provides two file extensions `*.hsl` and `*.spec` for users to indicate which format they use to describe a set of quantum states. The easiest one is `*.hsl`, which does not require users to have a background in NFTA. This file may contain multiple lines. Each line represents a quantum state. A quantum state is naturally described by a linear combination of computational basis states with complex coefficients. Coefficients here can be expressed in [addition `+`], [subtraction `-`], [multiplication `*`] operations on [rationals], $[e^{i2\pi(r)}\ |\ r=k/8,\ k\in\mathbb Z]$ and the [exponentiation `^`] operation with "nonnegative" exponents. Operator precedence follows the standard convention. You can also do $/\sqrt2 ^ k$ by writing `/ sqrt2 ^ k` after the above operations are already done if you wish. Nevertheless, due to the automatic scaling in the verification process, users do not need $/\sqrt2 ^ k$.
 
+### # Extended Dirac
+Here is one example.
 ```
-  <states>          : <state>
-                    | '|i|=' {int > 0} ' ' <state>
-                    | <states> <newline> <state>
-
-  <state>           : {binary string} ':' <amplitude> ' ' ... {binary string} ':' <amplitude> ' *:' <amplitude>
-                    | 'i:' <amplitude> ' *:' <amplitude>
-                    | <state> ' # ' <state> // tensor product
-
-  <amplitude>       : {int} ',' {int} ',' {int} ',' {int} ',' {int} // concrete amplitude
-                    | {str} ',' {str} ',' {str} ',' {str} ',' {str} // symbolic amplitude
-  
-  <newline>         : '\n' // or another character acting as a newline character
+Extended Dirac
+(-1 + -1 * ei2pi(2/8) + -2 * ei2pi(3/8)) |10> + ei2pi(3/8) |11> - ei2pi(1/8) |01>
+ei2pi(1/8) |00> + (1 + 1 * ei2pi(2/8) + -2 * ei2pi(3/8)) |11> - ei2pi(3/8) |10>
 ```
+This file describes two quantum states $-e^{i2\pi(1/8)}\ |01\rangle + (-1 - e^{i2\pi(2/8)} - 2\cdot e^{i2\pi(3/8)})\ |10\rangle + e^{i2\pi(3/8)}\ |11\rangle$ and $e^{i2\pi(1/8)}\ |00\rangle - e^{i2\pi(3/8)}\ |10\rangle + (1 + e^{i2\pi(2/8)} - 2\cdot e^{i2\pi(3/8)})\ |11\rangle$. If there are so many states having the same amplitude, you can also use the "wildcard state" $|\*\rangle$ at the end of a line to denote all other computational basis states whose amplitudes have not been specified so far. For instance, $0.5\ |00\rangle - 0.5\ |*\rangle = 0.5\ |00\rangle - 0.5\ |01\rangle - 0.5\ |10\rangle - 0.5\ |11\rangle$.
 
-The only thing needing to be explained is something like `|i|=3 i:1,0,0,0,0 *:0,0,0,0,0`. This statement contains each state of the format `i:1,0,0,0,0 *:0,0,0,0,0` where `i` can be `000`, `001`, `010`, ..., `111`. Since the program does not confuse this bounded variable `i` with other free variables `i` appearing in the 5-tuple, one can write something like `|i|=3 i:i,j,i,0,0 *:i,j,i,0,0`.
-
-During program execution, the user inputs multiple lines of data and then presses `ENTER` and `CTRL+D` to notify the program to print the automaton. Please also notice that some strings generated by the above grammar may be semantically incorrect. In this case, the string cannot validly represent a set of states, so the output automaton cannot be used.
-
-Here we give some examples. The first example contains all computational basis states in a 2-qubit quantum system.
+### # Constants
+For simplicity, one can define some complex constants in the *Constants* section before the *Extended Dirac* section, and the example becomes
 ```
-$ build/cli/caut_from_states 
-0:1,0,0,0,0 *:0,0,0,0,0 # 0:1,0,0,0,0 *:0,0,0,0,0
-0:1,0,0,0,0 *:0,0,0,0,0 # 1:1,0,0,0,0 *:0,0,0,0,0
-1:1,0,0,0,0 *:0,0,0,0,0 # 0:1,0,0,0,0 *:0,0,0,0,0
-1:1,0,0,0,0 *:0,0,0,0,0 # 1:1,0,0,0,0 *:0,0,0,0,0
-
-Ops [1]:2 [2]:2 [0,0,0,0,0]:0 [1,0,0,0,0]:0 
-Automaton Union
-States 0 1 2 3 4 
-Final States 0 
-Transitions
-[1](1, 2) -> 0
-[1](2, 1) -> 0
-[2](3, 3) -> 2
-[2](3, 4) -> 1
-[2](4, 3) -> 1
-[0,0,0,0,0] -> 3
-[1,0,0,0,0] -> 4
+Constants
+c1 := ei2pi(1/8)
+c2 := ei2pi(2/8)
+c3 := ei2pi(3/8)
+Extended Dirac
+(-1 + -1 * c2 + -2 * c3) |10> + c3 |11> - c1 |01>
+c1 |00> + (1 + 1 * c2 + -2 * c3) |11> - c3 |10>
 ```
 
-The second example contains the set of states:<br>
+### # Variables and Constraints
+Nonconstant tokens not defined in the Constants section are automatically regarded as *free symbolic variables*. These variables may have some constraints such as being nonzero. One can impose some constraints on these variables in the *Constraints* section after the *Extended Dirac* section. For instance,
+```
+Constants
+c0 := 0
+Extended Dirac
+c0 |00> + c0 |11> + v |*>
+Constraints
+imag(v) = 0
+```
+the above file describes (at least) all quantum states which are linear combinations of $|01\rangle$ and $|10\rangle$ where both of them have the same real amplitude.
+
+The *Constraints* section may contain multiple lines. Each line consists of a boolean formula that will be automatically conjoined (with the *and* operator) eventually. Each formula is expressed in logical operations [not `!`], [and `&`], [or `|`] on boolean subformulae. These subformulae are expressed in comparison operations [greater than `>`], [less than `<`] on real numbers and the [equal `=`] operation on complex numbers. Operator precedence follows the standard convention. AutoQ also supports two functions `real(.)` and `imag(.)` to extract the real part and the imaginary part of a complex number.
+
+One may want to take the absolute value of a ***real*** number in some applications. Due to the branching nature of this operation, the SMT solver may not be able to solve constraints involving this operation. Please use `(.) ^ 2` as an alternative instead.
+
+We say a description file contains a quantum state $|s\rangle$ only if $|s\rangle$ satisfies all the boolean formulae in the *Constraints* section.
+
+### # Tensor Products and Existentially Quantified Variables
+For convenience, AutoQ also supports the ***tensor product operator*** `#`. The usage is very easy: just put `#` between two quantum states $|x\rangle$ and $|y\rangle$ in a line to denote the quantum state $|x\rangle \otimes |y\rangle$. AutoQ also supports the ***existentially quantified variable*** `\/ |i|=n :` over all $n$-bit binary strings. This variable is used to constrain all basis states $|i\rangle$ appearing after this notation in a line. If there is some quantum state $|s\rangle$ satisfying this line for some $i$, then we say $|s\rangle$ is described in this line.
+
+One more example to get a closer look at `*.hsl`.
+```
+Extended Dirac
+\/ |i|=3 : |i> # vH |i> + vL |*> # |000>
+Constraints
+imag(vH) = 0
+imag(vL) = 0
+vH > vL
+vL > 0
+```
+describes the set of states<br>
 <img width="315" alt="image" src="https://user-images.githubusercontent.com/10044077/217997027-4dec8f23-811d-4747-86b3-e95d37b9ec69.png">
-```
-$ build/cli/saut_from_states 
-|i|=3 i:1,0,0,0,0 *:0,0,0,0,0 # i:vH,0,0,0,0 *:vL,0,0,0,0 # 000:1,0,0,0,0 *:0,0,0,0,0
+<br>where $v_h > v_\ell > 0$.
 
-Ops [1]:2 [2]:2 [3]:2 [4]:2 [5]:2 [6]:2 [7]:2 [8]:2 [9]:2 [0,0,0,0,0]:0 [vH,0,0,0,0]:0 [vL,0,0,0,0]:0 
-Automaton Union
-States 0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 
-Final States 0 
+Finally, we should be noticed that not all strings described by `*.hsl` are valid quantum states. For instance, the sum of absolute squares of amplitudes of all computational basis states may not be $1$.
+
+***Our current implementation of `*.hsl` has not been optimized yet. If the number of qubits is greater than 10, we strongly recommend you use `*.spec`. The explanation of `*.spec` is left in appendices.***
+
+<!-- ---
+
+## The Extension to Quantum Programs
+
+AutoQ 1.0 only supports quantum circuits, but AutoQ also supports quantum programs in addition. The extension focuses on the additional support for control flow statements such as ***branching (if-else)*** and ***looping (while)***. In this section, we will introduce these two kinds of control flow statements, along with ***measurement***, which is used to decide the control flow path.
+
+### # Measurement
+```
+...
+qubit[1] qb; // quantum bit
+bit[1] outcome; // classical bit
+...
+//  S: {|0>/√2 + |1>/√2}
+outcome[0] = measure qb[0];
+// S0: {|0>/√2}
+// S1: {|1>/√2}
+```
+The usage of a measurement operator should be `[a classical bit: c] = measure [a quantum bit: q];`.
+
+The evolution of the set of quantum states in AutoQ is described as follows. Let $S$ be the set of quantum states right before the measurement operator. There are two possible outcomes `q=0` and `q=1` of this operator, so after the measurement we define one set $\displaystyle S_0 \coloneqq \\Bigg\\{\ |s'\rangle = \sum_{i\in\\{0,1\\}^n,\ i_q=0} a_i\ |i\rangle\ \Bigg|\ |s\rangle \in S,\ |s\rangle = \sum_{i\in\\{0,1\\}^n} a_i\ |i\rangle \\Bigg\\}$ and another set $\displaystyle S_1 \coloneqq \\Bigg\\{\ |s'\rangle = \sum_{i\in\\{0,1\\}^n,\ i_q=1} a_i\ |i\rangle\ \Bigg|\ |s\rangle \in S,\ |s\rangle = \sum_{i\in\\{0,1\\}^n} a_i\ |i\rangle \\Bigg\\}$. A careful reader may notice that for computational simplicity, AutoQ does not normalize the amplitudes after measurements, but it is still reasonable since there is only one positive scaling factor that can be used to normalize an invalid quantum state. In other words, each non-normalized quantum state also represents a unique valid quantum state.
+
+***This operator cannot be used standalone in AutoQ***, it can only be used along with ***branching (if-else)*** and ***looping (while)*** introduced below. Please refer to them for more details.
+
+### # Branching (if-else)
+```
+...
+qubit[1] qb; // quantum bit
+bit[1] outcome; // classical bit
+...
+// S: {|0>/√2 + |1>/√2}
+outcome[0] = measure qb[0];
+if (!outcome[0]) { // S0: {|0>/√2}
+    x qb[0];
+} // S0': {|1>/√2}
+else { // S1: {|1>/√2}
+    h qb[0];
+} // S1': {|0>/2 - |1>/2}
+// (S0')∪(S1'): {|1>/√2, |0>/2 - |1>/2}
+```
+The usage of an if-else block in general should be
+```
+[a classical bit: c] = measure [a quantum bit: q];
+if (c) {
+    ...
+}
+else {
+    ...
+}
+```
+, but sometimes `if (c)` may be replaced with `if (!c)` and sometimes the `else {...}` block may be omitted. The reason why we need a measurement operator at the beginning is that we need to produce $S_0$ and $S_1$ explained in the *Measurement* section before entering the if-else block.
+
+AutoQ will execute the `if` block with $S_1$ as its initial set and produce the resulting set $S_1'$, and will execute the `else` block with $S_0$ as its initial set and produce the resulting set $S_0'$. Right after this if-else block, AutoQ will obtain the union $(S_0')\cup(S_1')$, and the remaining execution is then continued with this set. If `if (c)` is replaced with `if (!c)`, then the `if` (resp., `else`) block will be executed with $S_0$ (resp., $S_1$) as its initial set.
+
+If the `else` block is omitted, AutoQ simply sees that block as an identity gate.
+
+A subtle thing should be noticed is that the statement `else {` cannot be on the same line with the closing bracket `}` of the previous `if` block since AutoQ needs to detect the termination of the previous `if` block. Please refer to [this example](https://github.com/alan23273850/AutoQ/tree/CAV24/benchmarks/control_mini/if-else) for its usage.
+
+### # Looping (while)
+```
+...
+qubit[1] qb; // quantum bit
+bit[1] outcome; // classical bit
+...
+// S: {|0>/√2 + |1>/√2}
+outcome[0] = measure qb[0];
+while (outcome[0]) { // I: {|0>/√2 + |1>/√2}
+    h qb[0];
+    z qb[0];
+    outcome[0] = measure qb[0];
+}
+// {|0>/√2}
+```
+The usage of a while loop in general should be
+```
+[a classical bit: c] = measure [a quantum bit: q];
+while (c) { // invariant.{hsl|spec}
+    ...
+    c = measure q;
+}
+```
+, but sometimes `while (c)` may be replaced with `while (!c)`.
+
+Unlike the if-else block, the NFTA does not split into two after a while loop. Instead, AutoQ first checks whether the set of quantum states $S$ prior to the measurement operator is included in the set of quantum states $I$ specified in the invariant file `invariant.{hsl|spec}` (i.e., $S \subseteq I$). If the answer is no, the verification of the whole quantum program fails. Otherwise, AutoQ continues to check whether the set evolution after $\displaystyle\\Bigg\\{\ \sum_{i\in\\{0,1\\}^n,\ i_q=1} a_i\ |i\rangle\ \Bigg|\ |s\rangle \in I,\ |s\rangle = \sum_{i\in\\{0,1\\}^n} a_i\ |i\rangle \\Bigg\\}$ running through the loop body is still included in $I$. If the answer is still yes, then the verification of this loop passes and AutoQ continues the remaining execution with $\displaystyle\\Bigg\\{\ \sum_{i\in\\{0,1\\}^n,\ i_q=0} a_i\ |i\rangle\ \Bigg|\ |s\rangle \in I,\ |s\rangle = \sum_{i\in\\{0,1\\}^n} a_i\ |i\rangle \\Bigg\\}$ after this while loop.
+
+If `while (c)` is replaced with `while (!c)`, then $i_q=1$ and $i_q=0$ should be interchanged in the above description.
+
+The file paths for specifying loop invariants are relative to the circuit file's location. Please refer to [this example](https://github.com/alan23273850/AutoQ/tree/CAV24/benchmarks/control_mini/while) for its usage. -->
+
+---
+
+## Appendix - Internal Structures
+
+The following figure demonstrates how we use a tree to represent a $3$-qubit quantum state so that an NFTA can encode a set of quantum states. The symbol $000$ stores the amplitude of the computational basis state $|000\rangle$, $001$ stores the amplitude of the computational basis state $|001\rangle$, etc.
+
+<img width="350" alt="image" src="https://user-images.githubusercontent.com/10044077/214999182-7e3882d2-47cf-49cb-aa3e-45295072b3f8.png">
+
+Please refer to [Example 1.1.3](https://inria.hal.science/hal-03367725v1/document#page=23) for a better understanding of NFTA. In short, the only difference between NFTA and NFA is that NFAs must have a starting state, but NFTAs do not. The tree language recognition procedure checks if an NFTA $\mathcal A$ accepts a tree $T$ (not necessarily binary) by iteratively reducing each component in a tree
+
+<img width="350" alt="image" src="https://github.com/alan23273850/AutoQ/assets/10044077/db966d58-37ad-4b0d-be40-f57febf82634">
+
+to a (unary) state $q$ provided that the transition (rule) $f(q_1, q_2, ..., q_n) \to q$ is present in $\mathcal A$ until no further reductions can be performed. There are many ways to reduce a tree, so we say $\mathcal A$ accepts $T$ if there exists a sequence of reductions such that the eventual resulting (unary) state is an $\mathcal A$'s final state (called ***root state*** in AutoQ). Leaf symbols (amplitudes) have no children, so they can only be reduced with $0$-arity transitions.
+
+---
+
+## Appendix - NFTA Format `*.spec`
+
+Since the underlying structure of a set of quantum states is still an NFTA in AutoQ, we reserve the `*.spec` format for users to describe a set of quantum states with an NFTA. The *Constants* and *Constraints* sections remain, but the *Extended Dirac* section should be replaced with two new sections *Root States* and *Transitions* now. (Unary) states in an NFTA can be arbitrary strings (no need to enclose with double quotation marks).
+
+### # Root States
+This section is responsible for specifying a set of root states. It should contain only one line starting with "Root States" and ending with a set of root states separated by whitespaces.
+
+### # Transitions
+This section is responsible for specifying a set of transitions. One transition per line. A (bottom-up) transition $f(q_1, q_2, ..., q_n) \to q$ is written as `[f](q1, q2, ..., qn) -> q`. Note that in this tool, a symbol can only be a positive integer $i$ with arity $2$ for specifying the $i$-th qubit and can be any expression describing a complex number with arity $0$ for specifying the amplitude of some computational basis states.
+
+We close this section with the following example.
+```
+Constants
+c0 := 0
+Root States aR bR
 Transitions
-[1](1, 2) -> 0
-[1](1, 3) -> 0
-[1](1, 4) -> 0
-[1](1, 5) -> 0
-[1](6, 1) -> 0
-[1](7, 1) -> 0
-[1](8, 1) -> 0
-[1](9, 1) -> 0
-[2](10, 10) -> 1
-[2](10, 11) -> 2
-[2](10, 12) -> 3
-[2](10, 13) -> 6
-[2](10, 14) -> 7
-[2](15, 10) -> 4
-[2](16, 10) -> 5
-[2](17, 10) -> 8
-[2](18, 10) -> 9
-[3](19, 19) -> 10
-[3](19, 20) -> 11
-[3](19, 21) -> 15
-[3](19, 22) -> 13
-[3](19, 23) -> 17
-[3](24, 19) -> 12
-[3](25, 19) -> 16
-[3](26, 19) -> 14
-[3](27, 19) -> 18
-[4](28, 28) -> 19
-[4](29, 30) -> 20
-[4](29, 31) -> 24
-[4](29, 32) -> 21
-[4](29, 33) -> 25
-[4](30, 29) -> 22
-[4](31, 29) -> 26
-[4](32, 29) -> 23
-[4](33, 29) -> 27
-[5](34, 34) -> 28
-[5](35, 35) -> 29
-[5](35, 36) -> 30
-[5](35, 37) -> 31
-[5](36, 35) -> 32
-[5](37, 35) -> 33
-[6](38, 38) -> 34
-[6](39, 39) -> 35
-[6](39, 40) -> 36
-[6](40, 39) -> 37
-[7](41, 41) -> 38
-[7](42, 41) -> 40
-[7](43, 41) -> 39
-[8](44, 44) -> 41
-[8](45, 44) -> 42
-[8](46, 44) -> 43
-[9](47, 47) -> 44
-[9](48, 47) -> 45
-[9](49, 47) -> 46
-[0,0,0,0,0] -> 47
-[vH,0,0,0,0] -> 48
-[vL,0,0,0,0] -> 49
-```
-
-Finally we have `build/cli/paut_from_states` for "predicate" probability amplitude. The concept is a little different from the previous two kinds of amplitudes. Each "predicate" amplitude is a predicate in SMT-LIB form. It is used to check whether all probability amplitudes in a symbolic automaton satisfy the probability amplitudes described in the predicate automaton under some constraint. Each `./benchmarks/Symbolic/*/spec.aut` is a predicate automaton.
-
-For the convenience of parsing, each `{prob}:{ampl}` must be enclosed with `[` and `]`. That is, `[{prob}:{ampl}]`. The following is an example illustrating how to construct `./benchmarks/Symbolic/H2/spec.aut`.
-```
-$ build/cli/paut_from_states
-[0:(and (= (* $a (pow_sqrt2_k 3)) a) (= (* $b (pow_sqrt2_k 3)) b) (= (* $c (pow_sqrt2_k 3)) c) (= (* $d (pow_sqrt2_k 3)) d))] [1:(and (= (* $a (pow_sqrt2_k 3)) e) (= (* $b (pow_sqrt2_k 3)) f) (= (* $c (pow_sqrt2_k 3)) g) (= (* $d (pow_sqrt2_k 3)) h))]
-
-Ops [1]:2 [(and (= (* $a (pow_sqrt2_k 3)) a) (= (* $b (pow_sqrt2_k 3)) b) (= (* $c (pow_sqrt2_k 3)) c) (= (* $d (pow_sqrt2_k 3)) d))]:0 [(and (= (* $a (pow_sqrt2_k 3)) e) (= (* $b (pow_sqrt2_k 3)) f) (= (* $c (pow_sqrt2_k 3)) g) (= (* $d (pow_sqrt2_k 3)) h))]:0 
-Automaton anonymous
-States 0 1 2 
-Final States 0 
-Transitions
-[1](1, 2) -> 0
-[(and (= (* $a (pow_sqrt2_k 3)) a) (= (* $b (pow_sqrt2_k 3)) b) (= (* $c (pow_sqrt2_k 3)) c) (= (* $d (pow_sqrt2_k 3)) d))] -> 1
-[(and (= (* $a (pow_sqrt2_k 3)) e) (= (* $b (pow_sqrt2_k 3)) f) (= (* $c (pow_sqrt2_k 3)) g) (= (* $d (pow_sqrt2_k 3)) h))] -> 2
+[1](aL1, aL1) -> aR
+[2](qLow, q0) -> aL1
+[1](bL1, bL1) -> bR
+[2](q0, qHigh) -> bL1
+[c0] -> q0
+[p1] -> qLow
+[p2] -> qHigh
+Constraints
+imag(p1) = 0
+p1 ^ 2 < 1/8
+imag(p2) = 0
+p2 ^ 2 > 7/8
 ```
