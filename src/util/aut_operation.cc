@@ -1432,7 +1432,7 @@ void AUTOQ::Automata<Symbol>::fraction_simplification() {
                         // AUTOQ_DEBUG("THE VERTEX: " << AUTOQ::Util::Convert::ToString(vertex2) << " LEADS A TO NOTHING OF STATES, SO WE SHALL NOT PUSH THIS VERTEX BUT CHECK IF B HAS POSSIBLE SIMULTANEOUS TRANSITION COMBINATIONS LEADING TO THIS VERTEX.");
                         if (vertex_fail) {
                             auto stop_include = std::chrono::steady_clock::now();
-                            include_status = "X";
+                            include_status = AUTOQ::Util::Convert::toString(stop_include - start_include) + " X";
                             // AUTOQ_DEBUG("UNFORTUNATELY B HAS NO POSSIBLE TRANSITION COMBINATIONS, SO THE INCLUSION DOES NOT HOLD :(");
                             total_include_time += stop_include - start_include;
                             return false;
@@ -2086,7 +2086,7 @@ bool AUTOQ::check_inclusion(const Constraint &C, SymbolicAutomata autA, Predicat
                     // AUTOQ_DEBUG("THE VERTEX: " << AUTOQ::Util::Convert::ToString(vertex2) << " LEADS A TO NOTHING OF STATES, SO WE SHALL NOT PUSH THIS VERTEX BUT CHECK IF B HAS POSSIBLE SIMULTANEOUS TRANSITION COMBINATIONS LEADING TO THIS VERTEX.");
                     if (vertex_fail) {
                         auto stop_include = std::chrono::steady_clock::now();
-                        SymbolicAutomata::include_status = "X";
+                        SymbolicAutomata::include_status = AUTOQ::Util::Convert::toString(stop_include - start_include) + " X";
                         // AUTOQ_DEBUG("UNFORTUNATELY B HAS NO POSSIBLE TRANSITION COMBINATIONS, SO THE INCLUSION DOES NOT HOLD :(");
                         SymbolicAutomata::total_include_time += stop_include - start_include;
                         return false;
