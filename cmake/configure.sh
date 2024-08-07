@@ -27,13 +27,8 @@ if [ "$OS_TYPE" = "Linux" ]; then
         apt install libboost-filesystem-dev
         apt install libboost-test-dev
         ;;
-      centos|fedora)
-        echo "安裝必要的軟體包..."
-        #yum update -y
-        #yum install -y curl git vim
-        ;;
       *)
-        echo "未支持的 Linux 發行版本: $OS_NAME"
+        echo "UNSUPPORTED LINUX VERSION: $OS_NAME"
         exit 1
         ;;
     esac
