@@ -54,5 +54,5 @@ fi
 SCRIPT_DIR=$(cd "$(dirname "$0")"; pwd -P)
 
 cd "$SCRIPT_DIR/.."
-mkdir ./build
+sudo -u $SUDO_USER mkdir -p build
 
