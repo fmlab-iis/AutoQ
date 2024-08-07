@@ -4,7 +4,7 @@
 
 OS_TYPE=$(uname -s)
 
-echo "Operating System: $OS_NAME"
+echo "Operating System: $OS_TYPE"
 
 if [ "$OS_TYPE" = "Linux" ]; then
 
@@ -14,20 +14,13 @@ if [ "$OS_TYPE" = "Linux" ]; then
     OS_NAME=$ID
     OS_VERSION=$VERSION_ID
     # sudo needed
-    read -p "using sudo?[y/n]: " yn
-    if [[ "$yn" =~ ^[Nn]$ ]]; then
-        echo "exit"
-        exit 1
-    fi
     case $OS_NAME in
       ubuntu|debian)
-
-        
-        sudo apt install g++
-        sudo apt install make
-        sudo apt install cmake
-        sudo apt install libboost-filesystem-dev
-        sudo apt install libboost-test-dev
+        apt install g++
+        apt install make
+        apt install cmake
+        apt install libboost-filesystem-dev
+        apt install libboost-test-dev
         ;;
       *)
         echo "configure.sh only support ubuntu|debian"
@@ -41,7 +34,6 @@ if [ "$OS_TYPE" = "Linux" ]; then
 
 elif [ "$OS_TYPE" = "Darwin" ]; then
     if ! command -v brew &> /dev/null; then
-        echo ""
         read -p "Homebrew not found. Do you want to install it?[y/n]: " yn
         if [[ "$yn" =~ ^[Nn]$ ]]; then
             echo "exit"
