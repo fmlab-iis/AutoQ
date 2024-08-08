@@ -6,6 +6,7 @@
 #include <autoq/aut_description.hh>
 #include <autoq/inclusion.hh>
 #include <autoq/util/util.hh>
+#include <autoq/util/string.hh>
 #include <autoq/complex/ntuple.hh>
 #include <autoq/complex/complex.hh>
 #include <sys/wait.h>
@@ -51,6 +52,7 @@ void adjust_N_in_nTuple(const std::string &filename) {
     if (!qasm.is_open()) throw std::runtime_error("[ERROR] Failed to open file " + std::string(filename) + ".");
     std::string line;
     while (getline(qasm, line)) {
+        line = AUTOQ::String::trim(line);
         std::smatch match_rx; std::regex_search(line, match_rx, rx);
         std::smatch match_rz; std::regex_search(line, match_rz, rz);
         if (line.find("OPENQASM") == 0 || line.find("include ") == 0|| line.find("//") == 0) continue;

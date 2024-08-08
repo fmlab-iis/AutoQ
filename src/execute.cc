@@ -1,10 +1,9 @@
-#include "autoq/util/util.hh"
+#include <autoq/util/string.hh>
 #include "autoq/aut_description.hh"
 #include "autoq/symbol/concrete.hh"
 #include "autoq/symbol/symbolic.hh"
 #include "autoq/parsing/timbuk_parser.hh"
 #include "autoq/parsing/complex_parser.hh"
-
 #include <regex>
 #include <fstream>
 #include <filesystem>
@@ -26,6 +25,7 @@ void AUTOQ::Automata<Symbol>::execute(const char *filename) {
     std::string line, previous_line;
     int lineno = 1;
     while (getline(qasm, line)) {
+        line = AUTOQ::String::trim(line);
         // AUTOQ_DEBUG("[" << (lineno++) << "]: " << line);
         std::smatch match_rx; std::regex_search(line, match_rx, rx);
         std::smatch match_rz; std::regex_search(line, match_rz, rz);
