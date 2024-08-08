@@ -1,10 +1,11 @@
-#include <autoq/aut_description.hh>
-#include <autoq/symbol/concrete.hh>
-#include <autoq/symbol/symbolic.hh>
-#include <autoq/util/util.hh>
-#include <autoq/inclusion.hh>
-#include <autoq/parsing/timbuk_parser.hh>
-#include <autoq/parsing/complex_parser.hh>
+#include "autoq/util/util.hh"
+#include "autoq/aut_description.hh"
+#include "autoq/symbol/concrete.hh"
+#include "autoq/symbol/symbolic.hh"
+#include "autoq/parsing/timbuk_parser.hh"
+#include "autoq/parsing/complex_parser.hh"
+
+#include <regex>
 #include <fstream>
 #include <filesystem>
 
@@ -132,7 +133,7 @@ void AUTOQ::Automata<Symbol>::execute(const char *filename) {
                 pos.push_back(1 + atoi(it->str().c_str()));
                 ++it;
             }
-            swap(pos[0], pos[1]);
+            Swap(pos[0], pos[1]);
         } else if (line.find("PRINT_STATS") == 0) {
             print_stats(previous_line, true);
         } else if (line.find("PRINT_AUT") == 0) {
@@ -243,7 +244,7 @@ void AUTOQ::Automata<Symbol>::execute(const char *filename) {
 //                 pos.push_back(1 + atoi(it->str().c_str()));
 //                 ++it;
 //             }
-//             swap(pos[0], pos[1]); // SWAP = SWAP^-1
+//             Swap(pos[0], pos[1]); // SWAP = SWAP^-1
 //         } else if (line.find("PRINT_STATS") == 0) {
 //             print_stats(previous_line, true);
 //         } else if (line.find("PRINT_AUT") == 0) {

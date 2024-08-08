@@ -29,7 +29,7 @@ int main(int argc, char **argv) {
     ans = aut;
 
     aut.initialize_stats();
-    aut.phase(boost::rational<boost::multiprecision::cpp_int>(-1, 4)); // aut.print_aut("Phase(-pi/2):\n");
+    aut.Phase(boost::rational<boost::multiprecision::cpp_int>(-1, 4)); // aut.print_aut("Phase(-pi/2):\n");
     aut.CX(); // aut.print_aut("CX:\n");
     aut.unfold_bottom(); // aut.print_aut("Unfold:\n");
     aut.Rz(boost::rational<boost::multiprecision::cpp_int>(-1, 2), 2); // aut.print_aut("Phase(pi/2):\n");
@@ -40,7 +40,7 @@ int main(int argc, char **argv) {
 
     // ans.print_aut("Post-condition:\n");
 
-    AUTOQ::TreeAutomata::check_equal(aut, ans);
+    aut == ans;
     aut.print_stats();
     return 0;
 }

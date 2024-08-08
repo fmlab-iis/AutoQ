@@ -2,9 +2,8 @@
 #define _AUTOQ_CONCRETE_HH_
 
 #include <vector>
-#include <autoq/autoq.hh>
-#include <autoq/util/convert.hh>
-#include <autoq/complex/complex.hh>
+#include "autoq/util/convert.hh"
+#include "autoq/complex/complex.hh"
 #include <boost/multiprecision/cpp_int.hpp>
 #include <boost/functional/hash.hpp>
 
@@ -39,6 +38,11 @@ public:
         return complex.toInt(); //.numerator();
     }
     void back_to_zero() { complex = Complex::Complex::Zero(); }
+    std::string str() const {
+        std::stringstream ss;
+        ss << *this; // simply employ the following operator<<
+        return ss.str();
+    }
     friend std::ostream& operator<<(std::ostream& os, const Concrete& obj) {
         if (obj.internal)
             os << "[" + obj.qubit().str() + "]";

@@ -1,8 +1,8 @@
 #ifndef _AUTOQ_SYMBOLICCOMPLEX_HH_
 #define _AUTOQ_SYMBOLICCOMPLEX_HH_
 
-#include <autoq/util/convert.hh>
-#include <autoq/complex/complex.hh>
+#include "autoq/util/convert.hh"
+#include "autoq/complex/complex.hh"
 #include <boost/multiprecision/cpp_int.hpp>
 
 typedef boost::rational<boost::multiprecision::cpp_int> rational;
@@ -171,6 +171,23 @@ struct AUTOQ::Complex::SymbolicComplex : std::map<Term, Complex> {
         assert(isConst());
         if (empty()) return 0;
         return begin()->second.to_rational();
+    }
+    boost::multiprecision::cpp_int max_k() const {
+        boost::multiprecision::cpp_int k = INT_MIN;
+        for (const auto &kv : *this) {
+            if (k < kv.second.k)
+                k = kv.second.k;
+        }
+        return k;
+    }
+    void adjust_k_and_discard(boost::multiprecision::cpp_int k) {
+        fraction_simplification();
+        for (auto &kv : *this) {
+            auto &c = kv.second;
+            while (c.k < k)
+                c.adjust_k(1);
+            c.k = 0;
+        }
     }
 };
 

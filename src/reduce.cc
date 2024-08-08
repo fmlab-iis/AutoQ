@@ -1,22 +1,18 @@
-#include <unordered_map>
-#include <autoq/symbol/index.hh>
-#include <autoq/symbol/concrete.hh>
-#include <autoq/symbol/symbolic.hh>
-#include <autoq/symbol/predicate.hh>
-#include <autoq/aut_description.hh>
-#include <autoq/serialization/timbuk_serializer.hh>
-#include <boost/dynamic_bitset.hpp> // used in print_language
+#include <queue>
 
+#include "autoq/aut_description.hh"
+#include "autoq/symbol/concrete.hh"
+#include "autoq/symbol/symbolic.hh"
+#include "autoq/symbol/predicate.hh"
 #include "simulation/explicit_lts.hh"
 
 using namespace AUTOQ;
 using namespace AUTOQ::Util;
-using AUTOQ::Serialization::TimbukSerializer;
 
 namespace { // anonymous namespace
 
   template <class Index, typename Symbol>
-  ExplicitLTS translate_to_lts_downward(
+  AUTOQ::ExplicitLTS translate_to_lts_downward(
     const Automata<Symbol>& aut,
     size_t              numStates,
     Index&              stateIndex)
@@ -36,7 +32,7 @@ namespace { // anonymous namespace
     Util::TranslatorWeak2<std::unordered_map<const StateVector*, size_t>>
       lhsTranslator(lhsMap, [&lhsCnt](const StateVector*){ return lhsCnt++; });
 
-    ExplicitLTS result(numStates);
+    AUTOQ::ExplicitLTS result(numStates);
 
     // start with getting translation for final states
     for (const State& finState : aut.finalStates) {
@@ -125,7 +121,7 @@ namespace { // anonymous namespace
         [&stateCnt](const State&) {return stateCnt++;});
 
     size_t num_states = count_aut_states(aut);
-    ExplicitLTS lts = translate_to_lts_downward(aut, num_states, transl);
+    AUTOQ::ExplicitLTS lts = translate_to_lts_downward(aut, num_states, transl);
     BinaryRelation ltsSim = lts.computeSimulation(num_states);
     return DiscontBinaryRelOnStates(ltsSim, translMap);
   }
@@ -143,7 +139,7 @@ namespace { // anonymous namespace
         newFinal.push_back(index[state]);
       }
     }
-    typename Automata<Symbol>::TransitionMap transitions_new;
+    typename Automata<Symbol>::TopDownTransitions transitions_new;
     for (const auto &t : aut.transitions) {
         for (const auto &out_ins : t.second) {
             const auto &out = out_ins.first;
@@ -207,9 +203,6 @@ namespace { // anonymous namespace
     // AUTOQ_DEBUG("After compact stateNum = " + Convert::ToString(aut.stateNum));
   }
 } // anonymous namespace
-
-template <>
-void AUTOQ::Automata<AUTOQ::Symbol::Predicate>::sim_reduce() {}
 
 template <typename Symbol>
 void AUTOQ::Automata<Symbol>::sim_reduce()
@@ -446,16 +439,6 @@ bool AUTOQ::Automata<Symbol>::light_reduce_down_iter()
 }
 
 template <typename Symbol>
-int AUTOQ::Automata<Symbol>::count_transitions() {
-    int count = 0;
-    for (const auto &t : transitions)
-        for (const auto &in_outs : t.second) {
-            count += in_outs.second.size();
-        }
-    return count;
-}
-
-template <typename Symbol>
 void AUTOQ::Automata<Symbol>::union_all_colors_for_a_given_transition() {
     std::map<Symbol, std::map<State, std::map<StateVector, Tag>>> new_transitions;
     for (const auto &t : transitions) {
@@ -475,9 +458,9 @@ void AUTOQ::Automata<Symbol>::union_all_colors_for_a_given_transition() {
     }
 }
 
-template <typename InitialSymbol>
-void AUTOQ::Automata<InitialSymbol>::state_renumbering() {
-    TransitionMap transitions_new;
+template <typename Symbol>
+void AUTOQ::Automata<Symbol>::state_renumbering() {
+    TopDownTransitions transitions_new;
     std::map<State, State> stateOldToNew;
     for (const auto &t : transitions) {
         for (const auto &out_ins : t.second) {
@@ -543,7 +526,7 @@ struct HASH {
 };
 template <typename Symbol>
 void AUTOQ::Automata<Symbol>::bottom_up_reduce() {
-    TransitionMap transitions2; // the resulting transitions
+    TopDownTransitions transitions2; // the resulting transitions
     auto it = transitions.rbegin(); // global pointer
     std::map<State, std::map<Symbol, std::map<StateVector, Tag>>> qfic;
     // std::map<std::map<Symbol, std::map<StateVector, Tag>>, State> repr; // 9.9 sec in make test
@@ -656,9 +639,9 @@ void AUTOQ::Automata<Symbol>::reduce() {
                 compact_aut(*this);
                 // assert(check_equal_aut(old, *this));
 
-                auto a = *this; //transition_size();
+                auto a = transitions; //count_transitions();
                 this->union_all_colors_for_a_given_transition();
-                auto b = *this; //transition_size();
+                auto b = transitions; //count_transitions();
                 if (a == b)
                     break;
             }
@@ -670,68 +653,189 @@ void AUTOQ::Automata<Symbol>::reduce() {
 }
 
 template <typename Symbol>
-AUTOQ::Automata<Symbol> AUTOQ::Automata<Symbol>::Union(const Automata<Symbol> &o) {
-    AUTOQ_ERROR("This function is temporarily disabled!");
-    exit(1);
-    // if (*this == Automata<Symbol>()) return o;
-
-    // Automata<Symbol> result;
-    // result = *this;
-    // result.name = "Union";
-    // if (result.qubitNum != o.qubitNum) {
-    //     throw std::runtime_error("Two automata of different numbers of qubits cannot be unioned together.");
-    // }
-    // result.stateNum += o.stateNum;
-    // // TODO: How to check if the two input automata have different k's?
-
-    // for (const auto &t : o.transitions) {
-    //     auto &container = result.transitions[t.first];
-    //     for (const auto &in_outs : t.second) {
-    //         auto in = in_outs.first;
-    //         for (unsigned i=0; i<in.size(); i++) {
-    //             in[i] += this->stateNum;
-    //         }
-    //         auto &container_out = container[in];
-    //         const auto &outs = in_outs.second;
-    //         for (const auto &s : outs) {
-    //             container_out.insert(s + this->stateNum);
-    //         }
-    //     }
-    // }
-    // result.finalStates.reserve(finalStates.size() + o.finalStates.size()); // TODO: Can we set the initial capacity?
-    // for (const auto &s : o.finalStates) {
-    //     result.finalStates.push_back(s + this->stateNum);
-    // }
-    // result.reduce();
-    // if (opLog) std::cout << __FUNCTION__ << "：" << stateNum << " states " << count_transitions() << " transitions\n";
-    // return result;
-}
-
-template <typename Symbol>
-void AUTOQ::Automata<Symbol>::print_aut(const char *str) const {
-    std::cout << str;
-    std::cout << AUTOQ::Serialization::TimbukSerializer::Serialize(*this);
-}
-
-template <typename Symbol>
-int AUTOQ::Automata<Symbol>::transition_size() const {
-    int answer = 0;
+void AUTOQ::Automata<Symbol>::fraction_simplification() requires support_fraction_simplification<Symbol> {
+    std::vector<SymbolTag> to_be_removed;
+    TopDownTransitions to_be_inserted;
     for (const auto &t : transitions) {
-        for (const auto &in_out : t.second) {
-            answer += in_out.second.size();
+        const SymbolTag &s = t.first;
+        if (s.is_leaf()) {
+            SymbolTag symbol_tag = s;
+            symbol_tag.symbol().fraction_simplification();
+            if (t.first != symbol_tag) {
+                to_be_removed.push_back(t.first);
+                for (const auto &out_ins : t.second) {
+                    const auto &out = out_ins.first;
+                    for (const auto &in : out_ins.second) {
+                        to_be_inserted[symbol_tag][out].insert(in);
+                    }
+                }
+            }
         }
     }
-    return answer;
+    for (const auto &t : to_be_removed) transitions.erase(t);
+    for (const auto &t : to_be_inserted) {
+        for (const auto &kv : t.second)
+            for (const auto &in : kv.second)
+                transitions[t.first][kv.first].insert(in);
+    }
+    // remove_useless();
+    // reduce();
+    if (opLog) std::cout << __FUNCTION__ << "：" << stateNum << " states " << count_transitions() << " transitions\n";
+}
+
+template <>
+void AUTOQ::Automata<AUTOQ::Symbol::Symbolic>::k_unification() {
+    // Step 1: Get the maximum k.
+    boost::multiprecision::cpp_int k = INT_MIN;
+    for (const auto &t : transitions) {
+        const SymbolTag &symbol_tag = t.first;
+        if (symbol_tag.is_leaf()) {
+            auto c = symbol_tag.symbol().complex;
+            c.fraction_simplification();
+            auto k2 = c.max_k();
+            if (k < k2)
+                k = k2;
+        }
+    }
+
+    // Step 2: Adjust all complex numbers' k to its maximum, and then directly remove them.
+    std::vector<SymbolTag> to_be_removed;
+    TopDownTransitions to_be_inserted;
+    for (const auto &t : transitions) {
+        const SymbolTag &s = t.first;
+        if (s.is_leaf()) {
+            SymbolTag symbol_tag = s;
+            symbol_tag.symbol().complex.adjust_k_and_discard(k);
+            if (t.first != symbol_tag) {
+                to_be_removed.push_back(t.first);
+                for (const auto &out_ins : t.second) {
+                    const auto &out = out_ins.first;
+                    for (const auto &in : out_ins.second) {
+                        to_be_inserted[symbol_tag][out].insert(in);
+                    }
+                }
+            }
+        }
+    }
+    for (const auto &t : to_be_removed) transitions.erase(t);
+    for (const auto &t : to_be_inserted) {
+        for (const auto &kv : t.second)
+            for (const auto &in : kv.second)
+                transitions[t.first][kv.first].insert(in);
+    }
+    // remove_useless();
+    // reduce();
+    if (opLog) std::cout << __FUNCTION__ << "：" << stateNum << " states " << count_transitions() << " transitions\n";
 }
 
 template <typename Symbol>
-int AUTOQ::Automata<Symbol>::leaf_size() const {
-    int answer = 0;
-    for (const auto &t : transitions) {
-        if (t.first.is_leaf())
-            answer++;
+void AUTOQ::Automata<Symbol>::remove_useless(bool only_bottom_up) {
+    auto start = std::chrono::steady_clock::now();
+
+    /*********************************
+     * Part 0: Top-Down Data Structure
+     *********************************/
+    std::map<State, std::map<StateVector, std::set<SymbolTag>>> qifc;
+    for (const auto &tr : transitions) {
+        const auto &symbol_tag = tr.first;
+        for (const auto &out_ins : tr.second) {
+            const auto &out = out_ins.first;
+            for (const auto &in : out_ins.second) {
+                qifc[out][in].insert(symbol_tag);
+            }
+        }
     }
-    return answer;
+
+    /******************
+     * Part 1: Top-Down
+     ******************/
+    std::vector<bool> traversed(stateNum, false);
+    if (!only_bottom_up) {
+        std::map<State, std::map<StateVector, std::set<SymbolTag>>> qifc2;
+        std::queue<State> bfs(std::queue<State>::container_type(finalStates.begin(), finalStates.end()));
+        while (!bfs.empty()) {
+            auto top = bfs.front();
+            bfs.pop();
+            traversed[top] = true; // set flags for final states
+            for (const auto &in_ : qifc[top]) {
+                const auto &in = in_.first;
+                for (const auto &s : in) {
+                    if (!traversed[s]) {
+                        traversed[s] = true;
+                        bfs.push(s);
+                    }
+                }
+            }
+            qifc2[top] = qifc[top];
+        }
+        qifc = qifc2;
+    }
+
+    /*******************
+     * Part 2: Bottom-Up
+     *******************/
+    traversed = std::vector<bool>(stateNum, false);
+    TopDownTransitions transitions_new;
+    bool changed;
+    do {
+        changed = false;
+        for (const auto &q_ : qifc) {
+            const auto &q = q_.first;
+            for (const auto &in_ : q_.second) {
+                const auto &in = in_.first;
+                bool children_traversed = in.empty();
+                if (!children_traversed) { // has children!
+                    children_traversed = true;
+                    for (const auto &s : in) {
+                        if (!traversed[s]) {
+                            children_traversed = false;
+                            break;
+                        }
+                    }
+                }
+                if (children_traversed) {
+                    if (!traversed[q]) {
+                        traversed[q] = true;
+                        changed = true;
+                    }
+                }
+            }
+        }
+    } while(changed);
+    for (const auto &q_ : qifc) {
+        const auto &q = q_.first;
+        if (!traversed[q]) continue; // ensure q is traversed
+        for (const auto &in_ : q_.second) {
+            const auto &in = in_.first;
+            bool children_traversed = true;
+            for (const auto &s : in) {
+                if (!traversed[s]) {
+                    children_traversed = false;
+                    break;
+                }
+            }
+            if (children_traversed) {
+                for (const auto &symbol_tag : in_.second) {
+                    transitions_new[symbol_tag][q].insert(in);
+                }
+            }
+        }
+    }
+    transitions = transitions_new;
+    StateVector finalStates_new;
+    for (const auto &s : finalStates) {
+        if (traversed[s])
+            finalStates_new.push_back(s);
+    }
+    finalStates = finalStates_new;
+
+    /*********************
+     * Part 3: Renumbering
+     *********************/
+    state_renumbering();
+    auto duration = std::chrono::steady_clock::now() - start;
+    total_removeuseless_time += duration;
+    if (opLog) std::cout << __FUNCTION__ << "：" << stateNum << " states " << count_transitions() << " transitions\n";
 }
 
 // https://bytefreaks.net/programming-2/c/c-undefined-reference-to-templated-class-function

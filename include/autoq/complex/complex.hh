@@ -1,9 +1,9 @@
 #ifndef _AUTOQ_COMPLEX_HH_
 #define _AUTOQ_COMPLEX_HH_
 
-#include <autoq/complex/plain.hh>
-#include <autoq/complex/ntuple.hh>
-#include <autoq/complex/fivetuple.hh>
+#include "autoq/complex/plain.hh"
+#include "autoq/complex/ntuple.hh"
+#include "autoq/complex/fivetuple.hh"
 
 template <typename T>
 concept is_complex = requires (const T &x, T y, int z, boost::rational<boost::multiprecision::cpp_int> theta) {

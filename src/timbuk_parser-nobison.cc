@@ -13,19 +13,20 @@
 #include <fstream>
 
 // AUTOQ headers
-#include <autoq/autoq.hh>
-#include <autoq/util/util.hh>
-#include <autoq/complex/complex.hh>
-#include <autoq/complex/fivetuple.hh>
-#include <autoq/symbol/concrete.hh>
-#include <autoq/symbol/symbolic.hh>
-#include <autoq/symbol/predicate.hh>
-#include <autoq/parsing/timbuk_parser.hh>
-#include <autoq/parsing/complex_parser.hh>
-#include <autoq/aut_description.hh>
+#include "autoq/autoq.hh"
+#include "autoq/util/util.hh"
+#include "autoq/complex/complex.hh"
+#include "autoq/complex/fivetuple.hh"
+#include "autoq/symbol/concrete.hh"
+#include "autoq/symbol/symbolic.hh"
+#include "autoq/symbol/predicate.hh"
+#include "autoq/parsing/timbuk_parser.hh"
+#include "autoq/parsing/complex_parser.hh"
+#include "autoq/parsing/symboliccomplex_parser.hh"
+#include "autoq/aut_description.hh"
 #include <boost/algorithm/string/predicate.hpp>
+#include "autoq/complex/symbolic_complex.hh"
 
-using AUTOQ::Parsing::AbstrParser;
 using AUTOQ::Parsing::TimbukParser;
 using AUTOQ::Symbol::Concrete;
 using AUTOQ::Symbol::Symbolic;
@@ -1058,7 +1059,7 @@ Automata<Symbol> TimbukParser<Symbol>::from_line_to_automaton(std::string line) 
         auto aut2 = from_tree_to_automaton(tree);
 
         // let aut2 be tensor producted with aut here
-        typename Automata<Symbol>::TransitionMap aut_leaves;
+        typename Automata<Symbol>::TopDownTransitions aut_leaves;
         for (const auto &t : aut.transitions) {
             if (t.first.is_leaf()) {
                 aut_leaves[t.first] = t.second;
@@ -1113,12 +1114,48 @@ Automata<Symbol> TimbukParser<Symbol>::from_line_to_automaton(std::string line) 
 }
 
 template <typename Symbol>
-Automata<Symbol> TimbukParser<Symbol>::FromFileToAutomata(const std::string& filepath)
+Automata<Symbol> Automata<Symbol>::operator||(const Automata<Symbol> &o) const {
+    if (this->qubitNum == 0) return o;
+    if (o.qubitNum == 0) return *this;
+
+    Automata<Symbol> result;
+    result = *this;
+    result.name = "operator||";
+    if (result.qubitNum != o.qubitNum) {
+        throw std::runtime_error(AUTOQ_LOG_PREFIX + "Two automata of different numbers of qubits cannot be unioned together.");
+    }
+    result.stateNum += o.stateNum;
+    // TODO: How to check if the two input automata have different k's?
+
+    for (const auto &t : o.transitions) {
+        auto &container = result.transitions[t.first];
+        for (const auto &out_ins : t.second) {
+            auto out = out_ins.first;
+            out += this->stateNum;
+            auto &sub_container = container[out];
+            for (auto in : out_ins.second) {
+                for (unsigned i=0; i<in.size(); i++) {
+                    in[i] += this->stateNum;
+                }
+                sub_container.insert(in);
+            }
+        }
+    }
+    for (const auto &s : o.finalStates) {
+        result.finalStates.push_back(s + this->stateNum);
+    }
+    result.reduce();
+    if (opLog) std::cout << __FUNCTION__ << "：" << stateNum << " states " << count_transitions() << " transitions\n";
+    return result;
+};
+
+template <typename Symbol>
+Automata<Symbol> TimbukParser<Symbol>::ReadAutomaton(const std::string& filepath)
 {
-    return FromFileToAutomata(filepath.c_str());
+    return ReadAutomaton(filepath.c_str());
 }
 template <typename Symbol>
-Automata<Symbol> TimbukParser<Symbol>::FromFileToAutomata(const char* filepath)
+Automata<Symbol> TimbukParser<Symbol>::ReadAutomaton(const char* filepath)
 {
     if (boost::algorithm::ends_with(filepath, ".aut")
     || boost::algorithm::ends_with(filepath, ".spec")) {
@@ -1146,7 +1183,7 @@ Automata<Symbol> TimbukParser<Symbol>::FromFileToAutomata(const char* filepath)
                 bool reach_all_zero;
                 do {
                     auto aut = from_line_to_automaton(std::regex_replace(line, std::regex("i:"), i + ":"));
-                    aut_final = aut_final.Union(aut);
+                    aut_final = aut_final || aut;
                     aut_final.reduce();
 
                     // the following performs -1 on the binary string i
@@ -1166,7 +1203,7 @@ Automata<Symbol> TimbukParser<Symbol>::FromFileToAutomata(const char* filepath)
                 } while (!reach_all_zero);
             } else {
                 auto aut = from_line_to_automaton(line);
-                aut_final = aut_final.Union(aut);
+                aut_final = aut_final || aut;
                 aut_final.reduce();
             }
         }

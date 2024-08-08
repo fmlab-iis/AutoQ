@@ -47,7 +47,7 @@ optional arguments:
             bool reach_all_zero;
             do {
                 auto aut = TimbukParser<typename TreeAutomata::Symbol>::from_line_to_automaton(std::regex_replace(line, std::regex("i:"), i + ":"));
-                aut_final = aut_final.Union(aut);
+                aut_final = aut_final || aut;
                 aut_final.reduce();
 
                 // the following performs -1 on the binary string i
@@ -67,7 +67,7 @@ optional arguments:
             } while (!reach_all_zero);
         } else {
             auto aut = TimbukParser<typename TreeAutomata::Symbol>::from_line_to_automaton(line);
-            aut_final = aut_final.Union(aut);
+            aut_final = aut_final || aut;
             aut_final.reduce();
         }
     }

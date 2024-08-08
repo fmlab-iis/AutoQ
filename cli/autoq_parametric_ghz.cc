@@ -50,7 +50,7 @@ int main(int argc, char **argv) {
     ans.transitions[{AUTOQ::Complex::Complex::Zero(), 0b10}][q0].insert({{}});
     // ans.print_aut("Post-condition:\n");
 
-    AUTOQ::TreeAutomata::check_equal(aut, ans);
+    aut == ans;
     aut.print_stats();
     return 0;
 }

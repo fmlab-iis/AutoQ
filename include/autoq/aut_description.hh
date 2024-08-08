@@ -13,16 +13,10 @@
 
 // AUTOQ headers
 #include <chrono>
-#include <cstdlib>
-#include <algorithm>
-#include <autoq/autoq.hh>
-#include <autoq/symbol/index.hh>
-#include <autoq/symbol/concrete.hh>
-#include <autoq/symbol/symbolic.hh>
-#include <autoq/symbol/predicate.hh>
-#include <autoq/util/triple.hh>
-#include <autoq/util/two_way_dict.hh>
-#include <boost/multiprecision/cpp_int.hpp>
+#include "autoq/symbol/concrete.hh"
+#include "autoq/symbol/symbolic.hh"
+#include "autoq/symbol/predicate.hh"
+#include "autoq/symbol/index.hh"
 
 namespace AUTOQ
 {
@@ -39,6 +33,11 @@ namespace AUTOQ
     typedef Automata<Symbol::Predicate> PredicateAutomata;
     typedef Automata<Symbol::Index> IndexAutomata;
 }
+
+template <typename T> constexpr auto support_fraction_simplification = requires (T x) {
+    x.fraction_simplification();
+};
+template<typename T> constexpr auto concrete_like = std::is_same_v<T, AUTOQ::Symbol::Concrete> || std::is_same_v<T, AUTOQ::Symbol::Index>;
 
 template <typename TT>
 struct AUTOQ::Automata
@@ -86,15 +85,16 @@ public:   // data types
             return os;
         }
     };
-    typedef std::map<SymbolTag, std::map<State, std::set<StateVector>>> TransitionMap;
-    typedef std::vector<std::map<Tag, std::map<State, std::set<StateVector>>>> InternalTransitionMap; // Keys range from 1 to qubit().
+    typedef std::map<SymbolTag, std::map<State, std::set<StateVector>>> TopDownTransitions;
+    typedef std::map<SymbolTag, std::map<StateVector, StateSet>> BottomUpTransitions;
+    typedef std::vector<std::map<Tag, std::map<State, std::set<StateVector>>>> InternalTopDownTransitions; // Keys range from 1 to qubit().
 
 public:   // data members
 	std::string name;
     StateVector finalStates;
     State stateNum;
     unsigned qubitNum;
-	TransitionMap transitions;
+	TopDownTransitions transitions;
     bool hasLoop;
     bool isTopdownDeterministic;
     inline static int gateCount, stateBefore, transitionBefore;
@@ -128,91 +128,48 @@ public:   // methods
         }
     }
 
-	/**
-	 * @brief  Relaxed equivalence check
-	 *
-	 * Checks whether the final states and transitions of two automata descriptions match.
-	 */
-	bool operator==(const Automata& rhs) const
-	{
-		return (finalStates == rhs.finalStates) && (transitions == rhs.transitions);
-	}
+	/******************************************************/
+    /* inclusion.cc: checks language inclusion of two TAs */
+    bool operator<=(const Automata &o) const requires concrete_like<TT>;
+    bool operator>=(const Automata &o) const requires concrete_like<TT> { return o <= *this; }
+	bool operator==(const Automata &o) const requires concrete_like<TT> { return (*this <= o) && (o <= *this); }
+    bool operator!=(const Automata &o) const requires concrete_like<TT> { return !(*this == o); }
+    bool operator<(const Automata &o) const requires concrete_like<TT> { return (*this <= o) && !(o <= *this); }
+    bool operator>(const Automata &o) const requires concrete_like<TT> { return o < *this; }
+    // The above comparison is done after amplitude comparison.
+    /******************************************************/
 
-	/**
-	 * @brief  Strict equivalence check
-	 *
-	 * Checks whether all components of two automata descriptions match.
-	 */
-	bool StrictlyEqual(const Automata& rhs) const
-	{
-		return
-			(name == rhs.name) &&
-			(finalStates == rhs.finalStates) &&
-            (stateNum == rhs.stateNum) &&
-            (qubitNum == rhs.qubitNum) &&
-			(transitions == rhs.transitions);
-	}
+    /******************************************************************/
+    /* parameterized.cc: auxiliary operations for parameterized gates */
+    void unfold_top();
+    void unfold_bottom();
+    void fold();
+    /******************************************************************/
 
-	std::string ToString() const
-	{
-		std::string result;
-		result += "name: " + name + "\n";
-		result += "number of states: " + Util::Convert::ToString(stateNum) + "\n";
-		result += "final states: " + Util::Convert::ToString(finalStates) + "\n";
-		result += "transitions: \n";
-		for (const auto &trans : transitions)
-		{
-			result += Util::Convert::ToString(trans) + "\n";
-		}
-
-		return result;
-	}
-
-private:
-    void state_renumbering();
-    // void remove_impossible_colors();
+    /********************************************/
+    /* reduce.cc: applying reduction algorithms */
+    void sim_reduce();
+    void bottom_up_reduce();
+    void union_all_colors_for_a_given_transition();
+    bool light_reduce_up(); /// lightweight size reduction, done upwards; returns @p true iff the automaton changed
+    bool light_reduce_up_iter(); /// lightweight upwareds size reduction, iterated until change happens, returns @p true iff the automaton changed
+    bool light_reduce_down(); /// lightweight size reduction, done downwards; returns @p true iff the automaton changed
+    bool light_reduce_down_iter(); /// lightweight downwards size reduction, iterated until change happens, returns @p true iff the automaton changed
+    void reduce(); /// reduces the automaton using a preferred reduction
     void remove_useless(bool only_bottom_up=false);
-    // Automata binary_operation(const Automata &o, bool add);
-    // void swap_forward(const int k);
-    // void swap_backward(const int k);
+    void state_renumbering();
+    void k_unification();
+    void fraction_simplification() requires support_fraction_simplification<TT>;
+    /********************************************/
+
+    /**************************************/
+    /* gate.cc: quantum gates abstraction */
+private:
     void General_Single_Qubit_Gate(int t, const std::function<Symbol(const Symbol&, const Symbol&)> &u1u2, const std::function<Symbol(const Symbol&, const Symbol&)> &u3u4);
     void General_Controlled_Gate(int c, int t, const std::function<Symbol(const Symbol&, const Symbol&)> &u1u2, const std::function<Symbol(const Symbol&, const Symbol&)> &u3u4);
     void General_Controlled_Gate(int c, int c2, int t, const std::function<Symbol(const Symbol&, const Symbol&)> &u1u2, const std::function<Symbol(const Symbol&, const Symbol&)> &u3u4);
-    void diagonal_gate(int t, const std::function<void(Symbol*)> &multiply_by_c0, const std::function<void(Symbol*)> &multiply_by_c1);
-
+    void Diagonal_Gate(int t, const std::function<void(Symbol*)> &multiply_by_c0, const std::function<void(Symbol*)> &multiply_by_c1);
 public:
-    void initialize_stats();
-    void fraction_simplification();
-    void omega_multiplication(int rotation=1);
-    void divide_by_the_square_root_of_two();
-    // void branch_restriction(int k, bool positive_has_value=true);
-    // void value_restriction(int k, bool branch);
-    // void semi_determinize();
-    // void semi_undeterminize();
-    // Automata operator+(const Automata &o);
-    // Automata operator-(const Automata &o);
-    Automata Union(const Automata &o); // U is in uppercase since "union" is a reserved keyword.
-    void print_aut(const char *str="") const;
-    void print_stats(const std::string &str="", bool newline=false);
-    int transition_size() const;
-    int leaf_size() const;
-
-    /// simulation-based reduction
-    void sim_reduce();
-    /// lightweight size reduction, done upwards; returns @p true iff the automaton changed
-    bool light_reduce_up();
-    /// lightweight upwareds size reduction, iterated until change happens, returns @p true iff the automaton changed
-    bool light_reduce_up_iter();
-    /// lightweight size reduction, done downwards; returns @p true iff the automaton changed
-    bool light_reduce_down();
-    /// lightweight downwards size reduction, iterated until change happens, returns @p true iff the automaton changed
-    bool light_reduce_down_iter();
-    /// reduces the automaton using a prefered reduction
-    void reduce();
-    void bottom_up_reduce();
-    void union_all_colors_for_a_given_transition();
-
-    int count_transitions();
     void X(int t);
     void Y(int t);
     void Z(int t, bool opt=true);
@@ -229,12 +186,14 @@ public:
     void randG(int G, int A, int B=0, int C=0);
     void Tdg(int t);
     void Sdg(int t);
-    void swap(int t1, int t2);
+    void Swap(int t1, int t2);
     void CX();
     void CX_inv();
-    void phase(const boost::rational<boost::multiprecision::cpp_int> &r);
+    void Phase(const boost::rational<boost::multiprecision::cpp_int> &r);
+    /**************************************/
 
-    /* Produce an automaton instance. */
+    /*******************************************/
+    /* instance.cc: produce automata instances */
     static Automata uniform(int n);
     static Automata basis(int n);
     static Automata prefix_basis(int n);
@@ -243,24 +202,26 @@ public:
     static Automata basis_zero_one_zero(int n);
     static Automata zero_zero_one_zero(int n);
     static Automata zero_one_zero(int n);
+    /*******************************************/
 
-    /* Equivalence Checking */
-    static bool check_equal(const Automata& autA, const Automata& autB);
-    // static bool check_equal_aut(Automata lhs, Automata rhs);
-    // static bool check_inclusion(const std::string& lhsPath, const std::string& rhsPath);
-    // static bool check_inclusion(const Automata& lhsPath, const std::string& rhsPath);
-    // static bool check_inclusion(const std::string& lhsPath, const Automata& rhsPath);
-    static bool check_inclusion(const Automata &autA, const Automata &autB);
-
+    /****************************************************/
+    /* execute.cc: the main function for gate execution */
     void execute(const std::string& filename);
     void execute(const char *filename);
-    // void reverse_execute(const char *filename);
-    void print_language(const char *str="") const;
+    /****************************************************/
 
-    // parametric utilities
-    void unfold_top();
-    void unfold_bottom();
-    void fold();
+    /**************************************************/
+    /* query.cc: all utility functions related to TAs */
+    void initialize_stats();
+    void print_aut(const std::string &prompt="") const;
+    void print_stats(const std::string &str="", bool newline=false);
+    void print_language(const std::string &prompt="") const;
+    int count_leaves() const;
+    int count_states() const;
+    int count_transitions() const;
+    /**************************************************/
+
+    Automata operator||(const Automata &o) const; // use the logical OR operator to denote "union"
 };
 
 
@@ -290,6 +251,14 @@ namespace std {
     };
     template <> struct hash<typename AUTOQ::SymbolicAutomata::SymbolTag> {
         size_t operator()(const AUTOQ::SymbolicAutomata::SymbolTag& obj) const {
+            std::size_t seed = 0;
+            boost::hash_combine(seed, obj.first);
+            boost::hash_combine(seed, obj.second);
+            return seed;
+        }
+    };
+    template <> struct hash<typename AUTOQ::PredicateAutomata::SymbolTag> {
+        size_t operator()(const AUTOQ::PredicateAutomata::SymbolTag& obj) const {
             std::size_t seed = 0;
             boost::hash_combine(seed, obj.first);
             boost::hash_combine(seed, obj.second);

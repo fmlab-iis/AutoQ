@@ -34,6 +34,20 @@ struct AUTOQ::Symbol::Predicate : std::string {
         if (*this == "false" || o == "false") return "false";
         return Predicate(std::string("(and " + *this + " " + o + ")").c_str());
     }
+    std::string str() const {
+        return *this;
+    }
 };
+
+namespace boost {
+    template <> struct hash<AUTOQ::Symbol::Predicate> {
+        size_t operator()(const AUTOQ::Symbol::Predicate& obj) const {
+            std::size_t seed = 0;
+            boost::hash_combine(seed, obj.is_internal());
+            boost::hash_combine(seed, obj.str());
+            return seed;
+        }
+    };
+}
 
 #endif

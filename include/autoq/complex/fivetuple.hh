@@ -4,7 +4,7 @@
 #include <cmath>
 #include <vector>
 #include <boost/rational.hpp>
-#include <autoq/util/convert.hh>
+#include "autoq/util/convert.hh"
 #include <boost/integer/common_factor.hpp>
 #include <boost/multiprecision/cpp_int.hpp>
 

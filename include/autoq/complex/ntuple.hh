@@ -263,8 +263,6 @@ struct AUTOQ::Complex::nTuple : AUTOQ::Util::mapped_vector<boost::multiprecision
     bool operator==(const auto &rhs) const {
         return k == rhs.k && AUTOQ::Util::mapped_vector<boost::multiprecision::cpp_int>::operator==(rhs);
     }
-
-private:
     void adjust_k(boost::multiprecision::cpp_int dk) {
         if (dk < 0) {
             AUTOQ_ERROR("The parameter dk should not be less than 0!");
@@ -302,6 +300,8 @@ private:
             dk--;
         }
     }
+
+private:
     nTuple binary_operation(const nTuple &o, bool add) const {
         assert(((k == o.k) ||
               (isZero() && k<=o.k) ||

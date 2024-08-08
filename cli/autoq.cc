@@ -16,14 +16,10 @@
 #include <regex>
 #include <fenv.h>
 #include <csignal>
-
 #include <fenv_darwin.h>
-
 #include <CLI11.hpp>
 
 using namespace std;
-
-std::string toString(std::chrono::steady_clock::duration tp);
 
 int extract_qubit(const std::string& filename) {
     std::ifstream file(filename);
@@ -128,16 +124,16 @@ AUTOQ::TreeAutomata aut;
 AUTOQ::TreeAutomata aut2;
 void timeout_handler(int signum) {
     std::map<std::string, std::string> stats;
-    stats["gate"] = toString(AUTOQ::TreeAutomata::total_gate_time - AUTOQ::TreeAutomata::total_removeuseless_time - AUTOQ::TreeAutomata::total_reduce_time);
-    stats["removeuseless"] = toString(AUTOQ::TreeAutomata::total_removeuseless_time);
-    stats["reduce"] = toString(AUTOQ::TreeAutomata::total_reduce_time);
-    stats["include"] = toString(AUTOQ::TreeAutomata::total_include_time);
+    stats["gate"] = AUTOQ::Util::Convert::toString(AUTOQ::TreeAutomata::total_gate_time - AUTOQ::TreeAutomata::total_removeuseless_time - AUTOQ::TreeAutomata::total_reduce_time);
+    stats["removeuseless"] = AUTOQ::Util::Convert::toString(AUTOQ::TreeAutomata::total_removeuseless_time);
+    stats["reduce"] = AUTOQ::Util::Convert::toString(AUTOQ::TreeAutomata::total_reduce_time);
+    stats["include"] = AUTOQ::Util::Convert::toString(AUTOQ::TreeAutomata::total_include_time);
     stats["total"] = "600";
     stats["result"] = std::to_string(AUTOQ::TreeAutomata::gateCount);
-    stats["aut1.trans"] = std::to_string(aut.transition_size());
-    stats["aut1.leaves"] = std::to_string(aut.leaf_size());
-    stats["aut2.trans"] = std::to_string(aut2.transition_size());
-    stats["aut2.leaves"] = std::to_string(aut2.leaf_size());
+    stats["aut1.trans"] = std::to_string(aut.count_transitions());
+    stats["aut1.leaves"] = std::to_string(aut.count_leaves());
+    stats["aut2.trans"] = std::to_string(aut2.count_transitions());
+    stats["aut2.leaves"] = std::to_string(aut2.count_leaves());
     std::cout << AUTOQ::Util::Convert::ToString2(stats) << std::endl;
     exit(124); // Terminate the program
 }
@@ -208,29 +204,29 @@ int main(int argc, char **argv) {
     bool runConcrete; // or runSymbolic
     if (executionC->parsed()) {
         runConcrete = true;
-        AUTOQ::TreeAutomata aut = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Concrete>::FromFileToAutomata(pre);
+        AUTOQ::TreeAutomata aut = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Concrete>::ReadAutomaton(pre);
         aut.execute(circuit);
         aut.print_aut();
     } else if (verificationC->parsed()) {
         runConcrete = true;
-        auto aut = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Concrete>::FromFileToAutomata(pre);
-        auto aut2 = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Concrete>::FromFileToAutomata(post);
+        auto aut = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Concrete>::ReadAutomaton(pre);
+        auto aut2 = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Concrete>::ReadAutomaton(post);
         aut.execute(circuit);
-        bool verify = AUTOQ::TreeAutomata::check_inclusion(aut, aut2);
+        bool verify = aut <= aut2;
         if (latex) {
             aut.print_stats();
         } else {
-            std::cout << "The quantum program has [" << aut.qubitNum << "] qubits and [" << AUTOQ::TreeAutomata::gateCount << "] gates.\nThe verification process [" << (verify ? "passed" : "failed") << "] in [" << toString(chrono::steady_clock::now() - start) << "] with [" << getPeakRSS() / 1024 / 1024 << "MB] memory usage.\n";
+            std::cout << "The quantum program has [" << aut.qubitNum << "] qubits and [" << AUTOQ::TreeAutomata::gateCount << "] gates.\nThe verification process [" << (verify ? "passed" : "failed") << "] in [" << AUTOQ::Util::Convert::toString(chrono::steady_clock::now() - start) << "] with [" << getPeakRSS() / 1024 / 1024 << "MB] memory usage.\n";
         }
     } else if (executionS->parsed()) {
         runConcrete = false;
-        AUTOQ::SymbolicAutomata aut = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Symbolic>::FromFileToAutomata(pre);
+        AUTOQ::SymbolicAutomata aut = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Symbolic>::ReadAutomaton(pre);
         aut.execute(circuit);
         aut.print_aut();
     } else if (verificationS->parsed()) {
         runConcrete = false;
-        AUTOQ::SymbolicAutomata aut = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Symbolic>::FromFileToAutomata(pre);
-        AUTOQ::PredicateAutomata spec = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Predicate>::FromFileToAutomata(post);
+        AUTOQ::SymbolicAutomata aut = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Symbolic>::ReadAutomaton(pre);
+        AUTOQ::PredicateAutomata spec = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Predicate>::ReadAutomaton(post);
 
         std::stringstream buffer;
         if (!constraint.empty()) {
@@ -250,7 +246,7 @@ int main(int argc, char **argv) {
         if (latex) {
             aut.print_stats();
         } else {
-            std::cout << "The quantum program has [" << aut.qubitNum << "] qubits and [" << AUTOQ::SymbolicAutomata::gateCount << "] gates.\nThe verification process [" << (verify ? "passed" : "failed") << "] in [" << toString(chrono::steady_clock::now() - start) << "] with [" << getPeakRSS() / 1024 / 1024 << "MB] memory usage.\n";
+            std::cout << "The quantum program has [" << aut.qubitNum << "] qubits and [" << AUTOQ::SymbolicAutomata::gateCount << "] gates.\nThe verification process [" << (verify ? "passed" : "failed") << "] in [" << AUTOQ::Util::Convert::toString(chrono::steady_clock::now() - start) << "] with [" << getPeakRSS() / 1024 / 1024 << "MB] memory usage.\n";
         }
     } else if (equivalence_checking->parsed()) {
         runConcrete = true;
@@ -258,75 +254,43 @@ int main(int argc, char **argv) {
         /*AUTOQ::TreeAutomata*/ aut2 = AUTOQ::TreeAutomata::prefix_basis(extract_qubit(circuit2));
         aut.execute(circuit1);
         aut2.execute(circuit2);
-        bool result = AUTOQ::TreeAutomata::check_inclusion(aut, aut2);
+        bool result = aut <= aut2;
         if (latex) {
             // if (short_time) {
             //     std::map<std::string, std::string> stats;
-            //     stats["gate"] = toString(AUTOQ::TreeAutomata::total_gate_time - AUTOQ::TreeAutomata::total_removeuseless_time - AUTOQ::TreeAutomata::total_reduce_time);
-            //     stats["removeuseless"] = toString(AUTOQ::TreeAutomata::total_removeuseless_time);
-            //     stats["reduce"] = toString(AUTOQ::TreeAutomata::total_reduce_time);
-            //     stats["include"] = toString(AUTOQ::TreeAutomata::total_include_time);
-            //     stats["total"] = toString(chrono::steady_clock::now() - start);
+            //     stats["gate"] = AUTOQ::Util::Convert::toString(AUTOQ::TreeAutomata::total_gate_time - AUTOQ::TreeAutomata::total_removeuseless_time - AUTOQ::TreeAutomata::total_reduce_time);
+            //     stats["removeuseless"] = AUTOQ::Util::Convert::toString(AUTOQ::TreeAutomata::total_removeuseless_time);
+            //     stats["reduce"] = AUTOQ::Util::Convert::toString(AUTOQ::TreeAutomata::total_reduce_time);
+            //     stats["include"] = AUTOQ::Util::Convert::toString(AUTOQ::TreeAutomata::total_include_time);
+            //     stats["total"] = AUTOQ::Util::Convert::toString(chrono::steady_clock::now() - start);
             //     stats["result"] = result ? "T" : "F";
-            //     stats["aut1.trans"] = std::to_string(aut.transition_size());
-            //     stats["aut1.leaves"] = std::to_string(aut.leaf_size());
-            //     stats["aut2.trans"] = std::to_string(aut2.transition_size());
-            //     stats["aut2.leaves"] = std::to_string(aut2.leaf_size());
+            //     stats["aut1.trans"] = std::to_string(aut.count_transitions());
+            //     stats["aut1.leaves"] = std::to_string(aut.count_leaves());
+            //     stats["aut2.trans"] = std::to_string(aut2.count_transitions());
+            //     stats["aut2.leaves"] = std::to_string(aut2.count_leaves());
             //     std::cout << AUTOQ::Util::Convert::ToString2(stats) << std::endl;
             // } else {
-            //     std::cout << toString(chrono::steady_clock::now() - start) << " & " << (result ? "T" : "F") << "\n";
+            //     std::cout << AUTOQ::Util::Convert::toString(chrono::steady_clock::now() - start) << " & " << (result ? "T" : "F") << "\n";
             // }
         } else {
-            std::cout << "The two quantum programs are verified to be [" << (result ? "equal" : "unequal") << "] in [" << toString(chrono::steady_clock::now() - start) << "] with [" << getPeakRSS() / 1024 / 1024 << "MB] memory usage.\n";
+            std::cout << "The two quantum programs are verified to be [" << (result ? "equal" : "unequal") << "] in [" << AUTOQ::Util::Convert::toString(chrono::steady_clock::now() - start) << "] with [" << getPeakRSS() / 1024 / 1024 << "MB] memory usage.\n";
         }
     }
     /**************/
     // if (long_time) {
     //     if (runConcrete)
     //         std::cout << "=\n"
-    //                 << "The total time spent on gate operations (excluding remove_useless and reduce) is [" << toString(AUTOQ::TreeAutomata::total_gate_time - AUTOQ::TreeAutomata::total_removeuseless_time - AUTOQ::TreeAutomata::total_reduce_time) << "].\n"
-    //                 << "The total time spent on remove_useless(...) is [" << toString(AUTOQ::TreeAutomata::total_removeuseless_time) << "].\n"
-    //                 << "The total time spent on reduce(...) is [" << toString(AUTOQ::TreeAutomata::total_reduce_time) << "].\n"
-    //                 << "The total time spent on check_inclusion(...) is [" << toString(AUTOQ::TreeAutomata::total_include_time) << "].\n";
+    //                 << "The total time spent on gate operations (excluding remove_useless and reduce) is [" << AUTOQ::Util::Convert::toString(AUTOQ::TreeAutomata::total_gate_time - AUTOQ::TreeAutomata::total_removeuseless_time - AUTOQ::TreeAutomata::total_reduce_time) << "].\n"
+    //                 << "The total time spent on remove_useless(...) is [" << AUTOQ::Util::Convert::toString(AUTOQ::TreeAutomata::total_removeuseless_time) << "].\n"
+    //                 << "The total time spent on reduce(...) is [" << AUTOQ::Util::Convert::toString(AUTOQ::TreeAutomata::total_reduce_time) << "].\n"
+    //                 << "The total time spent on check_inclusion(...) is [" << AUTOQ::Util::Convert::toString(AUTOQ::TreeAutomata::total_include_time) << "].\n";
     //     else
     //         std::cout << "=\n"
-    //                 << "The total time spent on gate operations (excluding remove_useless and reduce) is [" << toString(AUTOQ::SymbolicAutomata::total_gate_time - AUTOQ::SymbolicAutomata::total_removeuseless_time - AUTOQ::SymbolicAutomata::total_reduce_time) << "].\n"
-    //                 << "The total time spent on remove_useless(...) is [" << toString(AUTOQ::SymbolicAutomata::total_removeuseless_time) << "].\n"
-    //                 << "The total time spent on reduce(...) is [" << toString(AUTOQ::SymbolicAutomata::total_reduce_time) << "].\n"
-    //                 << "The total time spent on check_inclusion(...) is [" << toString(AUTOQ::SymbolicAutomata::total_include_time) << "].\n";
+    //                 << "The total time spent on gate operations (excluding remove_useless and reduce) is [" << AUTOQ::Util::Convert::toString(AUTOQ::SymbolicAutomata::total_gate_time - AUTOQ::SymbolicAutomata::total_removeuseless_time - AUTOQ::SymbolicAutomata::total_reduce_time) << "].\n"
+    //                 << "The total time spent on remove_useless(...) is [" << AUTOQ::Util::Convert::toString(AUTOQ::SymbolicAutomata::total_removeuseless_time) << "].\n"
+    //                 << "The total time spent on reduce(...) is [" << AUTOQ::Util::Convert::toString(AUTOQ::SymbolicAutomata::total_reduce_time) << "].\n"
+    //                 << "The total time spent on check_inclusion(...) is [" << AUTOQ::Util::Convert::toString(AUTOQ::SymbolicAutomata::total_include_time) << "].\n";
     // }
     /**************/
     return 0;
-}
-
-std::string toString(std::chrono::steady_clock::duration tp) {
-    using namespace std;
-    using namespace std::chrono;
-    nanoseconds ns = duration_cast<nanoseconds>(tp);
-    typedef duration<int, ratio<86400>> days;
-    std::stringstream ss;
-    char fill = ss.fill();
-    ss.fill('0');
-    auto d = duration_cast<days>(ns);
-    ns -= d;
-    auto h = duration_cast<hours>(ns);
-    ns -= h;
-    auto m = duration_cast<minutes>(ns);
-    ns -= m;
-    auto s = duration_cast<seconds>(ns);
-    ns -= s;
-    auto ms = duration_cast<milliseconds>(ns);
-    // auto s = duration<float, std::ratio<1, 1>>(ns);
-    if (d.count() > 0)
-        ss << d.count() << 'd' << h.count() << 'h' << m.count() << 'm' << s.count() << 's';
-    else if (h.count() > 0)
-        ss << h.count() << 'h' << m.count() << 'm' << s.count() << 's';
-    else if (m.count() == 0 && s.count() < 10) {
-        ss << s.count() << '.' << ms.count() / 100 << "s";
-    } else {
-        if (m.count() > 0) ss << m.count() << 'm';
-        ss << s.count() << 's';// << " & ";
-    }
-    ss.fill(fill);
-    return ss.str();
 }

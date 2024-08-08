@@ -4,7 +4,7 @@
 #include <cmath>
 #include <vector>
 #include <boost/rational.hpp>
-#include <autoq/util/convert.hh>
+#include "autoq/util/convert.hh"
 #include <boost/multiprecision/cpp_int.hpp>
 
 namespace AUTOQ

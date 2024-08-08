@@ -14,7 +14,7 @@
 #include <functional>
 
 // AUTOQ headers
-#include <autoq/autoq.hh>
+#include "autoq/autoq.hh"
 #include "abstract_transl.hh"
 
 

@@ -39,6 +39,11 @@ struct AUTOQ::Symbol::Index {
             os << obj.index;
         return os;
     }
+    std::string str() const {
+        std::stringstream ss;
+        ss << *this; // simply employ the above operator<<
+        return ss.str();
+    }
 };
 
 namespace boost {

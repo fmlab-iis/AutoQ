@@ -66,7 +66,7 @@ int main(int argc, char **argv) {
     ans.sim_reduce();
     // ans.print_aut("Post-condition:\n");
 
-    AUTOQ::TreeAutomata::check_inclusion(aut, ans);
+    aut <= ans;
     aut.print_stats();
     return 0;
 }

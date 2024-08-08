@@ -1,250 +1,14 @@
 #include <functional>
 #include <boost/rational.hpp>
-#include <autoq/aut_description.hh>
 #include <boost/multiprecision/cpp_int.hpp>
+#include "autoq/util/util.hh"
+#include "autoq/aut_description.hh"
 
 // #define TO_QASM
 #define QASM_FILENAME "circuit.qasm"
 // OPENQASM 2.0;
 // include "qelib1.inc";
 // qreg qubits[?];
-
-namespace {
-    std::string toString(std::chrono::steady_clock::duration tp) {
-        using namespace std;
-        using namespace std::chrono;
-        nanoseconds ns = duration_cast<nanoseconds>(tp);
-        typedef duration<int, ratio<86400>> days;
-        std::stringstream ss;
-        char fill = ss.fill();
-        ss.fill('0');
-        auto d = duration_cast<days>(ns);
-        ns -= d;
-        auto h = duration_cast<hours>(ns);
-        ns -= h;
-        auto m = duration_cast<minutes>(ns);
-        ns -= m;
-        auto s = duration_cast<seconds>(ns);
-        ns -= s;
-        auto ms = duration_cast<milliseconds>(ns);
-        // auto s = duration<float, std::ratio<1, 1>>(ns);
-        if (d.count() > 0 || h.count() > 0)
-            ss << d.count() << 'd' << h.count() << 'h' << m.count() << 'm' << s.count() << 's';
-        else if (m.count() == 0 && s.count() < 10) {
-            ss << s.count() << '.' << ms.count() / 100 << "s";
-        } else {
-            if (m.count() > 0) ss << m.count() << 'm';
-            ss << s.count() << 's';// << " & ";
-        }
-        ss.fill(fill);
-        return ss.str();
-    }
-}
-
-#define queryTopID(oldID, newID) \
-    State newID = oldID + stateNum;
-    // {   \
-    //     auto it = topStateMap.find(oldID);    \
-    //     if (it == topStateMap.end())    \
-    //         newID = oldID;    \
-    //     else    \
-    //         newID = it->second; \
-    // }
-#define queryChildID(oldID, newID) \
-    State newID = oldID + stateNum;
-    // {   \
-    //     auto it = childStateMap.find(oldID);    \
-    //     if (it == childStateMap.end())    \
-    //         newID = oldID;    \
-    //     else    \
-    //         newID = it->second; \
-    // }
-template <typename Symbol>
-void AUTOQ::Automata<Symbol>::diagonal_gate(int t, const std::function<void(Symbol*)> &multiply_by_c0, const std::function<void(Symbol*)> &multiply_by_c1) {
-    TransitionMap transitions2;
-    std::map<State, int> topStateIsLeftOrRight, childStateIsLeftOrRight; // 0b10: original tree, 0b01: copied tree, 0b11: both trees
-    // std::map<State, State> topStateMap, childStateMap;
-    // If a state has only one tree, then its id does not change. In this case, it is not present in this map.
-    // If a state has two trees, then it presents in this map and its value is the id in the copied tree.
-
-    // Convert from TransitionMap to InternalTransitionMap.
-    InternalTransitionMap internalTransitions(qubitNum + 1 + (hasLoop ? 1 : 0)); // only contains qubits from t to the bottom
-    TransitionMap leafTransitions;
-    for (const auto &tr : transitions) {
-        if (tr.first.is_internal()) {
-            if (tr.first.symbol().qubit() < t)
-                transitions2[tr.first] = tr.second;
-            else
-                internalTransitions[static_cast<int>(tr.first.symbol().qubit())][tr.first.tag()] = tr.second;
-        } else {
-            leafTransitions[tr.first] = tr.second;
-        }
-    }
-
-    // Assume the initial state numbers are already compact.
-    for (int q = t; q <= qubitNum + (hasLoop ? 1 : 0); q++) {
-        if (q == t) {
-            /* Construct childStateIsLeftOrRight. */
-            for (const auto &tag_outins : internalTransitions[q]) {
-                for (const auto &out_ins : tag_outins.second) {
-                    for (const auto &in : out_ins.second) {
-                        assert(in.size() == 2);
-                        childStateIsLeftOrRight[in[0]] |= 0b10;
-                        childStateIsLeftOrRight[in[1]] |= 0b01;
-                    }
-                }
-            }
-            /**************************************/
-            /* Construct childStateMap. */
-            // for (const auto &kv : childStateIsLeftOrRight) {
-            //     if (kv.second == 0b11) {
-            //         childStateMap[kv.first] = stateNum;
-            //         stateNum++;
-            //     }
-            // }
-            /****************************/
-            for (const auto &tag_outins : internalTransitions[q]) {
-                auto &ref = transitions2[{Symbol(q), tag_outins.first}];
-                for (const auto &out_ins : tag_outins.second) {
-                    const auto &top = out_ins.first;
-                    auto &reftop = ref[top];
-                    for (const auto &in : out_ins.second) {
-                        assert(in.size() == 2);
-                        queryChildID(in[1], newIn1);
-                        reftop.insert({in[0], newIn1});
-                    }
-                }
-            }
-        } else { // if (q > t) {
-            /* Construct childStateIsLeftOrRight. */
-            for (const auto &tag_outins : internalTransitions[q]) {
-                for (const auto &out_ins : tag_outins.second) {
-                    const auto &top = out_ins.first;
-                    auto val = topStateIsLeftOrRight[top];
-                    for (const auto &in : out_ins.second) {
-                        assert(in.size() == 2);
-                        childStateIsLeftOrRight[in[0]] |= val;
-                        childStateIsLeftOrRight[in[1]] |= val;
-                    }
-                }
-            }
-            /**************************************/
-            /* Construct childStateMap. */
-            // for (const auto &kv : childStateIsLeftOrRight) {
-            //     if (kv.second == 0b11) {
-            //         childStateMap[kv.first] = stateNum;
-            //         stateNum++;
-            //     }
-            // }
-            /****************************/
-            for (const auto &tag_outins : internalTransitions[q]) {
-                auto &ref = transitions2[{Symbol(q), tag_outins.first}];
-                for (const auto &out_ins : tag_outins.second) {
-                    const auto &top = out_ins.first;
-                    auto val = topStateIsLeftOrRight[top];
-                    if (val & 0b10) {
-                        ref[top] = out_ins.second;
-                    }
-                    queryTopID(top, newTop);
-                    auto &refnewTop = ref[newTop];
-                    if (val & 0b01) {
-                        for (const auto &in : out_ins.second) {
-                            assert(in.size() == 2);
-                            queryChildID(in[0], newIn0);
-                            queryChildID(in[1], newIn1);
-                            refnewTop.insert({newIn0, newIn1});
-                        }
-                    }
-                }
-            }
-        }
-        /**********************************************/
-        topStateIsLeftOrRight = childStateIsLeftOrRight;
-        childStateIsLeftOrRight.clear();
-        // topStateMap = childStateMap;
-        // childStateMap.clear();
-        /**********************************************/
-    }
-    for (const auto &tr : leafTransitions) {
-        for (const auto &out_ins : tr.second) {
-            const auto &top = out_ins.first;
-            auto val = topStateIsLeftOrRight[top];
-            if (val & 0b10) {
-                SymbolTag symbol_tag = tr.first;
-                multiply_by_c0(&symbol_tag.symbol());
-                transitions2[symbol_tag][top].insert({{}});
-            }
-            if (val & 0b01) {
-                SymbolTag symbol_tag = tr.first;
-                multiply_by_c1(&symbol_tag.symbol());
-                queryTopID(top, newTop);
-                transitions2[symbol_tag][newTop].insert({{}});
-            }
-        }
-    }
-    transitions = transitions2;
-    stateNum *= 2;
-}
-
-template <typename Symbol>
-void AUTOQ::Automata<Symbol>::X(int t) {
-    #ifdef TO_QASM
-        system(("echo 'x qubits[" + std::to_string(t-1) + "];' >> " + QASM_FILENAME).c_str());
-        return;
-    #endif
-    auto start = std::chrono::steady_clock::now();
-    for (auto &tr : transitions) {
-        if (tr.first.is_internal() && tr.first.symbol().qubit() == t) {
-            for (auto &out_ins : tr.second) {
-                std::set<StateVector> ins2;
-                for (const auto &in : out_ins.second) {
-                    assert(in.size() == 2);
-                    ins2.insert({in[1], in[0]});
-                }
-                out_ins.second = ins2;
-            }
-        }
-    }
-    gateCount++;
-    auto duration = std::chrono::steady_clock::now() - start;
-    total_gate_time += duration;
-    if (gateLog) std::cout << "X" << t << "：" << stateNum << " states " << count_transitions() << " transitions " << toString(duration) << "\n";
-}
-
-template <typename Symbol>
-void AUTOQ::Automata<Symbol>::Y(int t) {
-    #ifdef TO_QASM
-        system(("echo 'y qubits[" + std::to_string(t-1) + "];' >> " + QASM_FILENAME).c_str());
-        return;
-    #endif
-    auto start = std::chrono::steady_clock::now();
-    X(t); gateCount--;
-    diagonal_gate(t, std::bind(&Symbol::degree90cw, std::placeholders::_1), std::bind(&Symbol::omega_multiplication, std::placeholders::_1, 2));
-    // remove_useless();
-    reduce();
-    gateCount++;
-    auto duration = std::chrono::steady_clock::now() - start;
-    total_gate_time += duration;
-    if (gateLog) std::cout << "Y" << t << "：" << stateNum << " states " << count_transitions() << " transitions " << toString(duration) << "\n";
-}
-
-template <typename Symbol>
-void AUTOQ::Automata<Symbol>::Z(int t, bool opt) {
-    #ifdef TO_QASM
-        system(("echo 'z qubits[" + std::to_string(t-1) + "];' >> " + QASM_FILENAME).c_str());
-        return;
-    #endif
-    auto start = std::chrono::steady_clock::now();
-    diagonal_gate(t, [](Symbol*) {}, std::bind(&Symbol::negate, std::placeholders::_1));
-    if (opt) {
-        // remove_useless();
-        reduce();
-    }
-    gateCount++;
-    auto duration = std::chrono::steady_clock::now() - start;
-    total_gate_time += duration;
-    if (gateLog) std::cout << "Z" << t << "：" << stateNum << " states " << count_transitions() << " transitions " << toString(duration) << "\n";
-}
 
 #define L(s1, s2) (stateNum + (s1) * stateNum + (s2))
 #define R(s1, s2) (stateNum + stateNum * stateNum + (s1) * stateNum + (s2))
@@ -573,6 +337,211 @@ void AUTOQ::Automata<Symbol>::General_Controlled_Gate(int c, int c2, int t, cons
     *this = result;
 }
 
+#define queryTopID(oldID, newID) \
+    State newID = oldID + stateNum;
+    // {   \
+    //     auto it = topStateMap.find(oldID);    \
+    //     if (it == topStateMap.end())    \
+    //         newID = oldID;    \
+    //     else    \
+    //         newID = it->second; \
+    // }
+#define queryChildID(oldID, newID) \
+    State newID = oldID + stateNum;
+    // {   \
+    //     auto it = childStateMap.find(oldID);    \
+    //     if (it == childStateMap.end())    \
+    //         newID = oldID;    \
+    //     else    \
+    //         newID = it->second; \
+    // }
+template <typename Symbol>
+void AUTOQ::Automata<Symbol>::Diagonal_Gate(int t, const std::function<void(Symbol*)> &multiply_by_c0, const std::function<void(Symbol*)> &multiply_by_c1) {
+    TopDownTransitions transitions2;
+    std::map<State, int> topStateIsLeftOrRight, childStateIsLeftOrRight; // 0b10: original tree, 0b01: copied tree, 0b11: both trees
+    // std::map<State, State> topStateMap, childStateMap;
+    // If a state has only one tree, then its id does not change. In this case, it is not present in this map.
+    // If a state has two trees, then it presents in this map and its value is the id in the copied tree.
+
+    // Convert from TopDownTransitions to InternalTopDownTransitions.
+    InternalTopDownTransitions internalTransitions(qubitNum + 1 + (hasLoop ? 1 : 0)); // only contains qubits from t to the bottom
+    TopDownTransitions leafTransitions;
+    for (const auto &tr : transitions) {
+        if (tr.first.is_internal()) {
+            if (tr.first.symbol().qubit() < t)
+                transitions2[tr.first] = tr.second;
+            else
+                internalTransitions[static_cast<int>(tr.first.symbol().qubit())][tr.first.tag()] = tr.second;
+        } else {
+            leafTransitions[tr.first] = tr.second;
+        }
+    }
+
+    // Assume the initial state numbers are already compact.
+    for (int q = t; q <= qubitNum + (hasLoop ? 1 : 0); q++) {
+        if (q == t) {
+            /* Construct childStateIsLeftOrRight. */
+            for (const auto &tag_outins : internalTransitions[q]) {
+                for (const auto &out_ins : tag_outins.second) {
+                    for (const auto &in : out_ins.second) {
+                        assert(in.size() == 2);
+                        childStateIsLeftOrRight[in[0]] |= 0b10;
+                        childStateIsLeftOrRight[in[1]] |= 0b01;
+                    }
+                }
+            }
+            /**************************************/
+            /* Construct childStateMap. */
+            // for (const auto &kv : childStateIsLeftOrRight) {
+            //     if (kv.second == 0b11) {
+            //         childStateMap[kv.first] = stateNum;
+            //         stateNum++;
+            //     }
+            // }
+            /****************************/
+            for (const auto &tag_outins : internalTransitions[q]) {
+                auto &ref = transitions2[{Symbol(q), tag_outins.first}];
+                for (const auto &out_ins : tag_outins.second) {
+                    const auto &top = out_ins.first;
+                    auto &reftop = ref[top];
+                    for (const auto &in : out_ins.second) {
+                        assert(in.size() == 2);
+                        queryChildID(in[1], newIn1);
+                        reftop.insert({in[0], newIn1});
+                    }
+                }
+            }
+        } else { // if (q > t) {
+            /* Construct childStateIsLeftOrRight. */
+            for (const auto &tag_outins : internalTransitions[q]) {
+                for (const auto &out_ins : tag_outins.second) {
+                    const auto &top = out_ins.first;
+                    auto val = topStateIsLeftOrRight[top];
+                    for (const auto &in : out_ins.second) {
+                        assert(in.size() == 2);
+                        childStateIsLeftOrRight[in[0]] |= val;
+                        childStateIsLeftOrRight[in[1]] |= val;
+                    }
+                }
+            }
+            /**************************************/
+            /* Construct childStateMap. */
+            // for (const auto &kv : childStateIsLeftOrRight) {
+            //     if (kv.second == 0b11) {
+            //         childStateMap[kv.first] = stateNum;
+            //         stateNum++;
+            //     }
+            // }
+            /****************************/
+            for (const auto &tag_outins : internalTransitions[q]) {
+                auto &ref = transitions2[{Symbol(q), tag_outins.first}];
+                for (const auto &out_ins : tag_outins.second) {
+                    const auto &top = out_ins.first;
+                    auto val = topStateIsLeftOrRight[top];
+                    if (val & 0b10) {
+                        ref[top] = out_ins.second;
+                    }
+                    queryTopID(top, newTop);
+                    auto &refnewTop = ref[newTop];
+                    if (val & 0b01) {
+                        for (const auto &in : out_ins.second) {
+                            assert(in.size() == 2);
+                            queryChildID(in[0], newIn0);
+                            queryChildID(in[1], newIn1);
+                            refnewTop.insert({newIn0, newIn1});
+                        }
+                    }
+                }
+            }
+        }
+        /**********************************************/
+        topStateIsLeftOrRight = childStateIsLeftOrRight;
+        childStateIsLeftOrRight.clear();
+        // topStateMap = childStateMap;
+        // childStateMap.clear();
+        /**********************************************/
+    }
+    for (const auto &tr : leafTransitions) {
+        for (const auto &out_ins : tr.second) {
+            const auto &top = out_ins.first;
+            auto val = topStateIsLeftOrRight[top];
+            if (val & 0b10) {
+                SymbolTag symbol_tag = tr.first;
+                multiply_by_c0(&symbol_tag.symbol());
+                transitions2[symbol_tag][top].insert({{}});
+            }
+            if (val & 0b01) {
+                SymbolTag symbol_tag = tr.first;
+                multiply_by_c1(&symbol_tag.symbol());
+                queryTopID(top, newTop);
+                transitions2[symbol_tag][newTop].insert({{}});
+            }
+        }
+    }
+    transitions = transitions2;
+    stateNum *= 2;
+}
+
+template <typename Symbol>
+void AUTOQ::Automata<Symbol>::X(int t) {
+    #ifdef TO_QASM
+        system(("echo 'x qubits[" + std::to_string(t-1) + "];' >> " + QASM_FILENAME).c_str());
+        return;
+    #endif
+    auto start = std::chrono::steady_clock::now();
+    for (auto &tr : transitions) {
+        if (tr.first.is_internal() && tr.first.symbol().qubit() == t) {
+            for (auto &out_ins : tr.second) {
+                std::set<StateVector> ins2;
+                for (const auto &in : out_ins.second) {
+                    assert(in.size() == 2);
+                    ins2.insert({in[1], in[0]});
+                }
+                out_ins.second = ins2;
+            }
+        }
+    }
+    gateCount++;
+    auto duration = std::chrono::steady_clock::now() - start;
+    total_gate_time += duration;
+    if (gateLog) std::cout << "X" << t << "：" << stateNum << " states " << count_transitions() << " transitions " << AUTOQ::Util::print_duration(duration) << "\n";
+}
+
+template <typename Symbol>
+void AUTOQ::Automata<Symbol>::Y(int t) {
+    #ifdef TO_QASM
+        system(("echo 'y qubits[" + std::to_string(t-1) + "];' >> " + QASM_FILENAME).c_str());
+        return;
+    #endif
+    auto start = std::chrono::steady_clock::now();
+    X(t); gateCount--;
+    Diagonal_Gate(t, std::bind(&Symbol::degree90cw, std::placeholders::_1), std::bind(&Symbol::omega_multiplication, std::placeholders::_1, 2));
+    // remove_useless();
+    reduce();
+    gateCount++;
+    auto duration = std::chrono::steady_clock::now() - start;
+    total_gate_time += duration;
+    if (gateLog) std::cout << "Y" << t << "：" << stateNum << " states " << count_transitions() << " transitions " << AUTOQ::Util::print_duration(duration) << "\n";
+}
+
+template <typename Symbol>
+void AUTOQ::Automata<Symbol>::Z(int t, bool opt) {
+    #ifdef TO_QASM
+        system(("echo 'z qubits[" + std::to_string(t-1) + "];' >> " + QASM_FILENAME).c_str());
+        return;
+    #endif
+    auto start = std::chrono::steady_clock::now();
+    Diagonal_Gate(t, [](Symbol*) {}, std::bind(&Symbol::negate, std::placeholders::_1));
+    if (opt) {
+        // remove_useless();
+        reduce();
+    }
+    gateCount++;
+    auto duration = std::chrono::steady_clock::now() - start;
+    total_gate_time += duration;
+    if (gateLog) std::cout << "Z" << t << "：" << stateNum << " states " << count_transitions() << " transitions " << AUTOQ::Util::print_duration(duration) << "\n";
+}
+
 template <typename Symbol>
 void AUTOQ::Automata<Symbol>::H(int t) {
     #ifdef TO_QASM
@@ -585,8 +554,7 @@ void AUTOQ::Automata<Symbol>::H(int t) {
         [](const Symbol &l, const Symbol &r) -> Symbol { return (l - r).divide_by_the_square_root_of_two(); });
     gateCount++;
     auto duration = std::chrono::steady_clock::now() - start;
-    total_gate_time += duration;
-    if (gateLog) std::cout << "H" << t << "：" << stateNum << " states " << count_transitions() << " transitions " << toString(duration) << "\n";
+    if (gateLog) std::cout << "H" << t << "：" << stateNum << " states " << count_transitions() << " transitions " << AUTOQ::Util::print_duration(duration) << "\n";
 }
 
 template <typename Symbol>
@@ -596,13 +564,12 @@ void AUTOQ::Automata<Symbol>::S(int t) {
         return;
     #endif
     auto start = std::chrono::steady_clock::now();
-    diagonal_gate(t, [](Symbol*) {}, std::bind(&Symbol::omega_multiplication, std::placeholders::_1, 2));
+    Diagonal_Gate(t, [](Symbol*) {}, std::bind(&Symbol::omega_multiplication, std::placeholders::_1, 2));
     // remove_useless();
     reduce();
     gateCount++;
     auto duration = std::chrono::steady_clock::now() - start;
-    total_gate_time += duration;
-    if (gateLog) std::cout << "S" << t << "：" << stateNum << " states " << count_transitions() << " transitions " << toString(duration) << "\n";
+    if (gateLog) std::cout << "S" << t << "：" << stateNum << " states " << count_transitions() << " transitions " << AUTOQ::Util::print_duration(duration) << "\n";
 }
 
 template <typename Symbol>
@@ -612,13 +579,12 @@ void AUTOQ::Automata<Symbol>::T(int t) {
         return;
     #endif
     auto start = std::chrono::steady_clock::now();
-    diagonal_gate(t, [](Symbol*) {}, std::bind(&Symbol::omega_multiplication, std::placeholders::_1, 1));
+    Diagonal_Gate(t, [](Symbol*) {}, std::bind(&Symbol::omega_multiplication, std::placeholders::_1, 1));
     // remove_useless();
     reduce();
     gateCount++;
     auto duration = std::chrono::steady_clock::now() - start;
-    total_gate_time += duration;
-    if (gateLog) std::cout << "T" << t << "：" << stateNum << " states " << count_transitions() << " transitions " << toString(duration) << "\n";
+    if (gateLog) std::cout << "T" << t << "：" << stateNum << " states " << count_transitions() << " transitions " << AUTOQ::Util::print_duration(duration) << "\n";
 }
 
 template <typename Symbol>
@@ -633,8 +599,7 @@ void AUTOQ::Automata<Symbol>::Rx(const boost::rational<boost::multiprecision::cp
         [theta](Symbol l, Symbol r) -> Symbol { return r.multiply_cos(theta/2) - l.multiply_isin(theta/2); });
     gateCount++;
     auto duration = std::chrono::steady_clock::now() - start;
-    total_gate_time += duration;
-    if (gateLog) std::cout << "Rx" << t << "：" << stateNum << " states " << count_transitions() << " transitions " << toString(duration) << "\n";
+    if (gateLog) std::cout << "Rx" << t << "：" << stateNum << " states " << count_transitions() << " transitions " << AUTOQ::Util::print_duration(duration) << "\n";
 }
 
 template <typename Symbol>
@@ -649,8 +614,7 @@ void AUTOQ::Automata<Symbol>::Ry(int t) {
         [](const Symbol &l, const Symbol &r) -> Symbol { return (l + r).divide_by_the_square_root_of_two(); });
     gateCount++;
     auto duration = std::chrono::steady_clock::now() - start;
-    total_gate_time += duration;
-    if (gateLog) std::cout << "Ry" << t << "：" << stateNum << " states " << count_transitions() << " transitions " << toString(duration) << "\n";
+    if (gateLog) std::cout << "Ry" << t << "：" << stateNum << " states " << count_transitions() << " transitions " << AUTOQ::Util::print_duration(duration) << "\n";
 }
 
 // https://quantumcomputinguk.org/tutorials/introduction-to-the-rz-gate-with-code
@@ -664,13 +628,13 @@ void AUTOQ::Automata<Symbol>::Rz(const boost::rational<boost::multiprecision::cp
     // General_Single_Qubit_Gate(t,
     //     [theta](Symbol l, const Symbol &r) -> Symbol { return l.counterclockwise(-theta / 2); },
     //     [theta](const Symbol &l, Symbol r) -> Symbol { return r.counterclockwise(theta / 2); });
-    diagonal_gate(t, std::bind(&Symbol::counterclockwise, std::placeholders::_1, -theta / 2), std::bind(&Symbol::counterclockwise, std::placeholders::_1, theta / 2));
+    Diagonal_Gate(t, std::bind(&Symbol::counterclockwise, std::placeholders::_1, -theta / 2), std::bind(&Symbol::counterclockwise, std::placeholders::_1, theta / 2));
     // remove_useless();
     reduce();
     gateCount++;
     auto duration = std::chrono::steady_clock::now() - start;
     total_gate_time += duration;
-    if (gateLog) std::cout << "Rz" << t << "：" << stateNum << " states " << count_transitions() << " transitions " << toString(duration) << "\n";
+    if (gateLog) std::cout << "Rz" << t << "：" << stateNum << " states " << count_transitions() << " transitions " << AUTOQ::Util::Convert::toString(duration) << "\n";
 }
 
 template <typename Symbol>
@@ -686,15 +650,15 @@ void AUTOQ::Automata<Symbol>::CX(int c, int t, bool opt) {
             [](const Symbol &l, const Symbol &r) -> Symbol { return r; },
             [](const Symbol &l, const Symbol &r) -> Symbol { return l; });
     } else {
-        TransitionMap transitions2;
+        TopDownTransitions transitions2;
         std::map<State, int> topStateIsLeftOrRight, childStateIsLeftOrRight; // 0b10: original tree, 0b01: copied tree, 0b11: both trees
         // std::map<State, State> topStateMap, childStateMap;
         // If a state has only one tree, then its id does not change. In this case, it is not present in this map.
         // If a state has two trees, then it presents in this map and its value is the id in the copied tree.
 
-        // Convert from TransitionMap to InternalTransitionMap.
-        InternalTransitionMap internalTransitions(qubitNum + 1); // only contains qubits from c to the bottom
-        TransitionMap leafTransitions;
+        // Convert from TopDownTransitions to InternalTopDownTransitions.
+        InternalTopDownTransitions internalTransitions(qubitNum + 1); // only contains qubits from c to the bottom
+        TopDownTransitions leafTransitions;
         for (const auto &tr : transitions) {
             if (tr.first.is_internal()) {
                 if (tr.first.symbol().qubit() < c)
@@ -818,7 +782,7 @@ void AUTOQ::Automata<Symbol>::CX(int c, int t, bool opt) {
     gateCount++;
     auto duration = std::chrono::steady_clock::now() - start;
     total_gate_time += duration;
-    if (gateLog) std::cout << "CX" << c << "," << t << "：" << stateNum << " states " << count_transitions() << " transitions " << toString(duration) << "\n";
+    if (gateLog) std::cout << "CX" << c << "," << t << "：" << stateNum << " states " << count_transitions() << " transitions " << AUTOQ::Util::print_duration(duration) << "\n";
 }
 
 #define queryTopID2(oldID, newID) \
@@ -860,7 +824,7 @@ void AUTOQ::Automata<Symbol>::CZ(int c, int t) {
     assert(c != t);
     if (c > t) std::swap(c, t);
     auto start = std::chrono::steady_clock::now();
-    TransitionMap transitions2;
+    TopDownTransitions transitions2;
     std::map<State, int> topStateIsLeftOrRight, childStateIsLeftOrRight; // 0b10: original tree, 0b01: copied tree, 0b11: both trees
     // std::map<State, State> topStateMap, childStateMap;
     std::map<State, int> topStateIsLeftOrRight2, childStateIsLeftOrRight2; // 0b10: original tree, 0b01: copied tree, 0b11: both trees
@@ -868,9 +832,9 @@ void AUTOQ::Automata<Symbol>::CZ(int c, int t) {
     // If a state has only one tree, then its id does not change. In this case, it is not present in this map.
     // If a state has two trees, then it presents in this map and its value is the id in the copied tree.
 
-    // Convert from TransitionMap to InternalTransitionMap.
-    InternalTransitionMap internalTransitions(qubitNum + 1); // only contains qubits from c to the bottom
-    TransitionMap leafTransitions;
+    // Convert from TopDownTransitions to InternalTopDownTransitions.
+    InternalTopDownTransitions internalTransitions(qubitNum + 1); // only contains qubits from c to the bottom
+    TopDownTransitions leafTransitions;
     for (const auto &tr : transitions) {
         if (tr.first.is_internal()) {
             if (tr.first.symbol().qubit() < c)
@@ -1115,7 +1079,7 @@ void AUTOQ::Automata<Symbol>::CZ(int c, int t) {
     gateCount++;
     auto duration = std::chrono::steady_clock::now() - start;
     total_gate_time += duration;
-    if (gateLog) std::cout << "CZ" << c << "," << t << "：" << stateNum << " states " << count_transitions() << " transitions " << toString(duration) << "\n";
+    if (gateLog) std::cout << "CZ" << c << "," << t << "：" << stateNum << " states " << count_transitions() << " transitions " << AUTOQ::Util::print_duration(duration) << "\n";
 }
 
 template <typename Symbol>
@@ -1128,8 +1092,7 @@ void AUTOQ::Automata<Symbol>::CCX(int c, int c2, int t) {
     assert(c != c2 && c2 != t && t != c);
     if (c > c2) std::swap(c, c2); // ensure c < c2
     if (c2 < t) { // c < c2 < t
-        auto start = std::chrono::steady_clock::now();
-        TransitionMap transitions2;
+        TopDownTransitions transitions2;
         std::map<State, int> topStateIsLeftOrRight, childStateIsLeftOrRight; // 0b10: original tree, 0b01: copied tree, 0b11: both trees
         // std::map<State, State> topStateMap, childStateMap;
         std::map<State, int> topStateIsLeftOrRight2, childStateIsLeftOrRight2; // 0b10: original tree, 0b01: copied tree, 0b11: both trees
@@ -1137,9 +1100,9 @@ void AUTOQ::Automata<Symbol>::CCX(int c, int c2, int t) {
         // If a state has only one tree, then its id does not change. In this case, it is not present in this map.
         // If a state has two trees, then it presents in this map and its value is the id in the copied tree.
 
-        // Convert from TransitionMap to InternalTransitionMap.
-        InternalTransitionMap internalTransitions(qubitNum + 1); // only contains qubits from c to the bottom
-        TransitionMap leafTransitions;
+        // Convert from TopDownTransitions to InternalTopDownTransitions.
+        InternalTopDownTransitions internalTransitions(qubitNum + 1); // only contains qubits from c to the bottom
+        TopDownTransitions leafTransitions;
         for (const auto &tr : transitions) {
             if (tr.first.is_internal()) {
                 if (tr.first.symbol().qubit() < c)
@@ -1389,7 +1352,6 @@ void AUTOQ::Automata<Symbol>::CCX(int c, int c2, int t) {
     } else { // c < t < c2
         auto aut2 = *this;
         aut2.CX(c2, t, false); gateCount--; // prevent repeated counting
-        auto start = std::chrono::steady_clock::now();
         for (const auto &tr : aut2.transitions) {
             const SymbolTag &symbol_tag = tr.first;
             if (!(symbol_tag.is_internal() && symbol_tag.symbol().qubit() <= c)) {
@@ -1426,7 +1388,7 @@ void AUTOQ::Automata<Symbol>::CCX(int c, int c2, int t) {
     gateCount++;
     auto duration = std::chrono::steady_clock::now() - start;
     total_gate_time += duration;
-    if (gateLog) std::cout << "CCX" << c << "," << c2 << "," << t << "：" << stateNum << " states " << count_transitions() << " transitions " << toString(duration) << "\n";
+    if (gateLog) std::cout << "CCX" << c << "," << c2 << "," << t << "：" << stateNum << " states " << count_transitions() << " transitions " << AUTOQ::Util::print_duration(duration) << "\n";
 }
 
 template <typename Symbol>
@@ -1436,13 +1398,13 @@ void AUTOQ::Automata<Symbol>::Tdg(int t) {
     //     return;
     // #endif
     auto start = std::chrono::steady_clock::now();
-    diagonal_gate(t, [](Symbol*) {}, std::bind(&Symbol::degree45cw, std::placeholders::_1));
+    Diagonal_Gate(t, [](Symbol*) {}, std::bind(&Symbol::degree45cw, std::placeholders::_1));
     // remove_useless();
     reduce();
     gateCount++;
     auto duration = std::chrono::steady_clock::now() - start;
     total_gate_time += duration;
-    if (gateLog) std::cout << "Tdg" << t << "：" << stateNum << " states " << count_transitions() << " transitions " << toString(duration) << "\n";
+    if (gateLog) std::cout << "Tdg" << t << "：" << stateNum << " states " << count_transitions() << " transitions " << AUTOQ::Util::print_duration(duration) << "\n";
 }
 
 template <typename Symbol>
@@ -1452,17 +1414,17 @@ void AUTOQ::Automata<Symbol>::Sdg(int t) {
     //     return;
     // #endif
     auto start = std::chrono::steady_clock::now();
-    diagonal_gate(t, [](Symbol*) {}, std::bind(&Symbol::degree90cw, std::placeholders::_1));
+    Diagonal_Gate(t, [](Symbol*) {}, std::bind(&Symbol::degree90cw, std::placeholders::_1));
     // remove_useless();
     reduce();
     gateCount++;
     auto duration = std::chrono::steady_clock::now() - start;
     total_gate_time += duration;
-    if (gateLog) std::cout << "Sdg" << t << "：" << stateNum << " states " << count_transitions() << " transitions " << toString(duration) << "\n";
+    if (gateLog) std::cout << "Sdg" << t << "：" << stateNum << " states " << count_transitions() << " transitions " << AUTOQ::Util::print_duration(duration) << "\n";
 }
 
 template <typename Symbol>
-void AUTOQ::Automata<Symbol>::swap(int t1, int t2) {
+void AUTOQ::Automata<Symbol>::Swap(int t1, int t2) {
     // #ifdef TO_QASM
     //     system(("echo 'swap qubits[" + std::to_string(t1-1) + "], qubits[" + std::to_string(t2-1) + "];' >> " + QASM_FILENAME).c_str());
     //     return;
@@ -1474,13 +1436,13 @@ void AUTOQ::Automata<Symbol>::swap(int t1, int t2) {
     gateCount++;
     auto duration = std::chrono::steady_clock::now() - start;
     // total_gate_time += 0;
-    if (gateLog) std::cout << "swap" << t1 << "," << t2 << "：" << stateNum << " states " << count_transitions() << " transitions " << toString(duration) << "\n";
+    if (gateLog) std::cout << "swap" << t1 << "," << t2 << "：" << stateNum << " states " << count_transitions() << " transitions " << AUTOQ::Util::print_duration(duration) << "\n";
 }
 
 template <typename Symbol>
 void AUTOQ::Automata<Symbol>::CX() {
     auto start = std::chrono::steady_clock::now();
-    TransitionMap transitions_result;
+    TopDownTransitions transitions_result;
     for (const auto &fc_ois : transitions) {
         const auto &fc = fc_ois.first;
         const auto &ois = fc_ois.second;
@@ -1512,13 +1474,13 @@ void AUTOQ::Automata<Symbol>::CX() {
     reduce();
     gateCount++;
     auto duration = std::chrono::steady_clock::now() - start;
-    // if (gateLog) std::cout << "CNOT" << c << "," << t << "：" << stateNum << " states " << count_transitions() << " transitions " << toString(duration) << "\n";
+    // if (gateLog) std::cout << "CNOT" << c << "," << t << "：" << stateNum << " states " << count_transitions() << " transitions " << AUTOQ::Util::print_duration(duration) << "\n";
 }
 
 template <typename Symbol>
 void AUTOQ::Automata<Symbol>::CX_inv() {
     auto start = std::chrono::steady_clock::now();
-    TransitionMap transitions_result;
+    TopDownTransitions transitions_result;
     for (const auto &fc_ois : transitions) {
         const auto &fc = fc_ois.first;
         const auto &ois = fc_ois.second;
@@ -1550,13 +1512,13 @@ void AUTOQ::Automata<Symbol>::CX_inv() {
     reduce();
     gateCount++;
     auto duration = std::chrono::steady_clock::now() - start;
-    // if (gateLog) std::cout << "CNOT" << c << "," << t << "：" << stateNum << " states " << count_transitions() << " transitions " << toString(duration) << "\n";
+    // if (gateLog) std::cout << "CNOT" << c << "," << t << "：" << stateNum << " states " << count_transitions() << " transitions " << AUTOQ::Util::Convert::toString(duration) << "\n";
 }
 
 template <typename Symbol>
-void AUTOQ::Automata<Symbol>::phase(const boost::rational<boost::multiprecision::cpp_int> &r) {
+void AUTOQ::Automata<Symbol>::Phase(const boost::rational<boost::multiprecision::cpp_int> &r) {
     auto start = std::chrono::steady_clock::now();
-    TransitionMap transitions_result;
+    TopDownTransitions transitions_result;
     for (const auto &fc_ois : transitions) {
         auto symbol = fc_ois.first.symbol();
         const auto &tag = fc_ois.first.tag();
@@ -1568,38 +1530,8 @@ void AUTOQ::Automata<Symbol>::phase(const boost::rational<boost::multiprecision:
     transitions = transitions_result;
     gateCount++;
     auto duration = std::chrono::steady_clock::now() - start;
-    // if (gateLog) std::cout << "phase" << c << "," << t << "：" << stateNum << " states " << count_transitions() << " transitions " << toString(duration) << "\n";
+    // if (gateLog) std::cout << "Phase" << c << "," << t << "：" << stateNum << " states " << count_transitions() << " transitions " << AUTOQ::Util::Convert::toString(duration) << "\n";
 }
-
-// void AUTOQ::Automata<Symbol>::Fredkin(int c, int t, int t2) {
-//     auto start = std::chrono::steady_clock::now();
-//     assert(c != t && t != t2 && t2 != c);
-//     this->semi_determinize();
-//     auto aut1 = *this;
-//     aut1.branch_restriction(c, false);
-//     auto aut2 = *this;
-//     aut2.branch_restriction(c, true);
-//     auto aut3 = aut2;
-//     auto aut4 = aut2;
-//     auto aut5 = aut2;
-//     aut2.branch_restriction(t, true);
-//     aut2.branch_restriction(t2, true);
-//     aut3.branch_restriction(t, false);
-//     aut3.branch_restriction(t2, false);
-//     aut4.value_restriction(t, false);
-//     aut4.value_restriction(t2, true);
-//     aut4.branch_restriction(t2, false);
-//     aut4.branch_restriction(t, true);
-//     aut5.value_restriction(t, true);
-//     aut5.value_restriction(t2, false);
-//     aut5.branch_restriction(t2, true);
-//     aut5.branch_restriction(t, false);
-//     *this = aut1 + aut2 + aut3 + aut4 + aut5;
-//     this->semi_undeterminize();
-//     gateCount++;
-//     auto duration = std::chrono::steady_clock::now() - start;
-//     if (gateLog) std::cout << "Fredkin" << c << "," << t << "," << t2 << "：" << stateNum << " states " << count_transitions() << " transitions " << toString(duration) << "\n";
-// }
 
 template <typename Symbol>
 void AUTOQ::Automata<Symbol>::randG(int G, int A, int B, int C) {
