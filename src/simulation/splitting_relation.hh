@@ -138,8 +138,8 @@ public:
 		IteratorBase(Element* el) : el_(el) {}
 		~IteratorBase() {}
 
-		bool operator==(const IteratorBase& rhs) { return this->el_ == rhs.el_; }
-		bool operator!=(const IteratorBase& rhs) { return this->el_ != rhs.el_; }
+		bool operator==(const IteratorBase& rhs)const { return this->el_ == rhs.el_; }
+		bool operator!=(const IteratorBase& rhs)const { return this->el_ != rhs.el_; }
 
 	};
 
