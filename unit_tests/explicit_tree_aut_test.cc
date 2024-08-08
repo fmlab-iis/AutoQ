@@ -536,7 +536,7 @@ BOOST_AUTO_TEST_CASE(Grover_Search)
     for (int i=1; i<=n; i++) aut.X(i);
     /********************************/
 
-    const auto &file = boost::filesystem::canonical(boost::filesystem::path(__FILE__).parent_path()).string() + "/../reference_answers/Grover" + std::to_string(n) + ".aut";
+    const auto &file = boost::filesystem::weakly_canonical(boost::filesystem::path(__FILE__).parent_path()).string() + "/../reference_answers/Grover" + std::to_string(n) + ".aut";
     auto ans = AUTOQ::Parsing::TimbukParser<AUTOQ::TreeAutomata::Symbol>::ReadAutomaton(file);
     // int n = (aut.qubitNum + 1) / 3;
     // aut.print_aut();
