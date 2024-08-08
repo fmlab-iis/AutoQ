@@ -11,7 +11,7 @@
 // AUTOQ headers
 #include <cmath>
 #include <fstream>
-#include <boost/filesystem.hpp>
+#include <filesystem>
 
 #include "autoq/autoq.hh"
 #include "autoq/util/util.hh"
@@ -536,7 +536,21 @@ BOOST_AUTO_TEST_CASE(Grover_Search)
     for (int i=1; i<=n; i++) aut.X(i);
     /********************************/
 
-    const auto &file = boost::filesystem::weakly_canonical(boost::filesystem::path(__FILE__).parent_path()).string() + "/../reference_answers/Grover" + std::to_string(n) + ".aut";
+    std::filesystem::path current_path = std::filesystem::current_path();
+    while (true) {
+        for (const auto& entry : std::filesystem::directory_iterator(current_path)) {
+            if (entry.is_directory() && entry.path().filename() == "reference_answers") {
+                goto L;
+            }
+        }
+        std::filesystem::path parent_path = current_path.parent_path();
+        if (parent_path == current_path) {
+            std::cout << "The \"" << "reference_answers" << "\" folder was not found in any parent directory.\n";
+            break;
+        }
+        current_path = parent_path;
+    }
+L:  const auto &file = std::filesystem::absolute(current_path).string() + "/reference_answers/Grover" + std::to_string(n) + ".aut";
     auto ans = AUTOQ::Parsing::TimbukParser<AUTOQ::TreeAutomata::Symbol>::ReadAutomaton(file);
     // int n = (aut.qubitNum + 1) / 3;
     // aut.print_aut();
