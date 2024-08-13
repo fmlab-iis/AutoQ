@@ -89,7 +89,7 @@ void adjust_N_in_nTuple(const std::string &filename) {
                 AUTOQ_ERROR("The angle in rx gate is not a multiple of pi!");
                 exit(1);
             }
-            auto theta = ComplexParser(angle).parse().to_rational() / 2;
+            auto theta = ComplexParser(angle).getComplex().to_rational() / 2;
             if (AUTOQ::Complex::nTuple::N < static_cast<decltype(AUTOQ::Complex::nTuple::N)>(theta.denominator())) {
                 AUTOQ::Complex::nTuple::N = static_cast<decltype(AUTOQ::Complex::nTuple::N)>(theta.denominator());
             }
@@ -102,7 +102,7 @@ void adjust_N_in_nTuple(const std::string &filename) {
                 AUTOQ_ERROR("The angle in rz gate is not a multiple of pi!");
                 exit(1);
             }
-            auto theta = ComplexParser(angle).parse().to_rational() / 2;
+            auto theta = ComplexParser(angle).getComplex().to_rational() / 2;
             if (AUTOQ::Complex::nTuple::N < static_cast<decltype(AUTOQ::Complex::nTuple::N)>(theta.denominator())) {
                 AUTOQ::Complex::nTuple::N = static_cast<decltype(AUTOQ::Complex::nTuple::N)>(theta.denominator());
             }

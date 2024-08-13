@@ -74,7 +74,8 @@
         "csignal": "cpp",
         "any": "cpp",
         "future": "cpp",
-        "source_location": "cpp"
+        "source_location": "cpp",
+        "queue": "cpp"
     },
     "cmake.configureOnOpen": false
 }

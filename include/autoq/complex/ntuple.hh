@@ -300,6 +300,40 @@ struct AUTOQ::Complex::nTuple : AUTOQ::Util::mapped_vector<boost::multiprecision
             dk--;
         }
     }
+    nTuple real() const {
+        nTuple result;
+        for (const auto &kv : *this) {
+            if (kv.first == 0) {
+                result[0] += 2 * kv.second;
+                if (result[0] == 0)
+                    result.erase(0);
+            } else {
+                result[kv.first] += kv.second;
+                if (result[kv.first] == 0)
+                    result.erase(kv.first);
+                result[N-kv.first] -= kv.second;
+                if (result[N-kv.first] == 0)
+                    result.erase(N-kv.first);
+            }
+        }
+        result.k = this->k + 2;
+        return result;
+    }
+    nTuple imag() const {
+        nTuple result;
+        for (const auto &kv : *this) {
+            if (kv.first > 0) {
+                result[kv.first] += kv.second;
+                if (result[kv.first] == 0)
+                    result.erase(kv.first);
+                result[N-kv.first] += kv.second;
+                if (result[N-kv.first] == 0)
+                    result.erase(N-kv.first);
+            }
+        }
+        result.k = this->k + 2;
+        return result;
+    }
 
 private:
     nTuple binary_operation(const nTuple &o, bool add) const {

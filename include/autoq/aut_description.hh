@@ -95,6 +95,8 @@ public:   // data members
     State stateNum;
     unsigned qubitNum;
 	TopDownTransitions transitions;
+    std::set<std::string> vars;
+    std::string constraints;
     bool hasLoop;
     bool isTopdownDeterministic;
     inline static int gateCount, stateBefore, transitionBefore;
@@ -113,6 +115,8 @@ public:   // methods
         stateNum(0),
         qubitNum(0),
 		transitions(),
+        vars(),
+        constraints(),
         hasLoop(false),
         isTopdownDeterministic(false)
 	{

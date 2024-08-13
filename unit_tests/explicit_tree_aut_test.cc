@@ -550,7 +550,7 @@ BOOST_AUTO_TEST_CASE(Grover_Search)
         }
         current_path = parent_path;
     }
-L:  const auto &file = std::filesystem::absolute(current_path).string() + "/reference_answers/Grover" + std::to_string(n) + ".aut";
+L:  const auto &file = std::filesystem::absolute(current_path).string() + "/reference_answers/Grover" + std::to_string(n) + ".spec";
     auto ans = AUTOQ::Parsing::TimbukParser<AUTOQ::TreeAutomata::Symbol>::ReadAutomaton(file);
     // int n = (aut.qubitNum + 1) / 3;
     // aut.print_aut();

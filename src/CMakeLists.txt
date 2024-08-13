@@ -48,6 +48,7 @@ add_library(libautoq STATIC
 	parameterized.cc
     query.cc
 	gate.cc
+    general.cc
 )
 
 ##############################################################################

@@ -10,30 +10,43 @@
 
 using AUTOQ::Complex::Complex;
 
+typedef boost::rational<boost::multiprecision::cpp_int> rational;
+
 class ComplexParser {
 public:
-    ComplexParser(const std::string& input) : input_(input), index_(0) {}
-
-    Complex parse() {
-        skipWhitespace();
-        Complex result = parseExpression();
-        return result;
+    ComplexParser(const std::string &input) : input_(input), index_(0), constMap_(std::map<std::string, Complex>()) {
+        std::erase_if(input_, [](unsigned char ch) { return std::isspace(ch); });
+        parse();
+    }
+    ComplexParser(const std::string &input, const std::map<std::string, Complex> &constMap) : input_(input), index_(0), constMap_(constMap) {
+        std::erase_if(input_, [](unsigned char ch) { return std::isspace(ch); });
+        parse();
+    }
+    Complex getComplex() const {
+        return resultC;
+    }
+    std::string getVariable() const {
+        return resultV;
     }
 
 private:
-    const std::string& input_;
+    std::string input_;
     size_t index_;
+    Complex resultC; // complex
+    std::string resultV; // variable
+    const std::map<std::string, Complex> &constMap_;
 
-    void skipWhitespace() {
-        while (index_ < input_.length() && std::isspace(input_[index_])) {
-            index_++;
+    void parse() {
+        try {
+            resultC = parseExpression();
+        } catch (std::exception& e) {
+            resultV = input_;
         }
     }
 
     Complex parseExpression() {
         Complex left = parseTerm();
         while (index_ < input_.length()) {
-            skipWhitespace();
             char op = input_[index_];
             if (op == '+' || op == '-') {
                 index_++;
@@ -53,7 +66,6 @@ private:
     Complex parseTerm() {
         Complex left = parseFactor();
         while (index_ < input_.length()) {
-            skipWhitespace();
             char op = input_[index_];
             if (op == '*' || op == '/') {
                 index_++;
@@ -64,7 +76,7 @@ private:
                     if (!right.isZero()) {
                         left = left / right;
                     } else {
-                        throw std::runtime_error("Division by zero");
+                        throw std::runtime_error(AUTOQ_LOG_PREFIX + "Division by zero");
                     }
                 }
             } else {
@@ -86,38 +98,48 @@ private:
         }
     }
     Complex parseFactor() {
+        char nextChar = input_[index_];
+
+        // Handle unary minus
+        if (nextChar == '-')
+            index_++;
+
         Complex left = parsePrimary();
         while (index_ < input_.length()) {
-            skipWhitespace();
             char op = input_[index_];
             if (op == '^') {
                 index_++;
                 Complex right = parsePrimary();
-                return fastPower(left, static_cast<int>(right.toInt()));
+                if (nextChar == '-')
+                    return fastPower(left, static_cast<int>(right.toInt())) * -1;
+                else
+                    return fastPower(left, static_cast<int>(right.toInt()));
             } else {
                 break;
             }
         }
-        return left;
+        if (nextChar == '-')
+            return left * -1;
+        else
+            return left;
     }
 
     // template <typename T>
-    // boost::rational<boost::multiprecision::cpp_int> others_to_rational(const T &in) {
-    //     if constexpr(std::is_convertible_v<T, boost::rational<boost::multiprecision::cpp_int>>)
-    //         return boost::rational<boost::multiprecision::cpp_int>(in);
+    // rational others_to_rational(const T &in) {
+    //     if constexpr(std::is_convertible_v<T, rational>)
+    //         return rational(in);
     //     else // temporary conversion for double, may need additional enhancements
-    //         return boost::rational<boost::multiprecision::cpp_int>(static_cast<boost::multiprecision::cpp_int>(in * 1000000), 1000000);
+    //         return rational(static_cast<boost::multiprecision::cpp_int>(in * 1000000), 1000000);
     // }
     Complex parsePrimary() {
-        skipWhitespace();
         if (index_ >= input_.length()) {
-            throw std::runtime_error("Unexpected end of input");
+            throw std::runtime_error(AUTOQ_LOG_PREFIX + "Unexpected end of input");
         }
         if (input_[index_] == '(') {
             index_++;
             Complex result = parseExpression();
             if (index_ >= input_.length() || input_[index_] != ')') {
-                throw std::runtime_error("Missing closing parenthesis");
+                throw std::runtime_error(AUTOQ_LOG_PREFIX + "Missing closing parenthesis");
             }
             index_++;
             return result;
@@ -127,41 +149,41 @@ private:
                 index_++;
             }
             std::string function = input_.substr(start, index_ - start);
-            if (function == "A") {
+            if (function == "ei2pi") {
                 if (index_ < input_.length() && input_[index_] == '(') {
                     index_++;
-                    skipWhitespace();
                     if (index_ >= input_.length() || (!std::isdigit(input_[index_]) && input_[index_] != '-')) {
-                        throw std::runtime_error("Invalid argument for A function");
+                        throw std::runtime_error(AUTOQ_LOG_PREFIX + "Invalid argument for A function");
                     }
                     auto x = parseExpression();
                     if (index_ >= input_.length() || input_[index_] != ')') {
-                        throw std::runtime_error("Missing closing parenthesis for A function");
+                        throw std::runtime_error(AUTOQ_LOG_PREFIX + "Missing closing parenthesis for A function");
                     }
                     index_++;
                     // assert(x.imag() == 0);
                     return Complex::Angle(x.to_rational());
                 } else {
-                    throw std::runtime_error("Invalid syntax for A function");
+                    throw std::runtime_error(AUTOQ_LOG_PREFIX + "Invalid syntax for A function");
                 }
-            } else if (function == "V2") {
+            } else if (function == "sqrt2") {
                 return Complex::sqrt2();
+            } else if (constMap_.count(function) > 0) {
+                return constMap_.at(function);
             } else {
-                throw std::runtime_error("Unknown function: " + function);
+                throw std::runtime_error(AUTOQ_LOG_PREFIX + "Unknown variable: " + function);
             }
-        } else if (input_[index_] == '-') {
-            index_++;
-            return parsePrimary() * -1;
-        } else if (std::isdigit(input_[index_])) {
+        } else if (std::isdigit(input_[index_]) || input_[index_] == '-') {
             return Complex(parseNumber());
         } else {
-            throw std::runtime_error("Unexpected character: " + std::string(1, input_[index_]));
+            throw std::runtime_error(AUTOQ_LOG_PREFIX + "Unexpected character: " + std::string(1, input_[index_]));
         }
     }
 
-    boost::rational<boost::multiprecision::cpp_int> parseNumber() {
+    rational parseNumber() {
         size_t start = index_;
-        while (index_ < input_.length() && (std::isdigit(input_[index_]) || input_[index_] == '.'/* || input_[index_] == '-'*/)) {
+        if (index_ < input_.length() && input_[index_] == '-')
+            index_++;
+        while (index_ < input_.length() && (std::isdigit(input_[index_]) || input_[index_] == '.')) {
             index_++;
         }
         std::string numStr = input_.substr(start, index_ - start);
@@ -173,15 +195,14 @@ private:
                 break; // assume only one decimal point
             }
         }
-        /*
         if (numStr.at(0) == '-') {
             while (numStr.at(1) == '0' && numStr.length() >= 3)
                 numStr.erase(1, 1);
-        } else {*/
+        } else {
             while (numStr.at(0) == '0' && numStr.length() >= 2)
                 numStr.erase(0, 1);
-        // }
-        return boost::rational<boost::multiprecision::cpp_int>(boost::multiprecision::cpp_int(numStr), boost::multiprecision::pow(boost::multiprecision::cpp_int(10), d));
+        }
+        return rational(boost::multiprecision::cpp_int(numStr), boost::multiprecision::pow(boost::multiprecision::cpp_int(10), d));
     }
 };
 
