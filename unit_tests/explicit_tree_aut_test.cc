@@ -539,18 +539,18 @@ BOOST_AUTO_TEST_CASE(Grover_Search)
     std::filesystem::path current_path = std::filesystem::current_path();
     while (true) {
         for (const auto& entry : std::filesystem::directory_iterator(current_path)) {
-            if (entry.is_directory() && entry.path().filename() == "benchmarks") {
+            if (entry.is_directory() && entry.path().filename() == "reference_answers") {
                 goto L;
             }
         }
         std::filesystem::path parent_path = current_path.parent_path();
         if (parent_path == current_path) {
-            std::cout << "The \"" << "benchmarks" << "\" folder was not found in any parent directory.\n";
+            std::cout << "The \"" << "reference_answers" << "\" folder was not found in any parent directory.\n";
             break;
         }
         current_path = parent_path;
     }
-L:  const auto &file = std::filesystem::absolute(current_path).string() + "/benchmarks/reference_answers/Grover" + std::to_string(n) + ".spec";
+L:  const auto &file = std::filesystem::absolute(current_path).string() + "/reference_answers/Grover" + std::to_string(n) + ".spec";
     auto ans = AUTOQ::Parsing::TimbukParser<AUTOQ::TreeAutomata::Symbol>::ReadAutomaton(file);
     // int n = (aut.qubitNum + 1) / 3;
     // aut.print_aut();
