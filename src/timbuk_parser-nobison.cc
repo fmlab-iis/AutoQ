@@ -329,7 +329,7 @@ typename AUTOQ::Automata<Symbol>::Symbol parse_symbol(const std::string& str, st
     }
     /**************************** SymbolicAutomata ****************************/
     else if constexpr(std::is_same_v<Symbol, AUTOQ::SymbolicAutomata::Symbol>) {
-        std::string str2 = str.substr(str.front()=='[', str.length()-1 - str.back()==']');
+        std::string str2 = str.substr(str.front()=='[', str.length() - (str.front()=='[') - (str.back()==']'));
         try {
             return AUTOQ::SymbolicAutomata::Symbol(boost::lexical_cast<boost::multiprecision::cpp_int>(str2.c_str()));
         } catch (boost::bad_lexical_cast& e) {
@@ -341,7 +341,7 @@ typename AUTOQ::Automata<Symbol>::Symbol parse_symbol(const std::string& str, st
     }
     /**************************** PredicateAutomata ****************************/
     else if constexpr(std::is_same_v<Symbol, AUTOQ::PredicateAutomata::Symbol>) {
-        std::string str2 = str.substr(str.front()=='[', str.length()-1 - str.back()==']');
+        std::string str2 = str.substr(str.front()=='[', str.length() - (str.front()=='[') - (str.back()==']'));
         try {
             return AUTOQ::Symbol::Predicate(boost::multiprecision::cpp_int(str2));
         } catch (...) {
