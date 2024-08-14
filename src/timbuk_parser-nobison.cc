@@ -72,7 +72,7 @@ AUTOQ::Automata<Symbol> from_tree_to_automaton(std::string tree, const std::map<
         typename AUTOQ::Automata<AUTOQ::Symbol::Concrete>::State state_counter = 0;
         for (unsigned level=1; level<=aut.qubitNum; level++) {
             for (typename AUTOQ::Automata<AUTOQ::Symbol::Concrete>::State i=0; i<pow_of_two; i++) {
-                aut.transitions[AUTOQ::Symbol::Concrete(level)][state_counter].insert({(state_counter<<1)+1, (state_counter<<1)+2});
+                aut.transitions[typename AUTOQ::Automata<Symbol>::SymbolTag(AUTOQ::Symbol::Concrete(level), typename AUTOQ::Automata<Symbol>::Tag(1))][state_counter].insert({(state_counter<<1)+1, (state_counter<<1)+2});
                 state_counter++;
             }
             pow_of_two <<= 1;
@@ -82,16 +82,10 @@ AUTOQ::Automata<Symbol> from_tree_to_automaton(std::string tree, const std::map<
             if (spf == states_probs.end()) {
                 // if (default_prob == AUTOQ::Complex::Complex())
                 //     throw std::runtime_error(AUTOQ_LOG_PREFIX + "[ERROR] The default amplitude is not specified!");
-                if (default_prob.size() == 5)
-                    aut.transitions[AUTOQ::Symbol::Concrete(default_prob)][i].insert({{}});
-                else {
-                    AUTOQ_ERROR("Why do we need this case?");
-                    exit(1);
-                    aut.transitions[AUTOQ::Symbol::Concrete(default_prob.at(0))][i].insert({{}});
-                }
+                aut.transitions[typename AUTOQ::Automata<Symbol>::SymbolTag(AUTOQ::Symbol::Concrete(default_prob), typename AUTOQ::Automata<Symbol>::Tag(1))][i].insert({{}});
             }
             else
-                aut.transitions[spf->second][i].insert({{}});
+                aut.transitions[typename AUTOQ::Automata<Symbol>::SymbolTag(spf->second, typename AUTOQ::Automata<Symbol>::Tag(1))][i].insert({{}});
         }
         aut.finalStates.push_back(0);
         aut.stateNum = (state_counter<<1) + 1;
@@ -155,7 +149,7 @@ AUTOQ::Automata<Symbol> from_tree_to_automaton(std::string tree, const std::map<
         typename AUTOQ::Automata<AUTOQ::Symbol::Symbolic>::State state_counter = 0;
         for (unsigned level=1; level<=aut.qubitNum; level++) {
             for (typename AUTOQ::Automata<AUTOQ::Symbol::Symbolic>::State i=0; i<pow_of_two; i++) {
-                aut.transitions[AUTOQ::Symbol::Symbolic(level)][state_counter].insert({(state_counter<<1)+1, (state_counter<<1)+2});
+                aut.transitions[typename AUTOQ::Automata<Symbol>::SymbolTag(AUTOQ::Symbol::Symbolic(level), typename AUTOQ::Automata<Symbol>::Tag(1))][state_counter].insert({(state_counter<<1)+1, (state_counter<<1)+2});
                 state_counter++;
             }
             pow_of_two <<= 1;
@@ -165,10 +159,10 @@ AUTOQ::Automata<Symbol> from_tree_to_automaton(std::string tree, const std::map<
             if (spf == states_probs.end()) {
                 // if (default_prob == AUTOQ::Symbol::Symbolic())
                 //     throw std::runtime_error(AUTOQ_LOG_PREFIX + "[ERROR] The default amplitude is not specified!");
-                aut.transitions[AUTOQ::Symbol::Symbolic(default_prob)][i].insert({{}});
+                aut.transitions[typename AUTOQ::Automata<Symbol>::SymbolTag(AUTOQ::Symbol::Symbolic(default_prob), typename AUTOQ::Automata<Symbol>::Tag(1))][i].insert({{}});
             }
             else
-                aut.transitions[spf->second][i].insert({{}});
+                aut.transitions[typename AUTOQ::Automata<Symbol>::SymbolTag(spf->second, typename AUTOQ::Automata<Symbol>::Tag(1))][i].insert({{}});
         }
         aut.finalStates.push_back(0);
         aut.stateNum = (state_counter<<1) + 1;
