@@ -236,60 +236,7 @@ AUTOQ::Automata<Symbol> from_line_to_automaton(std::string line, const std::map<
     // to tensor product with the rest of the automata
     while (std::getline(iss_tensor, tree, '#')) {
         auto aut2 = from_tree_to_automaton<Symbol>(tree, constants);
-
-        // let aut2 be tensor producted with aut here
-        typename AUTOQ::Automata<Symbol>::TopDownTransitions aut_leaves;
-        for (const auto &t : aut.transitions) {
-            if (t.first.is_leaf()) {
-                aut_leaves[t.first] = t.second;
-            }
-        }
-        for (const auto &t : aut_leaves) {
-            aut.transitions.erase(t.first);
-        }
-
-        // append aut2 to each leaf transition of aut
-        for (const auto &aut_leaf_trans : aut_leaves) {
-            typename AUTOQ::Automata<Symbol>::StateSet bottom_states_corresponding_to_this_leaf_trans;
-            for (const auto &out_ins : aut_leaf_trans.second) { // for (const auto &s2 : aut_leaf_trans.second.at({})) // simply apply these states
-                // if (out_ins.second.contains({})) {
-                    bottom_states_corresponding_to_this_leaf_trans.insert(out_ins.first);
-                // }
-            }
-            for (const auto &t2 : aut2.transitions) {
-                int Q = static_cast<int>(aut.qubitNum + t2.first.symbol().qubit()); // we need to shift the qubit number
-                if (t2.first.is_internal()) { // if the to-be-appended transition is internal, then
-                    for (const auto &kv : t2.second) { // for each pair of top -> ...
-                        auto top = kv.first;
-                        for (auto in : kv.second) { // ... -> set_vec_in
-                            for (auto &e : in)
-                                e += aut.stateNum;
-                            // above shift the state number of vec_in first,
-                            if (std::find(aut2.finalStates.begin(), aut2.finalStates.end(), top) != aut2.finalStates.end()) { // if to be connected to leaf states of aut, then
-                                for (const auto &s2 : bottom_states_corresponding_to_this_leaf_trans) // simply apply these states
-                                    aut.transitions[Symbol(Q)][s2].insert(in);
-                            }
-                            else // and then shift the state number of the top state
-                                aut.transitions[Symbol(Q)][top + aut.stateNum].insert(in);
-                        }
-                    }
-                } else {
-                    for (const auto &kv : t2.second) {
-                        auto top = kv.first;
-                        for (auto in : kv.second) {
-                            for (auto &e : in)
-                                e += aut.stateNum;
-                            aut.transitions[aut_leaf_trans.first.symbol() * t2.first.symbol()][top + aut.stateNum].insert(in);
-                        }
-                    }
-                }
-            }
-            aut.stateNum += aut2.stateNum;
-        }
-        aut.qubitNum += aut2.qubitNum;
-        aut.reduce();
-        for (const auto &var : aut2.vars)
-            aut.vars.insert(var);
+        aut = aut * aut2;
     }
     return aut;
 }
@@ -325,6 +272,9 @@ typename AUTOQ::Automata<Symbol>::Symbol parse_symbol(const std::string& str, st
             assert(temp.size() == 1 || temp.size() == 5);
             if (temp.size() == 1) return AUTOQ::TreeAutomata::Symbol(temp.at(0));
             return AUTOQ::TreeAutomata::Symbol(temp);
+        } else {
+            AUTOQ_ERROR("[ERROR] The type of Complex is not supported!");
+            exit(1);
         }
     }
     /**************************** SymbolicAutomata ****************************/

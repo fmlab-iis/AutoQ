@@ -225,7 +225,11 @@ public:
     int count_transitions() const;
     /**************************************************/
 
+    /**************************************************/
+    /* general.cc: all general operations for two TAs */
+    Automata operator*(Automata aut2) const; // use the multiplication operator to denote "tensor product"
     Automata operator||(const Automata &o) const; // use the logical OR operator to denote "union"
+    /**************************************************/
 };
 
 
