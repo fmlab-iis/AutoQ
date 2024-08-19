@@ -55,7 +55,7 @@ AUTOQ::Automata<Symbol> AUTOQ::Automata<Symbol>::operator*(Automata<Symbol> aut2
         if (it->first.is_leaf()) {
             for (const auto &out_ins : it->second) {
                 auto the_top_state_of_that_leaf_transition = out_ins.first; // (1)
-                assert(out_ins.second == {{}});
+                assert(out_ins.second == std::set<StateVector>({{}}));
                 auto the_color_of_that_leaf_transition = it->first.tag(); // (2)
                 if (((the_color_of_that_leaf_transition << shift) >> shift) != the_color_of_that_leaf_transition) {
                     AUTOQ_ERROR("The shifted color is out of range!!!");
