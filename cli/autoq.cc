@@ -151,7 +151,7 @@ int main(int argc, char **argv) {
     feenableexcept(FE_ALL_EXCEPT & ~FE_INEXACT);
 
     CLI::App app{"AutoQ: An automata-based C++ tool for quantum program verification."};
-    std::string pre, circuit, post, constraint, circuit1, circuit2;
+    std::string pre, circuit, post, circuit1, circuit2;
 
     CLI::App* executionC = app.add_subcommand("exC", "Concrete Execution");
     executionC->add_option("pre.{aut|hsl|spec}", pre, "the precondition file")->required()->type_name("");
@@ -181,7 +181,6 @@ int main(int argc, char **argv) {
     verificationS->add_option("pre.{aut|hsl|spec}", pre, "the precondition file")->required()->type_name("");
     verificationS->add_option("circuit.qasm", circuit, "the OpenQASM 3.0 circuit file")->required()->type_name("");
     verificationS->add_option("post.{aut|hsl|spec}", post, "the postcondition file")->required()->type_name("");
-    verificationS->add_option("constraint.smt", constraint, "the constraint file")->type_name("");
     verificationS->add_flag("-l,--latex", latex, "Print the statistics for tables in LaTeX");
     verificationS->callback([&]() {
         adjust_N_in_nTuple(circuit);
@@ -228,22 +227,12 @@ int main(int argc, char **argv) {
         runConcrete = false;
         AUTOQ::SymbolicAutomata aut = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Symbolic>::ReadAutomaton(pre);
         AUTOQ::PredicateAutomata spec = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Predicate>::ReadAutomaton(post);
-
-        std::stringstream buffer;
-        if (!constraint.empty()) {
-            std::ifstream t(constraint);
-            if (!t) // in case the file could not be open
-                throw std::runtime_error("[ERROR] Failed to open file " + std::string(constraint) + ".");
-            buffer << t.rdbuf();
-        }
-        AUTOQ::Constraint C(buffer.str().c_str());
-
         aut.execute(circuit);
         // std::cout << "OUTPUT AUTOMATON:\n";
         // std::cout << "=================\n";
         // aut.print_aut();
         // std::cout << "=================\n";
-        bool verify = AUTOQ::check_inclusion(C, aut, spec);
+        bool verify = AUTOQ::check_inclusion(AUTOQ::Constraint(aut.constraints.c_str()), aut, spec);
         if (latex) {
             aut.print_stats();
         } else {

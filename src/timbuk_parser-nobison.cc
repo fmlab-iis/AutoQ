@@ -547,13 +547,12 @@ AUTOQ::Automata<Symbol> parse_timbuk(const std::string& str) {
 }
 
 template <typename Symbol>
-AUTOQ::Automata<Symbol> parse_automaton(const std::string& str, const std::map<std::string, Complex> &constants) {
+AUTOQ::Automata<Symbol> parse_automaton(const std::string& str, const std::map<std::string, Complex> &constants, const std::map<std::string, std::string> &predicates) {
 try {
     bool colored = false;
     bool start_transitions = false;
     bool already_root_states = false;
     AUTOQ::Automata<Symbol> result;
-    std::map<std::string, std::string> predicates;
     std::map<std::string, typename AUTOQ::Automata<Symbol>::State> states;
     std::set<std::string> result_finalStates;
 
@@ -892,27 +891,48 @@ AUTOQ::Automata<Symbol> AUTOQ::Parsing::TimbukParser<Symbol>::ReadAutomaton(cons
     std::string automaton, constraints;
     std::string fileContents = AUTOQ::Util::ReadFile(filepath);
     std::map<std::string, AUTOQ::Complex::Complex> constants;
+    std::map<std::string, std::string> predicates;
 
     if (!boost::algorithm::ends_with(filepath, ".aut") &&
-        fileContents.find("Constants") != std::string::npos) {
+        (fileContents.find("Constants") != std::string::npos ||
+         fileContents.find("Predicates") != std::string::npos)) {
         size_t found2 = std::min(fileContents.find("Extended"), fileContents.find("Root"));
         if (found2 == std::string::npos) {
             throw std::runtime_error(AUTOQ_LOG_PREFIX + "Neither \"Extended Dirac\" nor \"Root States\" are specified.");
         }
-        auto constants_str = AUTOQ::String::trim(fileContents.substr(9, found2 - 9)); // "Constants".length()
-        fileContents = fileContents.substr(found2);
 
-        std::stringstream ss(constants_str);
-        std::string str;
-        while (std::getline(ss, str, '\n')) {
-            size_t arrow_pos = str.find(":=");
-            if (std::string::npos != arrow_pos) { // Variables may appear without values in the symbolic case.
-                std::string lhs = AUTOQ::String::trim(str.substr(0, arrow_pos));
-                std::string rhs = AUTOQ::String::trim(str.substr(arrow_pos + 2));
-                if (lhs.empty() || rhs.empty()) {
-                    throw std::runtime_error(AUTOQ_LOG_PREFIX + "Invalid number \"" + str + "\".");
+        if (fileContents.find("Constants") != std::string::npos) {
+            std::string constants_str = AUTOQ::String::trim(fileContents.substr(std::string("Constants").length(), found2 - std::string("Constants").length()));
+            fileContents = fileContents.substr(found2);
+            std::stringstream ss(constants_str);
+            std::string str;
+            while (std::getline(ss, str, '\n')) {
+                size_t arrow_pos = str.find(":=");
+                if (std::string::npos != arrow_pos) { // Variables may appear without values in the symbolic case.
+                    std::string lhs = AUTOQ::String::trim(str.substr(0, arrow_pos));
+                    std::string rhs = AUTOQ::String::trim(str.substr(arrow_pos + 2));
+                    if (lhs.empty() || rhs.empty()) {
+                        throw std::runtime_error(AUTOQ_LOG_PREFIX + "Invalid number \"" + str + "\".");
+                    }
+                    constants[lhs] = ComplexParser(rhs).getComplex();
                 }
-                constants[lhs] = ComplexParser(rhs).getComplex();
+            }
+        }
+        if (fileContents.find("Predicates") != std::string::npos) {
+            std::string predicates_str = AUTOQ::String::trim(fileContents.substr(std::string("Predicates").length(), found2 - std::string("Predicates").length()));
+            fileContents = fileContents.substr(found2);
+            std::stringstream ss(predicates_str);
+            std::string str;
+            while (std::getline(ss, str, '\n')) {
+                size_t arrow_pos = str.find(":=");
+                if (std::string::npos != arrow_pos) { // Variables may appear without values in the symbolic case.
+                    std::string lhs = AUTOQ::String::trim(str.substr(0, arrow_pos));
+                    std::string rhs = AUTOQ::String::trim(str.substr(arrow_pos + 2));
+                    if (lhs.empty() || rhs.empty()) {
+                        throw std::runtime_error(AUTOQ_LOG_PREFIX + "Invalid number \"" + str + "\".");
+                    }
+                    predicates[lhs] = rhs;
+                }
             }
         }
 
@@ -968,7 +988,7 @@ AUTOQ::Automata<Symbol> AUTOQ::Parsing::TimbukParser<Symbol>::ReadAutomaton(cons
         constraints = "";
     }
     if (boost::algorithm::ends_with(filepath, ".spec")) {
-        result = parse_automaton<Symbol>(automaton, constants);
+        result = parse_automaton<Symbol>(automaton, constants, predicates);
     } else if (boost::algorithm::ends_with(filepath, ".aut")) {
         result = parse_timbuk<Symbol>(automaton);
     } else if (boost::algorithm::ends_with(filepath, ".hsl")) {
@@ -983,7 +1003,10 @@ AUTOQ::Automata<Symbol> AUTOQ::Parsing::TimbukParser<Symbol>::ReadAutomaton(cons
         result.constraints += ConstraintParser(constraint, constants).getSMTexpression();
     }
     if (!result.constraints.empty())
-        result.constraints = "(and " + result.constraints + ")";
+        result.constraints = "(assert (and " + result.constraints + "))";
+    for (const auto &var : result.vars) {
+        result.constraints = "(declare-const " + var + " Real)" + result.constraints;
+    }
     return result;
 }
 
