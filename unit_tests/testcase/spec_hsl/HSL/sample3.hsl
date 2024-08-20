@@ -1,0 +1,6 @@
+Constants
+vH := 2
+vL := 1
+c0 := 0
+Extended Dirac
+\/ |i|=2 : |i> # vH |i> + vL |*> # |000>
