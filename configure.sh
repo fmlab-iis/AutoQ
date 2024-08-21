@@ -23,6 +23,7 @@ if [ "$OS_TYPE" = "Linux" ]; then
         apt install cmake
         apt install libboost-filesystem-dev
         apt install libboost-test-dev
+        apt install libboost-regex-dev
         ;;
       *)
         echo "configure.sh only support ubuntu|debian"
@@ -40,7 +41,7 @@ elif [ "$OS_TYPE" = "Darwin" ]; then
         if [[ "$yn" =~ ^[Nn]$ ]]; then
             echo "exit"
             exit 1
-        else 
+        else
           /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
         fi
     fi

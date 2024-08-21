@@ -17,7 +17,7 @@ set(CMAKE_COLOR_MAKEFILE ON)
 OPTION(MAKE_STATIC_AUTOQ "make static library" OFF)
 
 # The default C++ compiler
-set(DEFAULT_CXX_COMPILER "g++") 
+set(DEFAULT_CXX_COMPILER "g++")
 
 # Build with Clang? -- currently does nothing, initialize with
 #   $ CXX=clang++ make debug

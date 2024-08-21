@@ -30,7 +30,7 @@ Our program currently supports $X$, $Y$, $Z$, $H$, $T$, $T^\dagger$, $S$, $S^\da
 ## Installation and Compilation
 
 1. Install the following dependencies via the command line.<br>
-`$ sudo apt install git make cmake g++ libboost-filesystem-dev libboost-test-dev`.
+`$ sudo apt install git make cmake g++ libboost-filesystem-dev libboost-test-dev libboost-regex-dev`.
 
 2. We need the Z3 solver to solve the constraints when the NFTA contains some symbolic variables. Since the installation process of Z3 may take a lot of work, I have provided the [prebuilt shared library](https://github.com/alan23273850/AutoQ/blob/CAV24/libz3.so.4.12) of [z3-4.12.5](https://github.com/Z3Prover/z3/releases/tag/z3-4.12.5) and the corresponding [header files](https://github.com/alan23273850/AutoQ/tree/CAV24/include/z3) for users' convenience. You don't have to do anything for this.
 

@@ -12,12 +12,12 @@ jobs:
   # setup:
   #   runs-on: ubuntu-latest
   #   steps:
-  #   - run: sudo apt-get install libboost-filesystem-dev libboost-test-dev z3
+  #   - run: sudo apt-get install libboost-filesystem-dev libboost-test-dev libboost-regex-dev z3
   build-debug:
     # needs: setup
     runs-on: ubuntu-latest
     steps:
-    - run: sudo apt-get install libboost-filesystem-dev libboost-test-dev z3
+    - run: sudo apt-get install libboost-filesystem-dev libboost-test-dev libboost-regex-dev z3
     - run: git clone https://github.com/alan23273850/AutoQ.git
     - run: cd AutoQ && git checkout ${{ github.ref_name }} && mkdir build && make debug
     - run: cp /usr/lib/x86_64-linux-gnu/libboost_unit_test_framework.so.1.74.0 /home/runner/work/AutoQ/AutoQ/AutoQ/build/unit_tests/
@@ -40,7 +40,7 @@ jobs:
     # needs: setup
     runs-on: ubuntu-latest
     steps:
-    - run: sudo apt-get install libboost-filesystem-dev libboost-test-dev z3
+    - run: sudo apt-get install libboost-filesystem-dev libboost-test-dev libboost-regex-dev z3
     - run: git clone https://github.com/alan23273850/AutoQ.git
     - run: cd AutoQ && git checkout ${{ github.ref_name }} && mkdir build && make release
     - run: cp /usr/lib/x86_64-linux-gnu/libboost_unit_test_framework.so.1.74.0 /home/runner/work/AutoQ/AutoQ/AutoQ/build/unit_tests/

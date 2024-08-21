@@ -71,3 +71,5 @@ include_directories(../include/z3)
 
 # https://www.weiy.city/2022/06/use-cmake-to-import-shared-library-or-static-library/
 # https://bayareanotes.com/cmake-adding-external-library/
+
+target_link_libraries(libautoq boost_regex)
