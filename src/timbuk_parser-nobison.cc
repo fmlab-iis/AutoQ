@@ -11,6 +11,7 @@
 // C++ headers
 #include <regex>
 #include <fstream>
+#include <boost/regex.hpp>
 #include <boost/algorithm/string/predicate.hpp>
 
 // AUTOQ headers
@@ -847,7 +848,13 @@ AUTOQ::Automata<Symbol> AUTOQ::Parsing::TimbukParser<Symbol>::parse_hsl_from_ist
             std::string i(std::atoi(length.c_str()), '1');
             bool reach_all_zero;
             do {
-                auto aut = from_line_to_automaton<Symbol>(std::regex_replace(line, std::regex("\\|i>"), "|" + i + ">"), constants);
+                const boost::regex pattern(R"(\|[^>]*\>)");
+                auto replace_i_with_i = [&i](const boost::smatch& match) -> std::string {
+                    std::string modified_str = match.str();
+                    return std::regex_replace(modified_str, std::regex("i"), i);
+                };
+                std::string line2 = boost::regex_replace(line, pattern, replace_i_with_i, boost::match_default | boost::format_all);
+                auto aut = from_line_to_automaton<Symbol>(line2, constants);
                 aut_final = aut_final.operator||(aut);
                 aut_final.reduce();
 
