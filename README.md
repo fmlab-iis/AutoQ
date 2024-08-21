@@ -10,12 +10,12 @@ Our program currently supports $X$, $Y$, $Z$, $H$, $T$, $T^\dagger$, $S$, $S^\da
 
 ## Installation and Compilation
 
-Currently, for Linux (Ubuntu/Debian) and macOS, the dependency of AutoQ can be built using the command ./configure.sh. After configuration, please run the following command.
+Currently, for Linux (Ubuntu/Debian) and macOS, the dependency of AutoQ can be built using the command `./configure.sh`. After configuration, please run the following command.
 ```
 make release
 make test
 ```
-The first command compiles the source code with compiler optimizations enabled, while the second command runs several unit tests to verify the correctness of the implementation. If you need to compile the library for debugging, you can replace make release with make debug.
+The first command compiles the source code with compiler optimizations enabled, while the second command runs several unit tests to verify the correctness of the implementation. If you need to compile the library for debugging, you can replace make release with `make debug`.
 
 ---
 
