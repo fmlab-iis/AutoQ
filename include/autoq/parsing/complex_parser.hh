@@ -25,7 +25,7 @@ public:
     Complex getComplex() const {
         return resultC;
     }
-    std::string getVariable() const {
+    std::string getConstName() const {
         return resultV;
     }
 

@@ -53,7 +53,7 @@ AUTOQ::Automata<Symbol> from_tree_to_automaton(std::string tree, const std::map<
                 throw std::runtime_error(AUTOQ_LOG_PREFIX + "[ERROR] The numbers of qubits are not the same in all basis states!");
             if (state == "*") {
                 auto cp = ComplexParser(t, constants);
-                if (!cp.getVariable().empty()) // is symbol
+                if (!cp.getConstName().empty()) // is symbol
                     default_prob = constants.at(t);
                 else
                     default_prob = cp.getComplex();
@@ -61,7 +61,7 @@ AUTOQ::Automata<Symbol> from_tree_to_automaton(std::string tree, const std::map<
             } else {
                 AUTOQ::TreeAutomata::State s = std::stoll(state, nullptr, 2);
                 auto cp = ComplexParser(t, constants);
-                if (!cp.getVariable().empty())  // is symbol
+                if (!cp.getConstName().empty())  // is symbol
                     states_probs[s].complex = constants.at(t);
                 else
                     states_probs[s].complex = cp.getComplex();
