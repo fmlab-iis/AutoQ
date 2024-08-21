@@ -848,13 +848,22 @@ AUTOQ::Automata<Symbol> AUTOQ::Parsing::TimbukParser<Symbol>::parse_hsl_from_ist
             std::string i(std::atoi(length.c_str()), '1');
             bool reach_all_zero;
             do {
-                const boost::regex pattern(R"(\|[^>]*\>)");
+                std::string ic = i;
+                std::replace(ic.begin(), ic.end(), '0', 'x');
+                std::replace(ic.begin(), ic.end(), '1', '0');
+                std::replace(ic.begin(), ic.end(), 'x', '1');
+                const boost::regex pattern(R"(\|[^>]*>)");
+                auto replace_ic_with_ic = [&ic](const boost::smatch& match) -> std::string {
+                    std::string modified_str = match.str();
+                    return std::regex_replace(modified_str, std::regex("i'"), ic);
+                };
+                line = boost::regex_replace(line, pattern, replace_ic_with_ic, boost::match_default | boost::format_all);
                 auto replace_i_with_i = [&i](const boost::smatch& match) -> std::string {
                     std::string modified_str = match.str();
                     return std::regex_replace(modified_str, std::regex("i"), i);
                 };
-                std::string line2 = boost::regex_replace(line, pattern, replace_i_with_i, boost::match_default | boost::format_all);
-                auto aut = from_line_to_automaton<Symbol>(line2, constants);
+                std::string line = boost::regex_replace(line, pattern, replace_i_with_i, boost::match_default | boost::format_all);
+                auto aut = from_line_to_automaton<Symbol>(line, constants);
                 aut_final = aut_final.operator||(aut);
                 aut_final.reduce();
 
