@@ -826,4 +826,62 @@ BOOST_AUTO_TEST_CASE(Grover_Search_only_one_oracle)
 //     }
 // }
 
+/*
+bool is_symbol(std::string file)
+{
+    std::ifstream fin;
+    fin.open(file);
+    std::string word;
+    while(fin>>word)
+    {
+        if(word == "Constraints")
+            return 1;
+    }
+    return 0;
+}
+
+BOOST_AUTO_TEST_CASE(HSL_format_checker)
+{
+    
+    for(int i = 0 ; i < 4 ; i++)
+    {
+        std::string hsl_file = "/home/johnny/AutoQ/unit_tests/testcase/spec_hsl/HSL/sample"+std::to_string(i)+".hsl";
+        std::string spec_file = "/home/johnny/AutoQ/unit_tests/testcase/spec_hsl/SPEC/sample"+std::to_string(i)+".spec";
+        std::cout<<hsl_file<<std::endl;
+        std::cout<<spec_file<<std::endl;
+        if(is_symbol(spec_file))
+        {
+            //auto aut_hsl  = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Symbolic>::ReadAutomaton(hsl_file);
+            //auto aut_spec = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Symbolic>::ReadAutomaton(spec_file);
+            //aut_spec.print_aut();
+            //aut_hsl.print_aut();
+
+            
+            auto aut_hsl  = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Symbolic>::ReadAutomaton(hsl_file);
+            auto aut_spec = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Predicate>::ReadAutomaton(spec_file);
+            std::string constraint = "";
+            std::stringstream buffer;
+            if (!constraint.empty()) {
+                std::ifstream t(constraint);
+                if (!t) // in case the file could not be open
+                    throw std::runtime_error("[ERROR] Failed to open file " + std::string(constraint) + ".");
+                buffer << t.rdbuf();
+            }
+            // AUTOQ::Constraint C(buffer.str().c_str());
+            // bool verify_1 = AUTOQ::check_inclusion(C, aut_hsl, aut_spec);
+            // BOOST_REQUIRE_MESSAGE(verify_1, "");
+            
+
+        }
+        else
+        {
+            auto aut_hsl  = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Concrete>::ReadAutomaton(hsl_file);
+            auto aut_spec = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Concrete>::ReadAutomaton(spec_file);
+            bool res = (aut_hsl <= aut_spec) && (aut_spec <= aut_hsl);
+            BOOST_REQUIRE_MESSAGE(res, "");
+        }
+    }
+}
+
+*/
 // BOOST_AUTO_TEST_SUITE_END()
