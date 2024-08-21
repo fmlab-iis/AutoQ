@@ -43,10 +43,10 @@ The verification process [passed] in [0.0s] with [16MB] memory usage.
 ```
 AutoQ provides two file extensions, *.hsl and *.spec, for users to indicate the format they use to describe a set of quantum states. The simpler format is *.hsl, which does not require users to have a background in NFTA. However, since our current implementation of *.hsl has not yet been optimized, we strongly recommend using *.spec as the number of qubits increases. The detailed formats can be found in the following documents.
 
-- [hsl format description](./hsl_description.md)
-- [spec format description](./spec_description.md)
+- [hsl format description](./docs/hsl_description.md)
+- [spec format description](./docs/spec_description.md)
 
-If you're interested in the internal structures for quantum state representation, see the file [internal_structure.md](./internal_structure.md).
+If you're interested in the internal structures for quantum state representation, see the file [internal_structure.md](./docs/internal_structure.md).
 
 ---
 

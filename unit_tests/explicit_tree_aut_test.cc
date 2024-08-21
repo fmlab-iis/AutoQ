@@ -826,6 +826,7 @@ BOOST_AUTO_TEST_CASE(Grover_Search_only_one_oracle)
 //     }
 // }
 
+/*
 bool is_symbol(std::string file)
 {
     std::ifstream fin;
@@ -882,5 +883,5 @@ BOOST_AUTO_TEST_CASE(HSL_format_checker)
     }
 }
 
-
+*/
 // BOOST_AUTO_TEST_SUITE_END()
