@@ -34,7 +34,7 @@ template <typename Symbol>
 struct AUTOQ::Parsing::TimbukParser
 {
     static AUTOQ::Automata<Symbol> ReadAutomaton(const std::string& filepath);
-    static AUTOQ::Automata<Symbol> parse_hsl_from_istream(std::istream *is, const std::map<std::string, AUTOQ::Complex::Complex> &constants = {});
+    static AUTOQ::Automata<Symbol> parse_hsl_from_istream(std::istream *is, const std::map<std::string, AUTOQ::Complex::Complex> &constants = {}, const std::map<std::string, std::string> &predicates = {});
 };
 
 #endif

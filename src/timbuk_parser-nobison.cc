@@ -30,7 +30,7 @@
 #include "autoq/parsing/constraint_parser.hh"
 
 template <typename Symbol>
-AUTOQ::Automata<Symbol> from_tree_to_automaton(std::string tree, const std::map<std::string, AUTOQ::Complex::Complex> &constants) {
+AUTOQ::Automata<Symbol> from_tree_to_automaton(std::string tree, const std::map<std::string, AUTOQ::Complex::Complex> &constants, const std::map<std::string, std::string> &predicates) {
     /************************** TreeAutomata **************************/
     if constexpr(std::is_same_v<Symbol, AUTOQ::TreeAutomata::Symbol>) {
         AUTOQ::Automata<AUTOQ::Symbol::Concrete> aut;
@@ -172,71 +172,128 @@ AUTOQ::Automata<Symbol> from_tree_to_automaton(std::string tree, const std::map<
     }
     /**************************** PredicateAutomata ****************************/
     else if constexpr(std::is_same_v<Symbol, AUTOQ::PredicateAutomata::Symbol>) {
-        throw std::runtime_error(AUTOQ_LOG_PREFIX + "[ERROR] This function is currently disabled!");
-        exit(1);
-        // AUTOQ::PredicateAutomata aut;
-        // std::map<AUTOQ::PredicateAutomata::State, AUTOQ::PredicateAutomata::Symbol> states_probs;
-        // AUTOQ::PredicateAutomata::Symbol default_prob;
-        // std::smatch match;
-        // while (std::regex_search(tree, match, std::regex("\\[.*?\\]"))) {
-        //     std::string state_prob = match.str();
-        //     tree = match.suffix().str(); // notice that the order of this line and the above line cannot be reversed!
-        //     state_prob = state_prob.substr(1, state_prob.size()-2);
-        //     std::istringstream iss2(state_prob);
-        //     std::string state;
-        //     std::getline(iss2, state, ':');
-        //     if (states_probs.empty())
-        //         aut.qubitNum = state.length();
-        //     std::string t;
-        //     if (state == "*") {
-        //         std::getline(iss2, t);
-        //         default_prob = AUTOQ::Symbol::Predicate(t.c_str());
-        //     } else {
-        //         AUTOQ::PredicateAutomata::State s = std::stoll(state, nullptr, 2);
-        //         auto &sps = states_probs[s];
-        //         std::getline(iss2, t);
-        //         sps = AUTOQ::Symbol::Predicate(t.c_str());
-        //     }
-        // }
-        // AUTOQ::PredicateAutomata::State pow_of_two = 1;
-        // AUTOQ::PredicateAutomata::State state_counter = 0;
-        // for (unsigned level=1; level<=aut.qubitNum; level++) {
-        //     for (AUTOQ::PredicateAutomata::State i=0; i<pow_of_two; i++) {
-        //         aut.transitions[AUTOQ::Symbol::Predicate(level)][state_counter].insert({(state_counter<<1)+1, (state_counter<<1)+2});
-        //         state_counter++;
-        //     }
-        //     pow_of_two <<= 1;
-        // }
-        // for (AUTOQ::PredicateAutomata::State i=state_counter; i<=(state_counter<<1); i++) {
-        //     auto spf = states_probs.find(i-state_counter);
-        //     if (spf == states_probs.end()) {
-        //         if (default_prob == AUTOQ::PredicateAutomata::Symbol())
-        //             throw std::runtime_error(AUTOQ_LOG_PREFIX + "[ERROR] The default amplitude is not specified!");
-        //         aut.transitions[default_prob][i].insert({{}});
-        //     }
-        //     else
-        //         aut.transitions[spf->second][i].insert({{}});
-        // }
-        // aut.finalStates.push_back(0);
-        // aut.stateNum = (state_counter<<1) + 1;
-        // aut.reduce();
-        // return aut;
+        AUTOQ::Automata<AUTOQ::Symbol::Predicate> aut;
+        std::map<typename AUTOQ::Automata<AUTOQ::Symbol::Predicate>::State, std::string> states_probs;
+        std::string default_prob;
+        const std::regex myregex("(.*?)\\|(.*?)>");
+        const std::regex_iterator<std::string::iterator> END;
+        std::regex_iterator<std::string::iterator> it2(tree.begin(), tree.end(), myregex);
+        while (it2 != END) { // p1|10> + p2|11> + p3|*>
+            std::string state = it2->str(2); // 10
+            std::string t = it2->str(1); // p1
+            std::erase(t, ' ');
+            if (!t.empty() && t.at(0) == '+') t = t.substr(1);
+            if (states_probs.empty()) {
+                if (state == "*")
+                    throw std::runtime_error(AUTOQ_LOG_PREFIX + "[ERROR] The numbers of qubits are not specified!");
+                aut.qubitNum = state.length();
+            } else if (state != "*" && aut.qubitNum != state.length()) {
+                throw std::runtime_error(AUTOQ_LOG_PREFIX + "[ERROR] The numbers of qubits are not the same in all basis states!");
+            }
+            std::string &predicate = std::invoke([&]()-> std::string& {
+                if (state == "*") {
+                    return default_prob;
+                } else {
+                    AUTOQ::SymbolicAutomata::State s = std::stoll(state, nullptr, 2);
+                    return states_probs[s];
+                }
+            });
+            predicate = predicates.at(t);
+            ++it2;
+        }
+        typename AUTOQ::Automata<AUTOQ::Symbol::Predicate>::State pow_of_two = 1;
+        typename AUTOQ::Automata<AUTOQ::Symbol::Predicate>::State state_counter = 0;
+        for (unsigned level=1; level<=aut.qubitNum; level++) {
+            for (typename AUTOQ::Automata<AUTOQ::Symbol::Predicate>::State i=0; i<pow_of_two; i++) {
+                aut.transitions[typename AUTOQ::Automata<Symbol>::SymbolTag(AUTOQ::Symbol::Predicate(level), typename AUTOQ::Automata<Symbol>::Tag(1))][state_counter].insert({(state_counter<<1)+1, (state_counter<<1)+2});
+                state_counter++;
+            }
+            pow_of_two <<= 1;
+        }
+        for (typename AUTOQ::Automata<AUTOQ::Symbol::Predicate>::State i=state_counter; i<=(state_counter<<1); i++) {
+            auto spf = states_probs.find(i-state_counter);
+            if (spf == states_probs.end()) {
+                // if (default_prob == AUTOQ::Symbol::Predicate())
+                //     throw std::runtime_error(AUTOQ_LOG_PREFIX + "[ERROR] The default amplitude is not specified!");
+                aut.transitions[typename AUTOQ::Automata<Symbol>::SymbolTag(AUTOQ::Symbol::Predicate(default_prob.c_str()), typename AUTOQ::Automata<Symbol>::Tag(1))][i] = {};
+            }
+            else
+                aut.transitions[typename AUTOQ::Automata<Symbol>::SymbolTag(AUTOQ::Symbol::Predicate(spf->second.c_str()), typename AUTOQ::Automata<Symbol>::Tag(1))][i].insert({{}});
+        }
+        aut.finalStates.push_back(0);
+        aut.stateNum = (state_counter<<1) + 1;
+        aut.reduce();
+        return aut;
     } else {
         throw std::runtime_error(AUTOQ_LOG_PREFIX + "[ERROR] The type of Symbol is not supported!");
     }
 }
 
 template <typename Symbol>
-AUTOQ::Automata<Symbol> from_line_to_automaton(std::string line, const std::map<std::string, AUTOQ::Complex::Complex> &constants) {
-    std::istringstream iss_tensor(line);
-    std::string tree;
-    std::getline(iss_tensor, tree, '#');
+AUTOQ::Automata<Symbol> from_trees_to_automaton(std::string trees, const std::map<std::string, AUTOQ::Complex::Complex> &constants, const std::map<std::string, std::string> &predicates) {
+    AUTOQ::Automata<Symbol> aut_final;
+    if (std::regex_search(trees, std::regex("\\\\/ *\\|i\\|="))) { // if startswith "\/ |i|="
+        std::istringstream iss(trees);
+        std::string length;
+        std::getline(iss, length, ':');
+        length = AUTOQ::String::trim(length.substr(length.find('=') + 1));
+        trees.clear();
+        for (std::string t; iss >> t;)
+            trees += t + ' ';
+        std::string i(std::atoi(length.c_str()), '1');
+        bool reach_all_zero;
+        do {
+            std::string ic = i;
+            std::replace(ic.begin(), ic.end(), '0', 'x');
+            std::replace(ic.begin(), ic.end(), '1', '0');
+            std::replace(ic.begin(), ic.end(), 'x', '1');
+            const boost::regex pattern(R"(\|[^>]*>)");
+            auto replace_ic_with_ic = [&ic](const boost::smatch& match) -> std::string {
+                std::string modified_str = match.str();
+                return std::regex_replace(modified_str, std::regex("i'"), ic);
+            };
+            std::string line2 = boost::regex_replace(trees, pattern, replace_ic_with_ic, boost::match_default | boost::format_all);
+            auto replace_i_with_i = [&i](const boost::smatch& match) -> std::string {
+                std::string modified_str = match.str();
+                return std::regex_replace(modified_str, std::regex("i"), i);
+            };
+            std::string line3 = boost::regex_replace(line2, pattern, replace_i_with_i, boost::match_default | boost::format_all);
+            auto aut = from_tree_to_automaton<Symbol>(line3, constants, predicates);
+            aut_final = aut_final.operator||(aut);
+            aut_final.reduce();
 
-    auto aut = from_tree_to_automaton<Symbol>(tree, constants); // the first automata to be tensor producted
+            // the following performs -1 on the binary string i
+            reach_all_zero = false;
+            for (int j=i.size()-1; j>=0; j--) {
+                if (i.at(j) == '0') {
+                    if (j == 0) {
+                        reach_all_zero = true;
+                        break;
+                    }
+                    i.at(j) = '1';
+                } else {
+                    i.at(j) = '0';
+                    break;
+                }
+            }
+        } while (!reach_all_zero);
+    } else {
+        aut_final = from_tree_to_automaton<Symbol>(trees, constants, predicates);
+    }
+    return aut_final;
+}
+
+template <typename Symbol>
+AUTOQ::Automata<Symbol> from_line_to_automaton(std::string line, const std::map<std::string, AUTOQ::Complex::Complex> &constants, const std::map<std::string, std::string> &predicates) {
+    std::istringstream iss_tensor(line);
+    std::string trees;
+    std::getline(iss_tensor, trees, '#');
+
+    auto aut = from_trees_to_automaton<Symbol>(trees, constants, predicates); // the first automata to be tensor producted
 
     // to tensor product with the rest of the automata
-    while (std::getline(iss_tensor, tree, '#')) {
-        auto aut2 = from_tree_to_automaton<Symbol>(tree, constants);
+    while (std::getline(iss_tensor, trees, '#')) {
+        auto aut2 = from_trees_to_automaton<Symbol>(trees, constants, predicates);
         aut = aut * aut2;
     }
     return aut;
@@ -824,7 +881,7 @@ try {
 }
 
 template <typename Symbol>
-AUTOQ::Automata<Symbol> AUTOQ::Parsing::TimbukParser<Symbol>::parse_hsl_from_istream(std::istream *is, const std::map<std::string, AUTOQ::Complex::Complex> &constants) {
+AUTOQ::Automata<Symbol> AUTOQ::Parsing::TimbukParser<Symbol>::parse_hsl_from_istream(std::istream *is, const std::map<std::string, AUTOQ::Complex::Complex> &constants, const std::map<std::string, std::string> &predicates) {
     bool start_transitions = false;
     AUTOQ::Automata<Symbol> aut_final;
     std::string line;
@@ -837,53 +894,8 @@ AUTOQ::Automata<Symbol> AUTOQ::Parsing::TimbukParser<Symbol>::parse_hsl_from_ist
                 continue;
             }
         }   // processing states
-        else if (std::regex_search(line, std::regex("\\\\/ *\\|i\\|="))) { // if startswith "\/ |i|="
-            std::istringstream iss(line);
-            std::string length;
-            std::getline(iss, length, ':');
-            length = AUTOQ::String::trim(length.substr(length.find('=') + 1));
-            line.clear();
-            for (std::string t; iss >> t;)
-                line += t + ' ';
-            std::string i(std::atoi(length.c_str()), '1');
-            bool reach_all_zero;
-            do {
-                std::string ic = i;
-                std::replace(ic.begin(), ic.end(), '0', 'x');
-                std::replace(ic.begin(), ic.end(), '1', '0');
-                std::replace(ic.begin(), ic.end(), 'x', '1');
-                const boost::regex pattern(R"(\|[^>]*>)");
-                auto replace_ic_with_ic = [&ic](const boost::smatch& match) -> std::string {
-                    std::string modified_str = match.str();
-                    return std::regex_replace(modified_str, std::regex("i'"), ic);
-                };
-                line = boost::regex_replace(line, pattern, replace_ic_with_ic, boost::match_default | boost::format_all);
-                auto replace_i_with_i = [&i](const boost::smatch& match) -> std::string {
-                    std::string modified_str = match.str();
-                    return std::regex_replace(modified_str, std::regex("i"), i);
-                };
-                std::string line = boost::regex_replace(line, pattern, replace_i_with_i, boost::match_default | boost::format_all);
-                auto aut = from_line_to_automaton<Symbol>(line, constants);
-                aut_final = aut_final.operator||(aut);
-                aut_final.reduce();
-
-                // the following performs -1 on the binary string i
-                reach_all_zero = false;
-                for (int j=i.size()-1; j>=0; j--) {
-                    if (i.at(j) == '0') {
-                        if (j == 0) {
-                            reach_all_zero = true;
-                            break;
-                        }
-                        i.at(j) = '1';
-                    } else {
-                        i.at(j) = '0';
-                        break;
-                    }
-                }
-            } while (!reach_all_zero);
-        } else {
-            auto aut = from_line_to_automaton<Symbol>(line, constants);
+        else {
+            auto aut = from_line_to_automaton<Symbol>(line, constants, predicates);
             aut_final = aut_final.operator||(aut);
             aut_final.reduce();
         }
@@ -894,9 +906,9 @@ AUTOQ::Automata<Symbol> AUTOQ::Parsing::TimbukParser<Symbol>::parse_hsl_from_ist
 }
 
 template <typename Symbol>
-AUTOQ::Automata<Symbol> parse_hsl(const std::string& str, const std::map<std::string, Complex> &constants) {
+AUTOQ::Automata<Symbol> parse_hsl(const std::string& str, const std::map<std::string, Complex> &constants, const std::map<std::string, std::string> &predicates) {
     std::istringstream inputStream(str); // delimited by '\n'
-    auto aut = AUTOQ::Parsing::TimbukParser<Symbol>::parse_hsl_from_istream(&inputStream, constants);
+    auto aut = AUTOQ::Parsing::TimbukParser<Symbol>::parse_hsl_from_istream(&inputStream, constants, predicates);
     // aut.print(str);
     return aut;
 }
@@ -1008,7 +1020,7 @@ AUTOQ::Automata<Symbol> AUTOQ::Parsing::TimbukParser<Symbol>::ReadAutomaton(cons
     } else if (boost::algorithm::ends_with(filepath, ".aut")) {
         result = parse_timbuk<Symbol>(automaton);
     } else if (boost::algorithm::ends_with(filepath, ".hsl")) {
-        result = parse_hsl<Symbol>(automaton, constants);
+        result = parse_hsl<Symbol>(automaton, constants, predicates);
     } else {
         throw std::runtime_error(AUTOQ_LOG_PREFIX + "[ERROR] The filename extension is not supported.");
     }
