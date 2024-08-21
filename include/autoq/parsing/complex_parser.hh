@@ -40,6 +40,12 @@ private:
         try {
             resultC = parseExpression();
         } catch (std::exception& e) {
+            for (char c : input_) {
+                if (!std::isalnum(c)) {
+                    std::cerr << e.what() << std::endl;
+                    throw e;
+                }
+            }
             resultV = input_;
         }
     }
