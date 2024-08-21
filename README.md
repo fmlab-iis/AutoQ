@@ -2,7 +2,7 @@
 
 AutoQ is a command-line utility written in C++ for verifying partial correctness of quantum programs automatically based on non-deterministic finite tree automata (NFTA) along with the concept of Hoare-style proof systems. 
 
-Consider a triple $\{ P \} C \{ Q \}$, where $P$ and $Q$ are the pre- and post-condition recognizing sets of (pure) quantum states (represented by NFTA) and $C$ is a quantum program. Let $\mathcal L(.)$ denote the mapping from a condition $x$ to the set of all quantum states satisfying $x$ (characterized by $x$). Then AutoQ essentially checks whether all the quantum states in $\mathcal L(P)$ reach some state in $\mathcal L(Q)$ after the program $C$ is executed. If we further let $C(.)$ denote the mapping from a condition $x$ to the evolution of $x$ after a program segment $C$ is executed, then AutoQ simply checks whether $\mathcal L(C(P)) \subseteq \mathcal L(Q)$.
+Consider a triple \{ $P$ \} $C$ \{ $Q$ \}, where $P$ and $Q$ are the pre- and post-condition recognizing sets of (pure) quantum states (represented by NFTA) and $C$ is a quantum program. Let $\mathcal L(.)$ denote the mapping from a condition $x$ to the set of all quantum states satisfying $x$ (characterized by $x$). Then AutoQ essentially checks whether all the quantum states in $\mathcal L(P)$ reach some state in $\mathcal L(Q)$ after the program $C$ is executed. If we further let $C(.)$ denote the mapping from a condition $x$ to the evolution of $x$ after a program segment $C$ is executed, then AutoQ simply checks whether $\mathcal L(C(P)) \subseteq \mathcal L(Q)$.
 
 Our program currently supports $X$, $Y$, $Z$, $H$, $T$, $T^\dagger$, $S$, $S^\dagger$, $R_x(\pi/2)$, $R_y(\pi/2)$, $CX$, $CZ$, $CCX$, $SWAP$ quantum gates. The version of OpenQASM should be 2.0.
 
@@ -10,12 +10,12 @@ Our program currently supports $X$, $Y$, $Z$, $H$, $T$, $T^\dagger$, $S$, $S^\da
 
 ## Installation and Compilation
 
-Currently, for Linux (Ubuntu/Debian) and macOS, the dependency of AutoQ can be built using the command ./configure.sh. After configuration, please run the following command.
+Currently, for Linux (Ubuntu/Debian) and macOS, the dependency of AutoQ can be built using the command `./configure.sh`. After configuration, please run the following command.
 ```
 make release
 make test
 ```
-The first command compiles the source code with compiler optimizations enabled, while the second command runs several unit tests to verify the correctness of the implementation. If you need to compile the library for debugging, you can replace make release with make debug.
+The first command compiles the source code with compiler optimizations enabled, while the second command runs several unit tests to verify the correctness of the implementation. If you need to compile the library for debugging, you can replace make release with `make debug`.
 
 ---
 
