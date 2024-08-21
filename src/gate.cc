@@ -20,6 +20,8 @@ void AUTOQ::Automata<Symbol>::General_Single_Qubit_Gate(int t, const std::functi
     result.isTopdownDeterministic = isTopdownDeterministic; // IMPORTANT: Avoid missing copying new fields afterwards.
     result.finalStates = finalStates;
     result.hasLoop = hasLoop; // IMPORTANT: Avoid missing copying new fields afterwards.
+    result.vars = vars; // IMPORTANT: Avoid missing copying new fields afterwards.
+    result.constraints = constraints; // IMPORTANT: Avoid missing copying new fields afterwards.
 
     bool overflow = (stateNum > (std::numeric_limits<State>::max()-stateNum) / stateNum / 2); // want: 2 * stateNum^2 + stateNum <= max
     if (overflow)
@@ -171,6 +173,8 @@ void AUTOQ::Automata<Symbol>::General_Controlled_Gate(int c, int c2, int t, cons
     result.isTopdownDeterministic = isTopdownDeterministic; // IMPORTANT: Avoid missing copying new fields afterwards.
     result.finalStates = finalStates;
     result.hasLoop = hasLoop; // IMPORTANT: Avoid missing copying new fields afterwards.
+    result.vars = vars; // IMPORTANT: Avoid missing copying new fields afterwards.
+    result.constraints = constraints; // IMPORTANT: Avoid missing copying new fields afterwards.
 
     bool overflow = (stateNum > (std::numeric_limits<State>::max()-stateNum) / stateNum / 2); // want: 2 * stateNum^2 + stateNum <= max
     if (overflow)
