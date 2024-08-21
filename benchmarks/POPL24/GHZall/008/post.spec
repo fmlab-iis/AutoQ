@@ -1,7 +1,8 @@
-Numbers
+Constants
 c0 := 0
-c1 := 1 / V2
-c2 := -1 / V2
+c1 := 1 / sqrt2
+c2 := -1 / sqrt2
+Root States 0
 Colored Transitions
 [1,1](1, 2) -> 0
 [2,1](4, 3) -> 1
