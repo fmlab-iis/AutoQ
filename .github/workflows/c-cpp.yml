@@ -28,7 +28,7 @@ jobs:
         path: |
           AutoQ/Makefile
           AutoQ/build/
-          AutoQ/reference_answers/
+          AutoQ/unit_tests/
   test-debug:
     needs: build-debug
     runs-on: ubuntu-latest
@@ -52,7 +52,7 @@ jobs:
         path: |
           AutoQ/Makefile
           AutoQ/build/
-          AutoQ/reference_answers/
+          AutoQ/unit_tests/
   test-release:
     needs: build-release
     runs-on: ubuntu-latest
