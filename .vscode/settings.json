@@ -75,7 +75,8 @@
         "any": "cpp",
         "future": "cpp",
         "source_location": "cpp",
-        "queue": "cpp"
+        "queue": "cpp",
+        "coroutine": "cpp"
     },
     "cmake.configureOnOpen": false
 }
