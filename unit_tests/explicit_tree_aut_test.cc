@@ -536,21 +536,8 @@ BOOST_AUTO_TEST_CASE(Grover_Search)
     for (int i=1; i<=n; i++) aut.X(i);
     /********************************/
 
-    std::filesystem::path current_path = std::filesystem::current_path();
-    while (true) {
-        for (const auto& entry : std::filesystem::directory_iterator(current_path)) {
-            if (/*entry.is_directory() &&*/ entry.path().filename() == "AutoQ") {
-                goto L;
-            }
-        }
-        std::filesystem::path parent_path = current_path.parent_path();
-        if (parent_path == current_path) {
-            std::cout << "The \"" << "AutoQ" << "\" folder was not found in any parent directory.\n";
-            break;
-        }
-        current_path = parent_path;
-    }
-L:  const auto &file = std::filesystem::absolute(current_path).string() + "/AutoQ/unit_tests/reference_answers/Grover" + std::to_string(n) + ".spec";
+    std::string sss(__FILE__);
+    const auto &file = sss.substr(0, sss.find_last_of("\\/")) + "/reference_answers/Grover" + std::to_string(n) + ".spec";
     auto ans = AUTOQ::Parsing::TimbukParser<AUTOQ::TreeAutomata::Symbol>::ReadAutomaton(file);
     // int n = (aut.qubitNum + 1) / 3;
     // aut.print_aut();
@@ -971,22 +958,9 @@ BOOST_AUTO_TEST_CASE(file_exist_checker)
 namespace fs = std::filesystem;
 BOOST_AUTO_TEST_CASE(hsl_rule_checker)
 {
-    std::filesystem::path current_path = std::filesystem::current_path();
-    while (true) {
-        for (const auto& entry : std::filesystem::directory_iterator(current_path)) {
-            if (/*entry.is_directory() &&*/ entry.path().filename() == "AutoQ") {
-                goto L;
-            }
-        }
-        std::filesystem::path parent_path = current_path.parent_path();
-        if (parent_path == current_path) {
-            std::cout << "The \"" << "AutoQ" << "\" folder was not found in any parent directory.\n";
-            break;
-        }
-        current_path = parent_path;
-    }
+    std::string sss(__FILE__);
     //read ./unit_tests/hsl_rule/;
-L:  std::string path = std::filesystem::absolute(current_path).string() + "/AutoQ/unit_tests/testcase/";
+    std::string path = sss.substr(0, sss.find_last_of("\\/")) + "/testcase/";
 
 
     std::string cir_path = path + "GHZALL/circuit.qasm";
