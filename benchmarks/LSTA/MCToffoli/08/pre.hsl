@@ -1,0 +1,6 @@
+Constants
+c0 := 1
+Variable Order
+1 2 6 3 7 4 8 5
+Extended Dirac
+\/|i|=5 : c0 |i> # |000>
