@@ -66,6 +66,7 @@ struct AUTOQ::Complex::nTuple : AUTOQ::Util::mapped_vector<boost::multiprecision
         return os;
     }
     nTuple operator+(const nTuple &o) const { return binary_operation(o, true); }
+    nTuple& operator+=(const nTuple &o) { *this = binary_operation(o, true); return *this; }
     nTuple operator-(const nTuple &o) const { return binary_operation(o, false); }
     nTuple operator*(const nTuple &o) const {
         nTuple symbol;

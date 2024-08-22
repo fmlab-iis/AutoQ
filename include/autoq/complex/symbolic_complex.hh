@@ -72,6 +72,7 @@ struct AUTOQ::Complex::SymbolicComplex : std::map<Term, Complex> {
         }
         return o;
     }
+    SymbolicComplex& operator+=(const SymbolicComplex &o) { *this = *this + o; return *this; }
     SymbolicComplex operator-(const SymbolicComplex &o) const {
         auto result = *this;
         for (const auto &kv : o) {
