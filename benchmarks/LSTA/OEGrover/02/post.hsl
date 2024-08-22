@@ -2,5 +2,6 @@ Predicates
 p1 := (and (< (* $R $R) (* aR aR)) (= $I 0))
 p2 := (and (= $R 0) (= $I 0))
 p3 := (and (> (* $R $R) (* bR bR)) (= $I 0))
+pt := (and true true)
 Extended Dirac
-p2|000> + p1|001> + p2|010> + p3|011> + p2|100> + p1|101> + p2|110> + p1|111>
+pt|000> + pt|001> + pt|010> + p3|011> + pt|100> + pt|101> + pt|110> + pt|*>
