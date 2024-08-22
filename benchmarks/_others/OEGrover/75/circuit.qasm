@@ -361,6 +361,7 @@ x qubits[57];
 x qubits[58];
 x qubits[59];
 x qubits[60];
+x qubits[61];
 x qubits[62];
 x qubits[63];
 x qubits[64];

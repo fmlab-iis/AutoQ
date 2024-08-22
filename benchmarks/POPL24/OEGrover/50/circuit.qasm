@@ -242,6 +242,7 @@ x qubits[39];
 x qubits[40];
 x qubits[41];
 x qubits[42];
+x qubits[43];
 x qubits[44];
 x qubits[45];
 x qubits[46];

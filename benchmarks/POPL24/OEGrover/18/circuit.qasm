@@ -83,6 +83,7 @@ x qubits[15];
 x qubits[17];
 x qubits[19];
 x qubits[21];
+x qubits[23];
 x qubits[25];
 x qubits[27];
 x qubits[29];
