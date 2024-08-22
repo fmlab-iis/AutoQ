@@ -49,7 +49,7 @@ public:   // data types
 
     typedef TT Symbol;
 	typedef unsigned long long Tag;
-    inline static constexpr auto Tag_MAX = 1LL << (std::numeric_limits<Tag>::digits - 1);
+    inline static constexpr auto Tag_MAX = static_cast<Tag>(1) << (std::numeric_limits<Tag>::digits - 1);
     typedef std::pair<Symbol, Tag> stdpairSymbolTag;
     struct SymbolTag : stdpairSymbolTag {
         using stdpairSymbolTag::stdpairSymbolTag; // inherit parent constructors
