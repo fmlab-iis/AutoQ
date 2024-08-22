@@ -58,7 +58,7 @@ foreach (TEST ${TESTS})
     ${TEST} PROPERTIES COMPILE_FLAGS ${compiler_flags})
 
 	# target_link_libraries(${TEST} tests)
-	target_link_libraries(${TEST} libautoq)
+	target_link_libraries(${TEST} lsta)
 	target_link_libraries(${TEST} ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
 	target_link_libraries(${TEST} ${Boost_FILESYSTEM_LIBRARY})
 	target_link_libraries(${TEST} ${Boost_SYSTEM_LIBRARY})
