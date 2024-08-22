@@ -539,7 +539,7 @@ BOOST_AUTO_TEST_CASE(Grover_Search)
     std::filesystem::path current_path = std::filesystem::current_path();
     while (true) {
         for (const auto& entry : std::filesystem::directory_iterator(current_path)) {
-            if (entry.is_directory() && entry.path().filename() == "AutoQ") {
+            if (/*entry.is_directory() &&*/ entry.path().filename() == "AutoQ") {
                 goto L;
             }
         }
@@ -974,7 +974,7 @@ BOOST_AUTO_TEST_CASE(hsl_rule_checker)
     std::filesystem::path current_path = std::filesystem::current_path();
     while (true) {
         for (const auto& entry : std::filesystem::directory_iterator(current_path)) {
-            if (entry.is_directory() && entry.path().filename() == "AutoQ") {
+            if (/*entry.is_directory() &&*/ entry.path().filename() == "AutoQ") {
                 goto L;
             }
         }
