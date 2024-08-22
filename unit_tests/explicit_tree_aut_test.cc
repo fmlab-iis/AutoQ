@@ -988,7 +988,7 @@ BOOST_AUTO_TEST_CASE(hsl_rule_checker)
         aut.execute(cir_path);
         bool verify = aut <= aut2;
         if(!verify)
-            std::cout<<verify,entry.path().string() + " Not verified"<<endl;
+            std::cout<<entry.path().string() + " Not verified"<<std::endl;
     }
     
 
