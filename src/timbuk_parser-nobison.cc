@@ -921,6 +921,16 @@ AUTOQ::Automata<Symbol> AUTOQ::Parsing::TimbukParser<Symbol>::ReadAutomaton(cons
     std::map<std::string, AUTOQ::Complex::Complex> constants;
     std::map<std::string, std::string> predicates;
 
+    std::string::size_type pos = 0;
+    while ((pos = fileContents.find("//", pos)) != std::string::npos) {
+        std::string::size_type end = fileContents.find('\n', pos);
+        if (end == std::string::npos) {
+            fileContents.erase(pos);
+        } else {
+            fileContents.erase(pos, end - pos + 1);
+        }
+    }
+
     if (!boost::algorithm::ends_with(filepath, ".aut") &&
         (fileContents.find("Constants") != std::string::npos ||
          fileContents.find("Predicates") != std::string::npos)) {
