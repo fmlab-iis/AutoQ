@@ -215,7 +215,7 @@ AUTOQ::Automata<Symbol> from_tree_to_automaton(std::string tree, const std::map<
             if (spf == states_probs.end()) {
                 // if (default_prob == AUTOQ::Symbol::Predicate())
                 //     throw std::runtime_error(AUTOQ_LOG_PREFIX + "[ERROR] The default amplitude is not specified!");
-                aut.transitions[typename AUTOQ::Automata<Symbol>::SymbolTag(AUTOQ::Symbol::Predicate(default_prob.c_str()), typename AUTOQ::Automata<Symbol>::Tag(1))][i] = {};
+                aut.transitions[typename AUTOQ::Automata<Symbol>::SymbolTag(AUTOQ::Symbol::Predicate(default_prob.c_str()), typename AUTOQ::Automata<Symbol>::Tag(1))][i].insert({{}});
             }
             else
                 aut.transitions[typename AUTOQ::Automata<Symbol>::SymbolTag(AUTOQ::Symbol::Predicate(spf->second.c_str()), typename AUTOQ::Automata<Symbol>::Tag(1))][i].insert({{}});
