@@ -18,14 +18,21 @@ AUTOQ::Automata<Symbol> AUTOQ::Automata<Symbol>::operator*(Automata<Symbol> aut2
     // each color set uses only 1 bit.
     TopDownTransitions aut2_transitions_at_1st_layer;
     AUTOQ::Automata<Symbol>::Tag color = 1;
+    int num_of_colors_used_in_aut2 = 0;
     for (auto it = aut2.transitions.cbegin(); it != aut2.transitions.cend() /* not hoisted */; /* no increment */) {
         if (it->first.is_internal() && it->first.symbol().qubit() == 1) {
             if (color == AUTOQ::Automata<Symbol>::Tag_MAX) {
                 AUTOQ_ERROR("Colors are not enough!!!");
                 exit(1);
             }
-            aut2_transitions_at_1st_layer[AUTOQ::Automata<Symbol>::SymbolTag(it->first.symbol(), AUTOQ::Automata<Symbol>::Tag(color))] = it->second;
-            color <<= 1;
+            for (const auto &out_ins : it->second) {
+                auto out = out_ins.first;
+                for (const auto &in : out_ins.second) {
+                    aut2_transitions_at_1st_layer[AUTOQ::Automata<Symbol>::SymbolTag(it->first.symbol(), AUTOQ::Automata<Symbol>::Tag(color))][out].insert(in);
+                    num_of_colors_used_in_aut2++;
+                    color <<= 1;
+                }
+            }
             aut2.transitions.erase(it++);    // or "it = aut2.transitions.erase(it)" since C++11
             // https://stackoverflow.com/a/8234813/11550178
         } else {
@@ -35,14 +42,7 @@ AUTOQ::Automata<Symbol> AUTOQ::Automata<Symbol>::operator*(Automata<Symbol> aut2
     for (const auto &t : aut2_transitions_at_1st_layer) {
         aut2.transitions[t.first] = t.second;
     }
-    color >>= 1;
-    // Now "color" denotes the most significant bit of the color appearing in the first layer of aut2.
-    int shift = 0;
-    while (color > 0) {
-        color >>= 1;
-        shift++;
-    }
-    // Now "shift" denotes the number of left shifts needed for the leaf transitions of aut1.
+    // Now "num_of_colors_used_in_aut2" denotes the number of bits for colors in aut2.
 
     // Step 2. For each leaf transition of aut1, we construct one "state-disjoint" copy of aut2,
     //         (1) whose root states are replaced with the top state of that leaf transition, and
@@ -57,7 +57,13 @@ AUTOQ::Automata<Symbol> AUTOQ::Automata<Symbol>::operator*(Automata<Symbol> aut2
                 auto the_top_state_of_that_leaf_transition = out_ins.first; // (1)
                 assert(out_ins.second == std::set<StateVector>({{}}));
                 auto the_color_of_that_leaf_transition = it->first.tag(); // (2)
-                if (((the_color_of_that_leaf_transition << shift) >> shift) != the_color_of_that_leaf_transition) {
+                int num_of_colors_used_in_that_leaf_transition = 0;
+                auto tmp = the_color_of_that_leaf_transition;
+                while (tmp > 0) {
+                    num_of_colors_used_in_that_leaf_transition++;
+                    tmp >>= 1;
+                }
+                if (num_of_colors_used_in_that_leaf_transition * num_of_colors_used_in_aut2 > std::numeric_limits<Tag>::digits) {
                     AUTOQ_ERROR("The shifted color is out of range!!!");
                     exit(1);
                 }
@@ -76,7 +82,20 @@ AUTOQ::Automata<Symbol> AUTOQ::Automata<Symbol>::operator*(Automata<Symbol> aut2
                             }
                         }
                     } else if (t.first.symbol().qubit() == 1) { // (1)(2)
-                        auto &ref = transitions_to_be_appended[AUTOQ::Automata<Symbol>::SymbolTag(aut.qubitNum + t.first.symbol().qubit(), (the_color_of_that_leaf_transition << shift) | t.first.tag())];
+                        int counter = 0;
+                        Tag new_color_pair = 0;
+                        auto tmpi = the_color_of_that_leaf_transition;
+                        for (int i=0; i<num_of_colors_used_in_that_leaf_transition; i++) {
+                            auto tmpj = t.first.tag();
+                            for (int j=0; j<num_of_colors_used_in_aut2; j++) {
+                                if (tmpi & tmpj & 1)
+                                    new_color_pair |= 1 << counter;
+                                counter++;
+                                tmpj >>= 1;
+                            }
+                            tmpi >>= 1;
+                        }
+                        auto &ref = transitions_to_be_appended[AUTOQ::Automata<Symbol>::SymbolTag(aut.qubitNum + t.first.symbol().qubit(), new_color_pair)];
                         for (const auto &out_ins : t.second) {
                             auto &container = ref[the_top_state_of_that_leaf_transition];
                             for (auto in : out_ins.second) {
