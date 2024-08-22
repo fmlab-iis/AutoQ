@@ -884,4 +884,114 @@ BOOST_AUTO_TEST_CASE(HSL_format_checker)
 }
 
 */
+
+/*
+namespace fs = std::filesystem;
+
+bool has_dir(const std::string &path)
+{
+    for (const auto & entry : fs::directory_iterator(path))
+    {
+        if(entry.is_directory())
+            return 1;
+    }
+    return 0;
+}
+ 
+void search(std::string path, std::list<std::string> &not_found_list)
+{
+    for (const auto & entry : fs::directory_iterator(path))
+    {
+        if(!entry.is_directory())
+        {
+            continue; 
+        }
+        if(has_dir(entry.path().string()))
+        {
+            search(entry.path().string(),not_found_list);
+        }
+        else
+        {
+            std::string pre_hsl = entry.path().string() + "/pre.hsl";
+            std::string pre_spec = entry.path().string() + "/pre.spec";
+            std::string post_hsl = entry.path().string() + "/post.hsl";
+            std::string post_spec = entry.path().string() + "/post.spec";
+            if(!fs::exists(pre_hsl))
+                not_found_list.push_back(pre_hsl);
+            if(!fs::exists(pre_spec))
+                not_found_list.push_back(pre_spec);
+            if(!fs::exists(post_hsl))
+                not_found_list.push_back(pre_hsl);
+            if(!fs::exists(post_spec))
+                not_found_list.push_back(pre_hsl);
+        }
+    }
+
+}
+
+BOOST_AUTO_TEST_CASE(file_exist_checker)
+{
+    std::ofstream fout;
+    fout.open("./file_exist_checker.csv");
+    std::vector<std::list<std::string>> not_found_list;
+    not_found_list.resize(3);
+    not_found_list[0].push_back("./benchmarks/CAV23");
+    not_found_list[1].push_back("./benchmarks/PLDI23");
+    not_found_list[2].push_back("./benchmarks/POPL24");
+    std::string path = "./benchmarks/CAV23/";
+    for(int i = 0 ; i < 3 ; i++)
+    {
+        search(not_found_list[i].front(),not_found_list[i]);
+    }
+    int cnt[3];
+    cnt[0] = 0, cnt[1] = 0, cnt[2] = 0;
+    bool end_list[3];
+    end_list[0] = 0, end_list[1] = 0, end_list[2] = 0;
+    while(!end_list[0] || !end_list[1] || !end_list[2])
+    {
+        for(int i = 0 ; i < 3 ; i++)
+        {
+            std::string file = "";
+            if(not_found_list[i].empty())
+            {
+                end_list[i] = 1;
+            }
+            else
+            {
+                file = not_found_list[i].front();
+                not_found_list[i].pop_front();
+            }
+            fout<<file<<",";
+        }
+        fout<<std::endl;
+    }
+}
+*/
+
+namespace fs = std::filesystem;
+BOOST_AUTO_TEST_CASE(hsl_rule_checker)
+{
+    //read ./unit_tests/hsl_rule/;
+    std::string path = "./unit_tests/testcase/";
+
+
+    std::string cir_path = path + "GHZALL/circuit.qasm";
+    std::string state_dir = path + "GHZALL/state/";
+    for (const auto & entry : fs::directory_iterator(state_dir))
+    {
+        if(!entry.is_directory())
+            continue;
+        std::cout<<entry.path().string() + "/pre.hsl"<<std::endl;
+        std::cout<<cir_path<<std::endl;
+        auto aut = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Concrete>::ReadAutomaton(entry.path().string() + "/pre.hsl");
+        auto aut2 = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Concrete>::ReadAutomaton(entry.path().string() + "/post.hsl");
+        aut.execute(cir_path);
+        bool verify = aut <= aut2;
+        BOOST_REQUIRE_MESSAGE(verify,entry.path().string() + " Not verified");
+    }
+    
+
+}
+
+
 // BOOST_AUTO_TEST_SUITE_END()
