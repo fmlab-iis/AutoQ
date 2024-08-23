@@ -1,6 +1,7 @@
 Constants
 c0 := 1/sqrt2
 c1 := 1/sqrt2
+no := 0
 Extended Dirac
-\/ |i|=1 : c0 |0i> + c1 |1i'> # \/ |i|=6 : |i>
-\/ |i|=7 : c0 |0i> - c1 |1i'>
+\/ |i|=8 : c0 |i> + c1 |i'> + 0 |*>
+\/ |i|=8 : c0 |i> - c1 |i'> + no |*>

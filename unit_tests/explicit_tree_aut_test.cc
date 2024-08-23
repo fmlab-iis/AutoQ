@@ -981,8 +981,6 @@ BOOST_AUTO_TEST_CASE(hsl_rule_checker)
     {
         if(!entry.is_directory())
             continue;
-        std::cout<<entry.path().string() + "/pre.hsl"<<std::endl;
-        std::cout<<cir_path<<std::endl;
         auto aut = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Concrete>::ReadAutomaton(entry.path().string() + "/pre.hsl");
         auto aut2 = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Concrete>::ReadAutomaton(entry.path().string() + "/post.hsl");
         aut.execute(cir_path);
@@ -991,7 +989,19 @@ BOOST_AUTO_TEST_CASE(hsl_rule_checker)
             std::cout<<entry.path().string() + " Not verified"<<std::endl;
     }
     
-
+    cir_path = path + "BVALL/circuit.qasm";
+    state_dir = path + "BVALL/state/";
+    for (const auto & entry : fs::directory_iterator(state_dir))
+    {
+        if(!entry.is_directory())
+            continue;
+        auto aut = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Concrete>::ReadAutomaton(entry.path().string() + "/pre.hsl");
+        auto aut2 = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Concrete>::ReadAutomaton(entry.path().string() + "/post.hsl");
+        aut.execute(cir_path);
+        bool verify = aut <= aut2;
+        if(!verify)
+            std::cout<<entry.path().string() + " Not verified"<<std::endl;
+    }
 }
 
 

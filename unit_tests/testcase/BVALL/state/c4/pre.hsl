@@ -1,0 +1,5 @@
+Constants
+dummy := 0
+dummy := 1
+Extended Dirac
+\/|i|=1:1|i> # |0> # \/|i|=1:1|i0> + 0 |i1> # \/|i|=1:1|i0> # \/|i|=1:1|i0> # 1|0>
