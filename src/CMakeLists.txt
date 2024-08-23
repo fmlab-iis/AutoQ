@@ -34,7 +34,7 @@ endforeach()
 
 include_directories(../include)
 
-add_library(libautoq STATIC
+add_library(lsta STATIC
 	timbuk_parser-nobison.cc
 	timbuk_serializer.cc
     util/string.cc
@@ -65,11 +65,11 @@ add_library(libautoq STATIC
 #   # use this option.
 #   NO_DEFAULT_PATH
 # )
-# target_link_libraries(libautoq ${Z3_LIBRARIES})
-target_link_libraries(libautoq "${CMAKE_CURRENT_SOURCE_DIR}/../libz3.so.4.12")
+# target_link_libraries(lsta ${Z3_LIBRARIES})
+target_link_libraries(lsta "${CMAKE_CURRENT_SOURCE_DIR}/../libz3.so.4.12")
 include_directories(../include/z3)
 
 # https://www.weiy.city/2022/06/use-cmake-to-import-shared-library-or-static-library/
 # https://bayareanotes.com/cmake-adding-external-library/
 
-target_link_libraries(libautoq boost_regex)
+target_link_libraries(lsta boost_regex)

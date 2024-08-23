@@ -89,7 +89,7 @@ AUTOQ::Automata<Symbol> AUTOQ::Automata<Symbol>::operator*(Automata<Symbol> aut2
                             auto tmpj = t.first.tag();
                             for (int j=0; j<num_of_colors_used_in_aut2; j++) {
                                 if (tmpi & tmpj & 1)
-                                    new_color_pair |= 1 << counter;
+                                    new_color_pair |= static_cast<Tag>(1) << counter;
                                 counter++;
                                 tmpj >>= 1;
                             }

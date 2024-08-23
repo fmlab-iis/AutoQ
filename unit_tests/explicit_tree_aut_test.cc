@@ -536,21 +536,8 @@ BOOST_AUTO_TEST_CASE(Grover_Search)
     for (int i=1; i<=n; i++) aut.X(i);
     /********************************/
 
-    std::filesystem::path current_path = std::filesystem::current_path();
-    while (true) {
-        for (const auto& entry : std::filesystem::directory_iterator(current_path)) {
-            if (entry.is_directory() && entry.path().filename() == "reference_answers") {
-                goto L;
-            }
-        }
-        std::filesystem::path parent_path = current_path.parent_path();
-        if (parent_path == current_path) {
-            std::cout << "The \"" << "reference_answers" << "\" folder was not found in any parent directory.\n";
-            break;
-        }
-        current_path = parent_path;
-    }
-L:  const auto &file = std::filesystem::absolute(current_path).string() + "/reference_answers/Grover" + std::to_string(n) + ".spec";
+    std::string sss(__FILE__);
+    const auto &file = sss.substr(0, sss.find_last_of("\\/")) + "/reference_answers/Grover" + std::to_string(n) + ".spec";
     auto ans = AUTOQ::Parsing::TimbukParser<AUTOQ::TreeAutomata::Symbol>::ReadAutomaton(file);
     // int n = (aut.qubitNum + 1) / 3;
     // aut.print_aut();
@@ -842,7 +829,7 @@ bool is_symbol(std::string file)
 
 BOOST_AUTO_TEST_CASE(HSL_format_checker)
 {
-    
+
     for(int i = 0 ; i < 4 ; i++)
     {
         std::string hsl_file = "/home/johnny/AutoQ/unit_tests/testcase/spec_hsl/HSL/sample"+std::to_string(i)+".hsl";
@@ -856,7 +843,7 @@ BOOST_AUTO_TEST_CASE(HSL_format_checker)
             //aut_spec.print_aut();
             //aut_hsl.print_aut();
 
-            
+
             auto aut_hsl  = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Symbolic>::ReadAutomaton(hsl_file);
             auto aut_spec = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Predicate>::ReadAutomaton(spec_file);
             std::string constraint = "";
@@ -870,7 +857,7 @@ BOOST_AUTO_TEST_CASE(HSL_format_checker)
             // AUTOQ::Constraint C(buffer.str().c_str());
             // bool verify_1 = AUTOQ::check_inclusion(C, aut_hsl, aut_spec);
             // BOOST_REQUIRE_MESSAGE(verify_1, "");
-            
+
 
         }
         else
@@ -897,14 +884,14 @@ bool has_dir(const std::string &path)
     }
     return 0;
 }
- 
+
 void search(std::string path, std::list<std::string> &not_found_list)
 {
     for (const auto & entry : fs::directory_iterator(path))
     {
         if(!entry.is_directory())
         {
-            continue; 
+            continue;
         }
         if(has_dir(entry.path().string()))
         {
@@ -971,8 +958,9 @@ BOOST_AUTO_TEST_CASE(file_exist_checker)
 namespace fs = std::filesystem;
 BOOST_AUTO_TEST_CASE(hsl_rule_checker)
 {
+    std::string sss(__FILE__);
     //read ./unit_tests/hsl_rule/;
-    std::string path = "./unit_tests/testcase/";
+    std::string path = sss.substr(0, sss.find_last_of("\\/")) + "/testcase/";
 
 
     std::string cir_path = path + "GHZALL/circuit.qasm";
@@ -985,8 +973,8 @@ BOOST_AUTO_TEST_CASE(hsl_rule_checker)
         auto aut2 = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Concrete>::ReadAutomaton(entry.path().string() + "/post.hsl");
         aut.execute(cir_path);
         bool verify = aut <= aut2;
-        if(!verify)
-            std::cout<<entry.path().string() + " Not verified"<<std::endl;
+        BOOST_CHECK(verify);
+        std::cout<<entry.path().string() + " Not verified"<<std::endl;
     }
     
     cir_path = path + "BVALL/circuit.qasm";
@@ -999,9 +987,11 @@ BOOST_AUTO_TEST_CASE(hsl_rule_checker)
         auto aut2 = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Concrete>::ReadAutomaton(entry.path().string() + "/post.hsl");
         aut.execute(cir_path);
         bool verify = aut <= aut2;
-        if(!verify)
-            std::cout<<entry.path().string() + " Not verified"<<std::endl;
+        BOOST_CHECK(verify);
+        std::cout<<entry.path().string() + " Not verified"<<std::endl;
     }
+
+    
 }
 
 

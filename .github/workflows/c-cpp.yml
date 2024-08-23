@@ -21,13 +21,14 @@ jobs:
     - run: git clone https://github.com/alan23273850/AutoQ.git
     - run: cd AutoQ && git checkout ${{ github.ref_name }} && mkdir build && make debug
     - run: cp /usr/lib/x86_64-linux-gnu/libboost_unit_test_framework.so.1.74.0 /home/runner/work/AutoQ/AutoQ/AutoQ/build/unit_tests/
+    - run: cp /usr/lib/x86_64-linux-gnu/libboost_regex.so.1.74.0 /home/runner/work/AutoQ/AutoQ/AutoQ/build/unit_tests/
     - uses: actions/upload-artifact@v4
       with:
         name: AutoQ-debug
         path: |
           AutoQ/Makefile
           AutoQ/build/
-          AutoQ/reference_answers/
+          AutoQ/unit_tests/
   test-debug:
     needs: build-debug
     runs-on: ubuntu-latest
@@ -35,7 +36,10 @@ jobs:
     - uses: actions/download-artifact@v4
       with:
         name: AutoQ-debug
-    - run: cd build/unit_tests/ && chmod +x ./explicit_tree_aut_test && LD_LIBRARY_PATH=.:$LD_LIBRARY_PATH ./explicit_tree_aut_test
+        path: AutoQ/
+    # - run: pwd
+    # - run: ls -a
+    - run: cd AutoQ/build/unit_tests/ && chmod +x ./explicit_tree_aut_test && LD_LIBRARY_PATH=.:$LD_LIBRARY_PATH ./explicit_tree_aut_test
   build-release:
     # needs: setup
     runs-on: ubuntu-latest
@@ -44,13 +48,14 @@ jobs:
     - run: git clone https://github.com/alan23273850/AutoQ.git
     - run: cd AutoQ && git checkout ${{ github.ref_name }} && mkdir build && make release
     - run: cp /usr/lib/x86_64-linux-gnu/libboost_unit_test_framework.so.1.74.0 /home/runner/work/AutoQ/AutoQ/AutoQ/build/unit_tests/
+    - run: cp /usr/lib/x86_64-linux-gnu/libboost_regex.so.1.74.0 /home/runner/work/AutoQ/AutoQ/AutoQ/build/unit_tests/
     - uses: actions/upload-artifact@v4
       with:
         name: AutoQ-release
         path: |
           AutoQ/Makefile
           AutoQ/build/
-          AutoQ/reference_answers/
+          AutoQ/unit_tests/
   test-release:
     needs: build-release
     runs-on: ubuntu-latest
@@ -58,4 +63,7 @@ jobs:
     - uses: actions/download-artifact@v4
       with:
         name: AutoQ-release
-    - run: cd build/unit_tests/ && chmod +x ./explicit_tree_aut_test && LD_LIBRARY_PATH=.:$LD_LIBRARY_PATH ./explicit_tree_aut_test
+        path: AutoQ/
+    # - run: pwd
+    # - run: ls -a
+    - run: cd AutoQ/build/unit_tests/ && chmod +x ./explicit_tree_aut_test && LD_LIBRARY_PATH=.:$LD_LIBRARY_PATH ./explicit_tree_aut_test

@@ -55,17 +55,17 @@ AUTOQ::Automata<Symbol> from_tree_to_automaton(std::string tree, const std::map<
             if (state == "*") {
                 auto cp = ComplexParser(t, constants);
                 if (!cp.getConstName().empty()) // is symbol
-                    default_prob = constants.at(t);
+                    default_prob += constants.at(t);
                 else
-                    default_prob = cp.getComplex();
+                    default_prob += cp.getComplex();
 
             } else {
                 AUTOQ::TreeAutomata::State s = std::stoll(state, nullptr, 2);
                 auto cp = ComplexParser(t, constants);
                 if (!cp.getConstName().empty())  // is symbol
-                    states_probs[s].complex = constants.at(t);
+                    states_probs[s].complex += constants.at(t);
                 else
-                    states_probs[s].complex = cp.getComplex();
+                    states_probs[s].complex += cp.getComplex();
             }
             ++it2;
         }
@@ -141,7 +141,7 @@ AUTOQ::Automata<Symbol> from_tree_to_automaton(std::string tree, const std::map<
             //         symbolic_complex[it -> second] = {{"1", 1}};
             // }
             AUTOQ::Parsing::SymbolicComplexParser scp(t, constants);
-            symbolic_complex = scp.getSymbolicComplex();
+            symbolic_complex += scp.getSymbolicComplex();
             for (const auto &var: scp.getNewVars())
                 aut.vars.insert(var);
             ++it2;
@@ -198,6 +198,10 @@ AUTOQ::Automata<Symbol> from_tree_to_automaton(std::string tree, const std::map<
                     return states_probs[s];
                 }
             });
+            if (!predicate.empty()) {
+                AUTOQ_ERROR("The predicate of this state has already been specified!");
+                exit(1);
+            }
             predicate = predicates.at(t);
             ++it2;
         }
@@ -920,6 +924,16 @@ AUTOQ::Automata<Symbol> AUTOQ::Parsing::TimbukParser<Symbol>::ReadAutomaton(cons
     std::string fileContents = AUTOQ::Util::ReadFile(filepath);
     std::map<std::string, AUTOQ::Complex::Complex> constants;
     std::map<std::string, std::string> predicates;
+
+    std::string::size_type pos = 0;
+    while ((pos = fileContents.find("//", pos)) != std::string::npos) {
+        std::string::size_type end = fileContents.find('\n', pos);
+        if (end == std::string::npos) {
+            fileContents.erase(pos);
+        } else {
+            fileContents.erase(pos, end - pos + 1);
+        }
+    }
 
     if (!boost::algorithm::ends_with(filepath, ".aut") &&
         (fileContents.find("Constants") != std::string::npos ||

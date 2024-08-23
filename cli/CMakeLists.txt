@@ -49,7 +49,7 @@ foreach(file ${main_files})
     foreach(src ${sources})
         set_source_files_properties(${src} PROPERTIES COMPILE_FLAGS ${autoq_compiler_flags})
     endforeach()
-    target_link_libraries(${binary} libautoq)
+    target_link_libraries(${binary} lsta)
 endforeach()
 
 if (MAKE_STATIC_AUTOQ)
