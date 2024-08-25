@@ -233,9 +233,17 @@ AUTOQ::Automata<Symbol> from_tree_to_automaton(std::string tree, const std::map<
     }
 }
 
+void replaceSubstringWithChar(std::string &str, const std::string &substr, char replacementChar) {
+    std::string::size_type pos = 0;
+    while ((pos = str.find(substr, pos)) != std::string::npos) {
+        str.replace(pos, substr.length(), 1, replacementChar);
+        pos += 1;
+    }
+}
 template <typename Symbol>
 AUTOQ::Automata<Symbol> from_trees_to_automaton(std::string trees, const std::map<std::string, AUTOQ::Complex::Complex> &constants, const std::map<std::string, std::string> &predicates) {
     AUTOQ::Automata<Symbol> aut_final;
+    replaceSubstringWithChar(trees, "\\/", 'V');
     if (std::regex_search(trees, std::regex("(\\\\/|V) *\\|i\\|="))) { // if startswith "\/ |i|="
         std::istringstream iss(trees);
         std::string length;
@@ -282,7 +290,17 @@ AUTOQ::Automata<Symbol> from_trees_to_automaton(std::string trees, const std::ma
             }
         } while (!reach_all_zero);
     } else {
-        aut_final = from_tree_to_automaton<Symbol>(trees, constants, predicates);
+        std::istringstream iss_or(trees);
+        std::string tree;
+        std::getline(iss_or, tree, 'V');
+
+        aut_final = from_tree_to_automaton<Symbol>(tree, constants, predicates); // the first automata to be tensor producted
+
+        // to union the rest of the automata
+        while (std::getline(iss_or, tree, 'V')) {
+            auto aut2 = from_tree_to_automaton<Symbol>(tree, constants, predicates);
+            aut_final = aut_final || aut2;
+        }
     }
     return aut_final;
 }
