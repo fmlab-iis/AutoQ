@@ -956,7 +956,12 @@ AUTOQ::Automata<Symbol> AUTOQ::Parsing::TimbukParser<Symbol>::ReadAutomaton(cons
                     if (lhs.empty() || rhs.empty()) {
                         throw std::runtime_error(AUTOQ_LOG_PREFIX + "Invalid number \"" + str + "\".");
                     }
-                    constants[lhs] = ComplexParser(rhs).getComplex();
+                    if (constants.find(lhs) == constants.end()) {
+                        constants[lhs] = ComplexParser(rhs).getComplex();
+                    } else {
+                        AUTOQ_ERROR("[ERROR] The constant \"" + lhs + "\" is already defined.");
+                        exit(1);
+                    }
                 }
             }
         }
@@ -973,7 +978,12 @@ AUTOQ::Automata<Symbol> AUTOQ::Parsing::TimbukParser<Symbol>::ReadAutomaton(cons
                     if (lhs.empty() || rhs.empty()) {
                         throw std::runtime_error(AUTOQ_LOG_PREFIX + "Invalid number \"" + str + "\".");
                     }
-                    predicates[lhs] = rhs;
+                    if (predicates.find(lhs) == predicates.end()) {
+                        predicates[lhs] = rhs;
+                    } else {
+                        AUTOQ_ERROR("[ERROR] The predicate \"" + lhs + "\" is already defined.");
+                        exit(1);
+                    }
                 }
             }
         }
