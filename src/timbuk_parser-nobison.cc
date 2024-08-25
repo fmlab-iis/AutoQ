@@ -960,7 +960,7 @@ AUTOQ::Automata<Symbol> AUTOQ::Parsing::TimbukParser<Symbol>::ReadAutomaton(cons
                         constants[lhs] = ComplexParser(rhs).getComplex();
                     } else {
                         AUTOQ_ERROR("[ERROR] The constant \"" + lhs + "\" is already defined.");
-                        exit(1);
+                        throw std::runtime_error(AUTOQ_LOG_PREFIX + "[ERROR] The constant \"" + lhs + "\" is already defined.");
                     }
                 }
             }
@@ -982,7 +982,7 @@ AUTOQ::Automata<Symbol> AUTOQ::Parsing::TimbukParser<Symbol>::ReadAutomaton(cons
                         predicates[lhs] = rhs;
                     } else {
                         AUTOQ_ERROR("[ERROR] The predicate \"" + lhs + "\" is already defined.");
-                        exit(1);
+                        throw std::runtime_error(AUTOQ_LOG_PREFIX + "[ERROR] The predicate \"" + lhs + "\" is already defined.");
                     }
                 }
             }
