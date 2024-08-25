@@ -2,5 +2,5 @@ Constants
 c0 := 1/sqrt2
 c1 := 1/sqrt2
 Extended Dirac
-\/ |i|=7 : c0 |0i> + c1 |1i'>
-\/ |i|=7 : c0 |0i> - c1 |1i'>
+V |i|=7 : c0 |0i> + c1 |1i'>
+V |i|=7 : c0 |0i> - c1 |1i'>

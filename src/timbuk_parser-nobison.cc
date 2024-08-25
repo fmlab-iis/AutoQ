@@ -236,7 +236,7 @@ AUTOQ::Automata<Symbol> from_tree_to_automaton(std::string tree, const std::map<
 template <typename Symbol>
 AUTOQ::Automata<Symbol> from_trees_to_automaton(std::string trees, const std::map<std::string, AUTOQ::Complex::Complex> &constants, const std::map<std::string, std::string> &predicates) {
     AUTOQ::Automata<Symbol> aut_final;
-    if (std::regex_search(trees, std::regex("\\\\/ *\\|i\\|="))) { // if startswith "\/ |i|="
+    if (std::regex_search(trees, std::regex("(\\\\/|V) *\\|i\\|="))) { // if startswith "\/ |i|="
         std::istringstream iss(trees);
         std::string length;
         std::getline(iss, length, ':');
