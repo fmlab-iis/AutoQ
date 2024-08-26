@@ -1,0 +1,5 @@
+Predicates
+p := (and(and (> (* $R $R) (* bR bR)) (= $I 0))(> aR 0))
+t := true
+Extended Dirac
+p|011> + t|*>

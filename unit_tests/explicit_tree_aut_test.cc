@@ -955,6 +955,7 @@ BOOST_AUTO_TEST_CASE(file_exist_checker)
 }
 */
 
+#include <autoq/inclusion.hh>
 namespace fs = std::filesystem;
 BOOST_AUTO_TEST_CASE(hsl_rule_checker)
 {
@@ -974,7 +975,8 @@ BOOST_AUTO_TEST_CASE(hsl_rule_checker)
         aut.execute(cir_path);
         bool verify = aut <= aut2;
         BOOST_CHECK(verify);
-        std::cout<<entry.path().string() + " Not verified"<<std::endl;
+        if(!verify)
+            std::cout<<entry.path().string() + " Not verified"<<std::endl;
     }
     
     cir_path = path + "BVALL/circuit.qasm";
@@ -988,10 +990,26 @@ BOOST_AUTO_TEST_CASE(hsl_rule_checker)
         aut.execute(cir_path);
         bool verify = aut <= aut2;
         BOOST_CHECK(verify);
-        std::cout<<entry.path().string() + " Not verified"<<std::endl;
+        if(!verify)
+            std::cout<<entry.path().string() + " Not verified"<<std::endl;
     }
 
-    
+    cir_path = path + "OEGROVER/circuit.qasm";
+    state_dir = path + "OEGROVER/state/";
+    for (const auto & entry : fs::directory_iterator(state_dir))
+    {
+        if(!entry.is_directory())
+            continue;
+
+
+        AUTOQ::SymbolicAutomata aut = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Symbolic>::ReadAutomaton(entry.path().string() + "/pre.hsl");
+        AUTOQ::PredicateAutomata aut2 = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Predicate>::ReadAutomaton(entry.path().string() + "/post.hsl");
+        aut.execute(cir_path);
+        bool verify = AUTOQ::check_inclusion(AUTOQ::Constraint(aut.constraints.c_str()), aut, aut2);
+        BOOST_CHECK(verify);
+        if(!verify)
+            std::cout<<entry.path().string() + " Not verified"<<std::endl;
+    }
 }
 
 

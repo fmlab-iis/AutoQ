@@ -1,5 +1,5 @@
 Constants
-dummy := 0
+//dummy := 0
 dummy := 1
 Extended Dirac
 \/|i|=1:dummy|i> # |0> # \/|i|=1:dummy|i0> + 0 |i1> # \/|i|=1:dummy|i0> # \/|i|=1:dummy|i0> # dummy|0>
