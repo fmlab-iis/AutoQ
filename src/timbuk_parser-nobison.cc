@@ -50,8 +50,9 @@ AUTOQ::Automata<Symbol> from_tree_to_automaton(std::string tree, const std::map<
                 if (state == "*")
                     THROW_AUTOQ_ERROR("The numbers of qubits are not specified!");
                 aut.qubitNum = state.length();
-            } else if (state != "*" && aut.qubitNum != state.length())
+            } else if (state != "*" && ((aut.qubitNum < 0) || (static_cast<std::size_t>(aut.qubitNum) != state.length()))) {
                 THROW_AUTOQ_ERROR("The numbers of qubits are not the same in all basis states!");
+            }
             if (state == "*") {
                 auto cp = ComplexParser(t, constants);
                 if (!cp.getConstName().empty()) // is symbol
@@ -71,7 +72,7 @@ AUTOQ::Automata<Symbol> from_tree_to_automaton(std::string tree, const std::map<
         }
         typename AUTOQ::Automata<AUTOQ::Symbol::Concrete>::State pow_of_two = 1;
         typename AUTOQ::Automata<AUTOQ::Symbol::Concrete>::State state_counter = 0;
-        for (unsigned level=1; level<=aut.qubitNum; level++) {
+        for (int level=1; level<=aut.qubitNum; level++) {
             for (typename AUTOQ::Automata<AUTOQ::Symbol::Concrete>::State i=0; i<pow_of_two; i++) {
                 aut.transitions[typename AUTOQ::Automata<Symbol>::SymbolTag(AUTOQ::Symbol::Concrete(level), typename AUTOQ::Automata<Symbol>::Tag(1))][state_counter].insert({(state_counter<<1)+1, (state_counter<<1)+2});
                 state_counter++;
@@ -111,7 +112,7 @@ AUTOQ::Automata<Symbol> from_tree_to_automaton(std::string tree, const std::map<
                 if (state == "*")
                     THROW_AUTOQ_ERROR("The numbers of qubits are not specified!");
                 aut.qubitNum = state.length();
-            } else if (state != "*" && aut.qubitNum != state.length())
+            } else if (state != "*" && ((aut.qubitNum < 0) || (static_cast<std::size_t>(aut.qubitNum) != state.length())))
                 THROW_AUTOQ_ERROR("The numbers of qubits are not the same in all basis states!");
             // } else if constexpr(std::is_same_v<AUTOQ::Symbol::Symbolic, AUTOQ::SymbolicAutomata::Symbol>) {
             AUTOQ::Complex::SymbolicComplex &symbolic_complex = std::invoke([&]()-> AUTOQ::Complex::SymbolicComplex& {
@@ -148,7 +149,7 @@ AUTOQ::Automata<Symbol> from_tree_to_automaton(std::string tree, const std::map<
         }
         typename AUTOQ::Automata<AUTOQ::Symbol::Symbolic>::State pow_of_two = 1;
         typename AUTOQ::Automata<AUTOQ::Symbol::Symbolic>::State state_counter = 0;
-        for (unsigned level=1; level<=aut.qubitNum; level++) {
+        for (int level=1; level<=aut.qubitNum; level++) {
             for (typename AUTOQ::Automata<AUTOQ::Symbol::Symbolic>::State i=0; i<pow_of_two; i++) {
                 aut.transitions[typename AUTOQ::Automata<Symbol>::SymbolTag(AUTOQ::Symbol::Symbolic(level), typename AUTOQ::Automata<Symbol>::Tag(1))][state_counter].insert({(state_counter<<1)+1, (state_counter<<1)+2});
                 state_counter++;
@@ -187,7 +188,7 @@ AUTOQ::Automata<Symbol> from_tree_to_automaton(std::string tree, const std::map<
                 if (state == "*")
                     THROW_AUTOQ_ERROR("The numbers of qubits are not specified!");
                 aut.qubitNum = state.length();
-            } else if (state != "*" && aut.qubitNum != state.length()) {
+            } else if (state != "*" && ((aut.qubitNum < 0) || (static_cast<std::size_t>(aut.qubitNum) != state.length()))) {
                 THROW_AUTOQ_ERROR("The numbers of qubits are not the same in all basis states!");
             }
             std::string &predicate = std::invoke([&]()-> std::string& {
@@ -206,7 +207,7 @@ AUTOQ::Automata<Symbol> from_tree_to_automaton(std::string tree, const std::map<
         }
         typename AUTOQ::Automata<AUTOQ::Symbol::Predicate>::State pow_of_two = 1;
         typename AUTOQ::Automata<AUTOQ::Symbol::Predicate>::State state_counter = 0;
-        for (unsigned level=1; level<=aut.qubitNum; level++) {
+        for (int level=1; level<=aut.qubitNum; level++) {
             for (typename AUTOQ::Automata<AUTOQ::Symbol::Predicate>::State i=0; i<pow_of_two; i++) {
                 aut.transitions[typename AUTOQ::Automata<Symbol>::SymbolTag(AUTOQ::Symbol::Predicate(level), typename AUTOQ::Automata<Symbol>::Tag(1))][state_counter].insert({(state_counter<<1)+1, (state_counter<<1)+2});
                 state_counter++;
@@ -617,7 +618,7 @@ AUTOQ::Automata<Symbol> parse_timbuk(const std::string& str) {
         if (kv.first.is_internal()) {
             if (kv.first.symbol().qubit() > INT_MAX)
                 THROW_AUTOQ_ERROR("The number of qubits is too large!");
-            result.qubitNum = std::max(result.qubitNum, static_cast<unsigned>(kv.first.symbol().qubit()));
+            result.qubitNum = std::max(result.qubitNum, static_cast<int>(kv.first.symbol().qubit()));
         }
     }
     result.stateNum++;
@@ -883,7 +884,7 @@ try {
         if (kv.first.is_internal()) {
             if (kv.first.symbol().qubit() > INT_MAX)
                 THROW_AUTOQ_ERROR("The number of qubits is too large!");
-            result.qubitNum = std::max(result.qubitNum, static_cast<unsigned>(kv.first.symbol().qubit()));
+            result.qubitNum = std::max(result.qubitNum, static_cast<int>(kv.first.symbol().qubit()));
         }
     }
 
@@ -933,6 +934,10 @@ AUTOQ::Automata<Symbol> parse_hsl(const std::string& str, const std::map<std::st
     return aut;
 }
 
+// template <typename Symbol>
+// AUTOQ::Automata<Symbol> AUTOQ::Parsing::TimbukParser<Symbol>::ReadAutomaton(const std::string& filepath) {
+//     return ParseString(AUTOQ::Util::ReadFile(filepath));
+// }
 template <typename Symbol>
 AUTOQ::Automata<Symbol> AUTOQ::Parsing::TimbukParser<Symbol>::ReadAutomaton(const std::string& filepath) {
     AUTOQ::Automata<Symbol> result;

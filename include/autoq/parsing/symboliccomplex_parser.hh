@@ -22,11 +22,11 @@ namespace AUTOQ {
 
 class AUTOQ::Parsing::SymbolicComplexParser {
 public:
-    SymbolicComplexParser(const std::string &input) : input_(input), index_(0), constMap_(std::map<std::string, Complex::Complex>()) {
+    SymbolicComplexParser(const std::string &input) : input_(input), index_(0), result(), constMap_(constMap2), used_vars() {
         std::erase_if(input_, [](unsigned char ch) { return std::isspace(ch); });
         parse();
     }
-    SymbolicComplexParser(const std::string &input, const std::map<std::string, Complex::Complex> &constMap) : input_(input), index_(0), constMap_(constMap) {
+    SymbolicComplexParser(const std::string &input, const std::map<std::string, Complex::Complex> &constMap) : input_(input), index_(0), result(), constMap_(constMap), used_vars() {
         std::erase_if(input_, [](unsigned char ch) { return std::isspace(ch); });
         parse();
     }
@@ -42,6 +42,7 @@ private:
     size_t index_;
     SymbolicComplex result;
     const std::map<std::string, Complex::Complex> &constMap_;
+    const std::map<std::string, Complex::Complex> constMap2{}; // empty only for initialization
     std::set<std::string> used_vars;
 
     void parse() {

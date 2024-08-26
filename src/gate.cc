@@ -340,23 +340,23 @@ void AUTOQ::Automata<Symbol>::General_Controlled_Gate(int c, int c2, int t, cons
 }
 
 #define queryTopID(oldID, newID) \
-    State newID = oldID + stateNum;
+    State newID = oldID + stateNum;/*
     // {   \
     //     auto it = topStateMap.find(oldID);    \
     //     if (it == topStateMap.end())    \
     //         newID = oldID;    \
     //     else    \
     //         newID = it->second; \
-    // }
+    // }*/
 #define queryChildID(oldID, newID) \
-    State newID = oldID + stateNum;
+    State newID = oldID + stateNum;/*
     // {   \
     //     auto it = childStateMap.find(oldID);    \
     //     if (it == childStateMap.end())    \
     //         newID = oldID;    \
     //     else    \
     //         newID = it->second; \
-    // }
+    // }*/
 template <typename Symbol>
 void AUTOQ::Automata<Symbol>::Diagonal_Gate(int t, const std::function<void(Symbol*)> &multiply_by_c0, const std::function<void(Symbol*)> &multiply_by_c1) {
     TopDownTransitions transitions2;
@@ -649,8 +649,8 @@ void AUTOQ::Automata<Symbol>::CX(int c, int t, bool opt) {
     assert(c != t);
     if (c > t) {
         General_Controlled_Gate(c, t,
-            [](const Symbol &l, const Symbol &r) -> Symbol { return r; },
-            [](const Symbol &l, const Symbol &r) -> Symbol { return l; });
+            [](const Symbol &, const Symbol &r) -> Symbol { return r; },
+            [](const Symbol &l, const Symbol &) -> Symbol { return l; });
     } else {
         TopDownTransitions transitions2;
         std::map<State, int> topStateIsLeftOrRight, childStateIsLeftOrRight; // 0b10: original tree, 0b01: copied tree, 0b11: both trees
@@ -788,7 +788,7 @@ void AUTOQ::Automata<Symbol>::CX(int c, int t, bool opt) {
 }
 
 #define queryTopID2(oldID, newID) \
-    State newID = oldID + stateNum * 2;
+    State newID = oldID + stateNum * 2;/*
     // {   \
     //     auto it = topStateMap2.find(oldID);    \
     //     if (it == topStateMap2.end()) {   \
@@ -801,9 +801,9 @@ void AUTOQ::Automata<Symbol>::CX(int c, int t, bool opt) {
     //     } else {   \
     //         newID = it->second; \
     //     }   \
-    // }
+    // }*/
 #define queryChildID2(oldID, newID) \
-    State newID = oldID + stateNum * 2;
+    State newID = oldID + stateNum * 2;/*
     // {   \
     //     auto it = childStateMap2.find(oldID);    \
     //     if (it == childStateMap2.end()) {   \
@@ -816,7 +816,7 @@ void AUTOQ::Automata<Symbol>::CX(int c, int t, bool opt) {
     //     } else {   \
     //         newID = it->second; \
     //     }   \
-    // }
+    // }*/
 template <typename Symbol>
 void AUTOQ::Automata<Symbol>::CZ(int c, int t) {
     #ifdef TO_QASM
@@ -1349,8 +1349,8 @@ void AUTOQ::Automata<Symbol>::CCX(int c, int c2, int t) {
         stateNum *= 3;
     } else if (t < c) { // t < c < c2
         General_Controlled_Gate(c, c2, t,
-            [](const Symbol &l, const Symbol &r) -> Symbol { return r; },
-            [](const Symbol &l, const Symbol &r) -> Symbol { return l; });
+            [](const Symbol &, const Symbol &r) -> Symbol { return r; },
+            [](const Symbol &l, const Symbol &) -> Symbol { return l; });
     } else { // c < t < c2
         auto aut2 = *this;
         aut2.CX(c2, t, false); gateCount--; // prevent repeated counting
@@ -1537,7 +1537,7 @@ void AUTOQ::Automata<Symbol>::Phase(const boost::rational<boost::multiprecision:
 
 template <typename Symbol>
 void AUTOQ::Automata<Symbol>::randG(int G, int A, int B, int C) {
-    int g, a, b, c;
+    int g, a, b=0, c=0;
     do {
         g = rand() % 11;
         a = rand() % qubitNum + 1;

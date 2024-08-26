@@ -13,7 +13,7 @@ using AUTOQ::TreeAutomata;
 using AUTOQ::Util::ShellCmd;
 using AUTOQ::Util::ReadFile;
 
-int main(int argc, char **argv) {
+int main(int, char**) {
     enum { P, Q1, Q0 };
     AUTOQ::Complex::nTuple::N = 8;
     AUTOQ::TreeAutomata aut, ans;

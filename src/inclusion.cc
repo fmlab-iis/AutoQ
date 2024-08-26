@@ -41,7 +41,7 @@ bool AUTOQ::Automata<Symbol>::operator<=(const Automata<Symbol> &autB) const req
     for (const auto &t : this->transitions) {
         const auto &symbol_tag = t.first;
         const auto &symbol = symbol_tag.symbol();
-        int i = 0;
+        unsigned i = 0;
         for (; i<=symbol_map.size(); i++) {
             if (i == symbol_map.size()) {
                 symbol_map.push_back(symbol);
@@ -61,7 +61,7 @@ bool AUTOQ::Automata<Symbol>::operator<=(const Automata<Symbol> &autB) const req
     for (const auto &t : autB.transitions) {
         const auto &symbol_tag = t.first;
         const auto &symbol = symbol_tag.symbol();
-        int i = 0;
+        unsigned i = 0;
         for (; i<=symbol_map.size(); i++) {
             if (i == symbol_map.size()) {
                 symbol_map.push_back(symbol);

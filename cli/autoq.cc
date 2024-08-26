@@ -122,7 +122,7 @@ void adjust_N_in_nTuple(const std::string &filename) {
 
 AUTOQ::TreeAutomata aut;
 AUTOQ::TreeAutomata aut2;
-void timeout_handler(int signum) {
+void timeout_handler(int) {
     std::map<std::string, std::string> stats;
     stats["gate"] = AUTOQ::Util::Convert::toString(AUTOQ::TreeAutomata::total_gate_time - AUTOQ::TreeAutomata::total_removeuseless_time - AUTOQ::TreeAutomata::total_reduce_time);
     stats["removeuseless"] = AUTOQ::Util::Convert::toString(AUTOQ::TreeAutomata::total_removeuseless_time);
@@ -201,14 +201,14 @@ try {
     CLI11_PARSE(app, argc, argv); // Parse the command-line arguments
 
     auto start = chrono::steady_clock::now();
-    bool runConcrete; // or runSymbolic
+    // bool runConcrete; // or runSymbolic
     if (executionC->parsed()) {
-        runConcrete = true;
+        // runConcrete = true;
         AUTOQ::TreeAutomata aut = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Concrete>::ReadAutomaton(pre);
         aut.execute(circuit);
         aut.print_aut();
     } else if (verificationC->parsed()) {
-        runConcrete = true;
+        // runConcrete = true;
         auto aut = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Concrete>::ReadAutomaton(pre);
         auto aut2 = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Concrete>::ReadAutomaton(post);
         aut.execute(circuit);
@@ -219,12 +219,12 @@ try {
             std::cout << "The quantum program has [" << aut.qubitNum << "] qubits and [" << AUTOQ::TreeAutomata::gateCount << "] gates.\nThe verification process [" << (verify ? "passed" : "failed") << "] in [" << AUTOQ::Util::Convert::toString(chrono::steady_clock::now() - start) << "] with [" << AUTOQ::Util::getPeakRSS() / 1024 / 1024 << "MB] memory usage.\n";
         }
     } else if (executionS->parsed()) {
-        runConcrete = false;
+        // runConcrete = false;
         AUTOQ::SymbolicAutomata aut = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Symbolic>::ReadAutomaton(pre);
         aut.execute(circuit);
         aut.print_aut();
     } else if (verificationS->parsed()) {
-        runConcrete = false;
+        // runConcrete = false;
         AUTOQ::SymbolicAutomata aut = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Symbolic>::ReadAutomaton(pre);
         AUTOQ::PredicateAutomata spec = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Predicate>::ReadAutomaton(post);
         aut.execute(circuit);
@@ -239,7 +239,7 @@ try {
             std::cout << "The quantum program has [" << aut.qubitNum << "] qubits and [" << AUTOQ::SymbolicAutomata::gateCount << "] gates.\nThe verification process [" << (verify ? "passed" : "failed") << "] in [" << AUTOQ::Util::Convert::toString(chrono::steady_clock::now() - start) << "] with [" << AUTOQ::Util::getPeakRSS() / 1024 / 1024 << "MB] memory usage.\n";
         }
     } else if (equivalence_checking->parsed()) {
-        runConcrete = true;
+        // runConcrete = true;
         /*AUTOQ::TreeAutomata*/ aut = AUTOQ::TreeAutomata::prefix_basis(extract_qubit(circuit1));
         /*AUTOQ::TreeAutomata*/ aut2 = AUTOQ::TreeAutomata::prefix_basis(extract_qubit(circuit2));
         aut.execute(circuit1);

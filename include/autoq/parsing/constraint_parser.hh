@@ -22,11 +22,11 @@ namespace AUTOQ {
 
 class AUTOQ::Parsing::ConstraintParser {
 public:
-    ConstraintParser(const std::string &input) : input_(input), index_(0), constMap_(std::map<std::string, Complex::Complex>()) {
+    ConstraintParser(const std::string &input) : input_(input), index_(0), result(), constMap_(constMap2) {
         std::erase_if(input_, [](unsigned char ch) { return std::isspace(ch); });
         parse();
     }
-    ConstraintParser(const std::string &input, const std::map<std::string, Complex::Complex> &constMap) : input_(input), index_(0), constMap_(constMap) {
+    ConstraintParser(const std::string &input, const std::map<std::string, Complex::Complex> &constMap) : input_(input), index_(0), result(), constMap_(constMap) {
         std::erase_if(input_, [](unsigned char ch) { return std::isspace(ch); });
         parse();
     }
@@ -39,6 +39,7 @@ private:
     size_t index_;
     std::string result;
     const std::map<std::string, Complex::Complex> &constMap_;
+    const std::map<std::string, Complex::Complex> constMap2{}; // empty only for initialization
 
     void parse() {
         result = parseOR();

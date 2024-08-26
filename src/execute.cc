@@ -23,7 +23,7 @@ void AUTOQ::Automata<Symbol>::execute(const char *filename) {
     const std::regex_iterator<std::string::iterator> END;
     if (!qasm.is_open()) THROW_AUTOQ_ERROR("Failed to open file " + std::string(filename) + ".");
     std::string line, previous_line;
-    int lineno = 1;
+    // int lineno = 1;
     while (getline(qasm, line)) {
         line = AUTOQ::String::trim(line);
         // AUTOQ_DEBUG("[" << (lineno++) << "]: " << line);

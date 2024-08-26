@@ -14,11 +14,11 @@ typedef boost::rational<boost::multiprecision::cpp_int> rational;
 
 class ComplexParser {
 public:
-    ComplexParser(const std::string &input) : input_(input), index_(0), constMap_(std::map<std::string, Complex>()) {
+    ComplexParser(const std::string &input) : input_(input), index_(0), resultC(), resultV(), constMap_(constMap2) {
         std::erase_if(input_, [](unsigned char ch) { return std::isspace(ch); });
         parse();
     }
-    ComplexParser(const std::string &input, const std::map<std::string, Complex> &constMap) : input_(input), index_(0), constMap_(constMap) {
+    ComplexParser(const std::string &input, const std::map<std::string, Complex> &constMap) : input_(input), index_(0), resultC(), resultV(), constMap_(constMap) {
         std::erase_if(input_, [](unsigned char ch) { return std::isspace(ch); });
         parse();
     }
@@ -35,6 +35,7 @@ private:
     Complex resultC; // complex
     std::string resultV; // variable
     const std::map<std::string, Complex> &constMap_;
+    const std::map<std::string, Complex> constMap2{}; // empty only for initialization
 
     void parse() {
         try {
