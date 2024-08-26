@@ -15,7 +15,7 @@
 #include <chrono>
 
 // AUTOQ headers
-#include "autoq/autoq.hh"
+#include "autoq/error.hh"
 
 namespace AUTOQ
 {

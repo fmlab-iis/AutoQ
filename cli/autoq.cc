@@ -1,5 +1,6 @@
 #include <fstream>
 #include <iostream>
+#include <autoq/error.hh>
 #include <autoq/parsing/timbuk_parser.hh>
 #include <autoq/parsing/complex_parser.hh>
 #include <autoq/serialization/timbuk_serializer.hh>
@@ -49,7 +50,7 @@ void adjust_N_in_nTuple(const std::string &filename) {
     const std::regex rx(R"(rx\((.+)\).+\[(\d+)\];)");
     const std::regex rz(R"(rz\((.+)\).+\[(\d+)\];)");
     const std::regex_iterator<std::string::iterator> END;
-    if (!qasm.is_open()) throw std::runtime_error("[ERROR] Failed to open file " + std::string(filename) + ".");
+    if (!qasm.is_open()) THROW_AUTOQ_ERROR("Failed to open file " + std::string(filename) + ".");
     std::string line;
     while (getline(qasm, line)) {
         line = AUTOQ::String::trim(line);
@@ -86,8 +87,7 @@ void adjust_N_in_nTuple(const std::string &filename) {
             if (pos != std::string::npos) {
                 angle.replace(pos, 2, "1");
             } else if (angle != "0") {
-                AUTOQ_ERROR("The angle in rx gate is not a multiple of pi!");
-                exit(1);
+                THROW_AUTOQ_ERROR("The angle in rx gate is not a multiple of pi!");
             }
             auto theta = ComplexParser(angle).getComplex().to_rational() / 2;
             if (AUTOQ::Complex::nTuple::N < static_cast<decltype(AUTOQ::Complex::nTuple::N)>(theta.denominator())) {
@@ -99,8 +99,7 @@ void adjust_N_in_nTuple(const std::string &filename) {
             if (pos != std::string::npos) {
                 angle.replace(pos, 2, "1");
             } else if (angle != "0") {
-                AUTOQ_ERROR("The angle in rz gate is not a multiple of pi!");
-                exit(1);
+                THROW_AUTOQ_ERROR("The angle in rz gate is not a multiple of pi!");
             }
             auto theta = ComplexParser(angle).getComplex().to_rational() / 2;
             if (AUTOQ::Complex::nTuple::N < static_cast<decltype(AUTOQ::Complex::nTuple::N)>(theta.denominator())) {
@@ -115,7 +114,7 @@ void adjust_N_in_nTuple(const std::string &filename) {
         } else if (line.find("PRINT_AUT") == 0) {
         } else if (line.find("STOP") == 0) {
         } else if (line.length() > 0)
-            throw std::runtime_error("[ERROR] unsupported gate: " + line + ".");
+            THROW_AUTOQ_ERROR("unsupported gate: " + line + ".");
     }
     qasm.close();
     // AUTOQ_DEBUG(AUTOQ::Complex::nTuple::N);
@@ -147,6 +146,7 @@ void set_timeout(unsigned int seconds) {
 }
 
 int main(int argc, char **argv) {
+try {
     set_timeout(600);
     feenableexcept(FE_ALL_EXCEPT & ~FE_INEXACT);
 
@@ -282,5 +282,8 @@ int main(int argc, char **argv) {
     //                 << "The total time spent on check_inclusion(...) is [" << AUTOQ::Util::Convert::toString(AUTOQ::SymbolicAutomata::total_include_time) << "].\n";
     // }
     /**************/
+} catch (AutoQError &e) {
+    std::cout << e.what() << std::endl;
+}
     return 0;
 }

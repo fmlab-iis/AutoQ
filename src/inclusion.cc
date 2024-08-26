@@ -395,7 +395,7 @@ bool AUTOQ::check_validity(Constraint C, const PredicateAutomata::Symbol &ps, co
     else {
         std::cout << smt_input << "\n";
         std::cout << str << "-\n";
-        throw std::runtime_error("[ERROR] The solver Z3 did not correctly return SAT or UNSAT.\nIt's probably because the specification automaton is NOT a predicate automaton.");
+        THROW_AUTOQ_ERROR("The solver Z3 did not correctly return SAT or UNSAT.\nIt's probably because the specification automaton is NOT a predicate automaton.");
     }
 }
 
@@ -988,7 +988,7 @@ template struct AUTOQ::Automata<AUTOQ::Symbol::Symbolic>;
 //     else {
 //         std::cout << smt_input << "\n";
 //         std::cout << result << "-\n";
-//         throw std::runtime_error(AUTOQ_LOG_PREFIX + "[ERROR] The solver Z3 did not correctly return SAT or UNSAT.");
+//         THROW_AUTOQ_ERROR("The solver Z3 did not correctly return SAT or UNSAT.");
 //     }
 // }
 

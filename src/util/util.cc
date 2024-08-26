@@ -10,6 +10,7 @@
 
 // AUTOQ headers
 #include "autoq/autoq.hh"
+#include "autoq/error.hh"
 #include "autoq/util/util.hh"
 
 // Standard library headers
@@ -23,7 +24,7 @@ std::string AUTOQ::Util::ReadFile(const std::string& fileName)
 	std::ifstream t(fileName);
 	if (!t)
 	{	// in case the file could not be open
-		throw std::runtime_error("[ERROR] Failed to open file " + fileName + ".");
+		THROW_AUTOQ_ERROR("Failed to open file " + fileName + ".");
 	}
 
 	std::string str;
@@ -56,7 +57,7 @@ std::string AUTOQ::Util::ShellCmd(const std::string &cmd) {
     FILE* pipe = popen(cmd.c_str(), "r");
     if (!pipe) {
         std::cout << cmd << std::endl;
-        throw std::runtime_error(AUTOQ_LOG_PREFIX + "popen() failed!");
+        THROW_AUTOQ_ERROR("popen() failed!");
     }
 
     // read till end of process:
@@ -77,12 +78,12 @@ std::string AUTOQ::Util::ShellCmd(const std::vector<std::string> &cmd) {
     std::string result = "";
 
     if (pipe(pipefd) == -1) {
-        throw std::runtime_error(AUTOQ_LOG_PREFIX + "popen() failed!");
+        THROW_AUTOQ_ERROR("popen() failed!");
     }
 
     pid_t pid = fork();
     if (pid == -1) {
-        throw std::runtime_error(AUTOQ_LOG_PREFIX + "fork() failed!");
+        THROW_AUTOQ_ERROR("fork() failed!");
     } else if (pid == 0) { // Child process
         close(pipefd[0]); // Close unused read end
         // Redirect standard output to the write end of the pipe

@@ -12,7 +12,7 @@
 #define _AUTOQ_CONVERT_HH_
 
 // AUTOQ headers
-#include "autoq/autoq.hh"
+#include "autoq/error.hh"
 
 // Standard library headers
 #include <cassert>
@@ -591,7 +591,7 @@ public:
 
 
 	/**
-	 * @brief  Converts a string to an object 
+	 * @brief  Converts a string to an object
 	 *
 	 * Static method for conversion of a string to an object of any class with
 	 * the >> input operator

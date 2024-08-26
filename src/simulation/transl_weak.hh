@@ -14,7 +14,7 @@
 #include <functional>
 
 // AUTOQ headers
-#include "autoq/autoq.hh"
+#include "autoq/error.hh"
 #include "abstract_transl.hh"
 
 
@@ -88,7 +88,7 @@ public:   // methods
 		}
 		else
 		{	// in case there is no translation for the value
-			throw std::runtime_error("Cannot insert value into const translator.");
+			THROW_AUTOQ_ERROR("Cannot insert value into const translator.");
 		}
 	}
 
@@ -163,7 +163,7 @@ public:   // methods
 		}
 		else
 		{
-			throw std::runtime_error("Cannot insert value into const translator.");
+			THROW_AUTOQ_ERROR("Cannot insert value into const translator.");
 		}
 	}
 

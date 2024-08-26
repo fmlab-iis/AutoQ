@@ -12,7 +12,7 @@
 #define _AUTOQ_TWO_WAY_DICT_
 
 // AUTOQ headers
-#include "autoq/autoq.hh"
+#include "autoq/error.hh"
 #include "autoq/util/convert.hh"
 
 // Standard library headers
@@ -208,10 +208,10 @@ public:   // Public methods
 
 		if (!(bwdMap_.insert(std::make_pair(value.second, value.first)).second))
 		{	// in case there is already some backward mapping for given value
-			AUTOQ_ERROR("backward mapping for "
+			THROW_AUTOQ_ERROR((std::stringstream() << "backward mapping for "
 				<< Convert::ToString(value.second)
 				<< " already found: "
-				<< Convert::ToString(bwdMap_.find(value.second)->second));
+				<< Convert::ToString(bwdMap_.find(value.second)->second)).str());
 
 			assert(false);      // fail gracefully
 		}

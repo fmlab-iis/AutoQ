@@ -1,6 +1,7 @@
 #ifndef _AUTOQ_SYMBOLIC_HH_
 #define _AUTOQ_SYMBOLIC_HH_
 
+#include "autoq/error.hh"
 #include "autoq/util/convert.hh"
 #include "autoq/complex/symbolic_complex.hh"
 #include <boost/multiprecision/cpp_int.hpp>
@@ -29,8 +30,7 @@ public:
     bool is_leaf() const { return !internal; }
     boost::multiprecision::cpp_int qubit() const {
         if (!internal) {
-            AUTOQ_ERROR("Leaf symbols do not have qubit().");
-            exit(1);
+            THROW_AUTOQ_ERROR("Leaf symbols do not have qubit().");
         }
         return complex.begin()->second.toInt();
     }

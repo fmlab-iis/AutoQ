@@ -25,7 +25,7 @@ void AUTOQ::Automata<Symbol>::General_Single_Qubit_Gate(int t, const std::functi
 
     bool overflow = (stateNum > (std::numeric_limits<State>::max()-stateNum) / stateNum / 2); // want: 2 * stateNum^2 + stateNum <= max
     if (overflow)
-        throw std::overflow_error("[ERROR] The number of states after multiplication is too large.");
+        THROW_AUTOQ_ERROR("The number of states after multiplication is too large.");
     // s < stateNum -> s
     // (s1, s2, L) -> stateNum + s1 * stateNum + s2
     // (s1, s2, R) -> stateNum + stateNum^2 + s1 * stateNum + s2 -> max == 2 * stateNum^2 + stateNum
@@ -154,8 +154,7 @@ void AUTOQ::Automata<Symbol>::General_Single_Qubit_Gate(int t, const std::functi
 template <typename Symbol>
 void AUTOQ::Automata<Symbol>::General_Controlled_Gate(int c, int t, const std::function<Symbol(const Symbol&, const Symbol&)> &u1u2, const std::function<Symbol(const Symbol&, const Symbol&)> &u3u4) {
     if (c <= t) {
-        AUTOQ_ERROR("We require c > t here.");
-        exit(1);
+        THROW_AUTOQ_ERROR("We require c > t here.");
     }
     General_Controlled_Gate(c, c, t, u1u2, u3u4);
 }
@@ -163,8 +162,7 @@ template <typename Symbol>
 void AUTOQ::Automata<Symbol>::General_Controlled_Gate(int c, int c2, int t, const std::function<Symbol(const Symbol&, const Symbol&)> &u1u2, const std::function<Symbol(const Symbol&, const Symbol&)> &u3u4) {
     auto minC = std::min(c, c2);
     if (minC <= t) {
-        AUTOQ_ERROR("We require all c's > t here.");
-        exit(1);
+        THROW_AUTOQ_ERROR("We require all c's > t here.");
     }
 
     AUTOQ::Automata<Symbol> result;
@@ -178,7 +176,7 @@ void AUTOQ::Automata<Symbol>::General_Controlled_Gate(int c, int c2, int t, cons
 
     bool overflow = (stateNum > (std::numeric_limits<State>::max()-stateNum) / stateNum / 2); // want: 2 * stateNum^2 + stateNum <= max
     if (overflow)
-        throw std::overflow_error("[ERROR] The number of states after multiplication is too large.");
+        THROW_AUTOQ_ERROR("The number of states after multiplication is too large.");
     // s < stateNum -> s
     // (s1, s2, L) -> stateNum + s1 * stateNum + s2
     // (s1, s2, R) -> stateNum + stateNum^2 + s1 * stateNum + s2 -> max == 2 * stateNum^2 + stateNum

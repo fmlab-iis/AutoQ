@@ -13,7 +13,7 @@
 #include <fstream>
 #include <filesystem>
 
-#include "autoq/autoq.hh"
+#include "autoq/error.hh"
 #include "autoq/util/util.hh"
 #include "autoq/complex/complex.hh"
 #include "autoq/symbol/concrete.hh"
@@ -851,7 +851,7 @@ BOOST_AUTO_TEST_CASE(HSL_format_checker)
             if (!constraint.empty()) {
                 std::ifstream t(constraint);
                 if (!t) // in case the file could not be open
-                    throw std::runtime_error("[ERROR] Failed to open file " + std::string(constraint) + ".");
+                    THROW_AUTOQ_ERROR("Failed to open file " + std::string(constraint) + ".");
                 buffer << t.rdbuf();
             }
             // AUTOQ::Constraint C(buffer.str().c_str());
