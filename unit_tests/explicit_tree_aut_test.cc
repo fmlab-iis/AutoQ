@@ -974,11 +974,10 @@ BOOST_AUTO_TEST_CASE(hsl_rule_checker)
         auto aut2 = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Concrete>::ReadAutomaton(entry.path().string() + "/post.hsl");
         aut.execute(cir_path);
         bool verify = aut <= aut2;
-        BOOST_CHECK(verify);
-        if(!verify)
-            std::cout<<entry.path().string() + " Not verified"<<std::endl;
+        BOOST_CHECK_MESSAGE(verify, entry.path().string() + " Not verified");
+        // std::cout<<entry.path().string() + " Not verified"<<std::endl;
     }
-    
+
     cir_path = path + "BVALL/circuit.qasm";
     state_dir = path + "BVALL/state/";
     for (const auto & entry : fs::directory_iterator(state_dir))
