@@ -12,7 +12,7 @@
 #define _AUTOQ_BINARY_RELATION_HH_
 
 // AUTOQ headers
-#include "autoq/autoq.hh"
+#include "autoq/error.hh"
 #include "autoq/util/convert.hh"
 #include "autoq/util/two_way_dict.hh"
 #include "transl_weak.hh"

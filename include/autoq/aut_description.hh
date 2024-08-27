@@ -93,7 +93,7 @@ public:   // data members
 	std::string name;
     StateVector finalStates;
     State stateNum;
-    unsigned qubitNum;
+    int qubitNum;
 	TopDownTransitions transitions;
     std::set<std::string> vars;
     std::string constraints;
@@ -228,7 +228,10 @@ public:
     /**************************************************/
     /* general.cc: all general operations for two TAs */
     Automata operator*(Automata aut2) const; // use the multiplication operator to denote "tensor product"
+    #pragma GCC diagnostic push
+    #pragma GCC diagnostic ignored "-Weffc++"
     Automata operator||(const Automata &o) const; // use the logical OR operator to denote "union"
+    #pragma GCC diagnostic pop
     /**************************************************/
 };
 

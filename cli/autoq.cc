@@ -1,5 +1,6 @@
 #include <fstream>
 #include <iostream>
+#include <autoq/error.hh>
 #include <autoq/parsing/timbuk_parser.hh>
 #include <autoq/parsing/complex_parser.hh>
 #include <autoq/serialization/timbuk_serializer.hh>
@@ -49,7 +50,7 @@ void adjust_N_in_nTuple(const std::string &filename) {
     const std::regex rx(R"(rx\((.+)\).+\[(\d+)\];)");
     const std::regex rz(R"(rz\((.+)\).+\[(\d+)\];)");
     const std::regex_iterator<std::string::iterator> END;
-    if (!qasm.is_open()) throw std::runtime_error("[ERROR] Failed to open file " + std::string(filename) + ".");
+    if (!qasm.is_open()) THROW_AUTOQ_ERROR("Failed to open file " + std::string(filename) + ".");
     std::string line;
     while (getline(qasm, line)) {
         line = AUTOQ::String::trim(line);
@@ -86,8 +87,7 @@ void adjust_N_in_nTuple(const std::string &filename) {
             if (pos != std::string::npos) {
                 angle.replace(pos, 2, "1");
             } else if (angle != "0") {
-                AUTOQ_ERROR("The angle in rx gate is not a multiple of pi!");
-                exit(1);
+                THROW_AUTOQ_ERROR("The angle in rx gate is not a multiple of pi!");
             }
             auto theta = ComplexParser(angle).getComplex().to_rational() / 2;
             if (AUTOQ::Complex::nTuple::N < static_cast<decltype(AUTOQ::Complex::nTuple::N)>(theta.denominator())) {
@@ -99,8 +99,7 @@ void adjust_N_in_nTuple(const std::string &filename) {
             if (pos != std::string::npos) {
                 angle.replace(pos, 2, "1");
             } else if (angle != "0") {
-                AUTOQ_ERROR("The angle in rz gate is not a multiple of pi!");
-                exit(1);
+                THROW_AUTOQ_ERROR("The angle in rz gate is not a multiple of pi!");
             }
             auto theta = ComplexParser(angle).getComplex().to_rational() / 2;
             if (AUTOQ::Complex::nTuple::N < static_cast<decltype(AUTOQ::Complex::nTuple::N)>(theta.denominator())) {
@@ -115,7 +114,7 @@ void adjust_N_in_nTuple(const std::string &filename) {
         } else if (line.find("PRINT_AUT") == 0) {
         } else if (line.find("STOP") == 0) {
         } else if (line.length() > 0)
-            throw std::runtime_error("[ERROR] unsupported gate: " + line + ".");
+            THROW_AUTOQ_ERROR("unsupported gate: " + line + ".");
     }
     qasm.close();
     // AUTOQ_DEBUG(AUTOQ::Complex::nTuple::N);
@@ -123,7 +122,7 @@ void adjust_N_in_nTuple(const std::string &filename) {
 
 AUTOQ::TreeAutomata aut;
 AUTOQ::TreeAutomata aut2;
-void timeout_handler(int signum) {
+void timeout_handler(int) {
     std::map<std::string, std::string> stats;
     stats["gate"] = AUTOQ::Util::Convert::toString(AUTOQ::TreeAutomata::total_gate_time - AUTOQ::TreeAutomata::total_removeuseless_time - AUTOQ::TreeAutomata::total_reduce_time);
     stats["removeuseless"] = AUTOQ::Util::Convert::toString(AUTOQ::TreeAutomata::total_removeuseless_time);
@@ -147,6 +146,7 @@ void set_timeout(unsigned int seconds) {
 }
 
 int main(int argc, char **argv) {
+try {
     set_timeout(600);
     feenableexcept(FE_ALL_EXCEPT & ~FE_INEXACT);
 
@@ -154,7 +154,7 @@ int main(int argc, char **argv) {
     std::string pre, circuit, post, circuit1, circuit2;
 
     CLI::App* executionC = app.add_subcommand("exC", "Concrete Execution");
-    executionC->add_option("pre.{aut|hsl|spec}", pre, "the precondition file")->required()->type_name("");
+    executionC->add_option("pre.{hsl|spec}", pre, "the precondition file")->required()->type_name("");
     executionC->add_option("circuit.qasm", circuit, "the OpenQASM 3.0 circuit file")->required()->type_name("");
     executionC->callback([&]() {
         adjust_N_in_nTuple(circuit);
@@ -162,25 +162,25 @@ int main(int argc, char **argv) {
 
     bool latex = false;
     CLI::App* verificationC = app.add_subcommand("verC", "Concrete Verification");
-    verificationC->add_option("pre.{aut|hsl|spec}", pre, "the precondition file")->required()->type_name("");
+    verificationC->add_option("pre.{hsl|spec}", pre, "the precondition file")->required()->type_name("");
     verificationC->add_option("circuit.qasm", circuit, "the OpenQASM 3.0 circuit file")->required()->type_name("");
-    verificationC->add_option("post.{aut|hsl|spec}", post, "the postcondition file")->required()->type_name("");
+    verificationC->add_option("post.{hsl|spec}", post, "the postcondition file")->required()->type_name("");
     verificationC->add_flag("-l,--latex", latex, "Print the statistics for tables in LaTeX");
     verificationC->callback([&]() {
         adjust_N_in_nTuple(circuit);
     });
 
     CLI::App* executionS = app.add_subcommand("exS", "Symbolic Execution");
-    executionS->add_option("pre.{aut|hsl|spec}", pre, "the precondition file")->required()->type_name("");
+    executionS->add_option("pre.{hsl|spec}", pre, "the precondition file")->required()->type_name("");
     executionS->add_option("circuit.qasm", circuit, "the OpenQASM 3.0 circuit file")->required()->type_name("");
     executionS->callback([&]() {
         adjust_N_in_nTuple(circuit);
     });
 
     CLI::App* verificationS = app.add_subcommand("verS", "Symbolic Verification");
-    verificationS->add_option("pre.{aut|hsl|spec}", pre, "the precondition file")->required()->type_name("");
+    verificationS->add_option("pre.{hsl|spec}", pre, "the precondition file")->required()->type_name("");
     verificationS->add_option("circuit.qasm", circuit, "the OpenQASM 3.0 circuit file")->required()->type_name("");
-    verificationS->add_option("post.{aut|hsl|spec}", post, "the postcondition file")->required()->type_name("");
+    verificationS->add_option("post.{hsl|spec}", post, "the postcondition file")->required()->type_name("");
     verificationS->add_flag("-l,--latex", latex, "Print the statistics for tables in LaTeX");
     verificationS->callback([&]() {
         adjust_N_in_nTuple(circuit);
@@ -201,14 +201,14 @@ int main(int argc, char **argv) {
     CLI11_PARSE(app, argc, argv); // Parse the command-line arguments
 
     auto start = chrono::steady_clock::now();
-    bool runConcrete; // or runSymbolic
+    // bool runConcrete; // or runSymbolic
     if (executionC->parsed()) {
-        runConcrete = true;
+        // runConcrete = true;
         AUTOQ::TreeAutomata aut = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Concrete>::ReadAutomaton(pre);
         aut.execute(circuit);
         aut.print_aut();
     } else if (verificationC->parsed()) {
-        runConcrete = true;
+        // runConcrete = true;
         auto aut = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Concrete>::ReadAutomaton(pre);
         auto aut2 = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Concrete>::ReadAutomaton(post);
         aut.execute(circuit);
@@ -219,12 +219,12 @@ int main(int argc, char **argv) {
             std::cout << "The quantum program has [" << aut.qubitNum << "] qubits and [" << AUTOQ::TreeAutomata::gateCount << "] gates.\nThe verification process [" << (verify ? "passed" : "failed") << "] in [" << AUTOQ::Util::Convert::toString(chrono::steady_clock::now() - start) << "] with [" << AUTOQ::Util::getPeakRSS() / 1024 / 1024 << "MB] memory usage.\n";
         }
     } else if (executionS->parsed()) {
-        runConcrete = false;
+        // runConcrete = false;
         AUTOQ::SymbolicAutomata aut = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Symbolic>::ReadAutomaton(pre);
         aut.execute(circuit);
         aut.print_aut();
     } else if (verificationS->parsed()) {
-        runConcrete = false;
+        // runConcrete = false;
         AUTOQ::SymbolicAutomata aut = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Symbolic>::ReadAutomaton(pre);
         AUTOQ::PredicateAutomata spec = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Predicate>::ReadAutomaton(post);
         aut.execute(circuit);
@@ -239,7 +239,7 @@ int main(int argc, char **argv) {
             std::cout << "The quantum program has [" << aut.qubitNum << "] qubits and [" << AUTOQ::SymbolicAutomata::gateCount << "] gates.\nThe verification process [" << (verify ? "passed" : "failed") << "] in [" << AUTOQ::Util::Convert::toString(chrono::steady_clock::now() - start) << "] with [" << AUTOQ::Util::getPeakRSS() / 1024 / 1024 << "MB] memory usage.\n";
         }
     } else if (equivalence_checking->parsed()) {
-        runConcrete = true;
+        // runConcrete = true;
         /*AUTOQ::TreeAutomata*/ aut = AUTOQ::TreeAutomata::prefix_basis(extract_qubit(circuit1));
         /*AUTOQ::TreeAutomata*/ aut2 = AUTOQ::TreeAutomata::prefix_basis(extract_qubit(circuit2));
         aut.execute(circuit1);
@@ -282,5 +282,8 @@ int main(int argc, char **argv) {
     //                 << "The total time spent on check_inclusion(...) is [" << AUTOQ::Util::Convert::toString(AUTOQ::SymbolicAutomata::total_include_time) << "].\n";
     // }
     /**************/
+} catch (AutoQError &e) {
+    std::cout << e.what() << std::endl;
+}
     return 0;
 }

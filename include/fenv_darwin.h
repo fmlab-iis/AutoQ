@@ -116,7 +116,9 @@ inline int fedisableexcept(int mask) {
 #else
 inline int feenableexcept(unsigned int excepts)
 {
+    #ifdef __APPLE__
     #pragma STDC FENV_ACCESS ON
+    #endif
     fexcept_t flags;
     /* Save current exception flags. */
     fegetexceptflag(&flags, FE_ALL_EXCEPT);
@@ -128,7 +130,9 @@ inline int feenableexcept(unsigned int excepts)
 
 inline int fedisableexcept(unsigned int excepts)
 {
+    #ifdef __APPLE__
     #pragma STDC FENV_ACCESS ON
+    #endif
     fexcept_t flags;
     /* Save current exception flags. */
     fegetexceptflag(&flags, FE_ALL_EXCEPT);

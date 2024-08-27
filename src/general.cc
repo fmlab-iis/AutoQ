@@ -22,8 +22,7 @@ AUTOQ::Automata<Symbol> AUTOQ::Automata<Symbol>::operator*(Automata<Symbol> aut2
     for (auto it = aut2.transitions.cbegin(); it != aut2.transitions.cend() /* not hoisted */; /* no increment */) {
         if (it->first.is_internal() && it->first.symbol().qubit() == 1) {
             if (color == AUTOQ::Automata<Symbol>::Tag_MAX) {
-                AUTOQ_ERROR("Colors are not enough!!!");
-                exit(1);
+                THROW_AUTOQ_ERROR("Colors are not enough!!!");
             }
             for (const auto &out_ins : it->second) {
                 auto out = out_ins.first;
@@ -64,8 +63,7 @@ AUTOQ::Automata<Symbol> AUTOQ::Automata<Symbol>::operator*(Automata<Symbol> aut2
                     tmp >>= 1;
                 }
                 if (num_of_colors_used_in_that_leaf_transition * num_of_colors_used_in_aut2 > std::numeric_limits<Tag>::digits) {
-                    AUTOQ_ERROR("The shifted color is out of range!!!");
-                    exit(1);
+                    THROW_AUTOQ_ERROR("The shifted color is out of range!!!");
                 }
                 for (const auto &t : aut2.transitions) {
                     if (t.first.is_leaf()) { // (3)
@@ -146,7 +144,7 @@ AUTOQ::Automata<Symbol> AUTOQ::Automata<Symbol>::operator||(const Automata<Symbo
     result = *this;
     result.name = "operator||";
     if (result.qubitNum != o.qubitNum) {
-        throw std::runtime_error(AUTOQ_LOG_PREFIX + "Two automata of different numbers of qubits cannot be unioned together.");
+        THROW_AUTOQ_ERROR("Two automata of different numbers of qubits cannot be unioned together.");
     }
     result.stateNum += o.stateNum;
     // TODO: How to check if the two input automata have different k's?

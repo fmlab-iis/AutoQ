@@ -14,11 +14,11 @@ typedef boost::rational<boost::multiprecision::cpp_int> rational;
 
 class ComplexParser {
 public:
-    ComplexParser(const std::string &input) : input_(input), index_(0), constMap_(std::map<std::string, Complex>()) {
+    ComplexParser(const std::string &input) : input_(input), index_(0), resultC(), resultV(), constMap_(constMap2) {
         std::erase_if(input_, [](unsigned char ch) { return std::isspace(ch); });
         parse();
     }
-    ComplexParser(const std::string &input, const std::map<std::string, Complex> &constMap) : input_(input), index_(0), constMap_(constMap) {
+    ComplexParser(const std::string &input, const std::map<std::string, Complex> &constMap) : input_(input), index_(0), resultC(), resultV(), constMap_(constMap) {
         std::erase_if(input_, [](unsigned char ch) { return std::isspace(ch); });
         parse();
     }
@@ -35,6 +35,7 @@ private:
     Complex resultC; // complex
     std::string resultV; // variable
     const std::map<std::string, Complex> &constMap_;
+    const std::map<std::string, Complex> constMap2{}; // empty only for initialization
 
     void parse() {
         try {
@@ -82,7 +83,7 @@ private:
                     if (!right.isZero()) {
                         left = left / right;
                     } else {
-                        throw std::runtime_error(AUTOQ_LOG_PREFIX + "Division by zero");
+                        THROW_AUTOQ_ERROR("Division by zero");
                     }
                 }
             } else {
@@ -139,13 +140,13 @@ private:
     // }
     Complex parsePrimary() {
         if (index_ >= input_.length()) {
-            throw std::runtime_error(AUTOQ_LOG_PREFIX + "Unexpected end of input");
+            THROW_AUTOQ_ERROR("Unexpected end of input");
         }
         if (input_[index_] == '(') {
             index_++;
             Complex result = parseExpression();
             if (index_ >= input_.length() || input_[index_] != ')') {
-                throw std::runtime_error(AUTOQ_LOG_PREFIX + "Missing closing parenthesis");
+                THROW_AUTOQ_ERROR("Missing closing parenthesis");
             }
             index_++;
             return result;
@@ -159,29 +160,29 @@ private:
                 if (index_ < input_.length() && input_[index_] == '(') {
                     index_++;
                     if (index_ >= input_.length() || (!std::isdigit(input_[index_]) && input_[index_] != '-')) {
-                        throw std::runtime_error(AUTOQ_LOG_PREFIX + "Invalid argument for A function");
+                        THROW_AUTOQ_ERROR("Invalid argument for A function");
                     }
                     auto x = parseExpression();
                     if (index_ >= input_.length() || input_[index_] != ')') {
-                        throw std::runtime_error(AUTOQ_LOG_PREFIX + "Missing closing parenthesis for A function");
+                        THROW_AUTOQ_ERROR("Missing closing parenthesis for A function");
                     }
                     index_++;
                     // assert(x.imag() == 0);
                     return Complex::Angle(x.to_rational());
                 } else {
-                    throw std::runtime_error(AUTOQ_LOG_PREFIX + "Invalid syntax for A function");
+                    THROW_AUTOQ_ERROR("Invalid syntax for A function");
                 }
             } else if (function == "sqrt2") {
                 return Complex::sqrt2();
             } else if (constMap_.count(function) > 0) {
                 return constMap_.at(function);
             } else {
-                throw std::runtime_error(AUTOQ_LOG_PREFIX + "Unknown variable: " + function);
+                THROW_AUTOQ_ERROR("Unknown variable: " + function);
             }
         } else if (std::isdigit(input_[index_]) || input_[index_] == '-') {
             return Complex(parseNumber());
         } else {
-            throw std::runtime_error(AUTOQ_LOG_PREFIX + "Unexpected character: " + std::string(1, input_[index_]));
+            THROW_AUTOQ_ERROR("Unexpected character: " + std::string(1, input_[index_]));
         }
     }
 

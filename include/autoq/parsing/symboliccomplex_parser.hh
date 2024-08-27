@@ -22,11 +22,11 @@ namespace AUTOQ {
 
 class AUTOQ::Parsing::SymbolicComplexParser {
 public:
-    SymbolicComplexParser(const std::string &input) : input_(input), index_(0), constMap_(std::map<std::string, Complex::Complex>()) {
+    SymbolicComplexParser(const std::string &input) : input_(input), index_(0), result(), constMap_(constMap2), used_vars() {
         std::erase_if(input_, [](unsigned char ch) { return std::isspace(ch); });
         parse();
     }
-    SymbolicComplexParser(const std::string &input, const std::map<std::string, Complex::Complex> &constMap) : input_(input), index_(0), constMap_(constMap) {
+    SymbolicComplexParser(const std::string &input, const std::map<std::string, Complex::Complex> &constMap) : input_(input), index_(0), result(), constMap_(constMap), used_vars() {
         std::erase_if(input_, [](unsigned char ch) { return std::isspace(ch); });
         parse();
     }
@@ -42,6 +42,7 @@ private:
     size_t index_;
     SymbolicComplex result;
     const std::map<std::string, Complex::Complex> &constMap_;
+    const std::map<std::string, Complex::Complex> constMap2{}; // empty only for initialization
     std::set<std::string> used_vars;
 
     void parse() {
@@ -79,7 +80,7 @@ private:
                 } else if (right.isConst()) {
                     left = left / right.begin()->second;
                 } else {
-                    throw std::runtime_error(AUTOQ_LOG_PREFIX + "AutoQ does not support this kind of division!");
+                    THROW_AUTOQ_ERROR("AutoQ does not support this kind of division!");
                 }
             } else {
                 break;
@@ -130,13 +131,13 @@ private:
 
     SymbolicComplex parsePrimary() {
         if (index_ >= input_.length()) {
-            throw std::runtime_error(AUTOQ_LOG_PREFIX + "Unexpected end of input");
+            THROW_AUTOQ_ERROR("Unexpected end of input");
         }
         if (input_[index_] == '(') {
             index_++;
             SymbolicComplex result = parseExpression();
             if (index_ >= input_.length() || input_[index_] != ')') {
-                throw std::runtime_error(AUTOQ_LOG_PREFIX + "Missing closing parenthesis");
+                THROW_AUTOQ_ERROR("Missing closing parenthesis");
             }
             index_++;
             return result;
@@ -150,17 +151,17 @@ private:
                 if (index_ < input_.length() && input_[index_] == '(') {
                     index_++;
                     if (index_ >= input_.length() || (!std::isdigit(input_[index_]) && input_[index_] != '-')) {
-                        throw std::runtime_error(AUTOQ_LOG_PREFIX + "Invalid argument for A function");
+                        THROW_AUTOQ_ERROR("Invalid argument for A function");
                     }
                     auto x = parseExpression();
                     if (index_ >= input_.length() || input_[index_] != ')') {
-                        throw std::runtime_error(AUTOQ_LOG_PREFIX + "Missing closing parenthesis for A function");
+                        THROW_AUTOQ_ERROR("Missing closing parenthesis for A function");
                     }
                     index_++;
                     // assert(x.imag() == 0);
                     return SymbolicComplex::MySymbolicComplexConstructor(Complex::Complex::Angle(x.to_rational()));
                 } else {
-                    throw std::runtime_error(AUTOQ_LOG_PREFIX + "Invalid syntax for A function");
+                    THROW_AUTOQ_ERROR("Invalid syntax for A function");
                 }
             } else if (function == "sqrt2") {
                 return SymbolicComplex::MySymbolicComplexConstructor(Complex::Complex::sqrt2());
@@ -172,7 +173,7 @@ private:
         } else if (std::isdigit(input_[index_]) || input_[index_] == '-') {
             return SymbolicComplex::MySymbolicComplexConstructor(Complex::Complex(parseNumber()));
         } else {
-            throw std::runtime_error(AUTOQ_LOG_PREFIX + "Unexpected character: " + std::string(1, input_[index_]));
+            THROW_AUTOQ_ERROR("Unexpected character: " + std::string(1, input_[index_]));
         }
     }
 

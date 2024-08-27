@@ -21,9 +21,9 @@ void AUTOQ::Automata<Symbol>::execute(const char *filename) {
     const std::regex rx(R"(rx\((.+)\).+\[(\d+)\];)");
     const std::regex rz(R"(rz\((.+)\).+\[(\d+)\];)");
     const std::regex_iterator<std::string::iterator> END;
-    if (!qasm.is_open()) throw std::runtime_error("[ERROR] Failed to open file " + std::string(filename) + ".");
+    if (!qasm.is_open()) THROW_AUTOQ_ERROR("Failed to open file " + std::string(filename) + ".");
     std::string line, previous_line;
-    int lineno = 1;
+    // int lineno = 1;
     while (getline(qasm, line)) {
         line = AUTOQ::String::trim(line);
         // AUTOQ_DEBUG("[" << (lineno++) << "]: " << line);
@@ -34,7 +34,7 @@ void AUTOQ::Automata<Symbol>::execute(const char *filename) {
             std::regex_iterator<std::string::iterator> it(line.begin(), line.end(), digit);
             while (it != END) {
                 if (atoi(it->str().c_str()) != static_cast<int>(qubitNum))
-                    throw std::runtime_error("[ERROR] The number of qubits in the automaton does not match the number of qubits in the circuit.");
+                    THROW_AUTOQ_ERROR("The number of qubits in the automaton does not match the number of qubits in the circuit.");
                 ++it;
             }
         } else if (line.find("x ") == 0) {
@@ -75,8 +75,7 @@ void AUTOQ::Automata<Symbol>::execute(const char *filename) {
             if (pos != std::string::npos) {
                 angle.replace(pos, 2, "(1/2)");
             } else if (angle != "0") {
-                AUTOQ_ERROR("The angle in rx gate is not a multiple of pi!");
-                exit(1);
+                THROW_AUTOQ_ERROR("The angle in rx gate is not a multiple of pi!");
             }
             std::string qubit = match_rx[2];
             // AUTOQ_DEBUG("rx(" << angle << ") @ " << qubit);
@@ -87,8 +86,7 @@ void AUTOQ::Automata<Symbol>::execute(const char *filename) {
             if (pos != std::string::npos) {
                 angle.replace(pos, 2, "(1/2)");
             } else if (angle != "0") {
-                AUTOQ_ERROR("The angle in rz gate is not a multiple of pi!");
-                exit(1);
+                THROW_AUTOQ_ERROR("The angle in rz gate is not a multiple of pi!");
             }
             std::string qubit = match_rz[2];
             // AUTOQ_DEBUG("rz(" << angle << ") @ " << qubit);
@@ -141,7 +139,7 @@ void AUTOQ::Automata<Symbol>::execute(const char *filename) {
         } else if (line.find("STOP") == 0) {
             break;
         } else if (line.length() > 0)
-            throw std::runtime_error("[ERROR] unsupported gate: " + line + ".");
+            THROW_AUTOQ_ERROR("unsupported gate: " + line + ".");
         previous_line = line;
         // print_stats(previous_line, true);
         stop_execute = std::chrono::steady_clock::now();
@@ -156,7 +154,7 @@ void AUTOQ::Automata<Symbol>::execute(const char *filename) {
 //     std::ifstream qasm(filename);
 //     const std::regex digit("\\d+");
 //     const std::regex_iterator<std::string::iterator> END;
-//     if (!qasm.is_open()) throw std::runtime_error("[ERROR] Failed to open file " + std::string(filename) + ".");
+//     if (!qasm.is_open()) THROW_AUTOQ_ERROR("Failed to open file " + std::string(filename) + ".");
 //     std::string line, previous_line;
 //     std::vector<std::string> lines;
 //     while (getline(qasm, line)) {
@@ -170,7 +168,7 @@ void AUTOQ::Automata<Symbol>::execute(const char *filename) {
 //             // std::regex_iterator<std::string::iterator> it(line.begin(), line.end(), digit);
 //             // while (it != END) {
 //             //     if (atoi(it->str().c_str()) != static_cast<int>(qubitNum))
-//             //         throw std::runtime_error("[ERROR] The number of qubits in the automaton does not match the number of qubits in the circuit.");
+//             //         THROW_AUTOQ_ERROR("The number of qubits in the automaton does not match the number of qubits in the circuit.");
 //             //     ++it;
 //             // }
 //         } else if (line.find("x ") == 0) {
@@ -252,7 +250,7 @@ void AUTOQ::Automata<Symbol>::execute(const char *filename) {
 //         } else if (line.find("STOP") == 0) {
 //             break;
 //         } else if (line.length() > 0)
-//             throw std::runtime_error("[ERROR] unsupported gate: " + line + ".");
+//             THROW_AUTOQ_ERROR("unsupported gate: " + line + ".");
 //         previous_line = line;
 //         stop_execute = std::chrono::steady_clock::now();
 //     }

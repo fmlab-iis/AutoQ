@@ -4,6 +4,7 @@
 #include <cmath>
 #include <algorithm>
 #include <boost/rational.hpp>
+#include <autoq/error.hh>
 #include <autoq/util/convert.hh>
 #include <autoq/util/mapped_vector.hh>
 #include <boost/integer/common_factor.hpp>
@@ -32,16 +33,14 @@ struct AUTOQ::Complex::nTuple : AUTOQ::Util::mapped_vector<boost::multiprecision
                     d >>= 1;
                 }
                 if (d != 1) { // Assume the denominator is a power of 2!
-                    AUTOQ_ERROR("The denominator is not a power of 2!");
-                    exit(1);
+                    THROW_AUTOQ_ERROR("The denominator is not a power of 2!");
                 }
                 // The above just transform the denominator d into √2^back().
                 const auto &x = r.numerator();
                 if (x != 0)
                     operator[](0) = x;
             } else {
-                AUTOQ_ERROR(in << " cannot be converted to a complex number!");
-                exit(1);
+                THROW_AUTOQ_ERROR((std::stringstream() << in << " cannot be converted to a complex number!").str());
             }
         }
     nTuple() : nTuple(0) {}
@@ -100,8 +99,7 @@ struct AUTOQ::Complex::nTuple : AUTOQ::Util::mapped_vector<boost::multiprecision
             numerator = numerator * temp;
             denominator = denominator * temp;
             if (grid & (1<<30)) {
-                AUTOQ_ERROR("The number of iterations in operator/ is too high!");
-                exit(1);
+                THROW_AUTOQ_ERROR("The number of iterations in operator/ is too high!");
             }
             grid <<= 1;
         }
@@ -110,8 +108,7 @@ struct AUTOQ::Complex::nTuple : AUTOQ::Util::mapped_vector<boost::multiprecision
         numerator.k -= denominator.k;
         denominator.k = 0;
         if (denominator.find(0) == denominator.end()) {
-            AUTOQ_ERROR("The denominator should not be zero!");
-            exit(1);
+            THROW_AUTOQ_ERROR("The denominator should not be zero!");
         }
         while (denominator[0] % 2 == 0) {
             denominator[0] >>= 1;
@@ -122,8 +119,7 @@ struct AUTOQ::Complex::nTuple : AUTOQ::Util::mapped_vector<boost::multiprecision
             // numerator.fraction_simplification();
             return numerator;
         } else {
-            AUTOQ_ERROR("The result is not expressible!");
-            exit(1);
+            THROW_AUTOQ_ERROR("The result is not expressible!");
         }
     }
     nTuple& fraction_simplification() { // TODO: still necessary for inclusion checking
@@ -163,8 +159,7 @@ struct AUTOQ::Complex::nTuple : AUTOQ::Util::mapped_vector<boost::multiprecision
             theta += 1;
         // Ensure that theta is in [0, 1).
         if ((N*2 * theta).denominator() != 1) {
-            AUTOQ_ERROR("This angle (" << theta << ") is not supported under N = " << N << ".");
-            exit(1);
+            THROW_AUTOQ_ERROR((std::stringstream() << "This angle (" << theta << ") is not supported under N = " << N << ".").str());
         }
         auto t = static_cast<long long>(N*2 * theta.numerator() / theta.denominator());
         // Solve theta = t / (N*2).
@@ -189,8 +184,7 @@ struct AUTOQ::Complex::nTuple : AUTOQ::Util::mapped_vector<boost::multiprecision
     }
     boost::rational<boost::multiprecision::cpp_int> to_rational() const { // TODO: fake solution
         if (k < 0) {
-            AUTOQ_ERROR("We assume the denominator should not be less than 1 here!");
-            exit(1);
+            THROW_AUTOQ_ERROR("We assume the denominator should not be less than 1 here!");
         }
         return boost::rational<boost::multiprecision::cpp_int>(at0(), boost::multiprecision::pow(boost::multiprecision::cpp_int(2), static_cast<int>(k/2)));
     }
@@ -266,13 +260,11 @@ struct AUTOQ::Complex::nTuple : AUTOQ::Util::mapped_vector<boost::multiprecision
     }
     void adjust_k(boost::multiprecision::cpp_int dk) {
         if (dk < 0) {
-            AUTOQ_ERROR("The parameter dk should not be less than 0!");
-            exit(1);
+            THROW_AUTOQ_ERROR("The parameter dk should not be less than 0!");
         }
         while (dk > 0) {
             if (N < 4) {
-                AUTOQ_ERROR("To do adjust_k, N should be at least 4.");
-                exit(1);
+                THROW_AUTOQ_ERROR("To do adjust_k, N should be at least 4.");
             }
             nTuple ans;
             for (const auto &kv : *this) {
@@ -341,8 +333,7 @@ private:
         assert(((k == o.k) ||
               (isZero() && k<=o.k) ||
               (o.isZero() && k>=o.k)));// {
-        //     AUTOQ_ERROR("The two nTuples should have the same k!");
-        //     exit(1);
+        //     THROW_AUTOQ_ERROR("The two nTuples should have the same k!");
         // }
         nTuple result = *this;
         for (const auto &kv : o) {

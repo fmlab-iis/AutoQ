@@ -23,8 +23,7 @@ struct AUTOQ::Symbol::Predicate : std::string {
     bool is_internal() const { return !is_leaf_v; }
     boost::multiprecision::cpp_int qubit() const {
         if (is_leaf_v) {
-            AUTOQ_ERROR("Leaf symbols do not have qubit().");
-            exit(1);
+            THROW_AUTOQ_ERROR("Leaf symbols do not have qubit().");
         }
         return boost::multiprecision::cpp_int(std::stoi(*this));
     }

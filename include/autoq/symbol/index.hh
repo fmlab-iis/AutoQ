@@ -21,8 +21,7 @@ struct AUTOQ::Symbol::Index {
     bool is_internal() const { return !is_leaf_v; }
     int qubit() const {
         if (is_leaf_v) {
-            AUTOQ_ERROR("Leaf symbols do not have qubit().");
-            exit(1);
+            THROW_AUTOQ_ERROR("Leaf symbols do not have qubit().");
         }
         return index;
     }

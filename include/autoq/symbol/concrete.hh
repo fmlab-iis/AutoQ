@@ -31,8 +31,7 @@ public:
     bool is_leaf() const { return !internal; }
     boost::multiprecision::cpp_int qubit() const {
         if (!internal) {
-            AUTOQ_ERROR("Leaf symbols do not have qubit().");
-            exit(1);
+            THROW_AUTOQ_ERROR("Leaf symbols do not have qubit().");
         }
         // assert(complex.real().denominator() == 1);
         return complex.toInt(); //.numerator();

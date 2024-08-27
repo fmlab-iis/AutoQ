@@ -31,6 +31,10 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wctor-dtor-privacy"  // Suppress all warnings
+#pragma GCC diagnostic ignored "-Wfloat-equal" // Suppress extra warnings
+
 #pragma once
 
 // Standard combined includes:
@@ -9684,3 +9688,5 @@ CLI11_INLINE std::string Formatter::make_option_usage(const Option *opt) const {
 
 
 } // namespace CLI
+
+#pragma GCC diagnostic pop

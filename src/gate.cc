@@ -25,7 +25,7 @@ void AUTOQ::Automata<Symbol>::General_Single_Qubit_Gate(int t, const std::functi
 
     bool overflow = (stateNum > (std::numeric_limits<State>::max()-stateNum) / stateNum / 2); // want: 2 * stateNum^2 + stateNum <= max
     if (overflow)
-        throw std::overflow_error("[ERROR] The number of states after multiplication is too large.");
+        THROW_AUTOQ_ERROR("The number of states after multiplication is too large.");
     // s < stateNum -> s
     // (s1, s2, L) -> stateNum + s1 * stateNum + s2
     // (s1, s2, R) -> stateNum + stateNum^2 + s1 * stateNum + s2 -> max == 2 * stateNum^2 + stateNum
@@ -154,8 +154,7 @@ void AUTOQ::Automata<Symbol>::General_Single_Qubit_Gate(int t, const std::functi
 template <typename Symbol>
 void AUTOQ::Automata<Symbol>::General_Controlled_Gate(int c, int t, const std::function<Symbol(const Symbol&, const Symbol&)> &u1u2, const std::function<Symbol(const Symbol&, const Symbol&)> &u3u4) {
     if (c <= t) {
-        AUTOQ_ERROR("We require c > t here.");
-        exit(1);
+        THROW_AUTOQ_ERROR("We require c > t here.");
     }
     General_Controlled_Gate(c, c, t, u1u2, u3u4);
 }
@@ -163,8 +162,7 @@ template <typename Symbol>
 void AUTOQ::Automata<Symbol>::General_Controlled_Gate(int c, int c2, int t, const std::function<Symbol(const Symbol&, const Symbol&)> &u1u2, const std::function<Symbol(const Symbol&, const Symbol&)> &u3u4) {
     auto minC = std::min(c, c2);
     if (minC <= t) {
-        AUTOQ_ERROR("We require all c's > t here.");
-        exit(1);
+        THROW_AUTOQ_ERROR("We require all c's > t here.");
     }
 
     AUTOQ::Automata<Symbol> result;
@@ -178,7 +176,7 @@ void AUTOQ::Automata<Symbol>::General_Controlled_Gate(int c, int c2, int t, cons
 
     bool overflow = (stateNum > (std::numeric_limits<State>::max()-stateNum) / stateNum / 2); // want: 2 * stateNum^2 + stateNum <= max
     if (overflow)
-        throw std::overflow_error("[ERROR] The number of states after multiplication is too large.");
+        THROW_AUTOQ_ERROR("The number of states after multiplication is too large.");
     // s < stateNum -> s
     // (s1, s2, L) -> stateNum + s1 * stateNum + s2
     // (s1, s2, R) -> stateNum + stateNum^2 + s1 * stateNum + s2 -> max == 2 * stateNum^2 + stateNum
@@ -342,23 +340,23 @@ void AUTOQ::Automata<Symbol>::General_Controlled_Gate(int c, int c2, int t, cons
 }
 
 #define queryTopID(oldID, newID) \
-    State newID = oldID + stateNum;
+    State newID = oldID + stateNum;/*
     // {   \
     //     auto it = topStateMap.find(oldID);    \
     //     if (it == topStateMap.end())    \
     //         newID = oldID;    \
     //     else    \
     //         newID = it->second; \
-    // }
+    // }*/
 #define queryChildID(oldID, newID) \
-    State newID = oldID + stateNum;
+    State newID = oldID + stateNum;/*
     // {   \
     //     auto it = childStateMap.find(oldID);    \
     //     if (it == childStateMap.end())    \
     //         newID = oldID;    \
     //     else    \
     //         newID = it->second; \
-    // }
+    // }*/
 template <typename Symbol>
 void AUTOQ::Automata<Symbol>::Diagonal_Gate(int t, const std::function<void(Symbol*)> &multiply_by_c0, const std::function<void(Symbol*)> &multiply_by_c1) {
     TopDownTransitions transitions2;
@@ -651,8 +649,8 @@ void AUTOQ::Automata<Symbol>::CX(int c, int t, bool opt) {
     assert(c != t);
     if (c > t) {
         General_Controlled_Gate(c, t,
-            [](const Symbol &l, const Symbol &r) -> Symbol { return r; },
-            [](const Symbol &l, const Symbol &r) -> Symbol { return l; });
+            [](const Symbol &, const Symbol &r) -> Symbol { return r; },
+            [](const Symbol &l, const Symbol &) -> Symbol { return l; });
     } else {
         TopDownTransitions transitions2;
         std::map<State, int> topStateIsLeftOrRight, childStateIsLeftOrRight; // 0b10: original tree, 0b01: copied tree, 0b11: both trees
@@ -790,7 +788,7 @@ void AUTOQ::Automata<Symbol>::CX(int c, int t, bool opt) {
 }
 
 #define queryTopID2(oldID, newID) \
-    State newID = oldID + stateNum * 2;
+    State newID = oldID + stateNum * 2;/*
     // {   \
     //     auto it = topStateMap2.find(oldID);    \
     //     if (it == topStateMap2.end()) {   \
@@ -803,9 +801,9 @@ void AUTOQ::Automata<Symbol>::CX(int c, int t, bool opt) {
     //     } else {   \
     //         newID = it->second; \
     //     }   \
-    // }
+    // }*/
 #define queryChildID2(oldID, newID) \
-    State newID = oldID + stateNum * 2;
+    State newID = oldID + stateNum * 2;/*
     // {   \
     //     auto it = childStateMap2.find(oldID);    \
     //     if (it == childStateMap2.end()) {   \
@@ -818,7 +816,7 @@ void AUTOQ::Automata<Symbol>::CX(int c, int t, bool opt) {
     //     } else {   \
     //         newID = it->second; \
     //     }   \
-    // }
+    // }*/
 template <typename Symbol>
 void AUTOQ::Automata<Symbol>::CZ(int c, int t) {
     #ifdef TO_QASM
@@ -1351,8 +1349,8 @@ void AUTOQ::Automata<Symbol>::CCX(int c, int c2, int t) {
         stateNum *= 3;
     } else if (t < c) { // t < c < c2
         General_Controlled_Gate(c, c2, t,
-            [](const Symbol &l, const Symbol &r) -> Symbol { return r; },
-            [](const Symbol &l, const Symbol &r) -> Symbol { return l; });
+            [](const Symbol &, const Symbol &r) -> Symbol { return r; },
+            [](const Symbol &l, const Symbol &) -> Symbol { return l; });
     } else { // c < t < c2
         auto aut2 = *this;
         aut2.CX(c2, t, false); gateCount--; // prevent repeated counting
@@ -1539,7 +1537,7 @@ void AUTOQ::Automata<Symbol>::Phase(const boost::rational<boost::multiprecision:
 
 template <typename Symbol>
 void AUTOQ::Automata<Symbol>::randG(int G, int A, int B, int C) {
-    int g, a, b, c;
+    int g, a, b=0, c=0;
     do {
         g = rand() % 11;
         a = rand() % qubitNum + 1;

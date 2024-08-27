@@ -41,7 +41,7 @@ bool AUTOQ::Automata<Symbol>::operator<=(const Automata<Symbol> &autB) const req
     for (const auto &t : this->transitions) {
         const auto &symbol_tag = t.first;
         const auto &symbol = symbol_tag.symbol();
-        int i = 0;
+        unsigned i = 0;
         for (; i<=symbol_map.size(); i++) {
             if (i == symbol_map.size()) {
                 symbol_map.push_back(symbol);
@@ -61,7 +61,7 @@ bool AUTOQ::Automata<Symbol>::operator<=(const Automata<Symbol> &autB) const req
     for (const auto &t : autB.transitions) {
         const auto &symbol_tag = t.first;
         const auto &symbol = symbol_tag.symbol();
-        int i = 0;
+        unsigned i = 0;
         for (; i<=symbol_map.size(); i++) {
             if (i == symbol_map.size()) {
                 symbol_map.push_back(symbol);
@@ -379,6 +379,11 @@ bool AUTOQ::Automata<AUTOQ::Symbol::Index>::operator<=(const Automata<AUTOQ::Sym
 
 bool AUTOQ::check_validity(Constraint C, const PredicateAutomata::Symbol &ps, const SymbolicAutomata::Symbol &te) {
     std::string str(ps);
+    /* Replace all real(.) in C.content with .R and
+       replace all imag(.) in C.content with .I */
+    str = std::regex_replace(str, std::regex("real\\((.*?)\\)"), "$1R");
+    str = std::regex_replace(str, std::regex("imag\\((.*?)\\)"), "$1I");
+    /******************************************************************/
     auto regToExpr = C.to_exprs(te);
     for (const auto &kv : regToExpr) // example: z3 <(echo '(declare-fun x () Int)(declare-fun z () Int)(assert (= z (+ x 3)))(check-sat)')
         str = std::regex_replace(str, std::regex(kv.first), kv.second);
@@ -395,7 +400,7 @@ bool AUTOQ::check_validity(Constraint C, const PredicateAutomata::Symbol &ps, co
     else {
         std::cout << smt_input << "\n";
         std::cout << str << "-\n";
-        throw std::runtime_error("[ERROR] The solver Z3 did not correctly return SAT or UNSAT.\nIt's probably because the specification automaton is NOT a predicate automaton.");
+        THROW_AUTOQ_ERROR("The solver Z3 did not correctly return SAT or UNSAT.\nIt's probably because the specification automaton is NOT a predicate automaton.");
     }
 }
 
@@ -988,7 +993,7 @@ template struct AUTOQ::Automata<AUTOQ::Symbol::Symbolic>;
 //     else {
 //         std::cout << smt_input << "\n";
 //         std::cout << result << "-\n";
-//         throw std::runtime_error(AUTOQ_LOG_PREFIX + "[ERROR] The solver Z3 did not correctly return SAT or UNSAT.");
+//         THROW_AUTOQ_ERROR("The solver Z3 did not correctly return SAT or UNSAT.");
 //     }
 // }
 
