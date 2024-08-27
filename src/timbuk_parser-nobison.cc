@@ -205,6 +205,8 @@ AUTOQ::Automata<Symbol> from_tree_to_automaton(std::string tree, const std::map<
             predicate = predicates.at(t);
             ++it2;
         }
+        if (default_prob.empty())
+            default_prob = "true";
         typename AUTOQ::Automata<AUTOQ::Symbol::Predicate>::State pow_of_two = 1;
         typename AUTOQ::Automata<AUTOQ::Symbol::Predicate>::State state_counter = 0;
         for (int level=1; level<=aut.qubitNum; level++) {
