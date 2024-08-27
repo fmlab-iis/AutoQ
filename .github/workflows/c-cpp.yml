@@ -29,6 +29,7 @@ jobs:
           AutoQ/Makefile
           AutoQ/build/
           AutoQ/unit_tests/
+          AutoQ/benchmarks/_all/
   test-debug:
     needs: build-debug
     runs-on: ubuntu-latest
@@ -56,6 +57,7 @@ jobs:
           AutoQ/Makefile
           AutoQ/build/
           AutoQ/unit_tests/
+          AutoQ/benchmarks/_all/
   test-release:
     needs: build-release
     runs-on: ubuntu-latest
