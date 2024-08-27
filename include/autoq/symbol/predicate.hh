@@ -36,6 +36,12 @@ struct AUTOQ::Symbol::Predicate : std::string {
     std::string str() const {
         return *this;
     }
+    bool operator<(const Predicate &o) const {
+        if (is_internal() && !o.is_internal()) return true;
+        if (o.is_internal() && !is_internal()) return false;
+        if (is_internal() && o.is_internal()) return std::stoi(*this) < std::stoi(o);
+        return std::string(*this) < std::string(o);
+    }
 };
 
 namespace boost {

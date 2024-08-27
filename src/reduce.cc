@@ -579,7 +579,7 @@ void AUTOQ::Automata<Symbol>::bottom_up_reduce() {
             const auto &out = out_ins.first;
             for (auto in : out_ins.second) {
                 // rewrite the input states according to the equivalence classes previously computed
-                for_each(in.begin(), in.end(), [&rewrite](State &s) { s = rewrite[s]; });
+                for_each(in.begin(), in.end(), [&rewrite](State &s) { s = rewrite.at(s); });
                 qfic[out][symbol][in] |= tag;
             }
         }
