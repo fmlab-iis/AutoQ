@@ -195,6 +195,13 @@ try {
         adjust_N_in_nTuple(circuit2);
     });
 
+    CLI::App* printC = app.add_subcommand("printC", "Print the Concrete Language");
+    printC->add_option("states.{hsl|spec}", pre, "the automaton file")->required()->type_name("");
+    CLI::App* printS = app.add_subcommand("printS", "Print the Symbolic Language");
+    printS->add_option("states.{hsl|spec}", pre, "the automaton file")->required()->type_name("");
+    CLI::App* printP = app.add_subcommand("printP", "Print the Predicate Language");
+    printP->add_option("states.{hsl|spec}", pre, "the automaton file")->required()->type_name("");
+
     // bool short_time = false, long_time = false;
     // app.add_flag("-t", short_time, "print times");
     // app.add_flag("--time", long_time, "print times");
@@ -265,6 +272,15 @@ try {
         } else {
             std::cout << "The two quantum programs are verified to be [" << (result ? "equal" : "unequal") << "] in [" << AUTOQ::Util::Convert::toString(chrono::steady_clock::now() - start) << "] with [" << AUTOQ::Util::getPeakRSS() / 1024 / 1024 << "MB] memory usage.\n";
         }
+    } else if (printC->parsed()) {
+        AUTOQ::TreeAutomata aut = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Concrete>::ReadAutomaton(pre);
+        aut.print_language();
+    } else if (printS->parsed()) {
+        AUTOQ::SymbolicAutomata aut = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Symbolic>::ReadAutomaton(pre);
+        aut.print_language();
+    } else if (printP->parsed()) {
+        AUTOQ::PredicateAutomata aut = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Predicate>::ReadAutomaton(pre);
+        aut.print_language();
     }
     /**************/
     // if (long_time) {
