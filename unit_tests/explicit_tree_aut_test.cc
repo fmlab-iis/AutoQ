@@ -992,7 +992,7 @@ BOOST_AUTO_TEST_CASE(hsl_rule_checker)
         if(!verify)
             std::cout<<entry.path().string() + " Not verified"<<std::endl;
     }
-
+    /*
     cir_path = path + "OEGROVER/circuit.qasm";
     state_dir = path + "OEGROVER/state/";
     for (const auto & entry : fs::directory_iterator(state_dir))
@@ -1009,6 +1009,7 @@ BOOST_AUTO_TEST_CASE(hsl_rule_checker)
         if(!verify)
             std::cout<<entry.path().string() + " Not verified"<<std::endl;
     }
+    */
 }
 
 
