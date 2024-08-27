@@ -1,5 +1,5 @@
 Predicates
-p := (and (> (* $R $R) (* bR bR)) (= $I 0))
+p := (and (> (* real($) real($)) (* real(b) real(b))) (= imag($) 0))
 t := true
 Extended Dirac
 p|011> + t|*>

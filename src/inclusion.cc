@@ -379,6 +379,11 @@ bool AUTOQ::Automata<AUTOQ::Symbol::Index>::operator<=(const Automata<AUTOQ::Sym
 
 bool AUTOQ::check_validity(Constraint C, const PredicateAutomata::Symbol &ps, const SymbolicAutomata::Symbol &te) {
     std::string str(ps);
+    /* Replace all real(.) in C.content with .R and
+       replace all imag(.) in C.content with .I */
+    str = std::regex_replace(str, std::regex("real\\((.*?)\\)"), "$1R");
+    str = std::regex_replace(str, std::regex("imag\\((.*?)\\)"), "$1I");
+    /******************************************************************/
     auto regToExpr = C.to_exprs(te);
     for (const auto &kv : regToExpr) // example: z3 <(echo '(declare-fun x () Int)(declare-fun z () Int)(assert (= z (+ x 3)))(check-sat)')
         str = std::regex_replace(str, std::regex(kv.first), kv.second);
