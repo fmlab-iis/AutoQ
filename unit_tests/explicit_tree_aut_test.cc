@@ -14,6 +14,7 @@
 #include <filesystem>
 
 #include "autoq/error.hh"
+#include "autoq/inclusion.hh"
 #include "autoq/util/util.hh"
 #include "autoq/complex/complex.hh"
 #include "autoq/symbol/concrete.hh"
@@ -1012,5 +1013,22 @@ BOOST_AUTO_TEST_CASE(hsl_rule_checker)
     */
 }
 
+BOOST_AUTO_TEST_CASE(benchmarks_OEGrover)
+{
+    std::string sss(__FILE__);
+    std::string benchmarks = sss.substr(0, sss.find_last_of("\\/")) + "/../benchmarks/_all/OEGrover/";
+    for (const auto &entry : fs::directory_iterator(benchmarks)) {
+        if (!entry.is_directory() || std::stoi(entry.path().string().substr(entry.path().string().find_last_of('/') + 1)) > 6) continue;
+        auto folder = entry.path().string();
+        auto aut = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Symbolic>::ReadAutomaton(folder + "/pre.spec");
+        auto spec = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Predicate>::ReadAutomaton(folder + "/post.spec");
+        aut.execute(folder + "/circuit.qasm");
+        BOOST_REQUIRE_MESSAGE(AUTOQ::check_inclusion(AUTOQ::Constraint(aut.constraints.c_str()), aut, spec), folder + " failed!");
+        aut = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Symbolic>::ReadAutomaton(folder + "/pre.hsl");
+        spec = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Predicate>::ReadAutomaton(folder + "/post.hsl");
+        aut.execute(folder + "/circuit.qasm");
+        BOOST_REQUIRE_MESSAGE(AUTOQ::check_inclusion(AUTOQ::Constraint(aut.constraints.c_str()), aut, spec), folder + " failed!");
+    }
+}
 
 // BOOST_AUTO_TEST_SUITE_END()
