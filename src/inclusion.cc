@@ -1,3 +1,4 @@
+#include "z3/z3++.h"
 #include "autoq/util/util.hh"
 #include "autoq/inclusion.hh"
 #include "autoq/aut_description.hh"
@@ -388,18 +389,31 @@ bool AUTOQ::check_validity(Constraint C, const PredicateAutomata::Symbol &ps, co
     for (const auto &kv : regToExpr) // example: z3 <(echo '(declare-fun x () Int)(declare-fun z () Int)(assert (= z (+ x 3)))(check-sat)')
         str = std::regex_replace(str, std::regex(kv.first), kv.second);
     // std::cout << std::string(C) + "(assert (not " + str + "))(check-sat)\n";
+
+    #if 1
+    // std::cout << Z3_get_full_version() << "\n";
+    z3::context c;
+    z3::solver s(c);
+    s.from_string((std::string(C) + "(assert (not " + str + "))").c_str());
+    auto result = s.check();
+    // std::cout << result << "\n";
+    if (result == z3::unsat) return true;
+    else if (result == z3::sat) return false;
+    #else
     std::string smt_input = "bash -c \"z3 <(echo '" + std::string(C) + "(assert (not " + str + "))(check-sat)')\"";
     // auto startSim = chrono::steady_clock::now();
-    str = AUTOQ::Util::ShellCmd(smt_input);
+    auto result = AUTOQ::Util::ShellCmd(smt_input);
     // std::cout << smt_input << "\n";
-    // std::cout << str << "\n";
+    // std::cout << result << "\n";
     // auto durationSim = chrono::steady_clock::now() - startSim;
     // std::cout << toString2(durationSim) << "\n";
-    if (str == "unsat\n") return true;
-    else if (str == "sat\n") return false;
+    if (result == "unsat\n") return true;
+    else if (result == "sat\n") return false;
+    #endif
     else {
-        std::cout << smt_input << "\n";
-        std::cout << str << "-\n";
+        std::cout << std::string(C) << "\n";
+        std::cout << str << "\n";
+        std::cout << result << "-\n";
         THROW_AUTOQ_ERROR("The solver Z3 did not correctly return SAT or UNSAT.\nIt's probably because the specification automaton is NOT a predicate automaton.");
     }
 }
