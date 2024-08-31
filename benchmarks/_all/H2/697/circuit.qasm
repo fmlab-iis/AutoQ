@@ -1,6 +1,7 @@
 OPENQASM 2.0;
-qelib1.inc;
+include "qelib1.inc";
 qreg qubits[697];
+
 h qubits[696];
 h qubits[696];
 h qubits[695];
