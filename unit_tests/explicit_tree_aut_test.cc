@@ -1155,4 +1155,22 @@ BOOST_AUTO_TEST_CASE(benchmarks_MCToffoli)
     }
 }
 
+BOOST_AUTO_TEST_CASE(benchmarks_Grover)
+{
+    std::string sss(__FILE__);
+    std::string benchmarks = sss.substr(0, sss.find_last_of("\\/")) + "/../benchmarks/_all/Grover/";
+    for (const auto &entry : fs::directory_iterator(benchmarks)) {
+        if (!entry.is_directory() || std::stoi(entry.path().string().substr(entry.path().string().find_last_of('/') + 1)) > 6) continue;
+        auto folder = entry.path().string();
+        auto aut = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Concrete>::ReadAutomaton(folder + "/pre.spec");
+        auto spec = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Concrete>::ReadAutomaton(folder + "/post.spec");
+        aut.execute(folder + "/circuit.qasm");
+        BOOST_REQUIRE_MESSAGE(aut <= spec, folder + " failed!");
+        // aut = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Concrete>::ReadAutomaton(folder + "/pre.hsl");
+        // spec = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Concrete>::ReadAutomaton(folder + "/post.hsl");
+        // aut.execute(folder + "/circuit.qasm");
+        // BOOST_REQUIRE_MESSAGE(aut <= spec, folder + " failed!");
+    }
+}
+
 // BOOST_AUTO_TEST_SUITE_END()
