@@ -1121,10 +1121,10 @@ BOOST_AUTO_TEST_CASE(benchmarks_H2)
     }
 }
 
-BOOST_AUTO_TEST_CASE(benchmarks_HXH)
+BOOST_AUTO_TEST_CASE(benchmarks_MCToffoli)
 {
     std::string sss(__FILE__);
-    std::string benchmarks = sss.substr(0, sss.find_last_of("\\/")) + "/../benchmarks/_all/HXH/";
+    std::string benchmarks = sss.substr(0, sss.find_last_of("\\/")) + "/../benchmarks/_all/MCToffoli/";
     for (const auto &entry : fs::directory_iterator(benchmarks)) {
         if (!entry.is_directory() || std::stoi(entry.path().string().substr(entry.path().string().find_last_of('/') + 1)) > 6) continue;
         auto folder = entry.path().string();
@@ -1134,6 +1134,22 @@ BOOST_AUTO_TEST_CASE(benchmarks_HXH)
         BOOST_REQUIRE_MESSAGE(aut <= spec, folder + " failed!");
         aut = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Concrete>::ReadAutomaton(folder + "/pre.hsl");
         spec = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Concrete>::ReadAutomaton(folder + "/post.hsl");
+        aut.execute(folder + "/circuit.qasm");
+        BOOST_REQUIRE_MESSAGE(aut <= spec, folder + " failed!");
+        aut = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Concrete>::ReadAutomaton(folder + "/pre0.spec");
+        spec = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Concrete>::ReadAutomaton(folder + "/post0.spec");
+        aut.execute(folder + "/circuit.qasm");
+        BOOST_REQUIRE_MESSAGE(aut <= spec, folder + " failed!");
+        aut = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Concrete>::ReadAutomaton(folder + "/pre0.hsl");
+        spec = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Concrete>::ReadAutomaton(folder + "/post0.hsl");
+        aut.execute(folder + "/circuit.qasm");
+        BOOST_REQUIRE_MESSAGE(aut <= spec, folder + " failed!");
+        aut = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Concrete>::ReadAutomaton(folder + "/pre1.spec");
+        spec = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Concrete>::ReadAutomaton(folder + "/post1.spec");
+        aut.execute(folder + "/circuit.qasm");
+        BOOST_REQUIRE_MESSAGE(aut <= spec, folder + " failed!");
+        aut = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Concrete>::ReadAutomaton(folder + "/pre1.hsl");
+        spec = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Concrete>::ReadAutomaton(folder + "/post1.hsl");
         aut.execute(folder + "/circuit.qasm");
         BOOST_REQUIRE_MESSAGE(aut <= spec, folder + " failed!");
     }
