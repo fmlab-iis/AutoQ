@@ -28,3 +28,4 @@ POPL24/TABLES/Algorithms/*.pdf
 POPL24/TABLES/Algorithms/*.tex
 POPL24/TABLES/Algorithms/*.log
 POPL24/TABLES/Algorithms/*.aux
+benchmark*/_others/**
