@@ -1227,4 +1227,32 @@ BOOST_AUTO_TEST_CASE(benchmarks_MOGroverSym)
     }
 }
 
+BOOST_AUTO_TEST_CASE(benchmarks_H2Sym)
+{
+    std::string sss(__FILE__);
+    std::string folder = sss.substr(0, sss.find_last_of("\\/")) + "/../benchmarks/_all/H2Sym/";
+    auto aut = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Symbolic>::ReadAutomaton(folder + "pre.spec");
+    auto spec = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Predicate>::ReadAutomaton(folder + "post.spec");
+    aut.execute(folder + "circuit.qasm");
+    BOOST_REQUIRE_MESSAGE(AUTOQ::check_inclusion(AUTOQ::Constraint(aut.constraints.c_str()), aut, spec), folder + " failed!");
+    aut = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Symbolic>::ReadAutomaton(folder + "pre.hsl");
+    spec = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Predicate>::ReadAutomaton(folder + "post.hsl");
+    aut.execute(folder + "circuit.qasm");
+    BOOST_REQUIRE_MESSAGE(AUTOQ::check_inclusion(AUTOQ::Constraint(aut.constraints.c_str()), aut, spec), folder + " failed!");
+}
+
+BOOST_AUTO_TEST_CASE(benchmarks_H2BugSym)
+{
+    std::string sss(__FILE__);
+    std::string folder = sss.substr(0, sss.find_last_of("\\/")) + "/../benchmarks/_all/H2BugSym/";
+    auto aut = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Symbolic>::ReadAutomaton(folder + "pre.spec");
+    auto spec = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Predicate>::ReadAutomaton(folder + "post.spec");
+    aut.execute(folder + "circuit.qasm");
+    BOOST_REQUIRE_MESSAGE(!AUTOQ::check_inclusion(AUTOQ::Constraint(aut.constraints.c_str()), aut, spec), folder + " failed!");
+    aut = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Symbolic>::ReadAutomaton(folder + "pre.hsl");
+    spec = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Predicate>::ReadAutomaton(folder + "post.hsl");
+    aut.execute(folder + "circuit.qasm");
+    BOOST_REQUIRE_MESSAGE(!AUTOQ::check_inclusion(AUTOQ::Constraint(aut.constraints.c_str()), aut, spec), folder + " failed!");
+}
+
 // BOOST_AUTO_TEST_SUITE_END()
