@@ -1,0 +1,4 @@
+Predicates
+pH := (and (> (* $R $R) 0.9) (= $I 0))
+Extended Dirac
+pH |011>
