@@ -134,7 +134,7 @@ public:   // methods
 
 	/******************************************************/
     /* inclusion.cc: checks language inclusion of two TAs */
-    bool operator<=(const Automata &o) const requires concrete_like<TT>;
+    bool operator<=(const Automata &o) const; // requires concrete_like<TT>;
     bool operator>=(const Automata &o) const requires concrete_like<TT> { return o <= *this; }
 	bool operator==(const Automata &o) const requires concrete_like<TT> { return (*this <= o) && (o <= *this); }
     bool operator!=(const Automata &o) const requires concrete_like<TT> { return !(*this == o); }

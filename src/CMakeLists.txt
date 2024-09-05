@@ -66,10 +66,17 @@ add_library(lsta STATIC
 #   NO_DEFAULT_PATH
 # )
 # target_link_libraries(lsta ${Z3_LIBRARIES})
-target_link_libraries(lsta "${CMAKE_CURRENT_SOURCE_DIR}/../libz3.so.4.12")
+if (APPLE)
+    target_link_libraries(lsta "${CMAKE_CURRENT_SOURCE_DIR}/../libz3.a")
+elseif (UNIX)
+    target_link_libraries(lsta "${CMAKE_CURRENT_SOURCE_DIR}/../libz3.so.4.12")
+endif ()
 include_directories(../include/z3)
 
 # https://www.weiy.city/2022/06/use-cmake-to-import-shared-library-or-static-library/
 # https://bayareanotes.com/cmake-adding-external-library/
 
-target_link_libraries(lsta boost_regex)
+if (APPLE)
+elseif (UNIX)
+    target_link_libraries(lsta boost_regex)
+endif ()

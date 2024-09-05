@@ -4,102 +4,6 @@
 #include "autoq/aut_description.hh"
 #include <queue>
 
-template <typename Symbol>
-bool AUTOQ::Automata<Symbol>::operator<=(const Automata<Symbol> &autB) const requires concrete_like<Symbol> {
-    // migrate instance variables
-    Automata<AUTOQ::Symbol::Index> aut1;
-    aut1.name = this->name;
-    aut1.finalStates = this->finalStates;
-    aut1.stateNum = this->stateNum;
-    aut1.qubitNum = this->qubitNum;
-    // aut1.transitions = this->transitions;
-    aut1.isTopdownDeterministic = this->isTopdownDeterministic;
-    Automata<AUTOQ::Symbol::Index> aut2;
-    aut2.name = autB.name;
-    aut2.finalStates = autB.finalStates;
-    aut2.stateNum = autB.stateNum;
-    aut2.qubitNum = autB.qubitNum;
-    // aut2.transitions = autB.transitions;
-    aut2.isTopdownDeterministic = autB.isTopdownDeterministic;
-    // migrate static variables
-    Automata<AUTOQ::Symbol::Index>::gateCount = Automata<Symbol>::gateCount;
-    Automata<AUTOQ::Symbol::Index>::stateBefore = Automata<Symbol>::stateBefore;
-    Automata<AUTOQ::Symbol::Index>::transitionBefore = Automata<Symbol>::transitionBefore;
-    Automata<AUTOQ::Symbol::Index>::gateLog = Automata<Symbol>::gateLog;
-    Automata<AUTOQ::Symbol::Index>::opLog = Automata<Symbol>::opLog;
-    Automata<AUTOQ::Symbol::Index>::include_status = Automata<Symbol>::include_status;
-    Automata<AUTOQ::Symbol::Index>::binop_time = Automata<Symbol>::binop_time;
-    Automata<AUTOQ::Symbol::Index>::branch_rest_time = Automata<Symbol>::branch_rest_time;
-    Automata<AUTOQ::Symbol::Index>::value_rest_time = Automata<Symbol>::value_rest_time;
-    Automata<AUTOQ::Symbol::Index>::total_gate_time = Automata<Symbol>::total_gate_time;
-    Automata<AUTOQ::Symbol::Index>::total_removeuseless_time = Automata<Symbol>::total_removeuseless_time;
-    Automata<AUTOQ::Symbol::Index>::total_reduce_time = Automata<Symbol>::total_reduce_time;
-    Automata<AUTOQ::Symbol::Index>::total_include_time = Automata<Symbol>::total_include_time;
-    Automata<AUTOQ::Symbol::Index>::start_execute = Automata<Symbol>::start_execute;
-    Automata<AUTOQ::Symbol::Index>::stop_execute = Automata<Symbol>::stop_execute;
-    // migrate transitions
-    std::vector<Symbol> symbol_map;
-    for (const auto &t : this->transitions) {
-        const auto &symbol_tag = t.first;
-        const auto &symbol = symbol_tag.symbol();
-        unsigned i = 0;
-        for (; i<=symbol_map.size(); i++) {
-            if (i == symbol_map.size()) {
-                symbol_map.push_back(symbol);
-            }
-            if (i == symbol_map.size() || symbol_map.at(i).valueEqual(symbol)) {
-                Automata<AUTOQ::Symbol::Index>::SymbolTag symbol_tag2 = {AUTOQ::Symbol::Index(symbol.is_leaf(), i), symbol_tag.tag()};
-                for (const auto &out_ins : t.second) {
-                    const auto &out = out_ins.first;
-                    const auto &ins = out_ins.second;
-                    for (const auto &in : ins)
-                        aut1.transitions[symbol_tag2][out].insert(in);
-                }
-                break;
-            }
-        }
-    }
-    for (const auto &t : autB.transitions) {
-        const auto &symbol_tag = t.first;
-        const auto &symbol = symbol_tag.symbol();
-        unsigned i = 0;
-        for (; i<=symbol_map.size(); i++) {
-            if (i == symbol_map.size()) {
-                symbol_map.push_back(symbol);
-            }
-            if (i == symbol_map.size() || symbol_map.at(i).valueEqual(symbol)) {
-                Automata<AUTOQ::Symbol::Index>::SymbolTag symbol_tag2 = {AUTOQ::Symbol::Index(symbol.is_leaf(), i), symbol_tag.tag()};
-                for (const auto &out_ins : t.second) {
-                    const auto &out = out_ins.first;
-                    const auto &ins = out_ins.second;
-                    for (const auto &in : ins)
-                        aut2.transitions[symbol_tag2][out].insert(in);
-                }
-                break;
-            }
-        }
-    }
-    // main routine
-    bool result = aut1 <= aut2;
-    // migrate static variables
-    Automata<Symbol>::gateCount = Automata<AUTOQ::Symbol::Index>::gateCount;
-    Automata<Symbol>::stateBefore = Automata<AUTOQ::Symbol::Index>::stateBefore;
-    Automata<Symbol>::transitionBefore = Automata<AUTOQ::Symbol::Index>::transitionBefore;
-    Automata<Symbol>::gateLog = Automata<AUTOQ::Symbol::Index>::gateLog;
-    Automata<Symbol>::opLog = Automata<AUTOQ::Symbol::Index>::opLog;
-    Automata<Symbol>::include_status = Automata<AUTOQ::Symbol::Index>::include_status;
-    Automata<Symbol>::binop_time = Automata<AUTOQ::Symbol::Index>::binop_time;
-    Automata<Symbol>::branch_rest_time = Automata<AUTOQ::Symbol::Index>::branch_rest_time;
-    Automata<Symbol>::value_rest_time = Automata<AUTOQ::Symbol::Index>::value_rest_time;
-    Automata<Symbol>::total_gate_time = Automata<AUTOQ::Symbol::Index>::total_gate_time;
-    Automata<Symbol>::total_removeuseless_time = Automata<AUTOQ::Symbol::Index>::total_removeuseless_time;
-    Automata<Symbol>::total_reduce_time = Automata<AUTOQ::Symbol::Index>::total_reduce_time;
-    Automata<Symbol>::total_include_time = Automata<AUTOQ::Symbol::Index>::total_include_time;
-    Automata<Symbol>::start_execute = Automata<AUTOQ::Symbol::Index>::start_execute;
-    Automata<Symbol>::stop_execute = Automata<AUTOQ::Symbol::Index>::stop_execute;
-    return result;
-}
-
 template <>
 bool AUTOQ::Automata<AUTOQ::Symbol::Index>::operator<=(const Automata<AUTOQ::Symbol::Index> &autB) const {
     auto start_include = std::chrono::steady_clock::now();
@@ -377,6 +281,105 @@ bool AUTOQ::Automata<AUTOQ::Symbol::Index>::operator<=(const Automata<AUTOQ::Sym
     total_include_time += stop_include - start_include;
     return true;
 }
+
+template <>
+bool AUTOQ::Automata<AUTOQ::Symbol::Concrete>::operator<=(const Automata<AUTOQ::Symbol::Concrete> &autB) const {
+    // migrate instance variables
+    Automata<AUTOQ::Symbol::Index> aut1;
+    aut1.name = this->name;
+    aut1.finalStates = this->finalStates;
+    aut1.stateNum = this->stateNum;
+    aut1.qubitNum = this->qubitNum;
+    // aut1.transitions = this->transitions;
+    aut1.isTopdownDeterministic = this->isTopdownDeterministic;
+    Automata<AUTOQ::Symbol::Index> aut2;
+    aut2.name = autB.name;
+    aut2.finalStates = autB.finalStates;
+    aut2.stateNum = autB.stateNum;
+    aut2.qubitNum = autB.qubitNum;
+    // aut2.transitions = autB.transitions;
+    aut2.isTopdownDeterministic = autB.isTopdownDeterministic;
+    // migrate static variables
+    Automata<AUTOQ::Symbol::Index>::gateCount = Automata<Symbol>::gateCount;
+    Automata<AUTOQ::Symbol::Index>::stateBefore = Automata<Symbol>::stateBefore;
+    Automata<AUTOQ::Symbol::Index>::transitionBefore = Automata<Symbol>::transitionBefore;
+    Automata<AUTOQ::Symbol::Index>::gateLog = Automata<Symbol>::gateLog;
+    Automata<AUTOQ::Symbol::Index>::opLog = Automata<Symbol>::opLog;
+    Automata<AUTOQ::Symbol::Index>::include_status = Automata<Symbol>::include_status;
+    Automata<AUTOQ::Symbol::Index>::binop_time = Automata<Symbol>::binop_time;
+    Automata<AUTOQ::Symbol::Index>::branch_rest_time = Automata<Symbol>::branch_rest_time;
+    Automata<AUTOQ::Symbol::Index>::value_rest_time = Automata<Symbol>::value_rest_time;
+    Automata<AUTOQ::Symbol::Index>::total_gate_time = Automata<Symbol>::total_gate_time;
+    Automata<AUTOQ::Symbol::Index>::total_removeuseless_time = Automata<Symbol>::total_removeuseless_time;
+    Automata<AUTOQ::Symbol::Index>::total_reduce_time = Automata<Symbol>::total_reduce_time;
+    Automata<AUTOQ::Symbol::Index>::total_include_time = Automata<Symbol>::total_include_time;
+    Automata<AUTOQ::Symbol::Index>::start_execute = Automata<Symbol>::start_execute;
+    Automata<AUTOQ::Symbol::Index>::stop_execute = Automata<Symbol>::stop_execute;
+    // migrate transitions
+    std::vector<Symbol> symbol_map;
+    for (const auto &t : this->transitions) {
+        const auto &symbol_tag = t.first;
+        const auto &symbol = symbol_tag.symbol();
+        unsigned i = 0;
+        for (; i<=symbol_map.size(); i++) {
+            if (i == symbol_map.size()) {
+                symbol_map.push_back(symbol);
+            }
+            if (i == symbol_map.size() || symbol_map.at(i).valueEqual(symbol)) {
+                Automata<AUTOQ::Symbol::Index>::SymbolTag symbol_tag2 = {AUTOQ::Symbol::Index(symbol.is_leaf(), i), symbol_tag.tag()};
+                for (const auto &out_ins : t.second) {
+                    const auto &out = out_ins.first;
+                    const auto &ins = out_ins.second;
+                    for (const auto &in : ins)
+                        aut1.transitions[symbol_tag2][out].insert(in);
+                }
+                break;
+            }
+        }
+    }
+    for (const auto &t : autB.transitions) {
+        const auto &symbol_tag = t.first;
+        const auto &symbol = symbol_tag.symbol();
+        unsigned i = 0;
+        for (; i<=symbol_map.size(); i++) {
+            if (i == symbol_map.size()) {
+                symbol_map.push_back(symbol);
+            }
+            if (i == symbol_map.size() || symbol_map.at(i).valueEqual(symbol)) {
+                Automata<AUTOQ::Symbol::Index>::SymbolTag symbol_tag2 = {AUTOQ::Symbol::Index(symbol.is_leaf(), i), symbol_tag.tag()};
+                for (const auto &out_ins : t.second) {
+                    const auto &out = out_ins.first;
+                    const auto &ins = out_ins.second;
+                    for (const auto &in : ins)
+                        aut2.transitions[symbol_tag2][out].insert(in);
+                }
+                break;
+            }
+        }
+    }
+    // main routine
+    bool result = aut1 <= aut2;
+    // migrate static variables
+    Automata<Symbol>::gateCount = Automata<AUTOQ::Symbol::Index>::gateCount;
+    Automata<Symbol>::stateBefore = Automata<AUTOQ::Symbol::Index>::stateBefore;
+    Automata<Symbol>::transitionBefore = Automata<AUTOQ::Symbol::Index>::transitionBefore;
+    Automata<Symbol>::gateLog = Automata<AUTOQ::Symbol::Index>::gateLog;
+    Automata<Symbol>::opLog = Automata<AUTOQ::Symbol::Index>::opLog;
+    Automata<Symbol>::include_status = Automata<AUTOQ::Symbol::Index>::include_status;
+    Automata<Symbol>::binop_time = Automata<AUTOQ::Symbol::Index>::binop_time;
+    Automata<Symbol>::branch_rest_time = Automata<AUTOQ::Symbol::Index>::branch_rest_time;
+    Automata<Symbol>::value_rest_time = Automata<AUTOQ::Symbol::Index>::value_rest_time;
+    Automata<Symbol>::total_gate_time = Automata<AUTOQ::Symbol::Index>::total_gate_time;
+    Automata<Symbol>::total_removeuseless_time = Automata<AUTOQ::Symbol::Index>::total_removeuseless_time;
+    Automata<Symbol>::total_reduce_time = Automata<AUTOQ::Symbol::Index>::total_reduce_time;
+    Automata<Symbol>::total_include_time = Automata<AUTOQ::Symbol::Index>::total_include_time;
+    Automata<Symbol>::start_execute = Automata<AUTOQ::Symbol::Index>::start_execute;
+    Automata<Symbol>::stop_execute = Automata<AUTOQ::Symbol::Index>::stop_execute;
+    return result;
+}
+
+template <typename Symbol>
+bool AUTOQ::Automata<Symbol>::operator<=(const Automata<Symbol> &autB) const {}
 
 bool AUTOQ::check_validity(Constraint C, const PredicateAutomata::Symbol &ps, const SymbolicAutomata::Symbol &te) {
     std::string str(ps);
