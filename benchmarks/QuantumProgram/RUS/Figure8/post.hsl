@@ -1,5 +1,0 @@
-Constants
-c := ei2pi(1/8)
-Extended Dirac
-(2 * c) |10> + (1 - c ^ 2) |11>
-(1 - c ^ 2) |10> + (2 * c) |11>
