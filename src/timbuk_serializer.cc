@@ -9,6 +9,7 @@
  *****************************************************************************/
 
 // AUTOQ headers
+#include <regex>
 #include "autoq/error.hh"
 #include "autoq/aut_description.hh"
 #include "autoq/symbol/concrete.hh"
@@ -77,9 +78,12 @@ std::string TimbukSerializer::Serialize(Automata<Symbol> desc)
             if (it == leafMap.end()) {
                 if constexpr(std::is_same_v<Symbol, AUTOQ::Symbol::Concrete>)
                     result += "c" + std::to_string(leafMap.size()) + " := " + Convert::ToString(sym) + "\n";
-                else if constexpr(std::is_same_v<Symbol, AUTOQ::Symbol::Symbolic>)
-                    result += "e" + std::to_string(leafMap.size()) + " := " + Convert::ToString(sym) + "\n";
-                else if constexpr(std::is_same_v<Symbol, AUTOQ::Symbol::Predicate>)
+                else if constexpr(std::is_same_v<Symbol, AUTOQ::Symbol::Symbolic>) {
+                    auto str = Convert::ToString(sym);
+                    str = std::regex_replace(str, std::regex(R"(([^ ]+)R)"), "real($1)");
+                    str = std::regex_replace(str, std::regex(R"(([^ ]+)I)"), "imag($1)");
+                    result += "e" + std::to_string(leafMap.size()) + " := " + str + "\n";
+                } else if constexpr(std::is_same_v<Symbol, AUTOQ::Symbol::Predicate>)
                     result += "p" + std::to_string(leafMap.size()) + " := " + Convert::ToString(sym) + "\n";
                 leafMap[sym] = leafMap.size();
             }

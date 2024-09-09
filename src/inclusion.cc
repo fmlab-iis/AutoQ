@@ -379,7 +379,9 @@ bool AUTOQ::Automata<AUTOQ::Symbol::Concrete>::operator<=(const Automata<AUTOQ::
 }
 
 template <typename Symbol>
-bool AUTOQ::Automata<Symbol>::operator<=(const Automata<Symbol> &autB) const {}
+bool AUTOQ::Automata<Symbol>::operator<=(const Automata<Symbol> &) const {
+    THROW_AUTOQ_ERROR("The operator <= is not defined for the given type of automata.");
+}
 
 bool AUTOQ::check_validity(Constraint C, const PredicateAutomata::Symbol &ps, const SymbolicAutomata::Symbol &te) {
     std::string str(ps);

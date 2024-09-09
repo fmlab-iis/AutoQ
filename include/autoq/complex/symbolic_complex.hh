@@ -124,9 +124,13 @@ struct AUTOQ::Complex::SymbolicComplex : std::map<Term, Complex> {
         for (const auto &tc : static_cast<std::map<Term, Complex>>(obj)) {
             if (tc.second.isZero()) continue;
             if (!isFirst) os << " + ";
-            os << tc.second;
-            if (!tc.first.empty())
-                os << " * " << tc.first;
+            if (tc.second != Complex(1) || tc.first.empty())
+                os << tc.second;
+            if (!tc.first.empty()) {
+                if (tc.second != Complex(1))
+                    os << " * ";
+                os << tc.first;
+            }
             isFirst = false;
         }
         if (obj.empty()) os << "0";
