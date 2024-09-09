@@ -44,7 +44,7 @@ public:
     }
     friend std::ostream& operator<<(std::ostream& os, const Concrete& obj) {
         if (obj.internal)
-            os << "[" + obj.qubit().str() + "]";
+            os << obj.qubit().str();
         else
             os << obj.complex;
         return os;

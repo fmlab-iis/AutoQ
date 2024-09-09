@@ -25,14 +25,19 @@ struct AUTOQ::Complex::Term : std::map<std::string, boost::multiprecision::cpp_i
     }
     std::string expand() const { // can only be used in (* ...)
         if (empty()) return "1";
-        std::string result = "(+";
+        std::string result = size() >= 2 ? "(+" : "";
+        bool isFirst = true;
         for (const auto &kv : *this) {
             const auto &s = kv.first;
             auto v = kv.second;
             assert(v != 0);
-            result += " (* " + s + " " + v.str() + ")";
+            if (v == 1)
+                result += std::string((!isFirst) ? " " : "") + s;
+            else
+                result += std::string((!isFirst) ? " " : "") + "(* " + s + " " + v.str() + ")";
+            isFirst = false;
         }
-        result += ")";
+        result += size() >= 2 ? ")" : "";
         return result;
     }
     friend std::ostream& operator<<(std::ostream& os, const Term& obj) {
@@ -115,18 +120,32 @@ struct AUTOQ::Complex::SymbolicComplex : std::map<Term, Complex> {
         return result;
     }
     friend std::ostream& operator<<(std::ostream& os, const SymbolicComplex& obj) {
-        os << AUTOQ::Util::Convert::ToString(static_cast<std::map<Term, Complex>>(obj));
+        bool isFirst = true;
+        for (const auto &tc : static_cast<std::map<Term, Complex>>(obj)) {
+            if (tc.second.isZero()) continue;
+            if (!isFirst) os << " + ";
+            os << tc.second;
+            if (!tc.first.empty())
+                os << " * " << tc.first;
+            isFirst = false;
+        }
+        if (obj.empty()) os << "0";
         return os;
     }
     std::string realToSMT() const {
         if (empty()) return "0";
-        std::string result = "(+";
+        bool isFirst = true;
+        std::string result = size() >= 2 ? "(+" : "";
         for (const auto &kv : *this) {
             auto k = kv.first;
             auto v = kv.second;
-            result += " (* " + k.expand() + " " + v.realToSMT() + ")";
+            if (v.realToSMT() == "1")
+                result += std::string((!isFirst) ? " " : "") + k.expand();
+            else
+                result += std::string((!isFirst) ? " " : "") + "(* " + k.expand() + " " + v.realToSMT() + ")";
+            isFirst = false;
         }
-        result += ")";
+        result += size() >= 2 ? ")" : "";
         return result;
     }
     SymbolicComplex real() const {
@@ -141,13 +160,18 @@ struct AUTOQ::Complex::SymbolicComplex : std::map<Term, Complex> {
     }
     std::string imagToSMT() const {
         if (empty()) return "0";
-        std::string result = "(+";
+        bool isFirst = true;
+        std::string result = size() >= 2 ? "(+" : "";
         for (const auto &kv : *this) {
             auto k = kv.first;
             auto v = kv.second;
-            result += " (* " + k.expand() + " " + v.imagToSMT() + ")";
+            if (v.imagToSMT() == "1")
+                result += std::string((!isFirst) ? " " : "") + k.expand();
+            else
+                result += std::string((!isFirst) ? " " : "") + "(* " + k.expand() + " " + v.imagToSMT() + ")";
+            isFirst = false;
         }
-        result += ")";
+        result += size() >= 2 ? ")" : "";
         return result;
     }
     SymbolicComplex imag() const {

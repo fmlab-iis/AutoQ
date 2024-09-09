@@ -37,32 +37,57 @@ std::string TimbukSerializer::Serialize(Automata<Symbol> desc)
     }
 
 	std::string result;
-	result += "Ops ";
-	for (auto itSymb = desc.transitions.cbegin();
-		itSymb != desc.transitions.cend(); ++itSymb)
-	{
-        if (std::is_convertible<Symbol, std::string>::value)
-            result += "[" + AUTOQ::Util::Convert::ToString(itSymb->first) + "]:" +
-			    AUTOQ::Util::Convert::ToString(itSymb->second.begin()->second.begin()->size()) + " ";
-        else
-		    result += AUTOQ::Util::Convert::ToString(itSymb->first) + ":" +
-			    AUTOQ::Util::Convert::ToString(itSymb->second.begin()->second.begin()->size()) + " ";
-	}
+	// result += "Ops ";
+	// for (auto itSymb = desc.transitions.cbegin();
+	// 	itSymb != desc.transitions.cend(); ++itSymb)
+	// {
+    //     if (std::is_convertible<Symbol, std::string>::value)
+    //         result += "[" + AUTOQ::Util::Convert::ToString(itSymb->first) + "]:" +
+	// 		    AUTOQ::Util::Convert::ToString(itSymb->second.begin()->second.begin()->size()) + " ";
+    //     else
+	// 	    result += AUTOQ::Util::Convert::ToString(itSymb->first) + ":" +
+	// 		    AUTOQ::Util::Convert::ToString(itSymb->second.begin()->second.begin()->size()) + " ";
+	// }
 
-	result += "\n";
-	result += "Automaton " + (desc.name.empty()? "anonymous" : desc.name);
+	// result += "\n";
+	// result += "Automaton " + (desc.name.empty()? "anonymous" : desc.name);
 
-	result += "\n";
-	result += "States ";
-    for (auto i=0; i<desc.stateNum; i++) {
-        result += std::to_string(i) + " ";
-        // result += desc.stateNum.TranslateBwd(i) + " ";
-    }
+	// result += "\n";
+	// result += "States ";
+    // for (auto i=0; i<desc.stateNum; i++) {
+    //     result += std::to_string(i) + " ";
+    //     // result += desc.stateNum.TranslateBwd(i) + " ";
+    // }
 	// for_each(desc.states.cbegin(), desc.states.cend(),
 	// 	[&result](const std::string& sStr){ result += sStr + " ";});
 
-	result += "\n";
-	result += "Final States ";
+    if constexpr(std::is_same_v<Symbol, AUTOQ::Symbol::Concrete>)
+        result += "Constants\n";
+    else if constexpr(std::is_same_v<Symbol, AUTOQ::Symbol::Symbolic>)
+        result += "Expressions\n";
+    else if constexpr(std::is_same_v<Symbol, AUTOQ::Symbol::Predicate>)
+        result += "Predicates\n";
+    else
+        THROW_AUTOQ_ERROR("This kind of symbol is still unsupported!");
+    std::map<Symbol, size_t> leafMap;
+    for (const auto &t : desc.transitions) {
+        if (t.first.is_leaf()) {
+            const auto &sym = t.first.symbol();
+            auto it = leafMap.find(sym);
+            if (it == leafMap.end()) {
+                if constexpr(std::is_same_v<Symbol, AUTOQ::Symbol::Concrete>)
+                    result += "c" + std::to_string(leafMap.size()) + " := " + Convert::ToString(sym) + "\n";
+                else if constexpr(std::is_same_v<Symbol, AUTOQ::Symbol::Symbolic>)
+                    result += "e" + std::to_string(leafMap.size()) + " := " + Convert::ToString(sym) + "\n";
+                else if constexpr(std::is_same_v<Symbol, AUTOQ::Symbol::Predicate>)
+                    result += "p" + std::to_string(leafMap.size()) + " := " + Convert::ToString(sym) + "\n";
+                leafMap[sym] = leafMap.size();
+            }
+        }
+    }
+
+	// result += "\n";
+	result += "Root States ";
     for (auto i : desc.finalStates) {
         result += std::to_string(i) + " ";
         // result += desc.stateNum.TranslateBwd(i) + " ";
@@ -77,7 +102,14 @@ std::string TimbukSerializer::Serialize(Automata<Symbol> desc)
         for (const auto &t2 : t.second) {
             const auto &q = t2.first;
             for (const auto &in : t2.second) {
-                if (std::is_convertible<Symbol, std::string>::value)
+                if (t.first.is_leaf()) {
+                    if constexpr(std::is_same_v<Symbol, AUTOQ::Symbol::Concrete>)
+                        result += "[c" + std::to_string(leafMap.at(t.first.symbol())) + "," + Convert::ToString(t.first.tag()) + "]";
+                    else if constexpr(std::is_same_v<Symbol, AUTOQ::Symbol::Symbolic>)
+                        result += "[e" + std::to_string(leafMap.at(t.first.symbol())) + "," + Convert::ToString(t.first.tag()) + "]";
+                    else if constexpr(std::is_same_v<Symbol, AUTOQ::Symbol::Predicate>)
+                        result += "[p" + std::to_string(leafMap.at(t.first.symbol())) + "," + Convert::ToString(t.first.tag()) + "]";
+                } else if (std::is_convertible<Symbol, std::string>::value)
                     result += "[" + Convert::ToString(t.first) + "]";
                 else
                     result += Convert::ToString(t.first);

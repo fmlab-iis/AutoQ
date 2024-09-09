@@ -58,10 +58,15 @@ struct AUTOQ::Complex::nTuple : AUTOQ::Util::mapped_vector<boost::multiprecision
     }
     static nTuple sqrt2() { return nTuple(1).divide_by_the_square_root_of_two(-1); }
     friend std::ostream& operator<<(std::ostream& os, const nTuple& obj) {
-        os << "[";
-        for (const auto &kv : obj)
-            os << " " << kv.second << "*eipi(" << kv.first << "/" << N << ")";
-        os << "]";
+        bool isFirst = true;
+        for (const auto &kv : obj) {
+            if (!isFirst) os << " + ";
+            os << kv.second;
+            if (kv.first > 0)
+                os << "*eipi(" << kv.first << "/" << N << ")";
+            isFirst = false;
+        }
+        if (obj.empty()) os << "0";
         return os;
     }
     nTuple operator+(const nTuple &o) const { return binary_operation(o, true); }

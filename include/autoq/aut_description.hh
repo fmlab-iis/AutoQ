@@ -81,7 +81,7 @@ public:   // data types
             else return symbol() < rhs.symbol();
         }
         friend std::ostream& operator<<(std::ostream& os, const SymbolTag& obj) {
-            os << obj.symbol() << "[" << obj.tag() << "]"; // print only the symbol part without the tag
+            os << "[" << obj.symbol() << "," << obj.tag() << "]"; // print only the symbol part without the tag
             return os;
         }
     };
