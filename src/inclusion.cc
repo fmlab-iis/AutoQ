@@ -421,14 +421,15 @@ bool AUTOQ::check_validity(Constraint C, const PredicateAutomata::Symbol &ps, co
     }
 }
 
-bool AUTOQ::check_inclusion(const Constraint &C, SymbolicAutomata autA, PredicateAutomata autB) {
-    autA.fraction_simplification();
+bool operator<=(const AUTOQ::SymbolicAutomata &autA, const AUTOQ::PredicateAutomata &autB) {
+    AUTOQ::Constraint C = AUTOQ::Constraint(autA.constraints.c_str());
+    // autA.fraction_simplification();
     // autB.fraction_simplification();
     auto start_include = std::chrono::steady_clock::now();
 
     // Preparation: Transform transitions into the new data structure.
-    std::vector<std::map<SymbolicAutomata::SymbolTag, SymbolicAutomata::StateVector>> transA(autA.stateNum);
-    std::vector<std::map<PredicateAutomata::Symbol, std::map<PredicateAutomata::Tag, PredicateAutomata::StateVector>>> transB(autB.stateNum);
+    std::vector<std::map<AUTOQ::SymbolicAutomata::SymbolTag, AUTOQ::SymbolicAutomata::StateVector>> transA(autA.stateNum);
+    std::vector<std::map<AUTOQ::PredicateAutomata::Symbol, std::map<AUTOQ::PredicateAutomata::Tag, AUTOQ::PredicateAutomata::StateVector>>> transB(autB.stateNum);
     for (const auto &t : autA.transitions) {
         const auto &symbol_tag = t.first;
         for (const auto &out_ins : t.second) {
@@ -451,7 +452,7 @@ bool AUTOQ::check_inclusion(const Constraint &C, SymbolicAutomata autA, Predicat
     // autB.print_aut("autB\n");
 
     // Main Routine: Graph Traversal
-    typedef std::map<SymbolicAutomata::State, PredicateAutomata::StateSet> Cell;
+    typedef std::map<AUTOQ::SymbolicAutomata::State, AUTOQ::PredicateAutomata::StateSet> Cell;
     typedef std::set<Cell> Vertex;
     std::set<Vertex> created; // Remember created configurations.
     std::queue<Vertex> bfs; // the queue used for traversing the graph
@@ -473,8 +474,8 @@ bool AUTOQ::check_inclusion(const Constraint &C, SymbolicAutomata autA, Predicat
         // AUTOQ_DEBUG("EXTRACT VERTEX: " << AUTOQ::Util::Convert::ToString(vertex));
         bfs.pop();
         // List all possible transition combinations of A in this vertex first!
-        std::map<SymbolicAutomata::State, typename std::map<SymbolicAutomata::SymbolTag, SymbolicAutomata::StateVector>::iterator> A_transition_combinations;
-        std::map<SymbolicAutomata::State, std::vector<SymbolicAutomata::Tag>> possible_colors_for_qA; // Elements may repeat in the vector!
+        std::map<AUTOQ::SymbolicAutomata::State, typename std::map<AUTOQ::SymbolicAutomata::SymbolTag, AUTOQ::SymbolicAutomata::StateVector>::iterator> A_transition_combinations;
+        std::map<AUTOQ::SymbolicAutomata::State, std::vector<AUTOQ::SymbolicAutomata::Tag>> possible_colors_for_qA; // Elements may repeat in the vector!
         for (const auto& qA_qBs : *(vertex.begin())) {
             auto qA = qA_qBs.first;
             A_transition_combinations[qA] = transA[qA].begin();
@@ -530,8 +531,8 @@ bool AUTOQ::check_inclusion(const Constraint &C, SymbolicAutomata autA, Predicat
 
                     // The following loop is used to build all possible transition combinations of B,
                     // given the cell (set) of constraints, each of which describes "some A's state <==> some B's states".
-                    std::map<PredicateAutomata::State, std::map<PredicateAutomata::Symbol, std::map<PredicateAutomata::Tag, PredicateAutomata::StateVector>::iterator>> B_transition_combinations_data;
-                    std::map<PredicateAutomata::State, PredicateAutomata::Symbol> B_transition_combinations;
+                    std::map<AUTOQ::PredicateAutomata::State, std::map<AUTOQ::PredicateAutomata::Symbol, std::map<AUTOQ::PredicateAutomata::Tag, AUTOQ::PredicateAutomata::StateVector>::iterator>> B_transition_combinations_data;
+                    std::map<AUTOQ::PredicateAutomata::State, AUTOQ::PredicateAutomata::Symbol> B_transition_combinations;
                     for (const auto &kv : A_transition_combinations) { // simply loop through all qA's in this cell
                         const auto &qA = kv.first;
                         const auto &fc_in = *(kv.second); // the currently picked transition for qA
@@ -560,7 +561,7 @@ bool AUTOQ::check_inclusion(const Constraint &C, SymbolicAutomata autA, Predicat
                             // }
                             /***********************************************/
                             if (desired_symbol.is_internal()) {
-                                PredicateAutomata::Symbol desired_symbol2(desired_symbol.qubit());
+                                AUTOQ::PredicateAutomata::Symbol desired_symbol2(desired_symbol.qubit());
                                 if (transB[qB].find(desired_symbol2) == transB[qB].end()) {
                                     // If qB has no transitions with the desired symbol,
                                     // simply construct the unique cell without B's states!
@@ -699,9 +700,9 @@ bool AUTOQ::check_inclusion(const Constraint &C, SymbolicAutomata autA, Predicat
                     // AUTOQ_DEBUG("THE VERTEX: " << AUTOQ::Util::Convert::ToString(vertex2) << " LEADS A TO NOTHING OF STATES, SO WE SHALL NOT PUSH THIS VERTEX BUT CHECK IF B HAS POSSIBLE SIMULTANEOUS TRANSITION COMBINATIONS LEADING TO THIS VERTEX.");
                     if (vertex_fail) {
                         auto stop_include = std::chrono::steady_clock::now();
-                        SymbolicAutomata::include_status = AUTOQ::Util::Convert::toString(stop_include - start_include) + " X";
+                        AUTOQ::SymbolicAutomata::include_status = AUTOQ::Util::Convert::toString(stop_include - start_include) + " X";
                         // AUTOQ_DEBUG("UNFORTUNATELY B HAS NO POSSIBLE TRANSITION COMBINATIONS, SO THE INCLUSION DOES NOT HOLD :(");
-                        SymbolicAutomata::total_include_time += stop_include - start_include;
+                        AUTOQ::SymbolicAutomata::total_include_time += stop_include - start_include;
                         return false;
                     }
                 } else if (created.contains(vertex2)) {
@@ -730,9 +731,9 @@ bool AUTOQ::check_inclusion(const Constraint &C, SymbolicAutomata autA, Predicat
         } while (!have_listed_all_combinationsA);
     }
     auto stop_include = std::chrono::steady_clock::now();
-    SymbolicAutomata::include_status = AUTOQ::Util::Convert::toString(stop_include - start_include);
+    AUTOQ::SymbolicAutomata::include_status = AUTOQ::Util::Convert::toString(stop_include - start_include);
     // AUTOQ_DEBUG("FORTUNATELY FOR EACH (MAXIMAL) PATH B HAS POSSIBLE SIMULTANEOUS TRANSITION COMBINATIONS, SO THE INCLUSION DOES HOLD :)");
-    SymbolicAutomata::total_include_time += stop_include - start_include;
+    AUTOQ::SymbolicAutomata::total_include_time += stop_include - start_include;
     return true;
 }
 

@@ -239,7 +239,7 @@ try {
         // std::cout << "=================\n";
         // aut.print_aut();
         // std::cout << "=================\n";
-        bool verify = AUTOQ::check_inclusion(AUTOQ::Constraint(aut.constraints.c_str()), aut, spec);
+        bool verify = aut <= spec;
         if (latex) {
             aut.print_stats();
         } else {

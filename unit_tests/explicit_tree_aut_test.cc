@@ -1023,11 +1023,11 @@ BOOST_AUTO_TEST_CASE(benchmarks_OEGrover)
         auto aut = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Symbolic>::ReadAutomaton(folder + "/pre.spec");
         auto spec = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Predicate>::ReadAutomaton(folder + "/post.spec");
         aut.execute(folder + "/circuit.qasm");
-        BOOST_REQUIRE_MESSAGE(AUTOQ::check_inclusion(AUTOQ::Constraint(aut.constraints.c_str()), aut, spec), folder + " failed!");
+        BOOST_REQUIRE_MESSAGE(aut <= spec, folder + " failed!");
         aut = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Symbolic>::ReadAutomaton(folder + "/pre.hsl");
         spec = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Predicate>::ReadAutomaton(folder + "/post.hsl");
         aut.execute(folder + "/circuit.qasm");
-        BOOST_REQUIRE_MESSAGE(AUTOQ::check_inclusion(AUTOQ::Constraint(aut.constraints.c_str()), aut, spec), folder + " failed!");
+        BOOST_REQUIRE_MESSAGE(aut <= spec, folder + " failed!");
     }
 }
 
@@ -1201,7 +1201,7 @@ BOOST_AUTO_TEST_CASE(benchmarks_GroverSym)
         auto aut = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Symbolic>::ReadAutomaton(folder + "/pre.spec");
         auto spec = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Predicate>::ReadAutomaton(folder + "/post.spec");
         aut.execute(folder + "/circuit.qasm");
-        BOOST_REQUIRE_MESSAGE(AUTOQ::check_inclusion(AUTOQ::Constraint(aut.constraints.c_str()), aut, spec), folder + " failed!");
+        BOOST_REQUIRE_MESSAGE(aut <= spec, folder + " failed!");
         // aut = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Concrete>::ReadAutomaton(folder + "/pre.hsl");
         // spec = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Concrete>::ReadAutomaton(folder + "/post.hsl");
         // aut.execute(folder + "/circuit.qasm");
@@ -1219,7 +1219,7 @@ BOOST_AUTO_TEST_CASE(benchmarks_MOGroverSym)
         auto aut = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Symbolic>::ReadAutomaton(folder + "/pre.spec");
         auto spec = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Predicate>::ReadAutomaton(folder + "/post.spec");
         aut.execute(folder + "/circuit.qasm");
-        BOOST_REQUIRE_MESSAGE(AUTOQ::check_inclusion(AUTOQ::Constraint(aut.constraints.c_str()), aut, spec), folder + " failed!");
+        BOOST_REQUIRE_MESSAGE(aut <= spec, folder + " failed!");
         // aut = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Concrete>::ReadAutomaton(folder + "/pre.hsl");
         // spec = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Concrete>::ReadAutomaton(folder + "/post.hsl");
         // aut.execute(folder + "/circuit.qasm");
@@ -1234,11 +1234,11 @@ BOOST_AUTO_TEST_CASE(benchmarks_H2Sym)
     auto aut = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Symbolic>::ReadAutomaton(folder + "pre.spec");
     auto spec = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Predicate>::ReadAutomaton(folder + "post.spec");
     aut.execute(folder + "circuit.qasm");
-    BOOST_REQUIRE_MESSAGE(AUTOQ::check_inclusion(AUTOQ::Constraint(aut.constraints.c_str()), aut, spec), folder + " failed!");
+    BOOST_REQUIRE_MESSAGE(aut <= spec, folder + " failed!");
     aut = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Symbolic>::ReadAutomaton(folder + "pre.hsl");
     spec = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Predicate>::ReadAutomaton(folder + "post.hsl");
     aut.execute(folder + "circuit.qasm");
-    BOOST_REQUIRE_MESSAGE(AUTOQ::check_inclusion(AUTOQ::Constraint(aut.constraints.c_str()), aut, spec), folder + " failed!");
+    BOOST_REQUIRE_MESSAGE(aut <= spec, folder + " failed!");
 }
 
 BOOST_AUTO_TEST_CASE(benchmarks_H2BugSym)
@@ -1248,11 +1248,11 @@ BOOST_AUTO_TEST_CASE(benchmarks_H2BugSym)
     auto aut = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Symbolic>::ReadAutomaton(folder + "pre.spec");
     auto spec = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Predicate>::ReadAutomaton(folder + "post.spec");
     aut.execute(folder + "circuit.qasm");
-    BOOST_REQUIRE_MESSAGE(!AUTOQ::check_inclusion(AUTOQ::Constraint(aut.constraints.c_str()), aut, spec), folder + " failed!");
+    BOOST_REQUIRE_MESSAGE(!(aut<=spec), folder + " failed!");
     aut = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Symbolic>::ReadAutomaton(folder + "pre.hsl");
     spec = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Predicate>::ReadAutomaton(folder + "post.hsl");
     aut.execute(folder + "circuit.qasm");
-    BOOST_REQUIRE_MESSAGE(!AUTOQ::check_inclusion(AUTOQ::Constraint(aut.constraints.c_str()), aut, spec), folder + " failed!");
+    BOOST_REQUIRE_MESSAGE(!(aut<=spec), folder + " failed!");
 }
 
 BOOST_AUTO_TEST_CASE(benchmarks_BVSym)
@@ -1265,11 +1265,11 @@ BOOST_AUTO_TEST_CASE(benchmarks_BVSym)
         auto aut = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Symbolic>::ReadAutomaton(folder + "/pre.spec");
         auto spec = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Predicate>::ReadAutomaton(folder + "/post.spec");
         aut.execute(folder + "/circuit.qasm");
-        BOOST_REQUIRE_MESSAGE(AUTOQ::check_inclusion(AUTOQ::Constraint(aut.constraints.c_str()), aut, spec), folder + " failed!");
+        BOOST_REQUIRE_MESSAGE(aut <= spec, folder + " failed!");
         aut = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Symbolic>::ReadAutomaton(folder + "/pre.hsl");
         spec = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Predicate>::ReadAutomaton(folder + "/post.hsl");
         aut.execute(folder + "/circuit.qasm");
-        BOOST_REQUIRE_MESSAGE(AUTOQ::check_inclusion(AUTOQ::Constraint(aut.constraints.c_str()), aut, spec), folder + " failed!");
+        BOOST_REQUIRE_MESSAGE(aut <= spec, folder + " failed!");
     }
 }
 
@@ -1280,11 +1280,11 @@ BOOST_AUTO_TEST_CASE(benchmarks_BVBugSym)
     auto aut = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Symbolic>::ReadAutomaton(folder + "pre.spec");
     auto spec = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Predicate>::ReadAutomaton(folder + "post.spec");
     aut.execute(folder + "circuit.qasm");
-    BOOST_REQUIRE_MESSAGE(!AUTOQ::check_inclusion(AUTOQ::Constraint(aut.constraints.c_str()), aut, spec), folder + " failed!");
+    BOOST_REQUIRE_MESSAGE(!(aut<=spec), folder + " failed!");
     aut = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Symbolic>::ReadAutomaton(folder + "pre.hsl");
     spec = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Predicate>::ReadAutomaton(folder + "post.hsl");
     aut.execute(folder + "circuit.qasm");
-    BOOST_REQUIRE_MESSAGE(!AUTOQ::check_inclusion(AUTOQ::Constraint(aut.constraints.c_str()), aut, spec), folder + " failed!");
+    BOOST_REQUIRE_MESSAGE(!(aut<=spec), folder + " failed!");
 }
 
 // BOOST_AUTO_TEST_SUITE_END()

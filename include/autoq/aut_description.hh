@@ -286,4 +286,6 @@ namespace std {
     };
 }
 
+bool operator<=(const AUTOQ::SymbolicAutomata &autA, const AUTOQ::PredicateAutomata &autB);
+
 #endif
