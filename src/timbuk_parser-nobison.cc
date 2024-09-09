@@ -30,7 +30,7 @@
 #include "autoq/parsing/constraint_parser.hh"
 
 template <typename Symbol>
-AUTOQ::Automata<Symbol> from_tree_to_automaton(std::string tree, const std::map<std::string, AUTOQ::Complex::Complex> &constants, const std::map<std::string, std::string> &predicates) {
+AUTOQ::Automata<Symbol> from_tree_to_automaton(std::string tree, const std::map<std::string, AUTOQ::Complex::Complex> &constants, const std::map<std::string, std::string> &predicates, bool &do_not_throw_term_undefined_error) {
     /************************** TreeAutomata **************************/
     if constexpr(std::is_same_v<Symbol, AUTOQ::TreeAutomata::Symbol>) {
         AUTOQ::Automata<AUTOQ::Symbol::Concrete> aut;
@@ -55,17 +55,33 @@ AUTOQ::Automata<Symbol> from_tree_to_automaton(std::string tree, const std::map<
             }
             if (state == "*") {
                 auto cp = ComplexParser(t, constants);
-                if (!cp.getConstName().empty()) // is symbol
-                    default_prob += constants.at(t);
-                else
+                if (!cp.getConstName().empty()) { // is symbol
+                    auto it = constants.find(t);
+                    if (it == constants.end()) {
+                        if (do_not_throw_term_undefined_error) {
+                            do_not_throw_term_undefined_error = false;
+                            return {};
+                        }
+                        THROW_AUTOQ_ERROR("The constant \"" + t + "\" is not defined yet!");
+                    }
+                    default_prob += it->second;
+                } else
                     default_prob += cp.getComplex();
 
             } else {
                 AUTOQ::TreeAutomata::State s = std::stoll(state, nullptr, 2);
                 auto cp = ComplexParser(t, constants);
-                if (!cp.getConstName().empty())  // is symbol
-                    states_probs[s].complex += constants.at(t);
-                else
+                if (!cp.getConstName().empty()) { // is symbol
+                    auto it = constants.find(t);
+                    if (it == constants.end()) {
+                        if (do_not_throw_term_undefined_error) {
+                            do_not_throw_term_undefined_error = false;
+                            return {};
+                        }
+                        THROW_AUTOQ_ERROR("The constant \"" + t + "\" is not defined yet!");
+                    }
+                    states_probs[s].complex += it->second;
+                } else
                     states_probs[s].complex += cp.getComplex();
             }
             ++it2;
@@ -202,7 +218,15 @@ AUTOQ::Automata<Symbol> from_tree_to_automaton(std::string tree, const std::map<
             if (!predicate.empty()) {
                 THROW_AUTOQ_ERROR("The predicate of this state has already been specified!");
             }
-            predicate = predicates.at(t);
+            auto it = predicates.find(t);
+            if (it == predicates.end()) {
+                if (do_not_throw_term_undefined_error) {
+                    do_not_throw_term_undefined_error = false;
+                    return {};
+                }
+                THROW_AUTOQ_ERROR("The predicate \"" + t + "\" is not defined yet!");
+            }
+            predicate = it->second;
             ++it2;
         }
         if (default_prob.empty())
@@ -243,7 +267,7 @@ void replaceSubstringWithChar(std::string &str, const std::string &substr, char 
     }
 }
 template <typename Symbol>
-AUTOQ::Automata<Symbol> from_trees_to_automaton(std::string trees, const std::map<std::string, AUTOQ::Complex::Complex> &constants, const std::map<std::string, std::string> &predicates) {
+AUTOQ::Automata<Symbol> from_trees_to_automaton(std::string trees, const std::map<std::string, AUTOQ::Complex::Complex> &constants, const std::map<std::string, std::string> &predicates, bool &do_not_throw_term_undefined_error) {
     AUTOQ::Automata<Symbol> aut_final;
     replaceSubstringWithChar(trees, "\\/", 'V');
     if (std::regex_search(trees, std::regex("(\\\\/|V) *\\|i\\|="))) { // if startswith "\/ |i|="
@@ -272,7 +296,11 @@ AUTOQ::Automata<Symbol> from_trees_to_automaton(std::string trees, const std::ma
                 return std::regex_replace(modified_str, std::regex("i"), i);
             };
             std::string line3 = boost::regex_replace(line2, pattern, replace_i_with_i, boost::match_default | boost::format_all);
-            auto aut = from_tree_to_automaton<Symbol>(line3, constants, predicates);
+            auto a = do_not_throw_term_undefined_error;
+            auto aut = from_tree_to_automaton<Symbol>(line3, constants, predicates, do_not_throw_term_undefined_error);
+            if (a && !do_not_throw_term_undefined_error) {
+                return {};
+            }
             aut_final = aut_final.operator||(aut);
             aut_final.reduce();
 
@@ -296,11 +324,19 @@ AUTOQ::Automata<Symbol> from_trees_to_automaton(std::string trees, const std::ma
         std::string tree;
         std::getline(iss_or, tree, 'V');
 
-        aut_final = from_tree_to_automaton<Symbol>(tree, constants, predicates); // the first automata to be tensor producted
+        auto a = do_not_throw_term_undefined_error;
+        aut_final = from_tree_to_automaton<Symbol>(tree, constants, predicates, do_not_throw_term_undefined_error); // the first automata to be tensor producted
+        if (a && !do_not_throw_term_undefined_error) {
+            return {};
+        }
 
         // to union the rest of the automata
         while (std::getline(iss_or, tree, 'V')) {
-            auto aut2 = from_tree_to_automaton<Symbol>(tree, constants, predicates);
+            auto a = do_not_throw_term_undefined_error;
+            auto aut2 = from_tree_to_automaton<Symbol>(tree, constants, predicates, do_not_throw_term_undefined_error);
+            if (a && !do_not_throw_term_undefined_error) {
+                return {};
+            }
             aut_final = aut_final || aut2;
         }
     }
@@ -308,16 +344,24 @@ AUTOQ::Automata<Symbol> from_trees_to_automaton(std::string trees, const std::ma
 }
 
 template <typename Symbol>
-AUTOQ::Automata<Symbol> from_line_to_automaton(std::string line, const std::map<std::string, AUTOQ::Complex::Complex> &constants, const std::map<std::string, std::string> &predicates) {
+AUTOQ::Automata<Symbol> from_line_to_automaton(std::string line, const std::map<std::string, AUTOQ::Complex::Complex> &constants, const std::map<std::string, std::string> &predicates, bool &do_not_throw_term_undefined_error) {
     std::istringstream iss_tensor(line);
     std::string trees;
     std::getline(iss_tensor, trees, '#');
 
-    auto aut = from_trees_to_automaton<Symbol>(trees, constants, predicates); // the first automata to be tensor producted
+    auto a = do_not_throw_term_undefined_error;
+    auto aut = from_trees_to_automaton<Symbol>(trees, constants, predicates, do_not_throw_term_undefined_error); // the first automata to be tensor producted
+    if (a && !do_not_throw_term_undefined_error) {
+        return {};
+    }
 
     // to tensor product with the rest of the automata
     while (std::getline(iss_tensor, trees, '#')) {
-        auto aut2 = from_trees_to_automaton<Symbol>(trees, constants, predicates);
+        auto a = do_not_throw_term_undefined_error;
+        auto aut2 = from_trees_to_automaton<Symbol>(trees, constants, predicates, do_not_throw_term_undefined_error);
+        if (a && !do_not_throw_term_undefined_error) {
+            return {};
+        }
         aut = aut * aut2;
     }
     return aut;
@@ -628,8 +672,7 @@ AUTOQ::Automata<Symbol> parse_timbuk(const std::string& str) {
 }
 
 template <typename Symbol>
-AUTOQ::Automata<Symbol> parse_automaton(const std::string& str, const std::map<std::string, Complex> &constants, const std::map<std::string, std::string> &predicates) {
-try {
+AUTOQ::Automata<Symbol> parse_automaton(const std::string& str, const std::map<std::string, Complex> &constants, const std::map<std::string, std::string> &predicates, bool &do_not_throw_term_undefined_error) {
     bool colored = false;
     bool start_transitions = false;
     bool already_root_states = false;
@@ -724,12 +767,28 @@ try {
                             std::istringstream ss(lhs); // Create a stringstream from the input string
                             std::string token; // Tokenize the input string using a comma delimiter
                             std::getline(ss, token, ',');
-                            auto sym = Symbol(constants.at(token));
+                            auto it = constants.find(token);
+                            if (it == constants.end()) {
+                                if (do_not_throw_term_undefined_error) {
+                                    do_not_throw_term_undefined_error = false;
+                                    return {};
+                                }
+                                THROW_AUTOQ_ERROR("The constant \"" + token + "\" is not defined yet!");
+                            }
+                            auto sym = Symbol(it->second);
                             std::getline(ss, token, ',');
                             auto color = boost::lexical_cast<AUTOQ::TreeAutomata::Tag>(token);
                             result.transitions[AUTOQ::TreeAutomata::SymbolTag(sym, AUTOQ::TreeAutomata::Tag(color))][t].insert(std::vector<AUTOQ::TreeAutomata::State>());
                         } else {
-                            result.transitions[AUTOQ::TreeAutomata::SymbolTag(Symbol(constants.at(lhs)), AUTOQ::TreeAutomata::Tag(1))][t].insert(std::vector<AUTOQ::TreeAutomata::State>());
+                            auto it = constants.find(lhs);
+                            if (it == constants.end()) {
+                                if (do_not_throw_term_undefined_error) {
+                                    do_not_throw_term_undefined_error = false;
+                                    return {};
+                                }
+                                THROW_AUTOQ_ERROR("The constant \"" + lhs + "\" is not defined yet!");
+                            }
+                            result.transitions[AUTOQ::TreeAutomata::SymbolTag(Symbol(it->second), AUTOQ::TreeAutomata::Tag(1))][t].insert(std::vector<AUTOQ::TreeAutomata::State>());
                         }
                     }
                 } else if constexpr(std::is_same_v<Symbol, AUTOQ::PredicateAutomata::Symbol>) {
@@ -750,12 +809,28 @@ try {
                             std::istringstream ss(lhs); // Create a stringstream from the input string
                             std::string token; // Tokenize the input string using a comma delimiter
                             std::getline(ss, token, ',');
-                            auto sym = Symbol(predicates.at(token).c_str());
+                            auto it = predicates.find(token);
+                            if (it == predicates.end()) {
+                                if (do_not_throw_term_undefined_error) {
+                                    do_not_throw_term_undefined_error = false;
+                                    return {};
+                                }
+                                THROW_AUTOQ_ERROR("The constant \"" + token + "\" is not defined yet!");
+                            }
+                            auto sym = Symbol(it->second.c_str());
                             std::getline(ss, token, ',');
                             auto color = boost::lexical_cast<AUTOQ::PredicateAutomata::Tag>(token);
                             result.transitions[AUTOQ::PredicateAutomata::SymbolTag(sym, AUTOQ::PredicateAutomata::Tag(color))][t].insert(std::vector<AUTOQ::PredicateAutomata::State>());
                         } else {
-                            result.transitions[AUTOQ::PredicateAutomata::SymbolTag(Symbol(predicates.at(lhs).c_str()), AUTOQ::PredicateAutomata::Tag(1))][t].insert(std::vector<AUTOQ::TreeAutomata::State>());
+                            auto it = predicates.find(lhs);
+                            if (it == predicates.end()) {
+                                if (do_not_throw_term_undefined_error) {
+                                    do_not_throw_term_undefined_error = false;
+                                    return {};
+                                }
+                                THROW_AUTOQ_ERROR("The predicate \"" + lhs + "\" is not defined yet!");
+                            }
+                            result.transitions[AUTOQ::PredicateAutomata::SymbolTag(Symbol(it->second.c_str()), AUTOQ::PredicateAutomata::Tag(1))][t].insert(std::vector<AUTOQ::TreeAutomata::State>());
                         }
                     }
                 } else { // if constexpr(std::is_same_v<Symbol, AUTOQ::SymbolicAutomata::Symbol>) {
@@ -897,14 +972,10 @@ try {
     }
     result.stateNum++; // because the state number starts from 0
 	return result;
-} catch (std::exception& ex) {
-    THROW_AUTOQ_ERROR("\'" + std::string(ex.what()) +
-        "\'\nwhile parsing the following automaton.\n\n>>>>>>>>>>>>>>>>>>>>\n" + str + "\n<<<<<<<<<<<<<<<<<<<<");
-}
 }
 
 template <typename Symbol>
-AUTOQ::Automata<Symbol> AUTOQ::Parsing::TimbukParser<Symbol>::parse_hsl_from_istream(std::istream *is, const std::map<std::string, AUTOQ::Complex::Complex> &constants, const std::map<std::string, std::string> &predicates) {
+AUTOQ::Automata<Symbol> AUTOQ::Parsing::TimbukParser<Symbol>::parse_hsl_from_istream(std::istream *is, bool &do_not_throw_term_undefined_error, const std::map<std::string, AUTOQ::Complex::Complex> &constants, const std::map<std::string, std::string> &predicates) {
     bool start_transitions = false;
     AUTOQ::Automata<Symbol> aut_final;
     std::string line;
@@ -918,7 +989,11 @@ AUTOQ::Automata<Symbol> AUTOQ::Parsing::TimbukParser<Symbol>::parse_hsl_from_ist
             }
         }   // processing states
         else {
-            auto aut = from_line_to_automaton<Symbol>(line, constants, predicates);
+            auto a = do_not_throw_term_undefined_error;
+            auto aut = from_line_to_automaton<Symbol>(line, constants, predicates, do_not_throw_term_undefined_error);
+            if (a && !do_not_throw_term_undefined_error) {
+                return {};
+            }
             aut_final = aut_final.operator||(aut);
             aut_final.reduce();
         }
@@ -929,9 +1004,9 @@ AUTOQ::Automata<Symbol> AUTOQ::Parsing::TimbukParser<Symbol>::parse_hsl_from_ist
 }
 
 template <typename Symbol>
-AUTOQ::Automata<Symbol> parse_hsl(const std::string& str, const std::map<std::string, Complex> &constants, const std::map<std::string, std::string> &predicates) {
+AUTOQ::Automata<Symbol> parse_hsl(const std::string& str, const std::map<std::string, Complex> &constants, const std::map<std::string, std::string> &predicates, bool &do_not_throw_term_undefined_error) {
     std::istringstream inputStream(str); // delimited by '\n'
-    auto aut = AUTOQ::Parsing::TimbukParser<Symbol>::parse_hsl_from_istream(&inputStream, constants, predicates);
+    auto aut = AUTOQ::Parsing::TimbukParser<Symbol>::parse_hsl_from_istream(&inputStream, do_not_throw_term_undefined_error, constants, predicates);
     // aut.print(str);
     return aut;
 }
@@ -942,6 +1017,12 @@ AUTOQ::Automata<Symbol> parse_hsl(const std::string& str, const std::map<std::st
 // }
 template <typename Symbol>
 AUTOQ::Automata<Symbol> AUTOQ::Parsing::TimbukParser<Symbol>::ReadAutomaton(const std::string& filepath) {
+    bool do_not_throw_term_undefined_error = false;
+    return AUTOQ::Parsing::TimbukParser<Symbol>::ReadAutomaton(filepath, do_not_throw_term_undefined_error);
+}
+template <typename Symbol>
+AUTOQ::Automata<Symbol> AUTOQ::Parsing::TimbukParser<Symbol>::ReadAutomaton(const std::string& filepath, bool &do_not_throw_term_undefined_error) {
+try {
     AUTOQ::Automata<Symbol> result;
     std::string automaton, constraints;
     std::string fileContents = AUTOQ::Util::ReadFile(filepath);
@@ -1061,11 +1142,11 @@ AUTOQ::Automata<Symbol> AUTOQ::Parsing::TimbukParser<Symbol>::ReadAutomaton(cons
         constraints = "";
     }
     if (boost::algorithm::ends_with(filepath, ".spec")) {
-        result = parse_automaton<Symbol>(automaton, constants, predicates);
+        result = parse_automaton<Symbol>(automaton, constants, predicates, do_not_throw_term_undefined_error);
     } else if (boost::algorithm::ends_with(filepath, ".aut")) {
         result = parse_timbuk<Symbol>(automaton);
     } else if (boost::algorithm::ends_with(filepath, ".hsl")) {
-        result = parse_hsl<Symbol>(automaton, constants, predicates);
+        result = parse_hsl<Symbol>(automaton, constants, predicates, do_not_throw_term_undefined_error);
     } else {
         THROW_AUTOQ_ERROR("The filename extension is not supported.");
     }
@@ -1081,6 +1162,24 @@ AUTOQ::Automata<Symbol> AUTOQ::Parsing::TimbukParser<Symbol>::ReadAutomaton(cons
         result.constraints = "(declare-const " + var + " Real)" + result.constraints;
     }
     return result;
+} catch (AutoQError &e) {
+    std::cout << e.what() << std::endl;
+    THROW_AUTOQ_ERROR("(while parsing the automaton: " + filepath + ")");
+}
+}
+
+std::variant<AUTOQ::Automata<AUTOQ::Symbol::Concrete>, AUTOQ::Automata<AUTOQ::Symbol::Symbolic>, AUTOQ::Automata<AUTOQ::Symbol::Predicate>> ReadAutomaton(const std::string& filepath) {
+    std::string fileContents = AUTOQ::Util::ReadFile(filepath);
+    if (fileContents.find("Predicates") != std::string::npos) {
+        return AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Predicate>::ReadAutomaton(filepath);
+    } else {
+        bool do_not_throw_term_undefined_error = true;
+        auto aut = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Concrete>::ReadAutomaton(filepath, do_not_throw_term_undefined_error);
+        if (do_not_throw_term_undefined_error)
+            return aut;
+        else
+            return AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Symbolic>::ReadAutomaton(filepath);
+    }
 }
 
 // https://bytefreaks.net/programming-2/c/c-undefined-reference-to-templated-class-function

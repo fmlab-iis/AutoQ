@@ -153,36 +153,20 @@ try {
     CLI::App app{"AutoQ: An automata-based C++ tool for quantum program verification."};
     std::string pre, circuit, post, circuit1, circuit2;
 
-    CLI::App* executionC = app.add_subcommand("exC", "Concrete Execution");
-    executionC->add_option("pre.{hsl|spec}", pre, "the precondition file")->required()->type_name("");
-    executionC->add_option("circuit.qasm", circuit, "the OpenQASM 3.0 circuit file")->required()->type_name("");
-    executionC->callback([&]() {
+    CLI::App* execution = app.add_subcommand("ex", "Execution");
+    execution->add_option("pre.{hsl|spec}", pre, "the precondition file")->required()->type_name("");
+    execution->add_option("circuit.qasm", circuit, "the OpenQASM 2.0 circuit file")->required()->type_name("");
+    execution->callback([&]() {
         adjust_N_in_nTuple(circuit);
     });
 
     bool latex = false;
-    CLI::App* verificationC = app.add_subcommand("verC", "Concrete Verification");
-    verificationC->add_option("pre.{hsl|spec}", pre, "the precondition file")->required()->type_name("");
-    verificationC->add_option("circuit.qasm", circuit, "the OpenQASM 3.0 circuit file")->required()->type_name("");
-    verificationC->add_option("post.{hsl|spec}", post, "the postcondition file")->required()->type_name("");
-    verificationC->add_flag("-l,--latex", latex, "Print the statistics for tables in LaTeX");
-    verificationC->callback([&]() {
-        adjust_N_in_nTuple(circuit);
-    });
-
-    CLI::App* executionS = app.add_subcommand("exS", "Symbolic Execution");
-    executionS->add_option("pre.{hsl|spec}", pre, "the precondition file")->required()->type_name("");
-    executionS->add_option("circuit.qasm", circuit, "the OpenQASM 3.0 circuit file")->required()->type_name("");
-    executionS->callback([&]() {
-        adjust_N_in_nTuple(circuit);
-    });
-
-    CLI::App* verificationS = app.add_subcommand("verS", "Symbolic Verification");
-    verificationS->add_option("pre.{hsl|spec}", pre, "the precondition file")->required()->type_name("");
-    verificationS->add_option("circuit.qasm", circuit, "the OpenQASM 3.0 circuit file")->required()->type_name("");
-    verificationS->add_option("post.{hsl|spec}", post, "the postcondition file")->required()->type_name("");
-    verificationS->add_flag("-l,--latex", latex, "Print the statistics for tables in LaTeX");
-    verificationS->callback([&]() {
+    CLI::App* verification = app.add_subcommand("ver", "Verification");
+    verification->add_option("pre.{hsl|spec}", pre, "the precondition file")->required()->type_name("");
+    verification->add_option("circuit.qasm", circuit, "the OpenQASM 2.0 circuit file")->required()->type_name("");
+    verification->add_option("post.{hsl|spec}", post, "the postcondition file")->required()->type_name("");
+    verification->add_flag("-l,--latex", latex, "Print the statistics for tables in LaTeX");
+    verification->callback([&]() {
         adjust_N_in_nTuple(circuit);
     });
 
@@ -209,41 +193,49 @@ try {
 
     auto start = chrono::steady_clock::now();
     // bool runConcrete; // or runSymbolic
-    if (executionC->parsed()) {
+    if (execution->parsed()) {
         // runConcrete = true;
-        AUTOQ::TreeAutomata aut = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Concrete>::ReadAutomaton(pre);
-        aut.execute(circuit);
-        aut.print_aut();
-    } else if (verificationC->parsed()) {
-        // runConcrete = true;
-        auto aut = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Concrete>::ReadAutomaton(pre);
-        auto aut2 = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Concrete>::ReadAutomaton(post);
-        aut.execute(circuit);
-        bool verify = aut <= aut2;
-        if (latex) {
-            aut.print_stats();
-        } else {
-            std::cout << "The quantum program has [" << aut.qubitNum << "] qubits and [" << AUTOQ::TreeAutomata::gateCount << "] gates.\nThe verification process [" << (verify ? "passed" : "failed") << "] in [" << AUTOQ::Util::Convert::toString(chrono::steady_clock::now() - start) << "] with [" << AUTOQ::Util::getPeakRSS() / 1024 / 1024 << "MB] memory usage.\n";
+        auto aut1 = ReadAutomaton(pre);
+        try {
+            auto &aut = std::get<AUTOQ::TreeAutomata>(aut1);
+            aut.execute(circuit);
+            aut.print_aut();
+        } catch (const std::bad_variant_access&) {
+            auto &aut = std::get<AUTOQ::SymbolicAutomata>(aut1);
+            aut.execute(circuit);
+            aut.print_aut();
         }
-    } else if (executionS->parsed()) {
+    } else if (verification->parsed()) {
         // runConcrete = false;
-        AUTOQ::SymbolicAutomata aut = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Symbolic>::ReadAutomaton(pre);
-        aut.execute(circuit);
-        aut.print_aut();
-    } else if (verificationS->parsed()) {
-        // runConcrete = false;
-        AUTOQ::SymbolicAutomata aut = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Symbolic>::ReadAutomaton(pre);
-        AUTOQ::PredicateAutomata spec = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Predicate>::ReadAutomaton(post);
-        aut.execute(circuit);
-        // std::cout << "OUTPUT AUTOMATON:\n";
-        // std::cout << "=================\n";
-        // aut.print_aut();
-        // std::cout << "=================\n";
-        bool verify = aut <= spec;
-        if (latex) {
-            aut.print_stats();
-        } else {
-            std::cout << "The quantum program has [" << aut.qubitNum << "] qubits and [" << AUTOQ::SymbolicAutomata::gateCount << "] gates.\nThe verification process [" << (verify ? "passed" : "failed") << "] in [" << AUTOQ::Util::Convert::toString(chrono::steady_clock::now() - start) << "] with [" << AUTOQ::Util::getPeakRSS() / 1024 / 1024 << "MB] memory usage.\n";
+        auto spec1 = ReadAutomaton(post);
+        try {
+            auto &spec = std::get<AUTOQ::PredicateAutomata>(spec1);
+            auto aut = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Symbolic>::ReadAutomaton(pre);
+            aut.execute(circuit);
+            // std::cout << "OUTPUT AUTOMATON:\n";
+            // std::cout << "=================\n";
+            // aut.print_aut();
+            // std::cout << "=================\n";
+            bool verify = aut <= spec;
+            if (latex) {
+                aut.print_stats();
+            } else {
+                std::cout << "The quantum program has [" << aut.qubitNum << "] qubits and [" << AUTOQ::SymbolicAutomata::gateCount << "] gates.\nThe verification process [" << (verify ? "passed" : "failed") << "] in [" << AUTOQ::Util::Convert::toString(chrono::steady_clock::now() - start) << "] with [" << AUTOQ::Util::getPeakRSS() / 1024 / 1024 << "MB] memory usage.\n";
+            }
+        } catch (const std::bad_variant_access&) {
+            auto &spec = std::get<AUTOQ::TreeAutomata>(spec1);
+            auto aut = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Concrete>::ReadAutomaton(pre);
+            aut.execute(circuit);
+            // std::cout << "OUTPUT AUTOMATON:\n";
+            // std::cout << "=================\n";
+            // aut.print_aut();
+            // std::cout << "=================\n";
+            bool verify = aut <= spec;
+            if (latex) {
+                aut.print_stats();
+            } else {
+                std::cout << "The quantum program has [" << aut.qubitNum << "] qubits and [" << AUTOQ::TreeAutomata::gateCount << "] gates.\nThe verification process [" << (verify ? "passed" : "failed") << "] in [" << AUTOQ::Util::Convert::toString(chrono::steady_clock::now() - start) << "] with [" << AUTOQ::Util::getPeakRSS() / 1024 / 1024 << "MB] memory usage.\n";
+            }
         }
     } else if (equivalence_checking->parsed()) {
         // runConcrete = true;

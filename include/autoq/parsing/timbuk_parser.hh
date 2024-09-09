@@ -14,6 +14,7 @@
 // AUTOQ headers
 #include "autoq/aut_description.hh"
 #include "autoq/complex/complex.hh"
+#include <variant>
 
 namespace AUTOQ
 {
@@ -35,7 +36,10 @@ struct AUTOQ::Parsing::TimbukParser
 {
     // static AUTOQ::Automata<Symbol> ParseString(std::string fileContents);
     static AUTOQ::Automata<Symbol> ReadAutomaton(const std::string& filepath);
-    static AUTOQ::Automata<Symbol> parse_hsl_from_istream(std::istream *is, const std::map<std::string, AUTOQ::Complex::Complex> &constants = {}, const std::map<std::string, std::string> &predicates = {});
+    static AUTOQ::Automata<Symbol> ReadAutomaton(const std::string& filepath, bool &do_not_throw_term_undefined_error);
+    static AUTOQ::Automata<Symbol> parse_hsl_from_istream(std::istream *is, bool &do_not_throw_term_undefined_error, const std::map<std::string, AUTOQ::Complex::Complex> &constants = {}, const std::map<std::string, std::string> &predicates = {});
 };
+
+std::variant<AUTOQ::Automata<AUTOQ::Symbol::Concrete>, AUTOQ::Automata<AUTOQ::Symbol::Symbolic>, AUTOQ::Automata<AUTOQ::Symbol::Predicate>> ReadAutomaton(const std::string& filepath);
 
 #endif
