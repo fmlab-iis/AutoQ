@@ -179,12 +179,8 @@ try {
         adjust_N_in_nTuple(circuit2);
     });
 
-    CLI::App* printC = app.add_subcommand("printC", "Print the Concrete Language");
-    printC->add_option("states.{hsl|spec}", pre, "the automaton file")->required()->type_name("");
-    CLI::App* printS = app.add_subcommand("printS", "Print the Symbolic Language");
-    printS->add_option("states.{hsl|spec}", pre, "the automaton file")->required()->type_name("");
-    CLI::App* printP = app.add_subcommand("printP", "Print the Predicate Language");
-    printP->add_option("states.{hsl|spec}", pre, "the automaton file")->required()->type_name("");
+    CLI::App* print = app.add_subcommand("print", "Print the set of quantum states.");
+    print->add_option("states.{hsl|spec}", pre, "the automaton file")->required()->type_name("");
 
     // bool short_time = false, long_time = false;
     // app.add_flag("-t", short_time, "print times");
@@ -195,21 +191,29 @@ try {
     // bool runConcrete; // or runSymbolic
     if (execution->parsed()) {
         // runConcrete = true;
-        auto aut1 = ReadAutomaton(pre);
-        try {
-            auto &aut = std::get<AUTOQ::TreeAutomata>(aut1);
+        auto aut2 = ReadAutomaton(pre);
+        auto aut = std::visit([](auto&& arg) -> std::variant<AUTOQ::TreeAutomata, AUTOQ::SymbolicAutomata> {
+            if constexpr (std::is_same_v<std::decay_t<decltype(arg)>, AUTOQ::PredicateAutomata>) {
+                THROW_AUTOQ_ERROR("A predicate automaton cannot be executed."); // Handle other types, e.g., fallback to a default value or throw an exception
+            } else {
+                return arg; // Directly return the value if it's one of the allowed types
+            }
+        }, aut2);
+        std::visit([&circuit](auto& aut){
             aut.execute(circuit);
             aut.print_aut();
-        } catch (const std::bad_variant_access&) {
-            auto &aut = std::get<AUTOQ::SymbolicAutomata>(aut1);
-            aut.execute(circuit);
-            aut.print_aut();
-        }
+        }, aut);
     } else if (verification->parsed()) {
         // runConcrete = false;
         auto spec1 = ReadAutomaton(post);
-        try {
+        if (std::holds_alternative<AUTOQ::SymbolicAutomata>(spec1)) {
+            THROW_AUTOQ_ERROR("The postcondition must have concrete or predicate amplitudes.");
+        } else if (std::holds_alternative<AUTOQ::PredicateAutomata>(spec1)) {
             auto &spec = std::get<AUTOQ::PredicateAutomata>(spec1);
+            auto aut1 = ReadAutomaton(pre);
+            if (std::holds_alternative<AUTOQ::PredicateAutomata>(aut1)) {
+                THROW_AUTOQ_ERROR("A predicate automaton cannot be executed.");
+            }
             auto aut = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Symbolic>::ReadAutomaton(pre);
             aut.execute(circuit);
             // std::cout << "OUTPUT AUTOMATON:\n";
@@ -222,9 +226,16 @@ try {
             } else {
                 std::cout << "The quantum program has [" << aut.qubitNum << "] qubits and [" << AUTOQ::SymbolicAutomata::gateCount << "] gates.\nThe verification process [" << (verify ? "passed" : "failed") << "] in [" << AUTOQ::Util::Convert::toString(chrono::steady_clock::now() - start) << "] with [" << AUTOQ::Util::getPeakRSS() / 1024 / 1024 << "MB] memory usage.\n";
             }
-        } catch (const std::bad_variant_access&) {
+        } else if (std::holds_alternative<AUTOQ::TreeAutomata>(spec1)) {
             auto &spec = std::get<AUTOQ::TreeAutomata>(spec1);
-            auto aut = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Concrete>::ReadAutomaton(pre);
+            auto aut1 = ReadAutomaton(pre);
+            auto aut = std::visit([](auto&& arg) -> AUTOQ::TreeAutomata {
+                if constexpr (!std::is_same_v<std::decay_t<decltype(arg)>, AUTOQ::TreeAutomata>) {
+                    THROW_AUTOQ_ERROR("When the postcondition has only concrete amplitudes, the precondition must also do so.");
+                } else {
+                    return arg; // Directly return the value if it's one of the allowed types
+                }
+            }, aut1);
             aut.execute(circuit);
             // std::cout << "OUTPUT AUTOMATON:\n";
             // std::cout << "=================\n";
@@ -236,6 +247,8 @@ try {
             } else {
                 std::cout << "The quantum program has [" << aut.qubitNum << "] qubits and [" << AUTOQ::TreeAutomata::gateCount << "] gates.\nThe verification process [" << (verify ? "passed" : "failed") << "] in [" << AUTOQ::Util::Convert::toString(chrono::steady_clock::now() - start) << "] with [" << AUTOQ::Util::getPeakRSS() / 1024 / 1024 << "MB] memory usage.\n";
             }
+        } else {
+            THROW_AUTOQ_ERROR("Unsupported type of the postcondition.");
         }
     } else if (equivalence_checking->parsed()) {
         // runConcrete = true;
@@ -264,15 +277,11 @@ try {
         } else {
             std::cout << "The two quantum programs are verified to be [" << (result ? "equal" : "unequal") << "] in [" << AUTOQ::Util::Convert::toString(chrono::steady_clock::now() - start) << "] with [" << AUTOQ::Util::getPeakRSS() / 1024 / 1024 << "MB] memory usage.\n";
         }
-    } else if (printC->parsed()) {
-        AUTOQ::TreeAutomata aut = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Concrete>::ReadAutomaton(pre);
-        aut.print_language();
-    } else if (printS->parsed()) {
-        AUTOQ::SymbolicAutomata aut = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Symbolic>::ReadAutomaton(pre);
-        aut.print_language();
-    } else if (printP->parsed()) {
-        AUTOQ::PredicateAutomata aut = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Predicate>::ReadAutomaton(pre);
-        aut.print_language();
+    } else if (print->parsed()) {
+        auto aut = ReadAutomaton(pre);
+        std::visit([](auto& aut){
+            aut.print_language();
+        }, aut);
     }
     /**************/
     // if (long_time) {

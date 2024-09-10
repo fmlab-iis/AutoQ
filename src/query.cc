@@ -5,6 +5,7 @@
 #include "autoq/symbol/index.hh"
 #include "autoq/serialization/timbuk_serializer.hh"
 #include <boost/dynamic_bitset.hpp> // used in print_language
+#include <regex>
 
 template <typename Symbol>
 void AUTOQ::Automata<Symbol>::initialize_stats() {
@@ -160,11 +161,20 @@ void AUTOQ::Automata<Symbol>::print_language(const std::string &str) const {
         auto ptr = std::max_element(count.begin(), count.end(), [](const auto &x, const auto &y) {
             return x.second < y.second;
         });
+        bool isFirst = true;
         for (unsigned i=0; i<tree.size(); i++) {
-            if (tree[i] != (ptr->first))
-                std::cout << boost::dynamic_bitset(qubitNum, i) << ":" << tree[i] << " ";
+            if (tree[i] != (ptr->first)) {
+                if (!isFirst) std::cout << " + ";
+                std::string str = std::regex_replace(tree[i], std::regex(R"(([^ ]+)R)"), "real($1)");
+                str = std::regex_replace(str, std::regex(R"(([^ ]+)I)"), "imag($1)");
+                std::cout << "(" << str << ")|" << boost::dynamic_bitset(qubitNum, i) << ">";
+                isFirst = false;
+            }
         }
-        std::cout << "*:" << (ptr->first) << std::endl;
+        if (!isFirst) std::cout << " + ";
+        std::string str = std::regex_replace(ptr->first, std::regex(R"(([^ ]+)R)"), "real($1)");
+        str = std::regex_replace(str, std::regex(R"(([^ ]+)I)"), "imag($1)");
+        std::cout << "(" << str << ")|*>" << std::endl;
     }
 }
 
