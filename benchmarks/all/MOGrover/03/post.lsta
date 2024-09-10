@@ -3,7 +3,7 @@ c0 := (-1) / (sqrt2 ^ 7)
 c1 := (0) / (sqrt2 ^ 0)
 c2 := (11) / (sqrt2 ^ 7)
 Root States 0 51 52 53 54 55 56 57
-Colored Transitions
+Transitions
 [1,1](1, 2) -> 0
 [1,1](2, 3) -> 51
 [1,1](2, 4) -> 52

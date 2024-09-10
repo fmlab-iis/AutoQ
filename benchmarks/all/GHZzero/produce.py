@@ -32,7 +32,7 @@ for n in sizes:
         file.write('c0 := 0\n')
         file.write('c1 := 1\n')
         file.write('Root States 0\n')
-        file.write('Colored Transitions\n')
+        file.write('Transitions\n')
         file.write(f"[{1},1]({2}, {1}) -> {0}\n")
         for level in range(2, n+1):
             file.write(f"[{level},1]({2*level - 1}, {2*level - 1}) -> {2*level - 3}\n")
@@ -49,7 +49,7 @@ for n in sizes:
         file.write('c0 := 0\n')
         file.write('c1 := 1/sqrt2\n')
         file.write('Root States 0\n')
-        file.write('Colored Transitions\n')
+        file.write('Transitions\n')
         file.write("[1,1](1, 2) -> 0\n")
         file.write("[2,1](4, 3) -> 1\n")
         file.write("[2,1](3, 5) -> 2\n")

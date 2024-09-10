@@ -44,7 +44,7 @@ for n in sizes:
         file.write("c0 := 0\n")
         file.write("c1 := 1\n")
         file.write("Root States 0\n")
-        file.write("Colored Transitions\n")
+        file.write("Transitions\n")
         for i in range(1, n+1):
             if i > 1:
                 file.write(f"[{2*i - 1},3]({4*i - 3}, {4*i - 3}) -> {4*i - 5}\n")
@@ -64,7 +64,7 @@ for n in sizes:
         file.write("c0 := 0\n")
         file.write("c1 := 1\n")
         file.write("Root States 0\n")
-        file.write("Colored Transitions\n")
+        file.write("Transitions\n")
         for i in range(1, n+1):
             if i > 1:
                 file.write(f"[{2*i - 1},3]({5*i - 4}, {5*i - 4}) -> {5*i - 6}\n")

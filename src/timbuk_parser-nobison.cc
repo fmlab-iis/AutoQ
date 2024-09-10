@@ -705,6 +705,10 @@ AUTOQ::Automata<Symbol> parse_automaton(const std::string& str, const std::map<s
                 continue;
             }
             if (str == "Transitions") {
+                /*********************************************************************/
+                /* IMPORTANT: Now we assume all transitions are colored transitions. */
+                colored = true;
+                /*********************************************************************/
                 if (!already_root_states) {
                     THROW_AUTOQ_ERROR("Root states not specified.");
                 }

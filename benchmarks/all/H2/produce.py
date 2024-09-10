@@ -34,7 +34,7 @@ for n in sizes:
         file.write('c0 := 0\n')
         file.write('c1 := 1\n')
         file.write('Root States 0\n')
-        file.write('Colored Transitions\n')
+        file.write('Transitions\n')
         file.write(f"[{1},1](1, 2) -> 0\n")
         file.write(f"[{1},2](2, 1) -> 0\n")
         for level in range(2, n+1):

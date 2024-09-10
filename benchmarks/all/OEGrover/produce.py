@@ -29,7 +29,7 @@ for n in sizes:
         file.write('Constants\n')
         file.write('c0 := 0\n')
         file.write('Root States 0\n')
-        file.write('Colored Transitions\n')
+        file.write('Transitions\n')
         file.write('[1,1](2, 1) -> 0\n')
         for i in range(2, n+1): # 2 <= i <= n
             file.write(f'[{i},1]({2*i-1}, {2*i-1}) -> {2*i-3}\n')
@@ -91,7 +91,7 @@ for n in sizes:
         file.write('p2 := (and (< (* real($) real($)) (* real(a) real(a))) (= imag($) 0))\n')
         file.write('p3 := (and (> (* real($) real($)) (* real(b) real(b))) (= imag($) 0))\n')
         file.write('Root States 0\n')
-        file.write('Colored Transitions\n')
+        file.write('Transitions\n')
         file.write('[1,1](2, 1) -> 0\n')
         for i in range(2, n+1): # 2 <= i <= n
             file.write(f'[{i},1]({2*i-1}, {2*i-1}) -> {2*i-3}\n')

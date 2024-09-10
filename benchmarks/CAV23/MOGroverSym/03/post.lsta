@@ -3,7 +3,7 @@ pL := (and (< (* $R $R) 0.1) (= $I 0))
 p0 := (and (= $R 0) (= $I 0))
 pH := (and (> (* $R $R) 0.9) (= $I 0))
 Root States 0 51 52 53 54 55 56 57
-Colored Transitions
+Transitions
 [1,1](1, 2) -> 0
 [1,1](2, 3) -> 51
 [1,1](2, 4) -> 52

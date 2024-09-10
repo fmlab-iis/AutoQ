@@ -8,7 +8,7 @@ context = """Constants
 c0 := 0
 c1 := 1
 Root States 0
-Colored Transitions
+Transitions
 """
 
 def tr(top: int, bot: list[int], sym: Any, color: set[int]) -> str:
@@ -135,7 +135,7 @@ for n in sizes:
         file.write('c0 := 0\n')
         file.write('c1 := 1\n')
         file.write('Root States 0\n')
-        file.write('Colored Transitions\n')
+        file.write('Transitions\n')
         file.write(f"[1,1](1, 2) -> 0\n")
         file.write(f"[1,2](2, 1) -> 0\n")
         file.write(f"[2,3](3, 3) -> 1\n")
@@ -160,7 +160,7 @@ for n in sizes:
         file.write('c0 := 0\n')
         file.write('c1 := 1\n')
         file.write('Root States 0\n')
-        file.write('Colored Transitions\n')
+        file.write('Transitions\n')
         file.write(f"[1,1](1, 2) -> 0\n")
         file.write(f"[1,2](2, 1) -> 0\n")
         file.write(f"[2,3](3, 3) -> 1\n")
@@ -185,7 +185,7 @@ for n in sizes:
         file.write('c0 := 0\n')
         file.write('c1 := 1\n')
         file.write('Root States 0\n')
-        file.write('Colored Transitions\n')
+        file.write('Transitions\n')
         file.write(f"[1,1](1, 2) -> 0\n")
         file.write(f"[1,2](2, 1) -> 0\n")
         file.write(f"[2,3](3, 3) -> 1\n")
