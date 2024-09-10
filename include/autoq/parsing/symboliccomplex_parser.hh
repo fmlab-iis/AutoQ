@@ -151,17 +151,33 @@ private:
                 if (index_ < input_.length() && input_[index_] == '(') {
                     index_++;
                     if (index_ >= input_.length() || (!std::isdigit(input_[index_]) && input_[index_] != '-')) {
-                        THROW_AUTOQ_ERROR("Invalid argument for A function");
+                        THROW_AUTOQ_ERROR("Invalid argument for ei2pi function");
                     }
                     auto x = parseExpression();
                     if (index_ >= input_.length() || input_[index_] != ')') {
-                        THROW_AUTOQ_ERROR("Missing closing parenthesis for A function");
+                        THROW_AUTOQ_ERROR("Missing closing parenthesis for ei2pi function");
                     }
                     index_++;
                     // assert(x.imag() == 0);
                     return SymbolicComplex::MySymbolicComplexConstructor(Complex::Complex::Angle(x.to_rational()));
                 } else {
-                    THROW_AUTOQ_ERROR("Invalid syntax for A function");
+                    THROW_AUTOQ_ERROR("Invalid syntax for ei2pi function");
+                }
+            } else if (function == "eipi") {
+                if (index_ < input_.length() && input_[index_] == '(') {
+                    index_++;
+                    if (index_ >= input_.length() || (!std::isdigit(input_[index_]) && input_[index_] != '-')) {
+                        THROW_AUTOQ_ERROR("Invalid argument for eipi function");
+                    }
+                    auto x = parseExpression();
+                    if (index_ >= input_.length() || input_[index_] != ')') {
+                        THROW_AUTOQ_ERROR("Missing closing parenthesis for eipi function");
+                    }
+                    index_++;
+                    // assert(x.imag() == 0);
+                    return SymbolicComplex::MySymbolicComplexConstructor(Complex::Complex::Angle(x.to_rational() / 2));
+                } else {
+                    THROW_AUTOQ_ERROR("Invalid syntax for eipi function");
                 }
             } else if (function == "sqrt2") {
                 return SymbolicComplex::MySymbolicComplexConstructor(Complex::Complex::sqrt2());
