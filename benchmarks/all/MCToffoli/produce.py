@@ -20,7 +20,7 @@ def tr(top: int, bot: list[int], sym: Any, color: set[int]) -> str:
     return f"[{sym},{tag}]{bott} -> {top}"
 
 
-def gen_toff_prespec(n: int, last_is_one: bool = True):
+def gen_toff_prelsta(n: int, last_is_one: bool = True):
     def q(lv: int, x: Optional[str] = None) -> int:
         ind = -1
         if x is None:
@@ -59,7 +59,7 @@ def gen_toff_prespec(n: int, last_is_one: bool = True):
     return context + "\n".join(trans)
 
 
-def gen_toff_postspec(n: int, last_is_one: bool) -> str:
+def gen_toff_postlsta(n: int, last_is_one: bool) -> str:
     def q(lv: int, x: Optional[str] = None) -> int:
         if x == "T":  # even or none
             ind = 3*lv
@@ -130,7 +130,7 @@ for n in sizes:
         file.write("\/|i|=2:|i>" + ' # \/|i|=1:|0i>' * (n-1) + '\n')
     shutil.copy(n_str + '/pre.hsl', n_str + '/post.hsl')
     #########################################
-    with open(n_str + "/pre.spec", "w") as file:
+    with open(n_str + "/pre.lsta", "w") as file:
         file.write('Constants\n')
         file.write('c0 := 0\n')
         file.write('c1 := 1\n')
@@ -149,13 +149,13 @@ for n in sizes:
             file.write(f"[{2*i+4},2]({4*i + 8}, {4*i + 7}) -> {4*i + 6}\n")
         file.write(f"[c0,1] -> {4*(n-2) + 7}\n")
         file.write(f"[c1,1] -> {4*(n-2) + 8}\n")
-    shutil.copy(n_str + '/pre.spec', n_str + '/post.spec')
+    shutil.copy(n_str + '/pre.lsta', n_str + '/post.lsta')
     #########################################
     with open(n_str + '/pre0.hsl', 'w') as file:
         file.write('Extended Dirac\n')
         file.write("\/|i|=2:|i>" + ' # \/|i|=1:|0i>' * (n-2) + ' # |00>\n')
     #########################################
-    with open(n_str + "/pre0.spec", "w") as file:
+    with open(n_str + "/pre0.lsta", "w") as file:
         file.write('Constants\n')
         file.write('c0 := 0\n')
         file.write('c1 := 1\n')
@@ -180,7 +180,7 @@ for n in sizes:
         file.write('Extended Dirac\n')
         file.write("\/|i|=2:|i>" + ' # \/|i|=1:|0i>' * (n-2) + ' # |01>\n')
     #########################################
-    with open(n_str + "/pre1.spec", "w") as file:
+    with open(n_str + "/pre1.lsta", "w") as file:
         file.write('Constants\n')
         file.write('c0 := 0\n')
         file.write('c1 := 1\n')
@@ -208,8 +208,8 @@ for n in sizes:
             file.write('|1' + '10'*i + '00>' + ' # \/|i|=1:|i0>' * (n-2-i) + ' # |0>\n')
         file.write('|1' + '10' * (n-1) + '1>\n')
     #########################################
-    with open(n_str + "/post0.spec", "w") as file:
-        print(gen_toff_postspec(n, False), file=file)
+    with open(n_str + "/post0.lsta", "w") as file:
+        print(gen_toff_postlsta(n, False), file=file)
     #########################################
     with open(n_str + '/post1.hsl', 'w') as file:
         file.write('Extended Dirac\n')
@@ -218,6 +218,6 @@ for n in sizes:
             file.write('|1' + '10'*i + '00>' + ' # \/|i|=1:|i0>' * (n-2-i) + ' # |1>\n')
         file.write('|1' + '10' * (n-1) + '0>\n')
     #########################################
-    with open(n_str + "/post1.spec", "w") as file:
-        print(gen_toff_postspec(n, True), file=file)
+    with open(n_str + "/post1.lsta", "w") as file:
+        print(gen_toff_postlsta(n, True), file=file)
     #########################################

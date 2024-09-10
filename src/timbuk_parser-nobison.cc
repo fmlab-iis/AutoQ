@@ -998,7 +998,7 @@ AUTOQ::Automata<Symbol> AUTOQ::Parsing::TimbukParser<Symbol>::parse_hsl_from_ist
             aut_final.reduce();
         }
     }
-    // DO NOT fraction_simplification() here since the resulting automaton may be used as pre.spec
+    // DO NOT fraction_simplification() here since the resulting automaton may be used as pre.lsta
     // and in this case all k's must be the same.
     return aut_final;
 }
@@ -1141,7 +1141,7 @@ try {
         automaton = fileContents;
         constraints = "";
     }
-    if (boost::algorithm::ends_with(filepath, ".spec")) {
+    if (boost::algorithm::ends_with(filepath, ".lsta")) {
         result = parse_automaton<Symbol>(automaton, constants, predicates, do_not_throw_term_undefined_error);
     } else if (boost::algorithm::ends_with(filepath, ".aut")) {
         result = parse_timbuk<Symbol>(automaton);

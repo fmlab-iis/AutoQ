@@ -19,7 +19,7 @@ for n in sizes:
         file.write('Extended Dirac\n')
         file.write(f"|{'0' * (n+1)}>\n")
     ###########################################################################
-    with open(n_str + '/pre.spec', 'w') as file:
+    with open(n_str + '/pre.lsta', 'w') as file:
         file.write('Constants\n')
         file.write('c0 := 0\n')
         file.write('c1 := 1\n')
@@ -44,7 +44,7 @@ for n in sizes:
         for i in range(0, n+1):
             file.write(f'h qubits[{i}];\n')
     ###########################################################################
-    with open(n_str + '/post.spec', 'w') as file:
+    with open(n_str + '/post.lsta', 'w') as file:
         file.write('Predicates\n')
         file.write('p := (= $I 0)\n')
         file.write('Root States 0\n')

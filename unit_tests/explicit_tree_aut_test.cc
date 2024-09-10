@@ -538,7 +538,7 @@ BOOST_AUTO_TEST_CASE(Grover_Search)
     /********************************/
 
     std::string sss(__FILE__);
-    const auto &file = sss.substr(0, sss.find_last_of("\\/")) + "/reference_answers/Grover" + std::to_string(n) + ".spec";
+    const auto &file = sss.substr(0, sss.find_last_of("\\/")) + "/reference_answers/Grover" + std::to_string(n) + ".lsta";
     auto ans = AUTOQ::Parsing::TimbukParser<AUTOQ::TreeAutomata::Symbol>::ReadAutomaton(file);
     // int n = (aut.qubitNum + 1) / 3;
     // aut.print_aut();
@@ -772,13 +772,13 @@ BOOST_AUTO_TEST_CASE(Grover_Search_only_one_oracle)
 
 //             std::string automaton;
 //             std::string constraint; // The following template argument does not matter.
-//             AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Concrete>::findAndSplitSubstring(std::string(entry.path()) + std::string("/pre.spec"), automaton, constraint);
+//             AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Concrete>::findAndSplitSubstring(std::string(entry.path()) + std::string("/pre.lsta"), automaton, constraint);
 
 //             AUTOQ::SymbolicAutomata aut = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Symbolic>::ParseString(automaton);
 //             aut.execute((std::string(entry.path()) + std::string("/circuit.qasm")).c_str());
 //             aut.fraction_simplification();
 
-//             AUTOQ::PredicateAutomata spec = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Predicate>::ReadAutomaton((std::string(entry.path()) + std::string("/post.spec")).c_str());
+//             AUTOQ::PredicateAutomata spec = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Predicate>::ReadAutomaton((std::string(entry.path()) + std::string("/post.lsta")).c_str());
 
 //             AUTOQ::Constraint C(constraint.c_str());
 
@@ -797,13 +797,13 @@ BOOST_AUTO_TEST_CASE(Grover_Search_only_one_oracle)
 //         if (entry.is_directory()) {
 //             std::string automaton;
 //             std::string constraint; // The following template argument does not matter.
-//             AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Concrete>::findAndSplitSubstring(std::string(entry.path()) + std::string("/pre.spec"), automaton, constraint);
+//             AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Concrete>::findAndSplitSubstring(std::string(entry.path()) + std::string("/pre.lsta"), automaton, constraint);
 
 //             AUTOQ::SymbolicAutomata aut = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Symbolic>::ParseString(automaton);
 //             aut.execute((std::string(entry.path()) + std::string("/circuit.qasm")).c_str());
 //             aut.fraction_simplification();
 
-//             AUTOQ::PredicateAutomata spec = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Predicate>::ReadAutomaton((std::string(entry.path()) + std::string("/post.spec")).c_str());
+//             AUTOQ::PredicateAutomata spec = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Predicate>::ReadAutomaton((std::string(entry.path()) + std::string("/post.lsta")).c_str());
 
 //             AUTOQ::Constraint C(constraint.c_str());
 
@@ -833,20 +833,20 @@ BOOST_AUTO_TEST_CASE(HSL_format_checker)
 
     for(int i = 0 ; i < 4 ; i++)
     {
-        std::string hsl_file = "/home/johnny/AutoQ/unit_tests/testcase/spec_hsl/HSL/sample"+std::to_string(i)+".hsl";
-        std::string spec_file = "/home/johnny/AutoQ/unit_tests/testcase/spec_hsl/SPEC/sample"+std::to_string(i)+".spec";
+        std::string hsl_file = "/home/johnny/AutoQ/unit_tests/testcase/lsta_hsl/HSL/sample"+std::to_string(i)+".hsl";
+        std::string lsta_file = "/home/johnny/AutoQ/unit_tests/testcase/lsta_hsl/SPEC/sample"+std::to_string(i)+".lsta";
         std::cout<<hsl_file<<std::endl;
-        std::cout<<spec_file<<std::endl;
-        if(is_symbol(spec_file))
+        std::cout<<lsta_file<<std::endl;
+        if(is_symbol(lsta_file))
         {
             //auto aut_hsl  = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Symbolic>::ReadAutomaton(hsl_file);
-            //auto aut_spec = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Symbolic>::ReadAutomaton(spec_file);
-            //aut_spec.print_aut();
+            //auto aut_lsta = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Symbolic>::ReadAutomaton(lsta_file);
+            //aut_lsta.print_aut();
             //aut_hsl.print_aut();
 
 
             auto aut_hsl  = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Symbolic>::ReadAutomaton(hsl_file);
-            auto aut_spec = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Predicate>::ReadAutomaton(spec_file);
+            auto aut_lsta = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Predicate>::ReadAutomaton(lsta_file);
             std::string constraint = "";
             std::stringstream buffer;
             if (!constraint.empty()) {
@@ -856,7 +856,7 @@ BOOST_AUTO_TEST_CASE(HSL_format_checker)
                 buffer << t.rdbuf();
             }
             // AUTOQ::Constraint C(buffer.str().c_str());
-            // bool verify_1 = AUTOQ::check_inclusion(C, aut_hsl, aut_spec);
+            // bool verify_1 = AUTOQ::check_inclusion(C, aut_hsl, aut_lsta);
             // BOOST_REQUIRE_MESSAGE(verify_1, "");
 
 
@@ -864,8 +864,8 @@ BOOST_AUTO_TEST_CASE(HSL_format_checker)
         else
         {
             auto aut_hsl  = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Concrete>::ReadAutomaton(hsl_file);
-            auto aut_spec = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Concrete>::ReadAutomaton(spec_file);
-            bool res = (aut_hsl <= aut_spec) && (aut_spec <= aut_hsl);
+            auto aut_lsta = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Concrete>::ReadAutomaton(lsta_file);
+            bool res = (aut_hsl <= aut_lsta) && (aut_lsta <= aut_hsl);
             BOOST_REQUIRE_MESSAGE(res, "");
         }
     }
@@ -901,16 +901,16 @@ void search(std::string path, std::list<std::string> &not_found_list)
         else
         {
             std::string pre_hsl = entry.path().string() + "/pre.hsl";
-            std::string pre_spec = entry.path().string() + "/pre.spec";
+            std::string pre_lsta = entry.path().string() + "/pre.lsta";
             std::string post_hsl = entry.path().string() + "/post.hsl";
-            std::string post_spec = entry.path().string() + "/post.spec";
+            std::string post_lsta = entry.path().string() + "/post.lsta";
             if(!fs::exists(pre_hsl))
                 not_found_list.push_back(pre_hsl);
-            if(!fs::exists(pre_spec))
-                not_found_list.push_back(pre_spec);
+            if(!fs::exists(pre_lsta))
+                not_found_list.push_back(pre_lsta);
             if(!fs::exists(post_hsl))
                 not_found_list.push_back(pre_hsl);
-            if(!fs::exists(post_spec))
+            if(!fs::exists(post_lsta))
                 not_found_list.push_back(pre_hsl);
         }
     }
@@ -1020,8 +1020,8 @@ BOOST_AUTO_TEST_CASE(benchmarks_OEGrover)
     for (const auto &entry : fs::directory_iterator(benchmarks)) {
         if (!entry.is_directory() || std::stoi(entry.path().string().substr(entry.path().string().find_last_of('/') + 1)) > 6) continue;
         auto folder = entry.path().string();
-        auto aut = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Symbolic>::ReadAutomaton(folder + "/pre.spec");
-        auto spec = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Predicate>::ReadAutomaton(folder + "/post.spec");
+        auto aut = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Symbolic>::ReadAutomaton(folder + "/pre.lsta");
+        auto spec = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Predicate>::ReadAutomaton(folder + "/post.lsta");
         aut.execute(folder + "/circuit.qasm");
         BOOST_REQUIRE_MESSAGE(aut <= spec, folder + " failed!");
         aut = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Symbolic>::ReadAutomaton(folder + "/pre.hsl");
@@ -1038,8 +1038,8 @@ BOOST_AUTO_TEST_CASE(benchmarks_BV)
     for (const auto &entry : fs::directory_iterator(benchmarks)) {
         if (!entry.is_directory() || std::stoi(entry.path().string().substr(entry.path().string().find_last_of('/') + 1)) > 6) continue;
         auto folder = entry.path().string();
-        auto aut = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Concrete>::ReadAutomaton(folder + "/pre.spec");
-        auto spec = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Concrete>::ReadAutomaton(folder + "/post.spec");
+        auto aut = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Concrete>::ReadAutomaton(folder + "/pre.lsta");
+        auto spec = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Concrete>::ReadAutomaton(folder + "/post.lsta");
         aut.execute(folder + "/circuit.qasm");
         BOOST_REQUIRE_MESSAGE(aut <= spec, folder + " failed!");
         aut = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Concrete>::ReadAutomaton(folder + "/pre.hsl");
@@ -1056,8 +1056,8 @@ BOOST_AUTO_TEST_CASE(benchmarks_MOBV_reorder)
     for (const auto &entry : fs::directory_iterator(benchmarks)) {
         if (!entry.is_directory() || std::stoi(entry.path().string().substr(entry.path().string().find_last_of('/') + 1)) > 6) continue;
         auto folder = entry.path().string();
-        auto aut = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Concrete>::ReadAutomaton(folder + "/pre.spec");
-        auto spec = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Concrete>::ReadAutomaton(folder + "/post.spec");
+        auto aut = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Concrete>::ReadAutomaton(folder + "/pre.lsta");
+        auto spec = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Concrete>::ReadAutomaton(folder + "/post.lsta");
         aut.execute(folder + "/circuit.qasm");
         BOOST_REQUIRE_MESSAGE(aut <= spec, folder + " failed!");
         aut = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Concrete>::ReadAutomaton(folder + "/pre.hsl");
@@ -1074,8 +1074,8 @@ BOOST_AUTO_TEST_CASE(benchmarks_GHZzero)
     for (const auto &entry : fs::directory_iterator(benchmarks)) {
         if (!entry.is_directory() || std::stoi(entry.path().string().substr(entry.path().string().find_last_of('/') + 1)) > 6) continue;
         auto folder = entry.path().string();
-        auto aut = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Concrete>::ReadAutomaton(folder + "/pre.spec");
-        auto spec = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Concrete>::ReadAutomaton(folder + "/post.spec");
+        auto aut = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Concrete>::ReadAutomaton(folder + "/pre.lsta");
+        auto spec = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Concrete>::ReadAutomaton(folder + "/post.lsta");
         aut.execute(folder + "/circuit.qasm");
         BOOST_REQUIRE_MESSAGE(aut <= spec, folder + " failed!");
         aut = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Concrete>::ReadAutomaton(folder + "/pre.hsl");
@@ -1092,8 +1092,8 @@ BOOST_AUTO_TEST_CASE(benchmarks_GHZall)
     for (const auto &entry : fs::directory_iterator(benchmarks)) {
         if (!entry.is_directory() || std::stoi(entry.path().string().substr(entry.path().string().find_last_of('/') + 1)) > 6) continue;
         auto folder = entry.path().string();
-        auto aut = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Concrete>::ReadAutomaton(folder + "/pre.spec");
-        auto spec = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Concrete>::ReadAutomaton(folder + "/post.spec");
+        auto aut = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Concrete>::ReadAutomaton(folder + "/pre.lsta");
+        auto spec = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Concrete>::ReadAutomaton(folder + "/post.lsta");
         aut.execute(folder + "/circuit.qasm");
         BOOST_REQUIRE_MESSAGE(aut <= spec, folder + " failed!");
         aut = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Concrete>::ReadAutomaton(folder + "/pre.hsl");
@@ -1110,8 +1110,8 @@ BOOST_AUTO_TEST_CASE(benchmarks_H2)
     for (const auto &entry : fs::directory_iterator(benchmarks)) {
         if (!entry.is_directory() || std::stoi(entry.path().string().substr(entry.path().string().find_last_of('/') + 1)) > 6) continue;
         auto folder = entry.path().string();
-        auto aut = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Concrete>::ReadAutomaton(folder + "/pre.spec");
-        auto spec = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Concrete>::ReadAutomaton(folder + "/post.spec");
+        auto aut = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Concrete>::ReadAutomaton(folder + "/pre.lsta");
+        auto spec = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Concrete>::ReadAutomaton(folder + "/post.lsta");
         aut.execute(folder + "/circuit.qasm");
         BOOST_REQUIRE_MESSAGE(aut <= spec, folder + " failed!");
         aut = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Concrete>::ReadAutomaton(folder + "/pre.hsl");
@@ -1128,24 +1128,24 @@ BOOST_AUTO_TEST_CASE(benchmarks_MCToffoli)
     for (const auto &entry : fs::directory_iterator(benchmarks)) {
         if (!entry.is_directory() || std::stoi(entry.path().string().substr(entry.path().string().find_last_of('/') + 1)) > 6) continue;
         auto folder = entry.path().string();
-        auto aut = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Concrete>::ReadAutomaton(folder + "/pre.spec");
-        auto spec = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Concrete>::ReadAutomaton(folder + "/post.spec");
+        auto aut = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Concrete>::ReadAutomaton(folder + "/pre.lsta");
+        auto spec = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Concrete>::ReadAutomaton(folder + "/post.lsta");
         aut.execute(folder + "/circuit.qasm");
         BOOST_REQUIRE_MESSAGE(aut <= spec, folder + " failed!");
         aut = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Concrete>::ReadAutomaton(folder + "/pre.hsl");
         spec = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Concrete>::ReadAutomaton(folder + "/post.hsl");
         aut.execute(folder + "/circuit.qasm");
         BOOST_REQUIRE_MESSAGE(aut <= spec, folder + " failed!");
-        aut = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Concrete>::ReadAutomaton(folder + "/pre0.spec");
-        spec = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Concrete>::ReadAutomaton(folder + "/post0.spec");
+        aut = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Concrete>::ReadAutomaton(folder + "/pre0.lsta");
+        spec = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Concrete>::ReadAutomaton(folder + "/post0.lsta");
         aut.execute(folder + "/circuit.qasm");
         BOOST_REQUIRE_MESSAGE(aut <= spec, folder + " failed!");
         aut = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Concrete>::ReadAutomaton(folder + "/pre0.hsl");
         spec = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Concrete>::ReadAutomaton(folder + "/post0.hsl");
         aut.execute(folder + "/circuit.qasm");
         BOOST_REQUIRE_MESSAGE(aut <= spec, folder + " failed!");
-        aut = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Concrete>::ReadAutomaton(folder + "/pre1.spec");
-        spec = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Concrete>::ReadAutomaton(folder + "/post1.spec");
+        aut = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Concrete>::ReadAutomaton(folder + "/pre1.lsta");
+        spec = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Concrete>::ReadAutomaton(folder + "/post1.lsta");
         aut.execute(folder + "/circuit.qasm");
         BOOST_REQUIRE_MESSAGE(aut <= spec, folder + " failed!");
         aut = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Concrete>::ReadAutomaton(folder + "/pre1.hsl");
@@ -1162,8 +1162,8 @@ BOOST_AUTO_TEST_CASE(benchmarks_Grover)
     for (const auto &entry : fs::directory_iterator(benchmarks)) {
         if (!entry.is_directory() || std::stoi(entry.path().string().substr(entry.path().string().find_last_of('/') + 1)) > 6) continue;
         auto folder = entry.path().string();
-        auto aut = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Concrete>::ReadAutomaton(folder + "/pre.spec");
-        auto spec = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Concrete>::ReadAutomaton(folder + "/post.spec");
+        auto aut = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Concrete>::ReadAutomaton(folder + "/pre.lsta");
+        auto spec = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Concrete>::ReadAutomaton(folder + "/post.lsta");
         aut.execute(folder + "/circuit.qasm");
         BOOST_REQUIRE_MESSAGE(aut <= spec, folder + " failed!");
         // aut = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Concrete>::ReadAutomaton(folder + "/pre.hsl");
@@ -1180,8 +1180,8 @@ BOOST_AUTO_TEST_CASE(benchmarks_MOGrover)
     for (const auto &entry : fs::directory_iterator(benchmarks)) {
         if (!entry.is_directory() || std::stoi(entry.path().string().substr(entry.path().string().find_last_of('/') + 1)) > 6) continue;
         auto folder = entry.path().string();
-        auto aut = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Concrete>::ReadAutomaton(folder + "/pre.spec");
-        auto spec = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Concrete>::ReadAutomaton(folder + "/post.spec");
+        auto aut = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Concrete>::ReadAutomaton(folder + "/pre.lsta");
+        auto spec = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Concrete>::ReadAutomaton(folder + "/post.lsta");
         aut.execute(folder + "/circuit.qasm");
         BOOST_REQUIRE_MESSAGE(aut <= spec, folder + " failed!");
         // aut = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Concrete>::ReadAutomaton(folder + "/pre.hsl");
@@ -1198,8 +1198,8 @@ BOOST_AUTO_TEST_CASE(benchmarks_GroverSym)
     for (const auto &entry : fs::directory_iterator(benchmarks)) {
         if (!entry.is_directory() || std::stoi(entry.path().string().substr(entry.path().string().find_last_of('/') + 1)) > 6) continue;
         auto folder = entry.path().string();
-        auto aut = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Symbolic>::ReadAutomaton(folder + "/pre.spec");
-        auto spec = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Predicate>::ReadAutomaton(folder + "/post.spec");
+        auto aut = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Symbolic>::ReadAutomaton(folder + "/pre.lsta");
+        auto spec = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Predicate>::ReadAutomaton(folder + "/post.lsta");
         aut.execute(folder + "/circuit.qasm");
         BOOST_REQUIRE_MESSAGE(aut <= spec, folder + " failed!");
         // aut = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Concrete>::ReadAutomaton(folder + "/pre.hsl");
@@ -1216,8 +1216,8 @@ BOOST_AUTO_TEST_CASE(benchmarks_MOGroverSym)
     for (const auto &entry : fs::directory_iterator(benchmarks)) {
         if (!entry.is_directory() || std::stoi(entry.path().string().substr(entry.path().string().find_last_of('/') + 1)) > 6) continue;
         auto folder = entry.path().string();
-        auto aut = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Symbolic>::ReadAutomaton(folder + "/pre.spec");
-        auto spec = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Predicate>::ReadAutomaton(folder + "/post.spec");
+        auto aut = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Symbolic>::ReadAutomaton(folder + "/pre.lsta");
+        auto spec = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Predicate>::ReadAutomaton(folder + "/post.lsta");
         aut.execute(folder + "/circuit.qasm");
         BOOST_REQUIRE_MESSAGE(aut <= spec, folder + " failed!");
         // aut = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Concrete>::ReadAutomaton(folder + "/pre.hsl");
@@ -1231,8 +1231,8 @@ BOOST_AUTO_TEST_CASE(benchmarks_H2Sym)
 {
     std::string sss(__FILE__);
     std::string folder = sss.substr(0, sss.find_last_of("\\/")) + "/../benchmarks/all/H2Sym/";
-    auto aut = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Symbolic>::ReadAutomaton(folder + "pre.spec");
-    auto spec = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Predicate>::ReadAutomaton(folder + "post.spec");
+    auto aut = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Symbolic>::ReadAutomaton(folder + "pre.lsta");
+    auto spec = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Predicate>::ReadAutomaton(folder + "post.lsta");
     aut.execute(folder + "circuit.qasm");
     BOOST_REQUIRE_MESSAGE(aut <= spec, folder + " failed!");
     aut = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Symbolic>::ReadAutomaton(folder + "pre.hsl");
@@ -1245,8 +1245,8 @@ BOOST_AUTO_TEST_CASE(benchmarks_H2BugSym)
 {
     std::string sss(__FILE__);
     std::string folder = sss.substr(0, sss.find_last_of("\\/")) + "/../benchmarks/all/H2BugSym/";
-    auto aut = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Symbolic>::ReadAutomaton(folder + "pre.spec");
-    auto spec = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Predicate>::ReadAutomaton(folder + "post.spec");
+    auto aut = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Symbolic>::ReadAutomaton(folder + "pre.lsta");
+    auto spec = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Predicate>::ReadAutomaton(folder + "post.lsta");
     aut.execute(folder + "circuit.qasm");
     BOOST_REQUIRE_MESSAGE(!(aut<=spec), folder + " failed!");
     aut = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Symbolic>::ReadAutomaton(folder + "pre.hsl");
@@ -1262,8 +1262,8 @@ BOOST_AUTO_TEST_CASE(benchmarks_BVSym)
     for (const auto &entry : fs::directory_iterator(benchmarks)) {
         if (!entry.is_directory() || std::stoi(entry.path().string().substr(entry.path().string().find_last_of('/') + 1)) > 6) continue;
         auto folder = entry.path().string();
-        auto aut = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Symbolic>::ReadAutomaton(folder + "/pre.spec");
-        auto spec = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Predicate>::ReadAutomaton(folder + "/post.spec");
+        auto aut = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Symbolic>::ReadAutomaton(folder + "/pre.lsta");
+        auto spec = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Predicate>::ReadAutomaton(folder + "/post.lsta");
         aut.execute(folder + "/circuit.qasm");
         BOOST_REQUIRE_MESSAGE(aut <= spec, folder + " failed!");
         aut = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Symbolic>::ReadAutomaton(folder + "/pre.hsl");
@@ -1277,8 +1277,8 @@ BOOST_AUTO_TEST_CASE(benchmarks_BVBugSym)
 {
     std::string sss(__FILE__);
     std::string folder = sss.substr(0, sss.find_last_of("\\/")) + "/../benchmarks/all/BVBugSym/";
-    auto aut = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Symbolic>::ReadAutomaton(folder + "pre.spec");
-    auto spec = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Predicate>::ReadAutomaton(folder + "post.spec");
+    auto aut = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Symbolic>::ReadAutomaton(folder + "pre.lsta");
+    auto spec = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Predicate>::ReadAutomaton(folder + "post.lsta");
     aut.execute(folder + "circuit.qasm");
     BOOST_REQUIRE_MESSAGE(!(aut<=spec), folder + " failed!");
     aut = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Symbolic>::ReadAutomaton(folder + "pre.hsl");

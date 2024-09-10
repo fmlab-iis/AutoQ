@@ -25,7 +25,7 @@ for n in sizes:
         file.write('imag(a) = 0\n')
         file.write('imag(b) = 0\n')
     ###########################################################################
-    with open(n_str + '/pre.spec', 'w') as file:
+    with open(n_str + '/pre.lsta', 'w') as file:
         file.write('Constants\n')
         file.write('c0 := 0\n')
         file.write('Root States 0\n')
@@ -85,7 +85,7 @@ for n in sizes:
             file.write(f'h qubits[{i}];\n')
         file.write(f'z qubits[{n}];\n')
     ###########################################################################
-    with open(n_str + '/post.spec', 'w') as file:
+    with open(n_str + '/post.lsta', 'w') as file:
         file.write('Predicates\n')
         file.write('p1 := (and (= real($) 0) (= imag($) 0))\n')
         file.write('p2 := (and (< (* real($) real($)) (* real(a) real(a))) (= imag($) 0))\n')

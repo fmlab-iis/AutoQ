@@ -68,7 +68,7 @@ Subcommands:
 
 The following is an example of *concrete verification*.
 ```
-$ ./build/cli/autoq verC benchmarks/Grover/03/pre.spec benchmarks/Grover/03/circuit.qasm benchmarks/Grover/03/post.spec
+$ ./build/cli/autoq verC benchmarks/Grover/03/pre.lsta benchmarks/Grover/03/circuit.qasm benchmarks/Grover/03/post.lsta
 The quantum program has [6] qubits and [54] gates.
 The verification process [passed] in [0.0s] with [16MB] memory usage.
 ```
@@ -77,7 +77,7 @@ The verification process [passed] in [0.0s] with [16MB] memory usage.
 
 ## How to describe a set of quantum states? `*.hsl`
 
-AutoQ provides two file extensions `*.hsl` and `*.spec` for users to indicate which format they use to describe a set of quantum states. The easiest one is `*.hsl`, which does not require users to have a background in NFTA. This file may contain multiple lines. Each line represents a quantum state. A quantum state is naturally described by a linear combination of computational basis states with complex coefficients. Coefficients here can be expressed in [addition `+`], [subtraction `-`], [multiplication `*`] operations on [rationals], $[e^{i2\pi(r)}\ |\ r=k/8,\ k\in\mathbb Z]$ and the [exponentiation `^`] operation with "nonnegative" exponents. Operator precedence follows the standard convention. You can also do $/\sqrt2 ^ k$ by writing `/ sqrt2 ^ k` after the above operations are already done if you wish. Nevertheless, due to the automatic scaling in the verification process, users do not need $/\sqrt2 ^ k$.
+AutoQ provides two file extensions `*.hsl` and `*.lsta` for users to indicate which format they use to describe a set of quantum states. The easiest one is `*.hsl`, which does not require users to have a background in NFTA. This file may contain multiple lines. Each line represents a quantum state. A quantum state is naturally described by a linear combination of computational basis states with complex coefficients. Coefficients here can be expressed in [addition `+`], [subtraction `-`], [multiplication `*`] operations on [rationals], $[e^{i2\pi(r)}\ |\ r=k/8,\ k\in\mathbb Z]$ and the [exponentiation `^`] operation with "nonnegative" exponents. Operator precedence follows the standard convention. You can also do $/\sqrt2 ^ k$ by writing `/ sqrt2 ^ k` after the above operations are already done if you wish. Nevertheless, due to the automatic scaling in the verification process, users do not need $/\sqrt2 ^ k$.
 
 ### # Extended Dirac
 Here is one example.
@@ -137,7 +137,7 @@ describes the set of states<br>
 
 Finally, we should be noticed that not all strings described by `*.hsl` are valid quantum states. For instance, the sum of absolute squares of amplitudes of all computational basis states may not be $1$.
 
-***Our current implementation of `*.hsl` has not been optimized yet. If the number of qubits is greater than 10, we strongly recommend you use `*.spec`. The explanation of `*.spec` is left in appendices.***
+***Our current implementation of `*.hsl` has not been optimized yet. If the number of qubits is greater than 10, we strongly recommend you use `*.lsta`. The explanation of `*.lsta` is left in appendices.***
 
 <!-- ---
 
@@ -214,14 +214,14 @@ while (outcome[0]) { // I: {|0>/√2 + |1>/√2}
 The usage of a while loop in general should be
 ```
 [a classical bit: c] = measure [a quantum bit: q];
-while (c) { // invariant.{hsl|spec}
+while (c) { // invariant.{hsl|lsta}
     ...
     c = measure q;
 }
 ```
 , but sometimes `while (c)` may be replaced with `while (!c)`.
 
-Unlike the if-else block, the NFTA does not split into two after a while loop. Instead, AutoQ first checks whether the set of quantum states $S$ prior to the measurement operator is included in the set of quantum states $I$ specified in the invariant file `invariant.{hsl|spec}` (i.e., $S \subseteq I$). If the answer is no, the verification of the whole quantum program fails. Otherwise, AutoQ continues to check whether the set evolution after $\displaystyle\\Bigg\\{\ \sum_{i\in\\{0,1\\}^n,\ i_q=1} a_i\ |i\rangle\ \Bigg|\ |s\rangle \in I,\ |s\rangle = \sum_{i\in\\{0,1\\}^n} a_i\ |i\rangle \\Bigg\\}$ running through the loop body is still included in $I$. If the answer is still yes, then the verification of this loop passes and AutoQ continues the remaining execution with $\displaystyle\\Bigg\\{\ \sum_{i\in\\{0,1\\}^n,\ i_q=0} a_i\ |i\rangle\ \Bigg|\ |s\rangle \in I,\ |s\rangle = \sum_{i\in\\{0,1\\}^n} a_i\ |i\rangle \\Bigg\\}$ after this while loop.
+Unlike the if-else block, the NFTA does not split into two after a while loop. Instead, AutoQ first checks whether the set of quantum states $S$ prior to the measurement operator is included in the set of quantum states $I$ specified in the invariant file `invariant.{hsl|lsta}` (i.e., $S \subseteq I$). If the answer is no, the verification of the whole quantum program fails. Otherwise, AutoQ continues to check whether the set evolution after $\displaystyle\\Bigg\\{\ \sum_{i\in\\{0,1\\}^n,\ i_q=1} a_i\ |i\rangle\ \Bigg|\ |s\rangle \in I,\ |s\rangle = \sum_{i\in\\{0,1\\}^n} a_i\ |i\rangle \\Bigg\\}$ running through the loop body is still included in $I$. If the answer is still yes, then the verification of this loop passes and AutoQ continues the remaining execution with $\displaystyle\\Bigg\\{\ \sum_{i\in\\{0,1\\}^n,\ i_q=0} a_i\ |i\rangle\ \Bigg|\ |s\rangle \in I,\ |s\rangle = \sum_{i\in\\{0,1\\}^n} a_i\ |i\rangle \\Bigg\\}$ after this while loop.
 
 If `while (c)` is replaced with `while (!c)`, then $i_q=1$ and $i_q=0$ should be interchanged in the above description.
 
@@ -243,9 +243,9 @@ to a (unary) state $q$ provided that the transition (rule) $f(q_1, q_2, ..., q_n
 
 ---
 
-## Appendix - NFTA Format `*.spec`
+## Appendix - NFTA Format `*.lsta`
 
-Since the underlying structure of a set of quantum states is still an NFTA in AutoQ, we reserve the `*.spec` format for users to describe a set of quantum states with an NFTA. The *Constants* and *Constraints* sections remain, but the *Extended Dirac* section should be replaced with two new sections *Root States* and *Transitions* now. (Unary) states in an NFTA can be arbitrary strings (no need to enclose with double quotation marks).
+Since the underlying structure of a set of quantum states is still an NFTA in AutoQ, we reserve the `*.lsta` format for users to describe a set of quantum states with an NFTA. The *Constants* and *Constraints* sections remain, but the *Extended Dirac* section should be replaced with two new sections *Root States* and *Transitions* now. (Unary) states in an NFTA can be arbitrary strings (no need to enclose with double quotation marks).
 
 ### # Root States
 This section is responsible for specifying a set of root states. It should contain only one line starting with "Root States" and ending with a set of root states separated by whitespaces.

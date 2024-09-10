@@ -1,6 +1,6 @@
-## NFTA Format `*.spec`
+## NFTA Format `*.lsta`
 
-Since the underlying structure of a set of quantum states is still an NFTA in AutoQ, we reserve the `*.spec` format for users to describe a set of quantum states with an NFTA. The *Constants* and *Constraints* sections remain, but the *Extended Dirac* section should be replaced with two new sections *Root States* and *Transitions* now. (Unary) states in an NFTA can be arbitrary strings (no need to enclose with double quotation marks).
+Since the underlying structure of a set of quantum states is still an NFTA in AutoQ, we reserve the `*.lsta` format for users to describe a set of quantum states with an NFTA. The *Constants* and *Constraints* sections remain, but the *Extended Dirac* section should be replaced with two new sections *Root States* and *Transitions* now. (Unary) states in an NFTA can be arbitrary strings (no need to enclose with double quotation marks).
 
 ### # Root States
 This section is responsible for specifying a set of root states. It should contain only one line starting with "Root States" and ending with a set of root states separated by whitespaces.

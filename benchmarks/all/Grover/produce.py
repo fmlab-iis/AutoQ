@@ -24,7 +24,7 @@ for n in sizes:
         file.write('Extended Dirac\n')
         file.write("|" + '0' * q + ">\n")
     ###########################################################################
-    with open(n_str + "/pre.spec", "w") as file:
+    with open(n_str + "/pre.lsta", "w") as file:
         file.write('Constants\n')
         file.write('c0 := 0\n')
         file.write('c1 := 1\n')
@@ -92,7 +92,7 @@ for n in sizes:
     ###########################################################################
     if n <= 2: continue
     ###########################################################################
-    with open(n_str + '/post.spec', 'w') as file:
+    with open(n_str + '/post.lsta', 'w') as file:
         file.write('Constants\n')
         file.write(f'aH := {aH[n]}\n')
         file.write(f'aL := {aL[n]}\n')

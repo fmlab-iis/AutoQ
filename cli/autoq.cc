@@ -154,7 +154,7 @@ try {
     std::string pre, circuit, post, circuit1, circuit2;
 
     CLI::App* execution = app.add_subcommand("ex", "Execute a quantum circuit with a given precondition.");
-    execution->add_option("pre.{hsl|spec}", pre, "the precondition file")->required()->type_name("");
+    execution->add_option("pre.{hsl|lsta}", pre, "the precondition file")->required()->type_name("");
     execution->add_option("circuit.qasm", circuit, "the OpenQASM 2.0 circuit file")->required()->type_name("");
     execution->callback([&]() {
         adjust_N_in_nTuple(circuit);
@@ -162,9 +162,9 @@ try {
 
     bool latex = false;
     CLI::App* verification = app.add_subcommand("ver", "Verify the execution result against a given postcondition.");
-    verification->add_option("pre.{hsl|spec}", pre, "the precondition file")->required()->type_name("");
+    verification->add_option("pre.{hsl|lsta}", pre, "the precondition file")->required()->type_name("");
     verification->add_option("circuit.qasm", circuit, "the OpenQASM 2.0 circuit file")->required()->type_name("");
-    verification->add_option("post.{hsl|spec}", post, "the postcondition file")->required()->type_name("");
+    verification->add_option("post.{hsl|lsta}", post, "the postcondition file")->required()->type_name("");
     verification->add_flag("-l,--latex", latex, "Print the statistics for tables in LaTeX");
     verification->callback([&]() {
         adjust_N_in_nTuple(circuit);
@@ -180,7 +180,7 @@ try {
     });
 
     CLI::App* print = app.add_subcommand("print", "Print the set of quantum states.");
-    print->add_option("states.{hsl|spec}", pre, "the automaton file")->required()->type_name("");
+    print->add_option("states.{hsl|lsta}", pre, "the automaton file")->required()->type_name("");
 
     // bool short_time = false, long_time = false;
     // app.add_flag("-t", short_time, "print times");
