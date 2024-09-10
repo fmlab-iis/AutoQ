@@ -194,7 +194,7 @@ try {
         auto aut2 = ReadAutomaton(pre);
         auto aut = std::visit([](auto&& arg) -> std::variant<AUTOQ::TreeAutomata, AUTOQ::SymbolicAutomata> {
             if constexpr (std::is_same_v<std::decay_t<decltype(arg)>, AUTOQ::PredicateAutomata>) {
-                THROW_AUTOQ_ERROR("A predicate automaton cannot be executed."); // Handle other types, e.g., fallback to a default value or throw an exception
+                THROW_AUTOQ_ERROR("Predicate amplitudes cannot be used in a precondition."); // Handle other types, e.g., fallback to a default value or throw an exception
             } else {
                 return arg; // Directly return the value if it's one of the allowed types
             }
@@ -212,7 +212,7 @@ try {
             auto &spec = std::get<AUTOQ::PredicateAutomata>(spec1);
             auto aut1 = ReadAutomaton(pre);
             if (std::holds_alternative<AUTOQ::PredicateAutomata>(aut1)) {
-                THROW_AUTOQ_ERROR("A predicate automaton cannot be executed.");
+                THROW_AUTOQ_ERROR("Predicate amplitudes cannot be used in a precondition.");
             }
             auto aut = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Symbolic>::ReadAutomaton(pre);
             aut.execute(circuit);
