@@ -282,8 +282,8 @@ bool AUTOQ::Automata<AUTOQ::Symbol::Index>::operator<=(const Automata<AUTOQ::Sym
     return true;
 }
 
-template <>
-bool AUTOQ::Automata<AUTOQ::Symbol::Concrete>::operator<=(const Automata<AUTOQ::Symbol::Concrete> &autB) const {
+template <typename Symbol>
+bool AUTOQ::Automata<Symbol>::operator<=(const Automata<Symbol> &autB) const {
     // migrate instance variables
     Automata<AUTOQ::Symbol::Index> aut1;
     aut1.name = this->name;
@@ -325,7 +325,13 @@ bool AUTOQ::Automata<AUTOQ::Symbol::Concrete>::operator<=(const Automata<AUTOQ::
             if (i == symbol_map.size()) {
                 symbol_map.push_back(symbol);
             }
-            if (i == symbol_map.size() || symbol_map.at(i).valueEqual(symbol)) {
+            bool eq;
+            if constexpr (std::is_same_v<Symbol, AUTOQ::Symbol::Concrete>) {
+                eq = symbol_map.at(i).valueEqual(symbol);
+            } else {
+                eq = symbol_map.at(i) == symbol;
+            }
+            if (i == symbol_map.size() || eq) {
                 Automata<AUTOQ::Symbol::Index>::SymbolTag symbol_tag2 = {AUTOQ::Symbol::Index(symbol.is_leaf(), i), symbol_tag.tag()};
                 for (const auto &out_ins : t.second) {
                     const auto &out = out_ins.first;
@@ -345,7 +351,13 @@ bool AUTOQ::Automata<AUTOQ::Symbol::Concrete>::operator<=(const Automata<AUTOQ::
             if (i == symbol_map.size()) {
                 symbol_map.push_back(symbol);
             }
-            if (i == symbol_map.size() || symbol_map.at(i).valueEqual(symbol)) {
+            bool eq;
+            if constexpr (std::is_same_v<Symbol, AUTOQ::Symbol::Concrete>) {
+                eq = symbol_map.at(i).valueEqual(symbol);
+            } else {
+                eq = symbol_map.at(i) == symbol;
+            }
+            if (i == symbol_map.size() || eq) {
                 Automata<AUTOQ::Symbol::Index>::SymbolTag symbol_tag2 = {AUTOQ::Symbol::Index(symbol.is_leaf(), i), symbol_tag.tag()};
                 for (const auto &out_ins : t.second) {
                     const auto &out = out_ins.first;
@@ -376,11 +388,6 @@ bool AUTOQ::Automata<AUTOQ::Symbol::Concrete>::operator<=(const Automata<AUTOQ::
     Automata<Symbol>::start_execute = Automata<AUTOQ::Symbol::Index>::start_execute;
     Automata<Symbol>::stop_execute = Automata<AUTOQ::Symbol::Index>::stop_execute;
     return result;
-}
-
-template <typename Symbol>
-bool AUTOQ::Automata<Symbol>::operator<=(const Automata<Symbol> &) const {
-    THROW_AUTOQ_ERROR("The operator <= is not defined for the given type of automata.");
 }
 
 bool AUTOQ::check_validity(Constraint C, const PredicateAutomata::Symbol &ps, const SymbolicAutomata::Symbol &te) {
@@ -742,6 +749,7 @@ bool operator<=(const AUTOQ::SymbolicAutomata &autA, const AUTOQ::PredicateAutom
 // https://bytefreaks.net/programming-2/c/c-undefined-reference-to-templated-class-function
 template struct AUTOQ::Automata<AUTOQ::Symbol::Concrete>;
 template struct AUTOQ::Automata<AUTOQ::Symbol::Symbolic>;
+template struct AUTOQ::Automata<AUTOQ::Symbol::Predicate>;
 
 // #define MIN
 

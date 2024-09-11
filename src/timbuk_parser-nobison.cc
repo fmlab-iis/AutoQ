@@ -1371,7 +1371,7 @@ AUTOQ::Automata<Symbol> AUTOQ::Parsing::TimbukParser<Symbol>::parse_hsl_from_ist
     while (std::getline(*is, line))
     {
 		line = AUTOQ::String::trim(line);
-        std::cout<<line<<std::endl;
+        // std::cout<<line<<std::endl;
 		if (line.empty())
         {
             continue;

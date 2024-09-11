@@ -37,7 +37,6 @@ namespace AUTOQ
 template <typename T> constexpr auto support_fraction_simplification = requires (T x) {
     x.fraction_simplification();
 };
-template<typename T> constexpr auto concrete_like = std::is_same_v<T, AUTOQ::Symbol::Concrete> || std::is_same_v<T, AUTOQ::Symbol::Index>;
 
 template <typename TT>
 struct AUTOQ::Automata
@@ -134,12 +133,12 @@ public:   // methods
 
 	/******************************************************/
     /* inclusion.cc: checks language inclusion of two TAs */
-    bool operator<=(const Automata &o) const; // requires concrete_like<TT>;
-    bool operator>=(const Automata &o) const requires concrete_like<TT> { return o <= *this; }
-	bool operator==(const Automata &o) const requires concrete_like<TT> { return (*this <= o) && (o <= *this); }
-    bool operator!=(const Automata &o) const requires concrete_like<TT> { return !(*this == o); }
-    bool operator<(const Automata &o) const requires concrete_like<TT> { return (*this <= o) && !(o <= *this); }
-    bool operator>(const Automata &o) const requires concrete_like<TT> { return o < *this; }
+    bool operator<=(const Automata &o) const;
+    bool operator>=(const Automata &o) const { return o <= *this; }
+	bool operator==(const Automata &o) const { return (*this <= o) && (o <= *this); }
+    bool operator!=(const Automata &o) const { return !(*this == o); }
+    bool operator<(const Automata &o) const { return (*this <= o) && !(o <= *this); }
+    bool operator>(const Automata &o) const { return o < *this; }
     // The above comparison is done after amplitude comparison.
     /******************************************************/
 
