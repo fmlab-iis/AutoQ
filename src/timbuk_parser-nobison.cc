@@ -998,30 +998,6 @@ std::vector<int> qubit_ordering(const std::string& str)
     return ordering_map;
 }
 
-std::vector<std::vector<std::string>> split_sum_state(std::vector<std::string> states)
-{
-    std::vector<std::vector<std::string>> summation_split;
-    for(unsigned i = 0 ; i < states.size() ; i++)
-    {
-        std::vector<std::string> temp;
-        std::string state = states[i];
-        std::string::iterator it = state.begin();
-        std::string::iterator start = state.begin();
-        std::string::iterator end = state.end();
-        while(it != end)
-        {
-            if(*it == '+')
-            {
-                temp.push_back(std::string(start, it));
-                start = it + 1;
-            }
-            it++;
-        }
-        temp.push_back(std::string(start, it));
-        summation_split.push_back(temp);
-    }
-    return summation_split;
-}
 
 std::string remove_spaces(std::string str)
 {
@@ -1033,19 +1009,17 @@ std::pair<std::string,int> get_constraints_and_val(std::string input)
 {
     std::pair<std::string,int> result;
     size_t pos = input.find('|');
-
+    if(input.find('*') != std::string::npos)
+    {
+        result.second = -1;
+        result.first = input.substr(0, pos);
+        return result;
+    }
     if (pos != std::string::npos)
     {
         result.first = input.substr(0, pos);
         std::string val_str = input.substr(pos + 1, input.size() - pos - 2);
-        if(val_str == "*")
-        {
-            result.second = -1;
-        }
-        else
-        {
-            result.second = std::stoi(val_str,nullptr, 2);
-        }
+        result.second = std::stoi(val_str,nullptr, 2);
     }
 
     return result;
@@ -1058,53 +1032,121 @@ std::vector<std::string> star_expension(std::vector<std::string> state)
         comp.erase(std::remove(comp.begin(), comp.end(), ' '), comp.end());
     }
 
-    std::string star_constraints;
-    for(unsigned i = 0 ; i < state.size(); i++)
-    {
-        if(state[i].find('*') != std::string::npos)
-        {
-            star_constraints = get_constraints_and_val(state[i]).first;
-            state[i] = state.back();
-            state.pop_back();
-            i--;
-        }
-    }
-    std::size_t size = 0;
+    std::size_t size = 0;   //the size of states
     bool in_bracket = false;
-    for(unsigned i = 0 ; i < state[0].size(); i++)
+    for(int idx = 0 ; idx < state.size() ; idx++)
     {
-        if(state[0][i] == '|')
+        if(state[idx].find('*') != std::string::npos)
+            continue;
+        for(unsigned i = 0 ; i < state[idx].size(); i++)
         {
-            in_bracket = true;
+            if(state[idx][i] == '|')
+            {
+                in_bracket = true;
+            }
+            if(state[idx][i] == '>')
+            {
+                in_bracket = false;
+            }
+            if(in_bracket && (state[idx][i] == '1' || state[idx][i] == '0'))
+            {
+                size++;
+            }
         }
-        if(state[0][i] == '>')
-        {
-            in_bracket = false;
-        }
-        if(in_bracket && (state[0][i] == '1' || state[0][i] == '0'))
-        {
-            size++;
-        }
+        break;
     }
+    if(size == 0)
+    {
+        std::cout<<"CAN'T EXPEND THE STAR NOTATION"<<std::endl;
+        return state;
+    }
+
     std::vector<std::string> constraint_and_states;
+    std::vector<bool> defined_states(1<<size,false);
     constraint_and_states.resize(1<<size,"");
+
     for(unsigned i = 0 ; i < state.size(); i++)
     {
         std::pair<std::string,int> information = get_constraints_and_val(state[i]);
-        constraint_and_states[information.second] = information.first;
-    }
-    for(unsigned i = 0 ; i < constraint_and_states.size(); i++)
-    {
-        if(constraint_and_states[i] == "")
+        if(information.second != -1)
         {
-            constraint_and_states[i] = star_constraints;
+            constraint_and_states[information.second] = information.first;
+            defined_states[information.second] = true;
         }
     }
+
+
+    std::string star_constraints;
+    for(unsigned i = 0 ; i < state.size(); i++)
+    {
+        if(state[i].find('*') == std::string::npos)
+        {
+            continue;
+        }
+
+        auto& cur_state = state[i];
+        int sub_size = 0;
+        //has star
+        for(unsigned i = 0 ; i < cur_state.size(); i++)
+        {
+            if(cur_state[i] == '|')
+            {
+                in_bracket = true;
+            }
+            if(cur_state[i] == '>')
+            {
+                in_bracket = false;
+            }
+            if(in_bracket && (cur_state[i] == '1' || cur_state[i] == '0'))
+            {
+                sub_size++;
+            }
+        }
+        int diff = size - sub_size;
+
+        star_constraints = get_constraints_and_val(state[i]).first;
+        size_t start_pos = cur_state.find('|');
+        size_t star_pos = cur_state.find('*');
+        size_t end_pos = cur_state.find('>');
+        int front_val = 0;
+        int back_val = 0;
+        int front_size = star_pos - start_pos - 1;
+        int back_size = end_pos - star_pos - 1;
+        std::string val_str = cur_state.substr(start_pos + 1, front_size);
+        if(val_str != "")
+            front_val = std::stoi(val_str,nullptr, 2);
+
+        
+        val_str = cur_state.substr(star_pos + 1, back_size);
+        if(val_str != "")
+            back_val = std::stoi(val_str,nullptr, 2);
+
+
+        for(size_t itr = 0 ; itr < (1<<diff); itr++)
+        {
+            int state_val = back_val + (itr << back_size) + (front_val << (size - front_size));
+            if(defined_states[state_val] == false)
+            {
+                constraint_and_states[state_val] = star_constraints;
+                defined_states[state_val] = true; 
+            }
+        }
+
+        state[i] = state.back();
+        state.pop_back();
+        i--;
+    }
+    std::list<std::string> result;
     for(unsigned i = 0 ; i < constraint_and_states.size(); i++)
     {
-        constraint_and_states[i] = constraint_and_states[i] + "|" + std::bitset<32>(i).to_string().substr(32 - size) + ">";
+        if(!defined_states[i])
+        {
+            continue;
+        }
+        result.push_back(constraint_and_states[i] + "|" + std::bitset<32>(i).to_string().substr(32 - size) + ">");
     }
-    return constraint_and_states;
+
+    return std::vector<std::string> (result.begin(), result.end());
 }
 
 
@@ -1165,6 +1207,21 @@ std::vector<std::string> process_prod_set(const std::vector<std::string>& prod_s
 
 std::vector<std::string> to_summation_vec(std::string state)
 {
+
+
+    size_t pos = 0;
+
+    //handle '-' notation
+    while ((pos = state.find('-', pos)) != std::string::npos) 
+    {
+        if(pos <= 1)
+        {
+            pos++;
+            continue;
+        }
+        state.replace(pos, 1, "+ -");
+        pos += 3; 
+    }
     std::vector<std::string> summation_vec;
     // std::string::iterator it = state.begin();
     // std::string::iterator start = state.begin();
@@ -1179,6 +1236,7 @@ std::vector<std::string> to_summation_vec(std::string state)
 
         std::stringstream iss_tensor(prod_comp);
         std::string sum_prod;
+        //getline until + or -
         while(std::getline(iss_tensor, prod_comp, '+'))
         {
             prod_sum_split.back().push_back(prod_comp);
@@ -1190,6 +1248,7 @@ std::vector<std::string> to_summation_vec(std::string state)
         {
             if(prod_sum_split[i][j].find('*') != std::string::npos)
             {
+
                 prod_sum_split[i] = star_expension(prod_sum_split[i]);
                 break;
             }
@@ -1209,13 +1268,15 @@ std::vector<std::string> to_summation_vec(std::string state)
         prod_set = temp;
     }
     std::vector<std::string> combined_strings = process_prod_set(prod_set);
-    summation_vec = combined_strings;
-    return summation_vec;
+
+    return combined_strings;
+
 }
 
 std::vector<std::string> state_expansion(std::string line, std::vector<int> ordering_map)
 {
 
+    
     //tree is partial state without tensor product
 
     replaceSubstringWithChar(line, "\\/", 'V');
@@ -1230,9 +1291,10 @@ std::vector<std::string> state_expansion(std::string line, std::vector<int> orde
         std::vector<std::string> cur_stage;
         cur_stage.clear();
         std::stringstream iss_or(trees);
-
         if (std::regex_search(trees, std::regex("(\\\\/|V) *\\|i\\|="))) // if startswith "\/ |i|="
         {
+            //expend i
+
             std::istringstream iss(trees);
             std::string length;
             std::getline(iss, length, ':');
@@ -1278,6 +1340,8 @@ std::vector<std::string> state_expansion(std::string line, std::vector<int> orde
         }
         else
         {
+            //set or "or" set into list
+
             std::istringstream iss_or(trees);
             std::string tree;
             // to union the rest of the automata
@@ -1288,6 +1352,8 @@ std::vector<std::string> state_expansion(std::string line, std::vector<int> orde
         }
         stage_states.push_back(cur_stage);
     }
+
+
     for(unsigned i = 0 ; i < stage_states.front().size(); i++)
     {
         expanded_states.push_back(stage_states.front()[i]);
@@ -1308,12 +1374,15 @@ std::vector<std::string> state_expansion(std::string line, std::vector<int> orde
         stage_states.pop_front();
     }
 
+
+    //start reordering
     std::vector<std::vector<std::string>> summation_list; //[set][sum][equation]
     for(auto state : expanded_states)
     {
         summation_list.push_back(to_summation_vec(state));
     }
 
+    if(ordering_map.size() != 0)
     for(unsigned i = 0 ; i < summation_list.size() ; i++)
         for(auto& state : summation_list[i])
         {
@@ -1371,7 +1440,6 @@ AUTOQ::Automata<Symbol> AUTOQ::Parsing::TimbukParser<Symbol>::parse_hsl_from_ist
     while (std::getline(*is, line))
     {
 		line = AUTOQ::String::trim(line);
-        // std::cout<<line<<std::endl;
 		if (line.empty())
         {
             continue;
@@ -1392,6 +1460,31 @@ AUTOQ::Automata<Symbol> AUTOQ::Parsing::TimbukParser<Symbol>::parse_hsl_from_ist
         }   // processing states
         else
         {
+            auto a = do_not_throw_term_undefined_error;
+            //to do : make line with reordering e.g. |ii000> -> |00000> || |11000> ... make two lines then reorder
+            std::vector<std::string> equation_expension;
+            if(get_ordering)
+            {
+                equation_expension = state_expansion(line, ordering_map);
+            }
+            else
+            {
+                equation_expension = state_expansion(line, std::vector<int>{});
+            }
+            for(unsigned i = 0 ; i < equation_expension.size(); i++)
+            {
+                //for general purpose, but slower than the origin, TO-IMPROVE
+                auto aut = from_line_to_automaton<Symbol>(equation_expension[i], constants, predicates, do_not_throw_term_undefined_error);
+                if (a && !do_not_throw_term_undefined_error) {
+                    return {};
+                }
+                aut_final = aut_final.operator||(aut);
+                aut_final.reduce();
+            }
+            aut_final.reduce();
+
+            /*
+            orginal
             auto a = do_not_throw_term_undefined_error;
             //to do : make line with reordering e.g. |ii000> -> |00000> || |11000> ... make two lines then reorder
             if(get_ordering)
@@ -1416,6 +1509,7 @@ AUTOQ::Automata<Symbol> AUTOQ::Parsing::TimbukParser<Symbol>::parse_hsl_from_ist
                 aut_final = aut_final.operator||(aut);
             }
             aut_final.reduce();
+            */
         }
     }
     // DO NOT fraction_simplification() here since the resulting automaton may be used as pre.spec
