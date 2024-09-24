@@ -1,0 +1,7 @@
+Constants
+c2 := 2
+c1 := 3
+Variable Order
+1 2 3 4 5 6
+Extended Dirac
+\/|i|=2: c1|i'*i'> + c2|iii>
