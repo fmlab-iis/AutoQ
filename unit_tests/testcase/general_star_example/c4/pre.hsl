@@ -1,0 +1,5 @@
+Constants
+c0 := 2
+c1 := 3
+Extended Dirac
+\/|i|=2: c1|iii> + c0 |1i*1> # |11*> + |*11> + |111>
