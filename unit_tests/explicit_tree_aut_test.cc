@@ -1134,6 +1134,26 @@ BOOST_AUTO_TEST_CASE(benchmarks_H2)
     }
 }
 
+BOOST_AUTO_TEST_CASE(benchmarks_HXH)
+{
+    std::string sss(__FILE__);
+    std::string benchmarks = sss.substr(0, sss.find_last_of("\\/")) + "/../benchmarks/all/HXH/";
+    for (const auto &entry : fs::directory_iterator(benchmarks)) {
+        if (!entry.is_directory() || std::stoi(entry.path().string().substr(entry.path().string().find_last_of('/') + 1)) > 6) continue;
+        auto folder = entry.path().string();
+        auto aut = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Concrete>::ReadAutomaton(folder + "/pre.lsta");
+        auto aut2 = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Concrete>::ReadAutomaton(folder + "/pre.hsl");
+        BOOST_REQUIRE_MESSAGE(aut == aut2, folder + " failed!");
+        auto spec = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Concrete>::ReadAutomaton(folder + "/post.lsta");
+        aut.execute(folder + "/circuit.qasm");
+        BOOST_REQUIRE_MESSAGE(aut <= spec, folder + " failed!");
+        auto spec2 = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Concrete>::ReadAutomaton(folder + "/post.hsl");
+        aut2.execute(folder + "/circuit.qasm");
+        BOOST_REQUIRE_MESSAGE(aut2 <= spec2, folder + " failed!");
+        BOOST_REQUIRE_MESSAGE(spec == spec2, folder + " failed!");
+    }
+}
+
 BOOST_AUTO_TEST_CASE(benchmarks_MCToffoli)
 {
     std::string sss(__FILE__);
