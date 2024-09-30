@@ -1207,21 +1207,41 @@ std::vector<std::string> process_prod_set(const std::vector<std::string>& prod_s
 
 std::vector<std::string> to_summation_vec(std::string state)
 {
-
-
+    //std::cout<<"S_before: "<<state<<std::endl;
+    state = remove_spaces(state);
     size_t pos = 0;
-
     //handle '-' notation
+    int negCnt = 0;
     while ((pos = state.find('-', pos)) != std::string::npos) 
     {
-        if(pos <= 1)
+        std::string add1 = "";
+        if(state[pos+1] == '|')
+            add1 = "1";
+        if(pos == 0)
         {
-            pos++;
-            continue;
+            state.replace(pos, 1, "-"+add1);
+            negCnt++;
         }
-        state.replace(pos, 1, "+ -");
-        pos += 3; 
+        else if(state[pos-1] == '>')
+        {
+            state.replace(pos, 1, "+ -"+add1);
+            negCnt++;
+        }
+        else if(state[pos-1] == '+')
+        {
+            state.replace(pos, 1, "-"+add1);
+            negCnt++;
+        }
+        else if(state[pos-1] == '#')
+        {
+            state.replace(pos, 1, "-"+add1);
+            negCnt++;
+        } 
+        pos +=3;
     }
+    //if(negCnt % 2 == 1)
+    //    state = "-"+state;
+    //std::cout<<"S: "<<state<<std::endl;
     std::vector<std::string> summation_vec;
     // std::string::iterator it = state.begin();
     // std::string::iterator start = state.begin();
@@ -1597,6 +1617,21 @@ AUTOQ::Automata<Symbol> AUTOQ::Parsing::TimbukParser<Symbol>::parse_hsl_from_ist
             {
                 equation_expension = state_expansion(line, std::vector<int>{});
             }
+
+            for(unsigned i = 0 ; i < equation_expension.size(); i++)
+            {
+                post_conditions.push_back(equation_expension[i]);
+            }
+
+            /*
+            std::cout<<"INPUT"<<std::endl;
+            for(auto& line : pre_conditions)
+                std::cout<<line<<std::endl;
+            std::cout<<std::endl<<"TRANSFORM RESULT"<<std::endl;
+            for(auto& line : post_conditions)
+                std::cout<<line<<std::endl;
+            std::cout<<std::endl<<std::endl;
+            */
             for(unsigned i = 0 ; i < equation_expension.size(); i++)
             {
                 post_conditions.push_back(equation_expension[i]);
@@ -1639,13 +1674,7 @@ AUTOQ::Automata<Symbol> AUTOQ::Parsing::TimbukParser<Symbol>::parse_hsl_from_ist
             */
         }
     }
-    std::cout<<"INPUT"<<std::endl;
-    for(auto& line : pre_conditions)
-        std::cout<<line<<std::endl;
-    std::cout<<std::endl<<"TRANSFORM RESULT"<<std::endl;
-    for(auto& line : post_conditions)
-        std::cout<<line<<std::endl;
-    std::cout<<std::endl<<std::endl;
+    
     // DO NOT fraction_simplification() here since the resulting automaton may be used as pre.spec
     // and in this case all k's must be the same.
     return aut_final;
