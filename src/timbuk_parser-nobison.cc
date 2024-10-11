@@ -1057,7 +1057,7 @@ std::vector<std::string> star_expension(std::vector<std::string> state)
     }
     if(size == 0)
     {
-        THROW_AUTOQ_ERROR("At least one state representation must not include a *. " + state[0]);
+        std::cout<<"CAN'T EXPEND THE STAR NOTATION"<<std::endl;
         return state;
     }
 
@@ -1427,129 +1427,6 @@ std::vector<std::string> state_expansion(std::string line, std::vector<int> orde
     return result;
 }
 
-bool is_ill_formed(std::string line)
-{
-    line = line + '#';
-    std::stringstream iss(line);
-    std::string token;
-    std::regex pattern(R"(\|.*?\>)");
-
-
-    while(std::getline(iss,token,'#'))
-    {
-        auto words_begin = std::sregex_iterator(token.begin(), token.end(), pattern);
-        auto words_end = std::sregex_iterator();
-
-        int qubit_size = 0;
-        bool clean_exist = 0;
-        bool contain_clean_states = 1;
-        bool in_bracket = 0;
-        for(size_t i = 0 ; i < token.size() ; i++)
-        {
-            if(token[i] == '|' && (i < token.size() -1 && (token[i+1] == '1' || token[i+1] == '0' || token[i+1] == '*' || token[i+1] == 'i' || token[i+1] == '\'')))
-            {
-                in_bracket = 1;
-                qubit_size = 0;
-                contain_clean_states = 1;
-                continue;
-            }
-            if(token[i] == '>')
-            {
-                clean_exist = clean_exist || contain_clean_states;
-                in_bracket = 0;
-
-            }
-            if(!in_bracket)
-                continue;
-            if(token[i] == '1' || token[i] == '0')
-            {
-                qubit_size++;
-            }
-            else if(token[i] == 'i')
-            {
-                //qibit += size_i;
-            }
-            else if(token[i] == '*')
-            {
-                contain_clean_states = 0;
-            }
-        }
-
-        if(!clean_exist)
-        {
-            THROW_AUTOQ_ERROR("At least one state representation must not include a *. "+line);
-        }
-        for (std::sregex_iterator i = words_begin; i != words_end; ++i) {
-            std::smatch match = *i;
-            std::string state = match.str();
-
-
-            int star_cnt = 0;
-            for(size_t i = 0 ; i < state.size() ; i++)
-            {
-                if(state[i] == '|')
-                {
-                    in_bracket = 1;
-                    star_cnt = 0;
-                }
-                if(state[i] == '>')
-                {
-                    in_bracket = 0;
-                }
-                star_cnt += (state[i]=='*') && in_bracket;
-
-                if(star_cnt > 1)
-                    THROW_AUTOQ_ERROR("more than 1 star notations in "+line);
-
-            }
-        }
-
-    }
-
-    //possible fault
-    /*
-    std::vector<std::pair<int,int>> star_pos;
-    int pos = 0;
-    int num_cnt = 0;
-    std::pair<int,int> cur_star_pos;
-    for(size_t i = 0 ; i < line.size() ; i++)
-    {
-        if(line[i] == '|')
-        {
-            pos = 0;
-            in_bracket = 1;
-            continue;
-        }
-        if(line[i] == '>')
-        {
-            in_bracket = 0;
-            cur_star_pos.second = qubit_size - num_cnt;
-            star_pos.push_back(cur_star_pos);
-            continue;
-        }
-        pos++;
-        num_cnt++;
-        if(line[i] == '*' && in_bracket)
-        {
-            cur_star_pos.first = pos;
-        }
-    }
-
-    for(int i = 0 ; i < star_pos.size() ; i++)
-    {
-        for(int j = 0 ; j < star_pos.size() ; j++)
-        {
-            if(i==j)
-                continue;
-            if(star_pos[j].first <= star_pos[i].first && star_pos[i].first <= star_pos[j].second)
-                THROW_AUTOQ_ERROR("The star notations have overlapped states "+line);
-        }
-    }
-    std::set<std::string> overlapping_states;
-    */
-    return 0;
-}
-
 template <typename Symbol>
 AUTOQ::Automata<Symbol> AUTOQ::Parsing::TimbukParser<Symbol>::parse_hsl_from_istream(std::istream *is, bool &do_not_throw_term_undefined_error, const std::map<std::string, AUTOQ::Complex::Complex> &constants, const std::map<std::string, std::string> &predicates) {
 
@@ -1559,8 +1436,7 @@ AUTOQ::Automata<Symbol> AUTOQ::Parsing::TimbukParser<Symbol>::parse_hsl_from_ist
     std::string line;
     //reordering
     std::vector<int> ordering_map;
-    std::list<std::string> pre_conditions;
-    std::list<std::string> post_conditions;
+
     while (std::getline(*is, line))
     {
 		line = AUTOQ::String::trim(line);
@@ -1584,8 +1460,6 @@ AUTOQ::Automata<Symbol> AUTOQ::Parsing::TimbukParser<Symbol>::parse_hsl_from_ist
         }   // processing states
         else
         {
-            pre_conditions.push_back(line);
-            is_ill_formed(line);
             auto a = do_not_throw_term_undefined_error;
             //to do : make line with reordering e.g. |ii000> -> |00000> || |11000> ... make two lines then reorder
             std::vector<std::string> equation_expension;
@@ -1599,7 +1473,6 @@ AUTOQ::Automata<Symbol> AUTOQ::Parsing::TimbukParser<Symbol>::parse_hsl_from_ist
             }
             for(unsigned i = 0 ; i < equation_expension.size(); i++)
             {
-                post_conditions.push_back(equation_expension[i]);
                 //for general purpose, but slower than the origin, TO-IMPROVE
                 auto aut = from_line_to_automaton<Symbol>(equation_expension[i], constants, predicates, do_not_throw_term_undefined_error);
                 if (a && !do_not_throw_term_undefined_error) {
@@ -1639,13 +1512,6 @@ AUTOQ::Automata<Symbol> AUTOQ::Parsing::TimbukParser<Symbol>::parse_hsl_from_ist
             */
         }
     }
-    std::cout<<"INPUT"<<std::endl;
-    for(auto& line : pre_conditions)
-        std::cout<<line<<std::endl;
-    std::cout<<std::endl<<"TRANSFORM RESULT"<<std::endl;
-    for(auto& line : post_conditions)
-        std::cout<<line<<std::endl;
-    std::cout<<std::endl<<std::endl;
     // DO NOT fraction_simplification() here since the resulting automaton may be used as pre.spec
     // and in this case all k's must be the same.
     return aut_final;
