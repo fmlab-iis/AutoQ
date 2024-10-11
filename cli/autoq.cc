@@ -191,36 +191,52 @@ try {
     // bool runConcrete; // or runSymbolic
     if (execution->parsed()) {
         // runConcrete = true;
-        auto aut2 = ReadAutomaton(pre);
-        auto aut = std::visit([](auto&& arg) -> std::variant<AUTOQ::TreeAutomata, AUTOQ::SymbolicAutomata> {
-            if constexpr (std::is_same_v<std::decay_t<decltype(arg)>, AUTOQ::PredicateAutomata>) {
-                THROW_AUTOQ_ERROR("Predicate amplitudes cannot be used in a precondition."); // Handle other types, e.g., fallback to a default value or throw an exception
-            } else {
-                return arg; // Directly return the value if it's one of the allowed types
-            }
-        }, aut2);
+        auto aut1 = ReadAutomaton(pre);
+        if constexpr (std::is_same_v<std::decay_t<decltype(aut1)>, AUTOQ::PredicateAutomata>) {
+            THROW_AUTOQ_ERROR("Predicate amplitudes cannot be used in a precondition.");
+        }
         std::visit([&circuit](auto& aut){
-            aut.execute(circuit);
-            aut.print_aut();
-        }, aut);
+            if constexpr (!std::is_same_v<std::decay_t<decltype(aut)>, AUTOQ::PredicateAutomata>) {
+                aut.execute(circuit);
+                aut.print_aut();
+            }
+        }, aut1);
     } else if (verification->parsed()) {
         // runConcrete = false;
+        // One dedicated section for rejecting a precondition with predicate amplitudes
+        auto aut1 = ReadAutomaton(pre);
+        if constexpr (std::is_same_v<std::decay_t<decltype(aut1)>, AUTOQ::PredicateAutomata>) {
+            THROW_AUTOQ_ERROR("Predicate amplitudes cannot be used in a precondition.");
+        }
+        /******************************************************************************/
         auto spec1 = ReadAutomaton(post);
         if (std::holds_alternative<AUTOQ::SymbolicAutomata>(spec1)) {
-            THROW_AUTOQ_ERROR("The postcondition must have concrete or predicate amplitudes.");
-        } else if (std::holds_alternative<AUTOQ::PredicateAutomata>(spec1)) {
-            auto &spec = std::get<AUTOQ::PredicateAutomata>(spec1);
-            auto aut1 = ReadAutomaton(pre);
-            if (std::holds_alternative<AUTOQ::PredicateAutomata>(aut1)) {
-                THROW_AUTOQ_ERROR("Predicate amplitudes cannot be used in a precondition.");
-            }
+            auto &spec = std::get<AUTOQ::SymbolicAutomata>(spec1);
             auto aut = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Symbolic>::ReadAutomaton(pre);
-            aut.execute(circuit);
+            // cannot use std::get<AUTOQ::SymbolicAutomata> here since ReadAutomaton(...) may treat "aut1" as a TreeAutomata
+            bool verify = aut.execute(circuit);
             // std::cout << "OUTPUT AUTOMATON:\n";
             // std::cout << "=================\n";
             // aut.print_aut();
             // std::cout << "=================\n";
-            bool verify = aut <= spec;
+            verify &= (aut <<= spec);
+            // aut.print_language(); spec.print_language();
+            if (latex) {
+                aut.print_stats();
+            } else {
+                std::cout << "The quantum program has [" << aut.qubitNum << "] qubits and [" << AUTOQ::SymbolicAutomata::gateCount << "] gates.\nThe verification process [" << (verify ? "passed" : "failed") << "] in [" << AUTOQ::Util::Convert::toString(chrono::steady_clock::now() - start) << "] with [" << AUTOQ::Util::getPeakRSS() / 1024 / 1024 << "MB] memory usage.\n";
+            }
+        } else if (std::holds_alternative<AUTOQ::PredicateAutomata>(spec1)) {
+            auto &spec = std::get<AUTOQ::PredicateAutomata>(spec1);
+            auto aut = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Symbolic>::ReadAutomaton(pre);
+            // cannot use std::get<AUTOQ::SymbolicAutomata> here since ReadAutomaton(...) may treat "aut1" as a TreeAutomata
+            bool verify = aut.execute(circuit);
+            // std::cout << "OUTPUT AUTOMATON:\n";
+            // std::cout << "=================\n";
+            // aut.print_aut();
+            // std::cout << "=================\n";
+            verify &= (aut <= spec);
+            // aut.print_language(); spec.print_language();
             if (latex) {
                 aut.print_stats();
             } else {
@@ -228,7 +244,6 @@ try {
             }
         } else if (std::holds_alternative<AUTOQ::TreeAutomata>(spec1)) {
             auto &spec = std::get<AUTOQ::TreeAutomata>(spec1);
-            auto aut1 = ReadAutomaton(pre);
             auto aut = std::visit([](auto&& arg) -> AUTOQ::TreeAutomata {
                 if constexpr (!std::is_same_v<std::decay_t<decltype(arg)>, AUTOQ::TreeAutomata>) {
                     THROW_AUTOQ_ERROR("When the postcondition has only concrete amplitudes, the precondition must also do so.");
@@ -236,12 +251,12 @@ try {
                     return arg; // Directly return the value if it's one of the allowed types
                 }
             }, aut1);
-            aut.execute(circuit);
+            bool verify = aut.execute(circuit);
             // std::cout << "OUTPUT AUTOMATON:\n";
             // std::cout << "=================\n";
             // aut.print_aut();
             // std::cout << "=================\n";
-            bool verify = aut <= spec;
+            verify &= (aut <<= spec);
             if (latex) {
                 aut.print_stats();
             } else {
@@ -282,6 +297,8 @@ try {
         std::visit([](auto& aut){
             aut.print_language();
         }, aut);
+    } else {
+        THROW_AUTOQ_ERROR("Please provide at least one mode. Run \"autoq -h\" for more information.");
     }
     /**************/
     // if (long_time) {

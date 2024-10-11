@@ -374,33 +374,33 @@ template <typename Symbol>
 typename AUTOQ::Automata<Symbol>::Symbol parse_symbol(const std::string& str, std::set<std::string> &vars) {
     /************************** TreeAutomata **************************/
     if constexpr(std::is_same_v<Symbol, AUTOQ::TreeAutomata::Symbol>) {
-        if constexpr(std::is_same_v<Complex, AUTOQ::Complex::FiveTuple>) {
-            std::vector<boost::multiprecision::cpp_int> temp;
-            temp.clear();
-            if (str[0] == '[') {
-                for (int i=1; i<static_cast<int>(str.length()); i++) {
-                    size_t j = str.find(',', i);
-                    if (j == std::string::npos) j = str.length()-1;
-                    try {
-                        temp.push_back(boost::lexical_cast<boost::multiprecision::cpp_int>(str.substr(i, j-i).c_str()));
-                    } catch (...) {
-                        THROW_AUTOQ_ERROR("The input entry \"" + str.substr(i, j-i) + "\" is not an integer!");
-                    }
-                    i = j;
-                }
-            } else {
-                try {
-                    temp.push_back(boost::lexical_cast<boost::multiprecision::cpp_int>(str.c_str()));
-                } catch (...) {
-                    THROW_AUTOQ_ERROR("The input entry \"" + str + "\" is not an integer!");
-                }
-            }
-            assert(temp.size() == 1 || temp.size() == 5);
-            if (temp.size() == 1) return AUTOQ::TreeAutomata::Symbol(temp.at(0));
-            return AUTOQ::TreeAutomata::Symbol(temp);
-        } else {
+        // if constexpr(std::is_same_v<Complex, AUTOQ::Complex::FiveTuple>) {
+        //     std::vector<boost::multiprecision::cpp_int> temp;
+        //     temp.clear();
+        //     if (str[0] == '[') {
+        //         for (int i=1; i<static_cast<int>(str.length()); i++) {
+        //             size_t j = str.find(',', i);
+        //             if (j == std::string::npos) j = str.length()-1;
+        //             try {
+        //                 temp.push_back(boost::lexical_cast<boost::multiprecision::cpp_int>(str.substr(i, j-i).c_str()));
+        //             } catch (...) {
+        //                 THROW_AUTOQ_ERROR("The input entry \"" + str.substr(i, j-i) + "\" is not an integer!");
+        //             }
+        //             i = j;
+        //         }
+        //     } else {
+        //         try {
+        //             temp.push_back(boost::lexical_cast<boost::multiprecision::cpp_int>(str.c_str()));
+        //         } catch (...) {
+        //             THROW_AUTOQ_ERROR("The input entry \"" + str + "\" is not an integer!");
+        //         }
+        //     }
+        //     assert(temp.size() == 1 || temp.size() == 5);
+        //     if (temp.size() == 1) return AUTOQ::TreeAutomata::Symbol(temp.at(0));
+        //     return AUTOQ::TreeAutomata::Symbol(temp);
+        // } else {
             THROW_AUTOQ_ERROR("The type of Complex is not supported!");
-        }
+        // }
     }
     /**************************** SymbolicAutomata ****************************/
     else if constexpr(std::is_same_v<Symbol, AUTOQ::SymbolicAutomata::Symbol>) {
@@ -1034,7 +1034,7 @@ std::vector<std::string> star_expension(std::vector<std::string> state)
 
     std::size_t size = 0;   //the size of states
     bool in_bracket = false;
-    for(int idx = 0 ; idx < state.size() ; idx++)
+    for(size_t idx = 0 ; idx < state.size() ; idx++)
     {
         if(state[idx].find('*') != std::string::npos)
             continue;
@@ -1116,19 +1116,19 @@ std::vector<std::string> star_expension(std::vector<std::string> state)
         if(val_str != "")
             front_val = std::stoi(val_str,nullptr, 2);
 
-        
+
         val_str = cur_state.substr(star_pos + 1, back_size);
         if(val_str != "")
             back_val = std::stoi(val_str,nullptr, 2);
 
 
-        for(size_t itr = 0 ; itr < (1<<diff); itr++)
+        for(int itr = 0 ; itr < (1<<diff); itr++)
         {
             int state_val = back_val + (itr << back_size) + (front_val << (size - front_size));
             if(defined_states[state_val] == false)
             {
                 constraint_and_states[state_val] = star_constraints;
-                defined_states[state_val] = true; 
+                defined_states[state_val] = true;
             }
         }
 
@@ -1212,7 +1212,7 @@ std::vector<std::string> to_summation_vec(std::string state)
     size_t pos = 0;
 
     //handle '-' notation
-    while ((pos = state.find('-', pos)) != std::string::npos) 
+    while ((pos = state.find('-', pos)) != std::string::npos)
     {
         if(pos <= 1)
         {
@@ -1220,7 +1220,7 @@ std::vector<std::string> to_summation_vec(std::string state)
             continue;
         }
         state.replace(pos, 1, "+ -");
-        pos += 3; 
+        pos += 3;
     }
     std::vector<std::string> summation_vec;
     // std::string::iterator it = state.begin();
@@ -1276,7 +1276,7 @@ std::vector<std::string> to_summation_vec(std::string state)
 std::vector<std::string> state_expansion(std::string line, std::vector<int> ordering_map)
 {
 
-    
+
     //tree is partial state without tensor product
 
     replaceSubstringWithChar(line, "\\/", 'V');
@@ -1433,8 +1433,8 @@ bool is_ill_formed(std::string line)
     std::stringstream iss(line);
     std::string token;
     std::regex pattern(R"(\|.*?\>)");
-    
-    
+
+
     while(std::getline(iss,token,'#'))
     {
         auto words_begin = std::sregex_iterator(token.begin(), token.end(), pattern);
@@ -1474,15 +1474,15 @@ bool is_ill_formed(std::string line)
                 contain_clean_states = 0;
             }
         }
-        
+
         if(!clean_exist)
         {
-            THROW_AUTOQ_ERROR("At least one state representation must not include a *. "+line); 
+            THROW_AUTOQ_ERROR("At least one state representation must not include a *. "+line);
         }
         for (std::sregex_iterator i = words_begin; i != words_end; ++i) {
             std::smatch match = *i;
             std::string state = match.str();
-            
+
 
             int star_cnt = 0;
             for(size_t i = 0 ; i < state.size() ; i++)
@@ -1497,19 +1497,19 @@ bool is_ill_formed(std::string line)
                     in_bracket = 0;
                 }
                 star_cnt += (state[i]=='*') && in_bracket;
-                
+
                 if(star_cnt > 1)
                     THROW_AUTOQ_ERROR("more than 1 star notations in "+line);
 
             }
         }
-        
+
     }
-    
+
     //possible fault
     /*
     std::vector<std::pair<int,int>> star_pos;
-    int pos = 0;    
+    int pos = 0;
     int num_cnt = 0;
     std::pair<int,int> cur_star_pos;
     for(size_t i = 0 ; i < line.size() ; i++)

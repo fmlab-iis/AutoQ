@@ -26,7 +26,7 @@ public:
     template <typename T, typename = std::enable_if_t<std::is_convertible<T, boost::multiprecision::cpp_int>::value>>
         Concrete(T qubit) : internal(true), complex(qubit) {}
     Concrete(const Complex::Complex &c) : internal(false), complex(c) {}
-    Concrete() : internal(), complex() {} // prevent the compiler from complaining about the lack of default constructor
+    Concrete() : internal(false), complex(0) {} // prevent the compiler from complaining about the lack of default constructor
     bool is_internal() const { return internal; }
     bool is_leaf() const { return !internal; }
     boost::multiprecision::cpp_int qubit() const {
@@ -36,7 +36,7 @@ public:
         // assert(complex.real().denominator() == 1);
         return complex.toInt(); //.numerator();
     }
-    void back_to_zero() { complex = Complex::Complex::Zero(); }
+    void back_to_zero() { complex.back_to_zero(); } // = Complex::Complex::Zero(); }
     std::string str() const {
         std::stringstream ss;
         ss << *this; // simply employ the following operator<<

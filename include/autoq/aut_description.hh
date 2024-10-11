@@ -41,7 +41,7 @@ template <typename T> constexpr auto support_fraction_simplification = requires 
 template <typename TT>
 struct AUTOQ::Automata
 {
-public:   // data types
+// data types
     typedef int64_t State; // TODO: will make the program slightly slower. We wish to make another dynamic type.
 	typedef std::vector<State> StateVector;
 	typedef std::set<State> StateSet;
@@ -88,8 +88,8 @@ public:   // data types
     typedef std::map<SymbolTag, std::map<StateVector, StateSet>> BottomUpTransitions;
     typedef std::vector<std::map<Tag, std::map<State, std::set<StateVector>>>> InternalTopDownTransitions; // Keys range from 1 to qubit().
 
-public:   // data members
-	std::string name;
+// data members
+    std::string name;
     StateVector finalStates;
     State stateNum;
     int qubitNum;
@@ -106,10 +106,10 @@ public:   // data members
     inline static std::chrono::time_point<std::chrono::steady_clock> start_execute, stop_execute;
     /* Notice inline is very convenient for declaring and defining a static member variable together! */
 
-public:   // methods
-
-	Automata() :
-		name(),
+// methods
+    /****************************/
+	Automata() : // initialization
+        name(),
 		finalStates(),
         stateNum(0),
         qubitNum(0),
@@ -133,6 +133,7 @@ public:   // methods
 
 	/******************************************************/
     /* inclusion.cc: checks language inclusion of two TAs */
+    bool operator<<=(Automata o) const;
     bool operator<=(const Automata &o) const;
     bool operator>=(const Automata &o) const { return o <= *this; }
 	bool operator==(const Automata &o) const { return (*this <= o) && (o <= *this); }
@@ -185,7 +186,6 @@ public:
     void CX(int c, int t, bool opt=true);
     void CZ(int c, int t);
     void CCX(int c, int c2, int t);
-    // void Fredkin(int c, int t, int t2);
     void randG(int G, int A, int B=0, int C=0);
     void Tdg(int t);
     void Sdg(int t);
@@ -193,6 +193,8 @@ public:
     void CX();
     void CX_inv();
     void Phase(const boost::rational<boost::multiprecision::cpp_int> &r);
+    void CK(int c, int t);
+    Automata measure(int t, bool outcome) const;
     /**************************************/
 
     /*******************************************/
@@ -202,6 +204,7 @@ public:
     static Automata prefix_basis(int n);
     static Automata random(int n);
     static Automata zero(int n);
+    static Automata zero_amplitude(int n);
     static Automata basis_zero_one_zero(int n);
     static Automata zero_zero_one_zero(int n);
     static Automata zero_one_zero(int n);
@@ -209,8 +212,9 @@ public:
 
     /****************************************************/
     /* execute.cc: the main function for gate execution */
-    void execute(const std::string& filename);
-    void execute(const char *filename);
+    bool execute(const std::string& filename);
+    bool execute(const char *filename);
+    static void check_the_invariants_types(const std::string& filename);
     /****************************************************/
 
     /**************************************************/

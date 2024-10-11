@@ -124,6 +124,20 @@ AUTOQ::TreeAutomata AUTOQ::TreeAutomata::zero(int n) {
     return aut;
 }
 
+template <typename Symbol>
+AUTOQ::Automata<Symbol> AUTOQ::Automata<Symbol>::zero_amplitude(int n) {
+    Automata<Symbol> aut;
+    aut.name = "Zero_Amplitude";
+    aut.qubitNum = n;
+    for (int level=1; level<=n; level++) {
+        aut.transitions[{level, 1}][level-1].insert({level, level});
+    }
+    aut.transitions[{Symbol(), 1}][n].insert({{}});
+    aut.finalStates.push_back(0);
+    aut.stateNum = n+1;
+    return aut;
+}
+
 template <>
 AUTOQ::TreeAutomata AUTOQ::TreeAutomata::basis_zero_one_zero(int n) {
     TreeAutomata aut;

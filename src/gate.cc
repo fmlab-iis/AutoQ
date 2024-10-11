@@ -1536,6 +1536,43 @@ void AUTOQ::Automata<Symbol>::Phase(const boost::rational<boost::multiprecision:
 }
 
 template <typename Symbol>
+void AUTOQ::Automata<Symbol>::CK(int c, int t) {
+    #ifdef TO_QASM
+        system(("echo 'ck qubits[" + std::to_string(t-1) + "];' >> " + QASM_FILENAME).c_str());
+        return;
+    #endif
+    auto start = std::chrono::steady_clock::now();
+    General_Single_Qubit_Gate(t,
+        [](const Symbol &l, const Symbol &r) -> Symbol { return l * 220 - r * 21; },
+        [](const Symbol &l, const Symbol &r) -> Symbol { return l * 21 + r * 220; });
+    gateCount++;
+    auto duration = std::chrono::steady_clock::now() - start;
+    if (gateLog) std::cout << "CK" << c << "," << t << "：" << stateNum << " states " << count_transitions() << " transitions " << AUTOQ::Util::print_duration(duration) << "\n";
+}
+
+template <typename Symbol>
+AUTOQ::Automata<Symbol> AUTOQ::Automata<Symbol>::measure(int t, bool outcome) const {
+    #ifdef TO_QASM
+        system(("echo 'measure qubits[" + std::to_string(t-1) + "];' >> " + QASM_FILENAME).c_str());
+        return;
+    #endif
+    auto start = std::chrono::steady_clock::now();
+    auto aut = *this;
+    if (outcome)
+        aut.Diagonal_Gate(t, std::bind(&Symbol::back_to_zero, std::placeholders::_1), [](Symbol*) {});
+    else
+        aut.Diagonal_Gate(t, [](Symbol*) {}, std::bind(&Symbol::back_to_zero, std::placeholders::_1));
+    // if (opt) {
+        // remove_useless();
+        aut.reduce();
+    // }
+    gateCount++;
+    auto duration = std::chrono::steady_clock::now() - start;
+    if (gateLog) std::cout << "measure " << t << "：" << aut.stateNum << " states " << aut.count_transitions() << " transitions " << AUTOQ::Util::print_duration(duration) << "\n";
+    return aut;
+}
+
+template <typename Symbol>
 void AUTOQ::Automata<Symbol>::randG(int G, int A, int B, int C) {
     int g, a, b=0, c=0;
     do {

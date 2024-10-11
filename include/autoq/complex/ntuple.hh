@@ -20,16 +20,16 @@ namespace AUTOQ
 
 struct AUTOQ::Complex::nTuple : AUTOQ::Util::mapped_vector<boost::multiprecision::cpp_int> {
     inline static long long N = 4; // the smallest angle unit = pi / N. Notice that N >= 4 if adjust_k is to be executed.
-    boost::multiprecision::cpp_int k = 0;
+    boost::multiprecision::cpp_int kk = 0;
     // Notice that if we do not use is_convertible_v, type int will not be accepted in this case.
     template <typename T>
         nTuple(T in) {
-            k = 0;
+            kk = 0;
             if constexpr(std::is_convertible<T, boost::rational<boost::multiprecision::cpp_int>>::value) {
                 boost::rational<boost::multiprecision::cpp_int> r = in;
                 auto d = r.denominator();
                 while (d > 0 && d % 2 == 0) {
-                    k += 2;
+                    kk += 2;
                     d >>= 1;
                 }
                 if (d != 1) { // Assume the denominator is a power of 2!
@@ -87,7 +87,7 @@ struct AUTOQ::Complex::nTuple : AUTOQ::Util::mapped_vector<boost::multiprecision
                     symbol.erase(targetAngle);
             }
         }
-        symbol.k = this->k + o.k; // remember to set k
+        symbol.kk = this->kk + o.kk; // remember to set kk
         return symbol;
     }
     nTuple operator/(nTuple denominator) const {
@@ -110,14 +110,14 @@ struct AUTOQ::Complex::nTuple : AUTOQ::Util::mapped_vector<boost::multiprecision
         }
         // Now, denominator is a real number.
         // That is, only front() and back() are non-zero.
-        numerator.k -= denominator.k;
-        denominator.k = 0;
+        numerator.kk -= denominator.kk;
+        denominator.kk = 0;
         if (denominator.find(0) == denominator.end()) {
             THROW_AUTOQ_ERROR("The denominator should not be zero!");
         }
         while (denominator[0] % 2 == 0) {
             denominator[0] >>= 1;
-            numerator.k += 2;
+            numerator.kk += 2;
         }
         if (std::all_of(numerator.begin(), numerator.end(), [&denominator](const auto &kv) mutable { return kv.second % denominator[0] == 0; })) {
             std::for_each(numerator.begin(), numerator.end(), [&denominator](auto &kv) mutable { kv.second /= denominator[0]; });
@@ -128,22 +128,22 @@ struct AUTOQ::Complex::nTuple : AUTOQ::Util::mapped_vector<boost::multiprecision
         }
     }
     nTuple& fraction_simplification() { // TODO: still necessary for inclusion checking
-        if (isZero()) k = 0;
+        if (isZero()) kk = 0;
         else {
-            if (k < 0) {
-                int dk2 = (1 + static_cast<int>(-k))/2;
+            if (kk < 0) {
+                int dk2 = (1 + static_cast<int>(-kk))/2;
                 std::for_each(begin(), end(), [dk2](auto &kv) { kv.second *= boost::multiprecision::pow(boost::multiprecision::cpp_int(2), dk2); });
-                k += dk2 * 2;
+                kk += dk2 * 2;
             }
-            while (std::all_of(begin(), end(), [](const auto &kv) { return (kv.second & 1) == 0; }) && k >= 2) {
+            while (std::all_of(begin(), end(), [](const auto &kv) { return (kv.second & 1) == 0; }) && kk >= 2) {
                 std::for_each(begin(), end(), [](auto &kv) { kv.second >>= 1; });
-                k -= 2;
+                kk -= 2;
             }
         }
         return *this;
     }
     nTuple& divide_by_the_square_root_of_two(int times=1) {
-        k += times;
+        kk += times;
         return *this;
     }
     nTuple& clockwise(boost::rational<boost::multiprecision::cpp_int> theta) {
@@ -180,7 +180,7 @@ struct AUTOQ::Complex::nTuple : AUTOQ::Util::mapped_vector<boost::multiprecision
             if (result[targetAngle] == 0)
                 result.erase(targetAngle);
         }
-        result.k = k;
+        result.kk = kk;
         *this = result;
         return *this;
     }
@@ -188,10 +188,10 @@ struct AUTOQ::Complex::nTuple : AUTOQ::Util::mapped_vector<boost::multiprecision
         return at0();
     }
     boost::rational<boost::multiprecision::cpp_int> to_rational() const { // TODO: fake solution
-        if (k < 0) {
+        if (kk < 0) {
             THROW_AUTOQ_ERROR("We assume the denominator should not be less than 1 here!");
         }
-        return boost::rational<boost::multiprecision::cpp_int>(at0(), boost::multiprecision::pow(boost::multiprecision::cpp_int(2), static_cast<int>(k/2)));
+        return boost::rational<boost::multiprecision::cpp_int>(at0(), boost::multiprecision::pow(boost::multiprecision::cpp_int(2), static_cast<int>(kk/2)));
     }
     std::string realToSMT() const {
         std::string result = "(/ (+ ";
@@ -201,8 +201,8 @@ struct AUTOQ::Complex::nTuple : AUTOQ::Util::mapped_vector<boost::multiprecision
             for (const auto &kv : *this)
                 result += " (* " + std::to_string(std::cos(M_PI * kv.first/N)) + " " + kv.second.str() + ")";
         }
-        boost::multiprecision::cpp_int num = boost::multiprecision::pow(boost::multiprecision::cpp_int(2), static_cast<int>(k/2));
-        if (k % 2 == 0)
+        boost::multiprecision::cpp_int num = boost::multiprecision::pow(boost::multiprecision::cpp_int(2), static_cast<int>(kk/2));
+        if (kk % 2 == 0)
             result += ") " + num.str() + ")";
         else
             result += ") (* " + std::to_string(std::sqrt(2.0)) + " " + num.str() + ") )";
@@ -216,15 +216,15 @@ struct AUTOQ::Complex::nTuple : AUTOQ::Util::mapped_vector<boost::multiprecision
             for (const auto &kv : *this)
                 result += " (* " + std::to_string(std::sin(M_PI * kv.first/N)) + " " + kv.second.str() + ")";
         }
-        boost::multiprecision::cpp_int num = boost::multiprecision::pow(boost::multiprecision::cpp_int(2), static_cast<int>(k/2));
-        if (k % 2 == 0)
+        boost::multiprecision::cpp_int num = boost::multiprecision::pow(boost::multiprecision::cpp_int(2), static_cast<int>(kk/2));
+        if (kk % 2 == 0)
             result += ") " + num.str() + ")";
         else
             result += ") (* " + std::to_string(std::sqrt(2.0)) + " " + num.str() + ") )";
         return result;
     }
     double abs2() const {
-        double denominator = std::pow(std::sqrt(2.0), static_cast<double>(k));
+        double denominator = std::pow(std::sqrt(2.0), static_cast<double>(kk));
         double numerator_real = 0;
         for (const auto &kv : *this)
             numerator_real += std::cos(M_PI * kv.first/N) * static_cast<double>(kv.second);
@@ -239,12 +239,12 @@ struct AUTOQ::Complex::nTuple : AUTOQ::Util::mapped_vector<boost::multiprecision
         return std::all_of(begin(), end(), [](const auto &kv) { return kv.second == 0; });
     }
     bool valueEqual(nTuple o) const {
-        if (k >= o.k) {
-            o.adjust_k(k - o.k);
+        if (kk >= o.kk) {
+            o.adjust_k(kk - o.kk);
             return *this == o;
         } else {
             auto This = *this;
-            This.adjust_k(o.k - This.k);
+            This.adjust_k(o.kk - This.kk);
             return This == o;
         }
     }
@@ -261,8 +261,9 @@ struct AUTOQ::Complex::nTuple : AUTOQ::Util::mapped_vector<boost::multiprecision
         return *this;
     }
     bool operator==(const auto &rhs) const {
-        return k == rhs.k && AUTOQ::Util::mapped_vector<boost::multiprecision::cpp_int>::operator==(rhs);
+        return kk == rhs.kk && AUTOQ::Util::mapped_vector<boost::multiprecision::cpp_int>::operator==(rhs);
     }
+    void increase_k() { adjust_k(1); }
     void adjust_k(boost::multiprecision::cpp_int dk) {
         if (dk < 0) {
             THROW_AUTOQ_ERROR("The parameter dk should not be less than 0!");
@@ -293,7 +294,7 @@ struct AUTOQ::Complex::nTuple : AUTOQ::Util::mapped_vector<boost::multiprecision
                 if (ans[targetAngle] == 0)
                     ans.erase(targetAngle);
             }
-            ans.k = k + 1;
+            ans.kk = kk + 1;
             *this = ans;
             dk--;
         }
@@ -314,7 +315,7 @@ struct AUTOQ::Complex::nTuple : AUTOQ::Util::mapped_vector<boost::multiprecision
                     result.erase(N-kv.first);
             }
         }
-        result.k = this->k + 2;
+        result.kk = this->kk + 2;
         return result;
     }
     nTuple imag() const {
@@ -329,15 +330,17 @@ struct AUTOQ::Complex::nTuple : AUTOQ::Util::mapped_vector<boost::multiprecision
                     result.erase(N-kv.first);
             }
         }
-        result.k = this->k + 2;
+        result.kk = this->kk + 2;
         return result;
     }
+    boost::multiprecision::cpp_int& k() { return kk; }
+    void back_to_zero() { clear(); }
 
 private:
     nTuple binary_operation(const nTuple &o, bool add) const {
-        assert(((k == o.k) ||
-              (isZero() && k<=o.k) ||
-              (o.isZero() && k>=o.k)));// {
+        assert(((kk == o.kk) ||
+              (isZero() && kk<=o.kk) ||
+              (o.isZero() && kk>=o.kk)));// {
         //     THROW_AUTOQ_ERROR("The two nTuples should have the same k!");
         // }
         nTuple result = *this;
@@ -347,7 +350,7 @@ private:
             if (result[kv.first] == 0)
                 result.erase(kv.first);
         }
-        result.k = std::max(k, o.k); // remember to set k
+        result.kk = std::max(kk, o.kk); // remember to set k
         return result;
     }
 };

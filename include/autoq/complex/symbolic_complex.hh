@@ -203,9 +203,9 @@ struct AUTOQ::Complex::SymbolicComplex : std::map<Term, Complex> {
     }
     boost::multiprecision::cpp_int max_k() const {
         boost::multiprecision::cpp_int k = INT_MIN;
-        for (const auto &kv : *this) {
-            if (k < kv.second.k)
-                k = kv.second.k;
+        for (auto kv : *this) {
+            if (k < kv.second.k())
+                k = kv.second.k();
         }
         return k;
     }
@@ -213,9 +213,9 @@ struct AUTOQ::Complex::SymbolicComplex : std::map<Term, Complex> {
         fraction_simplification();
         for (auto &kv : *this) {
             auto &c = kv.second;
-            while (c.k < k)
-                c.adjust_k(1);
-            c.k = 0;
+            while (c.k() < k)
+                c.increase_k();
+            c.k() = 0;
         }
     }
 };

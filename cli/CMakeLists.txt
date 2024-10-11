@@ -22,7 +22,7 @@ set(autoq_compiler_add_flags_list
   -Wold-style-cast
   -fdiagnostics-show-option
   # -march=native
-  -DCOMPLEX_nTuple
+  -DCOMPLEX_FiveTuple
 )
 
 foreach(param ${autoq_compiler_add_flags_list})
