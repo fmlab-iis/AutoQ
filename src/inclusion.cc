@@ -985,18 +985,22 @@ bool AUTOQ::SymbolicAutomata::operator<<=(AUTOQ::SymbolicAutomata autB) const {
                         color_consistent2 = (all_used_colors != 0);
                         /*****************************************/
                         // Build the formula and check its satisfiability.
-                        std::string ratio_constraint = "(exists ((RATIO Real)) (and (not (= RATIO 0))"; // 𝜓
+                        std::string ratio_constraint = "(exists ((ratioR Real) (ratioI Real)) (and (not (and (= ratioR 0) (= ratioI 0)))"; // 𝜓
                         for (const auto &pair : leaf_pairs) {
                             ratio_constraint += " (= ";
                             ratio_constraint += pair.first.complex.realToSMT();
-                            ratio_constraint += " (* RATIO ";
+                            ratio_constraint += " (- (* ratioR ";
                             ratio_constraint += pair.second.complex.realToSMT();
-                            ratio_constraint += "))";
+                            ratio_constraint += ") (* ratioI ";
+                            ratio_constraint += pair.second.complex.imagToSMT();
+                            ratio_constraint += ")))";
                             ratio_constraint += " (= ";
                             ratio_constraint += pair.first.complex.imagToSMT();
-                            ratio_constraint += " (* RATIO ";
+                            ratio_constraint += " (+ (* ratioR ";
                             ratio_constraint += pair.second.complex.imagToSMT();
-                            ratio_constraint += "))";
+                            ratio_constraint += ") (* ratioI "
+                            ;ratio_constraint += pair.second.complex.realToSMT();
+                            ratio_constraint += ")))";
                         }
                         ratio_constraint += "))";
                         std::string implies_constraint = "(or (not (and " + autA.constraints + " " + autB.constraints + ")) " + ratio_constraint + ")"; // (𝜑𝑟 ∧ 𝜑𝑞) ⇒ 𝜓
