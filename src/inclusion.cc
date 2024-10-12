@@ -1334,18 +1334,19 @@ bool AUTOQ::TreeAutomata::operator<<=(AUTOQ::TreeAutomata autB) const {
                         /*****************************************/
                         // Build the formula and check its satisfiability.
                         bool startRatio = false;
-                        AUTOQ::Complex::Complex realRatio;
+                        AUTOQ::Complex::Complex ratio;
                         for (const auto &pair : leaf_pairs) {
                             for (int i=0; i<4; i++) {
                                 if (pair.first.complex.isZero() && pair.second.complex.isZero()) continue;
                                 else if (!pair.first.complex.isZero() && !pair.second.complex.isZero()) {
                                     if (!startRatio) {
                                         startRatio = true;
-                                        realRatio = pair.first.complex / pair.second.complex;
-                                        if (!realRatio.imag().isZero()) { // is not real
-                                            color_consistent2 = false; goto L1372;
-                                        }
-                                    } else if (!realRatio.valueEqual(pair.first.complex / pair.second.complex)) {
+                                        ratio = pair.first.complex / pair.second.complex;
+                                        // std::cout << "ratio: " << ratio << "\n";
+                                        // if (!ratio.imag().isZero()) { // is not real
+                                        //     color_consistent2 = false; goto L1372;
+                                        // }
+                                    } else if (!ratio.valueEqual(pair.first.complex / pair.second.complex)) {
                                         color_consistent2 = false; goto L1372;
                                     }
                                 } else {
