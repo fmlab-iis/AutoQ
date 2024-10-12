@@ -1,0 +1,5 @@
+Constants
+i := eipi(1/4)
+Extended Dirac
+(-1 + 1 * ei2pi(1/8) + 1 * ei2pi(2/8)) |01> + (-2 * ei2pi(1/8) + -1 * ei2pi(3/8)) |11>
+(-1 + 1 * ei2pi(1/8) + 1 * ei2pi(2/8)) |00> + (2 * ei2pi(1/8) + -1 * ei2pi(3/8)) |10>
