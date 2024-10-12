@@ -130,6 +130,14 @@ bool AUTOQ::Automata<Symbol>::execute(const char *filename) {
                 ++it;
             }
             CZ(pos[0], pos[1]);
+        } else if (line.find("ck ") == 0) {
+            std::regex_iterator<std::string::iterator> it(line.begin(), line.end(), digit);
+            std::vector<int> pos;
+            while (it != END) {
+                pos.push_back(1 + atoi(it->str().c_str()));
+                ++it;
+            }
+            CK(pos[0], pos[1]);
         } else if (line.find("ccx ") == 0) {
             std::regex_iterator<std::string::iterator> it(line.begin(), line.end(), digit);
             std::vector<int> pos;
@@ -152,7 +160,7 @@ bool AUTOQ::Automata<Symbol>::execute(const char *filename) {
             print_aut();
         } else if (line.find("STOP") == 0) {
             break;
-        } else if (line.find("while") == 0) { // while (!result) { // loop-invariant.{spec|hsl}
+        } else if (line.find("while") == 0) { // while (!result) { // loop-invariant.{lsta|hsl}
             if (previous_line.find("measure") == std::string::npos)
                 throw std::runtime_error(AUTOQ_LOG_PREFIX + "[ERROR] The while loop guard must be a measurement operator.");
             while_measurement_guard = previous_line;
@@ -282,20 +290,32 @@ bool AUTOQ::Automata<Symbol>::execute(const char *filename) {
 }
 
 template <typename Symbol>
-void AUTOQ::Automata<Symbol>::check_the_invariants_types(const std::string& filename) {
+std::string AUTOQ::Automata<Symbol>::check_the_invariants_types(const std::string& filename) {
     std::ifstream qasm(filename);
     if (!qasm.is_open()) throw std::runtime_error(AUTOQ_LOG_PREFIX + "[ERROR] Failed to open file " + std::string(filename) + ".");
     std::string line;
     while (getline(qasm, line)) {
         line = AUTOQ::String::trim(line);
-        if (line.find("while") == 0) { // while (!result) { // loop-invariant.{spec|hsl}
+        if (line.find("while") == 0) { // while (!result) { // loop-invariant.{lsta|hsl}
             const std::regex spec("// *(.*)");
             std::regex_iterator<std::string::iterator> it2(line.begin(), line.end(), spec);
             std::string dir = (std::filesystem::current_path() / filename).parent_path().string();
-            AUTOQ::Parsing::TimbukParser<Symbol>::ReadAutomaton(dir + std::string("/") + it2->str(1));
+            auto invariant = ReadAutomaton(dir + std::string("/") + it2->str(1));
+            if (std::holds_alternative<AUTOQ::PredicateAutomata>(invariant)) {
+                qasm.close();
+                THROW_AUTOQ_ERROR("The loop invariant cannot be a predicate automaton.");
+            } else if (std::holds_alternative<AUTOQ::SymbolicAutomata>(invariant)) {
+                qasm.close();
+                return "Symbolic";
+            } else if (std::holds_alternative<AUTOQ::TreeAutomata>(invariant)) {
+            } else {
+                qasm.close();
+                THROW_AUTOQ_ERROR("The provided type of the loop invariant is not supported yet.");
+            }
         }
     }
     qasm.close();
+    return "Concrete";
 }
 
 // https://bytefreaks.net/programming-2/c/c-undefined-reference-to-templated-class-function

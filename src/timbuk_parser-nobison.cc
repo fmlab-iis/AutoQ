@@ -1161,10 +1161,12 @@ try {
         result.constraints += ConstraintParser(constraint, constants).getSMTexpression();
     }
     if (!result.constraints.empty())
-        result.constraints = "(assert (and " + result.constraints + "))";
-    for (const auto &var : result.vars) {
-        result.constraints = "(declare-const " + var + " Real)" + result.constraints;
-    }
+        result.constraints = "(and " + result.constraints + ")"; // "(assert (and " + result.constraints + "))";
+    else
+        result.constraints = "true"; // "(assert true)";
+    // for (const auto &var : result.vars) {
+    //     result.constraints = "(declare-const " + var + " Real)" + result.constraints;
+    // }
     return result;
 } catch (AutoQError &e) {
     std::cout << e.what() << std::endl;

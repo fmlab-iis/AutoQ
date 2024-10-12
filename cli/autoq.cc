@@ -210,8 +210,8 @@ try {
         }
         /******************************************************************************/
         auto spec1 = ReadAutomaton(post);
-        if (std::holds_alternative<AUTOQ::SymbolicAutomata>(spec1)) {
-            auto &spec = std::get<AUTOQ::SymbolicAutomata>(spec1);
+        if (std::holds_alternative<AUTOQ::SymbolicAutomata>(spec1) || AUTOQ::SymbolicAutomata::check_the_invariants_types(circuit)=="Symbolic") {
+            auto spec = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Symbolic>::ReadAutomaton(post);
             auto aut = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Symbolic>::ReadAutomaton(pre);
             // cannot use std::get<AUTOQ::SymbolicAutomata> here since ReadAutomaton(...) may treat "aut1" as a TreeAutomata
             bool verify = aut.execute(circuit);
@@ -228,7 +228,7 @@ try {
             }
         } else if (std::holds_alternative<AUTOQ::PredicateAutomata>(spec1)) {
             auto &spec = std::get<AUTOQ::PredicateAutomata>(spec1);
-            auto aut = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Symbolic>::ReadAutomaton(pre);
+            auto aut = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Symbolic>::ReadAutomaton(pre); // TODO: can also be AUTOQ::Symbol::Concrete
             // cannot use std::get<AUTOQ::SymbolicAutomata> here since ReadAutomaton(...) may treat "aut1" as a TreeAutomata
             bool verify = aut.execute(circuit);
             // std::cout << "OUTPUT AUTOMATON:\n";

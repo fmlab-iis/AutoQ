@@ -1000,15 +1000,15 @@ bool AUTOQ::SymbolicAutomata::operator<<=(AUTOQ::SymbolicAutomata autB) const {
                         }
                         ratio_constraint += "))";
                         std::string implies_constraint = "(or (not (and " + autA.constraints + " " + autB.constraints + ")) " + ratio_constraint + ")"; // (𝜑𝑟 ∧ 𝜑𝑞) ⇒ 𝜓
-                        std::string assertion = "(not " + implies_constraint + "))";
+                        std::string assertion = "(not " + implies_constraint + ")";
                         std::set<std::string> vars;
                         for (const auto &var : autA.vars)
                             vars.insert(var);
                         for (const auto &var : autB.vars)
                             vars.insert(var);
-                        std::string define_var = ""; // "(declare-fun RATIO () Real)";
+                        std::string define_var = "";
                         for (const auto &var : vars)
-                            define_var += "(declare-fun " + var + "_R () Real)(declare-fun " + var + "_I () Real)";
+                            define_var += "(declare-fun " + var + " () Real)";
                         color_consistent2 &= !call_smt_solver(define_var, assertion);
                         /*****************************************/
                         // for (const auto &qB_c : possible_colors_for_qB) { // for each fixed qB

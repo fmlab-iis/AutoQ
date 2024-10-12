@@ -214,7 +214,7 @@ public:
     /* execute.cc: the main function for gate execution */
     bool execute(const std::string& filename);
     bool execute(const char *filename);
-    static void check_the_invariants_types(const std::string& filename);
+    static std::string check_the_invariants_types(const std::string& filename);
     /****************************************************/
 
     /**************************************************/
