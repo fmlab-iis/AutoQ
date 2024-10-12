@@ -231,6 +231,10 @@ struct AUTOQ::Complex::FiveTuple : stdvectorboostmultiprecisioncpp_int {
         symbol.at(4) += at(4) + 1;
         *this = symbol;
     }
+    void increase_to_k(const boost::multiprecision::cpp_int &k) {
+        while (this->k() < k)
+            increase_k();
+    }
     FiveTuple& multiply_cos(const boost::rational<boost::multiprecision::cpp_int> &theta) {
         auto c1 = *this;
         auto c2 = *this;
@@ -266,20 +270,16 @@ private:
         return symbol;
     }
 public:
-    bool valueEqual(const FiveTuple &o) const {
+    bool valueEqual(FiveTuple o) const {
         if (size() != o.size()) return false;
         if (size() != 5) return static_cast<stdvectorboostmultiprecisioncpp_int>(*this) == static_cast<stdvectorboostmultiprecisioncpp_int>(o);
-        if (at(0)==0 && at(1)==0 && at(2)==0 && at(3)==0 &&
-            o.at(0)==0 && o.at(1)==0 && o.at(2)==0 && o.at(3)==0)
-            return true;
-        else {
-            if ((at(4)&1) != (o.at(4)&1)) return false;
-            auto min_d = min(at(4), o.at(4));
-            return (at(0) << static_cast<int>((o.at(4)-min_d)/2)) == (o.at(0) << static_cast<int>((at(4)-min_d)/2))
-                && (at(1) << static_cast<int>((o.at(4)-min_d)/2)) == (o.at(1) << static_cast<int>((at(4)-min_d)/2))
-                && (at(2) << static_cast<int>((o.at(4)-min_d)/2)) == (o.at(2) << static_cast<int>((at(4)-min_d)/2))
-                && (at(3) << static_cast<int>((o.at(4)-min_d)/2)) == (o.at(3) << static_cast<int>((at(4)-min_d)/2));
+        auto This = *this;
+        if (This.k() < o.k()) {
+            This.increase_to_k(o.k());
+        } else if (This.k() > o.k()) {
+            o.increase_to_k(This.k());
         }
+        return This.at(0)==o.at(0) && This.at(1)==o.at(1) && This.at(2)==o.at(2) && This.at(3)==o.at(3);
     }
 };
 

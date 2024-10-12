@@ -212,9 +212,9 @@ bool AUTOQ::Automata<Symbol>::execute(const char *filename) {
                 bool t = (*this <<= I);
                 verify &= t;
                 if (!t) {
-                    AUTOQ_ERROR("[ERROR] C(measure_to_continue) ⊈ I.");
+                    AUTOQ_ERROR("[ERROR] C(measure_to_continue(I)) ⊈ I.");
                     fraction_simplification();
-                    print_language("C(measure_to_continue):\n");
+                    print_language("C(measure_to_continue(I)):\n");
                     I.fraction_simplification();
                     I.print_language("I:\n");
                 }
