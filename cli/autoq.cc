@@ -224,7 +224,7 @@ try {
             if (latex) {
                 aut.print_stats();
             } else {
-                std::cout << "The quantum program has [" << aut.qubitNum << "] qubits and [" << AUTOQ::SymbolicAutomata::gateCount << "] gates.\nThe verification process [" << (verify ? "passed" : "failed") << "] in [" << AUTOQ::Util::Convert::toString(chrono::steady_clock::now() - start) << "] with [" << AUTOQ::Util::getPeakRSS() / 1024 / 1024 << "MB] memory usage.\n";
+                std::cout << "The quantum program has [" << aut.qubitNum << "] qubits and [" << AUTOQ::SymbolicAutomata::gateCount << "] gates. The verification process [" << (verify ? "OK" : "failed") << "] in [" << AUTOQ::Util::Convert::toString(chrono::steady_clock::now() - start) << "] with [" << AUTOQ::Util::getPeakRSS() / 1024 / 1024 << "MB] memory usage.\n";
             }
         } else if (std::holds_alternative<AUTOQ::PredicateAutomata>(spec1)) {
             auto &spec = std::get<AUTOQ::PredicateAutomata>(spec1);
@@ -240,7 +240,7 @@ try {
             if (latex) {
                 aut.print_stats();
             } else {
-                std::cout << "The quantum program has [" << aut.qubitNum << "] qubits and [" << AUTOQ::SymbolicAutomata::gateCount << "] gates.\nThe verification process [" << (verify ? "passed" : "failed") << "] in [" << AUTOQ::Util::Convert::toString(chrono::steady_clock::now() - start) << "] with [" << AUTOQ::Util::getPeakRSS() / 1024 / 1024 << "MB] memory usage.\n";
+                std::cout << "The quantum program has [" << aut.qubitNum << "] qubits and [" << AUTOQ::SymbolicAutomata::gateCount << "] gates. The verification process [" << (verify ? "OK" : "failed") << "] in [" << AUTOQ::Util::Convert::toString(chrono::steady_clock::now() - start) << "] with [" << AUTOQ::Util::getPeakRSS() / 1024 / 1024 << "MB] memory usage.\n";
             }
         } else if (std::holds_alternative<AUTOQ::TreeAutomata>(spec1)) {
             auto &spec = std::get<AUTOQ::TreeAutomata>(spec1);
@@ -260,7 +260,7 @@ try {
             if (latex) {
                 aut.print_stats();
             } else {
-                std::cout << "The quantum program has [" << aut.qubitNum << "] qubits and [" << AUTOQ::TreeAutomata::gateCount << "] gates.\nThe verification process [" << (verify ? "passed" : "failed") << "] in [" << AUTOQ::Util::Convert::toString(chrono::steady_clock::now() - start) << "] with [" << AUTOQ::Util::getPeakRSS() / 1024 / 1024 << "MB] memory usage.\n";
+                std::cout << "The quantum program has [" << aut.qubitNum << "] qubits and [" << AUTOQ::TreeAutomata::gateCount << "] gates. The verification process [" << (verify ? "OK" : "failed") << "] in [" << AUTOQ::Util::Convert::toString(chrono::steady_clock::now() - start) << "] with [" << AUTOQ::Util::getPeakRSS() / 1024 / 1024 << "MB] memory usage.\n";
             }
         } else {
             THROW_AUTOQ_ERROR("Unsupported type of the postcondition.");
