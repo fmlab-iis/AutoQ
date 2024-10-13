@@ -133,6 +133,7 @@ struct AUTOQ::Automata
 
 	/******************************************************/
     /* inclusion.cc: checks language inclusion of two TAs */
+    bool operator_scaled_inclusion_with_renaming(Automata o) const;
     bool operator<<=(Automata o) const;
     bool operator<=(const Automata &o) const;
     bool operator>=(const Automata &o) const { return o <= *this; }

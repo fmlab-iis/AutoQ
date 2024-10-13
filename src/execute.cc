@@ -217,7 +217,7 @@ bool AUTOQ::Automata<Symbol>::execute(const char *filename) {
                 // measure_to_continue.print_language("C(measure_to_continue):\n");
                 // I.print_language("I:\n");
                 // measure_to_continue.remove_useless(); measure_to_continue.reduce(); // I.remove_useless(); I.reduce();
-                bool t = (*this <<= I);
+                bool t = this->operator_scaled_inclusion_with_renaming(I);
                 verify &= t;
                 if (!t) {
                     AUTOQ_ERROR("[ERROR] C(measure_to_continue(I)) ⊈ I.");
@@ -283,6 +283,7 @@ bool AUTOQ::Automata<Symbol>::execute(const char *filename) {
             THROW_AUTOQ_ERROR("unsupported gate: " + line + ".");
         previous_line = line;
         // print_stats(previous_line, true);
+        // print_language(("\n" + previous_line + "\n").c_str());
         stop_execute = std::chrono::steady_clock::now();
     }
     qasm.close();
