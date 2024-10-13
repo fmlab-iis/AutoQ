@@ -152,14 +152,14 @@ void AUTOQ::Automata<Symbol>::General_Single_Qubit_Gate(int t, const std::functi
 }
 
 template <typename Symbol>
-void AUTOQ::Automata<Symbol>::General_Controlled_Gate(int c, int t, const std::function<Symbol(const Symbol&, const Symbol&)> &u1u2, const std::function<Symbol(const Symbol&, const Symbol&)> &u3u4) {
+void AUTOQ::Automata<Symbol>::General_Controlled_Gate(int c, int t, const std::function<Symbol(const Symbol&, const Symbol&)> &u1u2, const std::function<Symbol(const Symbol&, const Symbol&)> &u3u4, const std::function<Symbol(const Symbol&)> &multiply_by_c0) {
     if (c <= t) {
         THROW_AUTOQ_ERROR("We require c > t here.");
     }
-    General_Controlled_Gate(c, c, t, u1u2, u3u4);
+    General_Controlled_Gate(c, c, t, u1u2, u3u4, multiply_by_c0);
 }
 template <typename Symbol>
-void AUTOQ::Automata<Symbol>::General_Controlled_Gate(int c, int c2, int t, const std::function<Symbol(const Symbol&, const Symbol&)> &u1u2, const std::function<Symbol(const Symbol&, const Symbol&)> &u3u4) {
+void AUTOQ::Automata<Symbol>::General_Controlled_Gate(int c, int c2, int t, const std::function<Symbol(const Symbol&, const Symbol&)> &u1u2, const std::function<Symbol(const Symbol&, const Symbol&)> &u3u4, const std::function<Symbol(const Symbol&)> &multiply_by_c0) {
     auto minC = std::min(c, c2);
     if (minC <= t) {
         THROW_AUTOQ_ERROR("We require all c's > t here.");
@@ -186,10 +186,18 @@ void AUTOQ::Automata<Symbol>::General_Controlled_Gate(int c, int c2, int t, cons
     // This traversal method is due to efficiency.
     auto it = transitions.begin(); // global pointer, useless initial value only for declaring its type
     bool it_has_been_assigned = false;
-    for (auto it0 = transitions.begin(); it0 != transitions.end(); it0++) { // iterate over all internal transitions of symbol < t
-        if (it0->first.symbol().is_leaf() || it0->first.symbol().qubit() < t)
+    for (auto it0 = transitions.begin(); it0 != transitions.end(); it0++) { // iterate over all internal transitions of symbol < t and leaf transitions
+        if (it0->first.symbol().is_leaf()) { // push default leaves (operated with some provided function) into the result first!
+            auto first = it0->first;
+            first.symbol() = multiply_by_c0(first.symbol());
+            for (const auto &out_ins : it0->second) {
+                for (const auto &in : out_ins.second) {
+                    result.transitions[first][out_ins.first].insert(in);
+                }
+            }
+        } else if (it0->first.symbol().qubit() < t) { // must be internal
             result.transitions.insert(*it0);
-        if (!it_has_been_assigned && it0->first.symbol().qubit() >= t) {
+        } else if (!it_has_been_assigned) { // && it0->first.symbol().qubit() >= t) {
             it = it0;
             it_has_been_assigned = true;
         }
@@ -1542,9 +1550,10 @@ void AUTOQ::Automata<Symbol>::CK(int c, int t) {
         return;
     #endif
     auto start = std::chrono::steady_clock::now();
-    General_Single_Qubit_Gate(t,
+    General_Controlled_Gate(c, t,
         [](const Symbol &l, const Symbol &r) -> Symbol { return l * 220 - r * 21; },
-        [](const Symbol &l, const Symbol &r) -> Symbol { return l * 21 + r * 220; });
+        [](const Symbol &l, const Symbol &r) -> Symbol { return l * 21 + r * 220; },
+        [](const Symbol &l) -> Symbol { return l * 221; });
     gateCount++;
     auto duration = std::chrono::steady_clock::now() - start;
     if (gateLog) std::cout << "CK" << c << "," << t << "：" << stateNum << " states " << count_transitions() << " transitions " << AUTOQ::Util::print_duration(duration) << "\n";
