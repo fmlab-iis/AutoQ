@@ -6,10 +6,10 @@ TIMEOUT = 300
 p = subprocess.run(f'find {sys.argv[1]} -type f -name "*.qasm" | wc -l', shell=True, capture_output=True, executable='/bin/bash')
 NUM_OF_CASES = int(p.stdout.splitlines()[0].decode('utf-8'))
 NUM_OF_THREADS = min(200, NUM_OF_CASES)
-CTA_EXE = 'autoq'
+CTA_EXE = '../../../build/cli/autoq'
 TA_EXE = '../autoq_pldi'
 TA_SYMBOLIC_EXE = '../autoq_symbolic'
-VATA_EXE = '../../vata'
+VATA_EXE = '../vata'
 SLIQSIM_EXE = '../test_SliQSim.py'
 SVSIM_EXE = '../test_SV-Sim.py'
 
