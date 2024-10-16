@@ -12,6 +12,7 @@ TA_SYMBOLIC_EXE = '../autoq_symbolic'
 VATA_EXE = '../vata'
 SLIQSIM_EXE = '../test_SliQSim.py'
 SVSIM_EXE = '../test_SV-Sim.py'
+CPU = 0
 
 processes = []
 def kill_processes():
@@ -269,10 +270,8 @@ def symqv(root, semaphore, lock, counter):
         print(symqv.__name__, root, data, str(counter.value), flush=True)
         ##############################################
         lock.release()
-CaALMap = {'BV': 'BVsingle', 'GHZall': 'GHZall', 'GHZzero': 'GHZsingle', 'H2': 'H2all', 'HXH': 'HXHall', 'MCToffoli': 'MCXall', 'MOBV_reorder': 'BVall'}
-# 'Grover': 'GroverSingle',
-# 'MOGrover': 'GroverAll'
-def CaAL(root, semaphore, lock, counter):
+CaALMap = {'MOBV_reorder': 'BVallBug', 'BV': 'BVsingleBug', 'GHZall': 'GHZallBug', 'GHZzero': 'GHZsingleBug', 'MOGrover': 'GroverAllBug', 'Grover': 'GroverSingleBug', 'H2': 'H2allBug', 'HXH': 'HXHallBug', 'MCToffoli': 'MCXallBug', 'OEGrover': 'OEGroverBug'}
+def CaAL(root, semaphore, lock, counter, CPU):
     with semaphore:
         p = subprocess.run(f'grep -Po ".*qreg.*\[\K\d+(?=\];)" {root}/circuit.qasm', shell=True, capture_output=True, executable='/bin/bash')
         q = p.stdout.splitlines()[0].decode('utf-8')
@@ -283,7 +282,7 @@ def CaAL(root, semaphore, lock, counter):
         data['G'] = G
         key = root.split('/')[1]
         if key in CaALMap:
-            cmd = f"time taskset -c {semaphore.get_value()} timeout {TIMEOUT} java -cp /home/guest/princess/target/scala-2.11/Princess-assembly-2022-11-03.jar {CaALMap[key]} {int(root.split('/')[2])}"#; print(cmd)
+            cmd = f"time taskset -c {CPU} timeout {TIMEOUT} java -cp /home/guest/princess/target/scala-2.11/Princess-assembly-2022-11-03.jar {CaALMap[key]} /home/guest/AutoQ/POPL25/Kick-the-Tires/non-parameterized/{sys.argv[1]}/{root.split('/')[1]}/{root.split('/')[2]}/circuit.qasm"; print(cmd)
             begin = time.monotonic()
             p = subprocess.run(cmd, shell=True, capture_output=True, executable='/bin/bash')
             end = time.monotonic()
@@ -371,7 +370,11 @@ for root, dirnames, filenames in sorted(os.walk('.')):
         for func in tools:
             if 'OEGrover' in root and func not in (LSTA, TA, symqv): continue
             semaphore.acquire(); semaphore.release()
-            p = Process(target=func, args=(root, semaphore, lock, counter))
+            if func == CaAL:
+                p = Process(target=func, args=(root, semaphore, lock, counter, CPU))
+                CPU = (CPU+1) % NUM_OF_THREADS
+            else:
+                p = Process(target=func, args=(root, semaphore, lock, counter))
             p.start()
             processes.append(p.pid)
             process_pool_small.append(p)

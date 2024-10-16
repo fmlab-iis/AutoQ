@@ -156,10 +156,10 @@ def json_to_latex_table(tool_list, latex_filename):
             if 'autoq' in tool:
                 data = {'result': data['result']}
             print(file, tool, data, list(data.values()))
-            if 'symqv' in tool:
-                the_string_to_be_added += (' & ' + ' & '.join(map(str, list(data.values())))).replace('ERROR', r'\TO')
-            else:
-                the_string_to_be_added += (' & ' + ' & '.join(map(str, list(data.values())))).replace('ERROR', r'\error')
+            # if 'symqv' in tool:
+            #     the_string_to_be_added += (' & ' + ' & '.join(map(str, list(data.values())))).replace('ERROR', r'\TO')
+            # else:
+            the_string_to_be_added += (' & ' + ' & '.join(map(str, list(data.values())))).replace('ERROR', r'\error')
         the_string_to_be_added = the_string_to_be_added.replace('TIMEOUT', r'\TO')
         the_string_to_be_added += (7 - the_string_to_be_added.count('&')) * ' & -'
         if file.split('/')[1] not in contents:
