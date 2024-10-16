@@ -282,7 +282,7 @@ def CaAL(root, semaphore, lock, counter, CPU):
         data['G'] = G
         key = root.split('/')[1]
         if key in CaALMap:
-            cmd = f"time taskset -c {CPU} timeout {TIMEOUT} java -cp /home/guest/princess/target/scala-2.11/Princess-assembly-2022-11-03.jar {CaALMap[key]} /home/guest/AutoQ/POPL25/Kick-the-Tires/non-parameterized/{sys.argv[1]}/{root.split('/')[1]}/{root.split('/')[2]}/circuit.qasm"; print(cmd)
+            cmd = f"time taskset -c {CPU} timeout {TIMEOUT} java -cp /home/guest/princess/target/scala-2.11/Princess-assembly-2022-11-03.jar {CaALMap[key]} /home/guest/AutoQ/POPL25/Kick-the-Tires/non-parameterized/{sys.argv[1]}/{root.split('/')[1]}/{root.split('/')[2]}/circuit.qasm"#; print(cmd)
             begin = time.monotonic()
             p = subprocess.run(cmd, shell=True, capture_output=True, executable='/bin/bash')
             end = time.monotonic()
