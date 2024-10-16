@@ -224,7 +224,7 @@ def svsim(root, semaphore, lock, counter):
         print(svsim.__name__, root, data, str(counter.value), flush=True)
         ##############################################
         lock.release()
-symqvMap = {'BV': 'BVsingle', 'GHZall': 'GHZall', 'GHZzero': 'GHZsingle', 'Grover': 'GroverSingle', 'H2': 'H2all', 'HXH': 'HXHall', 'MCToffoli': 'MCXall', 'MOBV_reorder': 'BVall', 'MOGrover': 'GroverAll'}
+symqvMap = {'BV': 'BVsingle', 'GHZall': 'GHZall', 'GHZzero': 'GHZsingle', 'Grover': 'GroverSingle', 'H2': 'H2all', 'HXH': 'HXHall', 'MCToffoli': 'MCXall', 'MOBV_reorder': 'BVall', 'MOGrover': 'GroverAll', 'OEGrover': 'OEGrover'}
 def symqv(root, semaphore, lock, counter):
     with semaphore:
         p = subprocess.run(f'grep -Po ".*qreg.*\[\K\d+(?=\];)" {root}/circuit.qasm', shell=True, capture_output=True, executable='/bin/bash')
@@ -234,7 +234,8 @@ def symqv(root, semaphore, lock, counter):
         data = dict()
         data['q'] = q
         data['G'] = G
-        cmd = f"cd /home/alan23273850/fabianbauermarquart-symqv-fa8ec7f/PLDI24/ && source ../.venv/bin/activate && timeout {TIMEOUT} ./{symqvMap[root.split('/')[1]]}.py {int(root.split('/')[2])}"#; print(cmd)
+        cmd = f"cd /home/alan23273850/fabianbauermarquart-symqv-fa8ec7f/POPL25/ && source ../.venv/bin/activate && timeout {TIMEOUT} ./{symqvMap[root.split('/')[1]]}.py /home/alan23273850/AutoQ/POPL25/Kick-the-Tires/non-parameterized/{sys.argv[1]}/{root.split('/')[1]}/{root.split('/')[2]}/circuit.qasm"#; print(cmd)
+        # print(cmd) # cd /home/alan23273850/fabianbauermarquart-symqv-fa8ec7f/POPL25 && source ../.venv/bin/activate && timeout 300 ./OEGrover.py /home/alan23273850/AutoQ/POPL25/Kick-the-Tires/non-parameterized/correct/OEGrover/02/circuit.qasm
         begin = time.monotonic()
         p = subprocess.run(cmd, shell=True, capture_output=True, executable='/bin/bash')
         end = time.monotonic()
@@ -247,7 +248,8 @@ def symqv(root, semaphore, lock, counter):
             data['result'] = 'ERROR'
         else:
             # assume format: ('unsat', {}, 8.522298574447632)
-            match = re.search(r"\('unsat', {}, ([\d\.]*)\)", p.stdout.decode('utf-8').splitlines()[-1].strip())
+            # also accept something like ('δ-sat with δ = 0.0001', OrderedDict([('psi_0_0', -0.0000 + 0.0000*I), ('psi_0_1', -0.0000 + -0.0000*I), ('psi_0_2', 0.0000 + 0.0000*I), ('psi_0_3', -0.0000 + 0.0000*I), ('psi_0_4', 0.5000 + 0.0000*I), ('psi_0_5', 0.3536 + 0.3536*I), ('psi_0_6', -0.0000 + -0.5000*I), ('psi_0_7', 0.3536 + -0.3536*I), ('psi_1_0', 0.5000 + 0.0000*I), ('psi_1_1', 0.3536 + 0.3536*I), ('psi_1_2', -0.0000 + -0.5000*I), ('psi_1_3', 0.3536 + -0.3536*I), ('psi_1_4', -0.0000 + 0.0000*I), ('psi_1_5', -0.0000 + -0.0000*I), ('psi_1_6', 0.0000 + 0.0000*I), ('psi_1_7', -0.0000 + 0.0000*I), ('psi_2_0', 0.5000 + 0.0000*I), ('psi_2_1', 0.3536 + 0.3536*I), ('psi_2_2', -0.0000 + -0.5000*I), ('psi_2_3', 0.3536 + -0.3536*I), ('psi_2_4', -0.0000 + 0.0000*I), ('psi_2_5', -0.0000 + -0.0000*I), ('psi_2_6', -0.0000 + -0.0000*I), ('psi_2_7', 0.0000 + -0.0000*I), ('psi_3_0', -0.0000 + 0.0000*I), ('psi_3_1', -0.0000 + -0.0000*I), ('psi_3_2', -0.0000 + -0.0000*I), ('psi_3_3', 0.0000 + -0.0000*I), ('psi_3_4', 0.5000 + 0.0000*I), ('psi_3_5', 0.3536 + 0.3536*I), ('psi_3_6', -0.0000 + -0.5000*I), ('psi_3_7', 0.3536 + -0.3536*I), ('psi_4_0', 0.3536 + 0.0000*I), ('psi_4_1', 0.2500 + 0.2500*I), ('psi_4_2', -0.0000 + -0.3536*I), ('psi_4_3', 0.2500 + -0.2500*I), ('psi_4_4', -0.3536 + 0.0000*I), ('psi_4_5', -0.2500 + -0.2500*I), ('psi_4_6', 0.0000 + 0.3536*I), ('psi_4_7', -0.2500 + 0.2500*I), ('psi_5_0', 0.2500 + -0.2500*I), ('psi_5_1', 0.3536 + -0.0000*I), ('psi_5_2', 0.2500 + 0.2500*I), ('psi_5_3', -0.0000 + 0.3536*I), ('psi_5_4', -0.2500 + 0.2500*I), ('psi_5_5', -0.3536 + -0.0000*I), ('psi_5_6', -0.2500 + -0.2500*I), ('psi_5_7', 0.0000 + -0.3536*I), ('psi_6_0', -0.2500 + 0.2500*I), ('psi_6_1', -0.3536 + -0.0000*I), ('psi_6_2', -0.2500 + -0.2500*I), ('psi_6_3', 0.0000 + -0.3536*I), ('psi_6_4', 0.2500 + -0.2500*I), ('psi_6_5', 0.3536 + -0.0000*I), ('psi_6_6', 0.2500 + 0.2500*I), ('psi_6_7', -0.0000 + 0.3536*I), ('psi_7_0', -0.2500 + -0.2500*I), ('psi_7_1', 0.0000 + -0.3536*I), ('psi_7_2', -0.2500 + 0.2500*I), ('psi_7_3', -0.3536 + -0.0000*I), ('psi_7_4', 0.2500 + 0.2500*I), ('psi_7_5', -0.0000 + 0.3536*I), ('psi_7_6', 0.2500 + -0.2500*I), ('psi_7_7', 0.3536 + -0.0000*I), ('psi_8_0', -0.2500 + -0.2500*I), ('psi_8_1', 0.0000 + -0.3536*I), ('psi_8_2', -0.2500 + 0.2500*I), ('psi_8_3', -0.3536 + -0.0000*I), ('psi_8_4', 0.2500 + 0.2500*I), ('psi_8_5', -0.0000 + 0.3536*I), ('psi_8_6', -0.2500 + 0.2500*I), ('psi_8_7', -0.3536 + 0.0000*I), ('psi_9_0', 0.2500 + 0.2500*I), ('psi_9_1', -0.0000 + 0.3536*I), ('psi_9_2', -0.2500 + 0.2500*I), ('psi_9_3', -0.3536 + 0.0000*I), ('psi_9_4', -0.2500 + -0.2500*I), ('psi_9_5', 0.0000 + -0.3536*I), ('psi_9_6', -0.2500 + 0.2500*I), ('psi_9_7', -0.3536 + -0.0000*I), ('psi_10_0', -0.2500 + 0.2500*I), ('psi_10_1', -0.3536 + 0.0000*I), ('psi_10_2', 0.2500 + 0.2500*I), ('psi_10_3', -0.0000 + 0.3536*I), ('psi_10_4', -0.2500 + 0.2500*I), ('psi_10_5', -0.3536 + -0.0000*I), ('psi_10_6', -0.2500 + -0.2500*I), ('psi_10_7', 0.0000 + -0.3536*I), ('psi_11_0', -0.3536 + 0.3536*I), ('psi_11_1', -0.5000 + 0.0000*I), ('psi_11_2', -0.0000 + 0.0000*I), ('psi_11_3', -0.0000 + 0.0000*I), ('psi_11_4', 0.0000 + 0.0000*I), ('psi_11_5', -0.0000 + 0.0000*I), ('psi_11_6', 0.3536 + 0.3536*I), ('psi_11_7', -0.0000 + 0.5000*I), ('psi_12_0', -0.3536 + 0.3536*I), ('psi_12_1', 0.5000 + -0.0000*I), ('psi_12_2', -0.0000 + 0.0000*I), ('psi_12_3', 0.0000 + -0.0000*I), ('psi_12_4', 0.0000 + 0.0000*I), ('psi_12_5', 0.0000 + -0.0000*I), ('psi_12_6', 0.3536 + 0.3536*I), ('psi_12_7', 0.0000 + -0.5000*I), ('q1', (0.7071 + 0.0000j)|0⟩ + (-0.0000 + -0.7071j)|1⟩), ('q2', (0.7071 + 0.0000j)|0⟩ + (0.5000 + 0.5000j)|1⟩), ('q0', (-0.0000 + 0.0000j)|0⟩ + (1.0000 + 0.0000j)|1⟩)]), 234.41243076324463)
+            match = re.search(r"\('.*sat.*',.*, ([\d\.]*)\)", p.stdout.decode('utf-8').splitlines()[-1].strip())
             if match:
                 data['result'] = 'O'
                 total_time = float(match.group(1)) # Extract the number within the square brackets
@@ -367,7 +369,7 @@ for root, dirnames, filenames in sorted(os.walk('.')):
     if len(dirnames) == 0 and 'circuit.qasm' in filenames:
         process_pool_small = []
         for func in tools:
-            if 'OEGrover' in root and func not in (LSTA, TA): continue
+            if 'OEGrover' in root and func not in (LSTA, TA, symqv): continue
             semaphore.acquire(); semaphore.release()
             p = Process(target=func, args=(root, semaphore, lock, counter))
             p.start()
