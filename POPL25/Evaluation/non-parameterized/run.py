@@ -235,8 +235,8 @@ def symqv(root, semaphore, lock, counter):
         data = dict()
         data['q'] = q
         data['G'] = G
-        cmd = f"cd /home/guest/fabianbauermarquart-symqv-fa8ec7f/POPL25/ && source ../.venv/bin/activate && timeout {TIMEOUT} ./{symqvMap[root.split('/')[1]]}.py /home/guest/AutoQ/POPL25/Evaluation/non-parameterized/{sys.argv[1]}/{root.split('/')[1]}/{root.split('/')[2]}/circuit.qasm"#; print(cmd)
-        # print(cmd) # cd /home/guest/fabianbauermarquart-symqv-fa8ec7f/POPL25 && source ../.venv/bin/activate && timeout 300 ./OEGrover.py /home/guest/AutoQ/POPL25/Evaluation/non-parameterized/correct/OEGrover/02/circuit.qasm
+        cmd = f"cd /home/guest/fabianbauermarquart-symqv-fa8ec7f/POPL25/ && timeout {TIMEOUT} ./{symqvMap[root.split('/')[1]]}.py /home/guest/AutoQ/POPL25/Evaluation/non-parameterized/{sys.argv[1]}/{root.split('/')[1]}/{root.split('/')[2]}/circuit.qasm"#; print(cmd)
+        # print(cmd) # cd /home/guest/fabianbauermarquart-symqv-fa8ec7f/POPL25 && timeout 300 ./OEGrover.py /home/guest/AutoQ/POPL25/Evaluation/non-parameterized/correct/OEGrover/02/circuit.qasm
         begin = time.monotonic()
         p = subprocess.run(cmd, shell=True, capture_output=True, executable='/bin/bash')
         end = time.monotonic()
