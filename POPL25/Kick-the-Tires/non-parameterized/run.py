@@ -234,8 +234,8 @@ def symqv(root, semaphore, lock, counter):
         data = dict()
         data['q'] = q
         data['G'] = G
-        cmd = f"cd /home/alan23273850/fabianbauermarquart-symqv-fa8ec7f/POPL25/ && source ../.venv/bin/activate && timeout {TIMEOUT} ./{symqvMap[root.split('/')[1]]}.py /home/alan23273850/AutoQ/POPL25/Kick-the-Tires/non-parameterized/{sys.argv[1]}/{root.split('/')[1]}/{root.split('/')[2]}/circuit.qasm"#; print(cmd)
-        # print(cmd) # cd /home/alan23273850/fabianbauermarquart-symqv-fa8ec7f/POPL25 && source ../.venv/bin/activate && timeout 300 ./OEGrover.py /home/alan23273850/AutoQ/POPL25/Kick-the-Tires/non-parameterized/correct/OEGrover/02/circuit.qasm
+        cmd = f"cd /home/guest/fabianbauermarquart-symqv-fa8ec7f/POPL25/ && source ../.venv/bin/activate && timeout {TIMEOUT} ./{symqvMap[root.split('/')[1]]}.py /home/guest/AutoQ/POPL25/Kick-the-Tires/non-parameterized/{sys.argv[1]}/{root.split('/')[1]}/{root.split('/')[2]}/circuit.qasm"#; print(cmd)
+        # print(cmd) # cd /home/guest/fabianbauermarquart-symqv-fa8ec7f/POPL25 && source ../.venv/bin/activate && timeout 300 ./OEGrover.py /home/guest/AutoQ/POPL25/Kick-the-Tires/non-parameterized/correct/OEGrover/02/circuit.qasm
         begin = time.monotonic()
         p = subprocess.run(cmd, shell=True, capture_output=True, executable='/bin/bash')
         end = time.monotonic()
@@ -283,7 +283,7 @@ def CaAL(root, semaphore, lock, counter):
         data['G'] = G
         key = root.split('/')[1]
         if key in CaALMap:
-            cmd = f"time taskset -c {semaphore.get_value()} timeout {TIMEOUT} java -cp /home/alan23273850/princess/target/scala-2.11/Princess-assembly-2022-11-03.jar {CaALMap[key]} {int(root.split('/')[2])}"#; print(cmd)
+            cmd = f"time taskset -c {semaphore.get_value()} timeout {TIMEOUT} java -cp /home/guest/princess/target/scala-2.11/Princess-assembly-2022-11-03.jar {CaALMap[key]} {int(root.split('/')[2])}"#; print(cmd)
             begin = time.monotonic()
             p = subprocess.run(cmd, shell=True, capture_output=True, executable='/bin/bash')
             end = time.monotonic()
