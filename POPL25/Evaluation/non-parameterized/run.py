@@ -5,8 +5,8 @@ from multiprocessing import Manager, Process, Semaphore, Lock
 TIMEOUT = 300
 p = subprocess.run(f'find {sys.argv[1]} -type f -name "*.qasm" | wc -l', shell=True, capture_output=True, executable='/bin/bash')
 NUM_OF_CASES = int(p.stdout.splitlines()[0].decode('utf-8'))
-NUM_OF_THREADS = min(200, NUM_OF_CASES)
-CTA_EXE = '../../../build/cli/autoq'
+NUM_OF_THREADS = min(4, NUM_OF_CASES)
+LSTA_EXE = '../../../../build/cli/autoq'
 TA_EXE = '../autoq_pldi'
 TA_SYMBOLIC_EXE = '../autoq_symbolic'
 VATA_EXE = '../vata'
@@ -48,7 +48,7 @@ def append_key_value_to_json_file(json_file, new_key, new_value):
     with open(json_file, 'w') as file:
         json.dump(data, file, indent=4)
 
-def CTA(root, semaphore, lock, counter):
+def LSTA(root, semaphore, lock, counter):
     with semaphore:
         p = subprocess.run(f'grep -Po ".*qreg.*\[\K\d+(?=\];)" {root}/circuit.qasm', shell=True, capture_output=True, executable='/bin/bash')
         q = p.stdout.splitlines()[0].decode('utf-8')
@@ -59,11 +59,11 @@ def CTA(root, semaphore, lock, counter):
         data['G'] = G
         cmd = ''
         if 'MCToffoli' in root:
-            cmd = f'timeout {TIMEOUT} {CTA_EXE} verC {root}/pre0.spec {root}/circuit.qasm {root}/post0.spec --latex'#; print(cmd)
+            cmd = f'timeout {TIMEOUT} {LSTA_EXE} verC {root}/pre0.spec {root}/circuit.qasm {root}/post0.spec --latex'#; print(cmd)
         elif 'OEGrover' in root:
-            cmd = f'timeout {TIMEOUT} {CTA_EXE} verS {root}/pre.spec {root}/circuit.qasm {root}/post.spec {root}/constraint.smt --latex'#; print(cmd)
+            cmd = f'timeout {TIMEOUT} {LSTA_EXE} verS {root}/pre.spec {root}/circuit.qasm {root}/post.spec {root}/constraint.smt --latex'#; print(cmd)
         else:
-            cmd = f'timeout {TIMEOUT} {CTA_EXE} verC {root}/pre.spec {root}/circuit.qasm {root}/post.spec --latex'#; print(cmd)
+            cmd = f'timeout {TIMEOUT} {LSTA_EXE} verC {root}/pre.spec {root}/circuit.qasm {root}/post.spec --latex'#; print(cmd)
         begin = time.monotonic()
         p = subprocess.run(cmd, shell=True, capture_output=True, executable='/bin/bash')
         end = time.monotonic()
@@ -83,13 +83,13 @@ def CTA(root, semaphore, lock, counter):
             data['total'] = v[6]
             data['result'] = v[7]
         elif ret == 124:
-            data['total'] = TIMEOUT
+            data['total'] = str(TIMEOUT)
             data['result'] = 'TIMEOUT'
         else:
-            data['total'] = round(end - begin, 1)
+            data['total'] = str(round(end - begin, 1))
             data['result'] = 'ERROR'
         if 'MCToffoli' in root:
-            cmd = f'timeout {TIMEOUT} {CTA_EXE} verC {root}/pre1.spec {root}/circuit.qasm {root}/post1.spec --latex'#; print(cmd)
+            cmd = f'timeout {TIMEOUT} {LSTA_EXE} verC {root}/pre1.spec {root}/circuit.qasm {root}/post1.spec --latex'#; print(cmd)
             begin = time.monotonic()
             p = subprocess.run(cmd, shell=True, capture_output=True, executable='/bin/bash')
             end = time.monotonic()
@@ -109,16 +109,16 @@ def CTA(root, semaphore, lock, counter):
                 data['total'] += '/' +  v[6]
                 data['result'] += '/' +  v[7]
             elif ret == 124:
-                data['total'] += '/' +  TIMEOUT
+                data['total'] += '/' +  str(TIMEOUT)
                 data['result'] += '/' +  'TIMEOUT'
             else:
-                data['total'] += '/' +  round(end - begin, 1)
+                data['total'] += '/' +  str(round(end - begin, 1))
                 data['result'] += '/' +  'ERROR'
         lock.acquire()
         ##############################################
         append_key_value_to_json_file('lsta.json', root, data)
         counter.value += 1
-        print(root, data, str(counter.value) + '/' + str(NUM_OF_CASES), flush=True)
+        print(LSTA.__name__, root, data, str(counter.value), flush=True)
         ##############################################
         lock.release()
 def TA(root, semaphore, lock, counter):
@@ -156,10 +156,10 @@ def TA(root, semaphore, lock, counter):
             data['total'] = v[6]
             data['result'] = v[7]
         elif ret == 124:
-            data['total'] = TIMEOUT
+            data['total'] = str(TIMEOUT)
             data['result'] = 'TIMEOUT'
         else:
-            data['total'] = round(end - begin, 1)
+            data['total'] = str(round(end - begin, 1))
             data['result'] = 'ERROR'
         if 'MCToffoli' in root:
             cmd = f'VATA_PATH={VATA_EXE} timeout {TIMEOUT} {TA_EXE} {root}/pre1.aut {root}/circuit.qasm {root}/post1.aut'
@@ -182,16 +182,16 @@ def TA(root, semaphore, lock, counter):
                 data['total'] += '/' +  v[6]
                 data['result'] += '/' +  v[7]
             elif ret == 124:
-                data['total'] += '/' +  TIMEOUT
+                data['total'] += '/' +  str(TIMEOUT)
                 data['result'] += '/' +  'TIMEOUT'
             else:
-                data['total'] += '/' +  round(end - begin, 1)
+                data['total'] += '/' +  str(round(end - begin, 1))
                 data['result'] += '/' +  'ERROR'
         lock.acquire()
         ##############################################
         append_key_value_to_json_file('autoq.json', root, data)
         counter.value += 1
-        print(root, data, str(counter.value) + '/' + str(NUM_OF_CASES), flush=True)
+        print(TA.__name__, root, data, str(counter.value), flush=True)
         ##############################################
         lock.release()
 def svsim(root, semaphore, lock, counter):
@@ -209,10 +209,10 @@ def svsim(root, semaphore, lock, counter):
         end = time.monotonic()
         ret = p.returncode
         if ret == 124:
-            data['total'] = TIMEOUT
+            data['total'] = str(TIMEOUT)
             data['result'] = 'TIMEOUT'
         elif ret != 0:
-            data['total'] = round(end - begin, 1)
+            data['total'] = str(round(end - begin, 1))
             data['result'] = 'ERROR'
         else:
             data['total'] = p.stdout.decode('utf-8').splitlines()[-1].strip()
@@ -221,7 +221,7 @@ def svsim(root, semaphore, lock, counter):
         ##############################################
         append_key_value_to_json_file('svsim.json', root, data)
         counter.value += 1
-        print(root, data, str(counter.value) + '/' + str(NUM_OF_CASES), flush=True)
+        print(svsim.__name__, root, data, str(counter.value), flush=True)
         ##############################################
         lock.release()
 symqvMap = {'BV': 'BVsingle', 'GHZall': 'GHZall', 'GHZzero': 'GHZsingle', 'Grover': 'GroverSingle', 'H2': 'H2all', 'HXH': 'HXHall', 'MCToffoli': 'MCXall', 'MOBV_reorder': 'BVall', 'MOGrover': 'GroverAll'}
@@ -240,10 +240,10 @@ def symqv(root, semaphore, lock, counter):
         end = time.monotonic()
         ret = p.returncode
         if ret == 124:
-            data['total'] = TIMEOUT
+            data['total'] = str(TIMEOUT)
             data['result'] = 'TIMEOUT'
         elif ret != 0:
-            data['total'] = round(end - begin, 1)
+            data['total'] = str(round(end - begin, 1))
             data['result'] = 'ERROR'
         else:
             # assume format: ('unsat', {}, 8.522298574447632)
@@ -258,13 +258,13 @@ def symqv(root, semaphore, lock, counter):
                 else:
                     data['total'] = '%.1fs' % total_time
             else:
-                data['total'] = round(end - begin, 1)
+                data['total'] = str(round(end - begin, 1))
                 data['result'] = 'X'
         lock.acquire()
         ##############################################
         append_key_value_to_json_file('symqv.json', root, data)
         counter.value += 1
-        print(root, data, str(counter.value) + '/' + str(NUM_OF_CASES), flush=True)
+        print(symqv.__name__, root, data, str(counter.value), flush=True)
         ##############################################
         lock.release()
 CaALMap = {'BV': 'BVsingle', 'GHZall': 'GHZall', 'GHZzero': 'GHZsingle', 'H2': 'H2all', 'HXH': 'HXHall', 'MCToffoli': 'MCXall', 'MOBV_reorder': 'BVall'}
@@ -287,10 +287,10 @@ def CaAL(root, semaphore, lock, counter):
             end = time.monotonic()
             ret = p.returncode
             if ret == 124:
-                data['total'] = TIMEOUT
+                data['total'] = str(TIMEOUT)
                 data['result'] = 'TIMEOUT'
             elif ret != 0:
-                data['total'] = round(end - begin, 1)
+                data['total'] = str(round(end - begin, 1))
                 data['result'] = 'ERROR'
             else:
                 # assume format:
@@ -305,16 +305,16 @@ def CaAL(root, semaphore, lock, counter):
                     data['total'] = total_time.split()[-1]
                     data['result'] = 'O'
                 else:
-                    data['total'] = round(end - begin, 1)
+                    data['total'] = str(round(end - begin, 1))
                     data['result'] = 'X'
         else:
-            data['total'] = TIMEOUT
+            data['total'] = str(TIMEOUT)
             data['result'] = 'TIMEOUT'
         lock.acquire()
         ##############################################
         append_key_value_to_json_file('caal.json', root, data)
         counter.value += 1
-        print(root, data, str(counter.value) + '/' + str(NUM_OF_CASES), flush=True)
+        print(CaAL.__name__, root, data, str(counter.value), flush=True)
         ##############################################
         lock.release()
 def SliQSim(root, semaphore, lock, counter):
@@ -332,11 +332,11 @@ def SliQSim(root, semaphore, lock, counter):
         end = time.monotonic()
         ret = p.returncode
         if ret == 124:
-            data['total'] = TIMEOUT
+            data['total'] = str(TIMEOUT)
             data['result'] = 'TIMEOUT'
         elif ret != 0:
             print(cmd)
-            data['total'] = round(end - begin, 1)
+            data['total'] = str(round(end - begin, 1))
             data['result'] = 'ERROR'
         else:
             data['total'] = p.stdout.splitlines()[0].decode('utf-8').strip()
@@ -345,7 +345,7 @@ def SliQSim(root, semaphore, lock, counter):
         ##############################################
         append_key_value_to_json_file('sliqsim.json', root, data)
         counter.value += 1
-        print(root, data, str(counter.value) + '/' + str(NUM_OF_CASES), flush=True)
+        print(SliQSim.__name__, root, data, str(counter.value), flush=True)
         ##############################################
         lock.release()
 
@@ -356,7 +356,7 @@ process_pool_large = []
 lock = Lock()
 os.chdir(sys.argv[1]) # origin/
 tools = []
-tools.append(CTA); os.remove('lsta.json') if os.path.exists('lsta.json') else None
+tools.append(LSTA); os.remove('lsta.json') if os.path.exists('lsta.json') else None
 tools.append(TA); os.remove('autoq.json') if os.path.exists('autoq.json') else None
 tools.append(svsim); os.remove('svsim.json') if os.path.exists('svsim.json') else None
 tools.append(symqv); os.remove('symqv.json') if os.path.exists('symqv.json') else None
@@ -367,7 +367,7 @@ for root, dirnames, filenames in sorted(os.walk('.')):
     if len(dirnames) == 0 and 'circuit.qasm' in filenames:
         process_pool_small = []
         for func in tools:
-            if 'OEGrover' in root and func not in (CTA, TA): continue
+            if 'OEGrover' in root and func not in (LSTA, TA): continue
             semaphore.acquire(); semaphore.release()
             p = Process(target=func, args=(root, semaphore, lock, counter))
             p.start()

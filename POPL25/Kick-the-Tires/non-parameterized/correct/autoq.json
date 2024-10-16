@@ -1,0 +1,102 @@
+{
+    "./GHZall/008": {
+        "q": "8",
+        "G": "8",
+        "before_state": "17",
+        "before_trans": "25",
+        "after_state": "518",
+        "after_trans": "773",
+        "total": "0.1s",
+        "result": "0.0s"
+    },
+    "./BV/95": {
+        "q": "96",
+        "G": "241",
+        "before_state": "193",
+        "before_trans": "193",
+        "after_state": "193",
+        "after_trans": "193",
+        "total": "4.3s",
+        "result": "0.0s"
+    },
+    "./GHZzero/064": {
+        "q": "64",
+        "G": "64",
+        "before_state": "129",
+        "before_trans": "129",
+        "after_state": "191",
+        "after_trans": "191",
+        "total": "0.3s",
+        "result": "0.0s"
+    },
+    "./Grover/12": {
+        "q": "24",
+        "G": "5215",
+        "before_state": "49",
+        "before_trans": "49",
+        "after_state": "71",
+        "after_trans": "71",
+        "total": "10s",
+        "result": "0.0s"
+    },
+    "./H2/012": {
+        "q": "12",
+        "G": "24",
+        "before_state": "25",
+        "before_trans": "37",
+        "after_state": "25",
+        "after_trans": "37",
+        "total": "43s",
+        "result": "0.0s"
+    },
+    "./HXH/10": {
+        "q": "10",
+        "G": "30",
+        "before_state": "21",
+        "before_trans": "31",
+        "after_state": "2057",
+        "after_trans": "3080",
+        "total": "1.7s",
+        "result": "0.0s"
+    },
+    "./MCToffoli/08": {
+        "q": "16",
+        "G": "15",
+        "before_state": "33/33",
+        "before_trans": "41/41",
+        "after_state": "90/90",
+        "after_trans": "126/126",
+        "total": "0.0s/0.0s",
+        "result": "0.0s/0.0s"
+    },
+    "./MOBV_reorder/09": {
+        "q": "19",
+        "G": "30",
+        "before_state": "39",
+        "before_trans": "48",
+        "after_state": "1044",
+        "after_trans": "1555",
+        "total": "2.7s",
+        "result": "0.0s"
+    },
+    "./MOGrover/06": {
+        "q": "18",
+        "G": "357",
+        "before_state": "37",
+        "before_trans": "43",
+        "after_state": "252",
+        "after_trans": "315",
+        "total": "3.0s",
+        "result": "0.0s"
+    },
+    "./OEGrover/02": {
+        "q": "3",
+        "G": "13",
+        "before_state": "8",
+        "before_trans": "8",
+        "after_state": "8",
+        "after_trans": "8",
+        "total": "0.4s",
+        "result": "1"
+    }
+}

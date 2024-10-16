@@ -1,0 +1,138 @@
+\documentclass{article}
+
+\usepackage{booktabs}
+\usepackage{xspace}
+\usepackage{multicol}
+\usepackage{multirow}
+\usepackage{graphicx}
+\usepackage{colortbl}
+\usepackage{xcolor}
+
+% tool names
+\newcommand{\autoq}[0]{\textsc{AutoQ}\xspace}
+\newcommand{\sliqsim}[0]{\textsc{SliQSim}\xspace}
+\newcommand{\feynman}[0]{\textsc{Feynman}\xspace}
+\newcommand{\feynopt}[0]{\textsc{Feynopt}\xspace}
+\newcommand{\qcec}[0]{\textsc{Qcec}\xspace}
+\newcommand{\qbricks}[0]{\textsc{Qbricks}\xspace}
+\newcommand{\qiskit}[0]{\textsc{Qiskit}\xspace}
+\newcommand{\vata}[0]{\textsc{Vata}\xspace}
+\newcommand{\tool}[0]{\textsc{LSTAQ}\xspace}
+\newcommand{\ta}[0]{\textsc{TA}\xspace}
+\newcommand{\correct}[0]{T\xspace}
+\newcommand{\wrong}[0]{F\xspace}
+\newcommand{\unknown}[0]{---\xspace}
+\newcommand{\nacell}[0]{\cellcolor{black!20}}
+\newcommand{\timeout}[0]{\nacell TO}
+\newcommand{\error}[0]{\nacell OOM}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newcommand{\post}[1]{\mathtt{post}\_{#1}}
+
+% benchmarks
+\newcommand{\bvsingbench}[0]{\small\textsc{BV-Sing}\xspace}
+\newcommand{\bvmultbench}[0]{\small\textsc{BV-All}\xspace}
+\newcommand{\ghzsingbench}[0]{\small\textsc{GHZ-Sing}\xspace}
+\newcommand{\ghzmultbench}[0]{\small\textsc{GHZ-All}\xspace}
+\newcommand{\groversingbench}[0]{\small\textsc{Grover-Sing}\xspace}
+\newcommand{\grovermultbench}[0]{\small\textsc{Grover-All}\xspace}
+\newcommand{\hhbench}[0]{\small\textsc{H2}\xspace}
+\newcommand{\hxhbench}[0]{\small\textsc{HXH}\xspace}
+\newcommand{\mctoffolibench}[0]{\small\textsc{MCToffoli}\xspace}
+\newcommand{\randombench}[0]{\textsc{Random}\xspace}
+\newcommand{\revlibbench}[0]{\textsc{RevLib}\xspace}
+\newcommand{\feynmanbench}[0]{\textsc{FeynmanBench}\xspace}
+\newcommand{\oegroverbench}[0]{\small\textsc{Grover-Iter}\xspace}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{document}%\pagenumbering{gobble}
+
+%\scalebox{0.01}
+{%\hspace{-100pt}
+\hoffset=-1in
+\voffset=-1in
+\setbox0\hbox{
+\begin{tabular}{crrrrrrrrrr}\hline
+\toprule
+  &&&& \multicolumn{3}{c}{\tool} & \multirow{2}{*}{\autoq} & \multirow{2}{*}{symQV} & \multirow{2}{*}{CaAL}\\
+  \cmidrule(lr){5-7}
+  & \multicolumn{1}{c}{$n$} & \multicolumn{1}{c}{\textbf{\#q}} & \multicolumn{1}{c}{\textbf{\#G}} & \multicolumn{1}{c}{$\post{C}$} & \multicolumn{1}{c}{$\subseteq$} & \multicolumn{1}{c}{total}\\
+\midrule
+  \multirow{ 5}{*}{\rotatebox[origin=c]{90}{\bvsingbench}}
+ & 95 & 96 & 240 & 0.2s & 0.0s & \textbf{0.2s} & 4.3s & \timeout & \timeout\\
+ & 96 & 97 & 242 & 0.2s & 0.0s & \textbf{0.2s} & 4.4s & \timeout & \timeout\\
+ & 97 & 98 & 245 & 0.2s & 0.0s & \textbf{0.2s} & 4.5s & \timeout & \timeout\\
+ & 98 & 99 & 247 & 0.2s & 0.0s & \textbf{0.2s} & 4.7s & \timeout & \timeout\\
+ & 99 & 100 & 250 & 0.3s & 0.0s & \textbf{0.3s} & 4.7s & \timeout & \timeout\\
+\midrule
+  \multirow{ 5}{*}{\rotatebox[origin=c]{90}{\bvmultbench}}
+ & 9 & 19 & 29 & 0.0s & 0.0s & \textbf{0.0s} & 2.5s & \timeout & \timeout\\
+ & 10 & 21 & 32 & 0.0s & 0.0s & \textbf{0.0s} & 7s & \timeout & \timeout\\
+ & 11 & 23 & 35 & 0.0s & 0.0s & \textbf{0.0s} & 22s & \timeout & \timeout\\
+ & 12 & 25 & 38 & 0.0s & 0.0s & \textbf{0.0s} & 1m10s & \timeout & \timeout\\
+ & 13 & 27 & 41 & 0.0s & 0.0s & \textbf{0.0s} & \timeout & \timeout & \timeout\\
+\midrule
+\multirow{ 5}{*}{\rotatebox[origin=c]{90}{\ghzsingbench}}
+ & 64 & 64 & 63 & 0.0s & 0.0s & \textbf{0.0s} & 0.3s & \timeout & \timeout\\
+ & 128 & 128 & 127 & 0.1s & 0.0s & \textbf{0.1s} & 2.4s & \timeout & \timeout\\
+ & 256 & 256 & 255 & 0.8s & 0.0s & \textbf{0.8s} & 19s & \timeout & \timeout\\
+ & 384 & 384 & 383 & 1.8s & 0.0s & \textbf{1.8s} & 1m8s & \timeout & \timeout\\
+ & 512 & 512 & 511 & 3.5s & 0.0s & \textbf{3.5s} & 2m48s & \timeout & \timeout\\
+\midrule
+  \multirow{ 5}{*}{\rotatebox[origin=c]{90}{\ghzmultbench}}
+ & 8 & 8 & 7 & 0.0s & 0.0s & \textbf{0.0s} & 0.1s & \timeout & \timeout\\
+ & 16 & 16 & 15 & 0.0s & 0.0s & \textbf{0.0s} & \timeout & \timeout & \timeout\\
+ & 32 & 32 & 31 & 0.0s & 0.0s & \textbf{0.0s} & \timeout & \timeout & \timeout\\
+ & 64 & 64 & 63 & 0.1s & 0.0s & \textbf{0.1s} & \timeout & \timeout & \timeout\\
+ & 128 & 128 & 127 & 0.6s & 0.0s & \textbf{0.6s} & \timeout & \timeout & \timeout\\
+\midrule
+  \multirow{ 5}{*}{\rotatebox[origin=c]{90}{\groversingbench}}
+ & 12 & 24 & 5214 & 1.3s & 0.0s & \textbf{1.3s} & 10s & \timeout & \timeout\\
+ & 14 & 28 & 12216 & 3.8s & 0.0s & \textbf{3.8s} & 31s & \timeout & \timeout\\
+ & 16 & 32 & 28158 & 16s & 0.0s & \textbf{16s} & 2m26s & \timeout & \timeout\\
+ & 18 & 36 & 63536 & 44s & 0.0s & \textbf{44s} & \timeout & \timeout & \timeout\\
+ & 20 & 40 & 141526 & 1m29s & 0.0s & \textbf{1m29s} & \timeout & \timeout & \timeout\\
+\midrule
+  \multirow{ 5}{*}{\rotatebox[origin=c]{90}{\grovermultbench}}
+ & 6 & 18 & 356 & 0.2s & 0.0s & \textbf{0.2s} & 3s & \timeout & \timeout\\
+ & 7 & 21 & 551 & 0.9s & 0.0s & \textbf{0.9s} & 11s & \timeout & \timeout\\
+ & 8 & 24 & 938 & 2.9s & 0.1s & \textbf{3s} & 38s & \timeout & \timeout\\
+ & 9 & 27 & 1491 & 9.6s & 0.8s & \textbf{10.4s} & 2m21s & \timeout & \timeout\\
+ & 10 & 30 & 2432 & 37s & 3.4s & \textbf{40.4s} & \timeout & \timeout & \timeout\\
+\midrule
+  \multirow{ 5}{*}{\rotatebox[origin=c]{90}{\hhbench}}
+ & 12 & 12 & 23 & 0.0s & 0.0s & \textbf{0.0s} & 37s & \timeout & \timeout\\
+ & 13 & 13 & 25 & 0.0s & 0.0s & \textbf{0.0s} & 2m19s & \timeout & \timeout\\
+ & 64 & 64 & 127 & 0.2s & 0.0s & \textbf{0.2s} & \timeout & \timeout & \timeout\\
+ & 128 & 128 & 255 & 1.0s & 0.0s & \textbf{1s} & \timeout & \timeout & \timeout\\
+ & 256 & 256 & 511 & 4.8s & 0.0s & \textbf{4.8s} & \timeout & \timeout & \timeout\\
+\midrule
+  \multirow{ 5}{*}{\rotatebox[origin=c]{90}{\hxhbench}}
+ & 10 & 10 & 29 & 0.0s & 0.0s & \textbf{0.0s} & 1s & \timeout & \timeout\\
+ & 11 & 11 & 32 & 0.0s & 0.0s & \textbf{0.0s} & 4.4s & \timeout & \timeout\\
+ & 12 & 12 & 35 & 0.0s & 0.0s & \textbf{0.0s} & 13s & \timeout & \timeout\\
+ & 13 & 13 & 38 & 0.0s & 0.0s & \textbf{0.0s} & 1m40s & \timeout & \timeout\\
+ & 99 & 99 & 296 & 0.7s & 0.0s & \textbf{0.7s} & \timeout & \timeout & \timeout\\
+\midrule
+  \multirow{ 5}{*}{\rotatebox[origin=c]{90}{\mctoffolibench}}
+ & 8 & 16 & 14 & 0.0s/0.0s & 0.0s/0.0s & \textbf{0.0s/0.0s} & 0.0s/0.0s & \timeout & \timeout\\
+ & 10 & 20 & 18 & 0.0s/0.0s & 0.0s/0.0s & \textbf{0.0s/0.0s} & 0.0s/0.0s & \timeout & \timeout\\
+ & 12 & 24 & 22 & 0.0s/0.0s & 0.0s/0.0s & \textbf{0.0s/0.0s} & 0.0s/0.0s & \timeout & \timeout\\
+ & 14 & 28 & 26 & 0.0s/0.0s & 0.0s/0.0s & \textbf{0.0s/0.0s} & 0.1s/0.1s & \timeout & \timeout\\
+ & 16 & 32 & 30 & 0.0s/0.0s & 0.0s/0.0s & \textbf{0.0s/0.0s} & 0.1s/0.1s & \timeout & \timeout\\
+\midrule
+  \multirow{ 5}{*}{\rotatebox[origin=c]{90}{\oegroverbench}}
+ & 2 & 3 & 12 & 0.0s & 0.2s & \textbf{0.2s} & \timeout & - & -\\
+ & 18 & 36 & 156 & 0.0s & 0.1s & \textbf{0.1s} & 1.9s & - & -\\
+ & 50 & 100 & 444 & 2.3s & 0.1s & \textbf{2.4s} & \timeout & - & -\\
+ & 75 & 150 & 670 & 7.6s & 0.1s & \textbf{7.7s} & \timeout & - & -\\
+ & 100 & 200 & 894 & 18s & 0.2s & \textbf{18.2s} & \timeout & - & -\\
+\bottomrule
+\end{tabular}
+}
+
+\pdfpageheight=\dimexpr\ht0+\dp0\relax
+\pdfpagewidth=\wd0
+\shipout\box0
+\stop
+
+\end{document}

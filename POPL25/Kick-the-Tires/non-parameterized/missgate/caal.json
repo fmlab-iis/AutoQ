@@ -1,0 +1,56 @@
+{
+    "./GHZall/008": {
+        "q": "8",
+        "G": "7",
+        "total": "300",
+        "result": "TIMEOUT"
+    },
+    "./BV/95": {
+        "q": "96",
+        "G": "240",
+        "total": "300",
+        "result": "TIMEOUT"
+    },
+    "./Grover/12": {
+        "q": "24",
+        "G": "5214",
+        "total": "300",
+        "result": "TIMEOUT"
+    },
+    "./GHZzero/064": {
+        "q": "64",
+        "G": "63",
+        "total": "300",
+        "result": "TIMEOUT"
+    },
+    "./H2/012": {
+        "q": "12",
+        "G": "23",
+        "total": "300",
+        "result": "TIMEOUT"
+    },
+    "./HXH/10": {
+        "q": "10",
+        "G": "29",
+        "total": "300",
+        "result": "TIMEOUT"
+    },
+    "./MCToffoli/08": {
+        "q": "16",
+        "G": "14",
+        "total": "300",
+        "result": "TIMEOUT"
+    },
+    "./MOGrover/06": {
+        "q": "18",
+        "G": "356",
+        "total": "300",
+        "result": "TIMEOUT"
+    },
+    "./MOBV_reorder/09": {
+        "q": "19",
+        "G": "29",
+        "total": "300",
+        "result": "TIMEOUT"
+    }
+}

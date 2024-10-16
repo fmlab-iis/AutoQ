@@ -1,0 +1,98 @@
+{
+    "./GHZall/008": {
+        "q": "8",
+        "G": "7",
+        "before_state": "17",
+        "before_trans": "25",
+        "after_state": "518",
+        "after_trans": "773",
+        "total": "0.1s",
+        "result": "V"
+    },
+    "./BV/95": {
+        "q": "96",
+        "G": "240",
+        "before_state": "193",
+        "before_trans": "193",
+        "after_state": "207",
+        "after_trans": "207",
+        "total": "4.4s",
+        "result": "V"
+    },
+    "./GHZzero/064": {
+        "q": "64",
+        "G": "63",
+        "before_state": "129",
+        "before_trans": "129",
+        "after_state": "174",
+        "after_trans": "174",
+        "total": "0.3s",
+        "result": "V"
+    },
+    "./Grover/12": {
+        "q": "24",
+        "G": "5214",
+        "before_state": "49",
+        "before_trans": "49",
+        "after_state": "76",
+        "after_trans": "76",
+        "total": "10s",
+        "result": "V"
+    },
+    "./H2/012": {
+        "q": "12",
+        "G": "23",
+        "before_state": "25",
+        "before_trans": "37",
+        "after_state": "8202",
+        "after_trans": "12297",
+        "total": "39s",
+        "result": "V"
+    },
+    "./HXH/10": {
+        "q": "10",
+        "G": "29",
+        "before_state": "21",
+        "before_trans": "31",
+        "after_state": "2056",
+        "after_trans": "3079",
+        "total": "1.0s",
+        "result": "V"
+    },
+    "./MCToffoli/08": {
+        "q": "16",
+        "G": "14",
+        "before_state": "33/33",
+        "before_trans": "41/41",
+        "after_state": "88/88",
+        "after_trans": "124/124",
+        "total": "0.0s/0.0s",
+        "result": "V/V"
+    },
+    "./MOBV_reorder/09": {
+        "q": "19",
+        "G": "29",
+        "before_state": "39",
+        "before_trans": "48",
+        "after_state": "980",
+        "after_trans": "1491",
+        "total": "2.5s",
+        "result": "V"
+    },
+    "./MOGrover/06": {
+        "q": "18",
+        "G": "356",
+        "before_state": "37",
+        "before_trans": "43",
+        "after_state": "256",
+        "after_trans": "319",
+        "total": "3.0s",
+        "result": "V"
+    },
+    "./OEGrover/02": {
+        "q": "3",
+        "G": "12",
+        "total": "300",
+        "result": "TIMEOUT"
+    }
+}

@@ -1,0 +1,438 @@
+{
+    "./BV/95": {
+        "q": "96",
+        "G": "240",
+        "before_state": "193",
+        "before_trans": "193",
+        "after_state": "207",
+        "after_trans": "207",
+        "total": "4.3s",
+        "result": "V"
+    },
+    "./BV/96": {
+        "q": "97",
+        "G": "242",
+        "before_state": "195",
+        "before_trans": "195",
+        "after_state": "208",
+        "after_trans": "208",
+        "total": "4.4s",
+        "result": "V"
+    },
+    "./BV/97": {
+        "q": "98",
+        "G": "245",
+        "before_state": "197",
+        "before_trans": "197",
+        "after_state": "197",
+        "after_trans": "197",
+        "total": "4.5s",
+        "result": "V"
+    },
+    "./BV/98": {
+        "q": "99",
+        "G": "247",
+        "before_state": "199",
+        "before_trans": "199",
+        "after_state": "206",
+        "after_trans": "206",
+        "total": "4.7s",
+        "result": "V"
+    },
+    "./BV/99": {
+        "q": "100",
+        "G": "250",
+        "before_state": "201",
+        "before_trans": "201",
+        "after_state": "201",
+        "after_trans": "201",
+        "total": "4.7s",
+        "result": "V"
+    },
+    "./GHZall/008": {
+        "q": "8",
+        "G": "7",
+        "before_state": "17",
+        "before_trans": "25",
+        "after_state": "518",
+        "after_trans": "773",
+        "total": "0.1s",
+        "result": "V"
+    },
+    "./GHZall/016": {
+        "q": "16",
+        "G": "15",
+        "total": "300",
+        "result": "TIMEOUT"
+    },
+    "./GHZall/032": {
+        "q": "32",
+        "G": "31",
+        "total": "300",
+        "result": "TIMEOUT"
+    },
+    "./GHZall/064": {
+        "q": "64",
+        "G": "63",
+        "total": "300",
+        "result": "TIMEOUT"
+    },
+    "./GHZzero/064": {
+        "q": "64",
+        "G": "63",
+        "before_state": "129",
+        "before_trans": "129",
+        "after_state": "174",
+        "after_trans": "174",
+        "total": "0.3s",
+        "result": "V"
+    },
+    "./GHZall/128": {
+        "q": "128",
+        "G": "127",
+        "total": "300",
+        "result": "TIMEOUT"
+    },
+    "./GHZzero/128": {
+        "q": "128",
+        "G": "127",
+        "before_state": "257",
+        "before_trans": "257",
+        "after_state": "329",
+        "after_trans": "329",
+        "total": "2.4s",
+        "result": "V"
+    },
+    "./GHZzero/256": {
+        "q": "256",
+        "G": "255",
+        "before_state": "513",
+        "before_trans": "513",
+        "after_state": "720",
+        "after_trans": "720",
+        "total": "19s",
+        "result": "V"
+    },
+    "./GHZzero/384": {
+        "q": "384",
+        "G": "383",
+        "before_state": "769",
+        "before_trans": "769",
+        "after_state": "1003",
+        "after_trans": "1003",
+        "total": "1m8s",
+        "result": "V"
+    },
+    "./Grover/12": {
+        "q": "24",
+        "G": "5214",
+        "before_state": "49",
+        "before_trans": "49",
+        "after_state": "76",
+        "after_trans": "76",
+        "total": "10s",
+        "result": "V"
+    },
+    "./GHZzero/512": {
+        "q": "512",
+        "G": "511",
+        "before_state": "1025",
+        "before_trans": "1025",
+        "after_state": "1531",
+        "after_trans": "1531",
+        "total": "2m48s",
+        "result": "V"
+    },
+    "./Grover/14": {
+        "q": "28",
+        "G": "12216",
+        "before_state": "57",
+        "before_trans": "57",
+        "after_state": "106",
+        "after_trans": "106",
+        "total": "31s",
+        "result": "V"
+    },
+    "./Grover/16": {
+        "q": "32",
+        "G": "28158",
+        "before_state": "65",
+        "before_trans": "65",
+        "after_state": "222",
+        "after_trans": "222",
+        "total": "2m26s",
+        "result": "V"
+    },
+    "./Grover/18": {
+        "q": "36",
+        "G": "63536",
+        "total": "300",
+        "result": "TIMEOUT"
+    },
+    "./H2/012": {
+        "q": "12",
+        "G": "23",
+        "before_state": "25",
+        "before_trans": "37",
+        "after_state": "8202",
+        "after_trans": "12297",
+        "total": "37s",
+        "result": "V"
+    },
+    "./Grover/20": {
+        "q": "40",
+        "G": "141526",
+        "total": "300",
+        "result": "TIMEOUT"
+    },
+    "./H2/013": {
+        "q": "13",
+        "G": "25",
+        "before_state": "27",
+        "before_trans": "40",
+        "after_state": "2063",
+        "after_trans": "3089",
+        "total": "2m19s",
+        "result": "V"
+    },
+    "./H2/064": {
+        "q": "64",
+        "G": "127",
+        "total": "300",
+        "result": "TIMEOUT"
+    },
+    "./H2/128": {
+        "q": "128",
+        "G": "255",
+        "total": "300",
+        "result": "TIMEOUT"
+    },
+    "./HXH/10": {
+        "q": "10",
+        "G": "29",
+        "before_state": "21",
+        "before_trans": "31",
+        "after_state": "2056",
+        "after_trans": "3079",
+        "total": "1.0s",
+        "result": "V"
+    },
+    "./H2/256": {
+        "q": "256",
+        "G": "511",
+        "total": "300",
+        "result": "TIMEOUT"
+    },
+    "./HXH/11": {
+        "q": "11",
+        "G": "32",
+        "before_state": "23",
+        "before_trans": "34",
+        "after_state": "4106",
+        "after_trans": "6153",
+        "total": "4.4s",
+        "result": "V"
+    },
+    "./HXH/12": {
+        "q": "12",
+        "G": "35",
+        "before_state": "25",
+        "before_trans": "37",
+        "after_state": "8203",
+        "after_trans": "12298",
+        "total": "13s",
+        "result": "V"
+    },
+    "./HXH/13": {
+        "q": "13",
+        "G": "38",
+        "before_state": "27",
+        "before_trans": "40",
+        "after_state": "16396",
+        "after_trans": "24587",
+        "total": "1m40s",
+        "result": "V"
+    },
+    "./MCToffoli/08": {
+        "q": "16",
+        "G": "14",
+        "before_state": "33/33",
+        "before_trans": "41/41",
+        "after_state": "88/88",
+        "after_trans": "124/124",
+        "total": "0.0s/0.0s",
+        "result": "V/V"
+    },
+    "./HXH/99": {
+        "q": "99",
+        "G": "296",
+        "total": "300",
+        "result": "TIMEOUT"
+    },
+    "./MCToffoli/10": {
+        "q": "20",
+        "G": "18",
+        "before_state": "41/41",
+        "before_trans": "51/51",
+        "after_state": "130/130",
+        "after_trans": "185/185",
+        "total": "0.0s/0.0s",
+        "result": "V/V"
+    },
+    "./MCToffoli/12": {
+        "q": "24",
+        "G": "22",
+        "before_state": "49/49",
+        "before_trans": "61/61",
+        "after_state": "182/182",
+        "after_trans": "260/260",
+        "total": "0.0s/0.0s",
+        "result": "V/V"
+    },
+    "./MCToffoli/14": {
+        "q": "28",
+        "G": "26",
+        "before_state": "57/57",
+        "before_trans": "71/71",
+        "after_state": "240/240",
+        "after_trans": "345/345",
+        "total": "0.1s/0.1s",
+        "result": "V/V"
+    },
+    "./MCToffoli/16": {
+        "q": "32",
+        "G": "30",
+        "before_state": "65/65",
+        "before_trans": "81/81",
+        "after_state": "305/305",
+        "after_trans": "441/441",
+        "total": "0.1s/0.1s",
+        "result": "V/V"
+    },
+    "./MOBV_reorder/09": {
+        "q": "19",
+        "G": "29",
+        "before_state": "39",
+        "before_trans": "48",
+        "after_state": "980",
+        "after_trans": "1491",
+        "total": "2.5s",
+        "result": "V"
+    },
+    "./MOBV_reorder/10": {
+        "q": "21",
+        "G": "32",
+        "before_state": "43",
+        "before_trans": "53",
+        "after_state": "1942",
+        "after_trans": "2965",
+        "total": "7.0s",
+        "result": "V"
+    },
+    "./MOBV_reorder/11": {
+        "q": "23",
+        "G": "35",
+        "before_state": "47",
+        "before_trans": "58",
+        "after_state": "4104",
+        "after_trans": "6151",
+        "total": "22s",
+        "result": "V"
+    },
+    "./MOBV_reorder/12": {
+        "q": "25",
+        "G": "38",
+        "before_state": "51",
+        "before_trans": "63",
+        "after_state": "8220",
+        "after_trans": "12315",
+        "total": "1m10s",
+        "result": "V"
+    },
+    "./MOBV_reorder/13": {
+        "q": "27",
+        "G": "41",
+        "total": "300",
+        "result": "TIMEOUT"
+    },
+    "./MOGrover/06": {
+        "q": "18",
+        "G": "356",
+        "before_state": "37",
+        "before_trans": "43",
+        "after_state": "256",
+        "after_trans": "319",
+        "total": "3.0s",
+        "result": "V"
+    },
+    "./MOGrover/07": {
+        "q": "21",
+        "G": "551",
+        "before_state": "43",
+        "before_trans": "50",
+        "after_state": "590",
+        "after_trans": "717",
+        "total": "11s",
+        "result": "V"
+    },
+    "./MOGrover/08": {
+        "q": "24",
+        "G": "938",
+        "before_state": "49",
+        "before_trans": "57",
+        "after_state": "1035",
+        "after_trans": "1290",
+        "total": "38s",
+        "result": "V"
+    },
+    "./MOGrover/09": {
+        "q": "27",
+        "G": "1491",
+        "before_state": "55",
+        "before_trans": "64",
+        "after_state": "1883",
+        "after_trans": "2394",
+        "total": "2m21s",
+        "result": "V"
+    },
+    "./MOGrover/10": {
+        "q": "30",
+        "G": "2432",
+        "total": "300",
+        "result": "TIMEOUT"
+    },
+    "./OEGrover/18": {
+        "q": "36",
+        "G": "156",
+        "before_state": "107",
+        "before_trans": "107",
+        "after_state": "120",
+        "after_trans": "120",
+        "total": "1.9s",
+        "result": "0"
+    },
+    "./OEGrover/02": {
+        "q": "3",
+        "G": "12",
+        "total": "300",
+        "result": "TIMEOUT"
+    },
+    "./OEGrover/100": {
+        "q": "200",
+        "G": "894",
+        "total": "300",
+        "result": "TIMEOUT"
+    },
+    "./OEGrover/50": {
+        "q": "100",
+        "G": "444",
+        "total": "300",
+        "result": "TIMEOUT"
+    },
+    "./OEGrover/75": {
+        "q": "150",
+        "G": "670",
+        "total": "300",
+        "result": "TIMEOUT"
+    }
+}

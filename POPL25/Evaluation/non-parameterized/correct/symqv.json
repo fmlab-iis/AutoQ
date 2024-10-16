@@ -1,0 +1,272 @@
+{
+    "./BV/95": {
+        "q": "96",
+        "G": "241",
+        "total": "0.0",
+        "result": "ERROR"
+    },
+    "./BV/96": {
+        "q": "97",
+        "G": "243",
+        "total": "0.0",
+        "result": "ERROR"
+    },
+    "./BV/97": {
+        "q": "98",
+        "G": "246",
+        "total": "0.0",
+        "result": "ERROR"
+    },
+    "./BV/98": {
+        "q": "99",
+        "G": "248",
+        "total": "0.0",
+        "result": "ERROR"
+    },
+    "./BV/99": {
+        "q": "100",
+        "G": "251",
+        "total": "0.0",
+        "result": "ERROR"
+    },
+    "./GHZall/008": {
+        "q": "8",
+        "G": "8",
+        "total": "0.0",
+        "result": "ERROR"
+    },
+    "./GHZall/016": {
+        "q": "16",
+        "G": "16",
+        "total": "0.0",
+        "result": "ERROR"
+    },
+    "./GHZall/032": {
+        "q": "32",
+        "G": "32",
+        "total": "0.0",
+        "result": "ERROR"
+    },
+    "./GHZall/064": {
+        "q": "64",
+        "G": "64",
+        "total": "0.0",
+        "result": "ERROR"
+    },
+    "./GHZall/128": {
+        "q": "128",
+        "G": "128",
+        "total": "0.0",
+        "result": "ERROR"
+    },
+    "./GHZzero/064": {
+        "q": "64",
+        "G": "64",
+        "total": "0.0",
+        "result": "ERROR"
+    },
+    "./GHZzero/128": {
+        "q": "128",
+        "G": "128",
+        "total": "0.0",
+        "result": "ERROR"
+    },
+    "./GHZzero/256": {
+        "q": "256",
+        "G": "256",
+        "total": "0.0",
+        "result": "ERROR"
+    },
+    "./GHZzero/384": {
+        "q": "384",
+        "G": "384",
+        "total": "0.0",
+        "result": "ERROR"
+    },
+    "./GHZzero/512": {
+        "q": "512",
+        "G": "512",
+        "total": "0.0",
+        "result": "ERROR"
+    },
+    "./Grover/12": {
+        "q": "24",
+        "G": "5215",
+        "total": "0.0",
+        "result": "ERROR"
+    },
+    "./Grover/14": {
+        "q": "28",
+        "G": "12217",
+        "total": "0.0",
+        "result": "ERROR"
+    },
+    "./Grover/16": {
+        "q": "32",
+        "G": "28159",
+        "total": "0.0",
+        "result": "ERROR"
+    },
+    "./Grover/18": {
+        "q": "36",
+        "G": "63537",
+        "total": "0.0",
+        "result": "ERROR"
+    },
+    "./Grover/20": {
+        "q": "40",
+        "G": "141527",
+        "total": "0.0",
+        "result": "ERROR"
+    },
+    "./H2/012": {
+        "q": "12",
+        "G": "24",
+        "total": "0.0",
+        "result": "ERROR"
+    },
+    "./H2/013": {
+        "q": "13",
+        "G": "26",
+        "total": "0.0",
+        "result": "ERROR"
+    },
+    "./H2/064": {
+        "q": "64",
+        "G": "128",
+        "total": "0.0",
+        "result": "ERROR"
+    },
+    "./H2/128": {
+        "q": "128",
+        "G": "256",
+        "total": "0.0",
+        "result": "ERROR"
+    },
+    "./H2/256": {
+        "q": "256",
+        "G": "512",
+        "total": "0.0",
+        "result": "ERROR"
+    },
+    "./HXH/10": {
+        "q": "10",
+        "G": "30",
+        "total": "0.0",
+        "result": "ERROR"
+    },
+    "./HXH/11": {
+        "q": "11",
+        "G": "33",
+        "total": "0.0",
+        "result": "ERROR"
+    },
+    "./HXH/12": {
+        "q": "12",
+        "G": "36",
+        "total": "0.0",
+        "result": "ERROR"
+    },
+    "./HXH/13": {
+        "q": "13",
+        "G": "39",
+        "total": "0.0",
+        "result": "ERROR"
+    },
+    "./HXH/99": {
+        "q": "99",
+        "G": "297",
+        "total": "0.0",
+        "result": "ERROR"
+    },
+    "./MCToffoli/08": {
+        "q": "16",
+        "G": "15",
+        "total": "0.0",
+        "result": "ERROR"
+    },
+    "./MCToffoli/10": {
+        "q": "20",
+        "G": "19",
+        "total": "0.0",
+        "result": "ERROR"
+    },
+    "./MCToffoli/12": {
+        "q": "24",
+        "G": "23",
+        "total": "0.0",
+        "result": "ERROR"
+    },
+    "./MCToffoli/14": {
+        "q": "28",
+        "G": "27",
+        "total": "0.0",
+        "result": "ERROR"
+    },
+    "./MCToffoli/16": {
+        "q": "32",
+        "G": "31",
+        "total": "0.0",
+        "result": "ERROR"
+    },
+    "./MOBV_reorder/09": {
+        "q": "19",
+        "G": "30",
+        "total": "0.0",
+        "result": "ERROR"
+    },
+    "./MOBV_reorder/10": {
+        "q": "21",
+        "G": "33",
+        "total": "0.0",
+        "result": "ERROR"
+    },
+    "./MOBV_reorder/11": {
+        "q": "23",
+        "G": "36",
+        "total": "0.0",
+        "result": "ERROR"
+    },
+    "./MOBV_reorder/12": {
+        "q": "25",
+        "G": "39",
+        "total": "0.0",
+        "result": "ERROR"
+    },
+    "./MOBV_reorder/13": {
+        "q": "27",
+        "G": "42",
+        "total": "0.0",
+        "result": "ERROR"
+    },
+    "./MOGrover/06": {
+        "q": "18",
+        "G": "357",
+        "total": "0.0",
+        "result": "ERROR"
+    },
+    "./MOGrover/07": {
+        "q": "21",
+        "G": "552",
+        "total": "0.0",
+        "result": "ERROR"
+    },
+    "./MOGrover/08": {
+        "q": "24",
+        "G": "939",
+        "total": "0.0",
+        "result": "ERROR"
+    },
+    "./MOGrover/09": {
+        "q": "27",
+        "G": "1492",
+        "total": "0.0",
+        "result": "ERROR"
+    },
+    "./MOGrover/10": {
+        "q": "30",
+        "G": "2433",
+        "total": "0.0",
+        "result": "ERROR"
+    }
+}

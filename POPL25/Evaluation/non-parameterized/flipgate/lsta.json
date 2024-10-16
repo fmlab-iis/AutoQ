@@ -1,0 +1,302 @@
+{
+    "./BV/95": {
+        "q": "96",
+        "G": "241",
+        "before_state": "193",
+        "before_trans": "193",
+        "after_state": "193",
+        "after_trans": "193",
+        "total": "0.2s",
+        "result": "0.0s X"
+    },
+    "./BV/96": {
+        "q": "97",
+        "G": "243",
+        "before_state": "195",
+        "before_trans": "195",
+        "after_state": "195",
+        "after_trans": "195",
+        "total": "0.2s",
+        "result": "0.0s X"
+    },
+    "./BV/97": {
+        "q": "98",
+        "G": "246",
+        "before_state": "197",
+        "before_trans": "197",
+        "after_state": "197",
+        "after_trans": "197",
+        "total": "0.2s",
+        "result": "0.0s X"
+    },
+    "./BV/98": {
+        "q": "99",
+        "G": "248",
+        "before_state": "199",
+        "before_trans": "199",
+        "after_state": "199",
+        "after_trans": "199",
+        "total": "0.2s",
+        "result": "0.0s X"
+    },
+    "./BV/99": {
+        "q": "100",
+        "G": "251",
+        "before_state": "201",
+        "before_trans": "201",
+        "after_state": "201",
+        "after_trans": "201",
+        "total": "0.3s",
+        "result": "0.0s X"
+    },
+    "./GHZall/008": {
+        "q": "8",
+        "G": "8",
+        "before_state": "17",
+        "before_trans": "25",
+        "after_state": "37",
+        "after_trans": "65",
+        "total": "0.0s",
+        "result": "0.0s X"
+    },
+    "./GHZall/016": {
+        "q": "16",
+        "G": "16",
+        "before_state": "33",
+        "before_trans": "49",
+        "after_state": "77",
+        "after_trans": "137",
+        "total": "0.0s",
+        "result": "0.0s X"
+    },
+    "./GHZall/032": {
+        "q": "32",
+        "G": "32",
+        "before_state": "65",
+        "before_trans": "97",
+        "after_state": "157",
+        "after_trans": "281",
+        "total": "0.0s",
+        "result": "0.0s X"
+    },
+    "./GHZall/064": {
+        "q": "64",
+        "G": "64",
+        "before_state": "129",
+        "before_trans": "193",
+        "after_state": "317",
+        "after_trans": "569",
+        "total": "0.1s",
+        "result": "0.0s X"
+    },
+    "./GHZall/128": {
+        "q": "128",
+        "G": "128",
+        "before_state": "257",
+        "before_trans": "385",
+        "after_state": "637",
+        "after_trans": "1145",
+        "total": "0.5s",
+        "result": "0.0s X"
+    },
+    "./GHZzero/064": {
+        "q": "64",
+        "G": "64",
+        "before_state": "129",
+        "before_trans": "129",
+        "after_state": "179",
+        "after_trans": "179",
+        "total": "0.0s",
+        "result": "0.0s X"
+    },
+    "./GHZzero/128": {
+        "q": "128",
+        "G": "128",
+        "before_state": "257",
+        "before_trans": "257",
+        "after_state": "308",
+        "after_trans": "308",
+        "total": "0.1s",
+        "result": "0.0s X"
+    },
+    "./GHZzero/256": {
+        "q": "256",
+        "G": "256",
+        "before_state": "513",
+        "before_trans": "513",
+        "after_state": "599",
+        "after_trans": "599",
+        "total": "0.7s",
+        "result": "0.0s X"
+    },
+    "./GHZzero/384": {
+        "q": "384",
+        "G": "384",
+        "before_state": "769",
+        "before_trans": "769",
+        "after_state": "847",
+        "after_trans": "847",
+        "total": "1.6s",
+        "result": "0.0s X"
+    },
+    "./GHZzero/512": {
+        "q": "512",
+        "G": "512",
+        "before_state": "1025",
+        "before_trans": "1025",
+        "after_state": "1218",
+        "after_trans": "1218",
+        "total": "3.2s",
+        "result": "0.0s X"
+    },
+    "./Grover/12": {
+        "q": "24",
+        "G": "5215",
+        "before_state": "49",
+        "before_trans": "49",
+        "after_state": "77",
+        "after_trans": "77",
+        "total": "1.4s",
+        "result": "0.0s X"
+    },
+    "./Grover/14": {
+        "q": "28",
+        "G": "12217",
+        "before_state": "57",
+        "before_trans": "57",
+        "after_state": "89",
+        "after_trans": "89",
+        "total": "4.1s",
+        "result": "0.0s X"
+    },
+    "./Grover/16": {
+        "q": "32",
+        "G": "28159",
+        "before_state": "65",
+        "before_trans": "65",
+        "after_state": "99",
+        "after_trans": "99",
+        "total": "10s",
+        "result": "0.0s X"
+    },
+    "./Grover/18": {
+        "q": "36",
+        "G": "63537",
+        "before_state": "73",
+        "before_trans": "73",
+        "after_state": "113",
+        "after_trans": "113",
+        "total": "27s",
+        "result": "0.0s X"
+    },
+    "./Grover/20": {
+        "q": "40",
+        "G": "141527",
+        "before_state": "81",
+        "before_trans": "81",
+        "after_state": "125",
+        "after_trans": "125",
+        "total": "1m13s",
+        "result": "0.0s X"
+    },
+    "./MCToffoli/08": {
+        "q": "16",
+        "G": "15",
+        "before_state": "33/33",
+        "before_trans": "41/41",
+        "after_state": "33/33",
+        "after_trans": "41/41",
+        "total": "0.0s/0.0s",
+        "result": "0.0s X/0.0s X"
+    },
+    "./MCToffoli/10": {
+        "q": "20",
+        "G": "19",
+        "before_state": "41/41",
+        "before_trans": "51/51",
+        "after_state": "41/41",
+        "after_trans": "51/51",
+        "total": "0.0s/0.0s",
+        "result": "0.0s X/0.0s X"
+    },
+    "./MCToffoli/12": {
+        "q": "24",
+        "G": "23",
+        "before_state": "49/49",
+        "before_trans": "61/61",
+        "after_state": "49/49",
+        "after_trans": "61/61",
+        "total": "0.0s/0.0s",
+        "result": "0.0s X/0.0s X"
+    },
+    "./MCToffoli/14": {
+        "q": "28",
+        "G": "27",
+        "before_state": "57/57",
+        "before_trans": "71/71",
+        "after_state": "57/57",
+        "after_trans": "71/71",
+        "total": "0.0s/0.0s",
+        "result": "0.0s X/0.0s X"
+    },
+    "./MCToffoli/16": {
+        "q": "32",
+        "G": "31",
+        "before_state": "65/65",
+        "before_trans": "81/81",
+        "after_state": "65/65",
+        "after_trans": "81/81",
+        "total": "0.0s/0.0s",
+        "result": "0.0s X/0.0s X"
+    },
+    "./MOGrover/06": {
+        "q": "18",
+        "G": "357",
+        "before_state": "37",
+        "before_trans": "43",
+        "after_state": "506",
+        "after_trans": "631",
+        "total": "0.6s",
+        "result": "0.0s X"
+    },
+    "./MOGrover/07": {
+        "q": "21",
+        "G": "552",
+        "before_state": "43",
+        "before_trans": "50",
+        "after_state": "962",
+        "after_trans": "1209",
+        "total": "1.8s",
+        "result": "0.0s X"
+    },
+    "./MOGrover/08": {
+        "q": "24",
+        "G": "939",
+        "before_state": "49",
+        "before_trans": "57",
+        "after_state": "1872",
+        "after_trans": "2381",
+        "total": "7.1s",
+        "result": "0.2s X"
+    },
+    "./MOGrover/09": {
+        "q": "27",
+        "G": "1492",
+        "before_state": "55",
+        "before_trans": "64",
+        "after_state": "3675",
+        "after_trans": "4696",
+        "total": "26s",
+        "result": "1.1s X"
+    },
+    "./MOGrover/10": {
+        "q": "30",
+        "G": "2433",
+        "before_state": "61",
+        "before_trans": "71",
+        "after_state": "7019",
+        "after_trans": "8810",
+        "total": "1m35s",
+        "result": "4.6s X"
+    }
+}

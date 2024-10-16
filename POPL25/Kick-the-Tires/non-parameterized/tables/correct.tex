@@ -1,0 +1,99 @@
+\documentclass{article}
+
+\usepackage{booktabs}
+\usepackage{xspace}
+\usepackage{multicol}
+\usepackage{multirow}
+\usepackage{graphicx}
+\usepackage{colortbl}
+\usepackage{xcolor}
+
+% tool names
+\newcommand{\autoq}[0]{\textsc{AutoQ}\xspace}
+\newcommand{\sliqsim}[0]{\textsc{SliQSim}\xspace}
+\newcommand{\feynman}[0]{\textsc{Feynman}\xspace}
+\newcommand{\feynopt}[0]{\textsc{Feynopt}\xspace}
+\newcommand{\qcec}[0]{\textsc{Qcec}\xspace}
+\newcommand{\qbricks}[0]{\textsc{Qbricks}\xspace}
+\newcommand{\qiskit}[0]{\textsc{Qiskit}\xspace}
+\newcommand{\vata}[0]{\textsc{Vata}\xspace}
+\newcommand{\tool}[0]{\textsc{LSTAQ}\xspace}
+\newcommand{\ta}[0]{\textsc{TA}\xspace}
+\newcommand{\correct}[0]{T\xspace}
+\newcommand{\wrong}[0]{F\xspace}
+\newcommand{\unknown}[0]{---\xspace}
+\newcommand{\nacell}[0]{\cellcolor{black!20}}
+\newcommand{\TO}[0]{\nacell TO}
+\newcommand{\error}[0]{\nacell OOM}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newcommand{\post}[1]{\mathtt{post}\_{#1}}
+
+% benchmarks
+\newcommand{\bvsingbench}[0]{\small\textsc{BV-Sing}\xspace}
+\newcommand{\bvmultbench}[0]{\small\textsc{BV-All}\xspace}
+\newcommand{\ghzsingbench}[0]{\small\textsc{GHZ-Sing}\xspace}
+\newcommand{\ghzmultbench}[0]{\small\textsc{GHZ-All}\xspace}
+\newcommand{\groversingbench}[0]{\small\textsc{Grover-Sing}\xspace}
+\newcommand{\grovermultbench}[0]{\small\textsc{Grover-All}\xspace}
+\newcommand{\hhbench}[0]{\small\textsc{H2}\xspace}
+\newcommand{\hxhbench}[0]{\small\textsc{HXH}\xspace}
+\newcommand{\mctoffolibench}[0]{\small\textsc{MCToffoli}\xspace}
+\newcommand{\randombench}[0]{\textsc{Random}\xspace}
+\newcommand{\revlibbench}[0]{\textsc{RevLib}\xspace}
+\newcommand{\feynmanbench}[0]{\textsc{FeynmanBench}\xspace}
+\newcommand{\oegroverbench}[0]{\small\textsc{Grover-Iter}\xspace}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{document}%\pagenumbering{gobble}
+
+%\scalebox{0.01}
+{%\hspace{-100pt}
+\hoffset=-1in
+\voffset=-1in
+\setbox0\hbox{
+\begin{tabular}{crrrrrrrrrrr}\hline
+\toprule
+  &&&& \multicolumn{3}{c}{\tool} & \multirow{2}{*}{\autoq} & \multirow{2}{*}{\sliqsim} & \multirow{2}{*}{SV-Sim} & \multirow{2}{*}{(symQV)} & \multirow{2}{*}{(CaAL)}\\
+  \cmidrule(lr){5-7}
+  & \multicolumn{1}{c}{$n$} & \multicolumn{1}{c}{\textbf{\#q}} & \multicolumn{1}{c}{\textbf{\#G}} & \multicolumn{1}{c}{$\post{C}$} & \multicolumn{1}{c}{$\subseteq$}  & \multicolumn{1}{c}{total} \\
+\midrule
+  \multirow{ 1}{*}{\rotatebox[origin=c]{0}{\bvsingbench}}
+ & 95 & 96 & 241 & 0.2s & 0.0s & \textbf{0.2s} & 4.3s & 0.0s & \error & \TO & \TO\\
+\midrule
+  \multirow{ 1}{*}{\rotatebox[origin=c]{0}{\bvmultbench}}
+ & 9 & 19 & 30 & 0.0s & 0.0s & \textbf{0.0s} & 2.7s & \TO & 43s & \TO & \TO\\
+\midrule
+\multirow{ 1}{*}{\rotatebox[origin=c]{0}{\ghzsingbench}}
+ & 64 & 64 & 64 & 0.0s & 0.0s & \textbf{0.0s} & 0.3s & 0.0s & \error & \TO & \TO\\
+\midrule
+  \multirow{ 1}{*}{\rotatebox[origin=c]{0}{\ghzmultbench}}
+ & 8 & 8 & 8 & 0.0s & 0.0s & \textbf{0.0s} & 0.1s & 2.8s & 0.0s & \TO & \TO\\
+\midrule
+  \multirow{ 1}{*}{\rotatebox[origin=c]{0}{\groversingbench}}
+ & 12 & 24 & 5215 & 1.3s & 0.0s & \textbf{1.3s} & 10s & \TO & \TO & \TO & \TO\\
+\midrule
+  \multirow{ 1}{*}{\rotatebox[origin=c]{0}{\grovermultbench}}
+ & 6 & 18 & 357 & 0.2s & 0.0s & \textbf{0.2s} & 3s & \TO & 32s & \TO & \TO\\
+\midrule
+  \multirow{ 1}{*}{\rotatebox[origin=c]{0}{\hhbench}}
+ & 12 & 12 & 24 & 0.0s & 0.0s & \textbf{0.0s} & 43s & 2m22s & 0.5s & \TO & \TO\\
+\midrule
+  \multirow{ 1}{*}{\rotatebox[origin=c]{0}{\hxhbench}}
+ & 10 & 10 & 30 & 0.0s & 0.0s & \textbf{0.0s} & 1.7s & 17s & 0.0s & \TO & \TO\\
+\midrule
+  \multirow{ 1}{*}{\rotatebox[origin=c]{0}{\mctoffolibench}}
+ & 8 & 16 & 15 & 0.0s/0.0s & 0.0s/0.0s & \textbf{0.0s/0.0s} & 0.0s/0.0s & \TO & 7.5s & \TO & \TO\\
+\midrule
+  \multirow{ 1}{*}{\rotatebox[origin=c]{0}{\oegroverbench}}
+ & 2 & 3 & 13 & 0.0s & 0.1s & \textbf{0.1s} & 0.4s & - & - & - & -\\
+\bottomrule
+\end{tabular}
+}
+
+\pdfpageheight=\dimexpr\ht0+\dp0\relax
+\pdfpagewidth=\wd0
+\shipout\box0
+\stop
+
+\end{document}

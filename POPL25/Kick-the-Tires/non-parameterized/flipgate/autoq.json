@@ -1,0 +1,62 @@
+{
+    "./GHZall/008": {
+        "q": "8",
+        "G": "8",
+        "before_state": "17",
+        "before_trans": "25",
+        "after_state": "518",
+        "after_trans": "773",
+        "total": "0.1s",
+        "result": "V"
+    },
+    "./BV/95": {
+        "q": "96",
+        "G": "241",
+        "before_state": "193",
+        "before_trans": "193",
+        "after_state": "193",
+        "after_trans": "193",
+        "total": "4.3s",
+        "result": "V"
+    },
+    "./GHZzero/064": {
+        "q": "64",
+        "G": "64",
+        "before_state": "129",
+        "before_trans": "129",
+        "after_state": "179",
+        "after_trans": "179",
+        "total": "0.3s",
+        "result": "V"
+    },
+    "./Grover/12": {
+        "q": "24",
+        "G": "5215",
+        "before_state": "49",
+        "before_trans": "49",
+        "after_state": "77",
+        "after_trans": "77",
+        "total": "10s",
+        "result": "V"
+    },
+    "./MCToffoli/08": {
+        "q": "16",
+        "G": "15",
+        "before_state": "33/33",
+        "before_trans": "41/41",
+        "after_state": "88/88",
+        "after_trans": "124/124",
+        "total": "0.0s/0.0s",
+        "result": "V/V"
+    },
+    "./MOGrover/06": {
+        "q": "18",
+        "G": "357",
+        "before_state": "37",
+        "before_trans": "43",
+        "after_state": "1022",
+        "after_trans": "1085",
+        "total": "8.4s",
+        "result": "V"
+    }
+}

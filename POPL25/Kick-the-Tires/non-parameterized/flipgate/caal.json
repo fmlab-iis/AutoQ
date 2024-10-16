@@ -1,0 +1,38 @@
+{
+    "./BV/95": {
+        "q": "96",
+        "G": "241",
+        "total": "300",
+        "result": "TIMEOUT"
+    },
+    "./Grover/12": {
+        "q": "24",
+        "G": "5215",
+        "total": "300",
+        "result": "TIMEOUT"
+    },
+    "./GHZall/008": {
+        "q": "8",
+        "G": "8",
+        "total": "300",
+        "result": "TIMEOUT"
+    },
+    "./GHZzero/064": {
+        "q": "64",
+        "G": "64",
+        "total": "300",
+        "result": "TIMEOUT"
+    },
+    "./MOGrover/06": {
+        "q": "18",
+        "G": "357",
+        "total": "300",
+        "result": "TIMEOUT"
+    },
+    "./MCToffoli/08": {
+        "q": "16",
+        "G": "15",
+        "total": "300",
+        "result": "TIMEOUT"
+    }
+}
