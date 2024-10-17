@@ -141,9 +141,9 @@ def json_to_latex_table(tool_list, latex_filename):
                         assert data['result'] != 'V'
                         assert data['total'].count('/') == data['result'].count('/')
                         if '/' in data['total']:
-                            print(data['total'], data['result'])
+                            # print(data['total'], data['result'])
                             data['result'] = format_duration(parse_duration(str(data['total'].split('/')[0])) + parse_duration(data['result'].split('/')[0])) + '/' + format_duration(parse_duration(str(data['total'].split('/')[1])) + parse_duration(data['result'].split('/')[1]))
-                            print(data['result'])
+                            # print(data['result'])
                         else:
                             data['result'] = format_duration(parse_duration(str(data['total'])) + parse_duration(data['result']))
                 del data['total']

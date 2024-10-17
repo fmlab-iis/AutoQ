@@ -119,7 +119,7 @@ def LSTA(root, semaphore, lock, counter):
         ##############################################
         append_key_value_to_json_file('lsta.json', root, data)
         counter.value += 1
-        print(LSTA.__name__, root, data, str(counter.value), flush=True)
+        print(LSTA.__name__, root, data, flush=True)
         ##############################################
         lock.release()
 def TA(root, semaphore, lock, counter):
@@ -192,7 +192,7 @@ def TA(root, semaphore, lock, counter):
         ##############################################
         append_key_value_to_json_file('autoq.json', root, data)
         counter.value += 1
-        print(TA.__name__, root, data, str(counter.value), flush=True)
+        print(TA.__name__, root, data, flush=True)
         ##############################################
         lock.release()
 def svsim(root, semaphore, lock, counter):
@@ -222,7 +222,7 @@ def svsim(root, semaphore, lock, counter):
         ##############################################
         append_key_value_to_json_file('svsim.json', root, data)
         counter.value += 1
-        print(svsim.__name__, root, data, str(counter.value), flush=True)
+        print(svsim.__name__, root, data, flush=True)
         ##############################################
         lock.release()
 symqvMap = {'BV': 'BVsingle', 'GHZall': 'GHZall', 'GHZzero': 'GHZsingle', 'Grover': 'GroverSingle', 'H2': 'H2all', 'HXH': 'HXHall', 'MCToffoli': 'MCXall', 'MOBV_reorder': 'BVall', 'MOGrover': 'GroverAll', 'OEGrover': 'OEGrover'}
@@ -261,13 +261,14 @@ def symqv(root, semaphore, lock, counter):
                 else:
                     data['total'] = '%.1fs' % total_time
             else:
+                print(p.stdout.decode('utf-8').splitlines())
                 data['total'] = str(round(end - begin, 1))
                 data['result'] = 'X'
         lock.acquire()
         ##############################################
         append_key_value_to_json_file('symqv.json', root, data)
         counter.value += 1
-        print(symqv.__name__, root, data, str(counter.value), flush=True)
+        print(symqv.__name__, root, data, flush=True)
         ##############################################
         lock.release()
 CaALMap = {'MOBV_reorder': 'BVallBug', 'BV': 'BVsingleBug', 'GHZall': 'GHZallBug', 'GHZzero': 'GHZsingleBug', 'MOGrover': 'GroverAllBug', 'Grover': 'GroverSingleBug', 'H2': 'H2allBug', 'HXH': 'HXHallBug', 'MCToffoli': 'MCXallBug', 'OEGrover': 'OEGroverBug'}
@@ -306,6 +307,7 @@ def CaAL(root, semaphore, lock, counter, CPU):
                     data['total'] = total_time.split()[-1]
                     data['result'] = 'O'
                 else:
+                    print(p.stdout.decode('utf-8').splitlines())
                     data['total'] = str(round(end - begin, 1))
                     data['result'] = 'X'
         else:
@@ -315,7 +317,7 @@ def CaAL(root, semaphore, lock, counter, CPU):
         ##############################################
         append_key_value_to_json_file('caal.json', root, data)
         counter.value += 1
-        print(CaAL.__name__, root, data, str(counter.value), flush=True)
+        print(CaAL.__name__, root, data, flush=True)
         ##############################################
         lock.release()
 def SliQSim(root, semaphore, lock, counter):
@@ -346,7 +348,7 @@ def SliQSim(root, semaphore, lock, counter):
         ##############################################
         append_key_value_to_json_file('sliqsim.json', root, data)
         counter.value += 1
-        print(SliQSim.__name__, root, data, str(counter.value), flush=True)
+        print(SliQSim.__name__, root, data, flush=True)
         ##############################################
         lock.release()
 
