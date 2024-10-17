@@ -370,6 +370,7 @@ for root, dirnames, filenames in sorted(os.walk('.')):
     if len(dirnames) == 0 and 'circuit.qasm' in filenames:
         process_pool_small = []
         for func in tools:
+            if ('correct' not in sys.argv[1]) and func in (SliQSim, svsim): continue
             if 'OEGrover' in root and func not in (LSTA, TA, symqv): continue
             semaphore.acquire(); semaphore.release()
             if func == CaAL:
