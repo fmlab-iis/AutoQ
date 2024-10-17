@@ -301,7 +301,7 @@ def CaAL(root, semaphore, lock, counter, CPU):
                 # user    0m2.950s
                 # sys     0m0.192s
                 answer = p.stdout.decode('utf-8').splitlines()[0].strip()
-                if answer == 'Valid':
+                if (('correct' in sys.argv[1]) and (answer == 'Valid')) or (('correct' not in sys.argv[1]) and (answer == 'Invalid')):
                     total_time = p.stderr.decode('utf-8').splitlines()[-3].strip()
                     assert(total_time.startswith('real'))
                     data['total'] = total_time.split()[-1]
