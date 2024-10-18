@@ -137,7 +137,7 @@ def json_to_latex_table(tool_list, latex_filename):
                 if data['result'] == '1' or data['result'] == 'O':
                     data['result'] = data['total']
                 elif 'autoq' in tool:
-                    if data['result'] != 'TIMEOUT':
+                    if data['result'] not in ('TIMEOUT', 'ERROR'):
                         assert data['result'] != 'V'
                         assert data['total'].count('/') == data['result'].count('/')
                         if '/' in data['total']:

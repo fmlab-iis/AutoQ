@@ -137,7 +137,7 @@ def json_to_latex_table(tool_list, latex_filename):
                 if data['result'] == '1' or data['result'] == 'O':
                     data['result'] = data['total']
                 elif 'autoq' in tool:
-                    if data['result'] != 'TIMEOUT':
+                    if data['result'] not in ('TIMEOUT', 'ERROR'):
                         if ('OEGrover' in file and data['result'] != '0') or ('OEGrover' not in file and 'V' not in data['result']):
                             data['result'] = 'WRONG'
                         else:
