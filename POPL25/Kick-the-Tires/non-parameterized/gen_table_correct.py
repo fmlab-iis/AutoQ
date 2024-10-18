@@ -135,7 +135,7 @@ def json_to_latex_table(tool_list, latex_filename):
                 del data['q']
                 del data['G']
                 if data['result'] == '1' or data['result'] == 'O':
-                    data['result'] = data['total']
+                    data['result'] = format_duration(parse_duration(str(data['total'])))
                 elif 'autoq' in tool:
                     if data['result'] not in ('TIMEOUT', 'ERROR'):
                         assert data['result'] != 'V'
