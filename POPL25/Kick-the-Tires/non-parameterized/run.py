@@ -60,11 +60,11 @@ def LSTA(root, semaphore, lock, counter):
         data['G'] = G
         cmd = ''
         if 'MCToffoli' in root:
-            cmd = f'timeout {TIMEOUT} {LSTA_EXE} verC {root}/pre0.spec {root}/circuit.qasm {root}/post0.spec --latex'#; print(cmd)
+            cmd = f'ulimit -v {10485760//NUM_OF_THREADS} && timeout {TIMEOUT} {LSTA_EXE} verC {root}/pre0.spec {root}/circuit.qasm {root}/post0.spec --latex'#; print(cmd)
         elif 'OEGrover' in root:
-            cmd = f'timeout {TIMEOUT} {LSTA_EXE} verS {root}/pre.spec {root}/circuit.qasm {root}/post.spec {root}/constraint.smt --latex'#; print(cmd)
+            cmd = f'ulimit -v {10485760//NUM_OF_THREADS} && timeout {TIMEOUT} {LSTA_EXE} verS {root}/pre.spec {root}/circuit.qasm {root}/post.spec {root}/constraint.smt --latex'#; print(cmd)
         else:
-            cmd = f'timeout {TIMEOUT} {LSTA_EXE} verC {root}/pre.spec {root}/circuit.qasm {root}/post.spec --latex'#; print(cmd)
+            cmd = f'ulimit -v {10485760//NUM_OF_THREADS} && timeout {TIMEOUT} {LSTA_EXE} verC {root}/pre.spec {root}/circuit.qasm {root}/post.spec --latex'#; print(cmd)
         begin = time.monotonic()
         p = subprocess.run(cmd, shell=True, capture_output=True, executable='/bin/bash')
         end = time.monotonic()
@@ -76,13 +76,17 @@ def LSTA(root, semaphore, lock, counter):
             except:
                 print(cmd, flush=True)
             v = output.split(' & ')
-            v[3], v[4] = v[4], v[3]
-            data['before_state'] = v[2]
-            data['before_trans'] = v[3]
-            data['after_state'] = v[4]
-            data['after_trans'] = v[5]
-            data['total'] = v[6]
-            data['result'] = v[7]
+            if len(v) < 5:
+                data['total'] = str(round(end - begin, 1))
+                data['result'] = 'ERROR'
+            else:
+                v[3], v[4] = v[4], v[3]
+                data['before_state'] = v[2]
+                data['before_trans'] = v[3]
+                data['after_state'] = v[4]
+                data['after_trans'] = v[5]
+                data['total'] = v[6]
+                data['result'] = v[7]
         elif ret == 124:
             data['total'] = str(TIMEOUT)
             data['result'] = 'TIMEOUT'
@@ -90,7 +94,7 @@ def LSTA(root, semaphore, lock, counter):
             data['total'] = str(round(end - begin, 1))
             data['result'] = 'ERROR'
         if 'MCToffoli' in root:
-            cmd = f'timeout {TIMEOUT} {LSTA_EXE} verC {root}/pre1.spec {root}/circuit.qasm {root}/post1.spec --latex'#; print(cmd)
+            cmd = f'ulimit -v {10485760//NUM_OF_THREADS} && timeout {TIMEOUT} {LSTA_EXE} verC {root}/pre1.spec {root}/circuit.qasm {root}/post1.spec --latex'#; print(cmd)
             begin = time.monotonic()
             p = subprocess.run(cmd, shell=True, capture_output=True, executable='/bin/bash')
             end = time.monotonic()
@@ -102,13 +106,17 @@ def LSTA(root, semaphore, lock, counter):
                 except:
                     print(cmd, flush=True)
                 v = output.split(' & ')
-                v[3], v[4] = v[4], v[3]
-                data['before_state'] += '/' + v[2]
-                data['before_trans'] += '/' +  v[3]
-                data['after_state'] += '/' +  v[4]
-                data['after_trans'] += '/' +  v[5]
-                data['total'] += '/' +  v[6]
-                data['result'] += '/' +  v[7]
+                if len(v) < 5:
+                    data['total'] = str(round(end - begin, 1))
+                    data['result'] = 'ERROR'
+                else:
+                    v[3], v[4] = v[4], v[3]
+                    data['before_state'] += '/' + v[2]
+                    data['before_trans'] += '/' +  v[3]
+                    data['after_state'] += '/' +  v[4]
+                    data['after_trans'] += '/' +  v[5]
+                    data['total'] += '/' +  v[6]
+                    data['result'] += '/' +  v[7]
             elif ret == 124:
                 data['total'] += '/' +  str(TIMEOUT)
                 data['result'] += '/' +  'TIMEOUT'
@@ -133,11 +141,11 @@ def TA(root, semaphore, lock, counter):
         data['G'] = G
         cmd = ''
         if 'MCToffoli' in root:
-            cmd = f'VATA_PATH={VATA_EXE} timeout {TIMEOUT} {TA_EXE} {root}/pre0.aut {root}/circuit.qasm {root}/post0.aut'
+            cmd = f'ulimit -v {10485760//NUM_OF_THREADS} && VATA_PATH={VATA_EXE} timeout {TIMEOUT} {TA_EXE} {root}/pre0.aut {root}/circuit.qasm {root}/post0.aut'
         elif 'OEGrover' in root:
-            cmd = f'VATA_PATH={VATA_EXE} timeout {TIMEOUT} {TA_SYMBOLIC_EXE} {root}/pre.aut {root}/circuit.qasm {root}/post.aut {root}/constraint2.smt'
+            cmd = f'ulimit -v {10485760//NUM_OF_THREADS} && VATA_PATH={VATA_EXE} timeout {TIMEOUT} {TA_SYMBOLIC_EXE} {root}/pre.aut {root}/circuit.qasm {root}/post.aut {root}/constraint2.smt'
         else:
-            cmd = f'VATA_PATH={VATA_EXE} timeout {TIMEOUT} {TA_EXE} {root}/pre.aut {root}/circuit.qasm {root}/post.aut'
+            cmd = f'ulimit -v {10485760//NUM_OF_THREADS} && VATA_PATH={VATA_EXE} timeout {TIMEOUT} {TA_EXE} {root}/pre.aut {root}/circuit.qasm {root}/post.aut'
         begin = time.monotonic()
         p = subprocess.run(cmd, shell=True, capture_output=True, executable='/bin/bash')
         end = time.monotonic()
@@ -149,13 +157,17 @@ def TA(root, semaphore, lock, counter):
             except:
                 print(cmd, flush=True)
             v = output.split(' & ')
-            v[3], v[4] = v[4], v[3]
-            data['before_state'] = v[2]
-            data['before_trans'] = v[3]
-            data['after_state'] = v[4]
-            data['after_trans'] = v[5]
-            data['total'] = v[6]
-            data['result'] = v[7]
+            if len(v) < 5:
+                data['total'] = str(round(end - begin, 1))
+                data['result'] = 'ERROR'
+            else:
+                v[3], v[4] = v[4], v[3]
+                data['before_state'] = v[2]
+                data['before_trans'] = v[3]
+                data['after_state'] = v[4]
+                data['after_trans'] = v[5]
+                data['total'] = v[6]
+                data['result'] = v[7]
         elif ret == 124:
             data['total'] = str(TIMEOUT)
             data['result'] = 'TIMEOUT'
@@ -163,7 +175,7 @@ def TA(root, semaphore, lock, counter):
             data['total'] = str(round(end - begin, 1))
             data['result'] = 'ERROR'
         if 'MCToffoli' in root:
-            cmd = f'VATA_PATH={VATA_EXE} timeout {TIMEOUT} {TA_EXE} {root}/pre1.aut {root}/circuit.qasm {root}/post1.aut'
+            cmd = f'ulimit -v {10485760//NUM_OF_THREADS} && VATA_PATH={VATA_EXE} timeout {TIMEOUT} {TA_EXE} {root}/pre1.aut {root}/circuit.qasm {root}/post1.aut'
             begin = time.monotonic()
             p = subprocess.run(cmd, shell=True, capture_output=True, executable='/bin/bash')
             end = time.monotonic()
@@ -175,13 +187,17 @@ def TA(root, semaphore, lock, counter):
                 except:
                     print(cmd, flush=True)
                 v = output.split(' & ')
-                v[3], v[4] = v[4], v[3]
-                data['before_state'] += '/' + v[2]
-                data['before_trans'] += '/' +  v[3]
-                data['after_state'] += '/' +  v[4]
-                data['after_trans'] += '/' +  v[5]
-                data['total'] += '/' +  v[6]
-                data['result'] += '/' +  v[7]
+                if len(v) < 5:
+                    data['total'] = str(round(end - begin, 1))
+                    data['result'] = 'ERROR'
+                else:
+                    v[3], v[4] = v[4], v[3]
+                    data['before_state'] += '/' + v[2]
+                    data['before_trans'] += '/' +  v[3]
+                    data['after_state'] += '/' +  v[4]
+                    data['after_trans'] += '/' +  v[5]
+                    data['total'] += '/' +  v[6]
+                    data['result'] += '/' +  v[7]
             elif ret == 124:
                 data['total'] += '/' +  str(TIMEOUT)
                 data['result'] += '/' +  'TIMEOUT'
@@ -204,7 +220,7 @@ def svsim(root, semaphore, lock, counter):
         data = dict()
         data['q'] = q
         data['G'] = G
-        cmd = f'timeout {TIMEOUT} {SVSIM_EXE} {root}'#; print(cmd)
+        cmd = f'ulimit -v {10485760//NUM_OF_THREADS} && timeout {TIMEOUT} {SVSIM_EXE} {root}'#; print(cmd)
         begin = time.monotonic()
         p = subprocess.run(cmd, shell=True, capture_output=True, executable='/bin/bash')
         end = time.monotonic()
@@ -235,7 +251,7 @@ def symqv(root, semaphore, lock, counter):
         data = dict()
         data['q'] = q
         data['G'] = G
-        cmd = f"cd /home/guest/fabianbauermarquart-symqv-fa8ec7f/POPL25/ && timeout {TIMEOUT} ./{symqvMap[root.split('/')[1]]}.py /home/guest/AutoQ/POPL25/Kick-the-Tires/non-parameterized/{sys.argv[1]}/{root.split('/')[1]}/{root.split('/')[2]}/circuit.qasm"#; print(cmd)
+        cmd = f"ulimit -v {10485760//NUM_OF_THREADS} && cd /home/guest/fabianbauermarquart-symqv-fa8ec7f/POPL25/ && timeout {TIMEOUT} ./{symqvMap[root.split('/')[1]]}.py /home/guest/AutoQ/POPL25/Kick-the-Tires/non-parameterized/{sys.argv[1]}/{root.split('/')[1]}/{root.split('/')[2]}/circuit.qasm"#; print(cmd)
         # print(cmd) # cd /home/guest/fabianbauermarquart-symqv-fa8ec7f/POPL25 && timeout 300 ./OEGrover.py /home/guest/AutoQ/POPL25/Kick-the-Tires/non-parameterized/correct/OEGrover/02/circuit.qasm
         begin = time.monotonic()
         p = subprocess.run(cmd, shell=True, capture_output=True, executable='/bin/bash')
@@ -334,7 +350,7 @@ def SliQSim(root, semaphore, lock, counter):
         data = dict()
         data['q'] = q
         data['G'] = G
-        cmd = f'timeout {TIMEOUT} {SLIQSIM_EXE} {root}'
+        cmd = f'ulimit -v {10485760//NUM_OF_THREADS} && timeout {TIMEOUT} {SLIQSIM_EXE} {root}'
         begin = time.monotonic()
         p = subprocess.run(cmd, shell=True, capture_output=True, executable='/bin/bash')
         end = time.monotonic()
