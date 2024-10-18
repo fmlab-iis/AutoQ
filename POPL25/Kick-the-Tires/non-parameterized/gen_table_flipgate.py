@@ -122,7 +122,12 @@ def json_to_latex_table(tool_list, latex_filename):
             the_string_to_be_added += ' & ' + str(int(file.split('/')[2]))
         else:
             the_string_to_be_added += ' & ' + str(int(file.split('/')[2]))
+        tool_before = 0
         for tool, data in datas.items():
+            tmp = compare_function3(tool)
+            if tmp > tool_before + 1:
+                the_string_to_be_added += (tmp - tool_before - 1) * ' & -'
+            tool_before = tmp
             if 'before_state' in data:
                 del data['before_state']
             if 'before_trans' in data:
