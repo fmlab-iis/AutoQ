@@ -4,6 +4,7 @@ from multiprocessing import Manager, Process, Semaphore, Lock
 
 TIMEOUT = 300
 p = subprocess.run(f'find {sys.argv[1]} -type f -name "*.qasm" | wc -l', shell=True, capture_output=True, executable='/bin/bash')
+TOTAL_MEMORY = 10485760 # in KB, so for now it is 10 GB.
 NUM_OF_CASES = int(p.stdout.splitlines()[0].decode('utf-8'))
 NUM_OF_THREADS = min(4, NUM_OF_CASES)
 LSTA_EXE = '../../../../build/cli/autoq'
@@ -60,11 +61,11 @@ def LSTA(root, semaphore, lock, counter):
         data['G'] = G
         cmd = ''
         if 'MCToffoli' in root:
-            cmd = f'ulimit -v {10485760//NUM_OF_THREADS} && timeout {TIMEOUT} {LSTA_EXE} verC {root}/pre0.spec {root}/circuit.qasm {root}/post0.spec --latex'#; print(cmd)
+            cmd = f'ulimit -v {TOTAL_MEMORY//NUM_OF_THREADS} && timeout {TIMEOUT} {LSTA_EXE} verC {root}/pre0.spec {root}/circuit.qasm {root}/post0.spec --latex'#; print(cmd)
         elif 'OEGrover' in root:
-            cmd = f'ulimit -v {10485760//NUM_OF_THREADS} && timeout {TIMEOUT} {LSTA_EXE} verS {root}/pre.spec {root}/circuit.qasm {root}/post.spec {root}/constraint.smt --latex'#; print(cmd)
+            cmd = f'ulimit -v {TOTAL_MEMORY//NUM_OF_THREADS} && timeout {TIMEOUT} {LSTA_EXE} verS {root}/pre.spec {root}/circuit.qasm {root}/post.spec {root}/constraint.smt --latex'#; print(cmd)
         else:
-            cmd = f'ulimit -v {10485760//NUM_OF_THREADS} && timeout {TIMEOUT} {LSTA_EXE} verC {root}/pre.spec {root}/circuit.qasm {root}/post.spec --latex'#; print(cmd)
+            cmd = f'ulimit -v {TOTAL_MEMORY//NUM_OF_THREADS} && timeout {TIMEOUT} {LSTA_EXE} verC {root}/pre.spec {root}/circuit.qasm {root}/post.spec --latex'#; print(cmd)
         begin = time.monotonic()
         p = subprocess.run(cmd, shell=True, capture_output=True, executable='/bin/bash')
         end = time.monotonic()
@@ -94,7 +95,7 @@ def LSTA(root, semaphore, lock, counter):
             data['total'] = str(round(end - begin, 1))
             data['result'] = 'ERROR'
         if 'MCToffoli' in root:
-            cmd = f'ulimit -v {10485760//NUM_OF_THREADS} && timeout {TIMEOUT} {LSTA_EXE} verC {root}/pre1.spec {root}/circuit.qasm {root}/post1.spec --latex'#; print(cmd)
+            cmd = f'ulimit -v {TOTAL_MEMORY//NUM_OF_THREADS} && timeout {TIMEOUT} {LSTA_EXE} verC {root}/pre1.spec {root}/circuit.qasm {root}/post1.spec --latex'#; print(cmd)
             begin = time.monotonic()
             p = subprocess.run(cmd, shell=True, capture_output=True, executable='/bin/bash')
             end = time.monotonic()
@@ -141,11 +142,11 @@ def TA(root, semaphore, lock, counter):
         data['G'] = G
         cmd = ''
         if 'MCToffoli' in root:
-            cmd = f'ulimit -v {10485760//NUM_OF_THREADS} && VATA_PATH={VATA_EXE} timeout {TIMEOUT} {TA_EXE} {root}/pre0.aut {root}/circuit.qasm {root}/post0.aut'
+            cmd = f'ulimit -v {TOTAL_MEMORY//NUM_OF_THREADS} && VATA_PATH={VATA_EXE} timeout {TIMEOUT} {TA_EXE} {root}/pre0.aut {root}/circuit.qasm {root}/post0.aut'
         elif 'OEGrover' in root:
-            cmd = f'ulimit -v {10485760//NUM_OF_THREADS} && VATA_PATH={VATA_EXE} timeout {TIMEOUT} {TA_SYMBOLIC_EXE} {root}/pre.aut {root}/circuit.qasm {root}/post.aut {root}/constraint2.smt'
+            cmd = f'ulimit -v {TOTAL_MEMORY//NUM_OF_THREADS} && VATA_PATH={VATA_EXE} timeout {TIMEOUT} {TA_SYMBOLIC_EXE} {root}/pre.aut {root}/circuit.qasm {root}/post.aut {root}/constraint2.smt'
         else:
-            cmd = f'ulimit -v {10485760//NUM_OF_THREADS} && VATA_PATH={VATA_EXE} timeout {TIMEOUT} {TA_EXE} {root}/pre.aut {root}/circuit.qasm {root}/post.aut'
+            cmd = f'ulimit -v {TOTAL_MEMORY//NUM_OF_THREADS} && VATA_PATH={VATA_EXE} timeout {TIMEOUT} {TA_EXE} {root}/pre.aut {root}/circuit.qasm {root}/post.aut'
         begin = time.monotonic()
         p = subprocess.run(cmd, shell=True, capture_output=True, executable='/bin/bash')
         end = time.monotonic()
@@ -175,7 +176,7 @@ def TA(root, semaphore, lock, counter):
             data['total'] = str(round(end - begin, 1))
             data['result'] = 'ERROR'
         if 'MCToffoli' in root:
-            cmd = f'ulimit -v {10485760//NUM_OF_THREADS} && VATA_PATH={VATA_EXE} timeout {TIMEOUT} {TA_EXE} {root}/pre1.aut {root}/circuit.qasm {root}/post1.aut'
+            cmd = f'ulimit -v {TOTAL_MEMORY//NUM_OF_THREADS} && VATA_PATH={VATA_EXE} timeout {TIMEOUT} {TA_EXE} {root}/pre1.aut {root}/circuit.qasm {root}/post1.aut'
             begin = time.monotonic()
             p = subprocess.run(cmd, shell=True, capture_output=True, executable='/bin/bash')
             end = time.monotonic()
@@ -220,7 +221,7 @@ def svsim(root, semaphore, lock, counter):
         data = dict()
         data['q'] = q
         data['G'] = G
-        cmd = f'ulimit -v {10485760//NUM_OF_THREADS} && timeout {TIMEOUT} {SVSIM_EXE} {root}'#; print(cmd)
+        cmd = f'ulimit -v {TOTAL_MEMORY//NUM_OF_THREADS} && timeout {TIMEOUT} {SVSIM_EXE} {root}'#; print(cmd)
         begin = time.monotonic()
         p = subprocess.run(cmd, shell=True, capture_output=True, executable='/bin/bash')
         end = time.monotonic()
@@ -251,7 +252,7 @@ def symqv(root, semaphore, lock, counter):
         data = dict()
         data['q'] = q
         data['G'] = G
-        cmd = f"ulimit -v {10485760//NUM_OF_THREADS} && cd /home/guest/fabianbauermarquart-symqv-fa8ec7f/POPL25/ && timeout {TIMEOUT} ./{symqvMap[root.split('/')[1]]}.py /home/guest/AutoQ/POPL25/Evaluation/non-parameterized/{sys.argv[1]}/{root.split('/')[1]}/{root.split('/')[2]}/circuit.qasm"#; print(cmd)
+        cmd = f"ulimit -v {TOTAL_MEMORY//NUM_OF_THREADS} && cd /home/guest/fabianbauermarquart-symqv-fa8ec7f/POPL25/ && timeout {TIMEOUT} ./{symqvMap[root.split('/')[1]]}.py /home/guest/AutoQ/POPL25/Evaluation/non-parameterized/{sys.argv[1]}/{root.split('/')[1]}/{root.split('/')[2]}/circuit.qasm"#; print(cmd)
         # print(cmd) # cd /home/guest/fabianbauermarquart-symqv-fa8ec7f/POPL25 && timeout 300 ./OEGrover.py /home/guest/AutoQ/POPL25/Evaluation/non-parameterized/correct/OEGrover/02/circuit.qasm
         begin = time.monotonic()
         p = subprocess.run(cmd, shell=True, capture_output=True, executable='/bin/bash')
@@ -350,7 +351,7 @@ def SliQSim(root, semaphore, lock, counter):
         data = dict()
         data['q'] = q
         data['G'] = G
-        cmd = f'ulimit -v {10485760//NUM_OF_THREADS} && timeout {TIMEOUT} {SLIQSIM_EXE} {root}'
+        cmd = f'ulimit -v {TOTAL_MEMORY//NUM_OF_THREADS} && timeout {TIMEOUT} {SLIQSIM_EXE} {root}'
         begin = time.monotonic()
         p = subprocess.run(cmd, shell=True, capture_output=True, executable='/bin/bash')
         end = time.monotonic()
