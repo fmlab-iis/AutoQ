@@ -128,6 +128,9 @@ def json_to_latex_table(tool_list, latex_filename):
             if tmp > tool_before + 1:
                 the_string_to_be_added += (tmp - tool_before - 1) * ' & -'
             tool_before = tmp
+            if 'Grover' in file and 'MOGrover/06' not in file and 'caal' in tool:
+                the_string_to_be_added += ' & -'
+                continue
             if 'before_state' in data:
                 del data['before_state']
             if 'before_trans' in data:
