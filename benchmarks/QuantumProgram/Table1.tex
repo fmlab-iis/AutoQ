@@ -1,0 +1,86 @@
+\documentclass{article}
+
+\usepackage{booktabs}
+\usepackage{xspace}
+\usepackage{multicol}
+\usepackage{multirow}
+\usepackage{graphicx}
+\usepackage{colortbl}
+\usepackage{xcolor}
+
+% tool names
+\newcommand{\autoq}[0]{\textsc{AutoQ}\xspace}
+\newcommand{\sliqsim}[0]{\textsc{SliQSim}\xspace}
+\newcommand{\feynman}[0]{\textsc{Feynman}\xspace}
+\newcommand{\feynopt}[0]{\textsc{Feynopt}\xspace}
+\newcommand{\qcec}[0]{\textsc{Qcec}\xspace}
+\newcommand{\qbricks}[0]{\textsc{Qbricks}\xspace}
+\newcommand{\qiskit}[0]{\textsc{Qiskit}\xspace}
+\newcommand{\vata}[0]{\textsc{Vata}\xspace}
+\newcommand{\tool}[0]{\textsc{LSTAQ}\xspace}
+\newcommand{\ta}[0]{\textsc{TA}\xspace}
+\newcommand{\correct}[0]{T\xspace}
+\newcommand{\wrong}[0]{F\xspace}
+\newcommand{\unknown}[0]{---\xspace}
+\newcommand{\nacell}[0]{\cellcolor{black!20}}
+\newcommand{\TO}[0]{\nacell TO}
+\newcommand{\error}[0]{\nacell OOM}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newcommand{\post}[1]{\mathtt{post}\_{#1}}
+
+% benchmarks
+\newcommand{\bvsingbench}[0]{\small\textsc{BV-Sing}\xspace}
+\newcommand{\bvmultbench}[0]{\small\textsc{BV-All}\xspace}
+\newcommand{\ghzsingbench}[0]{\small\textsc{GHZ-Sing}\xspace}
+\newcommand{\ghzmultbench}[0]{\small\textsc{GHZ-All}\xspace}
+\newcommand{\groversingbench}[0]{\small\textsc{Grover-Sing}\xspace}
+\newcommand{\grovermultbench}[0]{\small\textsc{Grover-All}\xspace}
+\newcommand{\hhbench}[0]{\small\textsc{H2}\xspace}
+\newcommand{\hxhbench}[0]{\small\textsc{HXH}\xspace}
+\newcommand{\mctoffolibench}[0]{\small\textsc{MCToffoli}\xspace}
+\newcommand{\randombench}[0]{\textsc{Random}\xspace}
+\newcommand{\revlibbench}[0]{\textsc{RevLib}\xspace}
+\newcommand{\feynmanbench}[0]{\textsc{FeynmanBench}\xspace}
+\newcommand{\oegroverbench}[0]{\small\textsc{Grover-Iter}\xspace}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{document}
+\hoffset=-1in
+\voffset=-1in
+\setbox0\hbox{
+\begin{tabular}{lrrccrrclrrccrr}\toprule
+\multicolumn{7}{c}{\emph{Weakly Measured Grover's Search}~\cite{weakly:chris}} &&
+\multicolumn{7}{c}{\emph{Repeat-Until-Success}~\cite{RUS}}\\
+\cmidrule{1-7}
+\cmidrule{9-15}
+\multicolumn{1}{c}{\textbf{program}} &
+\multicolumn{1}{c}{\textbf{qubits}} &
+\multicolumn{1}{c}{\textbf{gates}} &
+~~ &
+\multicolumn{1}{c}{\textbf{result}} &
+\textbf{time} &
+\multicolumn{1}{c}{\textbf{memory}} &
+~~ &
+\multicolumn{1}{c}{\textbf{program}} &
+\multicolumn{1}{c}{\textbf{qubits}} &
+\multicolumn{1}{c}{\textbf{gates}} &
+~~ &
+\multicolumn{1}{c}{\textbf{result}} &
+\textbf{time} &
+\multicolumn{1}{c}{\textbf{memory}}\\
+\cmidrule{1-7}
+\cmidrule{9-15}
+WMGrover (03) & 7 & 50 && OK & 0.0s & 41MB && $(2X+\sqrt2 Y+Z)/\sqrt7$ & 2 & 29 && OK & 0.0s & 7MB\\
+WMGrover (09) & 19 & 152 && OK & 0.2s & 51MB && $(I+i\sqrt2X)/\sqrt3$ & 2 & 17 && OK & 0.0s & 7MB\\
+WMGrover (18) & 37 & 305 && OK & 1.6s & 318MB && $(I+2iZ)/\sqrt5$ & 2 & 27 && OK & 0.0s & 6MB\\
+WMGrover (27) & 55 & 458 && OK & 8.3s & 1449MB && $(3I+2iZ)/\sqrt13$ & 2 & 43 && OK & 0.0s & 7MB\\
+WMGrover (36) & 73 & 611 && OK & 28s & 4437MB && $(4I+iZ)/\sqrt17$ & 2 & 77 && OK & 0.0s & 6MB\\
+WMGrover (45) & 91 & 764 && OK & 1m23s & 10670MB && $(5I+2iZ)/\sqrt29$ & 2 & 69 && OK & 0.0s & 7MB\\
+\bottomrule
+\end{tabular}}
+\pdfpageheight=\dimexpr\ht0+\dp0\relax
+\pdfpagewidth=\wd0
+\shipout\box0
+\stop
+\end{document}
