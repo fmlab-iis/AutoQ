@@ -218,6 +218,15 @@ struct AUTOQ::Complex::SymbolicComplex : std::map<Term, Complex> {
             c.k() = 0;
         }
     }
+    std::set<std::string> vars() const {
+        std::set<std::string> result;
+        for (const auto &kv : *this) {
+            for (const auto &kv2 : kv.first) {
+                result.insert(kv2.first);
+            }
+        }
+        return result;
+    }
 };
 
 #endif

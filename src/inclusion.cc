@@ -881,6 +881,7 @@ bool AUTOQ::SymbolicAutomata::operator<<=(AUTOQ::SymbolicAutomata autB) const {
             if (color_consistent) {
                 Vertex vertex2;
                 bool vertex_fail = true; // is_leaf_vertex
+                std::set<std::set<std::pair<AUTOQ::Symbol::Symbolic, AUTOQ::Symbol::Symbolic>>> leaf_pairs_of_one_new_vertex;
                 for (const auto &cell : vertex) {
                     INCLUSION_DEBUG("EXTRACT CELL: " << AUTOQ::Util::Convert::ToString(cell));
                     Cell cell2;
@@ -969,10 +970,9 @@ bool AUTOQ::SymbolicAutomata::operator<<=(AUTOQ::SymbolicAutomata autB) const {
                         /*************************************************************/
                         // Check if the current combination is color-consistent.
                         // If not, simply construct the unique cell without B's states!
-                        bool color_consistent2 = true;
                         unsigned all_used_colors = ~0;
                         INCLUSION_DEBUG("B's CURRENTLY CONSIDERED TRANSITIONS: ");
-                        std::set<std::pair<AUTOQ::Symbol::Symbolic, AUTOQ::Symbol::Symbolic>> leaf_pairs;
+                        std::set<std::pair<AUTOQ::Symbol::Symbolic, AUTOQ::Symbol::Symbolic>> leaf_pairs_of_one_new_cell;
                         for (const auto &kv : B_transition_combinations) { // Print the current combination
                             INCLUSION_DEBUG(AUTOQ::Util::Convert::ToString(kv.second)
                                 + "[" + AUTOQ::Util::Convert::ToString(B_transition_combinations_data.at(kv.first).at(kv.second)->first) + "]"
@@ -980,53 +980,9 @@ bool AUTOQ::SymbolicAutomata::operator<<=(AUTOQ::SymbolicAutomata autB) const {
                                 + " -> " + AUTOQ::Util::Convert::ToString(kv.first));
                             all_used_colors &= B_transition_combinations_data.at(kv.first).at(kv.second)->first;
                             for (const auto &desired_symbol : As_symbols_associated_with_Bs_states.at(kv.first))
-                                leaf_pairs.insert({desired_symbol, kv.second});
+                                leaf_pairs_of_one_new_cell.insert({desired_symbol, kv.second});
                         }
-                        color_consistent2 = (all_used_colors != 0);
-                        /*****************************************/
-                        // Build the formula and check its satisfiability.
-                        std::string ratio_constraint = "(exists ((ratioR Real) (ratioI Real)) (and (not (and (= ratioR 0) (= ratioI 0)))"; // 𝜓
-                        for (const auto &pair : leaf_pairs) {
-                            ratio_constraint += " (= ";
-                            ratio_constraint += pair.first.complex.realToSMT();
-                            ratio_constraint += " (- (* ratioR ";
-                            ratio_constraint += pair.second.complex.realToSMT();
-                            ratio_constraint += ") (* ratioI ";
-                            ratio_constraint += pair.second.complex.imagToSMT();
-                            ratio_constraint += ")))";
-                            ratio_constraint += " (= ";
-                            ratio_constraint += pair.first.complex.imagToSMT();
-                            ratio_constraint += " (+ (* ratioR ";
-                            ratio_constraint += pair.second.complex.imagToSMT();
-                            ratio_constraint += ") (* ratioI ";
-                            ratio_constraint += pair.second.complex.realToSMT();
-                            ratio_constraint += ")))";
-                        }
-                        ratio_constraint += "))";
-                        std::string implies_constraint = "(or (not " + autA.constraints + ") (and " + autB.constraints + " " + ratio_constraint + "))"; // 𝜑𝑟 ⇒ (𝜑𝑞 ∧ 𝜓)
-                        std::string formula_constraint;
-                        std::set<std::string> varsBminusA;
-                        for (const auto &varB : autB.vars) {
-                            if (autA.vars.find(varB) == autA.vars.end())
-                                varsBminusA.insert(varB);
-                        }
-                        if (!varsBminusA.empty()) {
-                            formula_constraint = "(exists (";
-                            for (const auto &var : varsBminusA) // (forall ((x1 σ1) (x2 σ2) ··· (xn σn)) (exists ((x1 σ1) (x2 σ2) ··· (xn σn)) ϕ))
-                                formula_constraint += "(" + var + " Real)";
-                            formula_constraint += ") ";
-                            formula_constraint += implies_constraint;
-                            formula_constraint += ")";
-                        } else {
-                            formula_constraint = implies_constraint;
-                        }
-                        std::string assertion = "(not " + formula_constraint + ")";
-                        std::string define_varA;
-                        for (const auto &var : autA.vars)
-                            define_varA += "(declare-fun " + var + " () Real)";
-                        INCLUSION_DEBUG(define_varA << "\n");
-                        INCLUSION_DEBUG(assertion << "\n");
-                        color_consistent2 &= !call_smt_solver(define_varA, assertion);
+                        bool color_consistent2 = (all_used_colors != 0);
                         /*****************************************/
                         // for (const auto &qB_c : possible_colors_for_qB) { // for each fixed qB
                         //     int counter = 0;
@@ -1046,6 +1002,7 @@ bool AUTOQ::SymbolicAutomata::operator<<=(AUTOQ::SymbolicAutomata autB) const {
                         INCLUSION_DEBUG("ARE " << (color_consistent2 ? "" : "NOT ") << "COLOR-CONSISTENT.");
                         // If consistent, equivalize the two input vectors of each equivalent transition pair.
                         if (color_consistent2) {
+                            leaf_pairs_of_one_new_vertex.insert(leaf_pairs_of_one_new_cell);
                             at_least_one_feasible_combination_in_the_following_while_loop = true;
                             for (const auto &kv : A_transition_combinations) {
                                 const auto &qA = kv.first;
@@ -1101,6 +1058,68 @@ bool AUTOQ::SymbolicAutomata::operator<<=(AUTOQ::SymbolicAutomata autB) const {
                 if (is_leaf_vertex) { // only when considering some particular transitions
                     INCLUSION_DEBUG("THE VERTEX: " << AUTOQ::Util::Convert::ToString(vertex2) << " LEADS A TO NOTHING OF STATES, SO WE SHALL NOT PUSH THIS VERTEX BUT CHECK IF B HAS POSSIBLE SIMULTANEOUS TRANSITION COMBINATIONS LEADING TO THIS VERTEX.");
                     if (vertex_fail) {
+                        auto stop_include = std::chrono::steady_clock::now();
+                        AUTOQ::SymbolicAutomata::include_status = AUTOQ::Util::Convert::toString(stop_include - start_include) + " X";
+                        INCLUSION_DEBUG("UNFORTUNATELY B HAS NO POSSIBLE TRANSITION COMBINATIONS, SO THE INCLUSION DOES NOT HOLD :(");
+                        AUTOQ::SymbolicAutomata::total_include_time += stop_include - start_include;
+                        return false;
+                    }
+                    // Build the formula and check its satisfiability.
+                    std::set<std::string> Y, Z, Z2;
+                    std::string ratio_constraints = "(or";
+                    for (const auto &leaf_pairs_of_one_new_cell : leaf_pairs_of_one_new_vertex) {
+                        std::string ratio_constraint = " (exists ((ratioR Real) (ratioI Real)) (and (not (and (= ratioR 0) (= ratioI 0)))"; // 𝜓
+                        for (const auto &pair : leaf_pairs_of_one_new_cell) {
+                            ratio_constraint += " (= ";
+                            ratio_constraint += pair.first.complex.realToSMT();
+                            ratio_constraint += " (- (* ratioR ";
+                            ratio_constraint += pair.second.complex.realToSMT();
+                            ratio_constraint += ") (* ratioI ";
+                            ratio_constraint += pair.second.complex.imagToSMT();
+                            ratio_constraint += ")))";
+                            ratio_constraint += " (= ";
+                            ratio_constraint += pair.first.complex.imagToSMT();
+                            ratio_constraint += " (+ (* ratioR ";
+                            ratio_constraint += pair.second.complex.imagToSMT();
+                            ratio_constraint += ") (* ratioI ";
+                            ratio_constraint += pair.second.complex.realToSMT();
+                            ratio_constraint += ")))";
+                            for (const auto &var : pair.first.complex.vars())
+                                Y.insert(var);
+                            for (const auto &var : pair.second.complex.vars())
+                                Z2.insert(var);
+                        }
+                        ratio_constraint += "))";
+                        ratio_constraints += ratio_constraint;
+                    }
+                    ratio_constraints += ")";
+                    for (const auto &var : autA.vars) {
+                        if (autA.constraints.find(var) != std::string::npos)
+                            Y.insert(var);
+                    }
+                    for (const auto &var : autB.vars) {
+                        if (autB.constraints.find(var) != std::string::npos)
+                            Z2.insert(var);
+                    }
+                    for (const auto &var : Z2) {
+                        if (Y.find(var) == Y.end())
+                            Z.insert(var);
+                    }
+                    std::string implies_constraint = "(or (not " + autA.constraints + ") ";
+                    if (!Z.empty()) {
+                        implies_constraint += "(exists (";
+                        for (const auto &var : Z) // (forall ((x1 σ1) (x2 σ2) ··· (xn σn)) (exists ((x1 σ1) (x2 σ2) ··· (xn σn)) ϕ))
+                            implies_constraint += "(" + var + " Real)";
+                        implies_constraint += ") ";
+                    }
+                    implies_constraint += "(and " + autB.constraints + " " + ratio_constraints + ")";
+                    if (!Z.empty()) implies_constraint += ")";
+                    implies_constraint += ")"; // 𝜑𝑟 ⇒ (𝜑𝑞 ∧ 𝜓)
+                    std::string assertion = "(not " + implies_constraint + ")";
+                    std::string define_varA;
+                    for (const auto &var : Y)
+                        define_varA += "(declare-fun " + var + " () Real)";
+                    if (call_smt_solver(define_varA, assertion)) {
                         auto stop_include = std::chrono::steady_clock::now();
                         AUTOQ::SymbolicAutomata::include_status = AUTOQ::Util::Convert::toString(stop_include - start_include) + " X";
                         INCLUSION_DEBUG("UNFORTUNATELY B HAS NO POSSIBLE TRANSITION COMBINATIONS, SO THE INCLUSION DOES NOT HOLD :(");
@@ -1175,7 +1194,7 @@ bool AUTOQ::SymbolicAutomata::operator_scaled_inclusion_with_renaming(AUTOQ::Sym
     for (const auto &var : autA.vars)
         vars2.insert("R_" + var);
     autA.vars = vars2;
-    autA.print_aut("R:\n");
+    // autA.print_aut("R:\n");
     // if (AUTOQ::String::trim(autA.constraints).empty()) autA.constraints = "true";
     /*********************************************************/
     // Rename the variables in autB's transitions and constraints!
@@ -1206,7 +1225,7 @@ bool AUTOQ::SymbolicAutomata::operator_scaled_inclusion_with_renaming(AUTOQ::Sym
     for (const auto &var : autB.vars)
         vars3.insert("Q_" + var);
     autB.vars = vars3;
-    autB.print_aut("Q:\n");
+    // autB.print_aut("Q:\n");
     // if (AUTOQ::String::trim(autB.constraints).empty()) autB.constraints = "true";
     /*********************************************************/
 
@@ -1310,6 +1329,7 @@ bool AUTOQ::SymbolicAutomata::operator_scaled_inclusion_with_renaming(AUTOQ::Sym
             if (color_consistent) {
                 Vertex vertex2;
                 bool vertex_fail = true; // is_leaf_vertex
+                std::set<std::set<std::pair<AUTOQ::Symbol::Symbolic, AUTOQ::Symbol::Symbolic>>> leaf_pairs_of_one_new_vertex;
                 for (const auto &cell : vertex) {
                     INCLUSION_DEBUG("EXTRACT CELL: " << AUTOQ::Util::Convert::ToString(cell));
                     Cell cell2;
@@ -1398,10 +1418,9 @@ bool AUTOQ::SymbolicAutomata::operator_scaled_inclusion_with_renaming(AUTOQ::Sym
                         /*************************************************************/
                         // Check if the current combination is color-consistent.
                         // If not, simply construct the unique cell without B's states!
-                        bool color_consistent2 = true;
                         unsigned all_used_colors = ~0;
                         INCLUSION_DEBUG("B's CURRENTLY CONSIDERED TRANSITIONS: ");
-                        std::set<std::pair<AUTOQ::Symbol::Symbolic, AUTOQ::Symbol::Symbolic>> leaf_pairs;
+                        std::set<std::pair<AUTOQ::Symbol::Symbolic, AUTOQ::Symbol::Symbolic>> leaf_pairs_of_one_new_cell;
                         for (const auto &kv : B_transition_combinations) { // Print the current combination
                             INCLUSION_DEBUG(AUTOQ::Util::Convert::ToString(kv.second)
                                 + "[" + AUTOQ::Util::Convert::ToString(B_transition_combinations_data.at(kv.first).at(kv.second)->first) + "]"
@@ -1409,51 +1428,9 @@ bool AUTOQ::SymbolicAutomata::operator_scaled_inclusion_with_renaming(AUTOQ::Sym
                                 + " -> " + AUTOQ::Util::Convert::ToString(kv.first));
                             all_used_colors &= B_transition_combinations_data.at(kv.first).at(kv.second)->first;
                             for (const auto &desired_symbol : As_symbols_associated_with_Bs_states.at(kv.first))
-                                leaf_pairs.insert({desired_symbol, kv.second});
+                                leaf_pairs_of_one_new_cell.insert({desired_symbol, kv.second});
                         }
-                        color_consistent2 = (all_used_colors != 0);
-                        /*****************************************/
-                        // Build the formula and check its satisfiability.
-                        std::string ratio_constraint = "(exists ((ratioR Real) (ratioI Real)) (and (not (and (= ratioR 0) (= ratioI 0)))"; // 𝜓
-                        for (const auto &pair : leaf_pairs) {
-                            ratio_constraint += " (= ";
-                            ratio_constraint += pair.first.complex.realToSMT();
-                            ratio_constraint += " (- (* ratioR ";
-                            ratio_constraint += pair.second.complex.realToSMT();
-                            ratio_constraint += ") (* ratioI ";
-                            ratio_constraint += pair.second.complex.imagToSMT();
-                            ratio_constraint += ")))";
-                            ratio_constraint += " (= ";
-                            ratio_constraint += pair.first.complex.imagToSMT();
-                            ratio_constraint += " (+ (* ratioR ";
-                            ratio_constraint += pair.second.complex.imagToSMT();
-                            ratio_constraint += ") (* ratioI ";
-                            ratio_constraint += pair.second.complex.realToSMT();
-                            ratio_constraint += ")))";
-                        }
-                        ratio_constraint += "))";
-                        std::string implies_constraint = "(or (not " + autA.constraints + ") (and " + autB.constraints + " " + ratio_constraint + "))"; // 𝜑𝑟 ⇒ (𝜑𝑞 ∧ 𝜓)
-                        std::string formula_constraint;
-                        std::set<std::string> varsBminusA;
-                        for (const auto &varB : autB.vars) {
-                            if (autA.vars.find(varB) == autA.vars.end())
-                                varsBminusA.insert(varB);
-                        }
-                        if (!varsBminusA.empty()) {
-                            formula_constraint = "(exists (";
-                            for (const auto &var : varsBminusA) // (forall ((x1 σ1) (x2 σ2) ··· (xn σn)) (exists ((x1 σ1) (x2 σ2) ··· (xn σn)) ϕ))
-                                formula_constraint += "(" + var + " Real)";
-                            formula_constraint += ") ";
-                            formula_constraint += implies_constraint;
-                            formula_constraint += ")";
-                        } else {
-                            formula_constraint = implies_constraint;
-                        }
-                        std::string assertion = "(not " + formula_constraint + ")";
-                        std::string define_varA;
-                        for (const auto &var : autA.vars)
-                            define_varA += "(declare-fun " + var + " () Real)";
-                        color_consistent2 &= !call_smt_solver(define_varA, assertion);
+                        bool color_consistent2 = (all_used_colors != 0);
                         /*****************************************/
                         // for (const auto &qB_c : possible_colors_for_qB) { // for each fixed qB
                         //     int counter = 0;
@@ -1473,6 +1450,7 @@ bool AUTOQ::SymbolicAutomata::operator_scaled_inclusion_with_renaming(AUTOQ::Sym
                         INCLUSION_DEBUG("ARE " << (color_consistent2 ? "" : "NOT ") << "COLOR-CONSISTENT.");
                         // If consistent, equivalize the two input vectors of each equivalent transition pair.
                         if (color_consistent2) {
+                            leaf_pairs_of_one_new_vertex.insert(leaf_pairs_of_one_new_cell);
                             at_least_one_feasible_combination_in_the_following_while_loop = true;
                             for (const auto &kv : A_transition_combinations) {
                                 const auto &qA = kv.first;
@@ -1528,6 +1506,68 @@ bool AUTOQ::SymbolicAutomata::operator_scaled_inclusion_with_renaming(AUTOQ::Sym
                 if (is_leaf_vertex) { // only when considering some particular transitions
                     INCLUSION_DEBUG("THE VERTEX: " << AUTOQ::Util::Convert::ToString(vertex2) << " LEADS A TO NOTHING OF STATES, SO WE SHALL NOT PUSH THIS VERTEX BUT CHECK IF B HAS POSSIBLE SIMULTANEOUS TRANSITION COMBINATIONS LEADING TO THIS VERTEX.");
                     if (vertex_fail) {
+                        auto stop_include = std::chrono::steady_clock::now();
+                        AUTOQ::SymbolicAutomata::include_status = AUTOQ::Util::Convert::toString(stop_include - start_include) + " X";
+                        INCLUSION_DEBUG("UNFORTUNATELY B HAS NO POSSIBLE TRANSITION COMBINATIONS, SO THE INCLUSION DOES NOT HOLD :(");
+                        AUTOQ::SymbolicAutomata::total_include_time += stop_include - start_include;
+                        return false;
+                    }
+                    // Build the formula and check its satisfiability.
+                    std::set<std::string> Y, Z, Z2;
+                    std::string ratio_constraints = "(or";
+                    for (const auto &leaf_pairs_of_one_new_cell : leaf_pairs_of_one_new_vertex) {
+                        std::string ratio_constraint = " (exists ((ratioR Real) (ratioI Real)) (and (not (and (= ratioR 0) (= ratioI 0)))"; // 𝜓
+                        for (const auto &pair : leaf_pairs_of_one_new_cell) {
+                            ratio_constraint += " (= ";
+                            ratio_constraint += pair.first.complex.realToSMT();
+                            ratio_constraint += " (- (* ratioR ";
+                            ratio_constraint += pair.second.complex.realToSMT();
+                            ratio_constraint += ") (* ratioI ";
+                            ratio_constraint += pair.second.complex.imagToSMT();
+                            ratio_constraint += ")))";
+                            ratio_constraint += " (= ";
+                            ratio_constraint += pair.first.complex.imagToSMT();
+                            ratio_constraint += " (+ (* ratioR ";
+                            ratio_constraint += pair.second.complex.imagToSMT();
+                            ratio_constraint += ") (* ratioI ";
+                            ratio_constraint += pair.second.complex.realToSMT();
+                            ratio_constraint += ")))";
+                            for (const auto &var : pair.first.complex.vars())
+                                Y.insert(var);
+                            for (const auto &var : pair.second.complex.vars())
+                                Z2.insert(var);
+                        }
+                        ratio_constraint += "))";
+                        ratio_constraints += ratio_constraint;
+                    }
+                    ratio_constraints += ")";
+                    for (const auto &var : autA.vars) {
+                        if (autA.constraints.find(var) != std::string::npos)
+                            Y.insert(var);
+                    }
+                    for (const auto &var : autB.vars) {
+                        if (autB.constraints.find(var) != std::string::npos)
+                            Z2.insert(var);
+                    }
+                    for (const auto &var : Z2) {
+                        if (Y.find(var) == Y.end())
+                            Z.insert(var);
+                    }
+                    std::string implies_constraint = "(or (not " + autA.constraints + ") ";
+                    if (!Z.empty()) {
+                        implies_constraint += "(exists (";
+                        for (const auto &var : Z) // (forall ((x1 σ1) (x2 σ2) ··· (xn σn)) (exists ((x1 σ1) (x2 σ2) ··· (xn σn)) ϕ))
+                            implies_constraint += "(" + var + " Real)";
+                        implies_constraint += ") ";
+                    }
+                    implies_constraint += "(and " + autB.constraints + " " + ratio_constraints + ")";
+                    if (!Z.empty()) implies_constraint += ")";
+                    implies_constraint += ")"; // 𝜑𝑟 ⇒ (𝜑𝑞 ∧ 𝜓)
+                    std::string assertion = "(not " + implies_constraint + ")";
+                    std::string define_varA;
+                    for (const auto &var : Y)
+                        define_varA += "(declare-fun " + var + " () Real)";
+                    if (call_smt_solver(define_varA, assertion)) {
                         auto stop_include = std::chrono::steady_clock::now();
                         AUTOQ::SymbolicAutomata::include_status = AUTOQ::Util::Convert::toString(stop_include - start_include) + " X";
                         INCLUSION_DEBUG("UNFORTUNATELY B HAS NO POSSIBLE TRANSITION COMBINATIONS, SO THE INCLUSION DOES NOT HOLD :(");

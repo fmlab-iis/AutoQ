@@ -147,7 +147,7 @@ void set_timeout(unsigned int seconds) {
 
 int main(int argc, char **argv) {
 try {
-    set_timeout(600);
+    // set_timeout(600);
     feenableexcept(FE_ALL_EXCEPT & ~FE_INEXACT);
 
     CLI::App app{"AutoQ: An automata-based C++ tool for quantum program verification."};
