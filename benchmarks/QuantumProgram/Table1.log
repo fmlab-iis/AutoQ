@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.22 (TeX Live 2022/dev/Debian) (preloaded format=pdflatex 2024.3.15)  22 OCT 2024 05:46
+This is pdfTeX, Version 3.141592653-2.6-1.40.22 (TeX Live 2022/dev/Debian) (preloaded format=pdflatex 2024.3.15)  23 OCT 2024 05:42
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -193,7 +193,7 @@ File: l3backend-pdftex.def 2022-01-12 L3 backend support: PDF output (pdfTeX)
 \l__color_backend_stack_int=\count274
 \l__pdf_internal_box=\box97
 )
-No file Table1.aux.
+(./Table1.aux)
 \openout1 = `Table1.aux'.
 
 LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 48.
@@ -210,6 +210,7 @@ LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 48.
 LaTeX Font Info:    ... okay on input line 48.
 LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 48.
 LaTeX Font Info:    ... okay on input line 48.
+
 (/usr/share/texlive/texmf-dist/tex/context/base/mkii/supp-pdf.mkii
 [Loading MPS to PDF converter (version 2006.09.02).]
 \scratchcounter=\count275
@@ -245,8 +246,8 @@ LaTeX Warning: Citation `RUS' on page 1 undefined on input line 54.
 
 [1{/var/lib/texmf/fonts/map/pdftex/updmap/pdftex.map}] ) 
 Here is how much of TeX's memory you used:
- 2245 strings out of 480218
- 35314 string characters out of 5894882
+ 2247 strings out of 480218
+ 35336 string characters out of 5894882
  337566 words of memory out of 5000000
  20216 multiletter control sequences out of 15000+600000
  469913 words of font info for 30 fonts, out of 8000000 for 9000
@@ -258,7 +259,7 @@ t/fonts/type1/public/amsfonts/cm/cmmi10.pfb></usr/share/texlive/texmf-dist/font
 s/type1/public/amsfonts/cm/cmr10.pfb></usr/share/texlive/texmf-dist/fonts/type1
 /public/amsfonts/cm/cmsy10.pfb></usr/share/texlive/texmf-dist/fonts/type1/publi
 c/amsfonts/cm/cmti10.pfb>
-Output written on Table1.pdf (1 page, 62233 bytes).
+Output written on Table1.pdf (1 page, 62221 bytes).
 PDF statistics:
  33 PDF objects out of 1000 (max. 8388607)
  19 compressed objects within 1 object stream
