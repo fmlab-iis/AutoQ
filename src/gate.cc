@@ -1554,6 +1554,7 @@ void AUTOQ::Automata<Symbol>::CK(int c, int t) {
         [](const Symbol &l, const Symbol &r) -> Symbol { return l * 220 - r * 21; },
         [](const Symbol &l, const Symbol &r) -> Symbol { return l * 21 + r * 220; },
         [](const Symbol &l) -> Symbol { return l * 221; });
+    reduce();
     gateCount++;
     auto duration = std::chrono::steady_clock::now() - start;
     if (gateLog) std::cout << "CK" << c << "," << t << "：" << stateNum << " states " << count_transitions() << " transitions " << AUTOQ::Util::print_duration(duration) << "\n";
