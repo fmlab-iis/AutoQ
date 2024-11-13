@@ -152,7 +152,7 @@ public:   // methods
     /********************************************/
     /* reduce.cc: applying reduction algorithms */
     void sim_reduce();
-    void bottom_up_reduce();
+    void bottom_up_reduce(int starts_from_depth=INT_MAX);
     void union_all_colors_for_a_given_transition();
     bool light_reduce_up(); /// lightweight size reduction, done upwards; returns @p true iff the automaton changed
     bool light_reduce_up_iter(); /// lightweight upwareds size reduction, iterated until change happens, returns @p true iff the automaton changed
