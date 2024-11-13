@@ -1343,4 +1343,123 @@ BOOST_AUTO_TEST_CASE(benchmarks_BVBugSym)
     BOOST_REQUIRE_MESSAGE(spec == spec2, folder + " failed!"); // ensure the compilation from .hsl to .lsta is correct
 }
 
+// BOOST_AUTO_TEST_CASE(star_notation_and_reordering)
+// {
+//     std::string sss(__FILE__);
+//     std::string benchmarks = sss.substr(0, sss.find_last_of("\\/")) + "/../unit_tests/testcase/general_star_example/";
+//     for (const auto &entry : fs::directory_iterator(benchmarks)) {
+//         if (!entry.is_directory()) continue;
+//         auto folder = entry.path().string();
+//         //auto aut = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Concrete>::ReadAutomaton(folder + "/pre.lsta");
+//         auto aut2 = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Concrete>::ReadAutomaton(folder + "/pre.hsl");
+//         //BOOST_REQUIRE_MESSAGE(aut == aut2, folder + " failed!"); // ensure the compilation from .hsl to .lsta is correct
+//         //auto spec = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Concrete>::ReadAutomaton(folder + "/post.lsta");
+//         //BOOST_REQUIRE_MESSAGE(aut <= spec, folder + " failed!");
+//         auto spec2 = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Concrete>::ReadAutomaton(folder + "/post.hsl");
+//         //aut2.execute(folder + "/circuit.qasm");
+//         BOOST_REQUIRE_MESSAGE(aut2 == spec2, folder + " failed!");
+//         //BOOST_REQUIRE_MESSAGE(aut2 <= spec2, folder + " failed!");
+//         //BOOST_REQUIRE_MESSAGE(spec == spec2, folder + " failed!"); // ensure the compilation from .hsl to .lsta is correct
+//     }
+// }
+
+BOOST_AUTO_TEST_CASE(qubit_reordering)
+{
+    for (int z=2; z<=5; z++) {
+        AUTOQ::TreeAutomata spec;
+        spec.qubitNum = z;
+        int pow_of_two = 1;
+        AUTOQ::TreeAutomata::State state_counter = 0;
+        for (int level=1; level<=z; level++) {
+            for (int i=0; i<pow_of_two; i++) {
+                spec.transitions[{level, 1}][state_counter].insert({state_counter*2+1, state_counter*2+2});
+                state_counter++;
+            }
+            pow_of_two *= 2;
+        }
+        for (AUTOQ::TreeAutomata::State i=state_counter; i<=state_counter*2; i++) {
+            spec.transitions[AUTOQ::TreeAutomata::SymbolTag(AUTOQ::Symbol::Concrete(Complex(i)), 1)][i].insert({{}});
+        }
+        spec.finalStates.push_back(0);
+        spec.stateNum = state_counter*2 + 1;
+        /************************/
+        AUTOQ::TreeAutomata spec2;
+        spec2.qubitNum = z;
+        pow_of_two = 1;
+        state_counter = 0;
+        for (int level=1; level<=z; level++) {
+            for (int i=0; i<pow_of_two; i++) {
+                spec2.transitions[{level, 1}][state_counter].insert({state_counter*2+1, state_counter*2+2});
+                state_counter++;
+            }
+            pow_of_two *= 2;
+        }
+        for (AUTOQ::TreeAutomata::State i=state_counter; i<=state_counter*2; i++) {
+            if (i % 2) // odd
+                spec2.transitions[AUTOQ::TreeAutomata::SymbolTag(AUTOQ::Symbol::Concrete(Complex(state_counter + (i-state_counter)/2)), 1)][i].insert({{}});
+            else // even
+                spec2.transitions[AUTOQ::TreeAutomata::SymbolTag(AUTOQ::Symbol::Concrete(Complex((state_counter*3+1)/2 + (i-state_counter-1)/2)), 1)][i].insert({{}});
+        }
+        spec2.finalStates.push_back(0);
+        spec2.stateNum = state_counter*2 + 1;
+        /*****************************/
+        AUTOQ::TreeAutomata aut = spec;
+        for (int j=1; j<=z-1; j++)
+            aut.SwapDown(j);
+        // aut.print_language();
+        // spec2.print_language();
+        BOOST_REQUIRE_MESSAGE(aut == spec2, __LINE__);
+        /*****************************/
+        aut = spec2;
+        for (int j=z; j>=2; j--)
+            aut.SwapUp(j);
+        // aut.print_language();
+        // spec.print_language();
+        BOOST_REQUIRE_MESSAGE(aut == spec, __LINE__);
+    }
+    for (int z=2; z<=6; z+=2) {
+        AUTOQ::TreeAutomata spec;
+        spec.qubitNum = z;
+        for (int level=1; level<=z; level++) {
+            if (level >= 2)
+                spec.transitions[{level, 0b11}][2*level - 3].insert({2*level - 1, 2*level - 1});
+            if (level % 2)
+                spec.transitions[{level, 0b01}][2*level - 2].insert({2*level - 1, 2*level});
+            spec.transitions[{level, 0b10}][2*level - 2].insert({2*level, 2*level - 1});
+        }
+        spec.transitions[AUTOQ::TreeAutomata::SymbolTag(AUTOQ::Symbol::Concrete(Complex::One()), 1)][2*z].insert({{}});
+        spec.transitions[AUTOQ::TreeAutomata::SymbolTag(AUTOQ::Symbol::Concrete(Complex::Zero()), 1)][2*z - 1].insert({{}});
+        spec.finalStates.push_back(0);
+        spec.stateNum = 2*z + 1;
+        /************************/
+        AUTOQ::TreeAutomata spec2;
+        spec2.qubitNum = z;
+        for (int level=1; level<=z; level++) {
+            if (level >= 2)
+                spec2.transitions[{level, 0b11}][2*level - 3].insert({2*level - 1, 2*level - 1});
+            if ((level+1) % 2)
+                spec2.transitions[{level, 0b01}][2*level - 2].insert({2*level - 1, 2*level});
+            spec2.transitions[{level, 0b10}][2*level - 2].insert({2*level, 2*level - 1});
+        }
+        spec2.transitions[AUTOQ::TreeAutomata::SymbolTag(AUTOQ::Symbol::Concrete(Complex::One()), 1)][2*z].insert({{}});
+        spec2.transitions[AUTOQ::TreeAutomata::SymbolTag(AUTOQ::Symbol::Concrete(Complex::Zero()), 1)][2*z - 1].insert({{}});
+        spec2.finalStates.push_back(0);
+        spec2.stateNum = 2*z + 1;
+        /*****************************/
+        AUTOQ::TreeAutomata aut = spec;
+        for (int j=1; j<=z; j+=2)
+            aut.SwapDown(j);
+        // aut.print_language();
+        // spec2.print_language();
+        BOOST_REQUIRE_MESSAGE(aut == spec2, __LINE__);
+        /*****************************/
+        aut = spec2;
+        for (int j=1; j<=z; j+=2)
+            aut.SwapDown(j);
+        // aut.print_language();
+        // spec.print_language();
+        BOOST_REQUIRE_MESSAGE(aut == spec, __LINE__);
+    }
+}
+
 // BOOST_AUTO_TEST_SUITE_END()

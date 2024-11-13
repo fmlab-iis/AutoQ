@@ -174,6 +174,79 @@ AUTOQ::Automata<Symbol> AUTOQ::Automata<Symbol>::operator||(const Automata<Symbo
     return result;
 }
 
+template <typename Symbol>
+void AUTOQ::Automata<Symbol>::SwapDown(int q) {
+    assert(!hasLoop);
+    TopDownTransitions old_transitions_at_q;
+    std::map<State, std::set<std::pair<Tag, StateVector>>> old_transitions_at_q_plus_1;
+
+    // Step 1. Delete all old transitions at level (q) and (q+1).
+    Symbol sym_at_q, sym_at_q_plus_1;
+    auto transitions_copy = transitions;
+    for (const auto &tr : transitions_copy) {
+        if (tr.first.symbol().is_internal()) {
+            if (tr.first.symbol().qubit() == q) {
+                transitions.erase(tr.first);
+                old_transitions_at_q.insert(tr);
+                sym_at_q = tr.first.symbol(); // save the symbol at level (q)
+            }
+            if (tr.first.symbol().qubit() == q+1) {
+                transitions.erase(tr.first);
+                for (const auto &out_ins : tr.second) {
+                    for (const auto &in : out_ins.second) {
+                        old_transitions_at_q_plus_1[out_ins.first].insert({tr.first.tag(), in});
+                    }
+                }
+                sym_at_q_plus_1 = tr.first.symbol(); // save the symbol at level (q+1)
+            }
+            if (tr.first.symbol().qubit() >= q+2) {
+                break;
+            }
+        } else {
+            break;
+        }
+    }
+
+    // Step 2. Rewrite the new transitions at level (q) and (q+1).
+    std::set<State> states_has_appeared;
+    for (const auto &tr : old_transitions_at_q) {
+        for (const auto &out_ins : tr.second) {
+            for (const auto &in : out_ins.second) {
+                assert(in.size() == 2);
+                auto leftChild = in.at(0);
+                auto rightChild = in.at(1);
+                if (states_has_appeared.contains(in.at(0))) leftChild = stateNum++;
+                if (states_has_appeared.contains(in.at(1))) rightChild = stateNum++;
+                transitions[SymbolTag(sym_at_q, tr.first.tag())][out_ins.first].insert({leftChild, rightChild}); // rewrite at level (q)
+                states_has_appeared.insert(in.at(0));
+                states_has_appeared.insert(in.at(1));
+                for (const auto &c1in1 : old_transitions_at_q_plus_1.at(in.at(0))) {
+                    const auto &c1 = c1in1.first;
+                    const auto &in1 = c1in1.second;
+                    for (const auto &c2in2 : old_transitions_at_q_plus_1.at(in.at(1))) {
+                        const auto &c2 = c2in2.first;
+                        const auto &in2 = c2in2.second;
+                        const auto c = c1 & c2;
+                        if (c) {
+                            transitions[SymbolTag(sym_at_q_plus_1, c)][leftChild].insert({in1.at(0), in2.at(0)}); // rewrite at level (q+1)
+                            transitions[SymbolTag(sym_at_q_plus_1, c)][rightChild].insert({in1.at(1), in2.at(1)}); // rewrite at level (q+1)
+                        }
+                    }
+                }
+            }
+        }
+    }
+    auto start = std::chrono::steady_clock::now();
+    bottom_up_reduce(q+1);
+    auto duration = std::chrono::steady_clock::now() - start;
+    total_reduce_time += duration;
+    if (opLog) std::cout << __FUNCTION__ << "：" << stateNum << " states " << count_transitions() << " transitions\n";
+}
+template <typename Symbol>
+void AUTOQ::Automata<Symbol>::SwapUp(int q) {
+    SwapDown(q-1);
+}
+
 // https://bytefreaks.net/programming-2/c/c-undefined-reference-to-templated-class-function
 template struct AUTOQ::Automata<AUTOQ::Symbol::Concrete>;
 template struct AUTOQ::Automata<AUTOQ::Symbol::Symbolic>;
