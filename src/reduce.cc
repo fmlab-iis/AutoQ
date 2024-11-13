@@ -525,91 +525,110 @@ struct HASH {
     }
 };
 template <typename Symbol>
-void AUTOQ::Automata<Symbol>::bottom_up_reduce() {
+void AUTOQ::Automata<Symbol>::bottom_up_reduce(int starts_from_depth) {
     TopDownTransitions transitions2; // the resulting transitions
     auto it = transitions.rbegin(); // global pointer
     std::map<State, std::map<Symbol, std::map<StateVector, Tag>>> qfic;
     // std::map<std::map<Symbol, std::map<StateVector, Tag>>, State> repr; // 9.9 sec in make test
     std::unordered_map<std::map<Symbol, std::map<StateVector, Tag>>, State, HASH<Symbol>> repr; // 9.6 sec in make test
     std::map<State, State> rewrite;
+    bool may_be_merged_furthermore = true;
 
     /* Convert leaf transitions into the new data structure. */
     for (; it != transitions.rend(); it++) { // iterate over all leaf transitions
         if (it->first.is_internal()) break; // assert leaf transitions
-        const auto &symbol = it->first.symbol();
-        const auto &tag = it->first.tag();
-        for (const auto &out_ins : it->second) {
-            for (const auto &in : out_ins.second) {
-                qfic[out_ins.first][symbol][in] |= tag;
+        if (may_be_merged_furthermore && starts_from_depth >= qubitNum + 1) {
+            const auto &symbol = it->first.symbol();
+            const auto &tag = it->first.tag();
+            for (const auto &out_ins : it->second) {
+                for (const auto &in : out_ins.second) {
+                    qfic[out_ins.first][symbol][in] |= tag;
+                }
             }
+        } else {
+            transitions2.insert(*it);
         }
     }
 
     /* Construct equivalent classes of top states. */
-    assert(repr.empty());
-    for (const auto &top_ : qfic) {
-        const auto &top = top_.first;
-        auto it = repr.find(top_.second);
-        if (it != repr.end()) {
-            rewrite[top] = it->second;
-        } else { // create a new class
-            rewrite[top] = top;
-            repr[top_.second] = top;
-            for (const auto &f_ : top_.second) {
-                const auto &f = f_.first;
-                for (const auto &ic : f_.second) {
-                    const auto &in = ic.first;
-                    const auto &c = ic.second;
-                    /* Put the non-redundant transitions into the resulting automaton. */
-                    transitions2[SymbolTag(f, c)][top].insert(in);
+    if (may_be_merged_furthermore && starts_from_depth >= qubitNum + 1) {
+        may_be_merged_furthermore = false;
+        assert(repr.empty());
+        for (const auto &top_ : qfic) {
+            const auto &top = top_.first;
+            auto it = repr.find(top_.second);
+            if (it != repr.end()) {
+                rewrite[top] = it->second;
+                may_be_merged_furthermore = true;
+            } else { // create a new class
+                rewrite[top] = top;
+                repr[top_.second] = top;
+                for (const auto &f_ : top_.second) {
+                    const auto &f = f_.first;
+                    for (const auto &ic : f_.second) {
+                        const auto &in = ic.first;
+                        const auto &c = ic.second;
+                        /* Put the non-redundant transitions into the resulting automaton. */
+                        transitions2[SymbolTag(f, c)][top].insert(in);
+                    }
                 }
             }
         }
+        qfic.clear();
+        repr.clear();
     }
-    qfic.clear();
-    repr.clear();
 
     /* Convert internal transitions into the new data structure. */
     for (; it != transitions.rend(); it++) { // iterate over all internal transitions
         auto qubit = it->first.symbol().qubit();
-        const auto &symbol = it->first.symbol();
-        const auto &tag = it->first.tag();
-        /* Collect all internal transitions at this layer into the new data structure. */
-        for (const auto &out_ins : it->second) {
-            const auto &out = out_ins.first;
-            for (auto in : out_ins.second) {
-                // rewrite the input states according to the equivalence classes previously computed
-                for_each(in.begin(), in.end(), [&rewrite](State &s) { s = rewrite.at(s); });
-                qfic[out][symbol][in] |= tag;
+        if (may_be_merged_furthermore && starts_from_depth >= qubit) {
+            const auto &symbol = it->first.symbol();
+            const auto &tag = it->first.tag();
+            /* Collect all internal transitions at this layer into the new data structure. */
+            for (const auto &out_ins : it->second) {
+                const auto &out = out_ins.first;
+                for (auto in : out_ins.second) {
+                    // rewrite the input states according to the equivalence classes previously computed
+                    for_each(in.begin(), in.end(), [&rewrite](State &s) {
+                        auto it = rewrite.find(s);
+                        if (it != rewrite.end())
+                            s = it->second;
+                    });
+                    qfic[out][symbol][in] |= tag;
+                }
             }
-        }
-        /*******************************************************************************/
-        if (std::next(it) == transitions.rend()
-            || qubit != std::next(it)->first.symbol().qubit()) { // to change layer or already the end of the first layer
-            rewrite.clear();
-            /* Construct equivalent classes of top states. */
-            assert(repr.empty());
-            for (const auto &top_ : qfic) {
-                const auto &top = top_.first;
-                auto it = repr.find(top_.second);
-                if (it != repr.end()) {
-                    rewrite[top] = it->second;
-                } else { // create a new class
-                    rewrite[top] = top;
-                    repr[top_.second] = top;
-                    for (const auto &f_ : top_.second) {
-                        const auto &f = f_.first;
-                        for (const auto &ic : f_.second) {
-                            const auto &in = ic.first;
-                            const auto &c = ic.second;
-                            /* Put the non-redundant transitions into the resulting automaton. */
-                            transitions2[SymbolTag(f, c)][top].insert(in);
+            /*******************************************************************************/
+            if (std::next(it) == transitions.rend()
+                || qubit != std::next(it)->first.symbol().qubit()) { // to change layer or already the end of the first layer
+                rewrite.clear();
+                /* Construct equivalent classes of top states. */
+                may_be_merged_furthermore = false;
+                assert(repr.empty());
+                for (const auto &top_ : qfic) {
+                    const auto &top = top_.first;
+                    auto it = repr.find(top_.second);
+                    if (it != repr.end()) {
+                        rewrite[top] = it->second;
+                        may_be_merged_furthermore = true;
+                    } else { // create a new class
+                        rewrite[top] = top;
+                        repr[top_.second] = top;
+                        for (const auto &f_ : top_.second) {
+                            const auto &f = f_.first;
+                            for (const auto &ic : f_.second) {
+                                const auto &in = ic.first;
+                                const auto &c = ic.second;
+                                /* Put the non-redundant transitions into the resulting automaton. */
+                                transitions2[SymbolTag(f, c)][top].insert(in);
+                            }
                         }
                     }
                 }
+                qfic.clear();
+                repr.clear();
             }
-            qfic.clear();
-            repr.clear();
+        } else {
+            transitions2.insert(*it);
         }
     }
     transitions = transitions2;
