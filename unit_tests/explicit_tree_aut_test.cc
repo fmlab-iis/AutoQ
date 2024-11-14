@@ -1014,6 +1014,38 @@ BOOST_AUTO_TEST_CASE(hsl_rule_checker)
     */
 }
 
+BOOST_AUTO_TEST_CASE(hsl_efficient_singleton)
+{
+    for (const auto &bm : {"BV"/*, "GHZall"*/, "GHZzero"/*, "Grover", "H2", "HXH", "MCToffoli", "MOBV_reorder", "MOGrover"*/}) {
+        std::string sss(__FILE__);
+        std::string benchmarks = sss.substr(0, sss.find_last_of("\\/")) + "/../benchmarks/all/" + bm + "/";
+        int min2 = INT_MAX;
+        int max2 = INT_MIN;
+        for (const auto &entry : fs::directory_iterator(benchmarks)) {
+            if (!entry.is_directory()) continue;
+            auto x = std::stoi(entry.path().string().substr(entry.path().string().find_last_of('/') + 1));
+            if (x < min2) min2 = x;
+            if (x > max2) max2 = x;
+        }
+        for (const auto &entry : fs::directory_iterator(benchmarks)) {
+            if (!entry.is_directory()) continue;
+            auto x = std::stoi(entry.path().string().substr(entry.path().string().find_last_of('/') + 1));
+            if (x != min2 && x != max2) continue;
+            auto folder = entry.path().string();
+            auto aut = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Concrete>::ReadAutomaton(folder + "/pre.lsta");
+            auto aut2 = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Concrete>::ReadAutomaton(folder + "/pre.hsl");
+            BOOST_REQUIRE_MESSAGE(aut == aut2, "\n" +
+                AUTOQ::Serialization::TimbukSerializer::Serialize(aut) +
+                AUTOQ::Serialization::TimbukSerializer::Serialize(aut2)); // ensure the compilation from .hsl to .lsta is correct
+            aut = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Concrete>::ReadAutomaton(folder + "/post.lsta");
+            aut2 = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Concrete>::ReadAutomaton(folder + "/post.hsl");
+            BOOST_REQUIRE_MESSAGE(aut == aut2, "\n" +
+                AUTOQ::Serialization::TimbukSerializer::Serialize(aut) +
+                AUTOQ::Serialization::TimbukSerializer::Serialize(aut2)); // ensure the compilation from .hsl to .lsta is correct
+        }
+    }
+}
+
 BOOST_AUTO_TEST_CASE(benchmarks_OEGrover)
 {
     std::string sss(__FILE__);

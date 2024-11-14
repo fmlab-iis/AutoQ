@@ -29,13 +29,38 @@
 #include "autoq/parsing/symboliccomplex_parser.hh"
 #include "autoq/parsing/constraint_parser.hh"
 
+// Thanks to https://github.com/boostorg/multiprecision/issues/297
+boost::multiprecision::cpp_int bin_2_dec(const std::string_view& num)
+{
+    boost::multiprecision::cpp_int dec_value = 0;
+    auto cptr = num.data();
+    long long len  = num.size();
+    // check if big enough to have 0b postfix
+    if (num.size() > 2) {
+        // check if 2nd character is the 'b' binary postfix
+        // skip over it & adjust length accordingly if it is
+        if (num[1] == 'b' || num[1] == 'B') {
+            cptr += 2;
+            len  -= 2;
+        }
+    }
+    // change i's type to cpp_int if the number of digits is greater
+    // than std::numeric_limits<size_t>::max()
+    for (long long i = len - 1; 0 <= i; ++cptr, --i) {
+        if (*cptr == '1') {
+            boost::multiprecision::bit_set(/*.val = */ dec_value, /*.pos = */ i);
+        }
+    }
+    return dec_value;
+}
+
 template <typename Symbol>
 AUTOQ::Automata<Symbol> from_tree_to_automaton(std::string tree, const std::map<std::string, AUTOQ::Complex::Complex> &constants, const std::map<std::string, std::string> &predicates, bool &do_not_throw_term_undefined_error) {
     /************************** TreeAutomata **************************/
     if constexpr(std::is_same_v<Symbol, AUTOQ::TreeAutomata::Symbol>) {
         AUTOQ::Automata<AUTOQ::Symbol::Concrete> aut;
-        std::map<typename AUTOQ::Automata<AUTOQ::Symbol::Concrete>::State, AUTOQ::Symbol::Concrete> states_probs;
-        AUTOQ::Complex::Complex default_prob(0);
+        std::map<boost::multiprecision::cpp_int, AUTOQ::Complex::Complex> qs2amp; // quantum state to amplitude
+        AUTOQ::Complex::Complex default_amp(0);
         const std::regex myregex("(.*?)\\|(.*?)>");
         const std::regex_iterator<std::string::iterator> END;
         std::regex_iterator<std::string::iterator> it2(tree.begin(), tree.end(), myregex);
@@ -46,7 +71,7 @@ AUTOQ::Automata<Symbol> from_tree_to_automaton(std::string tree, const std::map<
             if (!t.empty() && t.at(0) == '+') t = t.substr(1);
             if (t.empty()) t = "1";
             else if (t == "-") t = "-1";
-            if (states_probs.empty()) {
+            if (qs2amp.empty()) {
                 if (state == "*")
                     THROW_AUTOQ_ERROR("The numbers of qubits are not specified!");
                 aut.qubitNum = state.length();
@@ -64,12 +89,12 @@ AUTOQ::Automata<Symbol> from_tree_to_automaton(std::string tree, const std::map<
                         }
                         THROW_AUTOQ_ERROR("The constant \"" + t + "\" is not defined yet!");
                     }
-                    default_prob += it->second;
+                    default_amp += it->second; // we use += to deal with the case c1|s> + c2|s> = (c1+c2)|s>
                 } else
-                    default_prob += cp.getComplex();
+                    default_amp += cp.getComplex(); // we use += to deal with the case c1|s> + c2|s> = (c1+c2)|s>
 
             } else {
-                AUTOQ::TreeAutomata::State s = std::stoll(state, nullptr, 2);
+                boost::multiprecision::cpp_int s = bin_2_dec(state); // std::stoll(state, nullptr, 2);
                 auto cp = ComplexParser(t, constants);
                 if (!cp.getConstName().empty()) { // is symbol
                     auto it = constants.find(t);
@@ -80,34 +105,83 @@ AUTOQ::Automata<Symbol> from_tree_to_automaton(std::string tree, const std::map<
                         }
                         THROW_AUTOQ_ERROR("The constant \"" + t + "\" is not defined yet!");
                     }
-                    states_probs[s].complex += it->second;
+                    qs2amp[s] += it->second; // we use += to deal with the case c1|s> + c2|s> = (c1+c2)|s>
                 } else
-                    states_probs[s].complex += cp.getComplex();
+                    qs2amp[s] += cp.getComplex(); // we use += to deal with the case c1|s> + c2|s> = (c1+c2)|s>
             }
             ++it2;
         }
-        typename AUTOQ::Automata<AUTOQ::Symbol::Concrete>::State pow_of_two = 1;
-        typename AUTOQ::Automata<AUTOQ::Symbol::Concrete>::State state_counter = 0;
-        for (int level=1; level<=aut.qubitNum; level++) {
-            for (typename AUTOQ::Automata<AUTOQ::Symbol::Concrete>::State i=0; i<pow_of_two; i++) {
-                aut.transitions[typename AUTOQ::Automata<Symbol>::SymbolTag(AUTOQ::Symbol::Concrete(level), typename AUTOQ::Automata<Symbol>::Tag(1))][state_counter].insert({(state_counter<<1)+1, (state_counter<<1)+2});
-                state_counter++;
+        // We start to construct the automaton below.
+        std::map<AUTOQ::Complex::Complex, AUTOQ::Automata<AUTOQ::Symbol::Concrete>::State> amp2state; // amplitude to state
+        std::map<boost::multiprecision::cpp_int, AUTOQ::Automata<AUTOQ::Symbol::Concrete>::State> node2state; // node to state
+        for (const auto &[qs, amp]: qs2amp) {
+            AUTOQ::Automata<AUTOQ::Symbol::Concrete>::State top;
+            auto it = amp2state.find(amp);
+            if (it == amp2state.end()) {
+                top = aut.stateNum;
+                amp2state[amp] = aut.stateNum;
+                aut.stateNum++;
+            } else {
+                top = it->second;
             }
-            pow_of_two <<= 1;
+            aut.transitions[typename AUTOQ::Automata<Symbol>::SymbolTag(AUTOQ::Symbol::Concrete(amp), typename AUTOQ::Automata<Symbol>::Tag(1))][top].insert({{}});
+            node2state[qs] = top;
         }
-        for (typename AUTOQ::Automata<AUTOQ::Symbol::Concrete>::State i=state_counter; i<=(state_counter<<1); i++) {
-            auto spf = states_probs.find(i-state_counter);
-            if (spf == states_probs.end()) {
-                // if (default_prob == AUTOQ::Complex::Complex())
-                //     THROW_AUTOQ_ERROR("The default amplitude is not specified!");
-                aut.transitions[typename AUTOQ::Automata<Symbol>::SymbolTag(AUTOQ::Symbol::Concrete(default_prob), typename AUTOQ::Automata<Symbol>::Tag(1))][i].insert({{}});
+        if (qs2amp.size() < (boost::multiprecision::cpp_int(1)<<aut.qubitNum)) {
+            AUTOQ::Automata<AUTOQ::Symbol::Concrete>::State top;
+            auto it = amp2state.find(default_amp);
+            if (it == amp2state.end()) {
+                top = aut.stateNum;
+                amp2state[default_amp] = aut.stateNum;
+                aut.stateNum++;
+            } else {
+                top = it->second;
             }
-            else
-                aut.transitions[typename AUTOQ::Automata<Symbol>::SymbolTag(spf->second, typename AUTOQ::Automata<Symbol>::Tag(1))][i].insert({{}});
+            aut.transitions[typename AUTOQ::Automata<Symbol>::SymbolTag(AUTOQ::Symbol::Concrete(default_amp), typename AUTOQ::Automata<Symbol>::Tag(1))][top].insert({{}});
+            node2state[-1] = top;
         }
-        aut.finalStates.push_back(0);
-        aut.stateNum = (state_counter<<1) + 1;
-        aut.reduce();
+        for (int level=aut.qubitNum; level>=1; level--) {
+            std::map<std::pair<AUTOQ::Automata<AUTOQ::Symbol::Concrete>::State, AUTOQ::Automata<AUTOQ::Symbol::Concrete>::State>, AUTOQ::Automata<AUTOQ::Symbol::Concrete>::State> pair2state; // pair to state
+            std::map<boost::multiprecision::cpp_int, AUTOQ::Automata<AUTOQ::Symbol::Concrete>::State> node2state2; // node to state
+            for (const auto &[node, state]: node2state) {
+                if (node != -1) {
+                    AUTOQ::Automata<AUTOQ::Symbol::Concrete>::State top;
+                    std::pair<AUTOQ::Automata<AUTOQ::Symbol::Concrete>::State, AUTOQ::Automata<AUTOQ::Symbol::Concrete>::State> pair;
+                    if (node % 2) {
+                        auto it2 = node2state.find(node-1);
+                        if (it2 == node2state.end())
+                            pair = std::make_pair(node2state.at(-1), state);
+                        else
+                            pair = std::make_pair(it2->second, state);
+                    } else {
+                        auto it2 = node2state.find(node+1);
+                        if (it2 == node2state.end())
+                            pair = std::make_pair(state, node2state.at(-1));
+                        else
+                            pair = std::make_pair(state, it2->second);
+                    }
+                    auto it = pair2state.find(pair);
+                    if (it == pair2state.end()) {
+                        top = aut.stateNum;
+                        pair2state[pair] = aut.stateNum;
+                        aut.stateNum++;
+                    } else {
+                        top = it->second;
+                    }
+                    aut.transitions[typename AUTOQ::Automata<Symbol>::SymbolTag(AUTOQ::Symbol::Concrete(level), typename AUTOQ::Automata<Symbol>::Tag(1))][top].insert({pair.first, pair.second});
+                    pair2state[pair] = top;
+                    node2state2[node / 2] = top;
+                }
+            }
+            if (qs2amp.size() < (boost::multiprecision::cpp_int(1)<<(level-1))) {
+                auto default_state = node2state[-1];
+                aut.transitions[typename AUTOQ::Automata<Symbol>::SymbolTag(AUTOQ::Symbol::Concrete(level), typename AUTOQ::Automata<Symbol>::Tag(1))][aut.stateNum].insert({default_state, default_state});
+                node2state2[-1] = aut.stateNum;
+                aut.stateNum++;
+            }
+            node2state = node2state2;
+        }
+        aut.finalStates.push_back(aut.stateNum-1);
         return aut;
     } /**************************** SymbolicAutomata ****************************/
     else if constexpr(std::is_same_v<Symbol, AUTOQ::SymbolicAutomata::Symbol>) {
