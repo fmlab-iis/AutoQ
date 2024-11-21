@@ -1462,6 +1462,8 @@ AUTOQ::Automata<Symbol> AUTOQ::Parsing::TimbukParser<Symbol>::parse_hsl_from_ist
             {
                 start_transitions = true;
                 continue;
+            } else {
+                THROW_AUTOQ_ERROR("The section \"Extended Dirac\" should be declared first before specifying the states.");
             }
         }   // processing states
         else
