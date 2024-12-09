@@ -17,7 +17,7 @@ for n in sizes:
     ###########################################################################
     with open(n_str + '/pre.hsl', 'w') as file:
         file.write('Extended Dirac\n')
-        file.write(f"|{'0' * (n+1)}>\n")
+        file.write(f"{{|{'0' * (n+1)}>}}\n")
     ###########################################################################
     with open(n_str + '/pre.lsta', 'w') as file:
         file.write('Constants\n')
@@ -65,5 +65,7 @@ for n in sizes:
         file.write('Predicates\n')
         file.write('p := (= $I 0)\n')
         file.write('Extended Dirac\n')
-        file.write(f"p |{'0' * (n+1)}> + p |*>\n")
+        file.write(f"{{p |{'0' * (n+1)}> + p |*>}}\n")
     ###########################################################################
+
+# cp -rl {01,99,999}/ ../../CAV23/BVSym/
