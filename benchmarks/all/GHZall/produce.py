@@ -25,7 +25,7 @@ for n in sizes:
     #########################################
     with open(n_str + '/pre.hsl', 'w') as file:
         file.write('Extended Dirac\n')
-        file.write(f"\/|i|={n} : |i>\n")
+        file.write(f"{{|i> | |i|={n}}}\n")
     #########################################
     with open(n_str + "/pre.lsta", "w") as file:
         file.write('Constants\n')
@@ -44,8 +44,8 @@ for n in sizes:
     #########################################
     with open(n_str + '/post.hsl', 'w') as file:
         file.write('Extended Dirac\n')
-        file.write(f"\/|i|={n-1} : 1/sqrt2 |0i> + 1/sqrt2 |1i'>\n")
-        file.write(f"\/|i|={n-1} : 1/sqrt2 |0i> - 1/sqrt2 |1i'>\n")
+        file.write(f"{{1/sqrt2 |0i> + 1/sqrt2 |1i'> | |i|={n-1}}} ∪\n")
+        file.write(f"{{1/sqrt2 |0i> - 1/sqrt2 |1i'> | |i|={n-1}}}\n")
     #########################################
     with open(n_str + "/post.lsta", "w") as file:
         file.write(
@@ -72,3 +72,5 @@ c2 := -1 / sqrt2
         file.write(f"[c1,1] -> {3*n-1}\n")
         file.write(f"[c2,2] -> {3*n-1}\n")
     #########################################
+
+# cp -rl {008,016,032,064,128} ../../LSTA/GHZall/

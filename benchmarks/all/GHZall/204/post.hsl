@@ -1,3 +1,3 @@
 Extended Dirac
-\/|i|=203 : 1/sqrt2 |0i> + 1/sqrt2 |1i'>
-\/|i|=203 : 1/sqrt2 |0i> - 1/sqrt2 |1i'>
+{1/sqrt2 |0i> + 1/sqrt2 |1i'> | |i|=203} ∪
+{1/sqrt2 |0i> - 1/sqrt2 |1i'> | |i|=203}
