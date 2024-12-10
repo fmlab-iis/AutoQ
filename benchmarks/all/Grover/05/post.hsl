@@ -1,7 +1,10 @@
 Constants
 aH := 23161 / (sqrt2 ^ 29)
 aL := -119 / (sqrt2 ^ 29)
-Variable Order
-1 2 4 6 8 3 5 7 9 10
 Extended Dirac
-aH |01010> + aL |*> # |00001>
+{aH |0> + aL |1>} ⊗ ({aL |0> + aH |1>} ⊗ {|0>} ⊗ {aH |0> + aL |1>} ⊗ {|0>}) ^ 2 ⊗ {|1>}
+where
+aH ⊗ aH = aH
+aH ⊗ aL = aL
+aL ⊗ aH = aL
+aL ⊗ aL = aL

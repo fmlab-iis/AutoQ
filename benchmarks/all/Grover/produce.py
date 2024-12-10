@@ -22,7 +22,7 @@ for n in sizes:
     ###########################################################################
     with open(n_str + '/pre.hsl', 'w') as file:
         file.write('Extended Dirac\n')
-        file.write("|" + '0' * q + ">\n")
+        file.write("{|" + '0' * q + ">}\n")
     ###########################################################################
     with open(n_str + "/pre.lsta", "w") as file:
         file.write('Constants\n')
@@ -125,8 +125,14 @@ for n in sizes:
         file.write('Constants\n')
         file.write(f'aH := {aH[n]}\n')
         file.write(f'aL := {aL[n]}\n')
-        file.write('Variable Order\n')
-        file.write(' '.join(map(str, [1] + list(range(2, 2*(n-1)+1, 2)) + list(range(3, 2*n, 2)) + [2*n])) + '\n')
         file.write('Extended Dirac\n')
-        file.write(f"aH |" + '01'*(n//2)+'0'*(n%2) + "> + aL |*> # |" + '0'*(n-1) + "1>\n")
+        file.write(f"{{aH |0> + aL |1>}} ⊗ ({{aL |0> + aH |1>}} ⊗ {{|0>}} ⊗ {{aH |0> + aL |1>}} ⊗ {{|0>}}) ^ {(n-1)//2}" + (" ⊗ {aL |0> + aH |1>} ⊗ {|0>}" if n % 2 == 0 else "") + " ⊗ {|1>}\n")
+        file.write('where\n')
+        file.write('aH ⊗ aH = aH\n')
+        file.write('aH ⊗ aL = aL\n')
+        file.write('aL ⊗ aH = aL\n')
+        file.write('aL ⊗ aL = aL\n')
     ###########################################################################
+
+# cp -rl {12,14,16,18,20} ../../LSTA/Grover/
+# cp -rl {12,14,16,18,20} ../../PLDI23/Grover/
