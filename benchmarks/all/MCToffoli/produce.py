@@ -127,7 +127,7 @@ for n in sizes:
     #########################################
     with open(n_str + '/pre.hsl', 'w') as file:
         file.write('Extended Dirac\n')
-        file.write("\/|i|=2:|i>" + ' # \/|i|=1:|0i>' * (n-1) + '\n')
+        file.write("{|i> | |i|=2}" + ' ⊗ {|0i> | |i|=1} ^ ' + f'{n-1}\n')
     shutil.copy(n_str + '/pre.hsl', n_str + '/post.hsl')
     #########################################
     with open(n_str + "/pre.lsta", "w") as file:
@@ -153,7 +153,7 @@ for n in sizes:
     #########################################
     with open(n_str + '/pre0.hsl', 'w') as file:
         file.write('Extended Dirac\n')
-        file.write("\/|i|=2:|i>" + ' # \/|i|=1:|0i>' * (n-2) + ' # |00>\n')
+        file.write("{|i> | |i|=2}" + ' ⊗ {|0i> | |i|=1} ^ ' + f'{n-2}' + ' ⊗ {|00>}\n')
     #########################################
     with open(n_str + "/pre0.lsta", "w") as file:
         file.write('Constants\n')
@@ -178,7 +178,7 @@ for n in sizes:
     #########################################
     with open(n_str + '/pre1.hsl', 'w') as file:
         file.write('Extended Dirac\n')
-        file.write("\/|i|=2:|i>" + ' # \/|i|=1:|0i>' * (n-2) + ' # |01>\n')
+        file.write("{|i> | |i|=2}" + ' ⊗ {|0i> | |i|=1} ^ ' + f'{n-2}' + ' ⊗ {|01>}\n')
     #########################################
     with open(n_str + "/pre1.lsta", "w") as file:
         file.write('Constants\n')
@@ -203,21 +203,22 @@ for n in sizes:
     #########################################
     with open(n_str + '/post0.hsl', 'w') as file:
         file.write('Extended Dirac\n')
-        file.write('|0>' + ' # \/|i|=1:|i0>' * (n-1) + ' # |0>\n')
-        for i in range(n-1):
-            file.write('|1' + '10'*i + '00>' + ' # \/|i|=1:|i0>' * (n-2-i) + ' # |0>\n')
-        file.write('|1' + '10' * (n-1) + '1>\n')
+        file.write("{|i> | |i|=2}" + ' ⊗ {|0i> | |i|=1} ^ ' + f'{n-2}' + ' ⊗ {|00>}\n')
+        file.write('U {|1' + '10' * (n-1) + '1>}\n')
+        file.write('\ {|1' + '10' * (n-1) + '0>}\n')
     #########################################
     with open(n_str + "/post0.lsta", "w") as file:
         print(gen_toff_postlsta(n, False), file=file)
     #########################################
     with open(n_str + '/post1.hsl', 'w') as file:
         file.write('Extended Dirac\n')
-        file.write('|0>' + ' # \/|i|=1:|i0>' * (n-1) + ' # |1>\n')
-        for i in range(n-1):
-            file.write('|1' + '10'*i + '00>' + ' # \/|i|=1:|i0>' * (n-2-i) + ' # |1>\n')
-        file.write('|1' + '10' * (n-1) + '0>\n')
+        file.write("{|i> | |i|=2}" + ' ⊗ {|0i> | |i|=1} ^ ' + f'{n-2}' + ' ⊗ {|01>}\n')
+        file.write('U {|1' + '10' * (n-1) + '0>}\n')
+        file.write('\ {|1' + '10' * (n-1) + '1>}\n')
     #########################################
     with open(n_str + "/post1.lsta", "w") as file:
         print(gen_toff_postlsta(n, True), file=file)
     #########################################
+
+# cp -rl {08,10,12,14,16} ../../LSTA/MCToffoli/
+# cp -rl {08,10,12,14,16} ../../PLDI23/MCToffoli/
