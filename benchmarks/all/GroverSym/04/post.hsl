@@ -1,6 +1,4 @@
 Predicates
 pH := (and (> (* $R $R) 0.9) (= $I 0))
-Variable Order
-1 2 4 6 3 5 7 8
 Extended Dirac
-pH |01010001>
+{pH |010001000101>}

@@ -22,7 +22,7 @@ for n in sizes:
     ###########################################################################
     with open(n_str + '/pre.hsl', 'w') as file:
         file.write('Extended Dirac\n')
-        file.write("|" + '0' * q + ">\n")
+        file.write("{|" + '0' * q + ">}\n")
     ###########################################################################
     with open(n_str + "/pre.lsta", "w") as file:
         file.write('Constants\n')
@@ -126,8 +126,8 @@ for n in sizes:
         # file.write('pL := (and (< (* $R $R) 0.1) (= $I 0))\n')
         # file.write('p0 := (and (= $R 0) (= $I 0))\n')
         file.write('pH := (and (> (* $R $R) 0.9) (= $I 0))\n')
-        file.write('Variable Order\n')
-        file.write(' '.join(map(str, [1] + list(range(2, 2*(n-1)+1, 2)) + list(range(3, 2*n, 2)) + [2*n])) + '\n')
         file.write('Extended Dirac\n')
-        file.write(f"pH |" + '01'*(n//2)+'0'*(n%2) + '0'*(n-1) + "1>\n")
+        file.write("{pH |0" + '1000'*(n//2) + ("10" if n % 2 == 0 else "") + "1>}\n")
     ###########################################################################
+
+# cp -rl {03,16,18,20} ../../CAV23/GroverSym/
