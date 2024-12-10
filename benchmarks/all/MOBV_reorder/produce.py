@@ -37,7 +37,7 @@ for n in sizes:
     #########################################
     with open(n_str + "/pre.hsl", "w") as file:
         file.write("Extended Dirac\n")
-        file.write('\/|i|=1:|i0> # ' * n + '|0>\n')
+        file.write('{|i0> | |i|=1} ^ ' + f'{n}' + ' ⊗ {|0>}\n')
     #########################################
     with open(n_str + "/pre.lsta", "w") as file:
         file.write("Constants\n")
@@ -80,5 +80,7 @@ for n in sizes:
     #########################################
     with open(n_str + "/post.hsl", "w") as file:
         file.write("Extended Dirac\n")
-        file.write('\/|i|=1:|ii> # ' * n + '|1>\n')
+        file.write('{|00>, |11>} ^ ' + f'{n}' + ' ⊗ {|1>}\n')
     #########################################
+
+# cp -rl {09,1[0-3]} ../../LSTA/MOBV_reorder/
