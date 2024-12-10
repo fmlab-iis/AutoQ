@@ -26,7 +26,7 @@ for n in sizes:
     #########################################
     with open(n_str + '/pre.hsl', 'w') as file:
         file.write('Extended Dirac\n')
-        file.write(f"\/|i|={n} : |i>\n")
+        file.write(f"{{|i> | |i|={n}}}\n")
     shutil.copy(n_str + '/pre.hsl', n_str + '/post.hsl')
     #########################################
     with open(n_str + "/pre.lsta", "w") as file:
@@ -45,3 +45,5 @@ for n in sizes:
         file.write(f"[c1,1] -> {2*n}\n")
     shutil.copy(n_str + '/pre.lsta', n_str + '/post.lsta')
     #########################################
+
+# cp -rl {012,013,064,128,256} ../../LSTA/H2/
