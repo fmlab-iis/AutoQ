@@ -1,4 +1,10 @@
 Predicates
-p := (and (> (* real($) real($)) (* real(b) real(b))) (= imag($) 0))
+pL := (and (< (* real($) real($)) (* real(a) real(a))) (= imag($) 0))
+pH := (and (> (* real($) real($)) (* real(b) real(b))) (= imag($) 0))
 Extended Dirac
-p |01010101010101010101010101010101010101010101010101010101011000000000000000000000000000000000000000000000000000000000>
+{pH |0> + pL |1>} ⊗ ({pL |0> + pH |1>} ⊗ {|0>} ⊗ {pH |0> + pL |1>} ⊗ {|0>}) ^ 28 ⊗ {pL |0> + pH |1>} ⊗ {|1>}
+where
+pH ⊗ pH = pH
+pH ⊗ pL = pL
+pL ⊗ pH = pL
+pL ⊗ pL = pL

@@ -1,5 +1,10 @@
 Extended Dirac
-b |0101010101010> + a |*> # |1000000000000>
+{b |0> + a |1>} ⊗ ({a |0> + b |1>} ⊗ {|0>} ⊗ {b |0> + a |1>} ⊗ {|0>}) ^ 5 ⊗ {a |0> + b |1>} ⊗ {|0>} ⊗ {b |0> + a |1>}  ⊗ {|1>}
+where
+b ⊗ b = b
+b ⊗ a = a
+a ⊗ b = a
+a ⊗ a = a
 Constraints
 8191 * real(a) > real(b)
 real(a) > 0
