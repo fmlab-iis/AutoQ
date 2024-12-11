@@ -1,8 +1,8 @@
 Constants
-aH := -251 / (sqrt2 ^ 16)
-aL := 13 / (sqrt2 ^ 16)
+aH := 251 / (sqrt2 ^ 16)
+aL := -13 / (sqrt2 ^ 16)
 Extended Dirac
-{aH |0> + aL |1>} ⊗ ({aL |0> + aH |1>} ⊗ {|0>} ⊗ {aH |0> + aL |1>} ⊗ {|0>}) ^ 1 ⊗ {aL |0> + aH |1>} ⊗ {|0>} ⊗ {|1>}
+{aH |0> + aL |1>} ⊗ ({aL |0> + aH |1>} ⊗ {|0>} ⊗ {aH |0> + aL |1>} ⊗ {|0>}) ^ 1 ⊗ {aL |0> + aH |1>} ⊗ {|1>}
 where
 aH ⊗ aH = aH
 aH ⊗ aL = aL

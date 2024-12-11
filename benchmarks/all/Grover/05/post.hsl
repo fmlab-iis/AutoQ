@@ -2,7 +2,7 @@ Constants
 aH := 23161 / (sqrt2 ^ 29)
 aL := -119 / (sqrt2 ^ 29)
 Extended Dirac
-{aH |0> + aL |1>} ⊗ ({aL |0> + aH |1>} ⊗ {|0>} ⊗ {aH |0> + aL |1>} ⊗ {|0>}) ^ 2 ⊗ {|1>}
+{aH |0> + aL |1>} ⊗ ({aL |0> + aH |1>} ⊗ {|0>} ⊗ {aH |0> + aL |1>} ⊗ {|0>}) ^ 1 ⊗ {aL |0> + aH |1>} ⊗ {|0>} ⊗ {aH |0> + aL |1>}  ⊗ {|1>}
 where
 aH ⊗ aH = aH
 aH ⊗ aL = aL
