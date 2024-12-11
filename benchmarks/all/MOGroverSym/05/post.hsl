@@ -1,6 +1,10 @@
 Predicates
+pL := (and (< (* $R $R) 0.1) (= $I 0))
 pH := (and (> (* $R $R) 0.9) (= $I 0))
-Variable Order
-1 2 3 4 5 6 7 9 11 13 8 10 12 14 15
 Extended Dirac
-\/|i|=5: pH |ii00001>
+{pH|00> + pL|01>, pH|11> + pL|10>} ⊗ ({pH|00> + pL|01>, pH|11> + pL|10>} ⊗ {|0>}) ^ 3 ⊗ {pH|00> + pL|01>, pH|11> + pL|10>} ⊗ {|1>}
+where
+pH ⊗ pH = pH
+pH ⊗ pL = pL
+pL ⊗ pH = pL
+pL ⊗ pL = pL
