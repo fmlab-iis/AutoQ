@@ -1,4 +1,10 @@
 Predicates
+pL := (and (< (* $R $R) 0.1) (= $I 0))
 pH := (and (> (* $R $R) 0.9) (= $I 0))
 Extended Dirac
-{pH |0100010001000101>}
+{pH |0> + pL |1>} ⊗ ({pL |0> + pH |1>} ⊗ {|0>} ⊗ {pH |0> + pL |1>} ⊗ {|0>}) ^ 2 ⊗ {pL |0> + pH |1>} ⊗ {|1>}
+where
+pH ⊗ pH = pH
+pH ⊗ pL = pL
+pL ⊗ pH = pL
+pL ⊗ pL = pL
