@@ -38,6 +38,10 @@ include_directories(../include)
 file(GLOB_RECURSE SOURCE_FILES "${CMAKE_CURRENT_SOURCE_DIR}/*.cc" "${CMAKE_CURRENT_SOURCE_DIR}/*.cpp")
 add_library(lsta STATIC ${SOURCE_FILES})
 
+# Suppress all warnings in the mentioned directory
+file(GLOB_RECURSE Extended_Dirac_SOURCE_FILES "./ExtendedDirac/*.cpp")
+set_source_files_properties(${Extended_Dirac_SOURCE_FILES} PROPERTIES COMPILE_FLAGS "-w")
+
 ##############################################################################
 #                              DEPENDENCIES - Z3
 ##############################################################################

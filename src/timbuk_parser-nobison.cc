@@ -29,6 +29,17 @@
 #include "autoq/parsing/symboliccomplex_parser.hh"
 #include "autoq/parsing/constraint_parser.hh"
 
+// ANTLR4 headers
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wnon-virtual-dtor"
+#pragma GCC diagnostic ignored "-Woverloaded-virtual"
+#pragma GCC diagnostic ignored "-Weffc++"
+#include "antlr4-runtime.h"
+#include "autoq/parsing/ExtendedDirac/ExtendedDiracLexer.h"
+#include "autoq/parsing/ExtendedDirac/ExtendedDiracParser.h"
+#pragma GCC diagnostic pop
+#include "autoq/parsing/ExtendedDirac/EvaluationVisitor.h"
+
 // Thanks to https://github.com/boostorg/multiprecision/issues/297
 boost::multiprecision::cpp_int bin_2_dec(const std::string_view& num)
 {
@@ -55,7 +66,7 @@ boost::multiprecision::cpp_int bin_2_dec(const std::string_view& num)
 }
 
 template <typename Symbol>
-AUTOQ::Automata<Symbol> from_tree_to_automaton(std::string tree, const std::map<std::string, AUTOQ::Complex::Complex> &constants, const std::map<std::string, std::string> &predicates, bool &do_not_throw_term_undefined_error) {
+AUTOQ::Automata<Symbol> from_tree_to_automaton(std::string tree, const std::map<std::string, AUTOQ::Complex::Complex> &constants, const std::map<std::string, std::string> &predicates) {
     /************************** TreeAutomata **************************/
     if constexpr(std::is_same_v<Symbol, AUTOQ::TreeAutomata::Symbol>) {
         AUTOQ::Automata<AUTOQ::Symbol::Concrete> aut;
@@ -83,10 +94,10 @@ AUTOQ::Automata<Symbol> from_tree_to_automaton(std::string tree, const std::map<
                 if (!cp.getConstName().empty()) { // is symbol
                     auto it = constants.find(t);
                     if (it == constants.end()) {
-                        if (do_not_throw_term_undefined_error) {
-                            do_not_throw_term_undefined_error = false;
-                            return {};
-                        }
+                        // if (do_not_throw_term_undefined_error) {
+                        //     do_not_throw_term_undefined_error = false;
+                        //     return {};
+                        // }
                         THROW_AUTOQ_ERROR("The constant \"" + t + "\" is not defined yet!");
                     }
                     default_amp += it->second; // we use += to deal with the case c1|s> + c2|s> = (c1+c2)|s>
@@ -99,10 +110,10 @@ AUTOQ::Automata<Symbol> from_tree_to_automaton(std::string tree, const std::map<
                 if (!cp.getConstName().empty()) { // is symbol
                     auto it = constants.find(t);
                     if (it == constants.end()) {
-                        if (do_not_throw_term_undefined_error) {
-                            do_not_throw_term_undefined_error = false;
-                            return {};
-                        }
+                        // if (do_not_throw_term_undefined_error) {
+                        //     do_not_throw_term_undefined_error = false;
+                        //     return {};
+                        // }
                         THROW_AUTOQ_ERROR("The constant \"" + t + "\" is not defined yet!");
                     }
                     qs2amp[s] += it->second; // we use += to deal with the case c1|s> + c2|s> = (c1+c2)|s>
@@ -294,10 +305,10 @@ AUTOQ::Automata<Symbol> from_tree_to_automaton(std::string tree, const std::map<
             }
             auto it = predicates.find(t);
             if (it == predicates.end()) {
-                if (do_not_throw_term_undefined_error) {
-                    do_not_throw_term_undefined_error = false;
-                    return {};
-                }
+                // if (do_not_throw_term_undefined_error) {
+                //     do_not_throw_term_undefined_error = false;
+                //     return {};
+                // }
                 THROW_AUTOQ_ERROR("The predicate \"" + t + "\" is not defined yet!");
             }
             predicate = it->second;
@@ -333,113 +344,113 @@ AUTOQ::Automata<Symbol> from_tree_to_automaton(std::string tree, const std::map<
     }
 }
 
-void replaceSubstringWithChar(std::string &str, const std::string &substr, char replacementChar) {
-    std::string::size_type pos = 0;
-    while ((pos = str.find(substr, pos)) != std::string::npos) {
-        str.replace(pos, substr.length(), 1, replacementChar);
-        pos += 1;
-    }
-}
-template <typename Symbol>
-AUTOQ::Automata<Symbol> from_trees_to_automaton(std::string trees, const std::map<std::string, AUTOQ::Complex::Complex> &constants, const std::map<std::string, std::string> &predicates, bool &do_not_throw_term_undefined_error) {
-    AUTOQ::Automata<Symbol> aut_final;
-    replaceSubstringWithChar(trees, "\\/", 'V');
-    if (std::regex_search(trees, std::regex("(\\\\/|V) *\\|i\\|="))) { // if startswith "\/ |i|="
-        std::istringstream iss(trees);
-        std::string length;
-        std::getline(iss, length, ':');
-        length = AUTOQ::String::trim(length.substr(length.find('=') + 1));
-        trees.clear();
-        for (std::string t; iss >> t;)
-            trees += t + ' ';
-        std::string i(std::atoi(length.c_str()), '1');
-        bool reach_all_zero;
-        do {
-            std::string ic = i;
-            std::replace(ic.begin(), ic.end(), '0', 'x');
-            std::replace(ic.begin(), ic.end(), '1', '0');
-            std::replace(ic.begin(), ic.end(), 'x', '1');
-            const boost::regex pattern(R"(\|[^>]*>)");
-            auto replace_ic_with_ic = [&ic](const boost::smatch& match) -> std::string {
-                std::string modified_str = match.str();
-                return std::regex_replace(modified_str, std::regex("i'"), ic);
-            };
-            std::string line2 = boost::regex_replace(trees, pattern, replace_ic_with_ic, boost::match_default | boost::format_all);
-            auto replace_i_with_i = [&i](const boost::smatch& match) -> std::string {
-                std::string modified_str = match.str();
-                return std::regex_replace(modified_str, std::regex("i"), i);
-            };
-            std::string line3 = boost::regex_replace(line2, pattern, replace_i_with_i, boost::match_default | boost::format_all);
-            auto a = do_not_throw_term_undefined_error;
-            auto aut = from_tree_to_automaton<Symbol>(line3, constants, predicates, do_not_throw_term_undefined_error);
-            if (a && !do_not_throw_term_undefined_error) {
-                return {};
-            }
-            aut_final = aut_final.operator||(aut);
-            aut_final.reduce();
+// void replaceSubstringWithChar(std::string &str, const std::string &substr, char replacementChar) {
+//     std::string::size_type pos = 0;
+//     while ((pos = str.find(substr, pos)) != std::string::npos) {
+//         str.replace(pos, substr.length(), 1, replacementChar);
+//         pos += 1;
+//     }
+// }
+// template <typename Symbol>
+// AUTOQ::Automata<Symbol> from_trees_to_automaton(std::string trees, const std::map<std::string, AUTOQ::Complex::Complex> &constants, const std::map<std::string, std::string> &predicates, bool &do_not_throw_term_undefined_error) {
+//     AUTOQ::Automata<Symbol> aut_final;
+//     replaceSubstringWithChar(trees, "\\/", 'V');
+//     if (std::regex_search(trees, std::regex("(\\\\/|V) *\\|i\\|="))) { // if startswith "\/ |i|="
+//         std::istringstream iss(trees);
+//         std::string length;
+//         std::getline(iss, length, ':');
+//         length = AUTOQ::String::trim(length.substr(length.find('=') + 1));
+//         trees.clear();
+//         for (std::string t; iss >> t;)
+//             trees += t + ' ';
+//         std::string i(std::atoi(length.c_str()), '1');
+//         bool reach_all_zero;
+//         do {
+//             std::string ic = i;
+//             std::replace(ic.begin(), ic.end(), '0', 'x');
+//             std::replace(ic.begin(), ic.end(), '1', '0');
+//             std::replace(ic.begin(), ic.end(), 'x', '1');
+//             const boost::regex pattern(R"(\|[^>]*>)");
+//             auto replace_ic_with_ic = [&ic](const boost::smatch& match) -> std::string {
+//                 std::string modified_str = match.str();
+//                 return std::regex_replace(modified_str, std::regex("i'"), ic);
+//             };
+//             std::string line2 = boost::regex_replace(trees, pattern, replace_ic_with_ic, boost::match_default | boost::format_all);
+//             auto replace_i_with_i = [&i](const boost::smatch& match) -> std::string {
+//                 std::string modified_str = match.str();
+//                 return std::regex_replace(modified_str, std::regex("i"), i);
+//             };
+//             std::string line3 = boost::regex_replace(line2, pattern, replace_i_with_i, boost::match_default | boost::format_all);
+//             auto a = do_not_throw_term_undefined_error;
+//             auto aut = from_tree_to_automaton<Symbol>(line3, constants, predicates, do_not_throw_term_undefined_error);
+//             if (a && !do_not_throw_term_undefined_error) {
+//                 return {};
+//             }
+//             aut_final = aut_final.operator||(aut);
+//             aut_final.reduce();
 
-            // the following performs -1 on the binary string i
-            reach_all_zero = false;
-            for (int j=i.size()-1; j>=0; j--) {
-                if (i.at(j) == '0') {
-                    if (j == 0) {
-                        reach_all_zero = true;
-                        break;
-                    }
-                    i.at(j) = '1';
-                } else {
-                    i.at(j) = '0';
-                    break;
-                }
-            }
-        } while (!reach_all_zero);
-    } else {
-        std::istringstream iss_or(trees);
-        std::string tree;
-        std::getline(iss_or, tree, 'V');
+//             // the following performs -1 on the binary string i
+//             reach_all_zero = false;
+//             for (int j=i.size()-1; j>=0; j--) {
+//                 if (i.at(j) == '0') {
+//                     if (j == 0) {
+//                         reach_all_zero = true;
+//                         break;
+//                     }
+//                     i.at(j) = '1';
+//                 } else {
+//                     i.at(j) = '0';
+//                     break;
+//                 }
+//             }
+//         } while (!reach_all_zero);
+//     } else {
+//         std::istringstream iss_or(trees);
+//         std::string tree;
+//         std::getline(iss_or, tree, 'V');
 
-        auto a = do_not_throw_term_undefined_error;
-        aut_final = from_tree_to_automaton<Symbol>(tree, constants, predicates, do_not_throw_term_undefined_error); // the first automata to be tensor producted
-        if (a && !do_not_throw_term_undefined_error) {
-            return {};
-        }
+//         auto a = do_not_throw_term_undefined_error;
+//         aut_final = from_tree_to_automaton<Symbol>(tree, constants, predicates, do_not_throw_term_undefined_error); // the first automata to be tensor producted
+//         if (a && !do_not_throw_term_undefined_error) {
+//             return {};
+//         }
 
-        // to union the rest of the automata
-        while (std::getline(iss_or, tree, 'V')) {
-            auto a = do_not_throw_term_undefined_error;
-            auto aut2 = from_tree_to_automaton<Symbol>(tree, constants, predicates, do_not_throw_term_undefined_error);
-            if (a && !do_not_throw_term_undefined_error) {
-                return {};
-            }
-            aut_final = aut_final || aut2;
-        }
-    }
-    return aut_final;
-}
+//         // to union the rest of the automata
+//         while (std::getline(iss_or, tree, 'V')) {
+//             auto a = do_not_throw_term_undefined_error;
+//             auto aut2 = from_tree_to_automaton<Symbol>(tree, constants, predicates, do_not_throw_term_undefined_error);
+//             if (a && !do_not_throw_term_undefined_error) {
+//                 return {};
+//             }
+//             aut_final = aut_final || aut2;
+//         }
+//     }
+//     return aut_final;
+// }
 
-template <typename Symbol>
-AUTOQ::Automata<Symbol> from_line_to_automaton(std::string line, const std::map<std::string, AUTOQ::Complex::Complex> &constants, const std::map<std::string, std::string> &predicates, bool &do_not_throw_term_undefined_error) {
-    std::istringstream iss_tensor(line);
-    std::string trees;
-    std::getline(iss_tensor, trees, '#');
+// template <typename Symbol>
+// AUTOQ::Automata<Symbol> from_line_to_automaton(std::string line, const std::map<std::string, AUTOQ::Complex::Complex> &constants, const std::map<std::string, std::string> &predicates, bool &do_not_throw_term_undefined_error) {
+//     std::istringstream iss_tensor(line);
+//     std::string trees;
+//     std::getline(iss_tensor, trees, '#');
 
-    auto a = do_not_throw_term_undefined_error;
-    auto aut = from_trees_to_automaton<Symbol>(trees, constants, predicates, do_not_throw_term_undefined_error); // the first automata to be tensor producted
-    if (a && !do_not_throw_term_undefined_error) {
-        return {};
-    }
+//     auto a = do_not_throw_term_undefined_error;
+//     auto aut = from_trees_to_automaton<Symbol>(trees, constants, predicates, do_not_throw_term_undefined_error); // the first automata to be tensor producted
+//     if (a && !do_not_throw_term_undefined_error) {
+//         return {};
+//     }
 
-    // to tensor product with the rest of the automata
-    while (std::getline(iss_tensor, trees, '#')) {
-        auto a = do_not_throw_term_undefined_error;
-        auto aut2 = from_trees_to_automaton<Symbol>(trees, constants, predicates, do_not_throw_term_undefined_error);
-        if (a && !do_not_throw_term_undefined_error) {
-            return {};
-        }
-        aut = aut * aut2;
-    }
-    return aut;
-}
+//     // to tensor product with the rest of the automata
+//     while (std::getline(iss_tensor, trees, '#')) {
+//         auto a = do_not_throw_term_undefined_error;
+//         auto aut2 = from_trees_to_automaton<Symbol>(trees, constants, predicates, do_not_throw_term_undefined_error);
+//         if (a && !do_not_throw_term_undefined_error) {
+//             return {};
+//         }
+//         aut = aut * aut2;
+//     }
+//     return aut;
+// }
 
 /**
  * @brief  Parse a string with Timbuk definition of an automaton
@@ -1052,395 +1063,411 @@ AUTOQ::Automata<Symbol> parse_automaton(const std::string& str, const std::map<s
 	return result;
 }
 
-std::vector<int> qubit_ordering(const std::string& str)
-{
-    //str format: <size> [ordering] e.g. 2 4 5 3 1
+// std::vector<int> qubit_ordering(const std::string& str)
+// {
+//     //str format: <size> [ordering] e.g. 2 4 5 3 1
 
-    //ord_map[current_qubit]
-    std::vector<int> ordering_map;
-    std::istringstream iss(str);
-    std::string token;
+//     //ord_map[current_qubit]
+//     std::vector<int> ordering_map;
+//     std::istringstream iss(str);
+//     std::string token;
 
-    while (std::getline(iss, token, ' '))
-    {
-        if (token.empty())
-        {
-            continue;
-        }
-        ordering_map.push_back(std::stoi(token));
+//     while (std::getline(iss, token, ' '))
+//     {
+//         if (token.empty())
+//         {
+//             continue;
+//         }
+//         ordering_map.push_back(std::stoi(token));
+//     }
+//     return ordering_map;
+// }
+
+// std::vector<std::vector<std::string>> split_sum_state(std::vector<std::string> states)
+// {
+//     std::vector<std::vector<std::string>> summation_split;
+//     for(unsigned i = 0 ; i < states.size() ; i++)
+//     {
+//         std::vector<std::string> temp;
+//         std::string state = states[i];
+//         std::string::iterator it = state.begin();
+//         std::string::iterator start = state.begin();
+//         std::string::iterator end = state.end();
+//         while(it != end)
+//         {
+//             if(*it == '+')
+//             {
+//                 temp.push_back(std::string(start, it));
+//                 start = it + 1;
+//             }
+//             it++;
+//         }
+//         temp.push_back(std::string(start, it));
+//         summation_split.push_back(temp);
+//     }
+//     return summation_split;
+// }
+
+// std::string remove_spaces(std::string str)
+// {
+//     str.erase(std::remove(str.begin(), str.end(), ' '), str.end());
+//     return str;
+// }
+
+// std::pair<std::string,int> get_constraints_and_val(std::string input)
+// {
+//     std::pair<std::string,int> result;
+//     size_t pos = input.find('|');
+
+//     if (pos != std::string::npos)
+//     {
+//         result.first = input.substr(0, pos);
+//         std::string val_str = input.substr(pos + 1, input.size() - pos - 2);
+//         if(val_str == "*")
+//         {
+//             result.second = -1;
+//         }
+//         else
+//         {
+//             result.second = std::stoi(val_str,nullptr, 2);
+//         }
+//     }
+
+//     return result;
+// }
+
+// std::vector<std::string> star_expension(std::vector<std::string> state)
+// {
+//     for(auto& comp : state)
+//     {
+//         comp.erase(std::remove(comp.begin(), comp.end(), ' '), comp.end());
+//     }
+
+//     std::string star_constraints;
+//     for(unsigned i = 0 ; i < state.size(); i++)
+//     {
+//         if(state[i].find('*') != std::string::npos)
+//         {
+//             star_constraints = get_constraints_and_val(state[i]).first;
+//             state[i] = state.back();
+//             state.pop_back();
+//             i--;
+//         }
+//     }
+//     std::size_t size = 0;
+//     bool in_bracket = false;
+//     for(unsigned i = 0 ; i < state[0].size(); i++)
+//     {
+//         if(state[0][i] == '|')
+//         {
+//             in_bracket = true;
+//         }
+//         if(state[0][i] == '>')
+//         {
+//             in_bracket = false;
+//         }
+//         if(in_bracket && (state[0][i] == '1' || state[0][i] == '0'))
+//         {
+//             size++;
+//         }
+//     }
+//     std::vector<std::string> constraint_and_states;
+//     constraint_and_states.resize(1<<size,"");
+//     for(unsigned i = 0 ; i < state.size(); i++)
+//     {
+//         std::pair<std::string,int> information = get_constraints_and_val(state[i]);
+//         constraint_and_states[information.second] = information.first;
+//     }
+//     for(unsigned i = 0 ; i < constraint_and_states.size(); i++)
+//     {
+//         if(constraint_and_states[i] == "")
+//         {
+//             constraint_and_states[i] = star_constraints;
+//         }
+//     }
+//     for(unsigned i = 0 ; i < constraint_and_states.size(); i++)
+//     {
+//         constraint_and_states[i] = constraint_and_states[i] + "|" + std::bitset<32>(i).to_string().substr(32 - size) + ">";
+//     }
+//     return constraint_and_states;
+// }
+
+
+// std::vector<std::string> process_prod_set(const std::vector<std::string>& prod_set)
+// {
+//     std::vector<std::string> result;
+//     for (const auto& prod : prod_set) {
+//         std::string amp;
+//         std::string val;
+//         std::string::const_iterator it = prod.begin();
+//         std::string::const_iterator prev = prod.begin();
+//         while(it!=prod.end())
+//         {
+
+//             while (*it != '|')
+//             {
+//                 it++;
+//                 if(it == prod.end())
+//                     break;
+//             }
+//             if(it == prod.end())
+//                 break;
+//             std::string amp_part = std::string(prev, it);
+//             amp_part.erase(std::remove(amp_part.begin(), amp_part.end(), ' '), amp_part.end());
+//             if(amp_part != "")
+//             {
+//                 amp =amp + "*"+ amp_part;
+//             }
+//             if (it != prod.end())
+//             {
+//                 it++;
+//                 prev = it;
+//             }
+
+//             while (*it != '>')
+//             {
+//                 it++;
+//                 if(it == prod.end())
+//                     break;
+//             }
+//             if(it == prod.end())
+//                 break;
+
+//             val = val + std::string(prev, it);
+//             if (it != prod.end())
+//             {
+//                 it++;
+//                 prev = it;
+//             }
+//         }
+//         //neglect first element
+//         amp[0] = ' ';
+//         amp.erase(std::remove(amp.begin(), amp.end(), ' '), amp.end());
+//         result.push_back(amp + "|" + val + ">");
+//     }
+//     return result;
+// }
+
+// std::vector<std::string> to_summation_vec(std::string state)
+// {
+//     std::vector<std::string> summation_vec;
+//     // std::string::iterator it = state.begin();
+//     // std::string::iterator start = state.begin();
+//     // std::string::iterator end = state.end();
+//     std::stringstream iss_tensor(state);
+
+//     std::vector<std::vector<std::string>> prod_sum_split;
+//     std::string prod_comp;
+//     while (std::getline(iss_tensor, prod_comp, '#'))
+//     {
+//         prod_sum_split.push_back(std::vector<std::string>{});
+
+//         std::stringstream iss_tensor(prod_comp);
+//         std::string sum_prod;
+//         while(std::getline(iss_tensor, prod_comp, '+'))
+//         {
+//             prod_sum_split.back().push_back(prod_comp);
+//         }
+//     }
+//     for(unsigned i = 0 ; i < prod_sum_split.size(); i++)
+//     {
+//         for(unsigned j = 0 ; j < prod_sum_split[i].size(); j++)
+//         {
+//             if(prod_sum_split[i][j].find('*') != std::string::npos)
+//             {
+//                 prod_sum_split[i] = star_expension(prod_sum_split[i]);
+//                 break;
+//             }
+//         }
+//     }
+//     std::vector<std::string> prod_set = prod_sum_split[0];
+//     for(unsigned i = 1 ; i < prod_sum_split.size(); i++)
+//     {
+//         std::vector<std::string> temp;
+//         for(unsigned j = 0 ; j < prod_set.size(); j++)
+//         {
+//             for(unsigned k = 0 ; k < prod_sum_split[i].size(); k++)
+//             {
+//                 temp.push_back(prod_set[j] + prod_sum_split[i][k]);
+//             }
+//         }
+//         prod_set = temp;
+//     }
+//     std::vector<std::string> combined_strings = process_prod_set(prod_set);
+//     summation_vec = combined_strings;
+//     return summation_vec;
+// }
+
+// std::vector<std::string> state_expansion(std::string line, std::vector<int> ordering_map)
+// {
+
+//     //tree is partial state without tensor product
+
+//     replaceSubstringWithChar(line, "\\/", 'V');
+//     std::stringstream iss_tensor(line);
+//     std::string trees;
+//     std::list<std::string> expanded_states;
+//     std::list<std::vector<std::string>> stage_states;
+
+//     //i =2 |i> #  |01> v |10>  [|01> |10> |11> |00>] , [|01>, |10>]
+//     // to tensor product with the rest of the automata
+//     while (std::getline(iss_tensor, trees, '#')) {
+//         std::vector<std::string> cur_stage;
+//         cur_stage.clear();
+//         std::stringstream iss_or(trees);
+
+//         if (std::regex_search(trees, std::regex("(\\\\/|V) *\\|i\\|="))) // if startswith "\/ |i|="
+//         {
+//             std::istringstream iss(trees);
+//             std::string length;
+//             std::getline(iss, length, ':');
+//             length = AUTOQ::String::trim(length.substr(length.find('=') + 1));
+
+//             trees.clear();
+//             for (std::string t; iss >> t;)
+//                 trees += t + ' ';
+//             std::string i(std::atoi(length.c_str()), '1');
+//             bool reach_all_zero;
+//             do {
+//                 std::string ic = i;
+//                 std::replace(ic.begin(), ic.end(), '0', 'x');
+//                 std::replace(ic.begin(), ic.end(), '1', '0');
+//                 std::replace(ic.begin(), ic.end(), 'x', '1');
+//                 const boost::regex pattern(R"(\|[^>]*>)");
+//                 auto replace_ic_with_ic = [&ic](const boost::smatch& match) -> std::string {
+//                     std::string modified_str = match.str();
+//                     return std::regex_replace(modified_str, std::regex("i'"), ic);
+//                 };
+//                 std::string line2 = boost::regex_replace(trees, pattern, replace_ic_with_ic, boost::match_default | boost::format_all);
+//                 auto replace_i_with_i = [&i](const boost::smatch& match) -> std::string {
+//                     std::string modified_str = match.str();
+//                     return std::regex_replace(modified_str, std::regex("i"), i);
+//                 };
+//                 std::string line3 = boost::regex_replace(line2, pattern, replace_i_with_i, boost::match_default | boost::format_all);
+//                 cur_stage.push_back(line3);
+//                 // the following performs -1 on the binary string i
+//                 reach_all_zero = false;
+//                 for (int j=i.size()-1; j>=0; j--) {
+//                     if (i.at(j) == '0') {
+//                         if (j == 0) {
+//                             reach_all_zero = true;
+//                             break;
+//                         }
+//                         i.at(j) = '1';
+//                     } else {
+//                         i.at(j) = '0';
+//                         break;
+//                     }
+//                 }
+//             } while (!reach_all_zero);
+//         }
+//         else
+//         {
+//             std::istringstream iss_or(trees);
+//             std::string tree;
+//             // to union the rest of the automata
+//             while (std::getline(iss_or, tree, 'V'))
+//             {
+//                 cur_stage.push_back(tree);
+//             }
+//         }
+//         stage_states.push_back(cur_stage);
+//     }
+//     for(unsigned i = 0 ; i < stage_states.front().size(); i++)
+//     {
+//         expanded_states.push_back(stage_states.front()[i]);
+//     }
+//     stage_states.pop_front();
+//     while(!stage_states.empty())
+//     {
+
+//         std::list<std::string> temp{expanded_states.begin(), expanded_states.end()};
+//         expanded_states.clear();
+//         for(unsigned i = 0 ; i < stage_states.front().size(); i++)
+//         {
+//             for(auto prev_state : temp)
+//             {
+//                 expanded_states.push_back(prev_state + " # " + stage_states.front()[i]);
+//             }
+//         }
+//         stage_states.pop_front();
+//     }
+
+//     std::vector<std::vector<std::string>> summation_list; //[set][sum][equation]
+//     for(auto state : expanded_states)
+//     {
+//         summation_list.push_back(to_summation_vec(state));
+//     }
+
+//     for(unsigned i = 0 ; i < summation_list.size() ; i++)
+//         for(auto& state : summation_list[i])
+//         {
+//             std::vector<std::string::iterator> mapper;
+//             bool in_bracket = false;
+//             for (std::string::iterator it = state.begin(); it != state.end(); ++it)
+//             {
+//                 if(*it == '|')
+//                 {
+//                     in_bracket = true;
+//                 }
+//                 if(*it == '>')
+//                 {
+//                     in_bracket = false;
+//                 }
+
+//                 if((*it == '1' || *it == '0') && in_bracket)
+//                 {
+//                     mapper.push_back(it);
+//                 }
+//             }
+//             std::vector<char> org_val;
+//             org_val.reserve(mapper.size());
+//             for(auto it : mapper)
+//             {
+//                 org_val.push_back(*it);
+//             }
+//             // int cnt = 0;
+//             for(unsigned i = 0 ; i < mapper.size(); i++)
+//             {
+//                 *mapper[ordering_map[i]-1] = org_val[i];
+//             }
+//         }
+//     std::vector<std::string> result;
+//     result.resize(summation_list.size(),"");
+//     for(unsigned i = 0 ; i < summation_list.size() ; i++)
+//     {
+//         result[i] = summation_list[i][0];
+//         for(unsigned j = 1 ; j < summation_list[i].size() ; j++)
+//             result[i] = result[i] + " + " + summation_list[i][j];
+//     }
+//     return result;
+// }
+
+class CustomErrorListener : public antlr4::BaseErrorListener {
+public:
+    #pragma GCC diagnostic push
+    #pragma GCC diagnostic ignored "-Wunused-parameter"
+    void syntaxError(antlr4::Recognizer *recognizer,
+                     antlr4::Token *offendingSymbol,
+                     size_t line, size_t charPositionInLine,
+                     const std::string &msg,
+                     std::exception_ptr e) override {
+        THROW_AUTOQ_ERROR("Parsing Error: Line " + std::to_string(line) + ":" + std::to_string(charPositionInLine)
+              + " in ExtendedDirac.g4 - " + msg);
     }
-    return ordering_map;
-}
-
-std::vector<std::vector<std::string>> split_sum_state(std::vector<std::string> states)
-{
-    std::vector<std::vector<std::string>> summation_split;
-    for(unsigned i = 0 ; i < states.size() ; i++)
-    {
-        std::vector<std::string> temp;
-        std::string state = states[i];
-        std::string::iterator it = state.begin();
-        std::string::iterator start = state.begin();
-        std::string::iterator end = state.end();
-        while(it != end)
-        {
-            if(*it == '+')
-            {
-                temp.push_back(std::string(start, it));
-                start = it + 1;
-            }
-            it++;
-        }
-        temp.push_back(std::string(start, it));
-        summation_split.push_back(temp);
-    }
-    return summation_split;
-}
-
-std::string remove_spaces(std::string str)
-{
-    str.erase(std::remove(str.begin(), str.end(), ' '), str.end());
-    return str;
-}
-
-std::pair<std::string,int> get_constraints_and_val(std::string input)
-{
-    std::pair<std::string,int> result;
-    size_t pos = input.find('|');
-
-    if (pos != std::string::npos)
-    {
-        result.first = input.substr(0, pos);
-        std::string val_str = input.substr(pos + 1, input.size() - pos - 2);
-        if(val_str == "*")
-        {
-            result.second = -1;
-        }
-        else
-        {
-            result.second = std::stoi(val_str,nullptr, 2);
-        }
-    }
-
-    return result;
-}
-
-std::vector<std::string> star_expension(std::vector<std::string> state)
-{
-    for(auto& comp : state)
-    {
-        comp.erase(std::remove(comp.begin(), comp.end(), ' '), comp.end());
-    }
-
-    std::string star_constraints;
-    for(unsigned i = 0 ; i < state.size(); i++)
-    {
-        if(state[i].find('*') != std::string::npos)
-        {
-            star_constraints = get_constraints_and_val(state[i]).first;
-            state[i] = state.back();
-            state.pop_back();
-            i--;
-        }
-    }
-    std::size_t size = 0;
-    bool in_bracket = false;
-    for(unsigned i = 0 ; i < state[0].size(); i++)
-    {
-        if(state[0][i] == '|')
-        {
-            in_bracket = true;
-        }
-        if(state[0][i] == '>')
-        {
-            in_bracket = false;
-        }
-        if(in_bracket && (state[0][i] == '1' || state[0][i] == '0'))
-        {
-            size++;
-        }
-    }
-    std::vector<std::string> constraint_and_states;
-    constraint_and_states.resize(1<<size,"");
-    for(unsigned i = 0 ; i < state.size(); i++)
-    {
-        std::pair<std::string,int> information = get_constraints_and_val(state[i]);
-        constraint_and_states[information.second] = information.first;
-    }
-    for(unsigned i = 0 ; i < constraint_and_states.size(); i++)
-    {
-        if(constraint_and_states[i] == "")
-        {
-            constraint_and_states[i] = star_constraints;
-        }
-    }
-    for(unsigned i = 0 ; i < constraint_and_states.size(); i++)
-    {
-        constraint_and_states[i] = constraint_and_states[i] + "|" + std::bitset<32>(i).to_string().substr(32 - size) + ">";
-    }
-    return constraint_and_states;
-}
-
-
-std::vector<std::string> process_prod_set(const std::vector<std::string>& prod_set)
-{
-    std::vector<std::string> result;
-    for (const auto& prod : prod_set) {
-        std::string amp;
-        std::string val;
-        std::string::const_iterator it = prod.begin();
-        std::string::const_iterator prev = prod.begin();
-        while(it!=prod.end())
-        {
-
-            while (*it != '|')
-            {
-                it++;
-                if(it == prod.end())
-                    break;
-            }
-            if(it == prod.end())
-                break;
-            std::string amp_part = std::string(prev, it);
-            amp_part.erase(std::remove(amp_part.begin(), amp_part.end(), ' '), amp_part.end());
-            if(amp_part != "")
-            {
-                amp =amp + "*"+ amp_part;
-            }
-            if (it != prod.end())
-            {
-                it++;
-                prev = it;
-            }
-
-            while (*it != '>')
-            {
-                it++;
-                if(it == prod.end())
-                    break;
-            }
-            if(it == prod.end())
-                break;
-
-            val = val + std::string(prev, it);
-            if (it != prod.end())
-            {
-                it++;
-                prev = it;
-            }
-        }
-        //neglect first element
-        amp[0] = ' ';
-        amp.erase(std::remove(amp.begin(), amp.end(), ' '), amp.end());
-        result.push_back(amp + "|" + val + ">");
-    }
-    return result;
-}
-
-std::vector<std::string> to_summation_vec(std::string state)
-{
-    std::vector<std::string> summation_vec;
-    // std::string::iterator it = state.begin();
-    // std::string::iterator start = state.begin();
-    // std::string::iterator end = state.end();
-    std::stringstream iss_tensor(state);
-
-    std::vector<std::vector<std::string>> prod_sum_split;
-    std::string prod_comp;
-    while (std::getline(iss_tensor, prod_comp, '#'))
-    {
-        prod_sum_split.push_back(std::vector<std::string>{});
-
-        std::stringstream iss_tensor(prod_comp);
-        std::string sum_prod;
-        while(std::getline(iss_tensor, prod_comp, '+'))
-        {
-            prod_sum_split.back().push_back(prod_comp);
-        }
-    }
-    for(unsigned i = 0 ; i < prod_sum_split.size(); i++)
-    {
-        for(unsigned j = 0 ; j < prod_sum_split[i].size(); j++)
-        {
-            if(prod_sum_split[i][j].find('*') != std::string::npos)
-            {
-                prod_sum_split[i] = star_expension(prod_sum_split[i]);
-                break;
-            }
-        }
-    }
-    std::vector<std::string> prod_set = prod_sum_split[0];
-    for(unsigned i = 1 ; i < prod_sum_split.size(); i++)
-    {
-        std::vector<std::string> temp;
-        for(unsigned j = 0 ; j < prod_set.size(); j++)
-        {
-            for(unsigned k = 0 ; k < prod_sum_split[i].size(); k++)
-            {
-                temp.push_back(prod_set[j] + prod_sum_split[i][k]);
-            }
-        }
-        prod_set = temp;
-    }
-    std::vector<std::string> combined_strings = process_prod_set(prod_set);
-    summation_vec = combined_strings;
-    return summation_vec;
-}
-
-std::vector<std::string> state_expansion(std::string line, std::vector<int> ordering_map)
-{
-
-    //tree is partial state without tensor product
-
-    replaceSubstringWithChar(line, "\\/", 'V');
-    std::stringstream iss_tensor(line);
-    std::string trees;
-    std::list<std::string> expanded_states;
-    std::list<std::vector<std::string>> stage_states;
-
-    //i =2 |i> #  |01> v |10>  [|01> |10> |11> |00>] , [|01>, |10>]
-    // to tensor product with the rest of the automata
-    while (std::getline(iss_tensor, trees, '#')) {
-        std::vector<std::string> cur_stage;
-        cur_stage.clear();
-        std::stringstream iss_or(trees);
-
-        if (std::regex_search(trees, std::regex("(\\\\/|V) *\\|i\\|="))) // if startswith "\/ |i|="
-        {
-            std::istringstream iss(trees);
-            std::string length;
-            std::getline(iss, length, ':');
-            length = AUTOQ::String::trim(length.substr(length.find('=') + 1));
-
-            trees.clear();
-            for (std::string t; iss >> t;)
-                trees += t + ' ';
-            std::string i(std::atoi(length.c_str()), '1');
-            bool reach_all_zero;
-            do {
-                std::string ic = i;
-                std::replace(ic.begin(), ic.end(), '0', 'x');
-                std::replace(ic.begin(), ic.end(), '1', '0');
-                std::replace(ic.begin(), ic.end(), 'x', '1');
-                const boost::regex pattern(R"(\|[^>]*>)");
-                auto replace_ic_with_ic = [&ic](const boost::smatch& match) -> std::string {
-                    std::string modified_str = match.str();
-                    return std::regex_replace(modified_str, std::regex("i'"), ic);
-                };
-                std::string line2 = boost::regex_replace(trees, pattern, replace_ic_with_ic, boost::match_default | boost::format_all);
-                auto replace_i_with_i = [&i](const boost::smatch& match) -> std::string {
-                    std::string modified_str = match.str();
-                    return std::regex_replace(modified_str, std::regex("i"), i);
-                };
-                std::string line3 = boost::regex_replace(line2, pattern, replace_i_with_i, boost::match_default | boost::format_all);
-                cur_stage.push_back(line3);
-                // the following performs -1 on the binary string i
-                reach_all_zero = false;
-                for (int j=i.size()-1; j>=0; j--) {
-                    if (i.at(j) == '0') {
-                        if (j == 0) {
-                            reach_all_zero = true;
-                            break;
-                        }
-                        i.at(j) = '1';
-                    } else {
-                        i.at(j) = '0';
-                        break;
-                    }
-                }
-            } while (!reach_all_zero);
-        }
-        else
-        {
-            std::istringstream iss_or(trees);
-            std::string tree;
-            // to union the rest of the automata
-            while (std::getline(iss_or, tree, 'V'))
-            {
-                cur_stage.push_back(tree);
-            }
-        }
-        stage_states.push_back(cur_stage);
-    }
-    for(unsigned i = 0 ; i < stage_states.front().size(); i++)
-    {
-        expanded_states.push_back(stage_states.front()[i]);
-    }
-    stage_states.pop_front();
-    while(!stage_states.empty())
-    {
-
-        std::list<std::string> temp{expanded_states.begin(), expanded_states.end()};
-        expanded_states.clear();
-        for(unsigned i = 0 ; i < stage_states.front().size(); i++)
-        {
-            for(auto prev_state : temp)
-            {
-                expanded_states.push_back(prev_state + " # " + stage_states.front()[i]);
-            }
-        }
-        stage_states.pop_front();
-    }
-
-    std::vector<std::vector<std::string>> summation_list; //[set][sum][equation]
-    for(auto state : expanded_states)
-    {
-        summation_list.push_back(to_summation_vec(state));
-    }
-
-    for(unsigned i = 0 ; i < summation_list.size() ; i++)
-        for(auto& state : summation_list[i])
-        {
-            std::vector<std::string::iterator> mapper;
-            bool in_bracket = false;
-            for (std::string::iterator it = state.begin(); it != state.end(); ++it)
-            {
-                if(*it == '|')
-                {
-                    in_bracket = true;
-                }
-                if(*it == '>')
-                {
-                    in_bracket = false;
-                }
-
-                if((*it == '1' || *it == '0') && in_bracket)
-                {
-                    mapper.push_back(it);
-                }
-            }
-            std::vector<char> org_val;
-            org_val.reserve(mapper.size());
-            for(auto it : mapper)
-            {
-                org_val.push_back(*it);
-            }
-            // int cnt = 0;
-            for(unsigned i = 0 ; i < mapper.size(); i++)
-            {
-                *mapper[ordering_map[i]-1] = org_val[i];
-            }
-        }
-    std::vector<std::string> result;
-    result.resize(summation_list.size(),"");
-    for(unsigned i = 0 ; i < summation_list.size() ; i++)
-    {
-        result[i] = summation_list[i][0];
-        for(unsigned j = 1 ; j < summation_list[i].size() ; j++)
-            result[i] = result[i] + " + " + summation_list[i][j];
-    }
-    return result;
-}
+    #pragma GCC diagnostic pop
+};
 
 template <typename Symbol>
-AUTOQ::Automata<Symbol> AUTOQ::Parsing::TimbukParser<Symbol>::parse_hsl_from_istream(std::istream *is, bool &do_not_throw_term_undefined_error, const std::map<std::string, AUTOQ::Complex::Complex> &constants, const std::map<std::string, std::string> &predicates) {
+AUTOQ::Automata<Symbol> AUTOQ::Parsing::TimbukParser<Symbol>::parse_extended_dirac_from_istream(std::istream *is, bool &do_not_throw_term_undefined_error, const std::map<std::string, AUTOQ::Complex::Complex> &constants, const std::map<std::string, std::string> &predicates) {
 
     bool start_transitions = false;
-    bool get_ordering = false;
+    // bool get_ordering = false;
     AUTOQ::Automata<Symbol> aut_final;
     std::string line;
     //reordering
     std::vector<int> ordering_map;
+    std::string extended_dirac;
 
     while (std::getline(*is, line))
     {
@@ -1450,12 +1477,12 @@ AUTOQ::Automata<Symbol> AUTOQ::Parsing::TimbukParser<Symbol>::parse_hsl_from_ist
         {
             continue;
         }
-        if (line == "Variable Order")
-        {
-            std::getline(*is, line);
-            ordering_map = qubit_ordering(line);
-            get_ordering = true;
-        }
+        // if (line == "Variable Order")
+        // {
+        //     std::getline(*is, line);
+        //     ordering_map = qubit_ordering(line);
+        //     get_ordering = true;
+        // }
 		else if (!start_transitions)
         {
             if (std::regex_search(line, std::regex("Extended +Dirac")))
@@ -1468,49 +1495,76 @@ AUTOQ::Automata<Symbol> AUTOQ::Parsing::TimbukParser<Symbol>::parse_hsl_from_ist
         }   // processing states
         else
         {
-            auto a = do_not_throw_term_undefined_error;
-            //to do : make line with reordering e.g. |ii000> -> |00000> || |11000> ... make two lines then reorder
-            if(get_ordering)
-            {
-                std::vector<std::string> equation_expension = state_expansion(line, ordering_map);
-                for(unsigned i = 0 ; i < equation_expension.size(); i++)
-                {
-                    auto aut = from_line_to_automaton<Symbol>(equation_expension[i], constants, predicates, do_not_throw_term_undefined_error);
-                    if (a && !do_not_throw_term_undefined_error) {
-                        return {};
-                    }
-                    aut_final = aut_final.operator||(aut);
-                    aut_final.reduce();
-                }
-            }
-            else
-            {
-                auto aut = from_line_to_automaton<Symbol>(line, constants, predicates,do_not_throw_term_undefined_error);
-                if (a && !do_not_throw_term_undefined_error) {
-                        return {};
-                }
-                aut_final = aut_final.operator||(aut);
-            }
-            aut_final.reduce();
+            // auto a = do_not_throw_term_undefined_error;
+            // //to do : make line with reordering e.g. |ii000> -> |00000> || |11000> ... make two lines then reorder
+            // if(get_ordering)
+            // {
+            //     std::vector<std::string> equation_expension = state_expansion(line, ordering_map);
+            //     for(unsigned i = 0 ; i < equation_expension.size(); i++)
+            //     {
+            //         auto aut = from_line_to_automaton<Symbol>(equation_expension[i], constants, predicates, do_not_throw_term_undefined_error);
+            //         if (a && !do_not_throw_term_undefined_error) {
+            //             return {};
+            //         }
+            //         aut_final = aut_final.operator||(aut);
+            //         aut_final.reduce();
+            //     }
+            // }
+            // else
+            // {
+            //     auto aut = from_line_to_automaton<Symbol>(line, constants, predicates,do_not_throw_term_undefined_error);
+            //     if (a && !do_not_throw_term_undefined_error) {
+            //             return {};
+            //     }
+            //     aut_final = aut_final.operator||(aut);
+            // }
+            // aut_final.reduce();
+            extended_dirac += line;
         }
     }
+
+    /****************************************
+    * Parse the Extended Dirac with ANTLR v4.
+    *****************************************/
+    // std::cout << extended_dirac << std::endl;
+    antlr4::ANTLRInputStream inputStream(extended_dirac);
+    ExtendedDiracLexer lexer(&inputStream);
+    antlr4::CommonTokenStream tokens(&lexer);
+    std::set<std::string> vars;
+    for (const auto &kv : constants)
+        vars.insert(kv.first);
+    for (const auto &kv : predicates)
+        vars.insert(kv.first);
+    ExtendedDiracParser parser(&tokens);
+    parser.predefinedVars = vars;
+    parser.removeErrorListeners(); // Remove the default error listener
+    CustomErrorListener errorListener;
+    parser.addErrorListener(&errorListener); // Add a custom error listener
+    ExtendedDiracParser::ExtendedDiracContext* tree = parser.extendedDirac(); // Parse the input
+    // std::cout << parser.isSymbolicAutomaton << std::endl;
+    // std::cout << tree->toStringTree(&parser) << std::endl;
+
+    if (parser.isSymbolicAutomaton && std::is_same_v<Symbol, AUTOQ::TreeAutomata::Symbol>) {
+        do_not_throw_term_undefined_error = false;
+        return {};
+    }
+    EvaluationVisitor<Symbol> visitor(constants, predicates);
+    return std::any_cast<AUTOQ::Automata<Symbol>>(visitor.visit(tree)); // Evaluate using the visitor
+    /****************************************/
+
     // DO NOT fraction_simplification() here since the resulting automaton may be used as pre.spec
     // and in this case all k's must be the same.
-    return aut_final;
+    // return aut_final;
 }
 
 template <typename Symbol>
-AUTOQ::Automata<Symbol> parse_hsl(const std::string& str, const std::map<std::string, Complex> &constants, const std::map<std::string, std::string> &predicates, bool &do_not_throw_term_undefined_error) {
+AUTOQ::Automata<Symbol> parse_extended_dirac(const std::string& str, const std::map<std::string, Complex> &constants, const std::map<std::string, std::string> &predicates, bool &do_not_throw_term_undefined_error) {
     std::istringstream inputStream(str); // delimited by '\n'
-    auto aut = AUTOQ::Parsing::TimbukParser<Symbol>::parse_hsl_from_istream(&inputStream, do_not_throw_term_undefined_error, constants, predicates);
+    auto aut = AUTOQ::Parsing::TimbukParser<Symbol>::parse_extended_dirac_from_istream(&inputStream, do_not_throw_term_undefined_error, constants, predicates);
     // aut.print(str);
     return aut;
 }
 
-// template <typename Symbol>
-// AUTOQ::Automata<Symbol> AUTOQ::Parsing::TimbukParser<Symbol>::ReadAutomaton(const std::string& filepath) {
-//     return ParseString(AUTOQ::Util::ReadFile(filepath));
-// }
 template <typename Symbol>
 AUTOQ::Automata<Symbol> AUTOQ::Parsing::TimbukParser<Symbol>::ReadAutomaton(const std::string& filepath) {
     bool do_not_throw_term_undefined_error = false;
@@ -1642,7 +1696,7 @@ try {
     } else if (boost::algorithm::ends_with(filepath, ".aut")) {
         result = parse_timbuk<Symbol>(automaton);
     } else if (boost::algorithm::ends_with(filepath, ".hsl")) {
-        result = parse_hsl<Symbol>(automaton, constants, predicates, do_not_throw_term_undefined_error);
+        result = parse_extended_dirac<Symbol>(automaton, constants, predicates, do_not_throw_term_undefined_error);
     } else {
         THROW_AUTOQ_ERROR("The filename extension is not supported.");
     }
