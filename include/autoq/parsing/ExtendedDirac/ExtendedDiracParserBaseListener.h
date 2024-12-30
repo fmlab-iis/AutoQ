@@ -1,19 +1,19 @@
 
-// Generated from src/ExtendedDirac/ExtendedDirac.g4 by ANTLR 4.13.2
+// Generated from src/ExtendedDirac/ExtendedDiracParser.g4 by ANTLR 4.13.2
 
 #pragma once
 
 
 #include "antlr4-runtime.h"
-#include "ExtendedDiracListener.h"
+#include "ExtendedDiracParserListener.h"
 
 
 /**
- * This class provides an empty implementation of ExtendedDiracListener,
+ * This class provides an empty implementation of ExtendedDiracParserListener,
  * which can be extended to create a listener which only needs to handle a subset
  * of the available methods.
  */
-class  ExtendedDiracBaseListener : public ExtendedDiracListener {
+class  ExtendedDiracParserBaseListener : public ExtendedDiracParserListener {
 public:
 
   virtual void enterExtendedDirac(ExtendedDiracParser::ExtendedDiracContext * /*ctx*/) override { }

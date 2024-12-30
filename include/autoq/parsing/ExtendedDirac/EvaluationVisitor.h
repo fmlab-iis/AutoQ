@@ -1,5 +1,5 @@
 
-#include "ExtendedDiracBaseVisitor.h"
+#include "ExtendedDiracParserBaseVisitor.h"
 #include "ExtendedDiracParser.h"
 
 #include "autoq/aut_description.hh"
@@ -32,7 +32,7 @@ boost::multiprecision::cpp_int bin_2_dec2(const std::string_view& num)
 }
 
 template <typename Symbol>
-class EvaluationVisitor : public ExtendedDiracBaseVisitor {
+class EvaluationVisitor : public ExtendedDiracParserBaseVisitor {
 public:
     std::map<std::string, AUTOQ::Complex::Complex> constants;
     std::map<std::string, std::string> predicates;

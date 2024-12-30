@@ -1,18 +1,18 @@
 
-// Generated from src/ExtendedDirac/ExtendedDirac.g4 by ANTLR 4.13.2
+// Generated from src/ExtendedDirac/ExtendedDiracParser.g4 by ANTLR 4.13.2
 
 #pragma once
 
 
 #include "antlr4-runtime.h"
-#include "ExtendedDiracVisitor.h"
+#include "ExtendedDiracParserVisitor.h"
 
 
 /**
- * This class provides an empty implementation of ExtendedDiracVisitor, which can be
+ * This class provides an empty implementation of ExtendedDiracParserVisitor, which can be
  * extended to create a visitor which only needs to handle a subset of the available methods.
  */
-class  ExtendedDiracBaseVisitor : public ExtendedDiracVisitor {
+class  ExtendedDiracParserBaseVisitor : public ExtendedDiracParserVisitor {
 public:
 
   virtual std::any visitExtendedDirac(ExtendedDiracParser::ExtendedDiracContext *ctx) override {

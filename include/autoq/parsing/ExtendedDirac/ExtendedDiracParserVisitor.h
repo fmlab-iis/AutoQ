@@ -1,5 +1,5 @@
 
-// Generated from src/ExtendedDirac/ExtendedDirac.g4 by ANTLR 4.13.2
+// Generated from src/ExtendedDirac/ExtendedDiracParser.g4 by ANTLR 4.13.2
 
 #pragma once
 
@@ -13,7 +13,7 @@
  * This class defines an abstract visitor for a parse tree
  * produced by ExtendedDiracParser.
  */
-class  ExtendedDiracVisitor : public antlr4::tree::AbstractParseTreeVisitor {
+class  ExtendedDiracParserVisitor : public antlr4::tree::AbstractParseTreeVisitor {
 public:
 
   /**

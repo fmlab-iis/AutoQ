@@ -1,5 +1,5 @@
 
-// Generated from src/ExtendedDirac/ExtendedDirac.g4 by ANTLR 4.13.2
+// Generated from src/ExtendedDirac/ExtendedDiracParser.g4 by ANTLR 4.13.2
 
 #pragma once
 
@@ -11,7 +11,7 @@
 /**
  * This interface defines an abstract listener for a parse tree produced by ExtendedDiracParser.
  */
-class  ExtendedDiracListener : public antlr4::tree::ParseTreeListener {
+class  ExtendedDiracParserListener : public antlr4::tree::ParseTreeListener {
 public:
 
   virtual void enterExtendedDirac(ExtendedDiracParser::ExtendedDiracContext *ctx) = 0;

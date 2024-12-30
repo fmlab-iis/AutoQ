@@ -1,5 +1,5 @@
 
-// Generated from src/ExtendedDirac/ExtendedDirac.g4 by ANTLR 4.13.2
+// Generated from src/ExtendedDirac/ExtendedDiracParser.g4 by ANTLR 4.13.2
 
 #pragma once
 
@@ -12,10 +12,10 @@
 class  ExtendedDiracParser : public antlr4::Parser {
 public:
   enum {
-    T__0 = 1, T__1 = 2, T__2 = 3, T__3 = 4, T__4 = 5, T__5 = 6, T__6 = 7, 
-    T__7 = 8, T__8 = 9, T__9 = 10, T__10 = 11, T__11 = 12, ADD = 13, DIV = 14, 
-    DIGITS = 15, INTERSECTION = 16, KET = 17, MUL = 18, NAME = 19, PROD = 20, 
-    SUB = 21, UNION = 22, WS = 23
+    ADD = 1, BAR = 2, COMMA = 3, DIV = 4, DIGITS = 5, EI2PI = 6, EIPI = 7, 
+    EQ = 8, INTERSECTION = 9, KET = 10, LEFT_BRACKET = 11, LEFT_CURLY_BRACKET = 12, 
+    MUL = 13, POWER = 14, PROD = 15, RIGHT_BRACKET = 16, RIGHT_CURLY_BRACKET = 17, 
+    SUB = 18, SETMINUS = 19, SQRT2 = 20, UNION = 21, WS = 22, NAME = 23
   };
 
   enum {
@@ -67,6 +67,7 @@ public:
     virtual size_t getRuleIndex() const override;
     std::vector<SetContext *> set();
     SetContext* set(size_t i);
+    antlr4::tree::TerminalNode *SETMINUS();
 
     virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
     virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
@@ -83,14 +84,20 @@ public:
     antlr4::Token *n = nullptr;
     SetContext(antlr4::ParserRuleContext *parent, size_t invokingState);
     virtual size_t getRuleIndex() const override;
+    antlr4::tree::TerminalNode *LEFT_BRACKET();
     std::vector<SetContext *> set();
     SetContext* set(size_t i);
+    antlr4::tree::TerminalNode *RIGHT_BRACKET();
+    antlr4::tree::TerminalNode *LEFT_CURLY_BRACKET();
     DiracsContext *diracs();
+    antlr4::tree::TerminalNode *RIGHT_CURLY_BRACKET();
     DiracContext *dirac();
+    antlr4::tree::TerminalNode *BAR();
     IjklensContext *ijklens();
     antlr4::tree::TerminalNode *PROD();
     antlr4::tree::TerminalNode *UNION();
     antlr4::tree::TerminalNode *INTERSECTION();
+    antlr4::tree::TerminalNode *POWER();
     antlr4::tree::TerminalNode *DIGITS();
 
     virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
@@ -108,6 +115,7 @@ public:
     virtual size_t getRuleIndex() const override;
     DiracContext *dirac();
     DiracsContext *diracs();
+    antlr4::tree::TerminalNode *COMMA();
 
     virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
     virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
@@ -164,15 +172,21 @@ public:
     antlr4::Token *n = nullptr;
     ComplexContext(antlr4::ParserRuleContext *parent, size_t invokingState);
     virtual size_t getRuleIndex() const override;
+    antlr4::tree::TerminalNode *LEFT_BRACKET();
     std::vector<ComplexContext *> complex();
     ComplexContext* complex(size_t i);
+    antlr4::tree::TerminalNode *RIGHT_BRACKET();
     antlr4::tree::TerminalNode *SUB();
+    antlr4::tree::TerminalNode *EI2PI();
     AngleContext *angle();
+    antlr4::tree::TerminalNode *EIPI();
     antlr4::tree::TerminalNode *DIGITS();
+    antlr4::tree::TerminalNode *SQRT2();
     antlr4::tree::TerminalNode *NAME();
     antlr4::tree::TerminalNode *MUL();
     antlr4::tree::TerminalNode *DIV();
     antlr4::tree::TerminalNode *ADD();
+    antlr4::tree::TerminalNode *POWER();
 
     virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
     virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
@@ -210,6 +224,7 @@ public:
     virtual size_t getRuleIndex() const override;
     IjklenContext *ijklen();
     IjklensContext *ijklens();
+    antlr4::tree::TerminalNode *COMMA();
 
     virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
     virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
@@ -226,6 +241,9 @@ public:
     antlr4::Token *len = nullptr;
     IjklenContext(antlr4::ParserRuleContext *parent, size_t invokingState);
     virtual size_t getRuleIndex() const override;
+    std::vector<antlr4::tree::TerminalNode *> BAR();
+    antlr4::tree::TerminalNode* BAR(size_t i);
+    antlr4::tree::TerminalNode *EQ();
     antlr4::tree::TerminalNode *NAME();
     antlr4::tree::TerminalNode *DIGITS();
 

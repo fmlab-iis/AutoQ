@@ -1,5 +1,5 @@
 
-// Generated from src/ExtendedDirac/ExtendedDirac.g4 by ANTLR 4.13.2
+// Generated from src/ExtendedDirac/ExtendedDiracLexer.g4 by ANTLR 4.13.2
 
 #pragma once
 
@@ -12,10 +12,10 @@
 class  ExtendedDiracLexer : public antlr4::Lexer {
 public:
   enum {
-    T__0 = 1, T__1 = 2, T__2 = 3, T__3 = 4, T__4 = 5, T__5 = 6, T__6 = 7, 
-    T__7 = 8, T__8 = 9, T__9 = 10, T__10 = 11, T__11 = 12, ADD = 13, DIV = 14, 
-    DIGITS = 15, INTERSECTION = 16, KET = 17, MUL = 18, NAME = 19, PROD = 20, 
-    SUB = 21, UNION = 22, WS = 23
+    ADD = 1, BAR = 2, COMMA = 3, DIV = 4, DIGITS = 5, EI2PI = 6, EIPI = 7, 
+    EQ = 8, INTERSECTION = 9, KET = 10, LEFT_BRACKET = 11, LEFT_CURLY_BRACKET = 12, 
+    MUL = 13, POWER = 14, PROD = 15, RIGHT_BRACKET = 16, RIGHT_CURLY_BRACKET = 17, 
+    SUB = 18, SETMINUS = 19, SQRT2 = 20, UNION = 21, WS = 22, NAME = 23
   };
 
   explicit ExtendedDiracLexer(antlr4::CharStream *input);
