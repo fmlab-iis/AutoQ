@@ -303,15 +303,18 @@ AUTOQ::Automata<Symbol> from_tree_to_automaton(std::string tree, const std::map<
             if (!predicate.empty()) {
                 THROW_AUTOQ_ERROR("The predicate of this state has already been specified!");
             }
-            auto it = predicates.find(t);
-            if (it == predicates.end()) {
-                // if (do_not_throw_term_undefined_error) {
-                //     do_not_throw_term_undefined_error = false;
-                //     return {};
-                // }
-                THROW_AUTOQ_ERROR("The predicate \"" + t + "\" is not defined yet!");
+            if (t.empty()) predicate = "false";
+            else {
+                auto it = predicates.find(t);
+                if (it == predicates.end()) {
+                    // if (do_not_throw_term_undefined_error) {
+                    //     do_not_throw_term_undefined_error = false;
+                    //     return {};
+                    // }
+                    THROW_AUTOQ_ERROR("The predicate \"" + t + "\" is not defined yet!");
+                }
+                predicate = it->second;
             }
-            predicate = it->second;
             ++it2;
         }
         if (default_prob.empty())
@@ -338,6 +341,7 @@ AUTOQ::Automata<Symbol> from_tree_to_automaton(std::string tree, const std::map<
         aut.finalStates.push_back(0);
         aut.stateNum = (state_counter<<1) + 1;
         aut.reduce();
+        // aut.print_aut(tree);
         return aut;
     } else {
         THROW_AUTOQ_ERROR("The type of Symbol is not supported!");
@@ -1519,7 +1523,7 @@ AUTOQ::Automata<Symbol> AUTOQ::Parsing::TimbukParser<Symbol>::parse_extended_dir
             //     aut_final = aut_final.operator||(aut);
             // }
             // aut_final.reduce();
-            extended_dirac += line;
+            extended_dirac += line + '\n'; // Do NOT miss '\n' for the ANTLR to parse correctly with '\n'
         }
     }
 
@@ -1697,6 +1701,7 @@ try {
         result = parse_timbuk<Symbol>(automaton);
     } else if (boost::algorithm::ends_with(filepath, ".hsl")) {
         result = parse_extended_dirac<Symbol>(automaton, constants, predicates, do_not_throw_term_undefined_error);
+        // result.print_aut(filepath + "\n");
     } else {
         THROW_AUTOQ_ERROR("The filename extension is not supported.");
     }

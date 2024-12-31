@@ -19,6 +19,18 @@ public:
     return visitChildren(ctx);
   }
 
+  virtual std::any visitMuloperators(ExtendedDiracParser::MuloperatorsContext *ctx) override {
+    return visitChildren(ctx);
+  }
+
+  virtual std::any visitMuloperator(ExtendedDiracParser::MuloperatorContext *ctx) override {
+    return visitChildren(ctx);
+  }
+
+  virtual std::any visitAccepted(ExtendedDiracParser::AcceptedContext *ctx) override {
+    return visitChildren(ctx);
+  }
+
   virtual std::any visitSet(ExtendedDiracParser::SetContext *ctx) override {
     return visitChildren(ctx);
   }

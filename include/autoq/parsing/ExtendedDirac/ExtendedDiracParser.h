@@ -14,13 +14,15 @@ public:
   enum {
     ADD = 1, BAR = 2, COMMA = 3, DIV = 4, DIGITS = 5, EI2PI = 6, EIPI = 7, 
     EQ = 8, INTERSECTION = 9, KET = 10, LEFT_BRACKET = 11, LEFT_CURLY_BRACKET = 12, 
-    MUL = 13, POWER = 14, PROD = 15, RIGHT_BRACKET = 16, RIGHT_CURLY_BRACKET = 17, 
-    SUB = 18, SETMINUS = 19, SQRT2 = 20, UNION = 21, WS = 22, NAME = 23
+    MUL = 13, NEWLINES = 14, POWER = 15, PROD = 16, RIGHT_BRACKET = 17, 
+    RIGHT_CURLY_BRACKET = 18, SUB = 19, SETMINUS = 20, SQRT2 = 21, UNION = 22, 
+    WHERE = 23, WS = 24, NAME = 25
   };
 
   enum {
-    RuleExtendedDirac = 0, RuleSet = 1, RuleDiracs = 2, RuleDirac = 3, RuleCket = 4, 
-    RuleComplex = 5, RuleAngle = 6, RuleIjklens = 7, RuleIjklen = 8
+    RuleExtendedDirac = 0, RuleMuloperators = 1, RuleMuloperator = 2, RuleAccepted = 3, 
+    RuleSet = 4, RuleDiracs = 5, RuleDirac = 6, RuleCket = 7, RuleComplex = 8, 
+    RuleAngle = 9, RuleIjklens = 10, RuleIjklen = 11
   };
 
   explicit ExtendedDiracParser(antlr4::TokenStream *input);
@@ -52,6 +54,9 @@ public:
 
 
   class ExtendedDiracContext;
+  class MuloperatorsContext;
+  class MuloperatorContext;
+  class AcceptedContext;
   class SetContext;
   class DiracsContext;
   class DiracContext;
@@ -65,6 +70,60 @@ public:
   public:
     ExtendedDiracContext(antlr4::ParserRuleContext *parent, size_t invokingState);
     virtual size_t getRuleIndex() const override;
+    AcceptedContext *accepted();
+    antlr4::tree::TerminalNode *WHERE();
+    antlr4::tree::TerminalNode *NEWLINES();
+    MuloperatorsContext *muloperators();
+
+    virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
+    virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
+
+    virtual std::any accept(antlr4::tree::ParseTreeVisitor *visitor) override;
+   
+  };
+
+  ExtendedDiracContext* extendedDirac();
+
+  class  MuloperatorsContext : public antlr4::ParserRuleContext {
+  public:
+    MuloperatorsContext(antlr4::ParserRuleContext *parent, size_t invokingState);
+    virtual size_t getRuleIndex() const override;
+    std::vector<MuloperatorContext *> muloperator();
+    MuloperatorContext* muloperator(size_t i);
+
+    virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
+    virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
+
+    virtual std::any accept(antlr4::tree::ParseTreeVisitor *visitor) override;
+   
+  };
+
+  MuloperatorsContext* muloperators();
+
+  class  MuloperatorContext : public antlr4::ParserRuleContext {
+  public:
+    MuloperatorContext(antlr4::ParserRuleContext *parent, size_t invokingState);
+    virtual size_t getRuleIndex() const override;
+    std::vector<ComplexContext *> complex();
+    ComplexContext* complex(size_t i);
+    antlr4::tree::TerminalNode *PROD();
+    antlr4::tree::TerminalNode *EQ();
+    antlr4::tree::TerminalNode *NEWLINES();
+    antlr4::tree::TerminalNode *EOF();
+
+    virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
+    virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
+
+    virtual std::any accept(antlr4::tree::ParseTreeVisitor *visitor) override;
+   
+  };
+
+  MuloperatorContext* muloperator();
+
+  class  AcceptedContext : public antlr4::ParserRuleContext {
+  public:
+    AcceptedContext(antlr4::ParserRuleContext *parent, size_t invokingState);
+    virtual size_t getRuleIndex() const override;
     std::vector<SetContext *> set();
     SetContext* set(size_t i);
     antlr4::tree::TerminalNode *SETMINUS();
@@ -76,7 +135,7 @@ public:
    
   };
 
-  ExtendedDiracContext* extendedDirac();
+  AcceptedContext* accepted();
 
   class  SetContext : public antlr4::ParserRuleContext {
   public:

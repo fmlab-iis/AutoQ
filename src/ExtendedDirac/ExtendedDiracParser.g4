@@ -14,7 +14,16 @@ options { tokenVocab=ExtendedDiracLexer; }
     }
 }
 
-extendedDirac: set
+extendedDirac: accepted (WHERE NEWLINES muloperators)?
+    ;
+
+muloperators: muloperator+
+    ;
+
+muloperator: complex PROD complex '=' complex (NEWLINES|EOF)  // We don't use MUL here because "complex"es may also contain MUL.
+    ;
+
+accepted: set
     | set SETMINUS set
     ;
 

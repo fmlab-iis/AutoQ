@@ -18,6 +18,7 @@ private:
     bool internal;
 public:
     AUTOQ::Complex::SymbolicComplex complex;
+    inline static std::map<std::pair<Symbolic, Symbolic>, Symbolic> mulmap;
 
     // Notice that if we do not use is_convertible_v, type int will not be accepted in this case.
     template <typename T, typename = std::enable_if_t<std::is_convertible<T, boost::multiprecision::cpp_int>::value>>
@@ -57,6 +58,14 @@ public:
         return Symbolic(complex - o.complex);
     }
     Symbolic operator*(const Symbolic &o) const {
+        if (!mulmap.empty()) {
+            auto it = mulmap.find(std::make_pair(*this, o));
+            if (it != mulmap.end()) {
+                return it->second;
+            }
+            // it = mulmap.find(std::make_pair(o, *this));
+            // if (it != mulmap.end()) return it->second;
+        }
         return Symbolic(complex * o.complex);
     }
     Symbolic operator*(int c) const {

@@ -4,6 +4,7 @@
 
 #include "autoq/aut_description.hh"
 #include "autoq/symbol/concrete.hh"
+#include "autoq/symbol/symbolic.hh"
 #include "autoq/complex/complex.hh"
 
 // Thanks to https://github.com/boostorg/multiprecision/issues/297
@@ -39,6 +40,53 @@ public:
     EvaluationVisitor(const std::map<std::string, AUTOQ::Complex::Complex> &constants, const std::map<std::string, std::string> &predicates) : constants(constants), predicates(predicates) {}
 
     std::any visitExtendedDirac(ExtendedDiracParser::ExtendedDiracContext *ctx) override {
+        if (ctx->muloperators() != nullptr) { // RULE: accepted WHERE NEWLINES muloperators
+            visit(ctx->muloperators()); // Notice that "mulmap" will be updated during the visit.
+        }
+        auto result = visit(ctx->accepted()); // RULE: accepted (WHERE NEWLINES muloperators)?
+        if constexpr(std::is_same_v<Symbol, AUTOQ::Symbol::Concrete>) {
+            AUTOQ::Symbol::Concrete::mulmap.clear();
+        } else if constexpr(std::is_same_v<Symbol, AUTOQ::Symbol::Predicate>) {
+            AUTOQ::Symbol::Predicate::mulmap.clear();
+        } else { // if constexpr(std::is_same_v<Symbol, AUTOQ::Symbol::Symbolic>) {
+            // do nothing
+        }
+        return result;
+    }
+
+    std::any visitMuloperators(ExtendedDiracParser::MuloperatorsContext *ctx) override {
+        for (const auto &e : ctx->muloperator()) {
+            visit(e); // RULE: muloperator+
+        }
+        return {};
+    }
+
+    std::any visitMuloperator(ExtendedDiracParser::MuloperatorContext *ctx) override {
+        if constexpr(std::is_same_v<Symbol, AUTOQ::Symbol::Concrete>) {
+            AUTOQ::Symbol::Concrete::mulmap[std::make_pair(ComplexParser(ctx->complex(0)->getText(), constants).getComplex(), ComplexParser(ctx->complex(1)->getText(), constants).getComplex())] = ComplexParser(ctx->complex(2)->getText(), constants).getComplex();
+            // AUTOQ::Symbol::Concrete::mulmap[std::make_pair(ComplexParser(ctx->complex(1)->getText(), constants).getComplex(), ComplexParser(ctx->complex(0)->getText(), constants).getComplex())] = ComplexParser(ctx->complex(2)->getText(), constants).getComplex();
+        } else if constexpr(std::is_same_v<Symbol, AUTOQ::Symbol::Predicate>) {
+            AUTOQ::Symbol::Predicate p[3];
+            for (int i=0; i<3; i++) {
+                auto str = ctx->complex(i)->getText();
+                auto it = predicates.find(str);
+                if (it == predicates.end())
+                    p[i] = AUTOQ::Symbol::Predicate(str);
+                else
+                    p[i] = AUTOQ::Symbol::Predicate(it->second);
+            }
+            AUTOQ::Symbol::Predicate::mulmap[std::make_pair(p[0], p[1])] = p[2];
+            // AUTOQ::Symbol::Predicate::mulmap[std::make_pair(p[1], p[0])] = p[2];
+        } else if constexpr(std::is_same_v<Symbol, AUTOQ::Symbol::Symbolic>) {
+            AUTOQ::Symbol::Symbolic::mulmap[std::make_pair(AUTOQ::Symbol::Symbolic(AUTOQ::Parsing::SymbolicComplexParser(ctx->complex(0)->getText(), constants).getSymbolicComplex()), AUTOQ::Symbol::Symbolic(AUTOQ::Parsing::SymbolicComplexParser(ctx->complex(1)->getText(), constants).getSymbolicComplex()))] = AUTOQ::Symbol::Symbolic(AUTOQ::Parsing::SymbolicComplexParser(ctx->complex(2)->getText(), constants).getSymbolicComplex());
+            // AUTOQ::Symbol::Symbolic::mulmap[std::make_pair(AUTOQ::Symbol::Symbolic(AUTOQ::Parsing::SymbolicComplexParser(ctx->complex(1)->getText(), constants).getSymbolicComplex()), AUTOQ::Symbol::Symbolic(AUTOQ::Parsing::SymbolicComplexParser(ctx->complex(0)->getText(), constants).getSymbolicComplex()))] = AUTOQ::Symbol::Symbolic(AUTOQ::Parsing::SymbolicComplexParser(ctx->complex(2)->getText(), constants).getSymbolicComplex());
+        } else {
+            THROW_AUTOQ_ERROR("This kind of symbol is still unsupported!");
+        }
+        return {};
+    }
+
+    std::any visitAccepted(ExtendedDiracParser::AcceptedContext *ctx) override {
         if (ctx->set().size() == 1) { // RULE: set
             return visit(ctx->set(0));
         } else { // RULE: set '\\' set

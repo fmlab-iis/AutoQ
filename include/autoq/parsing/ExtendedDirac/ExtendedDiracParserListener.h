@@ -17,6 +17,15 @@ public:
   virtual void enterExtendedDirac(ExtendedDiracParser::ExtendedDiracContext *ctx) = 0;
   virtual void exitExtendedDirac(ExtendedDiracParser::ExtendedDiracContext *ctx) = 0;
 
+  virtual void enterMuloperators(ExtendedDiracParser::MuloperatorsContext *ctx) = 0;
+  virtual void exitMuloperators(ExtendedDiracParser::MuloperatorsContext *ctx) = 0;
+
+  virtual void enterMuloperator(ExtendedDiracParser::MuloperatorContext *ctx) = 0;
+  virtual void exitMuloperator(ExtendedDiracParser::MuloperatorContext *ctx) = 0;
+
+  virtual void enterAccepted(ExtendedDiracParser::AcceptedContext *ctx) = 0;
+  virtual void exitAccepted(ExtendedDiracParser::AcceptedContext *ctx) = 0;
+
   virtual void enterSet(ExtendedDiracParser::SetContext *ctx) = 0;
   virtual void exitSet(ExtendedDiracParser::SetContext *ctx) = 0;
 

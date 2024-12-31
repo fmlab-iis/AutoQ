@@ -21,6 +21,7 @@ private:
     bool internal;
 public:
     Complex::Complex complex;
+    inline static std::map<std::pair<Concrete, Concrete>, Concrete> mulmap;
 
     // Notice that if we do not use is_convertible_v, type int will not be accepted in this case.
     template <typename T, typename = std::enable_if_t<std::is_convertible<T, boost::multiprecision::cpp_int>::value>>
@@ -51,7 +52,15 @@ public:
     }
     Concrete operator+(const Concrete &o) const { return Concrete(complex.operator+(o.complex)); }
     Concrete operator-(const Concrete &o) const { return Concrete(complex.operator-(o.complex)); }
-    Concrete operator*(const Concrete &o) const { return Concrete(complex.operator*(o.complex)); }
+    Concrete operator*(const Concrete &o) const {
+        if (!mulmap.empty()) {
+            auto it = mulmap.find(std::make_pair(*this, o));
+            if (it != mulmap.end()) return it->second;
+            // it = mulmap.find(std::make_pair(o, *this));
+            // if (it != mulmap.end()) return it->second;
+        }
+        return Concrete(complex.operator*(o.complex));
+    }
     bool valueEqual(const Concrete &o) const { return internal == o.internal && complex.valueEqual(o.complex); }
     bool operator==(const Concrete &o) const { return internal == o.internal && complex == o.complex; }
     bool operator<(const Concrete &o) const {

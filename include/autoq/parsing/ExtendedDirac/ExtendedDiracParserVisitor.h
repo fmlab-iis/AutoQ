@@ -21,6 +21,12 @@ public:
    */
     virtual std::any visitExtendedDirac(ExtendedDiracParser::ExtendedDiracContext *context) = 0;
 
+    virtual std::any visitMuloperators(ExtendedDiracParser::MuloperatorsContext *context) = 0;
+
+    virtual std::any visitMuloperator(ExtendedDiracParser::MuloperatorContext *context) = 0;
+
+    virtual std::any visitAccepted(ExtendedDiracParser::AcceptedContext *context) = 0;
+
     virtual std::any visitSet(ExtendedDiracParser::SetContext *context) = 0;
 
     virtual std::any visitDiracs(ExtendedDiracParser::DiracsContext *context) = 0;
