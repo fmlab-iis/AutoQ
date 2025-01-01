@@ -7,37 +7,13 @@
 #include "autoq/symbol/symbolic.hh"
 #include "autoq/complex/complex.hh"
 
-// Thanks to https://github.com/boostorg/multiprecision/issues/297
-boost::multiprecision::cpp_int bin_2_dec2(const std::string_view& num)
-{
-    boost::multiprecision::cpp_int dec_value = 0;
-    auto cptr = num.data();
-    long long len  = num.size();
-    // check if big enough to have 0b postfix
-    if (num.size() > 2) {
-        // check if 2nd character is the 'b' binary postfix
-        // skip over it & adjust length accordingly if it is
-        if (num[1] == 'b' || num[1] == 'B') {
-            cptr += 2;
-            len  -= 2;
-        }
-    }
-    // change i's type to cpp_int if the number of digits is greater
-    // than std::numeric_limits<size_t>::max()
-    for (long long i = len - 1; 0 <= i; ++cptr, --i) {
-        if (*cptr == '1') {
-            boost::multiprecision::bit_set(/*.val = */ dec_value, /*.pos = */ i);
-        }
-    }
-    return dec_value;
-}
-
 template <typename Symbol>
 class EvaluationVisitor : public ExtendedDiracParserBaseVisitor {
 public:
     std::map<std::string, AUTOQ::Complex::Complex> constants;
     std::map<std::string, std::string> predicates;
-    EvaluationVisitor(const std::map<std::string, AUTOQ::Complex::Complex> &constants, const std::map<std::string, std::string> &predicates) : constants(constants), predicates(predicates) {}
+    std::map<char, int> ijklens;
+    EvaluationVisitor(const std::map<std::string, AUTOQ::Complex::Complex> &constants, const std::map<std::string, std::string> &predicates) : constants(constants), predicates(predicates), ijklens({}) {}
 
     std::any visitExtendedDirac(ExtendedDiracParser::ExtendedDiracContext *ctx) override {
         if (ctx->muloperators() != nullptr) { // RULE: accepted WHERE NEWLINES muloperators
@@ -119,9 +95,8 @@ public:
             } else if (ctx->diracs() != nullptr) { // RULE: '{' diracs '}'
                 return visit(ctx->diracs());
             } else { // if (ctx->dirac() != nullptr && ctx->ijklens() != nullptr) { // RULE: '{' dirac '|' ijklens '}'
-                // TODO
-                /**/
-                return {};
+                ijklens = std::any_cast<std::map<char, int>>(visit(ctx->ijklens()));
+                return visit(ctx->dirac());
             }
         } else if (ctx->op->getType() == ExtendedDiracParser::PROD) { // RULE: set op=PROD set
             return std::any_cast<AUTOQ::Automata<Symbol>>(visit(ctx->set(0))) * std::any_cast<AUTOQ::Automata<Symbol>>(visit(ctx->set(1)));
@@ -143,14 +118,31 @@ public:
     }
 
     std::any visitDirac(ExtendedDiracParser::DiracContext *ctx) override {
-        return from_tree_to_automaton<Symbol>(ctx->getText(), constants, predicates);
+        return from_tree_to_automaton<Symbol>(ctx->getText(), constants, predicates, ijklens);
     }
 
-    // std::any visitIjklens(ExtendedDiracParser::IjklensContext *ctx) override {
-    //     return visitChildren(ctx);
-    // }
+    std::any visitIjklens(ExtendedDiracParser::IjklensContext *ctx) override {
+        if (ctx->ijklens() == nullptr) { // RULE: ijklen
+            return visit(ctx->ijklen());
+        } else { // RULE: ijklens ',' ijklen
+            auto result = std::any_cast<std::map<char, int>>(visit(ctx->ijklens())); // previous
+            auto present = std::any_cast<std::map<char, int>>(visit(ctx->ijklen()));
+            if (result.find(present.begin()->first) == result.end()) {
+                result[present.begin()->first] = present.begin()->second;
+            } else {
+                THROW_AUTOQ_ERROR("The same index is used more than once!");
+            }
+            return result;
+        }
+    }
 
-    // std::any visitIjklen(ExtendedDiracParser::IjklenContext *ctx) override {
-    //     return visitChildren(ctx);
-    // }
+    std::any visitIjklen(ExtendedDiracParser::IjklenContext *ctx) override {
+        std::string var = ctx->var->getText(); // RULE: BAR var=NAME BAR EQ len=DIGITS
+        if (var.length() == 1) {
+            int len = std::stoi(ctx->len->getText());
+            return std::map<char, int>{{var[0], len}};
+        } else {
+            THROW_AUTOQ_ERROR("The index must be a single character!");
+        }
+    }
 };
