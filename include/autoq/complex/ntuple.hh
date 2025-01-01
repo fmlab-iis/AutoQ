@@ -67,6 +67,10 @@ struct AUTOQ::Complex::nTuple : AUTOQ::Util::mapped_vector<boost::multiprecision
             isFirst = false;
         }
         if (obj.empty()) os << "0";
+        else if (obj.k != 0) {
+            if (obj.k > 0) os << " / √2^" << obj.k;
+            else if (obj.k < 0) os << " * √2^" << -obj.k;
+        }
         return os;
     }
     nTuple operator+(const nTuple &o) const { return binary_operation(o, true); }

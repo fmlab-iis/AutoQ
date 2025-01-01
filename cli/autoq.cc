@@ -210,15 +210,20 @@ try {
             THROW_AUTOQ_ERROR("The postcondition must have concrete or predicate amplitudes.");
         } else if (std::holds_alternative<AUTOQ::PredicateAutomata>(spec1)) {
             auto &spec = std::get<AUTOQ::PredicateAutomata>(spec1);
+            // spec.print_aut("POST:\n");
+            // spec.print_language("POST:\n");
             auto aut1 = ReadAutomaton(pre);
             if (std::holds_alternative<AUTOQ::PredicateAutomata>(aut1)) {
                 THROW_AUTOQ_ERROR("Predicate amplitudes cannot be used in a precondition.");
             }
             auto aut = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Symbolic>::ReadAutomaton(pre);
+            // aut.print_aut("PRE:\n");
+            // aut.print_language("PRE:\n");
             aut.execute(circuit);
             // std::cout << "OUTPUT AUTOMATON:\n";
             // std::cout << "=================\n";
-            // aut.print_aut();
+            // aut.print_aut("OUTPUT:\n");
+            // aut.print_language("OUTPUT:\n");
             // std::cout << "=================\n";
             bool verify = aut <= spec;
             if (latex) {
@@ -228,6 +233,8 @@ try {
             }
         } else if (std::holds_alternative<AUTOQ::TreeAutomata>(spec1)) {
             auto &spec = std::get<AUTOQ::TreeAutomata>(spec1);
+            // spec.print_aut("POST:\n");
+            // spec.print_language("POST:\n");
             auto aut1 = ReadAutomaton(pre);
             auto aut = std::visit([](auto&& arg) -> AUTOQ::TreeAutomata {
                 if constexpr (!std::is_same_v<std::decay_t<decltype(arg)>, AUTOQ::TreeAutomata>) {
@@ -236,10 +243,13 @@ try {
                     return arg; // Directly return the value if it's one of the allowed types
                 }
             }, aut1);
+            // aut.print_aut("PRE:\n");
+            // aut.print_language("PRE:\n");
             aut.execute(circuit);
             // std::cout << "OUTPUT AUTOMATON:\n";
             // std::cout << "=================\n";
-            // aut.print_aut();
+            // aut.print_aut("OUTPUT:\n");
+            // aut.print_language("OUTPUT:\n");
             // std::cout << "=================\n";
             bool verify = aut <= spec;
             if (latex) {
