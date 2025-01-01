@@ -71,6 +71,7 @@ public:
     ExtendedDiracContext(antlr4::ParserRuleContext *parent, size_t invokingState);
     virtual size_t getRuleIndex() const override;
     AcceptedContext *accepted();
+    antlr4::tree::TerminalNode *EOF();
     antlr4::tree::TerminalNode *WHERE();
     antlr4::tree::TerminalNode *NEWLINES();
     MuloperatorsContext *muloperators();

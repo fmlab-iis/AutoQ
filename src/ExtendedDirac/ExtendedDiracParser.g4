@@ -14,7 +14,7 @@ options { tokenVocab=ExtendedDiracLexer; }
     }
 }
 
-extendedDirac: accepted (WHERE NEWLINES muloperators)?
+extendedDirac: accepted (WHERE NEWLINES muloperators)? EOF // EOF is important to ensure that the whole input is parsed.
     ;
 
 muloperators: muloperator+
