@@ -231,6 +231,14 @@ public:
     #pragma GCC diagnostic ignored "-Weffc++"
     Automata operator||(const Automata &o) const; // use the logical OR operator to denote "union"
     #pragma GCC diagnostic pop
+
+
+    //2024/01/11
+
+
+    
+    bool operator!() const;
+    Automata operator&(const Automata &o) const;
     /**************************************************/
 };
 

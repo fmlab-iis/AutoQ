@@ -8,6 +8,7 @@
 
 template <typename Symbol>
 AUTOQ::Automata<Symbol> AUTOQ::Automata<Symbol>::operator*(Automata<Symbol> aut2) const {
+    
     // Step 1. Modify the first-layer transitions of aut2 so that
     //         (1) there is only one root state, and
     //         (2) all colors in these transitions are disjoint.
@@ -171,8 +172,257 @@ AUTOQ::Automata<Symbol> AUTOQ::Automata<Symbol>::operator||(const Automata<Symbo
         result.vars.insert(var);
     result.constraints += o.constraints;
     if (opLog) std::cout << __FUNCTION__ << "：" << stateNum << " states " << count_transitions() << " transitions\n";
+    
+    
     return result;
 }
+
+using namespace std;
+
+std::map<int64_t,std::vector<std::pair<int64_t,std::set<std::vector<int64_t>>>>> next_transitions_hash;
+int traverse(std::vector<int64_t> root_transition\
+            , std::vector<std::list<int64_t>>& qubit_trans_hash\
+            , std::map<int64_t,int>& valids\
+            , int current_layer)
+{
+    if(root_transition.empty())
+        return -1;
+    if(current_layer == qubit_trans_hash.size()-1) //leaf layer
+    {
+        for(const auto& t : root_transition)
+        {
+            valids[t] = 1;
+        }
+        return 1;
+    }
+
+    cout<<"CURRENT_LAYER:"<<current_layer<<endl;
+    cout<<"VALID:"<<endl;
+    for(const auto& v : valids)
+    {
+        cout<<v.first<<":"<<v.second<<endl;
+    }
+    cout<<"ROOT_TRANSITION:"<<endl;
+    for(const auto& r : root_transition)
+    {
+        cout<<r<<endl;
+    }
+    cout<<endl;
+
+    
+    for(const auto& t : root_transition)
+    {
+        if(valids[t] == -1)
+            return -1;   //there's a path can reach the final state
+    }
+
+
+    //root_transition: list of transition idx under qubit [current_layer]
+    //1 decompose into tags
+    std::map<int64_t, std::list<int64_t>> tags;
+    for(const auto& q : qubit_trans_hash[current_layer])   //q: state num
+    {
+        for(const auto& tags_child : next_transitions_hash[q])
+        {
+            int64_t cur_tag = tags_child.first;
+            tags[cur_tag].push_back(q);
+        }
+    }
+
+    for(auto& T:tags)
+    {
+        int64_t cur_tag = T.first;
+        std::set<int64_t> set_of_next_transitions;
+        for(const auto& q : T.second)
+        {
+            for(const auto& tags_child : next_transitions_hash[q])
+            {
+                if(tags_child.first == cur_tag)
+                {
+                    for(auto& childs : tags_child.second)
+                    set_of_next_transitions.insert(childs.begin(),childs.end());
+                }
+            }
+        }
+
+        std::vector<int64_t> vec_next_transitions = {set_of_next_transitions.begin(),set_of_next_transitions.end()};
+        int val = traverse(vec_next_transitions\
+                    , qubit_trans_hash\
+                    , valids
+                    , current_layer+1);
+        if(val == -1)
+            return -1;
+    }
+    
+    for(const auto& t : root_transition)
+    {
+        valids[t] = 1;
+    }
+
+    return 1; 
+}
+
+
+using AUTOQ::Util::Convert;
+
+template <typename Symbol>
+bool AUTOQ::Automata<Symbol>::operator!() const
+{
+    cout<<"operator!()"<<endl;
+    vector<vector<pair<int,int>>> check_list; //qubit, node_idx, transition 
+    
+    //data needed: tag/qubit/child , node_idx is not needed
+
+
+    
+
+    std::map<int64_t,SymbolTag>   node_hash; //map[transition idx]
+    next_transitions_hash.clear();
+    std::map<int64_t,int> valids;
+    std::vector<std::list<int64_t>> qubit_trans_hash; //vec[q-1] = {transitions with qubit index q}
+    qubit_trans_hash.resize(this->qubitNum+2);  //0 for dummy list, qubitNum+1 for leaf transitions
+
+    for(const auto &t : this->transitions)  
+    {
+        for(const auto &t2 : t.second)
+        {
+            
+            node_hash[t2.first] = t.first;
+            next_transitions_hash[t2.first] = std::vector<std::pair<int64_t,std::set<std::vector<int64_t>>>>{};
+            valids[t2.first] = 0;
+
+            int64_t cur_tag = t.first.tag();
+            int64_t tag_bit = 1;
+            while(cur_tag > 0)  //decompose the tag into bits
+            {
+
+                if(cur_tag & 1)
+                {
+                    next_transitions_hash[t2.first].push_back(make_pair(tag_bit, t2.second));
+                }
+                cur_tag >>= 1;
+                tag_bit++;
+            }
+
+            if(t.first.is_leaf())
+                qubit_trans_hash.back().push_back(t2.first);
+            else
+                qubit_trans_hash[static_cast<int>( t.first.symbol().qubit())].push_back(t2.first);
+        } 
+    }
+    //list of transition -> map<tag, set<child>>
+
+    std::vector<int64_t> root_transitions{};
+    for(const auto& t : node_hash)
+    {
+        if(t.second.is_leaf())
+            continue;
+        if(t.second.symbol().qubit() == 1) 
+        {
+            root_transitions.push_back(t.first);
+        }
+    }
+
+
+
+    return  traverse(root_transitions\
+                    , qubit_trans_hash\
+                    , valids\
+                    , 1);
+}
+
+
+
+template <typename Symbol>
+AUTOQ::Automata<Symbol> AUTOQ::Automata<Symbol>::operator&(const Automata<Symbol> &o) const {
+    if (this->qubitNum == 0) return o; 
+    if (o.qubitNum == 0) return *this;
+
+    Automata<Symbol> result = *this;
+    result.name = "operator&";
+    if (result.qubitNum != o.qubitNum) {
+        THROW_AUTOQ_ERROR("Two automata of different numbers of qubits cannot be unioned together.");
+    }
+    
+
+
+
+    //Encode value  -> tag1*offset + tag2
+    int color_offset = 0;
+    for (const auto &t : this->transitions) {
+        if(t.first.is_leaf())
+            continue;
+        if(t.first.tag() > color_offset)    
+            color_offset = t.first.tag();  
+    }
+    color_offset = static_cast<int>(floor(log2(color_offset))+1);
+
+    auto tag_encode = [&](const int64_t& a, const int64_t& b)->int64_t {
+        return 1<<((b<<color_offset) + a);
+    };
+    auto state_encode = [&](const int64_t& a, const int64_t& b)->int64_t {
+        return b*(1+this->stateNum) + a;
+    };
+
+    std::map<int64_t,set<StateVector>> valids;
+
+    result.transitions.clear();
+    for (const auto &t_other : o.transitions) {
+        for(const auto &t_cur : this->transitions)
+        {
+            if(t_cur.first.symbol() != t_other.first.symbol())  
+                continue;
+            cout<<"SYMBOL:"<<endl;
+            cout<<Convert::ToString(t_cur.first)<<endl;
+            cout<<Convert::ToString(t_other.first)<<endl;
+            int64_t new_tag = tag_encode(t_cur.first.tag(), t_other.first.tag());
+            SymbolTag ST(t_cur.first.symbol(), new_tag);
+            //traverse the node under this combination
+            result.transitions.insert(pair<SymbolTag, map<State, set<StateVector>>>(ST, map<State, set<StateVector>>()));
+
+            for(const auto &t2_cur : t_cur.second)
+            {
+                for(const auto &t2_other : t_other.second)
+                {
+                    cout<<"t2_cur:"<<t2_cur.first<<endl;
+                    cout<<"t2_other:"<<t2_other.first<<endl;
+                    int64_t new_state = state_encode(t2_cur.first, t2_other.first);
+
+                    pair<State, std::set<StateVector>> to_insert = make_pair(new_state, std::set<StateVector>{});
+
+                    StateVector child_cur = *t2_cur.second.begin();
+                    StateVector child_other = *t2_other.second.begin();
+                    StateVector child_new;
+                    for(int i = 0 ; i < child_cur.size(); i++)
+                    {
+                        child_new.push_back(state_encode(child_cur[i], child_other[i]));
+                    }
+                    to_insert.second.insert(child_new);
+                    result.transitions[t_cur.first].insert(to_insert);
+
+                    if(t_cur.first.is_leaf())
+                        result.finalStates.push_back(new_state);
+                }
+            }
+            cout<<"NEW_TAG:"<<new_tag<<endl;
+            result.stateNum++;
+            
+        }
+    }
+    cout<<"EXIT"<<endl;
+    
+    //result.reduce();
+    //for (const auto &var : o.vars)
+    //    result.vars.insert(var);
+    //result.constraints += o.constraints;
+
+    
+    if (opLog) std::cout << __FUNCTION__ << "：" << stateNum << " states " << count_transitions() << " transitions\n";
+    
+    cout<<"END"<<endl;
+    return result;
+}
+
 
 // https://bytefreaks.net/programming-2/c/c-undefined-reference-to-templated-class-function
 template struct AUTOQ::Automata<AUTOQ::Symbol::Concrete>;

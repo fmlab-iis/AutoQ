@@ -149,7 +149,8 @@ std::string TimbukSerializer::Serialize(Automata<Symbol> desc)
 
     std::string filename = "aut.gv";
     GenerateGraphviz( desc, filename);
-
+    Automata<Symbol> desc2 = desc&desc;
+    GenerateGraphviz( desc2, "aut2.gv");
 	return result;
 }
 
@@ -157,13 +158,17 @@ std::string TimbukSerializer::Serialize(Automata<Symbol> desc)
 
 template <typename Symbol>
 void GenerateGraphviz(const Automata<Symbol>& desc, const std::string& filename) {
+    std::cout<<"!CHECK"<<std::endl;
+    !desc;
     std::ofstream gvFile(filename);
     gvFile << "digraph Automaton {"<<std::endl;
     gvFile << "  rankdir=TD;"<<std::endl;
     gvFile << "  node [shape=circle];\n"<<std::endl<<std::endl;
 
     std::map<Symbol, size_t> leafMap;
+    int max_qubit = 0;
     for (const auto &t : desc.transitions) {
+        
         if (t.first.is_leaf()) {
             const auto &sym = t.first.symbol();
             auto it = leafMap.find(sym);
@@ -171,12 +176,17 @@ void GenerateGraphviz(const Automata<Symbol>& desc, const std::string& filename)
                 leafMap[sym] = leafMap.size();
             }
         }
+        else
+        {
+            if(max_qubit < static_cast<int>(t.first.symbol().qubit()))
+                max_qubit = static_cast<int>(t.first.symbol().qubit());
+        }
     }
 
 
 
-    std::map<std::string,std::string> express;
-    std::map<std::string,std::string> naming_list;
+    std::map<std::pair<int,int>,std::string> express;
+    std::map<std::pair<int,int>,std::string> naming_list;
     for (const auto &t : desc.transitions) {
         for (const auto &t2 : t.second) {
             const auto &q = t2.first;
@@ -205,14 +215,17 @@ void GenerateGraphviz(const Automata<Symbol>& desc, const std::string& filename)
 
                 if(str.size()>5)
                     str = std::string(str.begin(),str.begin()+5) + "...";
-                express.insert(std::pair<std::string,std::string>(std::to_string(q),str));
+                express.insert(std::make_pair(std::make_pair(q,t.first.tag()),str));
             }
             std::cout<<name<<std::endl;
-            naming_list.insert(std::pair<std::string,std::string>(std::to_string(q),name));
+            naming_list.insert(std::make_pair(std::make_pair(q,t.first.tag()),name));
         }
     }
 
     for (const auto &t : desc.transitions) {
+        int qb = -1;
+        if(!t.first.is_leaf())
+            qb = static_cast<int>(t.first.symbol().qubit());
         for (const auto &t2 : t.second) {
             const auto &q = t2.first;
             for (const auto &in : t2.second) {
@@ -224,13 +237,23 @@ void GenerateGraphviz(const Automata<Symbol>& desc, const std::string& filename)
 
                 if(!(in.empty()))
                 {
-                    gvFile << "\""<<naming_list[std::to_string(q)]<<"\" -> \""<<naming_list[std::to_string(in[0])]<<"\""<<style0<<std::endl;
-                    gvFile << "\""<<naming_list[std::to_string(q)]<<"\" -> \""<<naming_list[std::to_string(in[1])]<<"\""<<style1<<std::endl;
+                    gvFile << "\""<<"x:"<<qb<<", "<<q<<"\" -> \"";
+                    if(qb != max_qubit)
+                        gvFile<<"x:"<<qb+1<<", "<<in[0]<<"\""<<style0<<std::endl;
+                    else
+                        gvFile<<in[0]<<"\""<<style0<<std::endl;
+
+                    gvFile << "\""<<"x:"<<qb<<", "<<q<<"\" -> \"";
+                    if(qb != max_qubit)
+                        gvFile<<"x:"<<qb+1<<", "<<in[1]<<"\""<<style1<<std::endl;
+                    else
+                        gvFile<<in[1]<<"\""<<style1<<std::endl;
                 }
                 else if(t.first.is_leaf())
                 {
-                    gvFile << "\"v: "<<express[std::to_string(q)]<<"\"[shape=plaintext]"<<std::endl;
-                    gvFile << "\""<<naming_list[std::to_string(q)]<<"\" -> \"v: "<<express[std::to_string(q)]<<"\""<<"[label = \"" + Convert::ToString(t.first.tag()) +"\"]"<<std::endl;
+                    std::string val = "\""+naming_list[std::make_pair(q,t.first.tag())]+": "+express[std::make_pair(q,t.first.tag())]+"\"";
+                    gvFile << val <<"[shape=plaintext]"<<std::endl;
+                    gvFile << "\""<<std::to_string(q)<<"\" -> "<<val<<"[label = \"" + Convert::ToString(t.first.tag()) +"\"]"<<std::endl;
                 }
             }
         }
