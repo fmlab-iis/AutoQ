@@ -28,7 +28,7 @@ void AUTOQ::Automata<Symbol>::General_Single_Qubit_Gate(int t, const std::functi
         THROW_AUTOQ_ERROR("The number of states after multiplication is too large.");
     // s < stateNum -> s
     // (s1, s2, L) -> stateNum + s1 * stateNum + s2
-    // (s1, s2, R) -> stateNum + stateNum^2 + s1 * stateNum + s2 -> max == 2 * stateNum^2 + stateNum
+    // (s1, s2, R) -> stateNum + stateNum^2 + s1 * stateNum + s2 -> max == 2 * stateNum^2 + stateNum - 1
 
     // We assume here transitions are ordered by symbols.
     // x_i are placed in the beginning, and leaves are placed in the end.
@@ -160,10 +160,13 @@ void AUTOQ::Automata<Symbol>::General_Controlled_Gate(int c, int t, const std::f
 }
 template <typename Symbol>
 void AUTOQ::Automata<Symbol>::General_Controlled_Gate(int c, int c2, int t, const std::function<Symbol(const Symbol&, const Symbol&)> &u1u2, const std::function<Symbol(const Symbol&, const Symbol&)> &u3u4) {
-    auto minC = std::min(c, c2);
-    if (minC <= t) {
-        THROW_AUTOQ_ERROR("We require all c's > t here.");
-    }
+    General_Controlled_Gate({c, c2}, t, u1u2, u3u4);
+}
+#define L2(s1, s2) (2*stateNum + (s1) * stateNum + (s2))
+#define R2(s1, s2) (2*stateNum + stateNum * stateNum + (s1) * stateNum + (s2))
+template <typename Symbol>
+void AUTOQ::Automata<Symbol>::General_Controlled_Gate(std::set<int> cs, int t, const std::function<Symbol(const Symbol&, const Symbol&)> &u1u2, const std::function<Symbol(const Symbol&, const Symbol&)> &u3u4) {
+    auto minC = *cs.begin(); // To find the minimum value in a std::set in C++, you can use the begin() iterator since std::set is always sorted in ascending order.
 
     AUTOQ::Automata<Symbol> result;
     result.name = name;
@@ -174,12 +177,13 @@ void AUTOQ::Automata<Symbol>::General_Controlled_Gate(int c, int c2, int t, cons
     result.vars = vars; // IMPORTANT: Avoid missing copying new fields afterwards.
     result.constraints = constraints; // IMPORTANT: Avoid missing copying new fields afterwards.
 
-    bool overflow = (stateNum > (std::numeric_limits<State>::max()-stateNum) / stateNum / 2); // want: 2 * stateNum^2 + stateNum <= max
+    bool overflow = (stateNum > (std::numeric_limits<State>::max()/2 - stateNum) / stateNum); // want: 2 * stateNum^2 + 2 * stateNum <= max
     if (overflow)
         THROW_AUTOQ_ERROR("The number of states after multiplication is too large.");
-    // s < stateNum -> s
-    // (s1, s2, L) -> stateNum + s1 * stateNum + s2
-    // (s1, s2, R) -> stateNum + stateNum^2 + s1 * stateNum + s2 -> max == 2 * stateNum^2 + stateNum
+    // s < stateNum -> s + stateNum (in U)
+    // s < stateNum -> s (in the original)
+    // (s1, s2, L) -> 2 * stateNum + s1 * stateNum + s2
+    // (s1, s2, R) -> 2 * stateNum + stateNum^2 + s1 * stateNum + s2 -> max == 2 * stateNum^2 + 2 * stateNum - 1
 
     // We assume here transitions are ordered by symbols.
     // x_i are placed in the beginning, and leaves are placed in the end.
@@ -187,26 +191,63 @@ void AUTOQ::Automata<Symbol>::General_Controlled_Gate(int c, int c2, int t, cons
     auto it = transitions.begin(); // global pointer, useless initial value only for declaring its type
     bool it_has_been_assigned = false;
     for (auto it0 = transitions.begin(); it0 != transitions.end(); it0++) { // iterate over all internal transitions of symbol < t
-        if (it0->first.symbol().is_leaf() || it0->first.symbol().qubit() < t)
+        if (it0->first.symbol().is_leaf()) {
             result.transitions.insert(*it0);
+        } else if (it0->first.symbol().qubit() < t) { // must be internal
+            if (it0->first.symbol().qubit() < minC) {
+                result.transitions.insert(*it0);
+            } else if (it0->first.symbol().qubit() == minC) {
+                auto &ref = result.transitions[it0->first];
+                for (const auto &[out, ins] : it0->second) {
+                    auto &ref2 = ref[out];
+                    for (const auto &in : ins) {
+                        assert(in.size() == 2);
+                        ref2.insert({in.at(0), in.at(1)+stateNum});
+                    }
+                }
+            } else { // if (it0->first.symbol().qubit() > minC)
+                result.transitions.insert(*it0); // the original part
+                // The following is the U part.
+                auto &ref = result.transitions[it0->first];
+                bool qubit_is_NOT_a_control_qubit = cs.find(static_cast<int>(it0->first.symbol().qubit())) == cs.end();
+                for (const auto &[out, ins] : it0->second) {
+                    auto &ref2 = ref[out+stateNum]; // offset
+                    for (const auto &in : ins) {
+                        assert(in.size() == 2);
+                        ref2.insert({in.at(0) + qubit_is_NOT_a_control_qubit * stateNum, in.at(1)+stateNum}); // offset
+                    }
+                }
+            }
+            // TODO: A potential improvement is to also record all used bottom states
+            //       at level minC as all possible top states at level minC+1, and so
+            //       on, until level t, to avoid generating useless transitions.
+        }
         if (!it_has_been_assigned && it0->first.symbol().qubit() >= t) {
             it = it0;
             it_has_been_assigned = true;
         }
     }
 
-    std::vector<bool> possible_next_level_states(R(stateNum-1, stateNum-1) + 1);
+    std::vector<bool> possible_next_level_states(R2(stateNum-1, stateNum-1) + 1);
     assert(it->first.symbol().qubit() == t); // iterate over all internal transitions of symbol == t
     for (; it != transitions.end(); it++) {
         if (it->first.is_leaf() || it->first.symbol().qubit() > t) break;
+        assert(it->first.symbol().qubit() == t);
+        if (minC < t) {
+            result.transitions.insert(*it);
+            // TODO: consider only the top states in possible_previous_level_states
+            //       if they are recorded in the previous level.
+        }
         auto &ref1 = result.transitions[it->first];
         for (const auto &out_ins : it->second) {
-            auto &ref2 = ref1[out_ins.first];
+            auto &ref2 = ref1[out_ins.first + ((minC < t) ? stateNum : 0)];
+            // TODO: consider only the top states in possible_previous_level_states
+            //       if they are recorded in the previous level.
             for (const auto &in : out_ins.second) {
                 assert(in.size() == 2);
-                ref2.insert({L(in.at(0), in.at(1)), R(in.at(0), in.at(1))});
-                possible_next_level_states[L(in.at(0), in.at(1))] = true;
-                possible_next_level_states[R(in.at(0), in.at(1))] = true;
+                ref2.insert({L2(in.at(0), in.at(1)), R2(in.at(0), in.at(1))});
+                possible_next_level_states[L2(in.at(0), in.at(1))] = true;
+                possible_next_level_states[R2(in.at(0), in.at(1))] = true;
             }
         }
     }
@@ -216,7 +257,7 @@ void AUTOQ::Automata<Symbol>::General_Controlled_Gate(int c, int c2, int t, cons
     std::vector<bool> possible_previous_level_states = possible_next_level_states;
     for (; it != transitions.end(); it++) { // iterate over all internal transitions of symbol > t
         if (it->first.is_leaf()) break; // assert internal transition
-        auto qubit = it->first.symbol().qubit();
+        int qubit = static_cast<int>(it->first.symbol().qubit());
         assert(qubit > t);
         if (qubit != head->first.symbol().qubit()) { // change layer
             head = it;
@@ -234,35 +275,35 @@ void AUTOQ::Automata<Symbol>::General_Controlled_Gate(int c, int c2, int t, cons
                 for (const auto &out_ins2 : it2->second) {
                     const auto &top2 = out_ins2.first;
                     // assert(out_ins2.first.size() == 2);
-                    bool qubit_is_NOT_a_control_qubit = (qubit != c) && (qubit != c2);
-                    if (hasLoop || possible_previous_level_states[L(top1, top2)]) {
-                        auto &ref = qcfi[L(top1, top2)][color_intersection][it->first.symbol()];
+                    bool qubit_is_NOT_a_control_qubit = cs.find(qubit) == cs.end();
+                    if (hasLoop || possible_previous_level_states[L2(top1, top2)]) {
+                        auto &ref = qcfi[L2(top1, top2)][color_intersection][it->first.symbol()];
                         if (qubit_is_NOT_a_control_qubit) {
                             for (const auto &in1 : out_ins1.second) {
                                 for (const auto &in2 : out_ins2.second) {
-                                    ref.push_back({L(in1.at(0), in2.at(0)), L(in1.at(1), in2.at(1))});
+                                    ref.push_back({L2(in1.at(0), in2.at(0)), L2(in1.at(1), in2.at(1))});
                                 }
                             }
                         } else { // if (qubit_is_a_control_qubit)
                             for (const auto &in1 : out_ins1.second) {
                                 for (const auto &in2 : out_ins2.second) {
-                                    ref.push_back({in1.at(0), L(in1.at(1), in2.at(1))});
+                                    ref.push_back({in1.at(0), L2(in1.at(1), in2.at(1))});
                                 }
                             }
                         }
                     }
-                    if (hasLoop || possible_previous_level_states[R(top1, top2)]) {
-                        auto &ref = qcfi[R(top1, top2)][color_intersection][it->first.symbol()];
+                    if (hasLoop || possible_previous_level_states[R2(top1, top2)]) {
+                        auto &ref = qcfi[R2(top1, top2)][color_intersection][it->first.symbol()];
                         if (qubit_is_NOT_a_control_qubit) {
                             for (const auto &in1 : out_ins1.second) {
                                 for (const auto &in2 : out_ins2.second) {
-                                    ref.push_back({R(in1.at(0), in2.at(0)), R(in1.at(1), in2.at(1))});
+                                    ref.push_back({R2(in1.at(0), in2.at(0)), R2(in1.at(1), in2.at(1))});
                                 }
                             }
                         } else { // if (qubit_is_a_control_qubit)
                             for (const auto &in1 : out_ins1.second) {
                                 for (const auto &in2 : out_ins2.second) {
-                                    ref.push_back({in2.at(0), R(in1.at(1), in2.at(1))});
+                                    ref.push_back({in2.at(0), R2(in1.at(1), in2.at(1))});
                                 }
                             }
                         }
@@ -272,14 +313,16 @@ void AUTOQ::Automata<Symbol>::General_Controlled_Gate(int c, int c2, int t, cons
             if (qubit > minC) {
                 for (const auto &out_ins : it->second) {
                     const auto &top = out_ins.first;
-                    if (hasLoop || possible_previous_level_states[top]) {
+                    if (hasLoop || possible_previous_level_states[top] || minC < t) {
+                        // TODO: can remove (minC < t) if possible_previous_level_states are well-constructed in this case
                         auto &ref = qcfi[top][color_intersection][it->first.symbol()];
                         ref.insert(ref.end(), out_ins.second.begin(), out_ins.second.end());
                     }
                 }
                 for (const auto &out_ins : it2->second) {
                     const auto &top = out_ins.first;
-                    if (hasLoop || possible_previous_level_states[top]) {
+                    if (hasLoop || possible_previous_level_states[top] || minC < t) {
+                        // TODO: can remove (minC < t) if possible_previous_level_states are well-constructed in this case
                         auto &ref = qcfi[top][color_intersection][it2->first.symbol()]; // can also use it->first.symbol()
                         ref.insert(ref.end(), out_ins.second.begin(), out_ins.second.end());
                     }
@@ -316,11 +359,11 @@ void AUTOQ::Automata<Symbol>::General_Controlled_Gate(int c, int c2, int t, cons
                 // assert(in_out1.first.size() == 0);
                 for (const auto &out_ins2 : it2->second) {
                     const auto &top2 = out_ins2.first;
-                    if (hasLoop || possible_previous_level_states[L(top1, top2)]) {
-                        qcfi[L(top1, top2)][color_intersection][u1u2(it->first.symbol(), it2->first.symbol())].push_back({});
+                    if (hasLoop || possible_previous_level_states[L2(top1, top2)]) {
+                        qcfi[L2(top1, top2)][color_intersection][u1u2(it->first.symbol(), it2->first.symbol())].push_back({});
                     }
-                    if (hasLoop || possible_previous_level_states[R(top1, top2)]) {
-                        qcfi[R(top1, top2)][color_intersection][u3u4(it->first.symbol(), it2->first.symbol())].push_back({});
+                    if (hasLoop || possible_previous_level_states[R2(top1, top2)]) {
+                        qcfi[R2(top1, top2)][color_intersection][u3u4(it->first.symbol(), it2->first.symbol())].push_back({});
                     }
                 }
             }
@@ -333,7 +376,7 @@ void AUTOQ::Automata<Symbol>::General_Controlled_Gate(int c, int c2, int t, cons
             }
         }
     }
-    result.stateNum = R(stateNum-1, stateNum-1) + 1;
+    result.stateNum = R2(stateNum-1, stateNum-1) + 1;
     // Notice that we cannot do operations including state_renumbering() here
     // since this function may be used as a subroutine in another gate.
     *this = result;
