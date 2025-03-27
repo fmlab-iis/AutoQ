@@ -20,10 +20,10 @@ void AUTOQ::Automata<Symbol>::execute(const char *filename, ParameterMap &params
     const std::regex digit("\\d+");
     const std::regex rx(R"(rx\((.+)\).+\[(\d+)\];)");
     const std::regex rz(R"(rz\((.+)\).+\[(\d+)\];)");
-    const std::regex_iterator<std::string::iterator> END;
+    const std::sregex_iterator END;
     if (!qasm.is_open()) THROW_AUTOQ_ERROR("Failed to open file " + std::string(filename) + ".");
     std::string line, previous_line;
-    // int lineno = 1;
+    
     while (getline(qasm, line)) {
         line = AUTOQ::String::trim(line);
         // AUTOQ_DEBUG("[" << (lineno++) << "]: " << line);
@@ -31,7 +31,7 @@ void AUTOQ::Automata<Symbol>::execute(const char *filename, ParameterMap &params
         std::smatch match_rz; std::regex_search(line, match_rz, rz);
         if (line.find("OPENQASM") == 0 || line.find("include ") == 0|| line.find("//") == 0) continue;
         if (line.find("qreg ") == 0) {
-            std::regex_iterator<std::string::iterator> it(line.begin(), line.end(), digit);
+            std::sregex_iterator it(line.begin(), line.end(), digit);
             while (it != END) {
                 if (atoi(it->str().c_str()) != static_cast<int>(qubitNum))
                     THROW_AUTOQ_ERROR("The number of qubits in the automaton does not match the number of qubits in the circuit.");
@@ -92,7 +92,7 @@ void AUTOQ::Automata<Symbol>::execute(const char *filename, ParameterMap &params
             // AUTOQ_DEBUG("rz(" << angle << ") @ " << qubit);
             Rz(ComplexParser(angle).getComplex().to_rational(), 1 + atoi(qubit.c_str()));
         } else if (line.find("ry(pi/2) ") == 0 || line.find("ry(pi / 2)") == 0) {
-            std::regex_iterator<std::string::iterator> it(line.begin(), line.end(), digit);
+            std::sregex_iterator it(line.begin(), line.end(), digit);
             std::vector<int> pos;
             while (it != END) {
                 pos.push_back(1 + atoi(it->str().c_str()));
@@ -101,7 +101,7 @@ void AUTOQ::Automata<Symbol>::execute(const char *filename, ParameterMap &params
             // AUTOQ_DEBUG("ry(pi/2) @ " << pos[1]);
             Ry(pos[1]);
         } else if (line.find("cx ") == 0 || line.find("CX ") == 0 ) {
-            std::regex_iterator<std::string::iterator> it(line.begin(), line.end(), digit);
+            std::sregex_iterator it(line.begin(), line.end(), digit);
             std::vector<int> pos;
             while (it != END) {
                 pos.push_back(1 + atoi(it->str().c_str()));
@@ -109,7 +109,7 @@ void AUTOQ::Automata<Symbol>::execute(const char *filename, ParameterMap &params
             }
             CX(pos[0], pos[1]);
         } else if (line.find("cz ") == 0) {
-            std::regex_iterator<std::string::iterator> it(line.begin(), line.end(), digit);
+            std::sregex_iterator it(line.begin(), line.end(), digit);
             std::vector<int> pos;
             while (it != END) {
                 pos.push_back(1 + atoi(it->str().c_str()));
@@ -117,7 +117,7 @@ void AUTOQ::Automata<Symbol>::execute(const char *filename, ParameterMap &params
             }
             CZ(pos[0], pos[1]);
         } else if (line.find("ccx ") == 0) {
-            std::regex_iterator<std::string::iterator> it(line.begin(), line.end(), digit);
+            std::sregex_iterator it(line.begin(), line.end(), digit);
             std::vector<int> pos;
             while (it != END) {
                 pos.push_back(1 + atoi(it->str().c_str()));
@@ -125,7 +125,7 @@ void AUTOQ::Automata<Symbol>::execute(const char *filename, ParameterMap &params
             }
             CCX(pos[0], pos[1], pos[2]);
         } else if (line.find("swap ") == 0) {
-            std::regex_iterator<std::string::iterator> it(line.begin(), line.end(), digit);
+            std::sregex_iterator it(line.begin(), line.end(), digit);
             std::vector<int> pos;
             while (it != END) {
                 pos.push_back(1 + atoi(it->str().c_str()));
@@ -147,13 +147,19 @@ void AUTOQ::Automata<Symbol>::execute(const char *filename, ParameterMap &params
     qasm.close();
 }
 
+//template <typename Symbol>
+//void AUTOQ::Automata<Symbol>::single_gate_execution(const std::string& line){
+//
+//}
+
+
 // template <typename Symbol>
 // void AUTOQ::Automata<Symbol>::reverse_execute(const char *filename) {
 //     // initialize_stats();
 
 //     std::ifstream qasm(filename);
 //     const std::regex digit("\\d+");
-//     const std::regex_iterator<std::string::iterator> END;
+//     const std::sregex_iterator END;
 //     if (!qasm.is_open()) THROW_AUTOQ_ERROR("Failed to open file " + std::string(filename) + ".");
 //     std::string line, previous_line;
 //     std::vector<std::string> lines;
@@ -165,7 +171,7 @@ void AUTOQ::Automata<Symbol>::execute(const char *filename, ParameterMap &params
 //         if (line.find("OPENQASM") == 0 || line.find("include ") == 0|| line.find("//") == 0) continue;
 //         if (line.find("qreg ") == 0) {
 //             continue;
-//             // std::regex_iterator<std::string::iterator> it(line.begin(), line.end(), digit);
+//             // std::sregex_iterator it(line.begin(), line.end(), digit);
 //             // while (it != END) {
 //             //     if (atoi(it->str().c_str()) != static_cast<int>(qubitNum))
 //             //         THROW_AUTOQ_ERROR("The number of qubits in the automaton does not match the number of qubits in the circuit.");
@@ -212,7 +218,7 @@ void AUTOQ::Automata<Symbol>::execute(const char *filename, ParameterMap &params
 //             std::regex_search(line, match_pieces, digit);
 //                 Ry(1 + atoi(match_pieces[0].str().c_str()));
 //         } else if (line.find("cx ") == 0 || line.find("CX ") == 0 ) {
-//             std::regex_iterator<std::string::iterator> it(line.begin(), line.end(), digit);
+//             std::sregex_iterator it(line.begin(), line.end(), digit);
 //             std::vector<int> pos;
 //             while (it != END) {
 //                 pos.push_back(1 + atoi(it->str().c_str()));
@@ -220,7 +226,7 @@ void AUTOQ::Automata<Symbol>::execute(const char *filename, ParameterMap &params
 //             }
 //             CX(pos[0], pos[1]); // CX = CX^-1
 //         } else if (line.find("cz ") == 0) {
-//             std::regex_iterator<std::string::iterator> it(line.begin(), line.end(), digit);
+//             std::sregex_iterator it(line.begin(), line.end(), digit);
 //             std::vector<int> pos;
 //             while (it != END) {
 //                 pos.push_back(1 + atoi(it->str().c_str()));
@@ -228,7 +234,7 @@ void AUTOQ::Automata<Symbol>::execute(const char *filename, ParameterMap &params
 //             }
 //             CZ(pos[0], pos[1]); // CZ = CZ^-1
 //         } else if (line.find("ccx ") == 0) {
-//             std::regex_iterator<std::string::iterator> it(line.begin(), line.end(), digit);
+//             std::sregex_iterator it(line.begin(), line.end(), digit);
 //             std::vector<int> pos;
 //             while (it != END) {
 //                 pos.push_back(1 + atoi(it->str().c_str()));
@@ -236,7 +242,7 @@ void AUTOQ::Automata<Symbol>::execute(const char *filename, ParameterMap &params
 //             }
 //             CCX(pos[0], pos[1], pos[2]); // CCX = CCX^-1
 //         } else if (line.find("swap ") == 0) {
-//             std::regex_iterator<std::string::iterator> it(line.begin(), line.end(), digit);
+//             std::sregex_iterator it(line.begin(), line.end(), digit);
 //             std::vector<int> pos;
 //             while (it != END) {
 //                 pos.push_back(1 + atoi(it->str().c_str()));
