@@ -8,6 +8,7 @@
 #include <autoq/inclusion.hh>
 #include <autoq/util/util.hh>
 #include <autoq/util/string.hh>
+#include <autoq/util/types.hh>
 #include <autoq/complex/ntuple.hh>
 #include <autoq/complex/complex.hh>
 #include <sys/wait.h>
@@ -153,9 +154,13 @@ try {
     CLI::App app{"AutoQ: An automata-based C++ tool for quantum program verification."};
     std::string pre, circuit, post, circuit1, circuit2;
 
+    bool sumarize_loops = false;
+    bool manual_loop = false;
     CLI::App* execution = app.add_subcommand("ex", "Execute a quantum circuit with a given precondition.");
     execution->add_option("pre.{hsl|lsta}", pre, "the precondition file")->required()->type_name("");
     execution->add_option("circuit.qasm", circuit, "the OpenQASM 2.0 circuit file")->required()->type_name("");
+    execution->add_flag("-lS,--loopsum", sumarize_loops, "Summarize loops using symbolic execution");
+    execution->add_flag("-lM,--loopmanual", manual_loop, "Execute loops using manual execution");
     execution->callback([&]() {
         adjust_N_in_nTuple(circuit);
     });
@@ -189,6 +194,8 @@ try {
 
     auto start = chrono::steady_clock::now();
     // bool runConcrete; // or runSymbolic
+    ParameterMap params;
+    params["loop"] = "manual"; // set the default option for loop execution
     if (execution->parsed()) {
         // runConcrete = true;
         auto aut2 = ReadAutomaton(pre);
@@ -199,8 +206,15 @@ try {
                 return arg; // Directly return the value if it's one of the allowed types
             }
         }, aut2);
-        std::visit([&circuit](auto& aut){
-            aut.execute(circuit);
+        if((sumarize_loops && !manual_loop) || (sumarize_loops && manual_loop)){
+            params["loop"] = "symbolic";
+        }
+        else{
+            params["loop"] = "manual";
+        }
+
+        std::visit([&circuit, &params](auto& aut){
+            aut.execute(circuit, params);
             aut.print_aut();
         }, aut);
     } else if (verification->parsed()) {
@@ -215,7 +229,7 @@ try {
                 THROW_AUTOQ_ERROR("Predicate amplitudes cannot be used in a precondition.");
             }
             auto aut = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Symbolic>::ReadAutomaton(pre);
-            aut.execute(circuit);
+            aut.execute(circuit, params);
             // std::cout << "OUTPUT AUTOMATON:\n";
             // std::cout << "=================\n";
             // aut.print_aut();
@@ -236,7 +250,7 @@ try {
                     return arg; // Directly return the value if it's one of the allowed types
                 }
             }, aut1);
-            aut.execute(circuit);
+            aut.execute(circuit, params);
             // std::cout << "OUTPUT AUTOMATON:\n";
             // std::cout << "=================\n";
             // aut.print_aut();
@@ -254,8 +268,8 @@ try {
         // runConcrete = true;
         /*AUTOQ::TreeAutomata*/ aut = AUTOQ::TreeAutomata::prefix_basis(extract_qubit(circuit1));
         /*AUTOQ::TreeAutomata*/ aut2 = AUTOQ::TreeAutomata::prefix_basis(extract_qubit(circuit2));
-        aut.execute(circuit1);
-        aut2.execute(circuit2);
+        aut.execute(circuit1, params);
+        aut2.execute(circuit2, params);
         bool result = aut <= aut2;
         if (latex) {
             // if (short_time) {

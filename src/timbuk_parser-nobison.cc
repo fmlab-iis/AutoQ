@@ -1034,7 +1034,7 @@ std::vector<std::string> star_expension(std::vector<std::string> state)
 
     std::size_t size = 0;   //the size of states
     bool in_bracket = false;
-    for(int idx = 0 ; idx < state.size() ; idx++)
+    for(size_t idx = 0 ; idx < state.size() ; idx++)
     {
         if(state[idx].find('*') != std::string::npos)
             continue;
@@ -1122,7 +1122,7 @@ std::vector<std::string> star_expension(std::vector<std::string> state)
             back_val = std::stoi(val_str,nullptr, 2);
 
 
-        for(size_t itr = 0 ; itr < (1<<diff); itr++)
+        for(size_t itr = 0 ; itr < static_cast<size_t>(1<<diff); itr++)
         {
             int state_val = back_val + (itr << back_size) + (front_val << (size - front_size));
             if(defined_states[state_val] == false)

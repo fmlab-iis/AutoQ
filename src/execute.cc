@@ -9,11 +9,11 @@
 #include <filesystem>
 
 template <typename Symbol>
-void AUTOQ::Automata<Symbol>::execute(const std::string& filename) {
-    execute(filename.c_str());
+void AUTOQ::Automata<Symbol>::execute(const std::string& filename, ParameterMap &params) {
+    execute(filename.c_str(), params);
 }
 template <typename Symbol>
-void AUTOQ::Automata<Symbol>::execute(const char *filename) {
+void AUTOQ::Automata<Symbol>::execute(const char *filename, ParameterMap &params) {
     initialize_stats();
 
     std::ifstream qasm(filename);

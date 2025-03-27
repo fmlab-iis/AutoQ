@@ -17,6 +17,7 @@
 #include "autoq/symbol/symbolic.hh"
 #include "autoq/symbol/predicate.hh"
 #include "autoq/symbol/index.hh"
+#include "autoq/util/types.hh"
 
 namespace AUTOQ
 {
@@ -210,8 +211,8 @@ public:
 
     /****************************************************/
     /* execute.cc: the main function for gate execution */
-    void execute(const std::string& filename);
-    void execute(const char *filename);
+    void execute(const std::string& filename, ParameterMap &params);
+    void execute(const char *filename, ParameterMap &params);
     /****************************************************/
 
     /**************************************************/
