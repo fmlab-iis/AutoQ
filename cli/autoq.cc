@@ -159,8 +159,10 @@ try {
     CLI::App* execution = app.add_subcommand("ex", "Execute a quantum circuit with a given precondition.");
     execution->add_option("pre.{hsl|lsta}", pre, "the precondition file")->required()->type_name("");
     execution->add_option("circuit.qasm", circuit, "the OpenQASM 2.0 circuit file")->required()->type_name("");
-    execution->add_flag("-lS,--loopsum", sumarize_loops, "Summarize loops using symbolic execution");
-    execution->add_flag("-lM,--loopmanual", manual_loop, "Execute loops using manual execution");
+    execution->add_flag("--loopsum", sumarize_loops, "Summarize loops using symbolic execution");
+    execution->add_flag("--loopmanual", manual_loop, "Execute loops using manual execution");
+    execution->get_option("--loopmanual")->excludes("--loopsum");
+    execution->get_option("--loopsum")->excludes("--loopmanual");
     execution->callback([&]() {
         adjust_N_in_nTuple(circuit);
     });
@@ -206,10 +208,12 @@ try {
                 return arg; // Directly return the value if it's one of the allowed types
             }
         }, aut2);
-        if((sumarize_loops && !manual_loop) || (sumarize_loops && manual_loop)){
+
+
+        if(sumarize_loops){
             params["loop"] = "symbolic";
         }
-        else{
+        if(manual_loop){
             params["loop"] = "manual";
         }
 
