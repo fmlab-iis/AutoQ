@@ -10,7 +10,30 @@
 #include "autoq/aut_description.hh"
 
 template<typename Symbol>
-void execute_loop(const std::vector<std::string>& loop_body, AUTOQ::Automata<Symbol>& aut, ParameterMap& params);
+void execute_loop(std::vector<std::string>& loop_body, AUTOQ::Automata<Symbol>& aut, ParameterMap& params, const AUTOQ::regexes& regexes,
+                const std::sregex_iterator& END, std::smatch match_pieces);
 
+template<typename Symbol>
+void symbolic_loop(const std::vector<std::string>& loop_body, AUTOQ::Automata<Symbol>& aut, const AUTOQ::regexes& regexes);
+
+template<typename Symbol>
+AUTOQ::Automata<AUTOQ::Symbol::Symbolic> initial_abstraction(AUTOQ::Automata<Symbol>& aut, AbstractionMap<Symbol>& alpha);
+
+namespace std{
+
+    template<>
+    struct hash<AUTOQ::Symbol::Concrete> {
+        std::size_t operator()(const AUTOQ::Symbol::Concrete symbol) const {
+            return boost::hash<std::string>()(symbol.str());
+        }
+    };
+    template<>
+    struct hash<AUTOQ::Symbol::Symbolic> {
+        std::size_t operator()(const AUTOQ::Symbol::Symbolic symbol) const {
+            return boost::hash<std::string>()(symbol.str());
+        }
+    };
+
+}
 
 #endif

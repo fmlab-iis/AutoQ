@@ -13,11 +13,12 @@
 
 // AUTOQ headers
 #include <chrono>
+#include <regex>
+#include <autoq/util/types.hh>
 #include "autoq/symbol/concrete.hh"
 #include "autoq/symbol/symbolic.hh"
 #include "autoq/symbol/predicate.hh"
 #include "autoq/symbol/index.hh"
-#include "autoq/util/types.hh"
 
 namespace AUTOQ
 {
@@ -33,6 +34,13 @@ namespace AUTOQ
     typedef Automata<Symbol::Symbolic> SymbolicAutomata;
     typedef Automata<Symbol::Predicate> PredicateAutomata;
     typedef Automata<Symbol::Index> IndexAutomata;
+    typedef struct regexes{
+        const std::regex rx;
+        const std::regex rz;
+        const std::regex digit;
+        const std::regex loop;
+        regexes() : rx(R"(rx\((.+)\).+\[(\d+)\];)"), rz(R"(rz\((.+)\).+\[(\d+)\];)"), digit("\\d+"), loop(R"(for int (\w+) in \[(\d+):(\d+)\])") {}
+    }regexes;
 }
 
 template <typename T> constexpr auto support_fraction_simplification = requires (T x) {
@@ -213,6 +221,7 @@ public:
     /* execute.cc: the main function for gate execution */
     void execute(const std::string& filename, ParameterMap &params);
     void execute(const char *filename, ParameterMap &params);
+    void single_gate_execute(const std::string& line, const regexes &regexes, const std::sregex_iterator& END);
     /****************************************************/
 
     /**************************************************/

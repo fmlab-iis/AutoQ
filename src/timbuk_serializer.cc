@@ -102,7 +102,7 @@ std::string TimbukSerializer::Serialize(Automata<Symbol> desc)
 	result += "\n";
 	result += "Transitions\n";
 
-    for (const auto &t : desc.transitions) {
+    for t auto &t : desc.transitions) {
         for (const auto &t2 : t.second) {
             const auto &q = t2.first;
             for (const auto &in : t2.second) {

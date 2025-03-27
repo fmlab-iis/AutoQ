@@ -109,6 +109,8 @@ void adjust_N_in_nTuple(const std::string &filename) {
         } else if (line.find("ry(pi/2) ") == 0 || line.find("ry(pi / 2)") == 0) {
         } else if (line.find("cx ") == 0 || line.find("CX ") == 0 ) {
         } else if (line.find("cz ") == 0) {
+        } else if (line.find("for ") == 0){
+        } else if (line.find("}") == 0){
         } else if (line.find("ccx ") == 0) {
         } else if (line.find("swap ") == 0) {
         } else if (line.find("PRINT_STATS") == 0) {
