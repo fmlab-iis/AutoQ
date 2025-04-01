@@ -18,8 +18,8 @@ void AUTOQ::Automata<Symbol>::execute(const std::string& filename, ParameterMap 
 }
 template <typename Symbol>
 void AUTOQ::Automata<Symbol>::execute(const char *filename, ParameterMap &params) {
+    this->print_aut();
     initialize_stats();
-
     std::ifstream qasm(filename);
     const AUTOQ::regexes regexes{};
 
@@ -30,6 +30,7 @@ void AUTOQ::Automata<Symbol>::execute(const char *filename, ParameterMap &params
     bool in_loop = false; // nested loops are not yet taken into consideration
     while (getline(qasm, line)) {
         line = AUTOQ::String::trim(line);
+        if (line.empty()) continue;
         // AUTOQ_DEBUG("[" << (lineno++) << "]: " << line);
         if (line.find("OPENQASM") == 0 || line.find("include ") == 0|| line.find("//") == 0) continue;
         if (line.find("qreg ") == 0) {
@@ -71,8 +72,6 @@ void AUTOQ::Automata<Symbol>::execute(const char *filename, ParameterMap &params
                 THROW_AUTOQ_ERROR("Loop not ended properly");
             }
             // LOOP PARSING END
-
-
             execute_loop<Symbol>(loop_body, *this, params, regexes, END, match_pieces);
         } else if(line.find("}") == 0){
             in_loop = false;

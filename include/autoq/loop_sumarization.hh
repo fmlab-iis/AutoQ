@@ -14,7 +14,7 @@ void execute_loop(std::vector<std::string>& loop_body, AUTOQ::Automata<Symbol>& 
                 const std::sregex_iterator& END, std::smatch match_pieces);
 
 template<typename Symbol>
-void symbolic_loop(const std::vector<std::string>& loop_body, AUTOQ::Automata<Symbol>& aut, const AUTOQ::regexes& regexes);
+AUTOQ::Automata<Symbol> symbolic_loop(const std::vector<std::string>& loop_body, AUTOQ::Automata<Symbol>& aut, const AUTOQ::regexes& regexes);
 
 template<typename Symbol>
 AUTOQ::Automata<AUTOQ::Symbol::Symbolic> initial_abstraction(AUTOQ::Automata<Symbol>& aut, AbstractionMap<Symbol>& alpha);
