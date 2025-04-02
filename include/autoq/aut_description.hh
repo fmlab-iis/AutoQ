@@ -59,6 +59,9 @@ public:   // data types
 	typedef unsigned long long Tag;
     inline static constexpr auto Tag_MAX = static_cast<Tag>(1) << (std::numeric_limits<Tag>::digits - 1);
     typedef std::pair<Symbol, Tag> stdpairSymbolTag;
+    // in a transition of a form (Symbol, Tag)[q1, ..., qn] -> q
+    // Symbol represents the qbit and tag represent the color
+    // color is a bitset, where the i-th bit is 1 if the i-th color is used
     struct SymbolTag : stdpairSymbolTag {
         using stdpairSymbolTag::stdpairSymbolTag; // inherit parent constructors
         // template<typename... Args> SymbolTag(Args... args) : stdpairSymbolTag({args...}, {}) {}
@@ -70,6 +73,7 @@ public:   // data types
         const Tag& tag() const & { return this->second; }
         // bool& tag(int index) & { return this->second[index]; }
         bool tag(int index) const { return (this->second & (1<<index)) >> index; }
+        Tag tag_intersection(Tag other) const { return this->second & other; }
         /*********************************************************/
         bool is_internal() const { return symbol().is_internal(); }
         bool is_leaf() const { return symbol().is_leaf(); }
@@ -93,6 +97,8 @@ public:   // data types
             return os;
         }
     };
+    // access transition with pair (qubit, color), get a map that satisfies this
+    // the map contains set of transitions parent -> set of state vectors
     typedef std::map<SymbolTag, std::map<State, std::set<StateVector>>> TopDownTransitions;
     typedef std::map<SymbolTag, std::map<StateVector, StateSet>> BottomUpTransitions;
     typedef std::vector<std::map<Tag, std::map<State, std::set<StateVector>>>> InternalTopDownTransitions; // Keys range from 1 to qubit().
