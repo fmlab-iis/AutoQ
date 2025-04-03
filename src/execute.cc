@@ -72,6 +72,7 @@ void AUTOQ::Automata<Symbol>::execute(const char *filename, ParameterMap &params
                 THROW_AUTOQ_ERROR("Loop not ended properly");
             }
             // LOOP PARSING END
+
             execute_loop<Symbol>(loop_body, *this, params, regexes, END, match_pieces);
         } else if(line.find("}") == 0){
             in_loop = false;

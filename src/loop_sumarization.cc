@@ -33,7 +33,7 @@ AUTOQ::Automata<AUTOQ::Symbol::Symbolic> initial_abstraction(AUTOQ::Automata<Sym
     T.hasLoop = aut.hasLoop;
     T.isTopdownDeterministic = aut.isTopdownDeterministic;
     T.transitions = {};
-    int i = 0;
+    T.symbolicvarsNum = 0;
     for(auto& transition : aut.transitions){
         if(transition.first.is_internal()){
             AUTOQ::Symbol::Symbolic symbol = transition.first.symbol().qubit();
@@ -46,7 +46,7 @@ AUTOQ::Automata<AUTOQ::Symbol::Symbolic> initial_abstraction(AUTOQ::Automata<Sym
                 auto res = alpha.find(q);
                 if(res == alpha.end()){
                     // create new symbolic state
-                    AUTOQ::Complex::SymbolicComplex c = AUTOQ::Complex::SymbolicComplex::MySymbolicComplexConstructor("symbolic_" + std::to_string(i++));
+                    AUTOQ::Complex::SymbolicComplex c = AUTOQ::Complex::SymbolicComplex::MySymbolicComplexConstructor("symbolic_" + std::to_string(++T.symbolicvarsNum));
                     AUTOQ::Symbol::Symbolic symbol = AUTOQ::Symbol::Symbolic(c);
                     AUTOQ::Automata<AUTOQ::Symbol::Symbolic>::SymbolTag tag({symbol, transition.first.tag()});
                     T.transitions[tag][out.first] = out.second;
@@ -71,17 +71,46 @@ AUTOQ::Automata<AUTOQ::Symbol::Symbolic> initial_abstraction(AUTOQ::Automata<Sym
 
 
 
-AUTOQ::Symbol::Symbolic eval_mapping(const AUTOQ::Symbol::Symbolic& symbol, SymbolicMap& sigma, SymbolicMap& tau){
-    AUTOQ::Symbol::Symbolic result = symbol;
-    (void)tau;
-    (void)sigma;
-    return result;
+AUTOQ::Symbol::Symbolic eval_mapping(const AUTOQ::Symbol::Symbolic& symbol_before, const AUTOQ::Symbol::Symbolic& symbol_after, 
+                                    SymbolicMap& sigma, SymbolicMap& tau, int& symbolicvarsNum){
+    auto res = tau.find(symbol_before);
+    if(res == tau.end()){
+        tau.insert({symbol_before, symbol_after});
+        std::cout << "Normal mapping: " << symbol_before << " -> " << symbol_after << std::endl;
+        return symbol_before;
+    }
+    else{
+        if(res->second != symbol_after){
+            auto res2 = sigma.find(res->first);
+            if(res2 == sigma.end()){
+                auto new_symbol = AUTOQ::Complex::SymbolicComplex::MySymbolicComplexConstructor("symbolic_" + std::to_string(++symbolicvarsNum));
+                sigma.insert({res->first, new_symbol});
+                std::cout << "new symbolic variable: " << res->first << "->" << new_symbol << std::endl;
+                return new_symbol;
+            }
+            else{
+                std::cout << "conflict but already new symbolic variable: " << res->first << "->" << res2->second << std::endl;
+                return res2->second;
+            }
+        }
+        else{
+            std::cout << "already in but no conflict: " << res->first << "->" << res->second << std::endl;
+            return res->first;
+        }
+    }
+    return symbol_before;
 }
 
 AUTOQ::Automata<AUTOQ::Symbol::Symbolic> refinement(AUTOQ::Automata<AUTOQ::Symbol::Symbolic>& T, AUTOQ::Automata<AUTOQ::Symbol::Symbolic>& Tref, SymbolicMap& sigma, SymbolicMap& tau){
     // create automata product synchronized by colors
     // a transition is created if Colors1 & Colors2 != 0 (meaning the intersection of colors is not empty)
     // for leaf transitions, eval_mapping() is used to evaluate the symbolic variable in SymbolTag
+    std::cout << "Tref:" << std::endl;
+    Tref.print_aut();
+    std::cout << "T:" << std::endl;
+    T.print_aut();
+
+
 
     AUTOQ::Automata<AUTOQ::Symbol::Symbolic> product;
     product.qubitNum = T.qubitNum;
@@ -90,164 +119,151 @@ AUTOQ::Automata<AUTOQ::Symbol::Symbolic> refinement(AUTOQ::Automata<AUTOQ::Symbo
     product.hasLoop = T.hasLoop;
     product.isTopdownDeterministic = T.isTopdownDeterministic;
     product.transitions = {};
-    
-    using StateMap = std::map<AUTOQ::Automata<AUTOQ::Symbol::Symbolic>::State, AUTOQ::Automata<AUTOQ::Symbol::Symbolic>::State>;
+    product.symbolicvarsNum = Tref.symbolicvarsNum;
 
-    std::cout << "---------------------------------------------------------" << std::endl;
-    std::cout << "TREF AUTOMATON" << std::endl;
-    Tref.print_aut();
-    std::cout << "---------------------------------------------------------" << std::endl;
-    std::cout << "T AUTOMATON" << std::endl;
-    T.print_aut();
-    std::cout << "---------------------------------------------------------" << std::endl;
+    // translate the transition function to 
+    // Q ---> Color ---> Qubit/Symbol, StateVector
+    using ProductPair = std::pair<AUTOQ::Automata<AUTOQ::Symbol::Symbolic>::StateVector, AUTOQ::Automata<AUTOQ::Symbol::Symbolic>::Symbol>;
+    using TransitionsProd = std::map<AUTOQ::Automata<AUTOQ::Symbol::Symbolic>::State, std::map<AUTOQ::Automata<AUTOQ::Symbol::Symbolic>::Tag, ProductPair>>;
 
-    using TagMap = std::map<AUTOQ::Automata<AUTOQ::Symbol::Symbolic>::State, std::set<AUTOQ::Automata<AUTOQ::Symbol::Symbolic>::StateVector>>;
-    using ColorTransitions = std::map<AUTOQ::Automata<AUTOQ::Symbol::Symbolic>::Tag, TagMap>;
-    using LeafTransitions = std::map<AUTOQ::Automata<AUTOQ::Symbol::Symbolic>::SymbolTag, TagMap>;
-    using LevelTransitions = std::map<long int, ColorTransitions>;
-    LevelTransitions lhs, rhs;
-    LeafTransitions lhs_leaf, rhs_leaf;
+    // {lhs_state, rhs_state} ---> prod_state
+    using ProductMap = std::map<std::pair<AUTOQ::Automata<AUTOQ::Symbol::Symbolic>::State, AUTOQ::Automata<AUTOQ::Symbol::Symbolic>::State>, AUTOQ::Automata<AUTOQ::Symbol::Symbolic>::State>;
+    using WorkList = std::deque<std::pair<AUTOQ::Automata<AUTOQ::Symbol::Symbolic>::State, AUTOQ::Automata<AUTOQ::Symbol::Symbolic>::State>>;
+    WorkList worklist{};
+    TransitionsProd lhs;
+    TransitionsProd rhs;
+    ProductMap mapping;
     for(auto& t1 : T.transitions){
-        if(t1.first.is_leaf()){
-            auto& color_set = t1.first.tag();
-            auto& symbol = t1.first.symbol();
-            for(auto& out : t1.second){
-                lhs_leaf[{symbol, color_set}][out.first] = out.second;
-            }
-        }
-        else{
-            long int qubit = static_cast<long int>(t1.first.symbol().qubit());
-            auto color_set = t1.first.tag();
-            int index = 1;
-            while(color_set > 0){
-                if(color_set & 1){
-                    for(auto& out : t1.second){
-                        lhs[qubit][index][out.first] = out.second;
+        auto color_set = t1.first.tag();
+        int index = 1;
+        while(color_set > 0){
+            if(color_set & 1){
+                for(auto& out : t1.second){
+                    if(t1.first.is_internal()){
+                        long int qubit = static_cast<long int>(t1.first.symbol().qubit());
+                        ProductPair tmp = {*(out.second.begin()), qubit};
+                        rhs[out.first][index] = tmp;
+                    }
+                    if(t1.first.is_leaf()){
+                        auto symbol = t1.first.symbol();
+                        ProductPair tmp = {*(out.second.begin()), symbol};
+                        rhs[out.first][index] = tmp;
                     }
                 }
-                color_set >>= 1;
-                index++;
             }
+            color_set >>= 1;
+            index++;
         }
     }
     for(auto& t2 : Tref.transitions){
-        if(t2.first.is_leaf()){
-            auto& color_set = t2.first.tag();
-            auto& symbol = t2.first.symbol();
-            for(auto& out : t2.second){
-                rhs_leaf[{symbol, color_set}][out.first] = out.second;
-            }
-        }
-        else{
-            long int qubit = static_cast<long int>(t2.first.symbol().qubit());
-            auto color_set = t2.first.tag();
-            int index = 1;
-            while(color_set > 0){
-                if(color_set & 1){
-                    for(auto& out : t2.second){
-                        rhs[qubit][index][out.first] = out.second;
+        auto color_set = t2.first.tag();
+        int index = 1;
+        while(color_set > 0){
+            if(color_set & 1){
+                for(auto& out : t2.second){
+                    if(t2.first.is_internal()){
+                        long int qubit = static_cast<long int>(t2.first.symbol().qubit());
+                        ProductPair tmp = {*(out.second.begin()), qubit};
+                        lhs[out.first][index] = tmp;
+                    }
+                    if(t2.first.is_leaf()){
+                        auto symbol = t2.first.symbol();
+                        ProductPair tmp = {*(out.second.begin()), symbol};
+                        lhs[out.first][index] = tmp;
                     }
                 }
-                color_set >>= 1;
-                index++;
             }
+            color_set >>= 1;
+            index++;
         }
     }
-    StateMap lhs_to_prod;
-    StateMap rhs_to_prod;
-    StateMap prod_to_lhs;
-    StateMap prod_to_rhs;
     
+
     // add all initial states to corresponding maps
-    int64_t state_counter = 1;
-    for(auto& roots_lhs : T.finalStates){
-        for(auto& root_rhs : Tref.finalStates){
-            lhs_to_prod[roots_lhs] = state_counter;
-            rhs_to_prod[root_rhs] = state_counter;
-            prod_to_lhs[state_counter] = roots_lhs;
-            prod_to_rhs[state_counter] = root_rhs;
-            product.finalStates.emplace_back(state_counter);
-            state_counter++;
+    int64_t state_counter = 0;
+    for(auto& rhs_roots : T.finalStates){
+        for(auto& lhs_roots : Tref.finalStates){
+            auto pair = std::make_pair(lhs_roots, rhs_roots);
+            auto res = mapping.find(pair);
+            if(res == mapping.end()){
+                std::cout << "pair: " << pair.first << ", " << pair.second << std::endl;
+                std::cout << "added initial state: " << state_counter << std::endl;
+                worklist.push_back(pair);
+                product.finalStates.emplace_back(state_counter);
+                mapping[pair] = state_counter;
+                state_counter++;
+            }
         }
     }
 
-    // NOW lhs and rhs are divided by levels and each respective color (not a bitset anymore)
-    // the product goes by each level, creates a product synchronized by colors
-    // because the colors are not sets anymore, we dont have to check for empty intersection
-    // this does not yet process leaf transitions
+    std::cout << "Worklist after initial adding: ";
+    for(auto pair : worklist){
+        std::cout << "[" << pair.first << ", " << pair.second << "] ";
+    }
+    std::cout << std::endl;
 
-    for(int level = 0; level <= T.qubitNum; level++){
-        for(auto it1 = lhs[level].begin(), it2 = rhs[level].begin(); it1 != lhs[level].end() && it2 != rhs[level].end(); ++it1, ++it2){
-            //now map<state, set<state_vector>>
-            auto& lhs_transitions = it1->second;
-            auto& rhs_transitions = it2->second;
-            auto color = it1->first;
 
-            // the parents should always be already in the maps
-            // so that leaves creating new child states
-            for(const auto& [lhs_state, lhs_set] : lhs_transitions){
-                auto lhs_in_prod = lhs_to_prod[lhs_state];
-                auto rhs_in_prod = rhs_transitions.find(prod_to_rhs[lhs_in_prod]);
-                auto& rhs_set = rhs_in_prod->second;
-                // iterate over the sets and over the StateVectors
-                for(const auto& lhs_state_vector : lhs_set){
-                    for(const auto& rhs_state_vector : rhs_set){
-                        AUTOQ::Automata<AUTOQ::Symbol::Symbolic>::StateVector prod_state_vector;
-                        for(auto state_it1 = lhs_state_vector.begin(), state_it2 = rhs_state_vector.begin(); state_it1 != lhs_state_vector.end() && state_it2 != rhs_state_vector.end(); ++state_it1, ++state_it2){
-                            auto in1 = lhs_to_prod.find(*state_it1);
-                            auto in2 = rhs_to_prod.find(*state_it2);
-                            if(in1 == lhs_to_prod.end() || in2 == rhs_to_prod.end()){
-                                // create new state
-                                auto new_state = state_counter++;
-                                lhs_to_prod[*state_it1] = new_state;
-                                rhs_to_prod[*state_it2] = new_state;
-                                prod_to_lhs[new_state] = *state_it1;
-                                prod_to_rhs[new_state] = *state_it2;
-                                if(std::find(prod_state_vector.begin(), prod_state_vector.end(), new_state) == prod_state_vector.end()){
-                                    prod_state_vector.emplace_back(new_state);
-                                }
-                            } else {
-                                // add to existing state
-                                auto new_state = in1->second;
-                                if(std::find(prod_state_vector.begin(), prod_state_vector.end(), new_state) == prod_state_vector.end()){
-                                    prod_state_vector.emplace_back(new_state);
-                                }
-                            }
-                        }
-                        if(prod_state_vector.size() == 1){
-                            prod_state_vector.emplace_back(prod_state_vector[0]);
-                        }
+    while(!worklist.empty()){
+        std::cout << "Worklist  status: ";
+        for(auto pair : worklist){
+            std::cout << "[" << pair.first << ", " << pair.second << "] ";
+        }
+        std::cout << std::endl;
 
-                        product.transitions[{level, color}][lhs_in_prod].insert(prod_state_vector);
+
+        auto W = worklist.front();
+        worklist.pop_front();
+        auto map_lhs = lhs[W.first];
+        auto map_rhs = rhs[W.second];
+        // Color ---> {Qubit/Symbol, StateVector}
+        for(const auto& color : map_lhs){
+            auto find_color = map_rhs.find(color.first);
+            if(find_color != map_rhs.end()){
+                auto qubit_sym_lhs = color.second.second;
+                auto qubit_sym_rhs = find_color->second.second;
+                if(qubit_sym_lhs.is_internal() && qubit_sym_rhs.is_internal()){
+                    if(qubit_sym_lhs != qubit_sym_rhs){
+                        THROW_AUTOQ_ERROR("Product construction failure");
                     }
+                    AUTOQ::Automata<AUTOQ::Symbol::Symbolic>::StateVector prod_state_vector;
+                    for(long unsigned int i = 0; i < color.second.first.size(); i++){
+                        auto state_lhs = color.second.first[i];
+                        auto state_rhs = find_color->second.first[i];
+                        auto statepair = std::make_pair(state_lhs, state_rhs);
+                        auto res = mapping.find(statepair);
+                        if(res == mapping.end()){
+                            worklist.push_back(statepair);
+                            mapping[statepair] = state_counter++;
+                        }
+                        prod_state_vector.push_back(mapping[statepair]);
+                    }
+                    AUTOQ::Automata<AUTOQ::Symbol::Symbolic>::SymbolTag symboltag = {qubit_sym_lhs, color.first};
+                    product.transitions[symboltag][mapping[W]] = {prod_state_vector};
+                }
+                else if(qubit_sym_lhs.is_leaf() && qubit_sym_rhs.is_leaf()){
+                    AUTOQ::Automata<AUTOQ::Symbol::Symbolic>::SymbolTag symboltag = {eval_mapping(qubit_sym_lhs, qubit_sym_rhs, sigma, tau, product.symbolicvarsNum), color.first};
+                    product.transitions[symboltag][mapping[W]] = {color.second.first};
+                }
+                else{
+                    THROW_AUTOQ_ERROR("Product construction failure");
                 }
             }
-            
         }
     }
-
-    std::cout << "LHS_LEAF TRANSITIONS:" << std::endl;
-    for (const auto& [key, value] : lhs_leaf) {
-        std::cout << "Symbol: " << key.first << ", Color Set: " << key.second << std::endl;
-        for (const auto& [state, state_vectors] : value) {
-            std::cout << "  State: " << state << std::endl;
-        }
+    for(auto map : mapping){
+        std::cout << "[" << map.first.first << ", " << map.first.second << "] -> " << map.second << std::endl;
     }
 
-    std::cout << "RHS_LEAF TRANSITIONS:" << std::endl;
-    for (const auto& [key, value] : rhs_leaf) {
-        std::cout << "Symbol: " << key.first << ", Color Set: " << key.second << std::endl;
-        for (const auto& [state, state_vectors] : value) {
-            std::cout << "  State: " << state << std::endl;
-        }
-    }
-
+    //product.transitions[{level, color}][after_in_prod].insert(prod_state_vector);
+    //product.transitions[{eval_mapping(sym_before, sym_after, sigma, tau, T.symbolicvarsNum), intersection}][state_vector] = res->second;
+    product.stateNum = state_counter;
     // processing leaf transitions
     // needs colors, parent nodes 
     // the symbol variable is to be evaluated
 
 
     product.print_aut();
+
     return product;
 }
 
@@ -280,10 +296,10 @@ AUTOQ::Automata<Symbol> symbolic_loop(const std::vector<std::string>& loop_body,
     AUTOQ::Automata<AUTOQ::Symbol::Symbolic> Tref = T;
     SymbolicMap sigma{};
     SymbolicMap tau{};
-    
+    int i = 0;
     // start of main summarization loop
     do {
-
+        std::cout << "Iteration " << ++i << std::endl;
         T.print_aut();
         T = Tref;
         //execute gates
@@ -295,11 +311,20 @@ AUTOQ::Automata<Symbol> symbolic_loop(const std::vector<std::string>& loop_body,
 
         // refinement after executing loop body
         Tref = refinement(T, Tref, sigma, tau);
-        exit(0); // REMOVE AFTER REMOVE AFTER REMOVE AFTER REMOVE AFTER REMOVE AFTER REMOVE AFTER REMOVE AFTER REMOVE AFTER REMOVE AFTER REMOVE AFTER 
-    } while(Tref != T); // found fix-point?
+
+        std::cout << "Tau Mapping: " << std::endl;
+        for(auto map : tau){
+            std::cout << "\t" << map.first << " -> " << map.second << std::endl;
+        }
+        std::cout << "Sigma Mapping: " << std::endl;
+        for(auto map : sigma){
+            std::cout << "\t" << map.first << " -> " << map.second << std::endl;
+        }
+
+    } while(!sigma.empty()); // found fix-point? -- no confliects after the last refinement
     // end of main summarization loop
-
-
+    std::cout << "LOOP SUMMARIZED after " << i << " iterations" << std::endl;
+    exit(0);
     // post process the summarization result
     AUTOQ::Automata<Symbol> result = post_process_sumarization<Symbol>(Tref, sigma, tau);
     return result;

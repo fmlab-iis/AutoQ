@@ -108,6 +108,7 @@ public:   // data members
     StateVector finalStates;
     State stateNum;
     int qubitNum;
+    int symbolicvarsNum;
 	TopDownTransitions transitions;
     std::set<std::string> vars;
     std::string constraints;
@@ -128,6 +129,7 @@ public:   // methods
 		finalStates(),
         stateNum(0),
         qubitNum(0),
+        symbolicvarsNum(0),
 		transitions(),
         vars(),
         constraints(),
