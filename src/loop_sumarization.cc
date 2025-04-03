@@ -42,7 +42,7 @@ AUTOQ::Automata<AUTOQ::Symbol::Symbolic> initial_abstraction(AUTOQ::Automata<Sym
         }
         if(transition.first.is_leaf()){
             for(const auto& out : transition.second){
-                auto q = out.first;
+                auto q = transition.first.symbol();
                 auto res = alpha.find(q);
                 if(res == alpha.end()){
                     // create new symbolic state
@@ -272,19 +272,47 @@ AUTOQ::Automata<AUTOQ::Symbol::Symbolic> refinement(AUTOQ::Automata<AUTOQ::Symbo
 
 
 
+template<typename Symbol>
+Symbol convert_symbol(const AUTOQ::Symbol::Symbolic& symbol, SymbolicMap& sigma, SymbolicMap& tau){
+    (void)symbol;
+    (void)sigma;
+    (void)tau;
 
+    return Symbol(0);
+}
 
 
 
 template<typename Symbol>
 AUTOQ::Automata<Symbol> post_process_sumarization(AUTOQ::Automata<AUTOQ::Symbol::Symbolic>& Tref, SymbolicMap& sigma, SymbolicMap& tau){
     AUTOQ::Automata<Symbol> result;
-    (void)Tref;
-    (void)sigma;
-    (void)tau;
     // todo apply mapping back to values we had before
 
+    result.name = Tref.name + "_summarized";
+    result.finalStates = Tref.finalStates;
+    result.stateNum = Tref.stateNum;
+    result.qubitNum = Tref.qubitNum;
+    result.vars = Tref.vars; // ?
+    result.constraints = Tref.constraints; // ?
+    result.hasLoop = Tref.hasLoop;
+    result.isTopdownDeterministic = Tref.isTopdownDeterministic;
+    result.transitions = {};
+    result.symbolicvarsNum = 0;
+    for(auto& transition : Tref.transitions){
+        if(transition.first.is_internal()){
+            Symbol symbol = transition.first.symbol().qubit();
+            result.transitions[{symbol, transition.first.tag()}] = transition.second;
+        }
+        if(transition.first.is_leaf()){
+            for(const auto& out : transition.second){
+                Symbol symbol = convert_symbol<Symbol>(transition.first.symbol(), sigma, tau);
+                result.transitions[{symbol, transition.first.tag()}][out.first] = out.second;
+            }
+        }
+    }
 
+    result.print_aut();
+    exit(0);
     return result;
 }
 
@@ -323,8 +351,23 @@ AUTOQ::Automata<Symbol> symbolic_loop(const std::vector<std::string>& loop_body,
 
     } while(!sigma.empty()); // found fix-point? -- no confliects after the last refinement
     // end of main summarization loop
+    
+    
     std::cout << "LOOP SUMMARIZED after " << i << " iterations" << std::endl;
-    exit(0);
+    
+    std::cout << "Tau Mapping: " << std::endl;
+    for(auto map : tau){
+        std::cout << "\t" << map.first << " -> " << map.second << std::endl;
+    }
+    std::cout << "Sigma Mapping: " << std::endl;
+    for(auto map : sigma){
+        std::cout << "\t" << map.first << " -> " << map.second << std::endl;
+    }
+    std::cout << "Alpha Mapping: " << std::endl;
+    for(auto map : alpha){
+        std::cout << "\t" << map.first << " -> " << map.second << std::endl;
+    }
+
     // post process the summarization result
     AUTOQ::Automata<Symbol> result = post_process_sumarization<Symbol>(Tref, sigma, tau);
     return result;
@@ -340,3 +383,5 @@ template AUTOQ::Automata<AUTOQ::Symbol::Concrete> symbolic_loop<AUTOQ::Symbol::C
 template AUTOQ::Automata<AUTOQ::Symbol::Symbolic> symbolic_loop<AUTOQ::Symbol::Symbolic>(const std::vector<std::string>&, AUTOQ::Automata<AUTOQ::Symbol::Symbolic>&, const AUTOQ::regexes&);
 template AUTOQ::Automata<AUTOQ::Symbol::Concrete> post_process_sumarization<AUTOQ::Symbol::Concrete>(AUTOQ::Automata<AUTOQ::Symbol::Symbolic>&, SymbolicMap&, SymbolicMap&);
 template AUTOQ::Automata<AUTOQ::Symbol::Symbolic> post_process_sumarization<AUTOQ::Symbol::Symbolic>(AUTOQ::Automata<AUTOQ::Symbol::Symbolic>&, SymbolicMap&, SymbolicMap&);
+template AUTOQ::Symbol::Concrete convert_symbol<AUTOQ::Symbol::Concrete>(const AUTOQ::Symbol::Symbolic&, SymbolicMap&, SymbolicMap&);
+template AUTOQ::Symbol::Symbolic convert_symbol<AUTOQ::Symbol::Symbolic>(const AUTOQ::Symbol::Symbolic&, SymbolicMap&, SymbolicMap&);
