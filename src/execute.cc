@@ -18,7 +18,6 @@ void AUTOQ::Automata<Symbol>::execute(const std::string& filename, ParameterMap 
 }
 template <typename Symbol>
 void AUTOQ::Automata<Symbol>::execute(const char *filename, ParameterMap &params) {
-    this->print_aut();
     initialize_stats();
     std::ifstream qasm(filename);
     const AUTOQ::regexes regexes{};

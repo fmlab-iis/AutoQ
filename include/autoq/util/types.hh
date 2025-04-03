@@ -16,4 +16,7 @@ using SymbolicMap = std::unordered_map<AUTOQ::Symbol::Symbolic, AUTOQ::Symbol::S
 template<typename Symbol>
 using AbstractionMap = std::unordered_map<Symbol, AUTOQ::Symbol::Symbolic>; // Concrete to Symbolic
 
+template<typename Symbol>
+using InverseAbstractionMap = std::unordered_map<AUTOQ::Symbol::Symbolic, Symbol>; // Symbolic to Concrete
+
 #endif // AUTOQ_UTIL_TYPES_HH
