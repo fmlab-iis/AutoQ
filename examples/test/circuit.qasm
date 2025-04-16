@@ -4,3 +4,12 @@ qreg qubits[2];
 
 t qubits[0];
 cx qubits[0], qubits[1];
+t qubits[0];
+cx qubits[0], qubits[1];
+t qubits[0];
+cx qubits[0], qubits[1];
+t qubits[0];
+cx qubits[0], qubits[1];
+t qubits[0];
+cx qubits[0], qubits[1];
+
