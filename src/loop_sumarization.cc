@@ -290,81 +290,47 @@ AUTOQ::Automata<AUTOQ::Symbol::Symbolic> refinement(AUTOQ::Automata<AUTOQ::Symbo
 // either Symbolic ---> Concrete
 // or Symbolic ---> Symbolic (just returns)
 template<typename Symbol>
-Symbol convert_symbol(const AUTOQ::Symbol::Symbolic& symbol, InverseAbstractionMap<Symbol>& inverse_alpha, SymbolicMap& tau, int num_of_iterations){
+Symbol convert_symbol(const AUTOQ::Symbol::Symbolic& symbol, InverseAbstractionMap<Symbol>& inverse_alpha, SymbolicMap& tau, int  num_of_iterations){
+    THROW_AUTOQ_ERROR("Symbol type conversion not supported");
+}
 
-    std::cout << "-----------------------------------------------------" << std::endl;
-
+template<typename Symbol>
+Symbol eval_symbol(const AUTOQ::Symbol::Symbolic& symbol, SymbolicMap& tau, InverseAbstractionMap<Symbol>& symbolmap){
     std::map<AUTOQ::Complex::Term, AUTOQ::Complex::Complex> mapping;
-    std::map<AUTOQ::Complex::Term, AUTOQ::Complex::Complex> temp_map;
-    for(auto& [sym, conc] : inverse_alpha){
+    for(auto& [sym, conc] : symbolmap){
         for(auto& [term, complex] : sym.complex){
             for(auto& [string, cppint] : term){
-                std::cout << "Term: " << string << ", " << cppint << ", " << conc << ", " << complex << std::endl;
                 if(string.back() == 'I'){
-                    mapping[term] = conc.complex;
-                    std::cout << "\timaginary part" <<  mapping[term] << std::endl;
-                    //mapping[term] = AUTOQ::Complex::Complex(0);
+                    mapping[term] = AUTOQ::Complex::Complex(0);
                 }
                 else if(string.back() == 'R'){
                     mapping[term] = conc.complex;
-                    std::cout << "\treal part" <<  mapping[term] << std::endl;
-                    //mapping[term] = conc.complex;
                 }
                 else{
                     mapping[term] = AUTOQ::Complex::Complex(0);
-                    std::cout << "\tunknown part" <<  mapping[term] << std::endl;
                 }
             }
         }
     }
-    std::map<AUTOQ::Complex::Term, AUTOQ::Complex::Complex> new_map = mapping;
 
 
     if constexpr (std::is_same_v<Symbol, AUTOQ::Symbol::Concrete>){
         AUTOQ::Symbol::Symbolic expression = tau[symbol];
-        // first set cummulative sum to the value of sym (tau = sym -> expr)
-        // and multiplied by the value in expr
-        /*std::cout << "Expression: " << expression << std::endl;
-        for(int i = 0; i < num_of_iterations; i++){
-            AUTOQ::Complex::Complex sum(0);
-            for(auto& [term, complex] : expression.complex){
-                std::cout << "Term: " << term << ", " << complex << std::endl;
-                std::cout << complex << " * " << mapping[term] << std::endl;
-                AUTOQ::Complex::Complex value = complex * mapping[term];
-                std::cout << sum << " + " << value << std::endl;
-                sum = sum + value;
-            }
-            //rewrite in mapping for next iteration
-            for(auto& [term, complex] : symbol.complex){
-                for(auto& [string, cppint] : term){
-                    if(string.back() == 'I'){
-                        new_map[term] = sum;
-                    }
-                    else if(string.back() == 'R'){
-                        new_map[term] = sum;
-                    }
-                    else{
-                        new_map[term] = AUTOQ::Complex::Complex(0);
-                    }
-                }
-            }
-            // swap the maps
-            temp_map = mapping;
-            mapping = new_map;
-            new_map = temp_map;
-        }
         AUTOQ::Complex::Complex sum(0);
-        // extract from mapping final values
-        for(auto& [term, complex] : symbol.complex){
-            sum = sum + mapping[term];
-            std::cout << "Term: " << term << ", " << complex << " Sum = " << sum << std::endl;
+        for(auto& [term, complex] : expression.complex){
+            std::cout << "Term: " << term << ", " << complex << std::endl;
+            std::cout << complex << " * " << mapping[term] << std::endl;
+            AUTOQ::Complex::Complex value = complex * mapping[term];
+            std::cout << "Sum: " << sum << " + " << value << std::endl;
+            sum = sum + value;
         }
-        return AUTOQ::Symbol::Concrete(sum);*/
+        return AUTOQ::Symbol::Concrete(sum);
     }
     else if(std::is_same_v<Symbol, AUTOQ::Symbol::Symbolic>){
         return symbol;
     }
     THROW_AUTOQ_ERROR("Symbol type conversion not supported");
+
 }
 
 
@@ -394,6 +360,29 @@ AUTOQ::Automata<Symbol> post_process_sumarization(AUTOQ::Automata<AUTOQ::Symbol:
         }        
     }
 
+    InverseAbstractionMap<Symbol> alpha = inverse_alpha;
+    InverseAbstractionMap<Symbol> temp_map;
+    InverseAbstractionMap<Symbol> new_map = alpha;
+
+    for(int i = 0; i < num_of_iterations; i++){
+        std::cout << "Iteration " << i << std::endl << std::endl;
+        for(auto& [symbolic, concrete] : alpha){
+            std::cout << "Symbolic: " << symbolic << std::endl;
+            // evaluate the new value of this symbol
+            new_map[symbolic] = eval_symbol(symbolic, tau, alpha);
+        }
+        //swap maps
+        temp_map = alpha;
+        alpha = new_map;
+        new_map = temp_map;
+    }
+    inverse_alpha = alpha;
+
+
+
+
+
+
     result.name = Tref.name + "_summarized";
     result.finalStates = Tref.finalStates;
     result.stateNum = Tref.stateNum;
@@ -411,7 +400,7 @@ AUTOQ::Automata<Symbol> post_process_sumarization(AUTOQ::Automata<AUTOQ::Symbol:
         }
         if(transition.first.is_leaf()){
             for(const auto& out : transition.second){
-                Symbol symbol = convert_symbol<Symbol>(transition.first.symbol(), inverse_alpha, tau, num_of_iterations);
+                Symbol symbol = inverse_alpha[transition.first.symbol()];
                 result.transitions[{symbol, transition.first.tag()}][out.first] = out.second;
             }
         }
