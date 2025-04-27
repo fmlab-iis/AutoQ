@@ -1,0 +1,50 @@
+name;manual-runtime;manual-parsing;manual-execution
+automata/02/pre.lsta;0.0; 0.000270467; 0.00311433
+automata/03/pre.lsta;0.01; 0.000419344; 0.0218255
+automata/04/pre.lsta;0.06; 0.000482367; 0.0567739
+automata/05/pre.lsta;0.14; 0.000561133; 0.142764
+automata/06/pre.lsta;0.29; 0.000626455; 0.291093
+automata/07/pre.lsta;0.49; 0.000709237; 0.495986
+automata/08/pre.lsta;0.98; 0.000814884; 0.986232
+automata/09/pre.lsta;1.73; 0.000833482; 1.74971
+automata/10/pre.lsta;3.16; 0.000952292; 3.31873
+automata/11/pre.lsta;5.56; 0.00101737; 5.67251
+automata/12/pre.lsta;11.5; 0.00111975; 11.822
+automata/13/pre.lsta;16.7; 0.0029586; 16.9448
+automata/14/pre.lsta;27.68; 0.00133324; 28.2224
+automata/15/pre.lsta;43.35; 0.00159309; 44.1865
+automata/16/pre.lsta;TO;TO;TO
+automata/17/pre.lsta;TO;TO;TO
+automata/18/pre.lsta;TO;TO;TO
+automata/19/pre.lsta;TO;TO;TO
+automata/20/pre.lsta;TO;TO;TO
+automata/21/pre.lsta;TO;TO;TO
+automata/22/pre.lsta;TO;TO;TO
+automata/23/pre.lsta;TO;TO;TO
+automata/24/pre.lsta;TO;TO;TO
+automata/25/pre.lsta;TO;TO;TO
+automata/26/pre.lsta;TO;TO;TO
+automata/27/pre.lsta;TO;TO;TO
+automata/28/pre.lsta;TO;TO;TO
+automata/29/pre.lsta;TO;TO;TO
+automata/30/pre.lsta;TO;TO;TO
+automata/31/pre.lsta;TO;TO;TO
+automata/32/pre.lsta;TO;TO;TO
+automata/33/pre.lsta;TO;TO;TO
+automata/34/pre.lsta;TO;TO;TO
+automata/35/pre.lsta;TO;TO;TO
+automata/36/pre.lsta;TO;TO;TO
+automata/37/pre.lsta;TO;TO;TO
+automata/38/pre.lsta;TO;TO;TO
+automata/39/pre.lsta;TO;TO;TO
+automata/40/pre.lsta;TO;TO;TO
+automata/41/pre.lsta;TO;TO;TO
+automata/42/pre.lsta;TO;TO;TO
+automata/43/pre.lsta;TO;TO;TO
+automata/44/pre.lsta;TO;TO;TO
+automata/45/pre.lsta;TO;TO;TO
+automata/46/pre.lsta;TO;TO;TO
+automata/47/pre.lsta;TO;TO;TO
+automata/48/pre.lsta;TO;TO;TO
+automata/49/pre.lsta;TO;TO;TO
+automata/50/pre.lsta;TO;TO;TO

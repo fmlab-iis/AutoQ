@@ -1,0 +1,50 @@
+name;symbolic-runtime;symbolic-parsing;symbolic-execution
+automata/02/pre.lsta;0.04; 0.00147275; 0.0343567
+automata/03/pre.lsta;0.08; 0.00202364; 0.0688914
+automata/04/pre.lsta;0.09; 0.00206832; 0.086667
+automata/05/pre.lsta;0.12; 0.0027525; 0.129444
+automata/06/pre.lsta;0.17; 0.00386408; 0.179638
+automata/07/pre.lsta;0.25; 0.00403456; 0.237317
+automata/08/pre.lsta;0.32; 0.0027998; 0.307289
+automata/09/pre.lsta;0.39; 0.00297273; 0.389756
+automata/10/pre.lsta;0.53; 0.00735193; 0.521186
+automata/11/pre.lsta;0.59; 0.00701533; 0.576901
+automata/12/pre.lsta;0.74; 0.00729461; 0.724725
+automata/13/pre.lsta;0.82; 0.00460001; 0.80613
+automata/14/pre.lsta;1.0; 0.00237214; 0.996128
+automata/15/pre.lsta;1.09; 0.00144311; 1.12447
+automata/16/pre.lsta;1.28; 0.00151638; 1.28418
+automata/17/pre.lsta;1.47; 0.00169581; 1.5335
+automata/18/pre.lsta;1.69; 0.00176913; 1.71501
+automata/19/pre.lsta;2.22; 0.0030352; 2.24175
+automata/20/pre.lsta;2.39; 0.0018994; 2.40692
+automata/21/pre.lsta;2.78; 0.00193086; 2.85328
+automata/22/pre.lsta;3.5; 0.00211035; 3.53634
+automata/23/pre.lsta;3.9; 0.00213318; 3.92294
+automata/24/pre.lsta;5.09; 0.00226154; 5.14025
+automata/25/pre.lsta;6.1; 0.00235629; 6.16304
+automata/26/pre.lsta;8.25; 0.00294076; 8.3286
+automata/27/pre.lsta;10.88; 0.00252099; 11.0759
+automata/28/pre.lsta;15.56; 0.00305717; 16.0466
+automata/29/pre.lsta;23.25; 0.00283939; 24.3711
+automata/30/pre.lsta;39.25; 0.00288944; 40.841
+automata/31/pre.lsta;TO;TO;TO
+automata/32/pre.lsta;TO;TO;TO
+automata/33/pre.lsta;TO;TO;TO
+automata/34/pre.lsta;TO;TO;TO
+automata/35/pre.lsta;TO;TO;TO
+automata/36/pre.lsta;TO;TO;TO
+automata/37/pre.lsta;TO;TO;TO
+automata/38/pre.lsta;TO;TO;TO
+automata/39/pre.lsta;TO;TO;TO
+automata/40/pre.lsta;TO;TO;TO
+automata/41/pre.lsta;TO;TO;TO
+automata/42/pre.lsta;TO;TO;TO
+automata/43/pre.lsta;TO;TO;TO
+automata/44/pre.lsta;TO;TO;TO
+automata/45/pre.lsta;TO;TO;TO
+automata/46/pre.lsta;TO;TO;TO
+automata/47/pre.lsta;TO;TO;TO
+automata/48/pre.lsta;TO;TO;TO
+automata/49/pre.lsta;TO;TO;TO
+automata/50/pre.lsta;TO;TO;TO

@@ -13,12 +13,6 @@ template<typename Symbol>
 void execute_loop(std::vector<std::string>& loop_body, AUTOQ::Automata<Symbol>& aut, ParameterMap& params, const AUTOQ::regexes& regexes,
                 const std::sregex_iterator& END, std::smatch match_pieces);
 
-template<typename Symbol>
-AUTOQ::Automata<Symbol> symbolic_loop(const std::vector<std::string>& loop_body, AUTOQ::Automata<Symbol>& aut, const AUTOQ::regexes& regexes, int num_of_iterations);
-
-template<typename Symbol>
-AUTOQ::Automata<AUTOQ::Symbol::Symbolic> initial_abstraction(AUTOQ::Automata<Symbol>& aut, InverseAbstractionMap<Symbol>& inverse_alpha);
-
 namespace std{
 
     template<>
