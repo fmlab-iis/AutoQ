@@ -302,7 +302,7 @@ struct AUTOQ::Complex::nTuple : AUTOQ::Util::mapped_vector<boost::multiprecision
         nTuple result;
         for (const auto &kv : *this) {
             if (kv.first == 0) {
-                result[0] += 2 * kv.second;
+                result[0] += kv.second;
                 if (result[0] == 0)
                     result.erase(0);
             } else {

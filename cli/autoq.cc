@@ -221,7 +221,7 @@ try {
 
         std::visit([&circuit, &params](auto& aut){
             aut.execute(circuit, params);
-            aut.print_aut();
+            //aut.print_aut();
         }, aut);
     } else if (verification->parsed()) {
         // runConcrete = false;
