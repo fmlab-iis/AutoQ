@@ -9,12 +9,16 @@
 #include <filesystem>
 
 template <typename Symbol>
-void AUTOQ::Automata<Symbol>::execute(const std::string& filename) {
-    execute(filename.c_str());
+void AUTOQ::Automata<Symbol>::execute(const std::string& filename, std::vector<int> qubit_permutation) {
+    execute(filename.c_str(), qubit_permutation);
 }
 template <typename Symbol>
-void AUTOQ::Automata<Symbol>::execute(const char *filename) {
+void AUTOQ::Automata<Symbol>::execute(const char *filename, std::vector<int> qubit_permutation) {
     initialize_stats();
+    if (qubit_permutation.empty()) {
+        qubit_permutation.resize(qubitNum);
+        std::iota(qubit_permutation.begin(), qubit_permutation.end(), 0); // fills with 0..n-1
+    }
 
     std::ifstream qasm(filename);
     const std::regex digit("\\d+");
@@ -40,35 +44,35 @@ void AUTOQ::Automata<Symbol>::execute(const char *filename) {
         } else if (line.find("x ") == 0) {
             std::smatch match_pieces;
             std::regex_search(line, match_pieces, digit);
-            X(1 + atoi(match_pieces[0].str().c_str()));
+            X(1 + qubit_permutation[atoi(match_pieces[0].str().c_str())]);
         } else if (line.find("y ") == 0) {
             std::smatch match_pieces;
             std::regex_search(line, match_pieces, digit);
-            Y(1 + atoi(match_pieces[0].str().c_str()));
+            Y(1 + qubit_permutation[atoi(match_pieces[0].str().c_str())]);
         } else if (line.find("z ") == 0) {
             std::smatch match_pieces;
             std::regex_search(line, match_pieces, digit);
-            Z(1 + atoi(match_pieces[0].str().c_str()));
+            Z(1 + qubit_permutation[atoi(match_pieces[0].str().c_str())]);
         } else if (line.find("h ") == 0) {
             std::smatch match_pieces;
             std::regex_search(line, match_pieces, digit);
-            H(1 + atoi(match_pieces[0].str().c_str()));
+            H(1 + qubit_permutation[atoi(match_pieces[0].str().c_str())]);
         } else if (line.find("s ") == 0) {
             std::smatch match_pieces;
             std::regex_search(line, match_pieces, digit);
-            S(1 + atoi(match_pieces[0].str().c_str()));
+            S(1 + qubit_permutation[atoi(match_pieces[0].str().c_str())]);
         } else if (line.find("sdg ") == 0) {
             std::smatch match_pieces;
             std::regex_search(line, match_pieces, digit);
-            Sdg(1 + atoi(match_pieces[0].str().c_str()));
+            Sdg(1 + qubit_permutation[atoi(match_pieces[0].str().c_str())]);
         } else if (line.find("t ") == 0) {
             std::smatch match_pieces;
             std::regex_search(line, match_pieces, digit);
-            T(1 + atoi(match_pieces[0].str().c_str()));
+            T(1 + qubit_permutation[atoi(match_pieces[0].str().c_str())]);
         } else if (line.find("tdg ") == 0) {
             std::smatch match_pieces;
             std::regex_search(line, match_pieces, digit);
-            Tdg(1 + atoi(match_pieces[0].str().c_str()));
+            Tdg(1 + qubit_permutation[atoi(match_pieces[0].str().c_str())]);
         } else if (match_rx.size() == 3) {
             std::string angle = match_rx[1];
             size_t pos = angle.find("pi");
@@ -79,7 +83,7 @@ void AUTOQ::Automata<Symbol>::execute(const char *filename) {
             }
             std::string qubit = match_rx[2];
             // AUTOQ_DEBUG("rx(" << angle << ") @ " << qubit);
-            Rx(ComplexParser(angle).getComplex().to_rational(), 1 + atoi(qubit.c_str()));
+            Rx(ComplexParser(angle).getComplex().to_rational(), 1 + qubit_permutation[atoi(qubit.c_str())]);
         } else if (match_rz.size() == 3) {
             std::string angle = match_rz[1];
             size_t pos = angle.find("pi");
@@ -90,12 +94,12 @@ void AUTOQ::Automata<Symbol>::execute(const char *filename) {
             }
             std::string qubit = match_rz[2];
             // AUTOQ_DEBUG("rz(" << angle << ") @ " << qubit);
-            Rz(ComplexParser(angle).getComplex().to_rational(), 1 + atoi(qubit.c_str()));
+            Rz(ComplexParser(angle).getComplex().to_rational(), 1 + qubit_permutation[atoi(qubit.c_str())]);
         } else if (line.find("ry(pi/2) ") == 0 || line.find("ry(pi / 2)") == 0) {
             std::regex_iterator<std::string::iterator> it(line.begin(), line.end(), digit);
             std::vector<int> pos;
             while (it != END) {
-                pos.push_back(1 + atoi(it->str().c_str()));
+                pos.push_back(1 + qubit_permutation[atoi(it->str().c_str())]);
                 ++it;
             }
             // AUTOQ_DEBUG("ry(pi/2) @ " << pos[1]);
@@ -104,7 +108,7 @@ void AUTOQ::Automata<Symbol>::execute(const char *filename) {
             std::regex_iterator<std::string::iterator> it(line.begin(), line.end(), digit);
             std::vector<int> pos;
             while (it != END) {
-                pos.push_back(1 + atoi(it->str().c_str()));
+                pos.push_back(1 + qubit_permutation[atoi(it->str().c_str())]);
                 ++it;
             }
             CX(pos[0], pos[1]);
@@ -112,7 +116,7 @@ void AUTOQ::Automata<Symbol>::execute(const char *filename) {
             std::regex_iterator<std::string::iterator> it(line.begin(), line.end(), digit);
             std::vector<int> pos;
             while (it != END) {
-                pos.push_back(1 + atoi(it->str().c_str()));
+                pos.push_back(1 + qubit_permutation[atoi(it->str().c_str())]);
                 ++it;
             }
             CZ(pos[0], pos[1]);
@@ -120,7 +124,7 @@ void AUTOQ::Automata<Symbol>::execute(const char *filename) {
             std::regex_iterator<std::string::iterator> it(line.begin(), line.end(), digit);
             std::vector<int> pos;
             while (it != END) {
-                pos.push_back(1 + atoi(it->str().c_str()));
+                pos.push_back(1 + qubit_permutation[atoi(it->str().c_str())]);
                 ++it;
             }
             CCX(pos[0], pos[1], pos[2]);
@@ -128,7 +132,7 @@ void AUTOQ::Automata<Symbol>::execute(const char *filename) {
             std::regex_iterator<std::string::iterator> it(line.begin(), line.end(), digit);
             std::vector<int> pos;
             while (it != END) {
-                pos.push_back(1 + atoi(it->str().c_str()));
+                pos.push_back(1 + qubit_permutation[atoi(it->str().c_str())]);
                 ++it;
             }
             Swap(pos[0], pos[1]);

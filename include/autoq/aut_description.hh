@@ -211,8 +211,8 @@ public:
 
     /****************************************************/
     /* execute.cc: the main function for gate execution */
-    void execute(const std::string& filename);
-    void execute(const char *filename);
+    void execute(const std::string& filename, std::vector<int> qubit_permutation={});
+    void execute(const char *filename, std::vector<int> qubit_permutation={});
     /****************************************************/
 
     /**************************************************/
