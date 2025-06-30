@@ -78,8 +78,8 @@ AUTOQ::Automata<Symbol> from_tree_to_automaton(std::string tree, const std::map<
         std::regex_iterator<std::string::iterator> it2(tree.begin(), tree.end(), myregex);
 
         // Step 1. Build the array map from quantum states to LSTA states at each level.
-        std::map<std::string, AUTOQ::Complex::Complex> qs2amp;
-        std::map<std::string, State> qs2s;
+        std::map<std::string, AUTOQ::Complex::Complex> ket2amp;
+        std::map<std::string, State> ket2st;
         while (it2 != END) { // c1|10> + c2|11> + c0|*> or c1|01ij> + c2|11i'j>
             std::string qsTemp = it2->str(2); // 10
             std::string qs;
@@ -142,11 +142,12 @@ AUTOQ::Automata<Symbol> from_tree_to_automaton(std::string tree, const std::map<
                         // }
                         THROW_AUTOQ_ERROR("The constant \"" + t + "\" is not defined yet!");
                     }
-                    qs2amp[qs] += it->second; // we use += to deal with the case c1|s> + c2|s> = (c1+c2)|s>
-                } else
-                    qs2amp[qs] += cp.getComplex(); // we use += to deal with the case c1|s> + c2|s> = (c1+c2)|s>
-                qs2s[qs] = 0;
-                // IMPORTANT NOTE: We assume qs2amp[qs] are initialized to 0 automatically.
+                    ket2amp[qs] += it->second; // we use += to deal with the case c1|s> + c2|s> = (c1+c2)|s>
+                } else {
+                    ket2amp[qs] += cp.getComplex(); // we use += to deal with the case c1|s> + c2|s> = (c1+c2)|s>
+                }
+                ket2st[qs] = 0;
+                // IMPORTANT NOTE: We assume ket2amp[qs] are initialized to 0 automatically.
                 // Also remember to specify the number of qubits!
                 if (aut.qubitNum == 0) {
                     aut.qubitNum = qs.length();
@@ -166,9 +167,9 @@ AUTOQ::Automata<Symbol> from_tree_to_automaton(std::string tree, const std::map<
             std::map<std::pair<State, bool>, std::pair<std::optional<State>, std::optional<State>>> newTrans; // (top, var?) -> (left, right)
             // Notice that only one of newTrans[{s, false}] and newTrans[{s, true}] can exist, but it is inherently guaranteed by the logic.
 
-            // Step 2-a. Build newTrans with known states so far and update the new children into qs2s.
+            // Step 2-a. Build newTrans with known states so far and update the new children into ket2st.
             bool hasVar = false;
-            for (auto &[qs, s] : qs2s) {
+            for (auto &[qs, s] : ket2st) {
                 char dir = qs.at(level-1); // -1 because the index starts from 0
                 std::optional<State> &newState = [&]() -> std::optional<State>& {
                     if (dir == '0') {
@@ -234,8 +235,8 @@ AUTOQ::Automata<Symbol> from_tree_to_automaton(std::string tree, const std::map<
             }
         }
         // Step 2-d. Finally, create leaf transitions.
-        for (auto &[qs, s] : qs2s) {
-            auto amp = qs2amp[qs];
+        for (auto &[qs, s] : ket2st) {
+            auto amp = ket2amp.at(qs);
             aut.transitions[typename AUTOQ::Automata<Symbol>::SymbolTag(Symbol(amp), typename AUTOQ::Automata<Symbol>::Tag(1))][s].insert({{}});
         } // Also don't forget the default value!!!
         if (default_state.has_value())
@@ -252,8 +253,8 @@ AUTOQ::Automata<Symbol> from_tree_to_automaton(std::string tree, const std::map<
         std::regex_iterator<std::string::iterator> it2(tree.begin(), tree.end(), myregex);
 
         // Step 1. Build the array map from quantum states to LSTA states at each level.
-        std::map<std::string, AUTOQ::Complex::SymbolicComplex> qs2amp;
-        std::map<std::string, State> qs2s;
+        std::map<std::string, AUTOQ::Complex::SymbolicComplex> ket2amp;
+        std::map<std::string, State> ket2st;
         while (it2 != END) { // c1|10> + c2|11> + c0|*> or c1|01ij> + c2|11i'j>
             std::string qsTemp = it2->str(2); // 10
             std::string qs;
@@ -301,8 +302,8 @@ AUTOQ::Automata<Symbol> from_tree_to_automaton(std::string tree, const std::map<
                     } else if (aut.qubitNum != static_cast<int>(qs.length())) {
                         THROW_AUTOQ_ERROR("The numbers of qubits in different |...⟩'s are not consistent!");
                     }
-                    qs2s[qs] = 0;
-                    return qs2amp[qs];
+                    ket2st[qs] = 0;
+                    return ket2amp[qs];
                 }
             });
             // auto it = constants.find(t);
@@ -339,9 +340,9 @@ AUTOQ::Automata<Symbol> from_tree_to_automaton(std::string tree, const std::map<
             std::map<std::pair<State, bool>, std::pair<std::optional<State>, std::optional<State>>> newTrans; // (top, var?) -> (left, right)
             // Notice that only one of newTrans[{s, false}] and newTrans[{s, true}] can exist, but it is inherently guaranteed by the logic.
 
-            // Step 2-a. Build newTrans with known states so far and update the new children into qs2s.
+            // Step 2-a. Build newTrans with known states so far and update the new children into ket2st.
             bool hasVar = false;
-            for (auto &[qs, s] : qs2s) {
+            for (auto &[qs, s] : ket2st) {
                 char dir = qs.at(level-1); // -1 because the index starts from 0
                 std::optional<State> &newState = [&]() -> std::optional<State>& {
                     if (dir == '0') {
@@ -407,8 +408,8 @@ AUTOQ::Automata<Symbol> from_tree_to_automaton(std::string tree, const std::map<
             }
         }
         // Step 2-d. Finally, create leaf transitions.
-        for (auto &[qs, s] : qs2s) {
-            auto amp = qs2amp[qs];
+        for (auto &[qs, s] : ket2st) {
+            auto amp = ket2amp.at(qs);
             aut.transitions[typename AUTOQ::Automata<Symbol>::SymbolTag(Symbol(amp), typename AUTOQ::Automata<Symbol>::Tag(1))][s].insert({{}});
         } // Also don't forget the default value!!!
         if (default_state.has_value())
