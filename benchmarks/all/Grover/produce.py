@@ -21,8 +21,10 @@ for n in sizes:
         os.makedirs(n_str)
     ###########################################################################
     with open(n_str + '/pre.hsl', 'w') as file:
+        file.write('Constants\n')
+        file.write('c1 := 1\n')
         file.write('Extended Dirac\n')
-        file.write("{|" + '0' * q + ">}\n")
+        file.write("{c1 |" + '0' * q + ">}\n")
     ###########################################################################
     # with open(n_str + "/pre.lsta", "w") as file:
     #     file.write('Constants\n')
@@ -38,9 +40,9 @@ for n in sizes:
     #     file.write(f"[c1,1] -> {2*q}\n")
     ###########################################################################
     with open(n_str + '/circuit.qasm', 'w') as file:
-        w = [0] + list(range(1, 2*n-2, 2)) # 0, 1, 3, 5, ..., 2n-3
-        a = ['nan'] + list(range(2, 2*n-3, 2)) # 2, 4, 6, ..., 2n-4
-        t = w[-1] + 1 # 2n-2
+        w = range(n) # [0] + list(range(1, 2*n-2, 2)) # 0, 1, 3, 5, ..., 2n-3
+        a = ['nan'] + [i + len(w) for i in range(n-2)] # list(range(2, 2*n-3, 2)) # 2, 4, 6, ..., 2n-4
+        t = 2*n - 2 # w[-1] + 1 # 2n-2
         ###########################################################
         file.write('OPENQASM 2.0;\n')
         file.write('include "qelib1.inc";\n')
@@ -115,12 +117,13 @@ for n in sizes:
         file.write(f'aH := {aH[n]}\n')
         file.write(f'aL := {aL[n]}\n')
         file.write('Extended Dirac\n')
-        file.write(f"{{aH |0> + aL |1>}} ⊗ ({{aL |0> + aH |1>}} ⊗ {{|0>}} ⊗ {{aH |0> + aL |1>}} ⊗ {{|0>}}) ^ {(n-2)//2}" + (" ⊗ {aL |0> + aH |1>} ⊗ {|0>} ⊗ {aH |0> + aL |1>} " if (n-1) % 2 == 0 else " ⊗ {aL |0> + aH |1>}") + " ⊗ {|1>}\n")
-        file.write('where\n')
-        file.write('aH ⊗ aH = aH\n')
-        file.write('aH ⊗ aL = aL\n')
-        file.write('aL ⊗ aH = aL\n')
-        file.write('aL ⊗ aL = aL\n')
+        file.write('{' + f'aH |{"01" * (n//2) + "0" * (n % 2)}{"0" * (n-2)}1> + aL ∑ |i|={n}, i≠{"01" * (n//2) + "0" * (n % 2)} |i{"0" * (n-2)}1>' + '}\n')
+        # file.write(f"{{aH |0> + aL |1>}} ⊗ ({{aL |0> + aH |1>}} ⊗ {{|0>}} ⊗ {{aH |0> + aL |1>}} ⊗ {{|0>}}) ^ {(n-2)//2}" + (" ⊗ {aL |0> + aH |1>} ⊗ {|0>} ⊗ {aH |0> + aL |1>} " if (n-1) % 2 == 0 else " ⊗ {aL |0> + aH |1>}") + " ⊗ {|1>}\n")
+        # file.write('where\n')
+        # file.write('aH ⊗ aH = aH\n')
+        # file.write('aH ⊗ aL = aL\n')
+        # file.write('aL ⊗ aH = aL\n')
+        # file.write('aL ⊗ aL = aL\n')
     ###########################################################################
 
 # cp -rl {12,14,16,18,20} ../../LSTA/Grover/
