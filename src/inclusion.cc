@@ -750,6 +750,7 @@ bool operator<=(const AUTOQ::SymbolicAutomata &autA, const AUTOQ::PredicateAutom
 template struct AUTOQ::Automata<AUTOQ::Symbol::Concrete>;
 template struct AUTOQ::Automata<AUTOQ::Symbol::Symbolic>;
 template struct AUTOQ::Automata<AUTOQ::Symbol::Predicate>;
+template struct AUTOQ::Automata<AUTOQ::Symbol::Constrained>;
 
 // #define MIN
 

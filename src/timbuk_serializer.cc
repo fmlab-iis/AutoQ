@@ -68,6 +68,8 @@ std::string TimbukSerializer::Serialize(Automata<Symbol> desc)
         result += "Expressions\n";
     else if constexpr(std::is_same_v<Symbol, AUTOQ::Symbol::Predicate>)
         result += "Predicates\n";
+    else if constexpr(std::is_same_v<Symbol, AUTOQ::Symbol::Constrained>)
+        result += "Constrained Complexes\n";
     else
         THROW_AUTOQ_ERROR("This kind of symbol is still unsupported!");
     std::map<Symbol, size_t> leafMap;
@@ -85,6 +87,8 @@ std::string TimbukSerializer::Serialize(Automata<Symbol> desc)
                     result += "e" + std::to_string(leafMap.size()) + " := " + str + "\n";
                 } else if constexpr(std::is_same_v<Symbol, AUTOQ::Symbol::Predicate>)
                     result += "p" + std::to_string(leafMap.size()) + " := " + Convert::ToString(sym) + "\n";
+                else if constexpr(std::is_same_v<Symbol, AUTOQ::Symbol::Constrained>)
+                    result += "k" + std::to_string(leafMap.size()) + " := " + Convert::ToString(sym) + "\n";
                 leafMap[sym] = leafMap.size();
             }
         }
@@ -113,6 +117,8 @@ std::string TimbukSerializer::Serialize(Automata<Symbol> desc)
                         result += "[e" + std::to_string(leafMap.at(t.first.symbol())) + "," + Convert::ToString(t.first.tag()) + "]";
                     else if constexpr(std::is_same_v<Symbol, AUTOQ::Symbol::Predicate>)
                         result += "[p" + std::to_string(leafMap.at(t.first.symbol())) + "," + Convert::ToString(t.first.tag()) + "]";
+                    else if constexpr(std::is_same_v<Symbol, AUTOQ::Symbol::Constrained>)
+                        result += "[k" + std::to_string(leafMap.at(t.first.symbol())) + "," + Convert::ToString(t.first.tag()) + "]";
                 } else if (std::is_convertible<Symbol, std::string>::value)
                     result += "[" + Convert::ToString(t.first) + "]";
                 else
@@ -141,3 +147,4 @@ template std::string TimbukSerializer::Serialize(TreeAutomata desc);
 template std::string TimbukSerializer::Serialize(SymbolicAutomata desc);
 template std::string TimbukSerializer::Serialize(PredicateAutomata desc);
 template std::string TimbukSerializer::Serialize(IndexAutomata desc);
+template std::string TimbukSerializer::Serialize(ConstrainedAutomata desc);

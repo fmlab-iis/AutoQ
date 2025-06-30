@@ -3,6 +3,7 @@
 #include "autoq/symbol/symbolic.hh"
 #include "autoq/symbol/predicate.hh"
 #include "autoq/symbol/index.hh"
+#include "autoq/symbol/constrained.hh"
 #include "autoq/serialization/timbuk_serializer.hh"
 #include <boost/dynamic_bitset.hpp> // used in print_language
 #include <regex>
@@ -201,3 +202,4 @@ template struct AUTOQ::Automata<AUTOQ::Symbol::Concrete>;
 template struct AUTOQ::Automata<AUTOQ::Symbol::Symbolic>;
 template struct AUTOQ::Automata<AUTOQ::Symbol::Predicate>;
 template struct AUTOQ::Automata<AUTOQ::Symbol::Index>;
+template struct AUTOQ::Automata<AUTOQ::Symbol::Constrained>;
