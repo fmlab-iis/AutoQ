@@ -76,7 +76,11 @@
         "future": "cpp",
         "source_location": "cpp",
         "queue": "cpp",
-        "coroutine": "cpp"
+        "coroutine": "cpp",
+        "charconv": "cpp",
+        "span": "cpp",
+        "format": "cpp",
+        "stdfloat": "cpp"
     },
     "cmake.configureOnOpen": false
 }
