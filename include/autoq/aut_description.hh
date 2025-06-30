@@ -17,6 +17,7 @@
 #include "autoq/symbol/symbolic.hh"
 #include "autoq/symbol/predicate.hh"
 #include "autoq/symbol/index.hh"
+#include "autoq/symbol/constrained.hh"
 
 namespace AUTOQ
 {
@@ -32,6 +33,7 @@ namespace AUTOQ
     typedef Automata<Symbol::Symbolic> SymbolicAutomata;
     typedef Automata<Symbol::Predicate> PredicateAutomata;
     typedef Automata<Symbol::Index> IndexAutomata;
+    typedef Automata<Symbol::Constrained> ConstrainedAutomata;
 }
 
 template <typename T> constexpr auto support_fraction_simplification = requires (T x) {
@@ -279,6 +281,14 @@ namespace std {
     };
     template <> struct hash<typename AUTOQ::IndexAutomata::SymbolTag> {
         size_t operator()(const AUTOQ::IndexAutomata::SymbolTag& obj) const {
+            std::size_t seed = 0;
+            boost::hash_combine(seed, obj.first);
+            boost::hash_combine(seed, obj.second);
+            return seed;
+        }
+    };
+    template <> struct hash<typename AUTOQ::ConstrainedAutomata::SymbolTag> {
+        size_t operator()(const AUTOQ::ConstrainedAutomata::SymbolTag& obj) const {
             std::size_t seed = 0;
             boost::hash_combine(seed, obj.first);
             boost::hash_combine(seed, obj.second);
