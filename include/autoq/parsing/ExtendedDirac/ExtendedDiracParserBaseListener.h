@@ -16,17 +16,11 @@
 class  ExtendedDiracParserBaseListener : public ExtendedDiracParserListener {
 public:
 
-  virtual void enterExtendedDirac(ExtendedDiracParser::ExtendedDiracContext * /*ctx*/) override { }
-  virtual void exitExtendedDirac(ExtendedDiracParser::ExtendedDiracContext * /*ctx*/) override { }
+  virtual void enterExpr(ExtendedDiracParser::ExprContext * /*ctx*/) override { }
+  virtual void exitExpr(ExtendedDiracParser::ExprContext * /*ctx*/) override { }
 
-  virtual void enterMuloperators(ExtendedDiracParser::MuloperatorsContext * /*ctx*/) override { }
-  virtual void exitMuloperators(ExtendedDiracParser::MuloperatorsContext * /*ctx*/) override { }
-
-  virtual void enterMuloperator(ExtendedDiracParser::MuloperatorContext * /*ctx*/) override { }
-  virtual void exitMuloperator(ExtendedDiracParser::MuloperatorContext * /*ctx*/) override { }
-
-  virtual void enterAccepted(ExtendedDiracParser::AcceptedContext * /*ctx*/) override { }
-  virtual void exitAccepted(ExtendedDiracParser::AcceptedContext * /*ctx*/) override { }
+  virtual void enterTset(ExtendedDiracParser::TsetContext * /*ctx*/) override { }
+  virtual void exitTset(ExtendedDiracParser::TsetContext * /*ctx*/) override { }
 
   virtual void enterSet(ExtendedDiracParser::SetContext * /*ctx*/) override { }
   virtual void exitSet(ExtendedDiracParser::SetContext * /*ctx*/) override { }
@@ -37,20 +31,17 @@ public:
   virtual void enterDirac(ExtendedDiracParser::DiracContext * /*ctx*/) override { }
   virtual void exitDirac(ExtendedDiracParser::DiracContext * /*ctx*/) override { }
 
-  virtual void enterCket(ExtendedDiracParser::CketContext * /*ctx*/) override { }
-  virtual void exitCket(ExtendedDiracParser::CketContext * /*ctx*/) override { }
+  virtual void enterTerm(ExtendedDiracParser::TermContext * /*ctx*/) override { }
+  virtual void exitTerm(ExtendedDiracParser::TermContext * /*ctx*/) override { }
 
-  virtual void enterComplex(ExtendedDiracParser::ComplexContext * /*ctx*/) override { }
-  virtual void exitComplex(ExtendedDiracParser::ComplexContext * /*ctx*/) override { }
+  virtual void enterVarcons(ExtendedDiracParser::VarconsContext * /*ctx*/) override { }
+  virtual void exitVarcons(ExtendedDiracParser::VarconsContext * /*ctx*/) override { }
 
-  virtual void enterAngle(ExtendedDiracParser::AngleContext * /*ctx*/) override { }
-  virtual void exitAngle(ExtendedDiracParser::AngleContext * /*ctx*/) override { }
+  virtual void enterVarcon(ExtendedDiracParser::VarconContext * /*ctx*/) override { }
+  virtual void exitVarcon(ExtendedDiracParser::VarconContext * /*ctx*/) override { }
 
-  virtual void enterIjklens(ExtendedDiracParser::IjklensContext * /*ctx*/) override { }
-  virtual void exitIjklens(ExtendedDiracParser::IjklensContext * /*ctx*/) override { }
-
-  virtual void enterIjklen(ExtendedDiracParser::IjklenContext * /*ctx*/) override { }
-  virtual void exitIjklen(ExtendedDiracParser::IjklenContext * /*ctx*/) override { }
+  virtual void enterIneq(ExtendedDiracParser::IneqContext * /*ctx*/) override { }
+  virtual void exitIneq(ExtendedDiracParser::IneqContext * /*ctx*/) override { }
 
 
   virtual void enterEveryRule(antlr4::ParserRuleContext * /*ctx*/) override { }

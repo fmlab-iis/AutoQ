@@ -15,19 +15,11 @@
 class  ExtendedDiracParserBaseVisitor : public ExtendedDiracParserVisitor {
 public:
 
-  virtual std::any visitExtendedDirac(ExtendedDiracParser::ExtendedDiracContext *ctx) override {
+  virtual std::any visitExpr(ExtendedDiracParser::ExprContext *ctx) override {
     return visitChildren(ctx);
   }
 
-  virtual std::any visitMuloperators(ExtendedDiracParser::MuloperatorsContext *ctx) override {
-    return visitChildren(ctx);
-  }
-
-  virtual std::any visitMuloperator(ExtendedDiracParser::MuloperatorContext *ctx) override {
-    return visitChildren(ctx);
-  }
-
-  virtual std::any visitAccepted(ExtendedDiracParser::AcceptedContext *ctx) override {
+  virtual std::any visitTset(ExtendedDiracParser::TsetContext *ctx) override {
     return visitChildren(ctx);
   }
 
@@ -43,23 +35,19 @@ public:
     return visitChildren(ctx);
   }
 
-  virtual std::any visitCket(ExtendedDiracParser::CketContext *ctx) override {
+  virtual std::any visitTerm(ExtendedDiracParser::TermContext *ctx) override {
     return visitChildren(ctx);
   }
 
-  virtual std::any visitComplex(ExtendedDiracParser::ComplexContext *ctx) override {
+  virtual std::any visitVarcons(ExtendedDiracParser::VarconsContext *ctx) override {
     return visitChildren(ctx);
   }
 
-  virtual std::any visitAngle(ExtendedDiracParser::AngleContext *ctx) override {
+  virtual std::any visitVarcon(ExtendedDiracParser::VarconContext *ctx) override {
     return visitChildren(ctx);
   }
 
-  virtual std::any visitIjklens(ExtendedDiracParser::IjklensContext *ctx) override {
-    return visitChildren(ctx);
-  }
-
-  virtual std::any visitIjklen(ExtendedDiracParser::IjklenContext *ctx) override {
+  virtual std::any visitIneq(ExtendedDiracParser::IneqContext *ctx) override {
     return visitChildren(ctx);
   }
 

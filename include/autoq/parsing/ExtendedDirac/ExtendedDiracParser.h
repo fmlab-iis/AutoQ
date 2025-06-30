@@ -12,17 +12,14 @@
 class  ExtendedDiracParser : public antlr4::Parser {
 public:
   enum {
-    ADD = 1, BAR = 2, COMMA = 3, DIV = 4, DIGITS = 5, EI2PI = 6, EIPI = 7, 
-    EQ = 8, INTERSECTION = 9, KET = 10, LEFT_BRACKET = 11, LEFT_CURLY_BRACKET = 12, 
-    MUL = 13, NEWLINES = 14, POWER = 15, PROD = 16, RIGHT_BRACKET = 17, 
-    RIGHT_CURLY_BRACKET = 18, SUB = 19, SETMINUS = 20, SQRT2 = 21, UNION = 22, 
-    WHERE = 23, WS = 24, NAME = 25
+    ADD = 1, BAR = 2, COMMA = 3, COLON = 4, EQ = 5, LEFT_BRACE = 6, NE = 7, 
+    NEWLINES = 8, OR = 9, POWER = 10, PRIME = 11, PROD = 12, RIGHT_ANGLE_BRACKET = 13, 
+    RIGHT_BRACE = 14, SEMICOLON = 15, STR = 16, SUM = 17, UNION = 18, WS = 19
   };
 
   enum {
-    RuleExtendedDirac = 0, RuleMuloperators = 1, RuleMuloperator = 2, RuleAccepted = 3, 
-    RuleSet = 4, RuleDiracs = 5, RuleDirac = 6, RuleCket = 7, RuleComplex = 8, 
-    RuleAngle = 9, RuleIjklens = 10, RuleIjklen = 11
+    RuleExpr = 0, RuleTset = 1, RuleSet = 2, RuleDiracs = 3, RuleDirac = 4, 
+    RuleTerm = 5, RuleVarcons = 6, RuleVarcon = 7, RuleIneq = 8
   };
 
   explicit ExtendedDiracParser(antlr4::TokenStream *input);
@@ -48,33 +45,29 @@ public:
       bool isNonZero(const std::string& text) {
           return std::stoi(text) != 0;
       }
-      bool isASingleLetter(const std::string& text) {
+      bool isALowercaseLetter(const std::string& text) {
           return text.length() == 1 && 'a' <= text.at(0) && text.at(0) <= 'z';
+      }
+      bool isAConstantBinaryString(const std::string& text) {
+          return std::all_of(text.begin(), text.end(), [](char c) { return c == '0' || c == '1'; });
       }
 
 
-  class ExtendedDiracContext;
-  class MuloperatorsContext;
-  class MuloperatorContext;
-  class AcceptedContext;
+  class ExprContext;
+  class TsetContext;
   class SetContext;
   class DiracsContext;
   class DiracContext;
-  class CketContext;
-  class ComplexContext;
-  class AngleContext;
-  class IjklensContext;
-  class IjklenContext; 
+  class TermContext;
+  class VarconsContext;
+  class VarconContext;
+  class IneqContext; 
 
-  class  ExtendedDiracContext : public antlr4::ParserRuleContext {
+  class  ExprContext : public antlr4::ParserRuleContext {
   public:
-    ExtendedDiracContext(antlr4::ParserRuleContext *parent, size_t invokingState);
+    ExprContext(antlr4::ParserRuleContext *parent, size_t invokingState);
     virtual size_t getRuleIndex() const override;
-    AcceptedContext *accepted();
-    antlr4::tree::TerminalNode *EOF();
-    antlr4::tree::TerminalNode *WHERE();
-    antlr4::tree::TerminalNode *NEWLINES();
-    MuloperatorsContext *muloperators();
+    TsetContext *tset();
 
     virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
     virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
@@ -83,51 +76,22 @@ public:
    
   };
 
-  ExtendedDiracContext* extendedDirac();
+  ExprContext* expr();
 
-  class  MuloperatorsContext : public antlr4::ParserRuleContext {
+  class  TsetContext : public antlr4::ParserRuleContext {
   public:
-    MuloperatorsContext(antlr4::ParserRuleContext *parent, size_t invokingState);
-    virtual size_t getRuleIndex() const override;
-    std::vector<MuloperatorContext *> muloperator();
-    MuloperatorContext* muloperator(size_t i);
-
-    virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
-    virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
-
-    virtual std::any accept(antlr4::tree::ParseTreeVisitor *visitor) override;
-   
-  };
-
-  MuloperatorsContext* muloperators();
-
-  class  MuloperatorContext : public antlr4::ParserRuleContext {
-  public:
-    MuloperatorContext(antlr4::ParserRuleContext *parent, size_t invokingState);
-    virtual size_t getRuleIndex() const override;
-    std::vector<ComplexContext *> complex();
-    ComplexContext* complex(size_t i);
-    antlr4::tree::TerminalNode *PROD();
-    antlr4::tree::TerminalNode *EQ();
-    antlr4::tree::TerminalNode *NEWLINES();
-    antlr4::tree::TerminalNode *EOF();
-
-    virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
-    virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
-
-    virtual std::any accept(antlr4::tree::ParseTreeVisitor *visitor) override;
-   
-  };
-
-  MuloperatorContext* muloperator();
-
-  class  AcceptedContext : public antlr4::ParserRuleContext {
-  public:
-    AcceptedContext(antlr4::ParserRuleContext *parent, size_t invokingState);
+    antlr4::Token *op = nullptr;
+    antlr4::Token *N = nullptr;
+    TsetContext(antlr4::ParserRuleContext *parent, size_t invokingState);
     virtual size_t getRuleIndex() const override;
     std::vector<SetContext *> set();
     SetContext* set(size_t i);
-    antlr4::tree::TerminalNode *SETMINUS();
+    antlr4::tree::TerminalNode *POWER();
+    antlr4::tree::TerminalNode *STR();
+    antlr4::tree::TerminalNode *SEMICOLON();
+    std::vector<TsetContext *> tset();
+    TsetContext* tset(size_t i);
+    antlr4::tree::TerminalNode *PROD();
 
     virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
     virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
@@ -136,29 +100,21 @@ public:
    
   };
 
-  AcceptedContext* accepted();
-
+  TsetContext* tset();
+  TsetContext* tset(int precedence);
   class  SetContext : public antlr4::ParserRuleContext {
   public:
     antlr4::Token *op = nullptr;
-    antlr4::Token *n = nullptr;
     SetContext(antlr4::ParserRuleContext *parent, size_t invokingState);
     virtual size_t getRuleIndex() const override;
-    antlr4::tree::TerminalNode *LEFT_BRACKET();
+    antlr4::tree::TerminalNode *LEFT_BRACE();
+    DiracsContext *diracs();
+    antlr4::tree::TerminalNode *RIGHT_BRACE();
+    antlr4::tree::TerminalNode *COLON();
+    VarconsContext *varcons();
     std::vector<SetContext *> set();
     SetContext* set(size_t i);
-    antlr4::tree::TerminalNode *RIGHT_BRACKET();
-    antlr4::tree::TerminalNode *LEFT_CURLY_BRACKET();
-    DiracsContext *diracs();
-    antlr4::tree::TerminalNode *RIGHT_CURLY_BRACKET();
-    DiracContext *dirac();
-    antlr4::tree::TerminalNode *BAR();
-    IjklensContext *ijklens();
-    antlr4::tree::TerminalNode *PROD();
     antlr4::tree::TerminalNode *UNION();
-    antlr4::tree::TerminalNode *INTERSECTION();
-    antlr4::tree::TerminalNode *POWER();
-    antlr4::tree::TerminalNode *DIGITS();
 
     virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
     virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
@@ -191,10 +147,9 @@ public:
     antlr4::Token *op = nullptr;
     DiracContext(antlr4::ParserRuleContext *parent, size_t invokingState);
     virtual size_t getRuleIndex() const override;
-    CketContext *cket();
+    TermContext *term();
     DiracContext *dirac();
     antlr4::tree::TerminalNode *ADD();
-    antlr4::tree::TerminalNode *SUB();
 
     virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
     virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
@@ -205,16 +160,18 @@ public:
 
   DiracContext* dirac();
   DiracContext* dirac(int precedence);
-  class  CketContext : public antlr4::ParserRuleContext {
+  class  TermContext : public antlr4::ParserRuleContext {
   public:
-    antlr4::Token *op = nullptr;
-    antlr4::Token *ketToken = nullptr;
-    CketContext(antlr4::ParserRuleContext *parent, size_t invokingState);
+    antlr4::Token *C = nullptr;
+    antlr4::Token *VStr = nullptr;
+    TermContext(antlr4::ParserRuleContext *parent, size_t invokingState);
     virtual size_t getRuleIndex() const override;
-    antlr4::tree::TerminalNode *KET();
-    ComplexContext *complex();
-    antlr4::tree::TerminalNode *SUB();
-    antlr4::tree::TerminalNode *MUL();
+    antlr4::tree::TerminalNode *BAR();
+    antlr4::tree::TerminalNode *RIGHT_ANGLE_BRACKET();
+    std::vector<antlr4::tree::TerminalNode *> STR();
+    antlr4::tree::TerminalNode* STR(size_t i);
+    antlr4::tree::TerminalNode *SUM();
+    VarconsContext *varcons();
 
     virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
     virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
@@ -223,67 +180,14 @@ public:
    
   };
 
-  CketContext* cket();
+  TermContext* term();
 
-  class  ComplexContext : public antlr4::ParserRuleContext {
+  class  VarconsContext : public antlr4::ParserRuleContext {
   public:
-    antlr4::Token *var = nullptr;
-    antlr4::Token *op = nullptr;
-    antlr4::Token *n = nullptr;
-    ComplexContext(antlr4::ParserRuleContext *parent, size_t invokingState);
+    VarconsContext(antlr4::ParserRuleContext *parent, size_t invokingState);
     virtual size_t getRuleIndex() const override;
-    antlr4::tree::TerminalNode *LEFT_BRACKET();
-    std::vector<ComplexContext *> complex();
-    ComplexContext* complex(size_t i);
-    antlr4::tree::TerminalNode *RIGHT_BRACKET();
-    antlr4::tree::TerminalNode *SUB();
-    antlr4::tree::TerminalNode *EI2PI();
-    AngleContext *angle();
-    antlr4::tree::TerminalNode *EIPI();
-    antlr4::tree::TerminalNode *DIGITS();
-    antlr4::tree::TerminalNode *SQRT2();
-    antlr4::tree::TerminalNode *NAME();
-    antlr4::tree::TerminalNode *MUL();
-    antlr4::tree::TerminalNode *DIV();
-    antlr4::tree::TerminalNode *ADD();
-    antlr4::tree::TerminalNode *POWER();
-
-    virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
-    virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
-
-    virtual std::any accept(antlr4::tree::ParseTreeVisitor *visitor) override;
-   
-  };
-
-  ComplexContext* complex();
-  ComplexContext* complex(int precedence);
-  class  AngleContext : public antlr4::ParserRuleContext {
-  public:
-    antlr4::Token *x = nullptr;
-    antlr4::Token *y = nullptr;
-    antlr4::Token *n = nullptr;
-    AngleContext(antlr4::ParserRuleContext *parent, size_t invokingState);
-    virtual size_t getRuleIndex() const override;
-    antlr4::tree::TerminalNode *DIV();
-    std::vector<antlr4::tree::TerminalNode *> DIGITS();
-    antlr4::tree::TerminalNode* DIGITS(size_t i);
-    antlr4::tree::TerminalNode *SUB();
-
-    virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
-    virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
-
-    virtual std::any accept(antlr4::tree::ParseTreeVisitor *visitor) override;
-   
-  };
-
-  AngleContext* angle();
-
-  class  IjklensContext : public antlr4::ParserRuleContext {
-  public:
-    IjklensContext(antlr4::ParserRuleContext *parent, size_t invokingState);
-    virtual size_t getRuleIndex() const override;
-    IjklenContext *ijklen();
-    IjklensContext *ijklens();
+    VarconContext *varcon();
+    VarconsContext *varcons();
     antlr4::tree::TerminalNode *COMMA();
 
     virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
@@ -293,19 +197,21 @@ public:
    
   };
 
-  IjklensContext* ijklens();
-  IjklensContext* ijklens(int precedence);
-  class  IjklenContext : public antlr4::ParserRuleContext {
+  VarconsContext* varcons();
+  VarconsContext* varcons(int precedence);
+  class  VarconContext : public antlr4::ParserRuleContext {
   public:
-    antlr4::Token *var = nullptr;
-    antlr4::Token *len = nullptr;
-    IjklenContext(antlr4::ParserRuleContext *parent, size_t invokingState);
+    antlr4::Token *V = nullptr;
+    antlr4::Token *N = nullptr;
+    antlr4::Token *CStr = nullptr;
+    VarconContext(antlr4::ParserRuleContext *parent, size_t invokingState);
     virtual size_t getRuleIndex() const override;
     std::vector<antlr4::tree::TerminalNode *> BAR();
     antlr4::tree::TerminalNode* BAR(size_t i);
     antlr4::tree::TerminalNode *EQ();
-    antlr4::tree::TerminalNode *NAME();
-    antlr4::tree::TerminalNode *DIGITS();
+    std::vector<antlr4::tree::TerminalNode *> STR();
+    antlr4::tree::TerminalNode* STR(size_t i);
+    IneqContext *ineq();
 
     virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
     virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
@@ -314,18 +220,37 @@ public:
    
   };
 
-  IjklenContext* ijklen();
+  VarconContext* varcon();
+
+  class  IneqContext : public antlr4::ParserRuleContext {
+  public:
+    antlr4::Token *L = nullptr;
+    antlr4::Token *R = nullptr;
+    IneqContext(antlr4::ParserRuleContext *parent, size_t invokingState);
+    virtual size_t getRuleIndex() const override;
+    antlr4::tree::TerminalNode *NE();
+    std::vector<antlr4::tree::TerminalNode *> STR();
+    antlr4::tree::TerminalNode* STR(size_t i);
+
+    virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
+    virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
+
+    virtual std::any accept(antlr4::tree::ParseTreeVisitor *visitor) override;
+   
+  };
+
+  IneqContext* ineq();
 
 
   bool sempred(antlr4::RuleContext *_localctx, size_t ruleIndex, size_t predicateIndex) override;
 
+  bool tsetSempred(TsetContext *_localctx, size_t predicateIndex);
   bool setSempred(SetContext *_localctx, size_t predicateIndex);
   bool diracsSempred(DiracsContext *_localctx, size_t predicateIndex);
   bool diracSempred(DiracContext *_localctx, size_t predicateIndex);
-  bool complexSempred(ComplexContext *_localctx, size_t predicateIndex);
-  bool angleSempred(AngleContext *_localctx, size_t predicateIndex);
-  bool ijklensSempred(IjklensContext *_localctx, size_t predicateIndex);
-  bool ijklenSempred(IjklenContext *_localctx, size_t predicateIndex);
+  bool varconsSempred(VarconsContext *_localctx, size_t predicateIndex);
+  bool varconSempred(VarconContext *_localctx, size_t predicateIndex);
+  bool ineqSempred(IneqContext *_localctx, size_t predicateIndex);
 
   // By default the static state used to implement the parser is lazily initialized during the first
   // call to the constructor. You can call this function if you wish to initialize the static state

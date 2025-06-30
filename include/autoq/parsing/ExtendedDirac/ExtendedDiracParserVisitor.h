@@ -19,13 +19,9 @@ public:
   /**
    * Visit parse trees produced by ExtendedDiracParser.
    */
-    virtual std::any visitExtendedDirac(ExtendedDiracParser::ExtendedDiracContext *context) = 0;
+    virtual std::any visitExpr(ExtendedDiracParser::ExprContext *context) = 0;
 
-    virtual std::any visitMuloperators(ExtendedDiracParser::MuloperatorsContext *context) = 0;
-
-    virtual std::any visitMuloperator(ExtendedDiracParser::MuloperatorContext *context) = 0;
-
-    virtual std::any visitAccepted(ExtendedDiracParser::AcceptedContext *context) = 0;
+    virtual std::any visitTset(ExtendedDiracParser::TsetContext *context) = 0;
 
     virtual std::any visitSet(ExtendedDiracParser::SetContext *context) = 0;
 
@@ -33,15 +29,13 @@ public:
 
     virtual std::any visitDirac(ExtendedDiracParser::DiracContext *context) = 0;
 
-    virtual std::any visitCket(ExtendedDiracParser::CketContext *context) = 0;
+    virtual std::any visitTerm(ExtendedDiracParser::TermContext *context) = 0;
 
-    virtual std::any visitComplex(ExtendedDiracParser::ComplexContext *context) = 0;
+    virtual std::any visitVarcons(ExtendedDiracParser::VarconsContext *context) = 0;
 
-    virtual std::any visitAngle(ExtendedDiracParser::AngleContext *context) = 0;
+    virtual std::any visitVarcon(ExtendedDiracParser::VarconContext *context) = 0;
 
-    virtual std::any visitIjklens(ExtendedDiracParser::IjklensContext *context) = 0;
-
-    virtual std::any visitIjklen(ExtendedDiracParser::IjklenContext *context) = 0;
+    virtual std::any visitIneq(ExtendedDiracParser::IneqContext *context) = 0;
 
 
 };
