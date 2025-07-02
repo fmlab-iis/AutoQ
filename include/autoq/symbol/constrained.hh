@@ -66,12 +66,12 @@ public:
         if (is_internal()) return qubit() < o.qubit();
         return complex < o.complex;
     }
-    Constrained omega_multiplication(int rotation=1) {
+    Constrained omega_multiplication(/*int rotation=1*/) {
         // if (rotation > 0) complex.counterclockwise(boost::rational<boost::multiprecision::cpp_int>(rotation, 8));
         // if (rotation < 0) complex.clockwise(boost::rational<boost::multiprecision::cpp_int>(rotation, 8));
         return *this;
     }
-    Constrained counterclockwise(const boost::rational<boost::multiprecision::cpp_int> &theta) {
+    Constrained counterclockwise(/*const boost::rational<boost::multiprecision::cpp_int> &theta*/) {
         // complex.counterclockwise(theta);
         return *this;
     }
@@ -80,11 +80,11 @@ public:
     void negate() {}
     void degree45cw() {}
     void degree90cw() {}
-    Constrained multiply_cos(const boost::rational<boost::multiprecision::cpp_int> &theta) {
+    Constrained multiply_cos(/* const boost::rational<boost::multiprecision::cpp_int> &theta */) {
         // complex.multiply_cos(theta);
         return *this;
     }
-    Constrained multiply_isin(const boost::rational<boost::multiprecision::cpp_int> &theta) {
+    Constrained multiply_isin(/* const boost::rational<boost::multiprecision::cpp_int> &theta */) {
         // complex.multiply_isin(theta);
         return *this;
     }

@@ -232,20 +232,21 @@ try {
                 std::cout << "The quantum program has [" << aut.qubitNum << "] qubits and [" << AUTOQ::SymbolicAutomata::gateCount << "] gates.\nThe verification process [" << (verify ? "passed" : "failed") << "] in [" << AUTOQ::Util::Convert::toString(chrono::steady_clock::now() - start) << "] with [" << AUTOQ::Util::getPeakRSS() / 1024 / 1024 << "MB] memory usage.\n";
             }
         } else if (std::holds_alternative<AUTOQ::TreeAutomata>(spec1)) {
-            auto &spec = std::get<AUTOQ::TreeAutomata>(spec1);
-            // spec.print_aut("POST:\n");
-            // spec.print_language("POST:\n");
-            auto aut1 = ReadAutomaton(pre);
-            auto aut = std::visit([](auto&& arg) -> AUTOQ::TreeAutomata {
-                if constexpr (!std::is_same_v<std::decay_t<decltype(arg)>, AUTOQ::TreeAutomata>) {
-                    THROW_AUTOQ_ERROR("When the postcondition has only concrete amplitudes, the precondition must also do so.");
-                } else {
-                    return arg; // Directly return the value if it's one of the allowed types
-                }
-            }, aut1);
-            // aut.print_aut("PRE:\n");
-            // aut.print_language("PRE:\n");
-            aut.execute(circuit);
+            // auto &spec = std::get<AUTOQ::TreeAutomata>(spec1);
+            // // spec.print_aut("POST:\n");
+            // // spec.print_language("POST:\n");
+            // auto aut1 = ReadAutomaton(pre);
+            // auto aut = std::visit([](auto&& arg) -> AUTOQ::TreeAutomata {
+            //     if constexpr (!std::is_same_v<std::decay_t<decltype(arg)>, AUTOQ::TreeAutomata>) {
+            //         THROW_AUTOQ_ERROR("When the postcondition has only concrete amplitudes, the precondition must also do so.");
+            //     } else {
+            //         return arg; // Directly return the value if it's one of the allowed types
+            //     }
+            // }, aut1);
+            // // aut.print_aut("PRE:\n");
+            // // aut.print_language("PRE:\n");
+            auto [aut, spec, qp] = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Concrete>::ReadTwoAutomata(pre, post);
+            aut.execute(circuit, qp);
             // std::cout << "OUTPUT AUTOMATON:\n";
             // std::cout << "=================\n";
             // aut.print_aut("OUTPUT:\n");
