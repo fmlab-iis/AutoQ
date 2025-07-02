@@ -1,8 +1,0 @@
-Extended Dirac
-b |01010101> + a |*> # |10000000>
-Constraints
-255 * real(a) > real(b)
-real(a) > 0
-real(b) > 0
-imag(a) = 0
-imag(b) = 0

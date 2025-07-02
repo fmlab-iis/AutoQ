@@ -1,7 +1,0 @@
-Constants
-aH := 11 / (sqrt2 ^ 7)
-aL := -1 / (sqrt2 ^ 7)
-Variable Order
-1 2 4 3 5 6
-Extended Dirac
-aH |010> + aL |*> # |001>

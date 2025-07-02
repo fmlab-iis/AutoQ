@@ -1,5 +1,0 @@
-Predicates
-p1 := (and (= xR $R) (= xI $I))
-p2 := (and (= yR $R) (= yI $I))
-Extended Dirac
-p1 |0> + p2 |1>

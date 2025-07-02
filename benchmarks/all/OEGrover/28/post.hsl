@@ -1,4 +1,0 @@
-Predicates
-p := (and (> (* real($) real($)) (* real(b) real(b))) (= imag($) 0))
-Extended Dirac
-p |01010101010101010101010101011000000000000000000000000000>

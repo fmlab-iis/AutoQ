@@ -1,7 +1,0 @@
-Constants
-aH := 133988401 / (sqrt2 ^ 54)
-aL := -988079 / (sqrt2 ^ 54)
-Variable Order
-1 2 4 6 8 10 3 5 7 9 11 12
-Extended Dirac
-aH |010101> + aL |*> # |000001>
