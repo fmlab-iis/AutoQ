@@ -34,15 +34,13 @@ try {
     if (file1.ends_with(".hsl") && file2.ends_with(".hsl") || file1.ends_with(".lsta") && file2.ends_with(".lsta")) {
         std::cout << "AutoQ must accept one *.hsl and one *.lsta file." << std::endl;
     } else if ((aut1 <= aut2) && (aut2 <= aut1)) {
+        std::cout << "😀" << std::endl;
         std::visit([](auto& aut){
-            aut.print_language("=============================\nfile 1:\n");
-            std::cout << "=============================" << std::endl;
+            aut.print_language("[file 1]\n");
         }, aut1);
         std::visit([](auto& aut){
-            aut.print_language("file 2:\n");
-            std::cout << "=============================" << std::endl;
+            aut.print_language("[file 2]\n");
         }, aut2);
-        std::cout << "😀" << std::endl;
     } else {
         std::cout << "🥹" << std::endl;
     }
