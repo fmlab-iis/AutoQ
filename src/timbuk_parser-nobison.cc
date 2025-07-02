@@ -671,6 +671,29 @@ AUTOQ::Automata<Symbol> parse_timbuk(const std::string& str) {
 	return result;
 }
 
+// 將 "{1,2,5}" -> "1,2,5"
+std::string stripBraces(const std::string& input) {
+    size_t start = input.find('{');
+    size_t end = input.find('}');
+    if (start != std::string::npos && end != std::string::npos && end > start) {
+        return input.substr(start + 1, end - start - 1);
+    }
+    THROW_AUTOQ_ERROR("The format of choices is incorrect.");
+}
+int stringSetToBitmask(const std::string& input) {
+    std::string cleaned = stripBraces(input);
+    std::istringstream ss(cleaned);
+    std::string token;
+    int bitmask = 0;
+
+    while (std::getline(ss, token, ',')) {
+        if (token.empty()) continue;
+        int num = std::stoi(token);
+        bitmask |= (1 << (num-1)); // 把第 num 位設為 1
+    }
+
+    return bitmask;
+}
 template <typename Symbol>
 AUTOQ::Automata<Symbol> parse_automaton(const std::string& str, const std::map<std::string, Complex> &constants, const std::map<std::string, std::string> &predicates, bool &do_not_throw_term_undefined_error) {
     bool colored = false;
@@ -760,8 +783,8 @@ AUTOQ::Automata<Symbol> parse_automaton(const std::string& str, const std::map<s
                             std::string token; // Tokenize the input string using a comma delimiter
                             std::getline(ss, token, ',');
                             auto sym = Symbol(boost::lexical_cast<int>(token));
-                            std::getline(ss, token, ',');
-                            auto color = boost::lexical_cast<AUTOQ::TreeAutomata::Tag>(token);
+                            std::getline(ss, token, ']');
+                            auto color = stringSetToBitmask(token); // boost::lexical_cast<AUTOQ::TreeAutomata::Tag>(token);
                             result.transitions[AUTOQ::TreeAutomata::SymbolTag(sym, AUTOQ::TreeAutomata::Tag(color))][t].insert(std::vector<AUTOQ::TreeAutomata::State>());
                         } else {
                             result.transitions[AUTOQ::TreeAutomata::SymbolTag(Symbol(boost::lexical_cast<int>(lhs)), AUTOQ::TreeAutomata::Tag(1))][t].insert(std::vector<AUTOQ::TreeAutomata::State>());
@@ -780,8 +803,8 @@ AUTOQ::Automata<Symbol> parse_automaton(const std::string& str, const std::map<s
                                 THROW_AUTOQ_ERROR("The constant \"" + token + "\" is not defined yet!");
                             }
                             auto sym = Symbol(it->second);
-                            std::getline(ss, token, ',');
-                            auto color = boost::lexical_cast<AUTOQ::TreeAutomata::Tag>(token);
+                            std::getline(ss, token, ']');
+                            auto color = stringSetToBitmask(token); // boost::lexical_cast<AUTOQ::TreeAutomata::Tag>(token);
                             result.transitions[AUTOQ::TreeAutomata::SymbolTag(sym, AUTOQ::TreeAutomata::Tag(color))][t].insert(std::vector<AUTOQ::TreeAutomata::State>());
                         } else {
                             auto it = constants.find(lhs);
@@ -802,8 +825,8 @@ AUTOQ::Automata<Symbol> parse_automaton(const std::string& str, const std::map<s
                             std::string token; // Tokenize the input string using a comma delimiter
                             std::getline(ss, token, ',');
                             auto sym = Symbol(boost::lexical_cast<int>(token));
-                            std::getline(ss, token, ',');
-                            auto color = boost::lexical_cast<AUTOQ::PredicateAutomata::Tag>(token);
+                            std::getline(ss, token, ']');
+                            auto color = stringSetToBitmask(token); // boost::lexical_cast<AUTOQ::PredicateAutomata::Tag>(token);
                             result.transitions[AUTOQ::PredicateAutomata::SymbolTag(sym, AUTOQ::PredicateAutomata::Tag(color))][t].insert(std::vector<AUTOQ::PredicateAutomata::State>());
                         } else {
                             result.transitions[AUTOQ::PredicateAutomata::SymbolTag(Symbol(boost::lexical_cast<int>(lhs)), AUTOQ::PredicateAutomata::Tag(1))][t].insert(std::vector<AUTOQ::TreeAutomata::State>());
@@ -822,8 +845,8 @@ AUTOQ::Automata<Symbol> parse_automaton(const std::string& str, const std::map<s
                                 THROW_AUTOQ_ERROR("The constant \"" + token + "\" is not defined yet!");
                             }
                             auto sym = Symbol(it->second.c_str());
-                            std::getline(ss, token, ',');
-                            auto color = boost::lexical_cast<AUTOQ::PredicateAutomata::Tag>(token);
+                            std::getline(ss, token, ']');
+                            auto color = stringSetToBitmask(token); // boost::lexical_cast<AUTOQ::PredicateAutomata::Tag>(token);
                             result.transitions[AUTOQ::PredicateAutomata::SymbolTag(sym, AUTOQ::PredicateAutomata::Tag(color))][t].insert(std::vector<AUTOQ::PredicateAutomata::State>());
                         } else {
                             auto it = predicates.find(lhs);
@@ -844,8 +867,8 @@ AUTOQ::Automata<Symbol> parse_automaton(const std::string& str, const std::map<s
                         std::getline(ss, token, ',');
                         AUTOQ::Parsing::SymbolicComplexParser scp(token, constants);
                         auto sym = Symbol(scp.getSymbolicComplex());
-                        std::getline(ss, token, ',');
-                        auto color = boost::lexical_cast<AUTOQ::SymbolicAutomata::Tag>(token);
+                        std::getline(ss, token, ']');
+                        auto color = stringSetToBitmask(token); // boost::lexical_cast<AUTOQ::SymbolicAutomata::Tag>(token);
                         result.transitions[AUTOQ::SymbolicAutomata::SymbolTag(sym, AUTOQ::SymbolicAutomata::Tag(color))][t].insert(std::vector<AUTOQ::SymbolicAutomata::State>());
                         for (const auto &var: scp.getNewVars())
                             result.vars.insert(var);
@@ -912,8 +935,8 @@ AUTOQ::Automata<Symbol> parse_automaton(const std::string& str, const std::map<s
                         std::string token; // Tokenize the input string using a comma delimiter
                         std::getline(ss, token, ',');
                         auto sym = Symbol(boost::lexical_cast<int>(token));
-                        std::getline(ss, token, ',');
-                        auto color = boost::lexical_cast<AUTOQ::TreeAutomata::Tag>(token);
+                        std::getline(ss, token, ']');
+                        auto color = stringSetToBitmask(token); // boost::lexical_cast<AUTOQ::TreeAutomata::Tag>(token);
                         result.transitions[AUTOQ::TreeAutomata::SymbolTag(sym, AUTOQ::TreeAutomata::Tag(color))][t].insert(state_vector);
                     } else {
                         result.transitions[AUTOQ::TreeAutomata::SymbolTag(Symbol(boost::lexical_cast<int>(symbol)), AUTOQ::TreeAutomata::Tag(1))][t].insert(state_vector);
@@ -926,8 +949,8 @@ AUTOQ::Automata<Symbol> parse_automaton(const std::string& str, const std::map<s
                         std::string token; // Tokenize the input string using a comma delimiter
                         std::getline(ss, token, ',');
                         auto sym = parse_symbol<Symbol>(token);
-                        std::getline(ss, token, ',');
-                        auto color = boost::lexical_cast<AUTOQ::PredicateAutomata::Tag>(token);
+                        std::getline(ss, token, ']');
+                        auto color = stringSetToBitmask(token); // boost::lexical_cast<AUTOQ::PredicateAutomata::Tag>(token);
                         result.transitions[AUTOQ::PredicateAutomata::SymbolTag(sym, AUTOQ::PredicateAutomata::Tag(color))][t].insert(state_vector);
                         // if (boost::lexical_cast<int>(sym.qubit()) == 1)
                         //     result.finalStates.push_back(t);
@@ -940,8 +963,8 @@ AUTOQ::Automata<Symbol> parse_automaton(const std::string& str, const std::map<s
                         std::string token; // Tokenize the input string using a comma delimiter
                         std::getline(ss, token, ',');
                         auto sym = parse_symbol<Symbol>(token);
-                        std::getline(ss, token, ',');
-                        auto color = boost::lexical_cast<AUTOQ::SymbolicAutomata::Tag>(token);
+                        std::getline(ss, token, ']');
+                        auto color = stringSetToBitmask(token); // boost::lexical_cast<AUTOQ::SymbolicAutomata::Tag>(token);
                         result.transitions[AUTOQ::SymbolicAutomata::SymbolTag(sym, AUTOQ::SymbolicAutomata::Tag(color))][t].insert(state_vector);
                         // if (boost::lexical_cast<int>(sym.qubit()) == 1)
                         //     result.finalStates.push_back(t);
@@ -1116,7 +1139,7 @@ std::vector<std::string> star_expension(std::vector<std::string> state)
         if(val_str != "")
             front_val = std::stoi(val_str,nullptr, 2);
 
-        
+
         val_str = cur_state.substr(star_pos + 1, back_size);
         if(val_str != "")
             back_val = std::stoi(val_str,nullptr, 2);
@@ -1128,7 +1151,7 @@ std::vector<std::string> star_expension(std::vector<std::string> state)
             if(defined_states[state_val] == false)
             {
                 constraint_and_states[state_val] = star_constraints;
-                defined_states[state_val] = true; 
+                defined_states[state_val] = true;
             }
         }
 
@@ -1212,7 +1235,7 @@ std::vector<std::string> to_summation_vec(std::string state)
     size_t pos = 0;
     //handle '-' notation
     int negCnt = 0;
-    while ((pos = state.find('-', pos)) != std::string::npos) 
+    while ((pos = state.find('-', pos)) != std::string::npos)
     {
         std::string add1 = "";
         if(state[pos+1] == '|')
@@ -1236,7 +1259,7 @@ std::vector<std::string> to_summation_vec(std::string state)
         {
             state.replace(pos, 1, "-"+add1);
             negCnt++;
-        } 
+        }
         pos +=3;
     }
     //if(negCnt % 2 == 1)
@@ -1296,7 +1319,7 @@ std::vector<std::string> to_summation_vec(std::string state)
 std::vector<std::string> state_expansion(std::string line, std::vector<int> ordering_map)
 {
 
-    
+
     //tree is partial state without tensor product
 
     replaceSubstringWithChar(line, "\\/", 'V');
@@ -1453,8 +1476,8 @@ bool is_ill_formed(std::string line)
     std::stringstream iss(line);
     std::string token;
     std::regex pattern(R"(\|.*?\>)");
-    
-    
+
+
     while(std::getline(iss,token,'#'))
     {
         auto words_begin = std::sregex_iterator(token.begin(), token.end(), pattern);
@@ -1494,15 +1517,15 @@ bool is_ill_formed(std::string line)
                 contain_clean_states = 0;
             }
         }
-        
+
         if(!clean_exist)
         {
-            THROW_AUTOQ_ERROR("At least one state representation must not include a *. "+line); 
+            THROW_AUTOQ_ERROR("At least one state representation must not include a *. "+line);
         }
         for (std::sregex_iterator i = words_begin; i != words_end; ++i) {
             std::smatch match = *i;
             std::string state = match.str();
-            
+
 
             int star_cnt = 0;
             for(size_t i = 0 ; i < state.size() ; i++)
@@ -1517,19 +1540,19 @@ bool is_ill_formed(std::string line)
                     in_bracket = 0;
                 }
                 star_cnt += (state[i]=='*') && in_bracket;
-                
+
                 if(star_cnt > 1)
                     THROW_AUTOQ_ERROR("more than 1 star notations in "+line);
 
             }
         }
-        
+
     }
-    
+
     //possible fault
     /*
     std::vector<std::pair<int,int>> star_pos;
-    int pos = 0;    
+    int pos = 0;
     int num_cnt = 0;
     std::pair<int,int> cur_star_pos;
     for(size_t i = 0 ; i < line.size() ; i++)
@@ -1674,7 +1697,7 @@ AUTOQ::Automata<Symbol> AUTOQ::Parsing::TimbukParser<Symbol>::parse_hsl_from_ist
             */
         }
     }
-    
+
     // DO NOT fraction_simplification() here since the resulting automaton may be used as pre.spec
     // and in this case all k's must be the same.
     return aut_final;
