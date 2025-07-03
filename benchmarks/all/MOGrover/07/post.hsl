@@ -2,9 +2,4 @@ Constants
 aH := 12412280691169 / (sqrt2 ^ 87)
 aL := 73054448161 / (sqrt2 ^ 87)
 Extended Dirac
-{aH|00> + aL|01>, aH|11> + aL|10>} ⊗ ({aH|00> + aL|01>, aH|11> + aL|10>} ⊗ {|0>}) ^ 5 ⊗ {aH|00> + aL|01>, aH|11> + aL|10>} ⊗ {|1>}
-where
-aH ⊗ aH = aH
-aH ⊗ aL = aL
-aL ⊗ aH = aL
-aL ⊗ aL = aL
+{aH |ss000001> + aL ∑ |i|=7, i≠s |si000001> : |s|=7}
