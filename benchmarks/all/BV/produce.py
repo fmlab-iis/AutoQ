@@ -16,8 +16,10 @@ for n in sizes:
         os.makedirs(n_str)
     ###########################################################################
     with open(n_str + '/pre.hsl', 'w') as file:
+        file.write('Constants\n')
+        file.write('c1 := 1\n')
         file.write('Extended Dirac\n')
-        file.write(f"{{|{'0' * (n+1)}>}}\n")
+        file.write(f"{{c1 |{'0' * (n+1)}>}}\n")
     ###########################################################################
     with open(n_str + '/pre.lsta', 'w') as file:
         file.write('Constants\n')
@@ -63,6 +65,8 @@ for n in sizes:
         file.write(f'[c1,1] -> {2*n+2}\n')
     ###########################################################################
     with open(n_str + '/post.hsl', 'w') as file:
+        file.write('Constants\n')
+        file.write('c1 := 1\n')
         file.write('Extended Dirac\n')
-        file.write(f"{{|{'10' * (n//2) + '1' * (n%2)}1>}}\n")
+        file.write(f"{{c1 |{'10' * (n//2) + '1' * (n%2)}1>}}\n")
     ###########################################################################
