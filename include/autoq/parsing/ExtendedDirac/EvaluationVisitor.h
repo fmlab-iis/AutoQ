@@ -748,7 +748,7 @@ struct EvaluationVisitor : public ExtendedDiracParserBaseVisitor {
             auto terms = std::any_cast<std::vector<std::tuple<std::string, std::optional<std::tuple<int, std::set<char>, ineqS_t, eqs_t>>, std::string>>>(visit(ctx->diracs()));
             auto vc_global = (ctx->varcons() == nullptr) ? std::tuple<int, std::set<char>, ineqS_t, eqs_t>()
                                                          : std::any_cast<std::tuple<int, std::set<char>, ineqS_t, eqs_t>>(visit(ctx->varcons()));
-            auto num_qubits = std::get<0>(std::get<1>(*terms.begin()).value()); // std::get<0>(vc_global);
+            auto num_qubits = (ctx->varcons() == nullptr) ? std::get<0>(std::get<1>(*terms.begin()).value()) : std::get<0>(vc_global);
             for (int q=0; q<num_qubits; q++) { // one qubit, one LSTA, and we finally tensor them all.
                 AUTOQ::Automata<AUTOQ::Symbol::Constrained> autQ;
                 std::map<char, std::string> var2value;
