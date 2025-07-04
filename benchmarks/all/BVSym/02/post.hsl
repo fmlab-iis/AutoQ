@@ -1,4 +1,4 @@
 Predicates
 p := (= $I 0)
 Extended Dirac
-{p |000> + p |*>}
+{p ∑ |i|=3 |i>}

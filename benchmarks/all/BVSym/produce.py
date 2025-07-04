@@ -16,8 +16,10 @@ for n in sizes:
         os.makedirs(n_str)
     ###########################################################################
     with open(n_str + '/pre.hsl', 'w') as file:
+        file.write('Constants\n')
+        file.write('c1 := 1\n')
         file.write('Extended Dirac\n')
-        file.write(f"{{|{'0' * (n+1)}>}}\n")
+        file.write(f"{{c1 |{'0' * (n+1)}>}}\n")
     ###########################################################################
     with open(n_str + '/pre.lsta', 'w') as file:
         file.write('Constants\n')
@@ -65,7 +67,7 @@ for n in sizes:
         file.write('Predicates\n')
         file.write('p := (= $I 0)\n')
         file.write('Extended Dirac\n')
-        file.write(f"{{p |{'0' * (n+1)}> + p |*>}}\n")
+        file.write(f"{{p ∑ |i|={n+1} |i>}}\n")
     ###########################################################################
 
 # cp -rl {01,99,999}/ ../../CAV23/BVSym/
