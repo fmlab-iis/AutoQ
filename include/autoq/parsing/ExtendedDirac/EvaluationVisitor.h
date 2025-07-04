@@ -131,7 +131,7 @@ public:
     #pragma GCC diagnostic pop
 };
 
-template <typename Symbol>
+template <typename Symbol, typename Symbol2 = Symbol>
 struct EvaluationVisitor : public ExtendedDiracParserBaseVisitor {
     typedef std::pair<int, int> unitsplit_t;
     typedef std::vector<unitsplit_t> strsplit_t;
@@ -173,6 +173,9 @@ struct EvaluationVisitor : public ExtendedDiracParserBaseVisitor {
     segment2perm_t segment2perm;
     perm_t currentPerm;
     std::vector<size_t> remember_the_lengths_of_each_unit_position;
+    bool switch_symbol_to_second;
+    bool do_not_throw_term_undefined_error;
+    bool encountered_term_undefined_error;
 
     std::map<std::string, AUTOQ::Complex::Complex> constants, constants2;
     std::map<std::string, std::string> predicates, predicates2;
@@ -185,6 +188,9 @@ struct EvaluationVisitor : public ExtendedDiracParserBaseVisitor {
         segment2perm(),
         currentPerm(),
         remember_the_lengths_of_each_unit_position(),
+        switch_symbol_to_second(false),
+        do_not_throw_term_undefined_error(false),
+        encountered_term_undefined_error(false),
         constants(constants),
         constants2(),
         predicates(predicates),
@@ -304,14 +310,16 @@ struct EvaluationVisitor : public ExtendedDiracParserBaseVisitor {
         } else if (mode == REORDER_UNITS_BY_THE_GROUP) {
             return std::any_cast<std::string>(visit(ctx->tset()));
         } else if (mode == EVALUATE_EACH_SET_BRACES_TO_LSTA) {
-            return std::any_cast<std::vector<AUTOQ::Automata<Symbol>>>(visit(ctx->tset()));
+            return visit(ctx->tset());
+            // The type can be AUTOQ::Automata<Symbol> (without ;) or
+            //                 std::pair<AUTOQ::Automata<Symbol>, AUTOQ::Automata<Symbol2>> (with ;)
         } else if (mode == SET_BRACES_IS_TENSOR_DECOMPOSED_INTO_GROUPS) {
             return std::any_cast<std::string>(visit(ctx->tset()));
         } else if (mode == SHUFFLE_UNITS_IN_A_GROUP_WRT_QUBITS_AND_CONSTRUCT_LSTA_FINALLY) {
             auto aut = std::any_cast<AUTOQ::Automata<AUTOQ::Symbol::Constrained>>(visit(ctx->tset()));
-            if (std::is_same_v<Symbol, AUTOQ::Symbol::Concrete>) {
+            auto do_the_work = [&]<typename SymbolV>() -> std::any {
                 // TODO: Write a callable function for copying one automaton to another one with the transitions replaced.
-                AUTOQ::Automata<AUTOQ::Symbol::Concrete> result;
+                AUTOQ::Automata<SymbolV> result;
                 result.name = aut.name;
                 result.finalStates = aut.finalStates;
                 result.stateNum = aut.stateNum;
@@ -338,19 +346,60 @@ struct EvaluationVisitor : public ExtendedDiracParserBaseVisitor {
                 // typedef std::map<SymbolTag, std::map<State, std::set<StateVector>>> TopDownTransitions;
                 // TopDownTransitions transitions;
                 for (const auto &[st, v] : aut.transitions) { // st stands for SymbolTag.
-                    AUTOQ::Automata<AUTOQ::Symbol::Concrete>::SymbolTag st2;
+                    typename AUTOQ::Automata<SymbolV>::SymbolTag st2;
                     if (st.is_internal()) {
-                        st2 = AUTOQ::Automata<AUTOQ::Symbol::Concrete>::SymbolTag(AUTOQ::Symbol::Concrete(st.symbol().qubit()), st.tag());
+                        st2 = typename AUTOQ::Automata<SymbolV>::SymbolTag(SymbolV(st.symbol().qubit()), st.tag());
                     } else {
                         const auto &c = st.symbol().complex;
-                        if (c.size() == 0) { // a zero constant
-                            st2 = AUTOQ::Automata<AUTOQ::Symbol::Concrete>::SymbolTag(AUTOQ::Symbol::Concrete(AUTOQ::Complex::Complex::Zero()), st.tag());
-                        } else {
-                            AUTOQ::Complex::Complex sum;
-                            for (const auto &[termId, term] : c) {
-                                sum += constants.at(std::get<0>(term));
+                        if constexpr (std::is_same_v<SymbolV, AUTOQ::Symbol::Concrete>) {
+                            if (c.size() == 0) { // a zero constant
+                                st2 = AUTOQ::Automata<AUTOQ::Symbol::Concrete>::SymbolTag(AUTOQ::Symbol::Concrete(AUTOQ::Complex::Complex::Zero()), st.tag());
+                            } else {
+                                AUTOQ::Complex::Complex sum;
+                                for (const auto &[termId, term] : c) {
+                                    auto it = constants.find(std::get<0>(term));
+                                    if (it == constants.end()) {
+                                        if (do_not_throw_term_undefined_error) {
+                                            encountered_term_undefined_error = true;
+                                        } else {
+                                            THROW_AUTOQ_ERROR("Constant " + std::get<0>(term) + " is not defined!");
+                                        }
+                                    } else {
+                                        sum += it->second;
+                                    }
+                                }
+                                st2 = AUTOQ::Automata<AUTOQ::Symbol::Concrete>::SymbolTag(AUTOQ::Symbol::Concrete(sum), st.tag());
                             }
-                            st2 = AUTOQ::Automata<AUTOQ::Symbol::Concrete>::SymbolTag(AUTOQ::Symbol::Concrete(sum), st.tag());
+                        } else if constexpr (std::is_same_v<SymbolV, AUTOQ::Symbol::Symbolic>) {
+                            if (c.size() == 0) { // a zero constant
+                                st2 = AUTOQ::Automata<AUTOQ::Symbol::Symbolic>::SymbolTag(AUTOQ::Symbol::Symbolic(AUTOQ::Complex::SymbolicComplex::MySymbolicComplexConstructor(AUTOQ::Complex::Complex::Zero())), st.tag());
+                            } else {
+                                AUTOQ::Complex::SymbolicComplex sum;
+                                for (const auto &[termId, term] : c) {
+                                    auto it = constants.find(std::get<0>(term));
+                                    if (it != constants.end()) {
+                                        sum += AUTOQ::Complex::SymbolicComplex::MySymbolicComplexConstructor(it->second);
+                                    } else {
+                                        sum += AUTOQ::Complex::SymbolicComplex::MySymbolicComplexConstructor(std::get<0>(term), result.vars);
+                                    }
+                                }
+                                st2 = AUTOQ::Automata<AUTOQ::Symbol::Symbolic>::SymbolTag(AUTOQ::Symbol::Symbolic(sum), st.tag());
+                            }
+                        } else if constexpr (std::is_same_v<SymbolV, AUTOQ::Symbol::Predicate>) {
+                            if (c.size() == 0) { // a true predicate
+                                st2 = AUTOQ::Automata<AUTOQ::Symbol::Predicate>::SymbolTag(AUTOQ::Symbol::Predicate("true"), st.tag());
+                            } else if (c.size() != 1) {
+                                THROW_AUTOQ_ERROR("All leaves should be exactly one predicate.");
+                            } else {
+                                AUTOQ::Symbol::Predicate p;
+                                for (const auto &[termId, term] : c) {
+                                    p = AUTOQ::Symbol::Predicate(predicates.at(std::get<0>(term)));
+                                    // use = because c.size() == 1
+                                }
+                                st2 = AUTOQ::Automata<AUTOQ::Symbol::Predicate>::SymbolTag(p, st.tag());
+                            }
+                        } else {
+                            THROW_AUTOQ_ERROR("Unsupported symbol type!!!");
                         }
                     }
                     auto &to_be_put_into = result.transitions[st2];
@@ -363,12 +412,11 @@ struct EvaluationVisitor : public ExtendedDiracParserBaseVisitor {
                 }
                 result.reduce();
                 return result;
-            } else if (std::is_same_v<Symbol, AUTOQ::Symbol::Predicate>) {
-                THROW_AUTOQ_ERROR("Not implemented yet!!!");
-            } else if (std::is_same_v<Symbol, AUTOQ::Symbol::Symbolic>) {
-                THROW_AUTOQ_ERROR("Not implemented yet!!!");
+            };
+            if (!switch_symbol_to_second) {
+                return do_the_work.template operator()<Symbol>();
             } else {
-                THROW_AUTOQ_ERROR("Not implemented yet!!!");
+                return do_the_work.template operator()<Symbol2>();
             }
         } else {
             THROW_AUTOQ_ERROR("Unsupported mode!");
@@ -523,32 +571,27 @@ struct EvaluationVisitor : public ExtendedDiracParserBaseVisitor {
             THROW_AUTOQ_ERROR("Undefined grammar for tset!");
         } else if (mode == EVALUATE_EACH_SET_BRACES_TO_LSTA) {
             if (ctx->op == nullptr) {
-                std::vector<AUTOQ::Automata<Symbol>> result;
                 currentPerm = segment2perm.front(); // access the first element
                 segment2perm.erase(segment2perm.begin()); // remove it (O(n) operation)
-                result.push_back(std::any_cast<AUTOQ::Automata<Symbol>>(visit(ctx->set(0))));
-                return result;
+                return std::any_cast<AUTOQ::Automata<Symbol>>(visit(ctx->set(0)));
             }
             if (ctx->op->getType() == ExtendedDiracParser::SEMICOLON) { // set; set
-                std::vector<AUTOQ::Automata<Symbol>> result;
                 auto aut0 = std::any_cast<AUTOQ::Automata<Symbol>>(visit(ctx->set(0)));
-                result.push_back(aut0);
                 auto constants_tmp = constants;
                 constants = constants2;
                 auto predicates_tmp = predicates;
                 predicates = predicates2;
-                auto aut1 = std::any_cast<AUTOQ::Automata<Symbol>>(visit(ctx->set(1)));
+                switch_symbol_to_second = true; // switch to the second symbol type
+                auto aut1 = std::any_cast<AUTOQ::Automata<Symbol2>>(visit(ctx->set(1)));
+                switch_symbol_to_second = false; // switch back to the first symbol type
                 constants = constants_tmp;
                 predicates = predicates_tmp;
-                result.push_back(aut1);
-                return result;
+                return std::make_pair(aut0, aut1);
             }
             if (ctx->op->getType() == ExtendedDiracParser::PROD) {
-                std::vector<AUTOQ::Automata<Symbol>> result;
                 auto aut0 = std::any_cast<AUTOQ::Automata<Symbol>>(visit(ctx->tset(0)));
                 auto aut1 = std::any_cast<AUTOQ::Automata<Symbol>>(visit(ctx->tset(1)));
-                result.push_back(aut0 * aut1);
-                return result;
+                return aut0 * aut1;
             }
             // since set^N has been expanded in the first phase, there should be no power operators here.
             THROW_AUTOQ_ERROR("Undefined grammar for tset!");
@@ -678,17 +721,28 @@ struct EvaluationVisitor : public ExtendedDiracParserBaseVisitor {
                 return result;
             }
         } else if (mode == EVALUATE_EACH_SET_BRACES_TO_LSTA) {
-            if (ctx->op != nullptr) {
-                auto aut1 = std::any_cast<AUTOQ::Automata<Symbol>>(visit(ctx->set(0)));
-                auto aut2 = std::any_cast<AUTOQ::Automata<Symbol>>(visit(ctx->set(1)));
-                return aut1 || aut2;
+            auto do_the_work = [&]<typename SymbolV>() -> std::any {
+                if (ctx->op != nullptr) {
+                    auto aut1 = std::any_cast<AUTOQ::Automata<SymbolV>>(visit(ctx->set(0)));
+                    auto aut2 = std::any_cast<AUTOQ::Automata<SymbolV>>(visit(ctx->set(1)));
+                    return aut1 || aut2;
+                }
+                EvaluationVisitor visitor(constants, predicates);
+                visitor.mode = SET_BRACES_IS_TENSOR_DECOMPOSED_INTO_GROUPS;
+                visitor.currentPerm = currentPerm;
+                visitor.switch_symbol_to_second = switch_symbol_to_second;
+                visitor.do_not_throw_term_undefined_error = do_not_throw_term_undefined_error;
+                auto group_decomposition = std::any_cast<std::string>(visitor.let_visitor_parse_string(ctx->getText())); // {diracs (: varcons)?}
+                visitor.mode = SHUFFLE_UNITS_IN_A_GROUP_WRT_QUBITS_AND_CONSTRUCT_LSTA_FINALLY;
+                auto aut = visitor.let_visitor_parse_string(group_decomposition); // {diracs (: varcons)?} ⊗ {diracs (: varcons)?} ⊗ ...
+                encountered_term_undefined_error = visitor.encountered_term_undefined_error;
+                return aut;
+            };
+            if (!switch_symbol_to_second) {
+                return do_the_work.template operator()<Symbol>();
+            } else {
+                return do_the_work.template operator()<Symbol2>();
             }
-            EvaluationVisitor visitor(constants, predicates);
-            visitor.mode = SET_BRACES_IS_TENSOR_DECOMPOSED_INTO_GROUPS;
-            visitor.currentPerm = currentPerm;
-            auto group_decomposition = std::any_cast<std::string>(visitor.let_visitor_parse_string(ctx->getText())); // {diracs (: varcons)?}
-            visitor.mode = SHUFFLE_UNITS_IN_A_GROUP_WRT_QUBITS_AND_CONSTRUCT_LSTA_FINALLY;
-            return std::any_cast<AUTOQ::Automata<Symbol>>(visitor.let_visitor_parse_string(group_decomposition)); // {diracs (: varcons)?} ⊗ {diracs (: varcons)?} ⊗ ...
         } else if (mode == SET_BRACES_IS_TENSOR_DECOMPOSED_INTO_GROUPS) { // we only decompose {diracs (: varcons)?}
             if (ctx->op != nullptr) {
                 THROW_AUTOQ_ERROR("We only decompose {diracs (: varcons)?}");
@@ -1077,6 +1131,7 @@ struct EvaluationVisitor : public ExtendedDiracParserBaseVisitor {
             for (const auto &[l, r] : completeCurrentSplit) {
                 if (r == -1 || // the last remaining part not classified as a unit must be a constant
                     vstr.at(0)=='0' || vstr.at(0)=='1') {
+                    if (vstr.empty()) continue; // reject if there is no remaining part
                     std::string this_constant_string = ((r == -1) ? vstr : vstr.substr(0, r-l));
                     if (!std::all_of(this_constant_string.begin(), this_constant_string.end(), [](char ch) { return ch == '0' || ch == '1'; })) {
                         THROW_AUTOQ_ERROR("Not aligned!");

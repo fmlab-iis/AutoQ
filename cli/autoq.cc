@@ -209,17 +209,18 @@ try {
         if (std::holds_alternative<AUTOQ::SymbolicAutomata>(spec1)) {
             THROW_AUTOQ_ERROR("The postcondition must have concrete or predicate amplitudes.");
         } else if (std::holds_alternative<AUTOQ::PredicateAutomata>(spec1)) {
-            auto &spec = std::get<AUTOQ::PredicateAutomata>(spec1);
+            // auto &spec = std::get<AUTOQ::PredicateAutomata>(spec1);
             // spec.print_aut("POST:\n");
             // spec.print_language("POST:\n");
             auto aut1 = ReadAutomaton(pre);
             if (std::holds_alternative<AUTOQ::PredicateAutomata>(aut1)) {
                 THROW_AUTOQ_ERROR("Predicate amplitudes cannot be used in a precondition.");
             }
-            auto aut = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Symbolic>::ReadAutomaton(pre);
+            // auto aut = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Symbolic>::ReadAutomaton(pre);
+            auto [aut, spec, qp] = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Symbolic, AUTOQ::Symbol::Predicate>::ReadTwoAutomata(pre, post);
             // aut.print_aut("PRE:\n");
             // aut.print_language("PRE:\n");
-            aut.execute(circuit);
+            aut.execute(circuit, qp);
             // std::cout << "OUTPUT AUTOMATON:\n";
             // std::cout << "=================\n";
             // aut.print_aut("OUTPUT:\n");
@@ -235,14 +236,12 @@ try {
             // auto &spec = std::get<AUTOQ::TreeAutomata>(spec1);
             // // spec.print_aut("POST:\n");
             // // spec.print_language("POST:\n");
-            // auto aut1 = ReadAutomaton(pre);
-            // auto aut = std::visit([](auto&& arg) -> AUTOQ::TreeAutomata {
-            //     if constexpr (!std::is_same_v<std::decay_t<decltype(arg)>, AUTOQ::TreeAutomata>) {
-            //         THROW_AUTOQ_ERROR("When the postcondition has only concrete amplitudes, the precondition must also do so.");
-            //     } else {
-            //         return arg; // Directly return the value if it's one of the allowed types
-            //     }
-            // }, aut1);
+            auto aut1 = ReadAutomaton(pre);
+            std::visit([](auto&& arg) {
+                if constexpr (!std::is_same_v<std::decay_t<decltype(arg)>, AUTOQ::TreeAutomata>) {
+                    THROW_AUTOQ_ERROR("When the postcondition has only concrete amplitudes, the precondition must also do so.");
+                }
+            }, aut1);
             // // aut.print_aut("PRE:\n");
             // // aut.print_language("PRE:\n");
             auto [aut, spec, qp] = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Concrete>::ReadTwoAutomata(pre, post);

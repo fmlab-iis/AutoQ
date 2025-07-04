@@ -1593,8 +1593,8 @@ AUTOQ::Automata<Symbol> parse_automaton(const std::string& str, const std::map<s
 //     return result;
 // }
 
-template <typename Symbol>
-AUTOQ::Automata<Symbol> AUTOQ::Parsing::TimbukParser<Symbol>::parse_extended_dirac_from_istream(std::istream *is, bool &do_not_throw_term_undefined_error, const std::map<std::string, AUTOQ::Complex::Complex> &constants, const std::map<std::string, std::string> &predicates) {
+template <typename Symbol, typename Symbol2>
+AUTOQ::Automata<Symbol> AUTOQ::Parsing::TimbukParser<Symbol, Symbol2>::parse_extended_dirac_from_istream(std::istream *is, bool &do_not_throw_term_undefined_error, const std::map<std::string, AUTOQ::Complex::Complex> &constants, const std::map<std::string, std::string> &predicates) {
 
     bool start_transitions = false;
     // bool get_ordering = false;
@@ -1661,13 +1661,6 @@ AUTOQ::Automata<Symbol> AUTOQ::Parsing::TimbukParser<Symbol>::parse_extended_dir
     /****************************************
     * Parse the Extended Dirac with ANTLR v4.
     *****************************************/
-    // std::cout << extended_dirac << std::endl;
-    // TODO: To be resumed if we reconsider symbolic automata again.
-    // if (parser.isSymbolicAutomaton && std::is_same_v<Symbol, AUTOQ::TreeAutomata::Symbol>) {
-    //     do_not_throw_term_undefined_error = false;
-    //     return {};
-    // }
-
     EvaluationVisitor<Symbol> visitor(constants, predicates);
     auto extended_dirac2 = std::any_cast<std::string>(visitor.let_visitor_parse_string(extended_dirac));
     visitor.mode = EvaluationVisitor<Symbol>::COLLECT_KETS_AND_COMPUTE_UNIT_DECOMPOSITION_INDICES;
@@ -1682,7 +1675,11 @@ AUTOQ::Automata<Symbol> AUTOQ::Parsing::TimbukParser<Symbol>::parse_extended_dir
     auto afterrewrite = std::any_cast<std::string>(visitor.let_visitor_parse_string(extended_dirac3));
     visitor.mode = EvaluationVisitor<Symbol>::EVALUATE_EACH_SET_BRACES_TO_LSTA;
     visitor.segment2perm = segment2perm;
-    auto final = std::any_cast<std::vector<AUTOQ::Automata<Symbol>>>(visitor.let_visitor_parse_string(afterrewrite)).at(0);
+    visitor.do_not_throw_term_undefined_error = do_not_throw_term_undefined_error;
+    auto final = std::any_cast<AUTOQ::Automata<Symbol>>(visitor.let_visitor_parse_string(afterrewrite));
+    if (!visitor.do_not_throw_term_undefined_error) {
+        do_not_throw_term_undefined_error = false;
+    }
     return final; // Evaluate using the visitor
     /****************************************/
 
@@ -1690,9 +1687,9 @@ AUTOQ::Automata<Symbol> AUTOQ::Parsing::TimbukParser<Symbol>::parse_extended_dir
     // and in this case all k's must be the same.
     // return aut_final;
 }
-template <typename Symbol>
-std::tuple<AUTOQ::Automata<Symbol>, AUTOQ::Automata<Symbol>, std::vector<int>>
-AUTOQ::Parsing::TimbukParser<Symbol>::parse_two_extended_diracs_from_istream(std::istream *is1, std::istream *is2,
+template <typename Symbol, typename Symbol2>
+std::tuple<AUTOQ::Automata<Symbol>, AUTOQ::Automata<Symbol2>, std::vector<int>>
+AUTOQ::Parsing::TimbukParser<Symbol, Symbol2>::parse_two_extended_diracs_from_istream(std::istream *is1, std::istream *is2,
                                                                              bool &do_not_throw_term_undefined_error,
                                                                              const std::map<std::string, AUTOQ::Complex::Complex> &constants1,
                                                                              const std::map<std::string, std::string> &predicates1,
@@ -1723,10 +1720,10 @@ AUTOQ::Parsing::TimbukParser<Symbol>::parse_two_extended_diracs_from_istream(std
                 extended_dirac[i] += line + '\n'; // Do NOT miss '\n' for the ANTLR to parse correctly with '\n'
             }
         }
-        EvaluationVisitor<Symbol> visitor(*(constants[i]), *(predicates[i]));
-        visitor.mode = EvaluationVisitor<Symbol>::EXPAND_POWER_AND_DIRACS_AND_REWRITE_COMPLEMENT;
+        EvaluationVisitor<Symbol, Symbol2> visitor(*(constants[i]), *(predicates[i]));
+        visitor.mode = EvaluationVisitor<Symbol, Symbol2>::EXPAND_POWER_AND_DIRACS_AND_REWRITE_COMPLEMENT;
         auto extended_dirac2 = std::any_cast<std::string>(visitor.let_visitor_parse_string(extended_dirac[i]));
-        visitor.mode = EvaluationVisitor<Symbol>::SPLIT_TENSORED_EXPRESSION_INTO_VECTOR_OF_SETS_WITHOUT_TENSOR;
+        visitor.mode = EvaluationVisitor<Symbol, Symbol2>::SPLIT_TENSORED_EXPRESSION_INTO_VECTOR_OF_SETS_WITHOUT_TENSOR;
         exprs[i] = std::any_cast<std::vector<std::string>>(visitor.let_visitor_parse_string(extended_dirac2));
         /**/
         i++;
@@ -1735,14 +1732,15 @@ AUTOQ::Parsing::TimbukParser<Symbol>::parse_two_extended_diracs_from_istream(std
         THROW_AUTOQ_ERROR("The two *.hsl files are not aligned!");
     }
 
-    AUTOQ::Automata<Symbol> resultA, resultB;
+    AUTOQ::Automata<Symbol> resultA;
+    AUTOQ::Automata<Symbol2> resultB;
     std::vector<int> qubit_permutation;
     for (size_t i=0; i<exprs[0].size(); ++i) {
         auto new_composited_expression = exprs[0][i] + " ; " + exprs[1][i];
-        EvaluationVisitor<Symbol> visitor(constants1, predicates1); // any pair of constants and predicates can do
-        visitor.mode = EvaluationVisitor<Symbol>::COLLECT_KETS_AND_COMPUTE_UNIT_DECOMPOSITION_INDICES;
-        typename EvaluationVisitor<Symbol>::segment2split_t segment2split = std::any_cast<typename EvaluationVisitor<Symbol>::segment2split_t>(visitor.let_visitor_parse_string(new_composited_expression));
-        visitor.mode = EvaluationVisitor<Symbol>::REWRITE_BY_UNIT_INDICES_AND_MAKE_ALL_VARS_DISTINCT;
+        EvaluationVisitor<Symbol, Symbol2> visitor(constants1, predicates1); // any pair of constants and predicates can do
+        visitor.mode = EvaluationVisitor<Symbol, Symbol2>::COLLECT_KETS_AND_COMPUTE_UNIT_DECOMPOSITION_INDICES;
+        typename EvaluationVisitor<Symbol, Symbol2>::segment2split_t segment2split = std::any_cast<typename EvaluationVisitor<Symbol, Symbol2>::segment2split_t>(visitor.let_visitor_parse_string(new_composited_expression));
+        visitor.mode = EvaluationVisitor<Symbol, Symbol2>::REWRITE_BY_UNIT_INDICES_AND_MAKE_ALL_VARS_DISTINCT;
         visitor.segment2split = segment2split;
         auto extended_diracC = std::any_cast<std::string>(visitor.let_visitor_parse_string(new_composited_expression));
 
@@ -1757,8 +1755,8 @@ AUTOQ::Parsing::TimbukParser<Symbol>::parse_two_extended_diracs_from_istream(std
         }
         /*********************************************************************************/
 
-        visitor.mode = EvaluationVisitor<Symbol>::COMPUTE_CONNECTED_UNITS_INTO_A_GROUP_RELATION;
-        auto segment2perm = std::any_cast<typename EvaluationVisitor<Symbol>::segment2perm_t>(visitor.let_visitor_parse_string(extended_diracC));
+        visitor.mode = EvaluationVisitor<Symbol, Symbol2>::COMPUTE_CONNECTED_UNITS_INTO_A_GROUP_RELATION;
+        auto segment2perm = std::any_cast<typename EvaluationVisitor<Symbol, Symbol2>::segment2perm_t>(visitor.let_visitor_parse_string(extended_diracC));
         if (segment2perm.size() != 1) {
             THROW_AUTOQ_ERROR("We only process one tensor segment at a time.");
         }
@@ -1771,20 +1769,20 @@ AUTOQ::Parsing::TimbukParser<Symbol>::parse_two_extended_diracs_from_istream(std
             }
         }
 
-        visitor.mode = EvaluationVisitor<Symbol>::REORDER_UNITS_BY_THE_GROUP;
+        visitor.mode = EvaluationVisitor<Symbol, Symbol2>::REORDER_UNITS_BY_THE_GROUP;
         visitor.segment2perm = segment2perm;
         auto afterrewrite = std::any_cast<std::string>(visitor.let_visitor_parse_string(extended_diracC));
-        visitor.mode = EvaluationVisitor<Symbol>::EVALUATE_EACH_SET_BRACES_TO_LSTA;
+        visitor.mode = EvaluationVisitor<Symbol, Symbol2>::EVALUATE_EACH_SET_BRACES_TO_LSTA;
         visitor.segment2perm = segment2perm;
         visitor.constants2 = constants2;
         visitor.predicates2 = predicates2;
-        auto finals = std::any_cast<std::vector<AUTOQ::Automata<Symbol>>>(visitor.let_visitor_parse_string(afterrewrite));
+        auto finals = std::any_cast<std::pair<AUTOQ::Automata<Symbol>, AUTOQ::Automata<Symbol2>>>(visitor.let_visitor_parse_string(afterrewrite));
         if (i == 0) {
-            resultA = finals.at(0);
-            resultB = finals.at(1);
+            resultA = finals.first;
+            resultB = finals.second;
         } else {
-            resultA = resultA.operator*(finals.at(0));
-            resultB = resultB.operator*(finals.at(1));
+            resultA = resultA.operator*(finals.first);
+            resultB = resultB.operator*(finals.second);
         }
     }
 
@@ -1805,25 +1803,25 @@ AUTOQ::Automata<Symbol> parse_extended_dirac(const std::string& str, const std::
     // aut.print(str);
     return aut;
 }
-template <typename Symbol>
-std::tuple<AUTOQ::Automata<Symbol>, AUTOQ::Automata<Symbol>, std::vector<int>> parse_two_extended_diracs(const std::string& str1, const std::map<std::string, Complex> &constants1, const std::map<std::string, std::string> &predicates1, const std::string& str2, const std::map<std::string, Complex> &constants2, const std::map<std::string, std::string> &predicates2, bool &do_not_throw_term_undefined_error) {
+template <typename Symbol, typename Symbol2>
+std::tuple<AUTOQ::Automata<Symbol>, AUTOQ::Automata<Symbol2>, std::vector<int>> parse_two_extended_diracs(const std::string& str1, const std::map<std::string, Complex> &constants1, const std::map<std::string, std::string> &predicates1, const std::string& str2, const std::map<std::string, Complex> &constants2, const std::map<std::string, std::string> &predicates2, bool &do_not_throw_term_undefined_error) {
     std::istringstream inputStream1(str1); // delimited by '\n'
     std::istringstream inputStream2(str2); // delimited by '\n'
-    return AUTOQ::Parsing::TimbukParser<Symbol>::parse_two_extended_diracs_from_istream(&inputStream1, &inputStream2, do_not_throw_term_undefined_error, constants1, predicates1, constants2, predicates2);
+    return AUTOQ::Parsing::TimbukParser<Symbol, Symbol2>::parse_two_extended_diracs_from_istream(&inputStream1, &inputStream2, do_not_throw_term_undefined_error, constants1, predicates1, constants2, predicates2);
 }
 
-template <typename Symbol>
-AUTOQ::Automata<Symbol> AUTOQ::Parsing::TimbukParser<Symbol>::ReadAutomaton(const std::string& filepath) {
+template <typename Symbol, typename Symbol2>
+AUTOQ::Automata<Symbol> AUTOQ::Parsing::TimbukParser<Symbol, Symbol2>::ReadAutomaton(const std::string& filepath) {
     bool do_not_throw_term_undefined_error = false;
-    return AUTOQ::Parsing::TimbukParser<Symbol>::ReadAutomaton(filepath, do_not_throw_term_undefined_error);
+    return AUTOQ::Parsing::TimbukParser<Symbol, Symbol2>::ReadAutomaton(filepath, do_not_throw_term_undefined_error);
 }
-template <typename Symbol>
-std::tuple<AUTOQ::Automata<Symbol>, AUTOQ::Automata<Symbol>, std::vector<int>> AUTOQ::Parsing::TimbukParser<Symbol>::ReadTwoAutomata(const std::string& filepath1, const std::string& filepath2) {
+template <typename Symbol, typename Symbol2>
+std::tuple<AUTOQ::Automata<Symbol>, AUTOQ::Automata<Symbol2>, std::vector<int>> AUTOQ::Parsing::TimbukParser<Symbol, Symbol2>::ReadTwoAutomata(const std::string& filepath1, const std::string& filepath2) {
     bool do_not_throw_term_undefined_error = false;
-    return AUTOQ::Parsing::TimbukParser<Symbol>::ReadTwoAutomata(filepath1, filepath2, do_not_throw_term_undefined_error);
+    return AUTOQ::Parsing::TimbukParser<Symbol, Symbol2>::ReadTwoAutomata(filepath1, filepath2, do_not_throw_term_undefined_error);
 }
-template <typename Symbol>
-AUTOQ::Automata<Symbol> AUTOQ::Parsing::TimbukParser<Symbol>::ReadAutomaton(const std::string& filepath, bool &do_not_throw_term_undefined_error) {
+template <typename Symbol, typename Symbol2>
+AUTOQ::Automata<Symbol> AUTOQ::Parsing::TimbukParser<Symbol, Symbol2>::ReadAutomaton(const std::string& filepath, bool &do_not_throw_term_undefined_error) {
 try {
     AUTOQ::Automata<Symbol> result;
     std::string automaton, constraints;
@@ -1970,12 +1968,13 @@ try {
     THROW_AUTOQ_ERROR("(while parsing the automaton: " + filepath + ")");
 }
 }
-template <typename Symbol>
-std::tuple<AUTOQ::Automata<Symbol>, AUTOQ::Automata<Symbol>, std::vector<int>> AUTOQ::Parsing::TimbukParser<Symbol>::ReadTwoAutomata(const std::string& filepath1, const std::string& filepath2, bool &do_not_throw_term_undefined_error) {
+template <typename Symbol, typename Symbol2>
+std::tuple<AUTOQ::Automata<Symbol>, AUTOQ::Automata<Symbol2>, std::vector<int>> AUTOQ::Parsing::TimbukParser<Symbol, Symbol2>::ReadTwoAutomata(const std::string& filepath1, const std::string& filepath2, bool &do_not_throw_term_undefined_error) {
 try {
     std::string filepath[] = {filepath1, filepath2};
     std::string automaton[2];
     std::string fileContents[2];
+    std::string constraints[2];
     std::map<std::string, AUTOQ::Complex::Complex> constants[2];
     std::map<std::string, std::string> predicates[2];
 
@@ -2014,6 +2013,27 @@ try {
                             constants[i][lhs] = ComplexParser(rhs).getComplex();
                         } else {
                             THROW_AUTOQ_ERROR("The constant \"" + lhs + "\" is already defined.");
+                        }
+                    }
+                }
+            }
+            if (fileContents[i].find("Predicates") != std::string::npos) {
+                std::string predicates_str = AUTOQ::String::trim(fileContents[i].substr(std::string("Predicates").length(), found - std::string("Predicates").length()));
+                fileContents[i] = fileContents[i].substr(found);
+                std::stringstream ss(predicates_str);
+                std::string str;
+                while (std::getline(ss, str, '\n')) {
+                    size_t arrow_pos = str.find(":=");
+                    if (std::string::npos != arrow_pos) { // Variables may appear without values in the symbolic case.
+                        std::string lhs = AUTOQ::String::trim(str.substr(0, arrow_pos));
+                        std::string rhs = AUTOQ::String::trim(str.substr(arrow_pos + 2));
+                        if (lhs.empty() || rhs.empty()) {
+                            THROW_AUTOQ_ERROR("Invalid number \"" + str + "\".");
+                        }
+                        if (predicates[i].find(lhs) == predicates[i].end()) {
+                            predicates[i][lhs] = rhs;
+                        } else {
+                            THROW_AUTOQ_ERROR("The predicate \"" + lhs + "\" is already defined.");
                         }
                     }
                 }
@@ -2062,38 +2082,46 @@ try {
             #endif
         }
 
-
-    // size_t found = fileContents.find("Constraints");
-    // if (found != std::string::npos) {
-    //     automaton = fileContents.substr(0, found);
-    //     constraints = fileContents.substr(found + 11); // "Constraints".length()
-    // } else {
-        automaton[i] = fileContents[i];
-        // constraints = "";
+        size_t found = fileContents[i].find("Constraints");
+        if (found != std::string::npos) {
+            automaton[i] = fileContents[i].substr(0, found);
+            constraints[i] = fileContents[i].substr(found + 11); // "Constraints".length()
+        } else {
+            automaton[i] = fileContents[i];
+            constraints[i] = "";
+        }
     }
-    // if (boost::algorithm::ends_with(filepath, ".lsta")) {
-    //     result = parse_automaton<Symbol>(automaton, constants, predicates, do_not_throw_term_undefined_error);
-    // } else if (boost::algorithm::ends_with(filepath, ".aut")) {
-    //     result = parse_timbuk<Symbol>(automaton);
-    // } else
+
+    AUTOQ::Automata<Symbol> aut0;
+    AUTOQ::Automata<Symbol2> aut1;
+    std::vector<int> qp; // qubit permutation
     if (boost::algorithm::ends_with(filepath[0], ".hsl") && boost::algorithm::ends_with(filepath[1], ".hsl")) {
-        return parse_two_extended_diracs<Symbol>(automaton[0], constants[0], predicates[0], automaton[1], constants[1], predicates[1], do_not_throw_term_undefined_error);
-        // result.print_aut(filepath + "\n");
+        std::tie(aut0, aut1, qp) = parse_two_extended_diracs<Symbol, Symbol2>(automaton[0], constants[0], predicates[0], automaton[1], constants[1], predicates[1], do_not_throw_term_undefined_error);
     } else {
         THROW_AUTOQ_ERROR("The filename extension is not supported.");
     }
 
-    // std::stringstream ss(AUTOQ::String::trim(constraints));
-    // std::string constraint;
-    // while (std::getline(ss, constraint, '\n')) {
-    //     result.constraints += ConstraintParser(constraint, constants).getSMTexpression();
-    // }
-    // if (!result.constraints.empty())
-    //     result.constraints = "(assert (and " + result.constraints + "))";
-    // for (const auto &var : result.vars) {
-    //     result.constraints = "(declare-const " + var + " Real)" + result.constraints;
-    // }
-    // return result;
+    using AutomataPair = std::variant<AUTOQ::Automata<Symbol>*, AUTOQ::Automata<Symbol2>*>;
+    std::vector<AutomataPair> auts = {
+        AutomataPair{std::in_place_index<0>, &aut0},
+        AutomataPair{std::in_place_index<1>, &aut1}
+    };
+    for (const auto &v : auts) {
+        std::visit([&](const auto &autPtr){
+            auto &aut = *autPtr;
+            std::stringstream ss(AUTOQ::String::trim(constraints[v.index()]));
+            std::string constraint;
+            while (std::getline(ss, constraint, '\n')) {
+                aut.constraints += ConstraintParser(constraint, constants[v.index()]).getSMTexpression();
+            }
+            if (!(aut.constraints).empty())
+                aut.constraints = "(assert (and " + aut.constraints + "))";
+            for (const auto &var : aut.vars) {
+                aut.constraints = "(declare-const " + var + " Real)" + aut.constraints;
+            }
+        }, v);
+    }
+    return std::make_tuple(aut0, aut1, qp);
 } catch (AutoQError &e) {
     std::cout << e.what() << std::endl;
     THROW_AUTOQ_ERROR("(while parsing the automaton: " + filepath1 + " or " + filepath2 + ")");
@@ -2118,3 +2146,4 @@ std::variant<AUTOQ::Automata<AUTOQ::Symbol::Concrete>, AUTOQ::Automata<AUTOQ::Sy
 template struct AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Concrete>;
 template struct AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Symbolic>;
 template struct AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Predicate>;
+template struct AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Symbolic, AUTOQ::Symbol::Predicate>;
