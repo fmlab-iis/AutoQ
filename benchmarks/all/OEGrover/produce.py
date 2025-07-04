@@ -17,12 +17,12 @@ for n in sizes:
     ###########################################################################
     with open(n_str + '/pre.hsl', 'w') as file:
         file.write('Extended Dirac\n')
-        file.write(f"{{b |0> + a |1>}} ⊗ ({{a |0> + b |1>}} ⊗ {{|0>}} ⊗ {{b |0> + a |1>}} ⊗ {{|0>}}) ^ {(n-2)//2}" + (" ⊗ {a |0> + b |1>} ⊗ {|0>} ⊗ {b |0> + a |1>} " if (n-1) % 2 == 0 else " ⊗ {a |0> + b |1>}") + " ⊗ {|1>}\n")
-        file.write('where\n')
-        file.write('b ⊗ b = b\n')
-        file.write('b ⊗ a = a\n')
-        file.write('a ⊗ b = a\n')
-        file.write('a ⊗ a = a\n')
+        file.write('{' + f'b |{"01" * (n//2) + "0" * (n % 2)}{"0" * (n-2)}1> + a ∑ |i|={n}, i≠{"01" * (n//2) + "0" * (n % 2)} |i{"0" * (n-2)}1>' + '}\n')
+        # file.write('where\n')
+        # file.write('b ⊗ b = b\n')
+        # file.write('b ⊗ a = a\n')
+        # file.write('a ⊗ b = a\n')
+        # file.write('a ⊗ a = a\n')
         file.write('Constraints\n')
         file.write(f'{2 ** n - 1} * real(a) > real(b)\n')
         file.write('real(a) > 0\n')
@@ -59,9 +59,9 @@ for n in sizes:
     #     file.write('imag(b) = 0\n')
     ###########################################################################
     with open(n_str + '/circuit.qasm', 'w') as file:
-        w = [0] + list(range(1, 2*n-2, 2)) # 0, 1, 3, 5, ..., 2n-3
-        a = ['nan'] + list(range(2, 2*n-3, 2)) # 2, 4, 6, ..., 2n-4
-        t = w[-1] + 1 # 2n-2
+        w = range(n) # [0] + list(range(1, 2*n-2, 2)) # 0, 1, 3, 5, ..., 2n-3
+        a = ['nan'] + [i + len(w) for i in range(n-2)] # list(range(2, 2*n-3, 2)) # 2, 4, 6, ..., 2n-4
+        t = 2*n - 2 # w[-1] + 1 # 2n-2
         ###########################################################
         file.write('OPENQASM 2.0;\n')
         file.write('include "qelib1.inc";\n')
@@ -123,12 +123,12 @@ for n in sizes:
         file.write('pL := (and (< (* real($) real($)) (* real(a) real(a))) (= imag($) 0))\n')
         file.write('pH := (and (> (* real($) real($)) (* real(b) real(b))) (= imag($) 0))\n')
         file.write('Extended Dirac\n')
-        file.write(f"{{pH |0> + pL |1>}} ⊗ ({{pL |0> + pH |1>}} ⊗ {{|0>}} ⊗ {{pH |0> + pL |1>}} ⊗ {{|0>}}) ^ {(n-2)//2}" + (" ⊗ {pL |0> + pH |1>} ⊗ {|0>} ⊗ {pH |0> + pL |1>} " if (n-1) % 2 == 0 else " ⊗ {pL |0> + pH |1>}") + " ⊗ {|1>}\n")
-        file.write('where\n')
-        file.write('pH ⊗ pH = pH\n')
-        file.write('pH ⊗ pL = pL\n')
-        file.write('pL ⊗ pH = pL\n')
-        file.write('pL ⊗ pL = pL\n')
+        file.write('{' + f'pH |{"01" * (n//2) + "0" * (n % 2)}{"0" * (n-2)}1> + pL ∑ |i|={n}, i≠{"01" * (n//2) + "0" * (n % 2)} |i{"0" * (n-2)}1>' + '}\n')
+        # file.write('where\n')
+        # file.write('pH ⊗ pH = pH\n')
+        # file.write('pH ⊗ pL = pL\n')
+        # file.write('pL ⊗ pH = pL\n')
+        # file.write('pL ⊗ pL = pL\n')
     ###########################################################################
 
 # cp -rl {02,18,50,75,100} ../../LSTA/OEGrover/

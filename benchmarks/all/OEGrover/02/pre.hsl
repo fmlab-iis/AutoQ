@@ -1,5 +1,5 @@
 Extended Dirac
-b |01> + a |*> # |1>
+{b |011> + a ∑ |i|=2, i≠01 |i1>}
 Constraints
 3 * real(a) > real(b)
 real(a) > 0
