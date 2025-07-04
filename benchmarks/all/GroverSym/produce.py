@@ -21,8 +21,10 @@ for n in sizes:
         os.makedirs(n_str)
     ###########################################################################
     with open(n_str + '/pre.hsl', 'w') as file:
+        file.write('Constants\n')
+        file.write('c1 := 1\n')
         file.write('Extended Dirac\n')
-        file.write("{|" + '0' * q + ">}\n")
+        file.write("{c1 |" + '0' * q + ">}\n")
     ###########################################################################
     # with open(n_str + "/pre.lsta", "w") as file:
     #     file.write('Constants\n')
@@ -38,9 +40,9 @@ for n in sizes:
     #     file.write(f"[c1,1] -> {2*q}\n")
     ###########################################################################
     with open(n_str + '/circuit.qasm', 'w') as file:
-        w = [0] + list(range(1, 2*n-2, 2)) # 0, 1, 3, 5, ..., 2n-3
-        a = ['nan'] + list(range(2, 2*n-3, 2)) # 2, 4, 6, ..., 2n-4
-        t = w[-1] + 1 # 2n-2
+        w = range(n) # [0] + list(range(1, 2*n-2, 2)) # 0, 1, 3, 5, ..., 2n-3
+        a = ['nan'] + [i + len(w) for i in range(n-2)] # list(range(2, 2*n-3, 2)) # 2, 4, 6, ..., 2n-4
+        t = 2*n - 2 # w[-1] + 1 # 2n-2
         ###########################################################
         file.write('OPENQASM 2.0;\n')
         file.write('include "qelib1.inc";\n')
@@ -115,12 +117,7 @@ for n in sizes:
         file.write('pL := (and (< (* $R $R) 0.1) (= $I 0))\n')
         file.write('pH := (and (> (* $R $R) 0.9) (= $I 0))\n')
         file.write('Extended Dirac\n')
-        file.write(f"{{pH |0> + pL |1>}} ⊗ ({{pL |0> + pH |1>}} ⊗ {{|0>}} ⊗ {{pH |0> + pL |1>}} ⊗ {{|0>}}) ^ {(n-2)//2}" + (" ⊗ {pL |0> + pH |1>} ⊗ {|0>} ⊗ {pH |0> + pL |1>} " if (n-1) % 2 == 0 else " ⊗ {pL |0> + pH |1>}") + " ⊗ {|1>}\n")
-        file.write('where\n')
-        file.write('pH ⊗ pH = pH\n')
-        file.write('pH ⊗ pL = pL\n')
-        file.write('pL ⊗ pH = pL\n')
-        file.write('pL ⊗ pL = pL\n')
+        file.write('{' + f'pH |{"01" * (n//2) + "0" * (n % 2)}{"0" * (n-2)}1> + pL ∑ |i|={n}, i≠{"01" * (n//2) + "0" * (n % 2)} |i{"0" * (n-2)}1>' + '}\n')
     ###########################################################################
 
 # cp -rl {03,16,18,20} ../../CAV23/GroverSym/
