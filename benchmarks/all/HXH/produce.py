@@ -25,8 +25,10 @@ for n in sizes:
             file.write(f'h qubits[{i}];\n')
     #########################################
     with open(n_str + '/pre.hsl', 'w') as file:
+        file.write('Constants\n')
+        file.write('c1 := 1\n')
         file.write('Extended Dirac\n')
-        file.write(f"{{|i> | |i|={n}}}\n")
+        file.write(f"{{c1 |i> : |i|={1}}} ^ {n}\n")
     #########################################
     with open(n_str + "/pre.lsta", "w") as file:
         file.write('Constants\n')
@@ -44,8 +46,11 @@ for n in sizes:
         file.write(f"[c1,1] -> {2*n}\n")
     #########################################
     with open(n_str + '/post.hsl', 'w') as file:
+        file.write('Constants\n')
+        file.write('c1 := 1\n')
+        file.write('c2 := -1\n')
         file.write('Extended Dirac\n')
-        file.write(f'{{|0>, -|1>}} ^ {n}\n')
+        file.write(f'{{c1 |0>, c2 |1>}} ^ {n}\n')
     #########################################
     with open(n_str + "/post.lsta", "w") as file:
         file.write("Constants\n")
