@@ -21,8 +21,10 @@ for n in sizes:
         os.makedirs(n_str)
     ###########################################################################
     with open(n_str + '/pre.hsl', 'w') as file:
+        file.write('Constants\n')
+        file.write('c1 := 1\n')
         file.write('Extended Dirac\n')
-        file.write('{|i> | |i|=1} ⊗ {|0>} ⊗ ({|i> | |i|=1} ⊗ {|00>}) ^ ' + f'{n-1}\n')
+        file.write('{c1 |s' + '0'*(2*n-1) + '> : |s|=' + str(n) + '}\n')
     ###########################################################################
     # with open(n_str + "/pre.lsta", "w") as file:
     #     file.write('Constants\n')
@@ -43,10 +45,10 @@ for n in sizes:
     #     file.write(f"[c1,1] -> {2*q}\n")
     ###########################################################################
     with open(n_str + '/circuit.qasm', 'w') as file:
-        s = [0] + list(range(2, 3*n-3, 3)) # 0, 2, 5, 8, ..., 3n-4
-        w = [1] + list(range(3, 3*n-2, 3)) # 1, 3, 6, 9, ..., 3n-3
-        a = ['nan'] + list(range(4, 3*n-4, 3)) # 4, 7, 10, ..., 3n-5
-        t = w[-1] + 1 # 3n-2
+        s = range(n) # [0] + list(range(2, 3*n-3, 3)) # 0, 2, 5, 8, ..., 3n-4
+        w = [n + i for i in range(n)] # [1] + list(range(3, 3*n-2, 3)) # 1, 3, 6, 9, ..., 3n-3
+        a = ['nan'] + [2*n + i for i in range(n-2)] # list(range(4, 3*n-4, 3)) # 4, 7, 10, ..., 3n-5
+        t = 3*n - 2 # w[-1] + 1 # 3n-2
         ###########################################################
         file.write('OPENQASM 2.0;\n')
         file.write('include "qelib1.inc";\n')
@@ -125,12 +127,7 @@ for n in sizes:
         file.write('pL := (and (< (* $R $R) 0.1) (= $I 0))\n')
         file.write('pH := (and (> (* $R $R) 0.9) (= $I 0))\n')
         file.write('Extended Dirac\n')
-        file.write("{pH|00> + pL|01>, pH|11> + pL|10>} ⊗ ({pH|00> + pL|01>, pH|11> + pL|10>} ⊗ {|0>}) ^ " + f'{n-2}' + " ⊗ {pH|00> + pL|01>, pH|11> + pL|10>} ⊗ {|1>}\n")
-        file.write('where\n')
-        file.write('pH ⊗ pH = pH\n')
-        file.write('pH ⊗ pL = pL\n')
-        file.write('pL ⊗ pH = pL\n')
-        file.write('pL ⊗ pL = pL\n')
+        file.write('{' + f'pH |ss{"0" * (n-2)}1> + pL ∑ |i|={n}, i≠s |si{"0" * (n-2)}1>' + ' : |s|=' + str(n) + '}\n')
     ###########################################################################
 
 # cp -rl 0{3,8,9} ../../CAV23/MOGroverSym/
