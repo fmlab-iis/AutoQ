@@ -1690,7 +1690,6 @@ AUTOQ::Automata<Symbol> AUTOQ::Parsing::TimbukParser<Symbol, Symbol2>::parse_ext
 template <typename Symbol, typename Symbol2>
 std::tuple<AUTOQ::Automata<Symbol>, AUTOQ::Automata<Symbol2>, std::vector<int>>
 AUTOQ::Parsing::TimbukParser<Symbol, Symbol2>::parse_two_extended_diracs_from_istream(std::istream *is1, std::istream *is2,
-                                                                             bool &do_not_throw_term_undefined_error,
                                                                              const std::map<std::string, AUTOQ::Complex::Complex> &constants1,
                                                                              const std::map<std::string, std::string> &predicates1,
                                                                              const std::map<std::string, AUTOQ::Complex::Complex> &constants2,
@@ -1804,21 +1803,16 @@ AUTOQ::Automata<Symbol> parse_extended_dirac(const std::string& str, const std::
     return aut;
 }
 template <typename Symbol, typename Symbol2>
-std::tuple<AUTOQ::Automata<Symbol>, AUTOQ::Automata<Symbol2>, std::vector<int>> parse_two_extended_diracs(const std::string& str1, const std::map<std::string, Complex> &constants1, const std::map<std::string, std::string> &predicates1, const std::string& str2, const std::map<std::string, Complex> &constants2, const std::map<std::string, std::string> &predicates2, bool &do_not_throw_term_undefined_error) {
+std::tuple<AUTOQ::Automata<Symbol>, AUTOQ::Automata<Symbol2>, std::vector<int>> parse_two_extended_diracs(const std::string& str1, const std::map<std::string, Complex> &constants1, const std::map<std::string, std::string> &predicates1, const std::string& str2, const std::map<std::string, Complex> &constants2, const std::map<std::string, std::string> &predicates2) {
     std::istringstream inputStream1(str1); // delimited by '\n'
     std::istringstream inputStream2(str2); // delimited by '\n'
-    return AUTOQ::Parsing::TimbukParser<Symbol, Symbol2>::parse_two_extended_diracs_from_istream(&inputStream1, &inputStream2, do_not_throw_term_undefined_error, constants1, predicates1, constants2, predicates2);
+    return AUTOQ::Parsing::TimbukParser<Symbol, Symbol2>::parse_two_extended_diracs_from_istream(&inputStream1, &inputStream2, constants1, predicates1, constants2, predicates2);
 }
 
 template <typename Symbol, typename Symbol2>
 AUTOQ::Automata<Symbol> AUTOQ::Parsing::TimbukParser<Symbol, Symbol2>::ReadAutomaton(const std::string& filepath) {
     bool do_not_throw_term_undefined_error = false;
     return AUTOQ::Parsing::TimbukParser<Symbol, Symbol2>::ReadAutomaton(filepath, do_not_throw_term_undefined_error);
-}
-template <typename Symbol, typename Symbol2>
-std::tuple<AUTOQ::Automata<Symbol>, AUTOQ::Automata<Symbol2>, std::vector<int>> AUTOQ::Parsing::TimbukParser<Symbol, Symbol2>::ReadTwoAutomata(const std::string& filepath1, const std::string& filepath2) {
-    bool do_not_throw_term_undefined_error = false;
-    return AUTOQ::Parsing::TimbukParser<Symbol, Symbol2>::ReadTwoAutomata(filepath1, filepath2, do_not_throw_term_undefined_error);
 }
 template <typename Symbol, typename Symbol2>
 AUTOQ::Automata<Symbol> AUTOQ::Parsing::TimbukParser<Symbol, Symbol2>::ReadAutomaton(const std::string& filepath, bool &do_not_throw_term_undefined_error) {
@@ -1969,7 +1963,7 @@ try {
 }
 }
 template <typename Symbol, typename Symbol2>
-std::tuple<AUTOQ::Automata<Symbol>, AUTOQ::Automata<Symbol2>, std::vector<int>> AUTOQ::Parsing::TimbukParser<Symbol, Symbol2>::ReadTwoAutomata(const std::string& filepath1, const std::string& filepath2, bool &do_not_throw_term_undefined_error) {
+std::tuple<AUTOQ::Automata<Symbol>, AUTOQ::Automata<Symbol2>, std::vector<int>> AUTOQ::Parsing::TimbukParser<Symbol, Symbol2>::ReadTwoAutomata(const std::string& filepath1, const std::string& filepath2) {
 try {
     std::string filepath[] = {filepath1, filepath2};
     std::string automaton[2];
@@ -2096,7 +2090,7 @@ try {
     AUTOQ::Automata<Symbol2> aut1;
     std::vector<int> qp; // qubit permutation
     if (boost::algorithm::ends_with(filepath[0], ".hsl") && boost::algorithm::ends_with(filepath[1], ".hsl")) {
-        std::tie(aut0, aut1, qp) = parse_two_extended_diracs<Symbol, Symbol2>(automaton[0], constants[0], predicates[0], automaton[1], constants[1], predicates[1], do_not_throw_term_undefined_error);
+        std::tie(aut0, aut1, qp) = parse_two_extended_diracs<Symbol, Symbol2>(automaton[0], constants[0], predicates[0], automaton[1], constants[1], predicates[1]);
     } else {
         THROW_AUTOQ_ERROR("The filename extension is not supported.");
     }
