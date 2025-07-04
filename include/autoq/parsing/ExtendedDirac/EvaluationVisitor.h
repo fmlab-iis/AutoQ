@@ -495,9 +495,12 @@ struct EvaluationVisitor : public ExtendedDiracParserBaseVisitor {
                 segment2strs.push_back(std::any_cast<strs2split_t>(visit(ctx->set(0))));
                 return segment2strs;
             } else if (ctx->op->getType() == ExtendedDiracParser::POWER) {
-                THROW_AUTOQ_ERROR("Undefined grammar for tset!");
+                THROW_AUTOQ_ERROR("Should not appear after EXPAND_POWER_AND_DIRACS_AND_REWRITE_COMPLEMENT!");
             } else if (ctx->op->getType() == ExtendedDiracParser::PROD) { // RULE: set op=PROD set
-                THROW_AUTOQ_ERROR("Undefined grammar for tset!");
+                auto vec0 = std::any_cast<segment2strs_t>(visit(ctx->tset(0)));
+                auto vec1 = std::any_cast<segment2strs_t>(visit(ctx->tset(1)));
+                vec0.insert(vec0.end(), vec1.begin(), vec1.end());
+                return vec0;
             } else if (ctx->op->getType() == ExtendedDiracParser::SEMICOLON) { // RULE: set op=SEMICOLON set
                 segment2strs_t segment2strs;
                 auto vec0 = std::any_cast<strs2split_t>(visit(ctx->set(0)));
