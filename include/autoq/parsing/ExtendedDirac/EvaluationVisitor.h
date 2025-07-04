@@ -1210,7 +1210,7 @@ struct EvaluationVisitor : public ExtendedDiracParserBaseVisitor {
                     vc += ", " + std::string{v} + "=" + c;
                 }
             }
-            return ctx->C->getText() + "∑" + vc + "|" + ket + "⟩";
+            return ctx->C->getText() + ((!vc.empty()) ? ("∑" + vc) : "") + "|" + ket + "⟩";
         } else if (mode == COMPUTE_CONNECTED_UNITS_INTO_A_GROUP_RELATION) {
             unit2vars_t first;
             auto str = ctx->VStr->getText();
