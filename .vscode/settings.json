@@ -82,5 +82,6 @@
         "format": "cpp",
         "stdfloat": "cpp"
     },
-    "cmake.configureOnOpen": false
+    "cmake.configureOnOpen": false,
+    "git.ignoreLimitWarning": true
 }

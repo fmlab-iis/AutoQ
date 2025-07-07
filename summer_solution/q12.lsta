@@ -1,0 +1,7 @@
+Root States r
+Transitions
+[x,{1}](L, N) -> r
+[x,{1}](L, N) -> L
+[x,{1}](N, N) -> N
+[1,{2}] -> L
+[0,{2}] -> N
