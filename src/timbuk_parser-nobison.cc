@@ -702,6 +702,7 @@ AUTOQ::Automata<Symbol> parse_automaton(const std::string& str, const std::map<s
     AUTOQ::Automata<Symbol> result;
     std::map<std::string, typename AUTOQ::Automata<Symbol>::State> states;
     std::set<std::string> result_finalStates;
+    std::map<std::string, int> accumulated_sets_of_choices;
 
 	std::vector<std::string> lines = AUTOQ::String::split_delim(str, '\n');
 	for (const std::string& line : lines) {
@@ -785,6 +786,10 @@ AUTOQ::Automata<Symbol> parse_automaton(const std::string& str, const std::map<s
                             auto sym = Symbol(boost::lexical_cast<int>(token));
                             std::getline(ss, token, ']');
                             auto color = stringSetToBitmask(token); // boost::lexical_cast<AUTOQ::TreeAutomata::Tag>(token);
+                            if (accumulated_sets_of_choices[rhs] & color) { // not equal to 0 -> sets of choices not disjoint
+                                THROW_AUTOQ_ERROR("The sets of choices in the transitions of the top state \"" + rhs + "\" are not disjoint!");
+                            }
+                            accumulated_sets_of_choices[rhs] |= color;
                             result.transitions[AUTOQ::TreeAutomata::SymbolTag(sym, AUTOQ::TreeAutomata::Tag(color))][t].insert(std::vector<AUTOQ::TreeAutomata::State>());
                         } else {
                             result.transitions[AUTOQ::TreeAutomata::SymbolTag(Symbol(boost::lexical_cast<int>(lhs)), AUTOQ::TreeAutomata::Tag(1))][t].insert(std::vector<AUTOQ::TreeAutomata::State>());
@@ -805,6 +810,10 @@ AUTOQ::Automata<Symbol> parse_automaton(const std::string& str, const std::map<s
                             auto sym = Symbol(it->second);
                             std::getline(ss, token, ']');
                             auto color = stringSetToBitmask(token); // boost::lexical_cast<AUTOQ::TreeAutomata::Tag>(token);
+                            if (accumulated_sets_of_choices[rhs] & color) { // not equal to 0 -> sets of choices not disjoint
+                                THROW_AUTOQ_ERROR("The sets of choices in the transitions of the top state \"" + rhs + "\" are not disjoint!");
+                            }
+                            accumulated_sets_of_choices[rhs] |= color;
                             result.transitions[AUTOQ::TreeAutomata::SymbolTag(sym, AUTOQ::TreeAutomata::Tag(color))][t].insert(std::vector<AUTOQ::TreeAutomata::State>());
                         } else {
                             auto it = constants.find(lhs);
@@ -827,6 +836,10 @@ AUTOQ::Automata<Symbol> parse_automaton(const std::string& str, const std::map<s
                             auto sym = Symbol(boost::lexical_cast<int>(token));
                             std::getline(ss, token, ']');
                             auto color = stringSetToBitmask(token); // boost::lexical_cast<AUTOQ::PredicateAutomata::Tag>(token);
+                            if (accumulated_sets_of_choices[rhs] & color) { // not equal to 0 -> sets of choices not disjoint
+                                THROW_AUTOQ_ERROR("The sets of choices in the transitions of the top state \"" + rhs + "\" are not disjoint!");
+                            }
+                            accumulated_sets_of_choices[rhs] |= color;
                             result.transitions[AUTOQ::PredicateAutomata::SymbolTag(sym, AUTOQ::PredicateAutomata::Tag(color))][t].insert(std::vector<AUTOQ::PredicateAutomata::State>());
                         } else {
                             result.transitions[AUTOQ::PredicateAutomata::SymbolTag(Symbol(boost::lexical_cast<int>(lhs)), AUTOQ::PredicateAutomata::Tag(1))][t].insert(std::vector<AUTOQ::TreeAutomata::State>());
@@ -847,6 +860,10 @@ AUTOQ::Automata<Symbol> parse_automaton(const std::string& str, const std::map<s
                             auto sym = Symbol(it->second.c_str());
                             std::getline(ss, token, ']');
                             auto color = stringSetToBitmask(token); // boost::lexical_cast<AUTOQ::PredicateAutomata::Tag>(token);
+                            if (accumulated_sets_of_choices[rhs] & color) { // not equal to 0 -> sets of choices not disjoint
+                                THROW_AUTOQ_ERROR("The sets of choices in the transitions of the top state \"" + rhs + "\" are not disjoint!");
+                            }
+                            accumulated_sets_of_choices[rhs] |= color;
                             result.transitions[AUTOQ::PredicateAutomata::SymbolTag(sym, AUTOQ::PredicateAutomata::Tag(color))][t].insert(std::vector<AUTOQ::PredicateAutomata::State>());
                         } else {
                             auto it = predicates.find(lhs);
@@ -869,6 +886,10 @@ AUTOQ::Automata<Symbol> parse_automaton(const std::string& str, const std::map<s
                         auto sym = Symbol(scp.getSymbolicComplex());
                         std::getline(ss, token, ']');
                         auto color = stringSetToBitmask(token); // boost::lexical_cast<AUTOQ::SymbolicAutomata::Tag>(token);
+                        if (accumulated_sets_of_choices[rhs] & color) { // not equal to 0 -> sets of choices not disjoint
+                            THROW_AUTOQ_ERROR("The sets of choices in the transitions of the top state \"" + rhs + "\" are not disjoint!");
+                        }
+                        accumulated_sets_of_choices[rhs] |= color;
                         result.transitions[AUTOQ::SymbolicAutomata::SymbolTag(sym, AUTOQ::SymbolicAutomata::Tag(color))][t].insert(std::vector<AUTOQ::SymbolicAutomata::State>());
                         for (const auto &var: scp.getNewVars())
                             result.vars.insert(var);
@@ -937,6 +958,10 @@ AUTOQ::Automata<Symbol> parse_automaton(const std::string& str, const std::map<s
                         auto sym = Symbol(boost::lexical_cast<int>(token));
                         std::getline(ss, token, ']');
                         auto color = stringSetToBitmask(token); // boost::lexical_cast<AUTOQ::TreeAutomata::Tag>(token);
+                        if (accumulated_sets_of_choices[rhs] & color) { // not equal to 0 -> sets of choices not disjoint
+                            THROW_AUTOQ_ERROR("The sets of choices in the transitions of the top state \"" + rhs + "\" are not disjoint!");
+                        }
+                        accumulated_sets_of_choices[rhs] |= color;
                         result.transitions[AUTOQ::TreeAutomata::SymbolTag(sym, AUTOQ::TreeAutomata::Tag(color))][t].insert(state_vector);
                     } else {
                         result.transitions[AUTOQ::TreeAutomata::SymbolTag(Symbol(boost::lexical_cast<int>(symbol)), AUTOQ::TreeAutomata::Tag(1))][t].insert(state_vector);
@@ -951,6 +976,10 @@ AUTOQ::Automata<Symbol> parse_automaton(const std::string& str, const std::map<s
                         auto sym = parse_symbol<Symbol>(token);
                         std::getline(ss, token, ']');
                         auto color = stringSetToBitmask(token); // boost::lexical_cast<AUTOQ::PredicateAutomata::Tag>(token);
+                        if (accumulated_sets_of_choices[rhs] & color) { // not equal to 0 -> sets of choices not disjoint
+                            THROW_AUTOQ_ERROR("The sets of choices in the transitions of the top state \"" + rhs + "\" are not disjoint!");
+                        }
+                        accumulated_sets_of_choices[rhs] |= color;
                         result.transitions[AUTOQ::PredicateAutomata::SymbolTag(sym, AUTOQ::PredicateAutomata::Tag(color))][t].insert(state_vector);
                         // if (boost::lexical_cast<int>(sym.qubit()) == 1)
                         //     result.finalStates.push_back(t);
@@ -965,6 +994,10 @@ AUTOQ::Automata<Symbol> parse_automaton(const std::string& str, const std::map<s
                         auto sym = parse_symbol<Symbol>(token);
                         std::getline(ss, token, ']');
                         auto color = stringSetToBitmask(token); // boost::lexical_cast<AUTOQ::SymbolicAutomata::Tag>(token);
+                        if (accumulated_sets_of_choices[rhs] & color) { // not equal to 0 -> sets of choices not disjoint
+                            THROW_AUTOQ_ERROR("The sets of choices in the transitions of the top state \"" + rhs + "\" are not disjoint!");
+                        }
+                        accumulated_sets_of_choices[rhs] |= color;
                         result.transitions[AUTOQ::SymbolicAutomata::SymbolTag(sym, AUTOQ::SymbolicAutomata::Tag(color))][t].insert(state_vector);
                         // if (boost::lexical_cast<int>(sym.qubit()) == 1)
                         //     result.finalStates.push_back(t);
