@@ -28,12 +28,12 @@ RIGHT_ANGLE_BRACKET: '⟩' | '>';
 // RIGHT_PARENTHESIS: ')';
 RIGHT_BRACE: '}';
 SEMICOLON: ';';
-// SETMINUS: '\\';
+SETMINUS: '\\';
 STR: ([0-9a-zA-Z]|[a-z]PRIME)+; // *
 // SUB: '-';
 SUM: '∑' | 'Σ';
 // SQRT2: 'sqrt2';
-UNION: '∪';
+UNION: '∪'; // | 'U'; // Notice that U may be confused with the bit-complemented variable's name.
 // WHERE: 'where' { skipNewline = false; };
 WS: [ \t]+ -> skip;
 

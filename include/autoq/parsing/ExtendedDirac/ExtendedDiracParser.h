@@ -14,7 +14,8 @@ public:
   enum {
     ADD = 1, BAR = 2, COMMA = 3, COLON = 4, EQ = 5, LEFT_BRACE = 6, NE = 7, 
     NEWLINES = 8, OR = 9, POWER = 10, PRIME = 11, PROD = 12, RIGHT_ANGLE_BRACKET = 13, 
-    RIGHT_BRACE = 14, SEMICOLON = 15, STR = 16, SUM = 17, UNION = 18, WS = 19
+    RIGHT_BRACE = 14, SEMICOLON = 15, SETMINUS = 16, STR = 17, SUM = 18, 
+    UNION = 19, WS = 20
   };
 
   enum {
@@ -65,9 +66,12 @@ public:
 
   class  ExprContext : public antlr4::ParserRuleContext {
   public:
+    antlr4::Token *op = nullptr;
     ExprContext(antlr4::ParserRuleContext *parent, size_t invokingState);
     virtual size_t getRuleIndex() const override;
-    TsetContext *tset();
+    std::vector<TsetContext *> tset();
+    TsetContext* tset(size_t i);
+    antlr4::tree::TerminalNode *SETMINUS();
 
     virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
     virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
@@ -88,7 +92,8 @@ public:
     SetContext* set(size_t i);
     antlr4::tree::TerminalNode *POWER();
     antlr4::tree::TerminalNode *STR();
-    antlr4::tree::TerminalNode *SEMICOLON();
+    std::vector<antlr4::tree::TerminalNode *> SEMICOLON();
+    antlr4::tree::TerminalNode* SEMICOLON(size_t i);
     std::vector<TsetContext *> tset();
     TsetContext* tset(size_t i);
     antlr4::tree::TerminalNode *PROD();

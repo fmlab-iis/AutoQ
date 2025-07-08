@@ -14,7 +14,8 @@ public:
   enum {
     ADD = 1, BAR = 2, COMMA = 3, COLON = 4, EQ = 5, LEFT_BRACE = 6, NE = 7, 
     NEWLINES = 8, OR = 9, POWER = 10, PRIME = 11, PROD = 12, RIGHT_ANGLE_BRACKET = 13, 
-    RIGHT_BRACE = 14, SEMICOLON = 15, STR = 16, SUM = 17, UNION = 18, WS = 19
+    RIGHT_BRACE = 14, SEMICOLON = 15, SETMINUS = 16, STR = 17, SUM = 18, 
+    UNION = 19, WS = 20
   };
 
   explicit ExtendedDiracLexer(antlr4::CharStream *input);

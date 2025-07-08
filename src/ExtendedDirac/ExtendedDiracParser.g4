@@ -30,12 +30,15 @@ options { tokenVocab=ExtendedDiracLexer; }
 //     | set SETMINUS set
 //     ;
 
-expr: tset;
+expr: tset
+    | tset op=SETMINUS tset;
 
 tset: set
     | set op=POWER N=STR {isNonZero($N.text)}?
     | tset op=PROD tset
     | set op=SEMICOLON set // used for connecting different *.hsl to compute the unit decomposition together
+    | set op=SEMICOLON set SEMICOLON set // used for connecting different *.hsl to compute the unit decomposition together
+    | set op=SEMICOLON set SEMICOLON set SEMICOLON set // used for connecting different *.hsl to compute the unit decomposition together
     ;
 
 set: set op=UNION set
