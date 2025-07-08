@@ -1688,7 +1688,7 @@ AUTOQ::Automata<Symbol> AUTOQ::Parsing::TimbukParser<Symbol, Symbol2>::parse_ext
     // return aut_final;
 }
 template <typename Symbol, typename Symbol2>
-std::tuple<AUTOQ::Automata<Symbol>, AUTOQ::Automata<Symbol2>, std::vector<int>>
+std::tuple<AUTOQ::Automata<Symbol>, AUTOQ::Automata<Symbol2>, std::vector<int>, std::optional<AUTOQ::Automata<Symbol2>>>
 AUTOQ::Parsing::TimbukParser<Symbol, Symbol2>::parse_two_extended_diracs_from_istream(std::istream *is1, std::istream *is2,
                                                                              const std::map<std::string, AUTOQ::Complex::Complex> &constants1,
                                                                              const std::map<std::string, std::string> &predicates1,
@@ -1861,7 +1861,13 @@ AUTOQ::Parsing::TimbukParser<Symbol, Symbol2>::parse_two_extended_diracs_from_is
     for (size_t i = 0; i < N; ++i) {
         inverse_permutation[qubit_permutation[i]] = i;
     }
-    return std::make_tuple(resultA1, resultB1, inverse_permutation);
+    // if (!exprs[1].empty()) resultA2.print_language("resultA2\n");
+    std::optional<AUTOQ::Automata<Symbol2>> optionalResultB2;
+    if (!exprs[3].empty()) {
+        optionalResultB2 = resultB2;
+        // resultB2.print_language("resultB2\n");
+    }
+    return std::make_tuple(resultA1, resultB1, inverse_permutation, optionalResultB2);
 }
 
 template <typename Symbol>
@@ -1872,7 +1878,7 @@ AUTOQ::Automata<Symbol> parse_extended_dirac(const std::string& str, const std::
     return aut;
 }
 template <typename Symbol, typename Symbol2>
-std::tuple<AUTOQ::Automata<Symbol>, AUTOQ::Automata<Symbol2>, std::vector<int>> parse_two_extended_diracs(const std::string& str1, const std::map<std::string, Complex> &constants1, const std::map<std::string, std::string> &predicates1, const std::string& str2, const std::map<std::string, Complex> &constants2, const std::map<std::string, std::string> &predicates2) {
+std::tuple<AUTOQ::Automata<Symbol>, AUTOQ::Automata<Symbol2>, std::vector<int>, std::optional<AUTOQ::Automata<Symbol2>>> parse_two_extended_diracs(const std::string& str1, const std::map<std::string, Complex> &constants1, const std::map<std::string, std::string> &predicates1, const std::string& str2, const std::map<std::string, Complex> &constants2, const std::map<std::string, std::string> &predicates2) {
     std::istringstream inputStream1(str1); // delimited by '\n'
     std::istringstream inputStream2(str2); // delimited by '\n'
     return AUTOQ::Parsing::TimbukParser<Symbol, Symbol2>::parse_two_extended_diracs_from_istream(&inputStream1, &inputStream2, constants1, predicates1, constants2, predicates2);
@@ -2032,7 +2038,7 @@ try {
 }
 }
 template <typename Symbol, typename Symbol2>
-std::tuple<AUTOQ::Automata<Symbol>, AUTOQ::Automata<Symbol2>, std::vector<int>> AUTOQ::Parsing::TimbukParser<Symbol, Symbol2>::ReadTwoAutomata(const std::string& filepath1, const std::string& filepath2) {
+std::tuple<AUTOQ::Automata<Symbol>, AUTOQ::Automata<Symbol2>, std::vector<int>, std::optional<AUTOQ::Automata<Symbol2>>> AUTOQ::Parsing::TimbukParser<Symbol, Symbol2>::ReadTwoAutomata(const std::string& filepath1, const std::string& filepath2) {
 try {
     std::string filepath[] = {filepath1, filepath2};
     std::string automaton[2];
@@ -2158,8 +2164,9 @@ try {
     AUTOQ::Automata<Symbol> aut0;
     AUTOQ::Automata<Symbol2> aut1;
     std::vector<int> qp; // qubit permutation
+    std::optional<AUTOQ::Automata<Symbol2>> autMinus;
     if (boost::algorithm::ends_with(filepath[0], ".hsl") && boost::algorithm::ends_with(filepath[1], ".hsl")) {
-        std::tie(aut0, aut1, qp) = parse_two_extended_diracs<Symbol, Symbol2>(automaton[0], constants[0], predicates[0], automaton[1], constants[1], predicates[1]);
+        std::tie(aut0, aut1, qp, autMinus) = parse_two_extended_diracs<Symbol, Symbol2>(automaton[0], constants[0], predicates[0], automaton[1], constants[1], predicates[1]);
     } else {
         THROW_AUTOQ_ERROR("The filename extension is not supported.");
     }
@@ -2184,7 +2191,7 @@ try {
             }
         }, v);
     }
-    return std::make_tuple(aut0, aut1, qp);
+    return std::make_tuple(aut0, aut1, qp, autMinus);
 } catch (AutoQError &e) {
     std::cout << e.what() << std::endl;
     THROW_AUTOQ_ERROR("(while parsing the automaton: " + filepath1 + " or " + filepath2 + ")");

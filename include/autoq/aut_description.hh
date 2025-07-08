@@ -142,6 +142,7 @@ public:   // methods
     bool operator<(const Automata &o) const { return (*this <= o) && !(o <= *this); }
     bool operator>(const Automata &o) const { return o < *this; }
     // The above comparison is done after amplitude comparison.
+    bool empty() const;
     /******************************************************/
 
     /******************************************************************/
@@ -232,6 +233,7 @@ public:
     #pragma GCC diagnostic push
     #pragma GCC diagnostic ignored "-Weffc++"
     Automata operator||(const Automata &o) const; // use the logical OR operator to denote "union"
+    Automata operator&&(const Automata &o) const; // use the logical AND operator to denote "intersection"
     #pragma GCC diagnostic pop
     void SwapDown(int q);
     void SwapUp(int q);

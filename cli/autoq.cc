@@ -217,7 +217,7 @@ try {
                 THROW_AUTOQ_ERROR("Predicate amplitudes cannot be used in a precondition.");
             }
             // auto aut = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Symbolic>::ReadAutomaton(pre);
-            auto [aut, spec, qp] = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Symbolic, AUTOQ::Symbol::Predicate>::ReadTwoAutomata(pre, post);
+            auto [aut, spec, qp, autMinus] = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Symbolic, AUTOQ::Symbol::Predicate>::ReadTwoAutomata(pre, post);
             // aut.print_aut("PRE:\n");
             // aut.print_language("PRE:\n");
             aut.execute(circuit, qp);
@@ -244,16 +244,17 @@ try {
             }, aut1);
             // // aut.print_aut("PRE:\n");
             // // aut.print_language("PRE:\n");
-            auto [aut, spec, qp] = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Concrete>::ReadTwoAutomata(pre, post);
+            auto [aut, spec, qp, autMinus] = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Concrete>::ReadTwoAutomata(pre, post);
             // aut.print_language("PRE:\n");
             // spec.print_language("SPEC:\n");
             aut.execute(circuit, qp);
             // std::cout << "OUTPUT AUTOMATON:\n";
             // std::cout << "=================\n";
             // aut.print_aut("OUTPUT:\n");
+            // autMinus.value().print_aut("AUT-MINUS:\n");
             // aut.print_language("OUTPUT:\n");
             // std::cout << "=================\n";
-            bool verify = aut <= spec;
+            bool verify = (aut <= spec) && (autMinus ? ((aut && (*autMinus)).empty()) : true);
             if (latex) {
                 aut.print_stats();
             } else {

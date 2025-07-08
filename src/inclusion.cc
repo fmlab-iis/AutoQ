@@ -4,6 +4,83 @@
 #include "autoq/aut_description.hh"
 #include <queue>
 
+template <typename Symbol>
+bool AUTOQ::Automata<Symbol>::empty() const {
+    std::map<State, Tag> qC; // map top to the union of all sets of colors
+    std::map<State, std::map<Tag, std::map<Symbol, std::set<StateVector>>>> qcfi;
+    for (const auto &t : this->transitions) {
+        const SymbolTag &symbol_tag = t.first;
+        for (const auto &out_ins : t.second) {
+            const auto &out = out_ins.first;
+            qC[out] |= symbol_tag.tag(); // union all colors for each state
+            auto &ref = qcfi[out][symbol_tag.tag()][symbol_tag.symbol()];
+            for (const auto &in : out_ins.second) {
+                ref.insert(in);
+            }
+        }
+    }
+
+    typedef std::set<State> Vertex;
+    std::queue<Vertex> bfs; // the queue used for traversing the graph
+    for (const auto &q : this->finalStates) {
+        Vertex vertex;
+        vertex.insert(q);
+        bfs.push(vertex);
+    }
+    while (!bfs.empty()) {
+        Vertex vertex = bfs.front();
+        bfs.pop();
+        Tag range = std::numeric_limits<Tag>::max();
+        for (const auto &top : vertex) {
+            range &= qC[top];
+        }
+        Tag base = 1;
+        std::vector<Tag> candidates;
+        while (range) {
+            if (range & 1) {
+                candidates.push_back(base);
+            }
+            range >>= 1;
+            base <<= 1;
+        }
+        for (auto candidate : candidates) {
+            Vertex new_vertex;
+            std::optional<bool> is_internal;
+            for (const auto &top : vertex) {
+                bool this_top_has_picked_a_transition = false;
+                for (const auto &[c, fi] : qcfi[top]) {
+                    if (c & candidate) {
+                        if (fi.size() != 1) THROW_AUTOQ_ERROR("The sets of choices under the top state " + std::to_string(top) + "are not disjoint!");
+                        const auto &symbol = fi.begin()->first;
+                        if (!is_internal.has_value()) {
+                            is_internal = symbol.is_internal();
+                        } else if (is_internal.value() != symbol.is_internal()) {
+                            THROW_AUTOQ_ERROR("The selected transitions under this choice" + std::to_string(candidate) + "cannot be balanced!");
+                        }
+                        if (is_internal.value()) { // internal transitions
+                            if (fi.begin()->second.size() != 1) THROW_AUTOQ_ERROR("The sets of choices under the top state " + std::to_string(top) + "are not disjoint!");
+                            for (auto i : *(fi.begin()->second.begin())) {
+                                new_vertex.insert(i);
+                            }
+                        }
+                        this_top_has_picked_a_transition = true;
+                        break; // only pick one transition for this top state
+                    }
+                }
+                if (!this_top_has_picked_a_transition) { // this candidate is invalid
+                    goto END;
+                }
+            }
+            if (!is_internal.has_value()) THROW_AUTOQ_ERROR("should have picked some transitions");
+            if (!is_internal.value()) return false; // if all top states have picked a leaf transition, then the language is not empty.
+            if (new_vertex.empty()) THROW_AUTOQ_ERROR("Internal transitions should have some children!");
+            bfs.push(new_vertex);
+            END:;
+        }
+    }
+    return true; // if we can reach here, then the language is empty.
+}
+
 template <>
 bool AUTOQ::Automata<AUTOQ::Symbol::Index>::operator<=(const Automata<AUTOQ::Symbol::Index> &autB) const {
     auto start_include = std::chrono::steady_clock::now();
