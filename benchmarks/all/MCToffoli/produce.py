@@ -113,111 +113,125 @@ for n in sizes:
     if not os.path.exists(n_str):
         os.makedirs(n_str)
     #########################################
+    w = range(n)
+    a = [n + i for i in range(n-1)]
+    t = 2*n - 1
+    #########################################
+    to_be_reversed = []
     with open(n_str + "/circuit.qasm", "w") as file:
         file.write("OPENQASM 2.0;\n")
         file.write('include "qelib1.inc";\n')
         file.write(f'qreg qubits[{2*n}];\n\n')
-        file.write('ccx qubits[0], qubits[1], qubits[2];\n')
-        for i in range(4, 2*n, 2):
-            file.write(f'ccx qubits[{i-1}], qubits[{i-2}], qubits[{i}];\n')
-        file.write(f'cx qubits[{2*n-2}], qubits[{2*n-1}];\n')
-        for i in range(2*n-2, 2, -2):
-            file.write(f'ccx qubits[{i-1}], qubits[{i-2}], qubits[{i}];\n')
-        file.write('ccx qubits[0], qubits[1], qubits[2];\n')
+        to_be_reversed.append(f'ccx qubits[{w[0]}], qubits[{w[1]}], qubits[{a[0]}];\n')
+        file.write(to_be_reversed[-1])
+        for i in range(2, n, 1):
+            to_be_reversed.append(f'ccx qubits[{a[i-2]}], qubits[{w[i]}], qubits[{a[i-1]}];\n')
+            file.write(to_be_reversed[-1])
+        file.write(f'cx qubits[{a[n-2]}], qubits[{t}];\n')
+        for item in reversed(to_be_reversed):
+            file.write(item)
     #########################################
-    with open(n_str + '/pre.hsl', 'w') as file:
-        file.write('Extended Dirac\n')
-        file.write("{|i> | |i|=2}" + ' ⊗ {|0i> | |i|=1} ^ ' + f'{n-1}\n')
-    shutil.copy(n_str + '/pre.hsl', n_str + '/post.hsl')
+    # with open(n_str + '/pre.hsl', 'w') as file:
+    #     file.write('Extended Dirac\n')
+    #     file.write("{|i> | |i|=2}" + ' ⊗ {|0i> | |i|=1} ^ ' + f'{n-1}\n')
+    # shutil.copy(n_str + '/pre.hsl', n_str + '/post.hsl')
     #########################################
-    with open(n_str + "/pre.lsta", "w") as file:
-        file.write('Constants\n')
-        file.write('c0 := 0\n')
-        file.write('c1 := 1\n')
-        file.write('Root States 0\n')
-        file.write('Transitions\n')
-        file.write(f"[1,1](1, 2) -> 0\n")
-        file.write(f"[1,2](2, 1) -> 0\n")
-        file.write(f"[2,3](3, 3) -> 1\n")
-        file.write(f"[2,1](3, 4) -> 2\n")
-        file.write(f"[2,2](4, 3) -> 2\n")
-        for i in range(n-1):
-            file.write(f"[{2*i+3},1]({4*i + 5}, {4*i + 5}) -> {4*i + 3}\n")
-            file.write(f"[{2*i+3},1]({4*i + 6}, {4*i + 5}) -> {4*i + 4}\n")
-            file.write(f"[{2*i+4},3]({4*i + 7}, {4*i + 7}) -> {4*i + 5}\n")
-            file.write(f"[{2*i+4},1]({4*i + 7}, {4*i + 8}) -> {4*i + 6}\n")
-            file.write(f"[{2*i+4},2]({4*i + 8}, {4*i + 7}) -> {4*i + 6}\n")
-        file.write(f"[c0,1] -> {4*(n-2) + 7}\n")
-        file.write(f"[c1,1] -> {4*(n-2) + 8}\n")
-    shutil.copy(n_str + '/pre.lsta', n_str + '/post.lsta')
+    # with open(n_str + "/pre.lsta", "w") as file:
+    #     file.write('Constants\n')
+    #     file.write('c0 := 0\n')
+    #     file.write('c1 := 1\n')
+    #     file.write('Root States 0\n')
+    #     file.write('Transitions\n')
+    #     file.write(f"[1,1](1, 2) -> 0\n")
+    #     file.write(f"[1,2](2, 1) -> 0\n")
+    #     file.write(f"[2,3](3, 3) -> 1\n")
+    #     file.write(f"[2,1](3, 4) -> 2\n")
+    #     file.write(f"[2,2](4, 3) -> 2\n")
+    #     for i in range(n-1):
+    #         file.write(f"[{2*i+3},1]({4*i + 5}, {4*i + 5}) -> {4*i + 3}\n")
+    #         file.write(f"[{2*i+3},1]({4*i + 6}, {4*i + 5}) -> {4*i + 4}\n")
+    #         file.write(f"[{2*i+4},3]({4*i + 7}, {4*i + 7}) -> {4*i + 5}\n")
+    #         file.write(f"[{2*i+4},1]({4*i + 7}, {4*i + 8}) -> {4*i + 6}\n")
+    #         file.write(f"[{2*i+4},2]({4*i + 8}, {4*i + 7}) -> {4*i + 6}\n")
+    #     file.write(f"[c0,1] -> {4*(n-2) + 7}\n")
+    #     file.write(f"[c1,1] -> {4*(n-2) + 8}\n")
+    # shutil.copy(n_str + '/pre.lsta', n_str + '/post.lsta')
     #########################################
     with open(n_str + '/pre0.hsl', 'w') as file:
-        file.write('Extended Dirac\n')
-        file.write("{|i> | |i|=2}" + ' ⊗ {|0i> | |i|=1} ^ ' + f'{n-2}' + ' ⊗ {|00>}\n')
-    #########################################
-    with open(n_str + "/pre0.lsta", "w") as file:
         file.write('Constants\n')
-        file.write('c0 := 0\n')
         file.write('c1 := 1\n')
-        file.write('Root States 0\n')
-        file.write('Transitions\n')
-        file.write(f"[1,1](1, 2) -> 0\n")
-        file.write(f"[1,2](2, 1) -> 0\n")
-        file.write(f"[2,3](3, 3) -> 1\n")
-        file.write(f"[2,1](3, 4) -> 2\n")
-        file.write(f"[2,2](4, 3) -> 2\n")
-        for i in range(n-1):
-            file.write(f"[{2*i+3},1]({4*i + 5}, {4*i + 5}) -> {4*i + 3}\n")
-            file.write(f"[{2*i+3},1]({4*i + 6}, {4*i + 5}) -> {4*i + 4}\n")
-            file.write(f"[{2*i+4},3]({4*i + 7}, {4*i + 7}) -> {4*i + 5}\n")
-            file.write(f"[{2*i+4},1]({4*i + 8}, {4*i + 7}) -> {4*i + 6}\n")
-            if i < n-2:
-                file.write(f"[{2*i+4},2]({4*i + 7}, {4*i + 8}) -> {4*i + 6}\n")
-        file.write(f"[c0,1] -> {4*(n-2) + 7}\n")
-        file.write(f"[c1,1] -> {4*(n-2) + 8}\n")
+        file.write('Extended Dirac\n')
+        file.write('{ c1 |i' + '0'*(n-1) + '0> : |i|=' + str(n) + ' }\n')
+    #########################################
+    # with open(n_str + "/pre0.lsta", "w") as file:
+    #     file.write('Constants\n')
+    #     file.write('c0 := 0\n')
+    #     file.write('c1 := 1\n')
+    #     file.write('Root States 0\n')
+    #     file.write('Transitions\n')
+    #     file.write(f"[1,1](1, 2) -> 0\n")
+    #     file.write(f"[1,2](2, 1) -> 0\n")
+    #     file.write(f"[2,3](3, 3) -> 1\n")
+    #     file.write(f"[2,1](3, 4) -> 2\n")
+    #     file.write(f"[2,2](4, 3) -> 2\n")
+    #     for i in range(n-1):
+    #         file.write(f"[{2*i+3},1]({4*i + 5}, {4*i + 5}) -> {4*i + 3}\n")
+    #         file.write(f"[{2*i+3},1]({4*i + 6}, {4*i + 5}) -> {4*i + 4}\n")
+    #         file.write(f"[{2*i+4},3]({4*i + 7}, {4*i + 7}) -> {4*i + 5}\n")
+    #         file.write(f"[{2*i+4},1]({4*i + 8}, {4*i + 7}) -> {4*i + 6}\n")
+    #         if i < n-2:
+    #             file.write(f"[{2*i+4},2]({4*i + 7}, {4*i + 8}) -> {4*i + 6}\n")
+    #     file.write(f"[c0,1] -> {4*(n-2) + 7}\n")
+    #     file.write(f"[c1,1] -> {4*(n-2) + 8}\n")
     #########################################
     with open(n_str + '/pre1.hsl', 'w') as file:
-        file.write('Extended Dirac\n')
-        file.write("{|i> | |i|=2}" + ' ⊗ {|0i> | |i|=1} ^ ' + f'{n-2}' + ' ⊗ {|01>}\n')
-    #########################################
-    with open(n_str + "/pre1.lsta", "w") as file:
         file.write('Constants\n')
-        file.write('c0 := 0\n')
         file.write('c1 := 1\n')
-        file.write('Root States 0\n')
-        file.write('Transitions\n')
-        file.write(f"[1,1](1, 2) -> 0\n")
-        file.write(f"[1,2](2, 1) -> 0\n")
-        file.write(f"[2,3](3, 3) -> 1\n")
-        file.write(f"[2,1](3, 4) -> 2\n")
-        file.write(f"[2,2](4, 3) -> 2\n")
-        for i in range(n-1):
-            file.write(f"[{2*i+3},1]({4*i + 5}, {4*i + 5}) -> {4*i + 3}\n")
-            file.write(f"[{2*i+3},1]({4*i + 6}, {4*i + 5}) -> {4*i + 4}\n")
-            file.write(f"[{2*i+4},3]({4*i + 7}, {4*i + 7}) -> {4*i + 5}\n")
-            if i < n-2:
-                file.write(f"[{2*i+4},1]({4*i + 8}, {4*i + 7}) -> {4*i + 6}\n")
-            file.write(f"[{2*i+4},2]({4*i + 7}, {4*i + 8}) -> {4*i + 6}\n")
-        file.write(f"[c0,1] -> {4*(n-2) + 7}\n")
-        file.write(f"[c1,1] -> {4*(n-2) + 8}\n")
+        file.write('Extended Dirac\n')
+        file.write('{ c1 |i' + '0'*(n-1) + '1> : |i|=' + str(n) + ' }\n')
+    #########################################
+    # with open(n_str + "/pre1.lsta", "w") as file:
+    #     file.write('Constants\n')
+    #     file.write('c0 := 0\n')
+    #     file.write('c1 := 1\n')
+    #     file.write('Root States 0\n')
+    #     file.write('Transitions\n')
+    #     file.write(f"[1,1](1, 2) -> 0\n")
+    #     file.write(f"[1,2](2, 1) -> 0\n")
+    #     file.write(f"[2,3](3, 3) -> 1\n")
+    #     file.write(f"[2,1](3, 4) -> 2\n")
+    #     file.write(f"[2,2](4, 3) -> 2\n")
+    #     for i in range(n-1):
+    #         file.write(f"[{2*i+3},1]({4*i + 5}, {4*i + 5}) -> {4*i + 3}\n")
+    #         file.write(f"[{2*i+3},1]({4*i + 6}, {4*i + 5}) -> {4*i + 4}\n")
+    #         file.write(f"[{2*i+4},3]({4*i + 7}, {4*i + 7}) -> {4*i + 5}\n")
+    #         if i < n-2:
+    #             file.write(f"[{2*i+4},1]({4*i + 8}, {4*i + 7}) -> {4*i + 6}\n")
+    #         file.write(f"[{2*i+4},2]({4*i + 7}, {4*i + 8}) -> {4*i + 6}\n")
+    #     file.write(f"[c0,1] -> {4*(n-2) + 7}\n")
+    #     file.write(f"[c1,1] -> {4*(n-2) + 8}\n")
     #########################################
     with open(n_str + '/post0.hsl', 'w') as file:
+        file.write('Constants\n')
+        file.write('c1 := 1\n')
         file.write('Extended Dirac\n')
-        file.write("{|i> | |i|=2}" + ' ⊗ {|0i> | |i|=1} ^ ' + f'{n-2}' + ' ⊗ {|00>}\n')
-        file.write('U {|1' + '10' * (n-1) + '1>}\n')
-        file.write('\ {|1' + '10' * (n-1) + '0>}\n')
+        file.write('{ c1 |i' + '0'*(n-1) + '0> : |i|=' + str(n) + ' }\n')
+        file.write('∪ { c1 |' + '1'*n + '0'*(n-1) + '1>}\n')
+        file.write('\\ { c1 |' + '1'*n + '0'*(n-1) + '0>}\n')
     #########################################
-    with open(n_str + "/post0.lsta", "w") as file:
-        print(gen_toff_postlsta(n, False), file=file)
+    # with open(n_str + "/post0.lsta", "w") as file:
+    #     print(gen_toff_postlsta(n, False), file=file)
     #########################################
     with open(n_str + '/post1.hsl', 'w') as file:
+        file.write('Constants\n')
+        file.write('c1 := 1\n')
         file.write('Extended Dirac\n')
-        file.write("{|i> | |i|=2}" + ' ⊗ {|0i> | |i|=1} ^ ' + f'{n-2}' + ' ⊗ {|01>}\n')
-        file.write('U {|1' + '10' * (n-1) + '0>}\n')
-        file.write('\ {|1' + '10' * (n-1) + '1>}\n')
+        file.write('{ c1 |i' + '0'*(n-1) + '1> : |i|=' + str(n) + ' }\n')
+        file.write('∪ { c1 |' + '1'*n + '0'*(n-1) + '0>}\n')
+        file.write('\\ { c1 |' + '1'*n + '0'*(n-1) + '1>}\n')
     #########################################
-    with open(n_str + "/post1.lsta", "w") as file:
-        print(gen_toff_postlsta(n, True), file=file)
+    # with open(n_str + "/post1.lsta", "w") as file:
+    #     print(gen_toff_postlsta(n, True), file=file)
     #########################################
 
 # cp -rl {08,10,12,14,16} ../../LSTA/MCToffoli/
