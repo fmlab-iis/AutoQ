@@ -245,6 +245,8 @@ try {
             // // aut.print_aut("PRE:\n");
             // // aut.print_language("PRE:\n");
             auto [aut, spec, qp] = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Concrete>::ReadTwoAutomata(pre, post);
+            // aut.print_language("PRE:\n");
+            // spec.print_language("SPEC:\n");
             aut.execute(circuit, qp);
             // std::cout << "OUTPUT AUTOMATON:\n";
             // std::cout << "=================\n";

@@ -1697,7 +1697,7 @@ AUTOQ::Parsing::TimbukParser<Symbol, Symbol2>::parse_two_extended_diracs_from_is
     const std::map<std::string, AUTOQ::Complex::Complex> *constants[] = {&constants1, &constants2};
     const std::map<std::string, std::string> *predicates[] = {&predicates1, &predicates2};
     std::string extended_dirac[2];
-    std::vector<std::string> exprs[2];
+    std::vector<std::string> exprs[4]; // A1 \ A2; B1 \ B2
     int i = 0;
     for (std::istream *is : {is1, is2}) {
         bool start_transitions = false;
@@ -1723,19 +1723,25 @@ AUTOQ::Parsing::TimbukParser<Symbol, Symbol2>::parse_two_extended_diracs_from_is
         visitor.mode = EvaluationVisitor<Symbol, Symbol2>::EXPAND_POWER_AND_DIRACS_AND_REWRITE_COMPLEMENT;
         auto extended_dirac2 = std::any_cast<std::string>(visitor.let_visitor_parse_string(extended_dirac[i]));
         visitor.mode = EvaluationVisitor<Symbol, Symbol2>::SPLIT_TENSORED_EXPRESSION_INTO_VECTOR_OF_SETS_WITHOUT_TENSOR;
-        exprs[i] = std::any_cast<std::vector<std::string>>(visitor.let_visitor_parse_string(extended_dirac2));
+        std::tie(exprs[2*i], exprs[2*i+1]) = std::any_cast<std::pair<std::vector<std::string>, std::vector<std::string>>>(visitor.let_visitor_parse_string(extended_dirac2)); // may contain SETMINUS
         /**/
         i++;
     }
-    if (exprs[0].size() != exprs[1].size()) {
+    // Notice that up to this point, exprs[0] and exprs[2] are mandatory, whereas exprs[1] and exprs[3] are optional.
+    if (!(exprs[0].size() == exprs[2].size() &&
+         (exprs[1].empty() || exprs[0].size() == exprs[1].size()) &&
+         (exprs[3].empty() || exprs[2].size() == exprs[3].size()))) {
         THROW_AUTOQ_ERROR("The two *.hsl files are not aligned!");
     }
 
-    AUTOQ::Automata<Symbol> resultA;
-    AUTOQ::Automata<Symbol2> resultB;
+    AUTOQ::Automata<Symbol> resultA1, resultA2;
+    AUTOQ::Automata<Symbol2> resultB1, resultB2;
     std::vector<int> qubit_permutation;
     for (size_t i=0; i<exprs[0].size(); ++i) {
-        auto new_composited_expression = exprs[0][i] + " ; " + exprs[1][i];
+        auto new_composited_expression = exprs[0][i] +
+                                        (exprs[1].empty() ? "" : (" ; " + exprs[1][i])) +
+                                 " ; " + exprs[2][i] +
+                                        (exprs[3].empty() ? "" : (" ; " + exprs[3][i]));
         EvaluationVisitor<Symbol, Symbol2> visitor(constants1, predicates1); // any pair of constants and predicates can do
         visitor.mode = EvaluationVisitor<Symbol, Symbol2>::COLLECT_KETS_AND_COMPUTE_UNIT_DECOMPOSITION_INDICES;
         typename EvaluationVisitor<Symbol, Symbol2>::segment2split_t segment2split = std::any_cast<typename EvaluationVisitor<Symbol, Symbol2>::segment2split_t>(visitor.let_visitor_parse_string(new_composited_expression));
@@ -1768,20 +1774,83 @@ AUTOQ::Parsing::TimbukParser<Symbol, Symbol2>::parse_two_extended_diracs_from_is
             }
         }
 
-        visitor.mode = EvaluationVisitor<Symbol, Symbol2>::REORDER_UNITS_BY_THE_GROUP;
-        visitor.segment2perm = segment2perm;
-        auto afterrewrite = std::any_cast<std::string>(visitor.let_visitor_parse_string(extended_diracC));
-        visitor.mode = EvaluationVisitor<Symbol, Symbol2>::EVALUATE_EACH_SET_BRACES_TO_LSTA;
-        visitor.segment2perm = segment2perm;
-        visitor.constants2 = constants2;
-        visitor.predicates2 = predicates2;
-        auto finals = std::any_cast<std::pair<AUTOQ::Automata<Symbol>, AUTOQ::Automata<Symbol2>>>(visitor.let_visitor_parse_string(afterrewrite));
-        if (i == 0) {
-            resultA = finals.first;
-            resultB = finals.second;
-        } else {
-            resultA = resultA.operator*(finals.first);
-            resultB = resultB.operator*(finals.second);
+        // I think that from this point, we don't need to bind the two automata together.
+        // We can process them separately.
+        std::stringstream ss(extended_diracC);
+        std::string item;
+        int j = -1;
+        while (std::getline(ss, item, ';')) {
+            std::string trimmed = AUTOQ::String::trim(item);
+            if (!trimmed.empty()) {
+                j++;
+                if (exprs[j].empty()) j++; // skip the empty one
+                if (j == 0) {
+                    EvaluationVisitor<Symbol> visitor(constants1, predicates1);
+                    visitor.mode = EvaluationVisitor<Symbol>::REORDER_UNITS_BY_THE_GROUP;
+                    visitor.segment2perm = segment2perm;
+                    auto afterrewrite = std::any_cast<std::string>(visitor.let_visitor_parse_string(trimmed));
+                    visitor.mode = EvaluationVisitor<Symbol>::EVALUATE_EACH_SET_BRACES_TO_LSTA;
+                    visitor.segment2perm = segment2perm;
+                    // visitor.constants2 = constants2;
+                    // visitor.predicates2 = predicates2;
+                    auto final = std::any_cast<AUTOQ::Automata<Symbol>>(visitor.let_visitor_parse_string(afterrewrite));
+                    if (i == 0) {
+                        resultA1 = final;
+                    } else {
+                        resultA1 = resultA1.operator*(final);
+                    }
+                } else if (j == 1) {
+                    EvaluationVisitor<Symbol> visitor(constants1, predicates1);
+                    visitor.mode = EvaluationVisitor<Symbol>::REORDER_UNITS_BY_THE_GROUP;
+                    visitor.segment2perm = segment2perm;
+                    auto afterrewrite = std::any_cast<std::string>(visitor.let_visitor_parse_string(trimmed));
+                    visitor.mode = EvaluationVisitor<Symbol>::EVALUATE_EACH_SET_BRACES_TO_LSTA;
+                    visitor.segment2perm = segment2perm;
+                    // visitor.constants2 = constants2;
+                    // visitor.predicates2 = predicates2;
+                    auto final = std::any_cast<AUTOQ::Automata<Symbol>>(visitor.let_visitor_parse_string(afterrewrite));
+                    if (i == 0) {
+                        resultA2 = final;
+                    } else {
+                        resultA2 = resultA2.operator*(final);
+                    }
+                } else if (j == 2) {
+                    EvaluationVisitor<Symbol2> visitor(constants2, predicates2);
+                    visitor.mode = EvaluationVisitor<Symbol2>::REORDER_UNITS_BY_THE_GROUP;
+                    visitor.segment2perm = segment2perm;
+                    // visitor.constants = constants2;
+                    // visitor.predicates = predicates2;
+                    auto afterrewrite = std::any_cast<std::string>(visitor.let_visitor_parse_string(trimmed));
+                    visitor.mode = EvaluationVisitor<Symbol2>::EVALUATE_EACH_SET_BRACES_TO_LSTA;
+                    visitor.segment2perm = segment2perm;
+                    auto final = std::any_cast<AUTOQ::Automata<Symbol2>>(visitor.let_visitor_parse_string(afterrewrite));
+                    if (i == 0) {
+                        resultB1 = final;
+                    } else {
+                        resultB1 = resultB1.operator*(final);
+                    }
+                } else if (j == 3) {
+                    EvaluationVisitor<Symbol2> visitor(constants2, predicates2);
+                    visitor.mode = EvaluationVisitor<Symbol2>::REORDER_UNITS_BY_THE_GROUP;
+                    visitor.segment2perm = segment2perm;
+                    // visitor.constants = constants2;
+                    // visitor.predicates = predicates2;
+                    auto afterrewrite = std::any_cast<std::string>(visitor.let_visitor_parse_string(trimmed));
+                    visitor.mode = EvaluationVisitor<Symbol2>::EVALUATE_EACH_SET_BRACES_TO_LSTA;
+                    visitor.segment2perm = segment2perm;
+                    auto final = std::any_cast<AUTOQ::Automata<Symbol2>>(visitor.let_visitor_parse_string(afterrewrite));
+                    if (i == 0) {
+                        resultB2 = final;
+                    } else {
+                        resultB2 = resultB2.operator*(final);
+                    }
+                }
+                else {
+                    THROW_AUTOQ_ERROR("Unexpected j value: " + std::to_string(j));
+                }
+            } else {
+                THROW_AUTOQ_ERROR("Impossible case!");
+            }
         }
     }
 
@@ -1792,7 +1861,7 @@ AUTOQ::Parsing::TimbukParser<Symbol, Symbol2>::parse_two_extended_diracs_from_is
     for (size_t i = 0; i < N; ++i) {
         inverse_permutation[qubit_permutation[i]] = i;
     }
-    return std::make_tuple(resultA, resultB, inverse_permutation);
+    return std::make_tuple(resultA1, resultB1, inverse_permutation);
 }
 
 template <typename Symbol>

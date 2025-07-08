@@ -270,11 +270,23 @@ struct EvaluationVisitor : public ExtendedDiracParserBaseVisitor {
 
     std::any visitExpr(ExtendedDiracParser::ExprContext *ctx) override {
         if (mode == EXPAND_POWER_AND_DIRACS_AND_REWRITE_COMPLEMENT) {
-            return std::any_cast<std::string>(visit(ctx->tset()));
+            if (ctx->op == nullptr) {
+                return std::any_cast<std::string>(visit(ctx->tset(0)));
+            } else { // if (ctx->op->getType() == ExtendedDiracParser::SETMINUS) {
+                auto str0 = std::any_cast<std::string>(visit(ctx->tset(0)));
+                auto str1 = std::any_cast<std::string>(visit(ctx->tset(1)));
+                return str0 + " \\ " + str1; // This is a set minus operation.
+            }
         } else if (mode == SPLIT_TENSORED_EXPRESSION_INTO_VECTOR_OF_SETS_WITHOUT_TENSOR) {
-            return std::any_cast<std::vector<std::string>>(visit(ctx->tset()));
+            if (ctx->op == nullptr) {
+                return std::make_pair(std::any_cast<std::vector<std::string>>(visit(ctx->tset(0))), std::vector<std::string>());
+            } else { // if (ctx->op->getType() == ExtendedDiracParser::SETMINUS) {
+                auto vec0 = std::any_cast<std::vector<std::string>>(visit(ctx->tset(0)));
+                auto vec1 = std::any_cast<std::vector<std::string>>(visit(ctx->tset(1)));
+                return std::make_pair(vec0, vec1); // This is a set minus operation.
+            }
         } else if (mode == COLLECT_KETS_AND_COMPUTE_UNIT_DECOMPOSITION_INDICES) {
-            auto segment2strs = std::any_cast<segment2strs_t>(visit(ctx->tset()));
+            auto segment2strs = std::any_cast<segment2strs_t>(visit(ctx->tset(0)));
             segment2split_t segment2split;
             for (const auto &strs : segment2strs) { // loop through all tensor segments
                 // one iteration = one tensor segment
@@ -304,19 +316,19 @@ struct EvaluationVisitor : public ExtendedDiracParserBaseVisitor {
             }
             return segment2split;
         } else if (mode == REWRITE_BY_UNIT_INDICES_AND_MAKE_ALL_VARS_DISTINCT) {
-            return std::any_cast<std::string>(visit(ctx->tset()));
+            return std::any_cast<std::string>(visit(ctx->tset(0)));
         } else if (mode == COMPUTE_CONNECTED_UNITS_INTO_A_GROUP_RELATION) {
-            return std::any_cast<segment2perm_t>(visit(ctx->tset()));
+            return std::any_cast<segment2perm_t>(visit(ctx->tset(0)));
         } else if (mode == REORDER_UNITS_BY_THE_GROUP) {
-            return std::any_cast<std::string>(visit(ctx->tset()));
+            return std::any_cast<std::string>(visit(ctx->tset(0)));
         } else if (mode == EVALUATE_EACH_SET_BRACES_TO_LSTA) {
-            return visit(ctx->tset());
+            return visit(ctx->tset(0));
             // The type can be AUTOQ::Automata<Symbol> (without ;) or
             //                 std::pair<AUTOQ::Automata<Symbol>, AUTOQ::Automata<Symbol2>> (with ;)
         } else if (mode == SET_BRACES_IS_TENSOR_DECOMPOSED_INTO_GROUPS) {
-            return std::any_cast<std::string>(visit(ctx->tset()));
+            return std::any_cast<std::string>(visit(ctx->tset(0)));
         } else if (mode == SHUFFLE_UNITS_IN_A_GROUP_WRT_QUBITS_AND_CONSTRUCT_LSTA_FINALLY) {
-            auto aut = std::any_cast<AUTOQ::Automata<AUTOQ::Symbol::Constrained>>(visit(ctx->tset()));
+            auto aut = std::any_cast<AUTOQ::Automata<AUTOQ::Symbol::Constrained>>(visit(ctx->tset(0)));
             auto do_the_work = [&]<typename SymbolV>() -> std::any {
                 // TODO: Write a callable function for copying one automaton to another one with the transitions replaced.
                 AUTOQ::Automata<SymbolV> result;
@@ -506,6 +518,14 @@ struct EvaluationVisitor : public ExtendedDiracParserBaseVisitor {
                 auto vec0 = std::any_cast<strs2split_t>(visit(ctx->set(0)));
                 auto vec1 = std::any_cast<strs2split_t>(visit(ctx->set(1)));
                 vec0.insert(vec0.end(), vec1.begin(), vec1.end());
+                if (ctx->set().size() >= 3) {
+                    auto vec1 = std::any_cast<strs2split_t>(visit(ctx->set(2)));
+                    vec0.insert(vec0.end(), vec1.begin(), vec1.end());
+                }
+                if (ctx->set().size() >= 4) {
+                    auto vec1 = std::any_cast<strs2split_t>(visit(ctx->set(3)));
+                    vec0.insert(vec0.end(), vec1.begin(), vec1.end());
+                }
                 segment2strs.push_back(vec0);
                 return segment2strs;
             } else {
@@ -519,9 +539,15 @@ struct EvaluationVisitor : public ExtendedDiracParserBaseVisitor {
             } else if (ctx->op->getType() == ExtendedDiracParser::SEMICOLON) { // set; set
                 currentSplit = segment2split.front(); // access the first element
                 segment2split.erase(segment2split.begin()); // remove it (O(n) operation)
-                auto res1 = std::any_cast<std::string>(visit(ctx->set(0)));
-                auto res2 = std::any_cast<std::string>(visit(ctx->set(1)));
-                return res1 + " ; " + res2;
+                auto result = std::any_cast<std::string>(visit(ctx->set(0)));
+                result += " ; " + std::any_cast<std::string>(visit(ctx->set(1)));
+                if (ctx->set().size() >= 3) {
+                    result += " ; " + std::any_cast<std::string>(visit(ctx->set(2)));
+                }
+                if (ctx->set().size() >= 4) {
+                    result += " ; " + std::any_cast<std::string>(visit(ctx->set(3)));
+                }
+                return result;
             } else if (ctx->op->getType() == ExtendedDiracParser::PROD) {
                 std::string str0 = std::any_cast<std::string>(visit(ctx->tset(0)));
                 std::string str1 = std::any_cast<std::string>(visit(ctx->tset(1)));
@@ -540,6 +566,14 @@ struct EvaluationVisitor : public ExtendedDiracParserBaseVisitor {
                 auto graph1 = std::any_cast<graph_t>(visit(ctx->set(0)));
                 auto graph2 = std::any_cast<graph_t>(visit(ctx->set(1)));
                 graph1.insert(graph2.begin(), graph2.end());
+                if (ctx->set().size() >= 3) {
+                    auto graph3 = std::any_cast<graph_t>(visit(ctx->set(2)));
+                    graph1.insert(graph3.begin(), graph3.end());
+                }
+                if (ctx->set().size() >= 4) {
+                    auto graph4 = std::any_cast<graph_t>(visit(ctx->set(3)));
+                    graph1.insert(graph4.begin(), graph4.end());
+                }
                 segment2perm_t result;
                 result.push_back(sortedConnectedComponent(graph1));
                 return result;
@@ -622,15 +656,18 @@ struct EvaluationVisitor : public ExtendedDiracParserBaseVisitor {
 
     std::any visitSet(ExtendedDiracParser::SetContext *ctx) override {
         if (mode == EXPAND_POWER_AND_DIRACS_AND_REWRITE_COMPLEMENT) {
-            if (ctx->op != nullptr) return std::any_cast<std::string>(visit(ctx->set(0))) + " ∪ " + std::any_cast<std::string>(visit(ctx->set(1)));
-            std::string result;
-            for (const auto &dirac : std::any_cast<std::vector<std::string>>(visit(ctx->diracs()))) {
-                if (result.length() > 0) result += " ∪ ";
-                result += "{" + dirac;
-                result += (ctx->varcons() == nullptr) ? "" : (" : " + ctx->varcons()->getText());
-                result += "}";
+            if (ctx->op != nullptr) {
+                return std::any_cast<std::string>(visit(ctx->set(0))) + " ∪ " + std::any_cast<std::string>(visit(ctx->set(1)));
+            } else {
+                std::string result;
+                for (const auto &dirac : std::any_cast<std::vector<std::string>>(visit(ctx->diracs()))) {
+                    if (result.length() > 0) result += " ∪ ";
+                    result += "{" + dirac;
+                    result += (ctx->varcons() == nullptr) ? "" : (" : " + ctx->varcons()->getText());
+                    result += "}";
+                }
+                return result;
             }
-            return result;
         } else if (mode == COLLECT_KETS_AND_COMPUTE_UNIT_DECOMPOSITION_INDICES) {
             if (ctx->op != nullptr) { // RULE: set op=UNION set
                 auto vec0 = std::any_cast<strs2split_t>(visit(ctx->set(0)));
