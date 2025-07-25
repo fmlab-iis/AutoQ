@@ -1,0 +1,4 @@
+Constants
+c1 := 1
+Extended Dirac
+{c1 |00>, c1 |11>} ^ 3 ⊗ {c1 |1>}
