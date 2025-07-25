@@ -7,6 +7,7 @@
 #include "autoq/symbol/symbolic.hh"
 #include "autoq/complex/complex.hh"
 #include "autoq/complex/constrained_complex.hh"
+#include "autoq/parsing/predicate_parser.hh"
 
 #include <queue>
 
@@ -178,8 +179,8 @@ struct EvaluationVisitor : public ExtendedDiracParserBaseVisitor {
     bool encountered_term_undefined_error;
 
     std::map<std::string, AUTOQ::Complex::Complex> constants, constants2;
-    std::map<std::string, std::string> predicates, predicates2;
-    EvaluationVisitor(const std::map<std::string, AUTOQ::Complex::Complex> &constants, const std::map<std::string, std::string> &predicates) :
+    std::string predicateConstraints, predicateConstraints2;
+    EvaluationVisitor(const std::map<std::string, AUTOQ::Complex::Complex> &constants, const std::string &predicateConstraints) :
         mode(EXPAND_POWER_AND_DIRACS_AND_REWRITE_COMPLEMENT),
         globalVar2len(),
         usedVars(),
@@ -193,8 +194,8 @@ struct EvaluationVisitor : public ExtendedDiracParserBaseVisitor {
         encountered_term_undefined_error(false),
         constants(constants),
         constants2(),
-        predicates(predicates),
-        predicates2() {}
+        predicateConstraints(predicateConstraints),
+        predicateConstraints2() {}
     std::any let_visitor_parse_string(const std::string &input) {
         antlr4::ANTLRInputStream inputStream(input);
         ExtendedDiracLexer lexer(&inputStream);
@@ -405,7 +406,22 @@ struct EvaluationVisitor : public ExtendedDiracParserBaseVisitor {
                             } else {
                                 AUTOQ::Symbol::Predicate p;
                                 for (const auto &[termId, term] : c) {
-                                    p = AUTOQ::Symbol::Predicate(predicates.at(std::get<0>(term)));
+                                    std::stringstream ss(AUTOQ::String::trim(predicateConstraints));
+                                    std::string constraint, finalPredicate;
+                                    while (std::getline(ss, constraint, '\n')) {
+                                        auto myStr = AUTOQ::Parsing::PredicateParser(constraint, std::get<0>(term)).getSMTexpression();
+                                        if (!myStr.empty()) {
+                                            if (finalPredicate.empty()) {
+                                                finalPredicate = myStr;
+                                            } else {
+                                                finalPredicate = "(and " + finalPredicate + " " + myStr + ")";
+                                            }
+                                        }
+                                    }
+                                    if (finalPredicate.empty()) {
+                                        finalPredicate = "true"; // if no constraints, then it should be always true
+                                    }
+                                    p = AUTOQ::Symbol::Predicate(finalPredicate);
                                     // use = because c.size() == 1
                                 }
                                 st2 = AUTOQ::Automata<AUTOQ::Symbol::Predicate>::SymbolTag(p, st.tag());
@@ -616,13 +632,13 @@ struct EvaluationVisitor : public ExtendedDiracParserBaseVisitor {
                 auto aut0 = std::any_cast<AUTOQ::Automata<Symbol>>(visit(ctx->set(0)));
                 auto constants_tmp = constants;
                 constants = constants2;
-                auto predicates_tmp = predicates;
-                predicates = predicates2;
+                auto predicateConstraints_tmp = predicateConstraints;
+                predicateConstraints = predicateConstraints2;
                 switch_symbol_to_second = true; // switch to the second symbol type
                 auto aut1 = std::any_cast<AUTOQ::Automata<Symbol2>>(visit(ctx->set(1)));
                 switch_symbol_to_second = false; // switch back to the first symbol type
                 constants = constants_tmp;
-                predicates = predicates_tmp;
+                predicateConstraints = predicateConstraints_tmp;
                 return std::make_pair(aut0, aut1);
             }
             if (ctx->op->getType() == ExtendedDiracParser::PROD) {
@@ -767,7 +783,7 @@ struct EvaluationVisitor : public ExtendedDiracParserBaseVisitor {
                     auto aut2 = std::any_cast<AUTOQ::Automata<SymbolV>>(visit(ctx->set(1)));
                     return aut1 || aut2;
                 }
-                EvaluationVisitor visitor(constants, predicates);
+                EvaluationVisitor visitor(constants, predicateConstraints);
                 visitor.mode = SET_BRACES_IS_TENSOR_DECOMPOSED_INTO_GROUPS;
                 visitor.currentPerm = currentPerm;
                 visitor.switch_symbol_to_second = switch_symbol_to_second;

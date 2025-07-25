@@ -205,10 +205,10 @@ try {
         }, aut);
     } else if (verification->parsed()) {
         // runConcrete = false;
-        auto spec1 = ReadAutomaton(post);
-        if (std::holds_alternative<AUTOQ::SymbolicAutomata>(spec1)) {
+        auto spec1 = ReadPossiblyPredicateAutomaton(post);
+        /*if (std::holds_alternative<AUTOQ::SymbolicAutomata>(spec1)) {
             THROW_AUTOQ_ERROR("The postcondition must have concrete or predicate amplitudes.");
-        } else if (std::holds_alternative<AUTOQ::PredicateAutomata>(spec1)) {
+        } else*/ if (std::holds_alternative<AUTOQ::PredicateAutomata>(spec1)) {
             // auto &spec = std::get<AUTOQ::PredicateAutomata>(spec1);
             // spec.print_aut("POST:\n");
             // spec.print_language("POST:\n");
