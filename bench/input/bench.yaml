@@ -1,5 +1,0 @@
-symbolic:
-  cmd: ../build/cli/autoq ex --loopsum $1 $2
-
-manual:
-  cmd: ../build/cli/autoq ex $1 $2
