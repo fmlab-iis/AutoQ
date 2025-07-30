@@ -131,7 +131,7 @@ void timeout_handler(int) {
     stats["removeuseless"] = AUTOQ::Util::Convert::toString(AUTOQ::TreeAutomata::total_removeuseless_time);
     stats["reduce"] = AUTOQ::Util::Convert::toString(AUTOQ::TreeAutomata::total_reduce_time);
     stats["include"] = AUTOQ::Util::Convert::toString(AUTOQ::TreeAutomata::total_include_time);
-    stats["total"] = "600";
+    stats["total"] = "1800";
     stats["result"] = std::to_string(AUTOQ::TreeAutomata::gateCount);
     stats["aut1.trans"] = std::to_string(aut.count_transitions());
     stats["aut1.leaves"] = std::to_string(aut.count_leaves());
@@ -150,7 +150,7 @@ void set_timeout(unsigned int seconds) {
 
 int main(int argc, char **argv) {
 try {
-    set_timeout(600);
+    set_timeout(1800);
     feenableexcept(FE_ALL_EXCEPT & ~FE_INEXACT);
 
     CLI::App app{"AutoQ: An automata-based C++ tool for quantum program verification."};
@@ -174,6 +174,10 @@ try {
     verification->add_option("pre.{hsl|lsta}", pre, "the precondition file")->required()->type_name("");
     verification->add_option("circuit.qasm", circuit, "the OpenQASM 2.0 circuit file")->required()->type_name("");
     verification->add_option("post.{hsl|lsta}", post, "the postcondition file")->required()->type_name("");
+    verification->add_flag("--loopsum", sumarize_loops, "Summarize loops using symbolic execution");
+    verification->add_flag("--loopmanual", manual_loop, "Execute loops using manual execution");
+    verification->get_option("--loopmanual")->excludes("--loopsum");
+    verification->get_option("--loopsum")->excludes("--loopmanual");
     verification->add_flag("-l,--latex", latex, "Print the statistics for tables in LaTeX");
     verification->callback([&]() {
         adjust_N_in_nTuple(circuit);
@@ -200,6 +204,13 @@ try {
     // bool runConcrete; // or runSymbolic
     ParameterMap params;
     params["loop"] = "manual"; // set the default option for loop execution
+    if(sumarize_loops){
+        // summarization of loops enabled
+        params["loop"] = "symbolic";
+    }
+    if(manual_loop){
+        params["loop"] = "manual";
+    }
     if (execution->parsed()) {
         // runConcrete = true;
         auto aut2 = ReadAutomaton(pre);
@@ -211,17 +222,9 @@ try {
             }
         }, aut2);
 
-
-        if(sumarize_loops){
-            params["loop"] = "symbolic";
-        }
-        if(manual_loop){
-            params["loop"] = "manual";
-        }
-
         std::visit([&circuit, &params](auto& aut){
             aut.execute(circuit, params);
-            //aut.print_aut();
+            aut.print_aut();
         }, aut);
     } else if (verification->parsed()) {
         // runConcrete = false;

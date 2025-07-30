@@ -49,7 +49,7 @@ add_library(lsta STATIC
     query.cc
 	gate.cc
     general.cc
-    loop_sumarization.cc
+    loop_summarization.cc
 )
 
 ##############################################################################

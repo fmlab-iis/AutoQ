@@ -14,7 +14,6 @@ void execute_loop(std::vector<std::string>& loop_body, AUTOQ::Automata<Symbol>& 
                 const std::sregex_iterator& END, std::smatch match_pieces);
 
 namespace std{
-
     template<>
     struct hash<AUTOQ::Symbol::Concrete> {
         std::size_t operator()(const AUTOQ::Symbol::Concrete symbol) const {
@@ -27,7 +26,6 @@ namespace std{
             return boost::hash<std::string>()(symbol.str());
         }
     };
-
 }
 
 #endif

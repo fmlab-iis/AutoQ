@@ -1,4 +1,4 @@
-#include "autoq/loop_sumarization.hh"
+#include "autoq/loop_summarization.hh"
 #include "autoq/aut_description.hh"
 #include "autoq/util/string.hh"
 #include <queue>
@@ -67,17 +67,14 @@ AUTOQ::Automata<AUTOQ::Symbol::Symbolic> initial_abstraction(AUTOQ::Automata<Sym
 }
 
 
-
-
-
-
-
-
-
 template<typename Symbol>
-AUTOQ::Symbol::Symbolic eval_mapping(const AUTOQ::Symbol::Symbolic& symbol_before, const AUTOQ::Symbol::Symbolic& symbol_after, 
-                                    InverseAbstractionMap<Symbol>& inverse_alpha, SymbolicMap& tau, int& symbolicvarsNum, bool& changes_behavior,
-                                    SymbolicMap& sigma){
+AUTOQ::Symbol::Symbolic eval_mapping(   const AUTOQ::Symbol::Symbolic& symbol_before, 
+                                        const AUTOQ::Symbol::Symbolic& symbol_after, 
+                                        InverseAbstractionMap<Symbol>& inverse_alpha, 
+                                        SymbolicMap& tau, 
+                                        int& symbolicvarsNum, 
+                                        bool& changes_behavior,
+                                        SymbolicMap& sigma){
     auto res = tau.find(symbol_before);
     if(res == tau.end()){
         tau.insert({symbol_before, symbol_after});
@@ -106,8 +103,10 @@ AUTOQ::Symbol::Symbolic eval_mapping(const AUTOQ::Symbol::Symbolic& symbol_befor
 }
 
 template<typename Symbol>
-AUTOQ::Automata<AUTOQ::Symbol::Symbolic> refinement(AUTOQ::Automata<AUTOQ::Symbol::Symbolic>& T, AUTOQ::Automata<AUTOQ::Symbol::Symbolic>& Tref, 
-                                                    SymbolicMap& tau, InverseAbstractionMap<Symbol>& inverse_alpha, bool& changes_behavior){
+AUTOQ::Automata<AUTOQ::Symbol::Symbolic> refinement(AUTOQ::Automata<AUTOQ::Symbol::Symbolic>& T, 
+                                                    AUTOQ::Automata<AUTOQ::Symbol::Symbolic>& Tref, 
+                                                    SymbolicMap& tau, InverseAbstractionMap<Symbol>& inverse_alpha, 
+                                                    bool& changes_behavior){
 
     AUTOQ::Automata<AUTOQ::Symbol::Symbolic> product;
     product.qubitNum = T.qubitNum;
@@ -121,10 +120,12 @@ AUTOQ::Automata<AUTOQ::Symbol::Symbolic> refinement(AUTOQ::Automata<AUTOQ::Symbo
     // translate the transition function to 
     // Q ---> Color ---> Qubit/Symbol, StateVector
     using ProductPair = std::pair<AUTOQ::Automata<AUTOQ::Symbol::Symbolic>::StateVector, AUTOQ::Automata<AUTOQ::Symbol::Symbolic>::Symbol>;
-    using TransitionsProd = std::map<AUTOQ::Automata<AUTOQ::Symbol::Symbolic>::State, std::map<AUTOQ::Automata<AUTOQ::Symbol::Symbolic>::Tag, ProductPair>>;
+    using TransitionsProd = std::map<AUTOQ::Automata<AUTOQ::Symbol::Symbolic>::State, 
+                                    std::map<AUTOQ::Automata<AUTOQ::Symbol::Symbolic>::Tag, ProductPair>>;
 
     // {lhs_state, rhs_state} ---> prod_state
-    using ProductMap = std::map<std::pair<AUTOQ::Automata<AUTOQ::Symbol::Symbolic>::State, AUTOQ::Automata<AUTOQ::Symbol::Symbolic>::State>, AUTOQ::Automata<AUTOQ::Symbol::Symbolic>::State>;
+    using ProductMap = std::map<std::pair<AUTOQ::Automata<AUTOQ::Symbol::Symbolic>::State, AUTOQ::Automata<AUTOQ::Symbol::Symbolic>::State>, 
+                                AUTOQ::Automata<AUTOQ::Symbol::Symbolic>::State>;
     using WorkList = std::deque<std::pair<AUTOQ::Automata<AUTOQ::Symbol::Symbolic>::State, AUTOQ::Automata<AUTOQ::Symbol::Symbolic>::State>>;
     WorkList worklist{};
     TransitionsProd lhs;
@@ -132,46 +133,32 @@ AUTOQ::Automata<AUTOQ::Symbol::Symbolic> refinement(AUTOQ::Automata<AUTOQ::Symbo
     ProductMap mapping;
     for(auto& t1 : T.transitions){
         auto color_set = t1.first.tag();
-        int index = 1;
-        while(color_set > 0){
-            if(color_set & 1){
-                for(auto& out : t1.second){
-                    if(t1.first.is_internal()){
-                        long int qubit = static_cast<long int>(t1.first.symbol().qubit());
-                        ProductPair tmp = {*(out.second.begin()), qubit};
-                        rhs[out.first][index] = tmp;
-                    }
-                    if(t1.first.is_leaf()){
-                        auto symbol = t1.first.symbol();
-                        ProductPair tmp = {*(out.second.begin()), symbol};
-                        rhs[out.first][index] = tmp;
-                    }
-                }
+        for(auto& out : t1.second){
+            if(t1.first.is_internal()){
+                long int qubit = static_cast<long int>(t1.first.symbol().qubit());
+                ProductPair tmp = {*(out.second.begin()), qubit};
+                rhs[out.first][color_set] = tmp;
             }
-            color_set >>= 1;
-            index++;
+            if(t1.first.is_leaf()){
+                auto symbol = t1.first.symbol();
+                ProductPair tmp = {*(out.second.begin()), symbol};
+                rhs[out.first][color_set] = tmp;
+            }
         }
     }
     for(auto& t2 : Tref.transitions){
         auto color_set = t2.first.tag();
-        int index = 1;
-        while(color_set > 0){
-            if(color_set & 1){
-                for(auto& out : t2.second){
-                    if(t2.first.is_internal()){
-                        long int qubit = static_cast<long int>(t2.first.symbol().qubit());
-                        ProductPair tmp = {*(out.second.begin()), qubit};
-                        lhs[out.first][index] = tmp;
-                    }
-                    if(t2.first.is_leaf()){
-                        auto symbol = t2.first.symbol();
-                        ProductPair tmp = {*(out.second.begin()), symbol};
-                        lhs[out.first][index] = tmp;
-                    }
-                }
+        for(auto& out : t2.second){
+            if(t2.first.is_internal()){
+                long int qubit = static_cast<long int>(t2.first.symbol().qubit());
+                ProductPair tmp = {*(out.second.begin()), qubit};
+                lhs[out.first][color_set] = tmp;
             }
-            color_set >>= 1;
-            index++;
+            if(t2.first.is_leaf()){
+                auto symbol = t2.first.symbol();
+                ProductPair tmp = {*(out.second.begin()), symbol};
+                lhs[out.first][color_set] = tmp;
+            }
         }
     }
     
@@ -197,7 +184,7 @@ AUTOQ::Automata<AUTOQ::Symbol::Symbolic> refinement(AUTOQ::Automata<AUTOQ::Symbo
         worklist.pop_front();
         auto map_lhs = lhs[W.first];
         auto map_rhs = rhs[W.second];
-        // Color ---> {Qubit/Symbol, StateVector}
+        // Color ---> {StateVector, Qubit/Symbol}
         for(const auto& color : map_lhs){
             auto find_color = map_rhs.find(color.first);
             if(find_color != map_rhs.end()){
@@ -223,7 +210,9 @@ AUTOQ::Automata<AUTOQ::Symbol::Symbolic> refinement(AUTOQ::Automata<AUTOQ::Symbo
                     product.transitions[symboltag][mapping[W]] = {prod_state_vector};
                 }
                 else if(qubit_sym_lhs.is_leaf() && qubit_sym_rhs.is_leaf()){
-                    AUTOQ::Automata<AUTOQ::Symbol::Symbolic>::SymbolTag symboltag = {eval_mapping(qubit_sym_lhs, qubit_sym_rhs, inverse_alpha, tau, product.symbolicvarsNum, changes_behavior, sigma), color.first};
+                    AUTOQ::Automata<AUTOQ::Symbol::Symbolic>::SymbolTag symboltag = {
+                        eval_mapping(qubit_sym_lhs, qubit_sym_rhs, inverse_alpha, tau, product.symbolicvarsNum, changes_behavior, sigma), color.first};
+                    
                     product.transitions[symboltag][mapping[W]] = {color.second.first};
                 }
                 else{
@@ -233,13 +222,13 @@ AUTOQ::Automata<AUTOQ::Symbol::Symbolic> refinement(AUTOQ::Automata<AUTOQ::Symbo
         }
     }
     product.stateNum = state_counter;
-
     return product;
 }
 
-
 template<typename Symbol>
-Symbol eval_symbol(const AUTOQ::Symbol::Symbolic& symbol, SymbolicMap& tau, InverseAbstractionMap<Symbol>& symbolmap){
+Symbol eval_symbol( const AUTOQ::Symbol::Symbolic& symbol, 
+                    SymbolicMap& tau, 
+                    InverseAbstractionMap<Symbol>& symbolmap){
     std::map<AUTOQ::Complex::Term, AUTOQ::Complex::Complex> mapping;
     for(auto& [sym, conc] : symbolmap){
         for(auto& [term, complex] : sym.complex){
@@ -271,27 +260,25 @@ Symbol eval_symbol(const AUTOQ::Symbol::Symbolic& symbol, SymbolicMap& tau, Inve
         return symbol;
     }
     THROW_AUTOQ_ERROR("Symbol type conversion not supported");
-
 }
 
 
 
 template<typename Symbol>
-AUTOQ::Automata<Symbol> post_process_sumarization(AUTOQ::Automata<AUTOQ::Symbol::Symbolic>& Tref, InverseAbstractionMap<Symbol>& inverse_alpha, SymbolicMap& tau, int num_of_iterations){
+AUTOQ::Automata<Symbol> post_process_sumarization(  AUTOQ::Automata<AUTOQ::Symbol::Symbolic>& Tref, 
+                                                    InverseAbstractionMap<Symbol>& inverse_alpha, 
+                                                    SymbolicMap& tau, 
+                                                    int num_of_iterations){
     AUTOQ::Automata<Symbol> result;
     InverseAbstractionMap<Symbol> alpha = inverse_alpha;
-    InverseAbstractionMap<Symbol> temp_map;
     InverseAbstractionMap<Symbol> new_map = alpha;
 
     for(int i = 0; i < num_of_iterations; i++){
         for(auto& [symbolic, concrete] : alpha){
             new_map[symbolic] = eval_symbol(symbolic, tau, alpha);
         }
-
         //swap maps
-        temp_map = alpha;
-        alpha = new_map;
-        new_map = temp_map;
+        std::swap(alpha, new_map);
     }
     inverse_alpha = alpha;
 
@@ -299,8 +286,8 @@ AUTOQ::Automata<Symbol> post_process_sumarization(AUTOQ::Automata<AUTOQ::Symbol:
     result.finalStates = Tref.finalStates;
     result.stateNum = Tref.stateNum;
     result.qubitNum = Tref.qubitNum;
-    result.vars = Tref.vars; // ?
-    result.constraints = Tref.constraints; // ?
+    result.vars = Tref.vars;
+    result.constraints = Tref.constraints; 
     result.hasLoop = Tref.hasLoop;
     result.isTopdownDeterministic = Tref.isTopdownDeterministic;
     result.transitions = {};
@@ -330,7 +317,6 @@ AUTOQ::Automata<Symbol> symbolic_loop(const std::vector<std::string>& loop_body,
     SymbolicMap tau{};
     // start of main summarization loop
     bool changes_behavior = false;
-
     do {
         changes_behavior = false;
         T = Tref;
@@ -344,14 +330,13 @@ AUTOQ::Automata<Symbol> symbolic_loop(const std::vector<std::string>& loop_body,
         Tref = refinement(T, Tref, tau, inverse_alpha, changes_behavior);
 
     } while(changes_behavior); // found fix-point
-
     // post process the summarization result
     AUTOQ::Automata<Symbol> result = post_process_sumarization<Symbol>(Tref, inverse_alpha, tau, num_of_iterations);
     return result;
 }
 
 
-
+// https://bytefreaks.net/programming-2/c/c-undefined-reference-to-templated-class-function
 template struct AUTOQ::Automata<AUTOQ::Symbol::Concrete>;
 template struct AUTOQ::Automata<AUTOQ::Symbol::Symbolic>;
 template void execute_loop<AUTOQ::Symbol::Concrete>(std::vector<std::string>&, AUTOQ::Automata<AUTOQ::Symbol::Concrete>&, ParameterMap&, const AUTOQ::regexes&, const std::sregex_iterator&, std::smatch match_pieces);
