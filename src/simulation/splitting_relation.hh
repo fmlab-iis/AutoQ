@@ -130,9 +130,16 @@ class AUTOQ::Util::SplittingRelation {
 public:
 
 	GCC_DIAG_OFF(effc++)
-	struct IteratorBase : public std::iterator<std::input_iterator_tag, size_t> {
+	// std::iterator is deprecated in C++17, using traits as below
+	// struct IteratorBase : public std::iterator<std::input_iterator_tag, size_t> {
+	struct IteratorBase {
 	GCC_DIAG_ON(effc++)
 
+		// iterator traits
+		using iterator_category = std::input_iterator_tag;
+		using value_type = size_t;
+
+		// members
 		Element* el_;
 
 		IteratorBase(Element* el) : el_(el) {}

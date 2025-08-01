@@ -99,7 +99,8 @@ public:
 	template <class Deleter>
 	void release(const Deleter& deleter)
 	{
-		SharedList* elem = this, * tmp;
+		SharedList* elem = this;
+		SharedList* tmp;
 
 		while (elem && elem->refCount_ == 1) {
 			tmp = elem;
@@ -108,7 +109,7 @@ public:
 		}
 
 		if (elem)
-			--elem->counter_;
+			--elem->refCount_;
 	}
 
 	template <class Deleter>

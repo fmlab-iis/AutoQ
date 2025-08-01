@@ -787,7 +787,7 @@ public:
 					continue;
 				}
 
-				b1->remove_[a] = new RemoveList(new std::vector<size_t>(s.begin(), s.end()));
+				b1->remove_[a] = new RemoveList(new std::vector<size_t>{s.begin(), s.end()});
 				this->queue_.push_back(std::make_pair(b1, a));
 
 				assert(s.size() == b1->remove_[a]->subList()->size());
