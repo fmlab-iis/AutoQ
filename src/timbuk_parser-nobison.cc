@@ -11,8 +11,13 @@
 // C++ headers
 #include <regex>
 #include <fstream>
+
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wold-style-cast"
 #include <boost/regex.hpp>
 #include <boost/algorithm/string/predicate.hpp>
+#pragma GCC diagnostic pop
 
 // AUTOQ headers
 #include "autoq/error.hh"
@@ -1034,7 +1039,7 @@ std::vector<std::string> star_expension(std::vector<std::string> state)
 
     std::size_t size = 0;   //the size of states
     bool in_bracket = false;
-    for(int idx = 0 ; idx < state.size() ; idx++)
+    for(size_t idx = 0 ; idx < state.size() ; idx++)
     {
         if(state[idx].find('*') != std::string::npos)
             continue;
@@ -1116,7 +1121,7 @@ std::vector<std::string> star_expension(std::vector<std::string> state)
         if(val_str != "")
             front_val = std::stoi(val_str,nullptr, 2);
 
-        
+
         val_str = cur_state.substr(star_pos + 1, back_size);
         if(val_str != "")
             back_val = std::stoi(val_str,nullptr, 2);
@@ -1128,7 +1133,7 @@ std::vector<std::string> star_expension(std::vector<std::string> state)
             if(defined_states[state_val] == false)
             {
                 constraint_and_states[state_val] = star_constraints;
-                defined_states[state_val] = true; 
+                defined_states[state_val] = true;
             }
         }
 
@@ -1211,8 +1216,8 @@ std::vector<std::string> to_summation_vec(std::string state)
     state = remove_spaces(state);
     size_t pos = 0;
     //handle '-' notation
-    int negCnt = 0;
-    while ((pos = state.find('-', pos)) != std::string::npos) 
+    // int negCnt = 0;
+    while ((pos = state.find('-', pos)) != std::string::npos)
     {
         std::string add1 = "";
         if(state[pos+1] == '|')
@@ -1220,23 +1225,23 @@ std::vector<std::string> to_summation_vec(std::string state)
         if(pos == 0)
         {
             state.replace(pos, 1, "-"+add1);
-            negCnt++;
+            // negCnt++;
         }
         else if(state[pos-1] == '>')
         {
             state.replace(pos, 1, "+ -"+add1);
-            negCnt++;
+            // negCnt++;
         }
         else if(state[pos-1] == '+')
         {
             state.replace(pos, 1, "-"+add1);
-            negCnt++;
+            // negCnt++;
         }
         else if(state[pos-1] == '#')
         {
             state.replace(pos, 1, "-"+add1);
-            negCnt++;
-        } 
+            // negCnt++;
+        }
         pos +=3;
     }
     //if(negCnt % 2 == 1)
@@ -1296,7 +1301,7 @@ std::vector<std::string> to_summation_vec(std::string state)
 std::vector<std::string> state_expansion(std::string line, std::vector<int> ordering_map)
 {
 
-    
+
     //tree is partial state without tensor product
 
     replaceSubstringWithChar(line, "\\/", 'V');
@@ -1453,14 +1458,14 @@ bool is_ill_formed(std::string line)
     std::stringstream iss(line);
     std::string token;
     std::regex pattern(R"(\|.*?\>)");
-    
-    
+
+
     while(std::getline(iss,token,'#'))
     {
         auto words_begin = std::sregex_iterator(token.begin(), token.end(), pattern);
         auto words_end = std::sregex_iterator();
 
-        int qubit_size = 0;
+        // int qubit_size = 0;
         bool clean_exist = 0;
         bool contain_clean_states = 1;
         bool in_bracket = 0;
@@ -1469,7 +1474,7 @@ bool is_ill_formed(std::string line)
             if(token[i] == '|' && (i < token.size() -1 && (token[i+1] == '1' || token[i+1] == '0' || token[i+1] == '*' || token[i+1] == 'i' || token[i+1] == '\'')))
             {
                 in_bracket = 1;
-                qubit_size = 0;
+                // qubit_size = 0;
                 contain_clean_states = 1;
                 continue;
             }
@@ -1483,7 +1488,7 @@ bool is_ill_formed(std::string line)
                 continue;
             if(token[i] == '1' || token[i] == '0')
             {
-                qubit_size++;
+                // qubit_size++;
             }
             else if(token[i] == 'i')
             {
@@ -1494,15 +1499,15 @@ bool is_ill_formed(std::string line)
                 contain_clean_states = 0;
             }
         }
-        
+
         if(!clean_exist)
         {
-            THROW_AUTOQ_ERROR("At least one state representation must not include a *. "+line); 
+            THROW_AUTOQ_ERROR("At least one state representation must not include a *. "+line);
         }
         for (std::sregex_iterator i = words_begin; i != words_end; ++i) {
             std::smatch match = *i;
             std::string state = match.str();
-            
+
 
             int star_cnt = 0;
             for(size_t i = 0 ; i < state.size() ; i++)
@@ -1517,19 +1522,19 @@ bool is_ill_formed(std::string line)
                     in_bracket = 0;
                 }
                 star_cnt += (state[i]=='*') && in_bracket;
-                
+
                 if(star_cnt > 1)
                     THROW_AUTOQ_ERROR("more than 1 star notations in "+line);
 
             }
         }
-        
+
     }
-    
+
     //possible fault
     /*
     std::vector<std::pair<int,int>> star_pos;
-    int pos = 0;    
+    int pos = 0;
     int num_cnt = 0;
     std::pair<int,int> cur_star_pos;
     for(size_t i = 0 ; i < line.size() ; i++)
@@ -1674,7 +1679,7 @@ AUTOQ::Automata<Symbol> AUTOQ::Parsing::TimbukParser<Symbol>::parse_hsl_from_ist
             */
         }
     }
-    
+
     // DO NOT fraction_simplification() here since the resulting automaton may be used as pre.spec
     // and in this case all k's must be the same.
     return aut_final;
