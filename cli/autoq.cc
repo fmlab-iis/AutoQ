@@ -156,15 +156,11 @@ try {
     CLI::App app{"AutoQ: An automata-based C++ tool for quantum program verification."};
     std::string pre, circuit, post, circuit1, circuit2;
 
-    bool sumarize_loops = false;
-    bool manual_loop = false;
+    bool summarize_loops = false;
     CLI::App* execution = app.add_subcommand("ex", "Execute a quantum circuit with a given precondition.");
     execution->add_option("pre.{hsl|lsta}", pre, "the precondition file")->required()->type_name("");
     execution->add_option("circuit.qasm", circuit, "the OpenQASM 2.0 circuit file")->required()->type_name("");
-    execution->add_flag("--loopsum", sumarize_loops, "Summarize loops using symbolic execution");
-    execution->add_flag("--loopmanual", manual_loop, "Execute loops using manual execution");
-    execution->get_option("--loopmanual")->excludes("--loopsum");
-    execution->get_option("--loopsum")->excludes("--loopmanual");
+    execution->add_flag("--loopsum", summarize_loops, "Summarize loops using symbolic execution");
     execution->callback([&]() {
         adjust_N_in_nTuple(circuit);
     });
@@ -174,10 +170,7 @@ try {
     verification->add_option("pre.{hsl|lsta}", pre, "the precondition file")->required()->type_name("");
     verification->add_option("circuit.qasm", circuit, "the OpenQASM 2.0 circuit file")->required()->type_name("");
     verification->add_option("post.{hsl|lsta}", post, "the postcondition file")->required()->type_name("");
-    verification->add_flag("--loopsum", sumarize_loops, "Summarize loops using symbolic execution");
-    verification->add_flag("--loopmanual", manual_loop, "Execute loops using manual execution");
-    verification->get_option("--loopmanual")->excludes("--loopsum");
-    verification->get_option("--loopsum")->excludes("--loopmanual");
+    verification->add_flag("--loopsum", summarize_loops, "Summarize loops using symbolic execution");
     verification->add_flag("-l,--latex", latex, "Print the statistics for tables in LaTeX");
     verification->callback([&]() {
         adjust_N_in_nTuple(circuit);
@@ -186,6 +179,7 @@ try {
     CLI::App* equivalence_checking = app.add_subcommand("eq", "Check equivalence of two given quantum circuits.");
     equivalence_checking->add_option("circuit1.qasm", circuit1, "the OpenQASM 2.0 circuit file")->required()->type_name("");
     equivalence_checking->add_option("circuit2.qasm", circuit2, "the OpenQASM 2.0 circuit file")->required()->type_name("");
+    equivalence_checking->add_flag("--loopsum", summarize_loops, "Summarize loops using symbolic execution");
     equivalence_checking->add_flag("-l,--latex", latex, "Print the statistics for tables in LaTeX");
     equivalence_checking->callback([&]() {
         adjust_N_in_nTuple(circuit1);
@@ -204,12 +198,9 @@ try {
     // bool runConcrete; // or runSymbolic
     ParameterMap params;
     params["loop"] = "manual"; // set the default option for loop execution
-    if(sumarize_loops){
+    if(summarize_loops){
         // summarization of loops enabled
         params["loop"] = "symbolic";
-    }
-    if(manual_loop){
-        params["loop"] = "manual";
     }
     if (execution->parsed()) {
         // runConcrete = true;

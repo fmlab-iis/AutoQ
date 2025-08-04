@@ -227,6 +227,8 @@ public:
 
     /****************************************************/
     /* execute.cc: the main function for gate execution */
+    void execute(const char *filename);
+    void execute(const std::string& filename);
     void execute(const std::string& filename, ParameterMap &params);
     void execute(const char *filename, ParameterMap &params);
     void single_gate_execute(const std::string& line, const regexes &regexes, const std::sregex_iterator& END);

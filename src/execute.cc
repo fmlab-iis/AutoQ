@@ -11,11 +11,25 @@
 #include <fstream>
 #include <filesystem>
 
+template <typename Symbol>
+void AUTOQ::Automata<Symbol>::execute(const char* filename) {
+    ParameterMap params;
+    params["loop"] = "manual";
+    execute(filename, params);
+}
+
+template <typename Symbol>
+void AUTOQ::Automata<Symbol>::execute(const std::string& filename) {
+    ParameterMap params;
+    params["loop"] = "manual";
+    execute(filename.c_str(), params);
+}
 
 template <typename Symbol>
 void AUTOQ::Automata<Symbol>::execute(const std::string& filename, ParameterMap &params) {
     execute(filename.c_str(), params);
 }
+
 template <typename Symbol>
 void AUTOQ::Automata<Symbol>::execute(const char *filename, ParameterMap &params) {
     initialize_stats();
