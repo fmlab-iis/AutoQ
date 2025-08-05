@@ -13,11 +13,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - run: sudo apt-get install libboost-filesystem-dev libboost-test-dev libboost-regex-dev
-    - run: git clone https://github.com/alan23273850/AutoQ.git
-    - run: cd AutoQ && git checkout ${{ github.ref_name }} && mkdir build && make debug
-    - run: cp /usr/lib/x86_64-linux-gnu/libboost_unit_test_framework.so.* /home/runner/work/AutoQ/AutoQ/AutoQ/build/unit_tests/
-    - run: cp /usr/lib/x86_64-linux-gnu/libboost_regex.so.* /home/runner/work/AutoQ/AutoQ/AutoQ/build/unit_tests/
-    - run: cp /home/runner/work/AutoQ/AutoQ/AutoQ/libz3.so.* /home/runner/work/AutoQ/AutoQ/AutoQ/build/unit_tests/
+    - run: make debug
+    - run: cp /usr/lib/x86_64-linux-gnu/libboost_unit_test_framework.so.* build/unit_tests/
+    - run: cp /usr/lib/x86_64-linux-gnu/libboost_regex.so.* build/unit_tests/
+    - run: cp /home/runner/work/AutoQ/AutoQ/AutoQ/libz3.so.* build/unit_tests/
     - uses: actions/upload-artifact@v4.3.5
       with:
         name: AutoQ-debug-ubuntu
