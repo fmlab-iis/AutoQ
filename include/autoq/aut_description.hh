@@ -13,6 +13,8 @@
 
 // AUTOQ headers
 #include <chrono>
+#include <regex>
+#include <autoq/util/types.hh>
 #include "autoq/symbol/concrete.hh"
 #include "autoq/symbol/symbolic.hh"
 #include "autoq/symbol/predicate.hh"
@@ -32,6 +34,13 @@ namespace AUTOQ
     typedef Automata<Symbol::Symbolic> SymbolicAutomata;
     typedef Automata<Symbol::Predicate> PredicateAutomata;
     typedef Automata<Symbol::Index> IndexAutomata;
+    typedef struct regexes{
+        const std::regex rx;
+        const std::regex rz;
+        const std::regex digit;
+        const std::regex loop;
+        regexes() : rx(R"(rx\((.+)\).+\[(\d+)\];)"), rz(R"(rz\((.+)\).+\[(\d+)\];)"), digit("\\d+"), loop(R"(for int (\w+) in \[(\d+):(\d+)\])") {}
+    }regexes;
 }
 
 template <typename T> constexpr auto support_fraction_simplification = requires (T x) {
@@ -50,6 +59,9 @@ public:   // data types
 	typedef unsigned long long Tag;
     inline static constexpr auto Tag_MAX = static_cast<Tag>(1) << (std::numeric_limits<Tag>::digits - 1);
     typedef std::pair<Symbol, Tag> stdpairSymbolTag;
+    // in a transition of a form (Symbol, Tag)[q1, ..., qn] -> q
+    // Symbol represents the qbit and tag represent the color
+    // color is a bitset, where the i-th bit is 1 if the i-th color is used
     struct SymbolTag : stdpairSymbolTag {
         using stdpairSymbolTag::stdpairSymbolTag; // inherit parent constructors
         // template<typename... Args> SymbolTag(Args... args) : stdpairSymbolTag({args...}, {}) {}
@@ -61,6 +73,7 @@ public:   // data types
         const Tag& tag() const & { return this->second; }
         // bool& tag(int index) & { return this->second[index]; }
         bool tag(int index) const { return (this->second & (1<<index)) >> index; }
+        Tag tag_intersection(Tag other) const { return this->second & other; }
         /*********************************************************/
         bool is_internal() const { return symbol().is_internal(); }
         bool is_leaf() const { return symbol().is_leaf(); }
@@ -84,6 +97,8 @@ public:   // data types
             return os;
         }
     };
+    // access transition with pair (qubit, color), get a map that satisfies this
+    // the map contains set of transitions parent -> set of state vectors
     typedef std::map<SymbolTag, std::map<State, std::set<StateVector>>> TopDownTransitions;
     typedef std::map<SymbolTag, std::map<StateVector, StateSet>> BottomUpTransitions;
     typedef std::vector<std::map<Tag, std::map<State, std::set<StateVector>>>> InternalTopDownTransitions; // Keys range from 1 to qubit().
@@ -93,6 +108,7 @@ public:   // data members
     StateVector finalStates;
     State stateNum;
     int qubitNum;
+    int symbolicvarsNum;
 	TopDownTransitions transitions;
     std::set<std::string> vars;
     std::string constraints;
@@ -113,6 +129,7 @@ public:   // methods
 		finalStates(),
         stateNum(0),
         qubitNum(0),
+        symbolicvarsNum(0),
 		transitions(),
         vars(),
         constraints(),
@@ -210,8 +227,11 @@ public:
 
     /****************************************************/
     /* execute.cc: the main function for gate execution */
-    void execute(const std::string& filename);
     void execute(const char *filename);
+    void execute(const std::string& filename);
+    void execute(const std::string& filename, ParameterMap &params);
+    void execute(const char *filename, ParameterMap &params);
+    void single_gate_execute(const std::string& line, const regexes &regexes, const std::sregex_iterator& END);
     /****************************************************/
 
     /**************************************************/

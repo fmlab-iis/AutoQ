@@ -8,6 +8,7 @@
 #include <autoq/inclusion.hh>
 #include <autoq/util/util.hh>
 #include <autoq/util/string.hh>
+#include <autoq/util/types.hh>
 #include <autoq/complex/ntuple.hh>
 #include <autoq/complex/complex.hh>
 #include <sys/wait.h>
@@ -108,6 +109,8 @@ void adjust_N_in_nTuple(const std::string &filename) {
         } else if (line.find("ry(pi/2) ") == 0 || line.find("ry(pi / 2)") == 0) {
         } else if (line.find("cx ") == 0 || line.find("CX ") == 0 ) {
         } else if (line.find("cz ") == 0) {
+        } else if (line.find("for ") == 0){
+        } else if (line.find("}") == 0){
         } else if (line.find("ccx ") == 0) {
         } else if (line.find("swap ") == 0) {
         } else if (line.find("PRINT_STATS") == 0) {
@@ -128,7 +131,7 @@ void timeout_handler(int) {
     stats["removeuseless"] = AUTOQ::Util::Convert::toString(AUTOQ::TreeAutomata::total_removeuseless_time);
     stats["reduce"] = AUTOQ::Util::Convert::toString(AUTOQ::TreeAutomata::total_reduce_time);
     stats["include"] = AUTOQ::Util::Convert::toString(AUTOQ::TreeAutomata::total_include_time);
-    stats["total"] = "600";
+    stats["total"] = "1800";
     stats["result"] = std::to_string(AUTOQ::TreeAutomata::gateCount);
     stats["aut1.trans"] = std::to_string(aut.count_transitions());
     stats["aut1.leaves"] = std::to_string(aut.count_leaves());
@@ -147,15 +150,17 @@ void set_timeout(unsigned int seconds) {
 
 int main(int argc, char **argv) {
 try {
-    set_timeout(600);
+    set_timeout(1800);
     feenableexcept(FE_ALL_EXCEPT & ~FE_INEXACT);
 
     CLI::App app{"AutoQ: An automata-based C++ tool for quantum program verification."};
     std::string pre, circuit, post, circuit1, circuit2;
 
+    bool summarize_loops = false;
     CLI::App* execution = app.add_subcommand("ex", "Execute a quantum circuit with a given precondition.");
     execution->add_option("pre.{hsl|lsta}", pre, "the precondition file")->required()->type_name("");
     execution->add_option("circuit.qasm", circuit, "the OpenQASM 2.0 circuit file")->required()->type_name("");
+    execution->add_flag("--loopsum", summarize_loops, "Summarize loops using symbolic execution");
     execution->callback([&]() {
         adjust_N_in_nTuple(circuit);
     });
@@ -165,6 +170,7 @@ try {
     verification->add_option("pre.{hsl|lsta}", pre, "the precondition file")->required()->type_name("");
     verification->add_option("circuit.qasm", circuit, "the OpenQASM 2.0 circuit file")->required()->type_name("");
     verification->add_option("post.{hsl|lsta}", post, "the postcondition file")->required()->type_name("");
+    verification->add_flag("--loopsum", summarize_loops, "Summarize loops using symbolic execution");
     verification->add_flag("-l,--latex", latex, "Print the statistics for tables in LaTeX");
     verification->callback([&]() {
         adjust_N_in_nTuple(circuit);
@@ -173,6 +179,7 @@ try {
     CLI::App* equivalence_checking = app.add_subcommand("eq", "Check equivalence of two given quantum circuits.");
     equivalence_checking->add_option("circuit1.qasm", circuit1, "the OpenQASM 2.0 circuit file")->required()->type_name("");
     equivalence_checking->add_option("circuit2.qasm", circuit2, "the OpenQASM 2.0 circuit file")->required()->type_name("");
+    equivalence_checking->add_flag("--loopsum", summarize_loops, "Summarize loops using symbolic execution");
     equivalence_checking->add_flag("-l,--latex", latex, "Print the statistics for tables in LaTeX");
     equivalence_checking->callback([&]() {
         adjust_N_in_nTuple(circuit1);
@@ -189,6 +196,12 @@ try {
 
     auto start = chrono::steady_clock::now();
     // bool runConcrete; // or runSymbolic
+    ParameterMap params;
+    params["loop"] = "manual"; // set the default option for loop execution
+    if(summarize_loops){
+        // summarization of loops enabled
+        params["loop"] = "symbolic";
+    }
     if (execution->parsed()) {
         // runConcrete = true;
         auto aut2 = ReadAutomaton(pre);
@@ -199,8 +212,9 @@ try {
                 return arg; // Directly return the value if it's one of the allowed types
             }
         }, aut2);
-        std::visit([&circuit](auto& aut){
-            aut.execute(circuit);
+
+        std::visit([&circuit, &params](auto& aut){
+            aut.execute(circuit, params);
             aut.print_aut();
         }, aut);
     } else if (verification->parsed()) {
@@ -215,7 +229,7 @@ try {
                 THROW_AUTOQ_ERROR("Predicate amplitudes cannot be used in a precondition.");
             }
             auto aut = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Symbolic>::ReadAutomaton(pre);
-            aut.execute(circuit);
+            aut.execute(circuit, params);
             // std::cout << "OUTPUT AUTOMATON:\n";
             // std::cout << "=================\n";
             // aut.print_aut();
@@ -236,7 +250,7 @@ try {
                     return arg; // Directly return the value if it's one of the allowed types
                 }
             }, aut1);
-            aut.execute(circuit);
+            aut.execute(circuit, params);
             // std::cout << "OUTPUT AUTOMATON:\n";
             // std::cout << "=================\n";
             // aut.print_aut();
@@ -254,8 +268,8 @@ try {
         // runConcrete = true;
         /*AUTOQ::TreeAutomata*/ aut = AUTOQ::TreeAutomata::prefix_basis(extract_qubit(circuit1));
         /*AUTOQ::TreeAutomata*/ aut2 = AUTOQ::TreeAutomata::prefix_basis(extract_qubit(circuit2));
-        aut.execute(circuit1);
-        aut2.execute(circuit2);
+        aut.execute(circuit1, params);
+        aut2.execute(circuit2, params);
         bool result = aut <= aut2;
         if (latex) {
             // if (short_time) {
