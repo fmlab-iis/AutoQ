@@ -114,11 +114,11 @@ jobs:
           cp libz3.so.*                                                  build/unit_tests/
         shell: wsl-run {0} # add this to run the commands inside linux
       - run: |
-          wsl -d Ubuntu -e bash -c "tar -czf /tmp/autoq-release-wsl.tar.gz Makefile build/ unit_tests/ benchmarks/all/"
+          wsl -d Ubuntu -e bash -c "tar -czf autoq-release-wsl.tar.gz Makefile build/ unit_tests/ benchmarks/all/"
       - uses: actions/upload-artifact@v4.3.5
         with:
           name: AutoQ-release-wsl
-          path: /tmp/autoq-release-wsl.tar.gz
+          path: autoq-release-wsl.tar.gz
 
   test-release-wsl:
     needs: build-release-wsl
