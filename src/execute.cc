@@ -7,6 +7,7 @@
 #include <regex>
 #include <fstream>
 #include <filesystem>
+#include <numeric>
 
 template <typename Symbol>
 void AUTOQ::Automata<Symbol>::execute(const std::string& filename, std::vector<int> qubit_permutation) {

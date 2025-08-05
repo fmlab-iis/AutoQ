@@ -11,6 +11,7 @@
 // C++ headers
 #include <regex>
 #include <fstream>
+#include <numeric>
 #include <boost/regex.hpp>
 #include <boost/algorithm/string/predicate.hpp>
 
