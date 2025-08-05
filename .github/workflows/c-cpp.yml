@@ -51,10 +51,10 @@ jobs:
       with:
         name: AutoQ-release-ubuntu
         path: |
-          AutoQ/Makefile
-          AutoQ/build/
-          AutoQ/unit_tests/
-          AutoQ/benchmarks/all/
+          Makefile
+          build/
+          unit_tests/
+          benchmarks/all/
 
   test-release-ubuntu:
     needs: build-release-ubuntu
@@ -63,10 +63,9 @@ jobs:
     - uses: actions/download-artifact@v4
       with:
         name: AutoQ-release-ubuntu
-        path: AutoQ/
     # - run: pwd
     # - run: ls -a
-    - run: cd build/unit_tests/ && chmod +x ./explicit_tree_aut_test && LD_LIBRARY_PATH=.:$LD_LIBRARY_PATH ./explicit_tree_aut_test
+    - run: cd unit_tests/ && chmod +x ./explicit_tree_aut_test && LD_LIBRARY_PATH=.:$LD_LIBRARY_PATH ./explicit_tree_aut_test
 
   build-debug-wsl:
     runs-on: windows-latest
@@ -82,12 +81,11 @@ jobs:
           cp libz3.so.*                                                  build/unit_tests/
         shell: wsl-run {0} # add this to run the commands inside linux
       - run: |
-          wsl -d Ubuntu -e bash -c "cd ./AutoQ && tar -czf /tmp/autoq-debug-wsl.tar.gz Makefile build/ unit_tests/ benchmarks/all/"
-          wsl -d Ubuntu -e bash -c "cp /tmp/autoq-debug-wsl.tar.gz ./AutoQ/"
+          wsl -d Ubuntu -e bash -c "tar -czf /tmp/autoq-debug-wsl.tar.gz Makefile build/ unit_tests/ benchmarks/all/"
       - uses: actions/upload-artifact@v4.3.5
         with:
           name: AutoQ-debug-wsl
-          path: ./AutoQ/autoq-debug-wsl.tar.gz
+          path: /tmp/autoq-debug-wsl.tar.gz
 
   test-debug-wsl:
     needs: build-debug-wsl
@@ -97,10 +95,7 @@ jobs:
       - uses: actions/download-artifact@v4
         with:
           name: AutoQ-debug-wsl
-          path: AutoQ/
       - run: |
-          pwd
-          cd ./AutoQ
           tar -xzf autoq-debug-wsl.tar.gz
           cd build/unit_tests/ && chmod +x ./explicit_tree_aut_test && LD_LIBRARY_PATH=.:$LD_LIBRARY_PATH ./explicit_tree_aut_test
         shell: wsl-run {0} # add this to run the commands inside linux
@@ -119,12 +114,11 @@ jobs:
           cp ./AutoQ/libz3.so.*                                          build/unit_tests/
         shell: wsl-run {0} # add this to run the commands inside linux
       - run: |
-          wsl -d Ubuntu -e bash -c "cd ./AutoQ && tar -czf /tmp/autoq-release-wsl.tar.gz Makefile build/ unit_tests/ benchmarks/all/"
-          wsl -d Ubuntu -e bash -c "cp /tmp/autoq-release-wsl.tar.gz ./AutoQ/"
+          wsl -d Ubuntu -e bash -c "tar -czf /tmp/autoq-release-wsl.tar.gz Makefile build/ unit_tests/ benchmarks/all/"
       - uses: actions/upload-artifact@v4.3.5
         with:
           name: AutoQ-release-wsl
-          path: ./AutoQ/autoq-release-wsl.tar.gz
+          path: /tmp/autoq-release-wsl.tar.gz
 
   test-release-wsl:
     needs: build-release-wsl
@@ -134,10 +128,7 @@ jobs:
       - uses: actions/download-artifact@v4
         with:
           name: AutoQ-release-wsl
-          path: AutoQ/
       - run: |
-          pwd
-          cd ./AutoQ
           tar -xzf autoq-release-wsl.tar.gz
           cd build/unit_tests/ && chmod +x ./explicit_tree_aut_test && LD_LIBRARY_PATH=.:$LD_LIBRARY_PATH ./explicit_tree_aut_test
         shell: wsl-run {0} # add this to run the commands inside linux
@@ -158,10 +149,10 @@ jobs:
       with:
         name: AutoQ-debug-macos
         path: |
-          AutoQ/Makefile
-          AutoQ/build/
-          AutoQ/unit_tests/
-          AutoQ/benchmarks/all/
+          Makefile
+          build/
+          unit_tests/
+          benchmarks/all/
 
   test-debug-macos:
     needs: build-debug-macos
@@ -170,10 +161,9 @@ jobs:
     - uses: actions/download-artifact@v4
       with:
         name: AutoQ-debug-macos
-        path: AutoQ/
     # - run: pwd
     # - run: ls -a
-    - run: cd AutoQ/build/unit_tests/ && chmod +x ./explicit_tree_aut_test && DYLD_LIBRARY_PATH=.:$DYLD_LIBRARY_PATH ./explicit_tree_aut_test
+    - run: cd build/unit_tests/ && chmod +x ./explicit_tree_aut_test && DYLD_LIBRARY_PATH=.:$DYLD_LIBRARY_PATH ./explicit_tree_aut_test
 
   build-release-macos:
     runs-on: macos-latest
@@ -191,10 +181,10 @@ jobs:
       with:
         name: AutoQ-release-macos
         path: |
-          AutoQ/Makefile
-          AutoQ/build/
-          AutoQ/unit_tests/
-          AutoQ/benchmarks/all/
+          Makefile
+          build/
+          unit_tests/
+          benchmarks/all/
 
   test-release-macos:
     needs: build-release-macos
@@ -203,7 +193,6 @@ jobs:
     - uses: actions/download-artifact@v4
       with:
         name: AutoQ-release-macos
-        path: AutoQ/
     # - run: pwd
     # - run: ls -a
-    - run: cd AutoQ/build/unit_tests/ && chmod +x ./explicit_tree_aut_test && DYLD_LIBRARY_PATH=.:$DYLD_LIBRARY_PATH ./explicit_tree_aut_test
+    - run: cd build/unit_tests/ && chmod +x ./explicit_tree_aut_test && DYLD_LIBRARY_PATH=.:$DYLD_LIBRARY_PATH ./explicit_tree_aut_test
