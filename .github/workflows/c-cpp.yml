@@ -16,8 +16,8 @@ jobs:
     - run: sudo apt-get install libboost-filesystem-dev libboost-test-dev libboost-regex-dev
     - run: make debug
     - run: cp /usr/lib/x86_64-linux-gnu/libboost_unit_test_framework.so.* build/unit_tests/
-    - run: cp /usr/lib/x86_64-linux-gnu/libboost_regex.so.* build/unit_tests/
-    - run: cp libz3.so.* build/unit_tests/
+    - run: cp /usr/lib/x86_64-linux-gnu/libboost_regex.so.*               build/unit_tests/
+    - run: cp libz3.so.*                                                  build/unit_tests/
     - uses: actions/upload-artifact@v4.3.5
       with:
         name: AutoQ-debug-ubuntu
@@ -46,8 +46,8 @@ jobs:
     - run: sudo apt-get install libboost-filesystem-dev libboost-test-dev libboost-regex-dev
     - run: make release
     - run: cp /usr/lib/x86_64-linux-gnu/libboost_unit_test_framework.so.* build/unit_tests/
-    - run: cp /usr/lib/x86_64-linux-gnu/libboost_regex.so.* build/unit_tests/
-    - run: cp libz3.so.* build/unit_tests/
+    - run: cp /usr/lib/x86_64-linux-gnu/libboost_regex.so.*               build/unit_tests/
+    - run: cp libz3.so.*                                                  build/unit_tests/
     - uses: actions/upload-artifact@v4.3.5
       with:
         name: AutoQ-release-ubuntu
@@ -79,8 +79,8 @@ jobs:
           sudo apt-get install -y libboost-filesystem-dev libboost-test-dev libboost-regex-dev git make gcc g++ cmake
           make debug
           cp /usr/lib/x86_64-linux-gnu/libboost_unit_test_framework.so.* build/unit_tests/
-          cp /usr/lib/x86_64-linux-gnu/libboost_regex.so.* build/unit_tests/
-          cp libz3.so.* build/unit_tests/
+          cp /usr/lib/x86_64-linux-gnu/libboost_regex.so.*               build/unit_tests/
+          cp libz3.so.*                                                  build/unit_tests/
         shell: wsl-run {0} # add this to run the commands inside linux
       - run: |
           wsl -d Ubuntu -e bash -c "cd ./AutoQ && tar -czf /tmp/autoq-debug-wsl.tar.gz Makefile build/ unit_tests/ benchmarks/all/"
@@ -110,15 +110,14 @@ jobs:
     runs-on: windows-latest
     steps:
       - uses: vedantmgoyal9/setup-wsl2@main
+      - uses: actions/checkout@v4
       - run: |
           sudo apt-get update && sudo apt-get upgrade -y
           sudo apt-get install -y libboost-filesystem-dev libboost-test-dev libboost-regex-dev git make gcc g++ cmake
-          git clone https://github.com/alan23273850/AutoQ.git
-          pwd
-          cd AutoQ && git checkout ${{ github.ref_name }} && mkdir build && make release && cd ..
-          cp /usr/lib/x86_64-linux-gnu/libboost_unit_test_framework.so.* ./AutoQ/build/unit_tests/
-          cp /usr/lib/x86_64-linux-gnu/libboost_regex.so.* ./AutoQ/build/unit_tests/
-          cp ./AutoQ/libz3.so.* ./AutoQ/build/unit_tests/
+          make release
+          cp /usr/lib/x86_64-linux-gnu/libboost_unit_test_framework.so.* build/unit_tests/
+          cp /usr/lib/x86_64-linux-gnu/libboost_regex.so.*               build/unit_tests/
+          cp ./AutoQ/libz3.so.*                                          build/unit_tests/
         shell: wsl-run {0} # add this to run the commands inside linux
       - run: |
           wsl -d Ubuntu -e bash -c "cd ./AutoQ && tar -czf /tmp/autoq-release-wsl.tar.gz Makefile build/ unit_tests/ benchmarks/all/"
@@ -143,17 +142,18 @@ jobs:
           tar -xzf autoq-release-wsl.tar.gz
           cd build/unit_tests/ && chmod +x ./explicit_tree_aut_test && LD_LIBRARY_PATH=.:$LD_LIBRARY_PATH ./explicit_tree_aut_test
         shell: wsl-run {0} # add this to run the commands inside linux
+
   build-debug-macos:
     runs-on: macos-latest
     steps:
+    - uses: actions/checkout@v4
     - run: brew install gcc make cmake boost
-    - run: git clone https://github.com/alan23273850/AutoQ.git
-    - run: cd AutoQ && git checkout ${{ github.ref_name }} && mkdir build && make debug
-    - run: cp /opt/homebrew/lib/libboost_unit_test_framework.dylib /Users/runner/work/AutoQ/AutoQ/AutoQ/build/unit_tests/
-    - run: cp /opt/homebrew/lib/libboost_filesystem.dylib /Users/runner/work/AutoQ/AutoQ/AutoQ/build/unit_tests/
-    - run: cp /opt/homebrew/lib/libboost_system.dylib /Users/runner/work/AutoQ/AutoQ/AutoQ/build/unit_tests/
-    - run: cp /opt/homebrew/lib/libboost_regex.dylib /Users/runner/work/AutoQ/AutoQ/AutoQ/build/unit_tests/
-    - run: cp /opt/homebrew/lib/libboost_atomic.dylib /Users/runner/work/AutoQ/AutoQ/AutoQ/build/unit_tests/
+    - run: make debug
+    - run: cp /opt/homebrew/lib/libboost_unit_test_framework.dylib build/unit_tests/
+    - run: cp /opt/homebrew/lib/libboost_filesystem.dylib          build/unit_tests/
+    - run: cp /opt/homebrew/lib/libboost_system.dylib              build/unit_tests/
+    - run: cp /opt/homebrew/lib/libboost_regex.dylib               build/unit_tests/
+    - run: cp /opt/homebrew/lib/libboost_atomic.dylib              build/unit_tests/
     # # - run: cp /home/runner/work/AutoQ/AutoQ/AutoQ/libz3.so.* /Users/runner/work/AutoQ/AutoQ/AutoQ/build/unit_tests/
     - uses: actions/upload-artifact@v4.3.5
       with:
@@ -163,6 +163,7 @@ jobs:
           AutoQ/build/
           AutoQ/unit_tests/
           AutoQ/benchmarks/all/
+
   test-debug-macos:
     needs: build-debug-macos
     runs-on: macos-latest
@@ -174,17 +175,18 @@ jobs:
     # - run: pwd
     # - run: ls -a
     - run: cd AutoQ/build/unit_tests/ && chmod +x ./explicit_tree_aut_test && DYLD_LIBRARY_PATH=.:$DYLD_LIBRARY_PATH ./explicit_tree_aut_test
+
   build-release-macos:
     runs-on: macos-latest
     steps:
+    - uses: actions/checkout@v4
     - run: brew install gcc make cmake boost
-    - run: git clone https://github.com/alan23273850/AutoQ.git
-    - run: cd AutoQ && git checkout ${{ github.ref_name }} && mkdir build && make release
-    - run: cp /opt/homebrew/lib/libboost_unit_test_framework.dylib /Users/runner/work/AutoQ/AutoQ/AutoQ/build/unit_tests/
-    - run: cp /opt/homebrew/lib/libboost_filesystem.dylib /Users/runner/work/AutoQ/AutoQ/AutoQ/build/unit_tests/
-    - run: cp /opt/homebrew/lib/libboost_system.dylib /Users/runner/work/AutoQ/AutoQ/AutoQ/build/unit_tests/
-    - run: cp /opt/homebrew/lib/libboost_regex.dylib /Users/runner/work/AutoQ/AutoQ/AutoQ/build/unit_tests/
-    - run: cp /opt/homebrew/lib/libboost_atomic.dylib /Users/runner/work/AutoQ/AutoQ/AutoQ/build/unit_tests/
+    - run: make release
+    - run: cp /opt/homebrew/lib/libboost_unit_test_framework.dylib build/unit_tests/
+    - run: cp /opt/homebrew/lib/libboost_filesystem.dylib          build/unit_tests/
+    - run: cp /opt/homebrew/lib/libboost_system.dylib              build/unit_tests/
+    - run: cp /opt/homebrew/lib/libboost_regex.dylib               build/unit_tests/
+    - run: cp /opt/homebrew/lib/libboost_atomic.dylib              build/unit_tests/
     # # - run: cp /home/runner/work/AutoQ/AutoQ/AutoQ/libz3.so.* /Users/runner/work/AutoQ/AutoQ/AutoQ/build/unit_tests/
     - uses: actions/upload-artifact@v4.3.5
       with:
@@ -194,6 +196,7 @@ jobs:
           AutoQ/build/
           AutoQ/unit_tests/
           AutoQ/benchmarks/all/
+
   test-release-macos:
     needs: build-release-macos
     runs-on: macos-latest
