@@ -34,7 +34,6 @@ jobs:
     - uses: actions/download-artifact@v4
       with:
         name: AutoQ-debug-ubuntu
-        path: AutoQ/
     # - run: pwd
     # - run: ls -a
     - run: cd build/unit_tests/ && chmod +x ./explicit_tree_aut_test && LD_LIBRARY_PATH=.:$LD_LIBRARY_PATH ./explicit_tree_aut_test
