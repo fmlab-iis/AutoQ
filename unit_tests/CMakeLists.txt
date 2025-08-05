@@ -1,6 +1,5 @@
 cmake_minimum_required(VERSION 3.5...3.28)
 
-
 project(unit_tests)
 
 set(compiler_flags_list
