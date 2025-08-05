@@ -12,6 +12,7 @@ jobs:
   build-debug-ubuntu:
     runs-on: ubuntu-latest
     steps:
+    - uses: actions/checkout@v4
     - run: sudo apt-get install libboost-filesystem-dev libboost-test-dev libboost-regex-dev
     - run: make debug
     - run: cp /usr/lib/x86_64-linux-gnu/libboost_unit_test_framework.so.* build/unit_tests/
