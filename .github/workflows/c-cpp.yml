@@ -22,10 +22,10 @@ jobs:
       with:
         name: AutoQ-debug-ubuntu
         path: |
-          AutoQ/Makefile
-          AutoQ/build/
-          AutoQ/unit_tests/
-          AutoQ/benchmarks/all/
+          Makefile
+          build/
+          unit_tests/
+          benchmarks/all/
 
   test-debug-ubuntu:
     needs: build-debug-ubuntu
