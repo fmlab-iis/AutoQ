@@ -65,7 +65,7 @@ jobs:
         name: AutoQ-release-ubuntu
     # - run: pwd
     # - run: ls -a
-    - run: cd unit_tests/ && chmod +x ./explicit_tree_aut_test && LD_LIBRARY_PATH=.:$LD_LIBRARY_PATH ./explicit_tree_aut_test
+    - run: cd build/unit_tests/ && chmod +x ./explicit_tree_aut_test && LD_LIBRARY_PATH=.:$LD_LIBRARY_PATH ./explicit_tree_aut_test
 
   build-debug-wsl:
     runs-on: windows-latest
