@@ -5,7 +5,12 @@
 #include <vector>
 #include <boost/rational.hpp>
 #include "autoq/util/convert.hh"
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wfloat-equal"
+#pragma GCC diagnostic ignored "-Wold-style-cast"
 #include <boost/multiprecision/cpp_int.hpp>
+#pragma GCC diagnostic pop
 
 namespace AUTOQ
 {
@@ -17,6 +22,7 @@ namespace AUTOQ
 
 #define PRECISION 14
 
+#pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wfloat-equal"
 typedef std::pair<double, double> stdpairdouble128double128;
 struct AUTOQ::Complex::Plain : std::pair<double, double> {

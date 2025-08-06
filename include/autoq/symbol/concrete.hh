@@ -5,7 +5,12 @@
 #include "autoq/util/convert.hh"
 #include "autoq/complex/complex.hh"
 #include <boost/multiprecision/cpp_int.hpp>
+
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wold-style-cast"
 #include <boost/functional/hash.hpp>
+#pragma GCC diagnostic pop
 
 namespace AUTOQ
 {

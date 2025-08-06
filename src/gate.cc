@@ -1,8 +1,14 @@
 #include <functional>
 #include <boost/rational.hpp>
-#include <boost/multiprecision/cpp_int.hpp>
+
 #include "autoq/util/util.hh"
 #include "autoq/aut_description.hh"
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wold-style-cast"
+#include <boost/multiprecision/cpp_int.hpp>
+#pragma GCC diagnostic pop
+
 
 // #define TO_QASM
 #define QASM_FILENAME "circuit.qasm"
@@ -1486,7 +1492,7 @@ void AUTOQ::Automata<Symbol>::Swap(int t1, int t2) {
 
 template <typename Symbol>
 void AUTOQ::Automata<Symbol>::CX() {
-    auto start = std::chrono::steady_clock::now();
+    // auto start = std::chrono::steady_clock::now();
     TopDownTransitions transitions_result;
     for (const auto &fc_ois : transitions) {
         const auto &fc = fc_ois.first;
@@ -1518,13 +1524,13 @@ void AUTOQ::Automata<Symbol>::CX() {
     remove_useless();
     reduce();
     gateCount++;
-    auto duration = std::chrono::steady_clock::now() - start;
+    // auto duration = std::chrono::steady_clock::now() - start;
     // if (gateLog) std::cout << "CNOT" << c << "," << t << "：" << stateNum << " states " << count_transitions() << " transitions " << AUTOQ::Util::print_duration(duration) << "\n";
 }
 
 template <typename Symbol>
 void AUTOQ::Automata<Symbol>::CX_inv() {
-    auto start = std::chrono::steady_clock::now();
+    // auto start = std::chrono::steady_clock::now();
     TopDownTransitions transitions_result;
     for (const auto &fc_ois : transitions) {
         const auto &fc = fc_ois.first;
@@ -1556,13 +1562,13 @@ void AUTOQ::Automata<Symbol>::CX_inv() {
     remove_useless();
     reduce();
     gateCount++;
-    auto duration = std::chrono::steady_clock::now() - start;
+    // auto duration = std::chrono::steady_clock::now() - start;
     // if (gateLog) std::cout << "CNOT" << c << "," << t << "：" << stateNum << " states " << count_transitions() << " transitions " << AUTOQ::Util::Convert::toString(duration) << "\n";
 }
 
 template <typename Symbol>
 void AUTOQ::Automata<Symbol>::Phase(const boost::rational<boost::multiprecision::cpp_int> &r) {
-    auto start = std::chrono::steady_clock::now();
+    // auto start = std::chrono::steady_clock::now();
     TopDownTransitions transitions_result;
     for (const auto &fc_ois : transitions) {
         auto symbol = fc_ois.first.symbol();
@@ -1574,7 +1580,7 @@ void AUTOQ::Automata<Symbol>::Phase(const boost::rational<boost::multiprecision:
     }
     transitions = transitions_result;
     gateCount++;
-    auto duration = std::chrono::steady_clock::now() - start;
+    // auto duration = std::chrono::steady_clock::now() - start;
     // if (gateLog) std::cout << "Phase" << c << "," << t << "：" << stateNum << " states " << count_transitions() << " transitions " << AUTOQ::Util::Convert::toString(duration) << "\n";
 }
 
