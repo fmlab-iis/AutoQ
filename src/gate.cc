@@ -1,8 +1,14 @@
 #include <functional>
 #include <boost/rational.hpp>
-#include <boost/multiprecision/cpp_int.hpp>
+
 #include "autoq/util/util.hh"
 #include "autoq/aut_description.hh"
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wold-style-cast"
+#include <boost/multiprecision/cpp_int.hpp>
+#pragma GCC diagnostic pop
+
 
 // #define TO_QASM
 #define QASM_FILENAME "circuit.qasm"

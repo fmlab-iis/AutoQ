@@ -1,5 +1,6 @@
 cmake_minimum_required(VERSION 3.5...3.28)
 
+project(AutoQ)
 
 # 3rd party modules
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake/Modules/")
@@ -158,7 +159,7 @@ include(CTest)
 
 # Boost
 set(Boost_USE_MULTITHREADED OFF)
-find_package(Boost 1.54.0 COMPONENTS
+find_package(Boost 1.54.0 CONFIG COMPONENTS
   filesystem
   system
   unit_test_framework

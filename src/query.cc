@@ -5,8 +5,12 @@
 #include "autoq/symbol/index.hh"
 #include "autoq/symbol/constrained.hh"
 #include "autoq/serialization/timbuk_serializer.hh"
-#include <boost/dynamic_bitset.hpp> // used in print_language
 #include <regex>
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wold-style-cast"
+#include <boost/dynamic_bitset.hpp> // used in print_language
+#pragma GCC diagnostic pop
 
 template <typename Symbol>
 void AUTOQ::Automata<Symbol>::initialize_stats() {

@@ -13,8 +13,12 @@
 #include <fstream>
 #include <numeric>
 #include <filesystem>
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wold-style-cast"
 #include <boost/regex.hpp>
 #include <boost/algorithm/string/predicate.hpp>
+#pragma GCC diagnostic pop
 
 // AUTOQ headers
 #include "autoq/error.hh"
@@ -1217,7 +1221,6 @@ AUTOQ::Automata<Symbol> parse_automaton(const std::string& str, const std::map<s
 
 template <typename Symbol, typename Symbol2>
 AUTOQ::Automata<Symbol> AUTOQ::Parsing::TimbukParser<Symbol, Symbol2>::parse_extended_dirac_from_istream(std::istream *is, bool &do_not_throw_term_undefined_error, const std::map<std::string, AUTOQ::Complex::Complex> &constants, const std::string &predicateConstraints) {
-
     bool start_transitions = false;
     // bool get_ordering = false;
     AUTOQ::Automata<Symbol> aut_final;
