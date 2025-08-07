@@ -1,4 +1,4 @@
-Predicates
-p := (= $I 0)
 Extended Dirac
-{p |00> + p |*>}
+{p ∑ |i|=2 |i>}
+Constraints
+imag(p) = 0

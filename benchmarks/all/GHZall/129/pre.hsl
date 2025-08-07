@@ -1,2 +1,4 @@
+Constants
+c1 := 1
 Extended Dirac
-{|i> | |i|=129}
+{c1 |ji> : |j|=1, |i|=128}

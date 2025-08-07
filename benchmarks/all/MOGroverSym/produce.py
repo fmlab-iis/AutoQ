@@ -123,11 +123,13 @@ for n in sizes:
     #     file.write(f'[aH,1] -> {3*(2*n-1-4)+13}')
     ###########################################################################
     with open(n_str + '/post.hsl', 'w') as file:
-        file.write('Predicates\n')
-        file.write('pL := (and (< (* $R $R) 0.1) (= $I 0))\n')
-        file.write('pH := (and (> (* $R $R) 0.9) (= $I 0))\n')
         file.write('Extended Dirac\n')
         file.write('{' + f'pH |ss{"0" * (n-2)}1> + pL ∑ |i|={n}, i≠s |si{"0" * (n-2)}1>' + ' : |s|=' + str(n) + '}\n')
+        file.write('Constraints\n')
+        file.write('real(pL) * real(pL) < 1/8\n')
+        file.write('imag(pL) = 0\n')
+        file.write('real(pH) * real(pH) > 7/8\n')
+        file.write('imag(pH) = 0\n')
     ###########################################################################
 
 # cp -rl 0{3,8,9} ../../CAV23/MOGroverSym/

@@ -21,18 +21,18 @@ for n in sizes:
         file.write('Extended Dirac\n')
         file.write(f"{{c1 |{'0' * (n+1)}>}}\n")
     ###########################################################################
-    with open(n_str + '/pre.lsta', 'w') as file:
-        file.write('Constants\n')
-        file.write('c0 := 0\n')
-        file.write('c1 := 1\n')
-        file.write('Root States 0\n')
-        file.write('Transitions\n')
-        file.write('[1,1](2, 1) -> 0\n')
-        for i in range(2, n+2): # 2 <= i <= n+1
-            file.write(f'[{i},1]({2*i-1}, {2*i-1}) -> {2*i-3}\n')
-            file.write(f'[{i},1]({2*i  }, {2*i-1}) -> {2*i-2}\n')
-        file.write(f'[c0,1] -> {2*n+1}\n')
-        file.write(f'[c1,1] -> {2*n+2}\n')
+    # with open(n_str + '/pre.lsta', 'w') as file:
+    #     file.write('Constants\n')
+    #     file.write('c0 := 0\n')
+    #     file.write('c1 := 1\n')
+    #     file.write('Root States 0\n')
+    #     file.write('Transitions\n')
+    #     file.write('[1,1](2, 1) -> 0\n')
+    #     for i in range(2, n+2): # 2 <= i <= n+1
+    #         file.write(f'[{i},1]({2*i-1}, {2*i-1}) -> {2*i-3}\n')
+    #         file.write(f'[{i},1]({2*i  }, {2*i-1}) -> {2*i-2}\n')
+    #     file.write(f'[c0,1] -> {2*n+1}\n')
+    #     file.write(f'[c1,1] -> {2*n+2}\n')
     ###########################################################################
     with open(n_str + '/circuit.qasm', 'w') as file:
         file.write('OPENQASM 2.0;\n')
@@ -46,28 +46,28 @@ for n in sizes:
         for i in range(0, n+1):
             file.write(f'h qubits[{i}];\n')
     ###########################################################################
-    with open(n_str + '/post.lsta', 'w') as file:
-        file.write('Predicates\n')
-        file.write('p := (= $I 0)\n')
-        file.write('Root States 0\n')
-        file.write('Transitions\n')
-        file.write('[1,1](1, 2) -> 0\n')
-        for i in range(2, n+1): # 2 <= i <= n
-            file.write(f'[{i},1]({2*i-1}, {2*i-1}) -> {2*i-3}\n')
-            if i % 2:
-                file.write(f'[{i},1]({2*i-1}, {2*i  }) -> {2*i-2}\n')
-            else:
-                file.write(f'[{i},1]({2*i  }, {2*i-1}) -> {2*i-2}\n')
-        file.write(f'[{(n+1)},1]({2*(n+1)-1}, {2*(n+1)-1}) -> {2*(n+1)-3}\n')
-        file.write(f'[{(n+1)},1]({2*(n+1)-1}, {2*(n+1)  }) -> {2*(n+1)-2}\n')
-        file.write(f'[p,1] -> {2*n+1}\n')
-        file.write(f'[p,1] -> {2*n+2}\n')
+    # with open(n_str + '/post.lsta', 'w') as file:
+    #     file.write('Predicates\n')
+    #     file.write('p := (= $I 0)\n')
+    #     file.write('Root States 0\n')
+    #     file.write('Transitions\n')
+    #     file.write('[1,1](1, 2) -> 0\n')
+    #     for i in range(2, n+1): # 2 <= i <= n
+    #         file.write(f'[{i},1]({2*i-1}, {2*i-1}) -> {2*i-3}\n')
+    #         if i % 2:
+    #             file.write(f'[{i},1]({2*i-1}, {2*i  }) -> {2*i-2}\n')
+    #         else:
+    #             file.write(f'[{i},1]({2*i  }, {2*i-1}) -> {2*i-2}\n')
+    #     file.write(f'[{(n+1)},1]({2*(n+1)-1}, {2*(n+1)-1}) -> {2*(n+1)-3}\n')
+    #     file.write(f'[{(n+1)},1]({2*(n+1)-1}, {2*(n+1)  }) -> {2*(n+1)-2}\n')
+    #     file.write(f'[p,1] -> {2*n+1}\n')
+    #     file.write(f'[p,1] -> {2*n+2}\n')
     ###########################################################################
     with open(n_str + '/post.hsl', 'w') as file:
-        file.write('Predicates\n')
-        file.write('p := (= $I 0)\n')
         file.write('Extended Dirac\n')
         file.write(f"{{p ∑ |i|={n+1} |i>}}\n")
+        file.write('Constraints\n')
+        file.write('imag(p) = 0\n')
     ###########################################################################
 
 # cp -rl {01,99,999}/ ../../CAV23/BVSym/

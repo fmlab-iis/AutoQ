@@ -1,4 +1,4 @@
-Predicates
-p := (= $I 0)
 Extended Dirac
 {p ∑ |i|=340 |i>}
+Constraints
+imag(p) = 0

@@ -1,2 +1,4 @@
+Constants
+c1 := 1
 Extended Dirac
-{|00>, |11>} ^ 128 ⊗ {|1>}
+{c1 |ii1> : |i|=128}

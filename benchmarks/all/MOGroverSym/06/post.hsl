@@ -1,5 +1,7 @@
-Predicates
-pL := (and (< (* $R $R) 0.1) (= $I 0))
-pH := (and (> (* $R $R) 0.9) (= $I 0))
 Extended Dirac
 {pH |ss00001> + pL ∑ |i|=6, i≠s |si00001> : |s|=6}
+Constraints
+real(pL) * real(pL) < 1/8
+imag(pL) = 0
+real(pH) * real(pH) > 7/8
+imag(pH) = 0

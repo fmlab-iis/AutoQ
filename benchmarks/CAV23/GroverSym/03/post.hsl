@@ -1,4 +1,7 @@
-Predicates
-pH := (and (> (* $R $R) 0.9) (= $I 0))
 Extended Dirac
-{pH |010001>}
+{pH |01001> + pL ∑ |i|=3, i≠010 |i01>}
+Constraints
+real(pL) * real(pL) < 1/8
+imag(pL) = 0
+real(pH) * real(pH) > 7/8
+imag(pH) = 0

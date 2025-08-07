@@ -2,9 +2,4 @@ Constants
 aH := 75555863006653472909761 / (sqrt2 ^ 152)
 aL := 34433006489313897025 / (sqrt2 ^ 152)
 Extended Dirac
-{aH|00> + aL|01>, aH|11> + aL|10>} ⊗ ({aH|00> + aL|01>, aH|11> + aL|10>} ⊗ {|0>}) ^ 6 ⊗ {aH|00> + aL|01>, aH|11> + aL|10>} ⊗ {|1>}
-where
-aH ⊗ aH = aH
-aH ⊗ aL = aL
-aL ⊗ aH = aL
-aL ⊗ aL = aL
+{aH |ss0000001> + aL ∑ |i|=8, i≠s |si0000001> : |s|=8}

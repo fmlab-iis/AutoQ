@@ -119,11 +119,13 @@ for n in sizes:
     #     file.write(f'[p3,1] -> {2*(n+2)+3*(i-n-2)+2}')
     ###########################################################################
     with open(n_str + '/post.hsl', 'w') as file:
-        file.write('Predicates\n')
-        file.write('pL := (and (< (* real($) real($)) (* real(a) real(a))) (= imag($) 0))\n')
-        file.write('pH := (and (> (* real($) real($)) (* real(b) real(b))) (= imag($) 0))\n')
         file.write('Extended Dirac\n')
         file.write('{' + f'pH |{"01" * (n//2) + "0" * (n % 2)}{"0" * (n-2)}1> + pL ∑ |i|={n}, i≠{"01" * (n//2) + "0" * (n % 2)} |i{"0" * (n-2)}1>' + '}\n')
+        file.write('Constraints\n')
+        file.write('real(pL) * real(pL) < real(a) * real(a)\n')
+        file.write('imag(pL) = 0\n')
+        file.write('real(pH) * real(pH) > real(b) * real(b)\n')
+        file.write('imag(pH) = 0\n')
         # file.write('where\n')
         # file.write('pH ⊗ pH = pH\n')
         # file.write('pH ⊗ pL = pL\n')

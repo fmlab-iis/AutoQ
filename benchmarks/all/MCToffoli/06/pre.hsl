@@ -1,2 +1,4 @@
+Constants
+c1 := 1
 Extended Dirac
-{|i> | |i|=2} ⊗ {|0i> | |i|=1} ^ 5
+{ c1 |i00000j> : |i|=6, |j|=1 }
