@@ -18,6 +18,7 @@ jobs:
     - run: cp /usr/lib/x86_64-linux-gnu/libboost_unit_test_framework.so.* build/unit_tests/
     - run: cp /usr/lib/x86_64-linux-gnu/libboost_regex.so.*               build/unit_tests/
     - run: cp libz3.so.*                                                  build/unit_tests/
+    - run: cp libantlr4-runtime.so.*                                      build/unit_tests/
     - uses: actions/upload-artifact@v4.3.5
       with:
         name: AutoQ-debug-ubuntu
@@ -47,6 +48,7 @@ jobs:
     - run: cp /usr/lib/x86_64-linux-gnu/libboost_unit_test_framework.so.* build/unit_tests/
     - run: cp /usr/lib/x86_64-linux-gnu/libboost_regex.so.*               build/unit_tests/
     - run: cp libz3.so.*                                                  build/unit_tests/
+    - run: cp libantlr4-runtime.so.*                                      build/unit_tests/
     - uses: actions/upload-artifact@v4.3.5
       with:
         name: AutoQ-release-ubuntu
@@ -79,6 +81,7 @@ jobs:
           cp /usr/lib/x86_64-linux-gnu/libboost_unit_test_framework.so.* build/unit_tests/
           cp /usr/lib/x86_64-linux-gnu/libboost_regex.so.*               build/unit_tests/
           cp libz3.so.*                                                  build/unit_tests/
+          cp libantlr4-runtime.so.*                                      build/unit_tests/
         shell: wsl-run {0} # add this to run the commands inside linux
       - run: |
           wsl -d Ubuntu -e bash -c "tar -czf autoq-debug-wsl.tar.gz Makefile build/ unit_tests/ benchmarks/all/"
@@ -112,6 +115,7 @@ jobs:
           cp /usr/lib/x86_64-linux-gnu/libboost_unit_test_framework.so.* build/unit_tests/
           cp /usr/lib/x86_64-linux-gnu/libboost_regex.so.*               build/unit_tests/
           cp libz3.so.*                                                  build/unit_tests/
+          cp libantlr4-runtime.so.*                                      build/unit_tests/
         shell: wsl-run {0} # add this to run the commands inside linux
       - run: |
           wsl -d Ubuntu -e bash -c "tar -czf autoq-release-wsl.tar.gz Makefile build/ unit_tests/ benchmarks/all/"
