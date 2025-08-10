@@ -19,8 +19,8 @@ public:
   };
 
   enum {
-    RuleExpr = 0, RuleTset = 1, RuleSet = 2, RuleDiracs = 3, RuleDirac = 4, 
-    RuleTerm = 5, RuleVarcons = 6, RuleVarcon = 7, RuleIneq = 8
+    RuleExpr = 0, RuleTset = 1, RuleScset = 2, RuleSet = 3, RuleDiracs = 4, 
+    RuleDirac = 5, RuleTerm = 6, RuleVarcons = 7, RuleVarcon = 8, RuleIneq = 9
   };
 
   explicit ExtendedDiracParser(antlr4::TokenStream *input);
@@ -56,6 +56,7 @@ public:
 
   class ExprContext;
   class TsetContext;
+  class ScsetContext;
   class SetContext;
   class DiracsContext;
   class DiracContext;
@@ -88,12 +89,10 @@ public:
     antlr4::Token *N = nullptr;
     TsetContext(antlr4::ParserRuleContext *parent, size_t invokingState);
     virtual size_t getRuleIndex() const override;
-    std::vector<SetContext *> set();
-    SetContext* set(size_t i);
+    ScsetContext *scset();
+    SetContext *set();
     antlr4::tree::TerminalNode *POWER();
     antlr4::tree::TerminalNode *STR();
-    std::vector<antlr4::tree::TerminalNode *> SEMICOLON();
-    antlr4::tree::TerminalNode* SEMICOLON(size_t i);
     std::vector<TsetContext *> tset();
     TsetContext* tset(size_t i);
     antlr4::tree::TerminalNode *PROD();
@@ -107,6 +106,24 @@ public:
 
   TsetContext* tset();
   TsetContext* tset(int precedence);
+  class  ScsetContext : public antlr4::ParserRuleContext {
+  public:
+    antlr4::Token *op = nullptr;
+    ScsetContext(antlr4::ParserRuleContext *parent, size_t invokingState);
+    virtual size_t getRuleIndex() const override;
+    SetContext *set();
+    ScsetContext *scset();
+    antlr4::tree::TerminalNode *SEMICOLON();
+
+    virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
+    virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
+
+    virtual std::any accept(antlr4::tree::ParseTreeVisitor *visitor) override;
+   
+  };
+
+  ScsetContext* scset();
+  ScsetContext* scset(int precedence);
   class  SetContext : public antlr4::ParserRuleContext {
   public:
     antlr4::Token *op = nullptr;
@@ -250,6 +267,7 @@ public:
   bool sempred(antlr4::RuleContext *_localctx, size_t ruleIndex, size_t predicateIndex) override;
 
   bool tsetSempred(TsetContext *_localctx, size_t predicateIndex);
+  bool scsetSempred(ScsetContext *_localctx, size_t predicateIndex);
   bool setSempred(SetContext *_localctx, size_t predicateIndex);
   bool diracsSempred(DiracsContext *_localctx, size_t predicateIndex);
   bool diracSempred(DiracContext *_localctx, size_t predicateIndex);

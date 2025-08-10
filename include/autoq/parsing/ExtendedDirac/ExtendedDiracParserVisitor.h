@@ -23,6 +23,8 @@ public:
 
     virtual std::any visitTset(ExtendedDiracParser::TsetContext *context) = 0;
 
+    virtual std::any visitScset(ExtendedDiracParser::ScsetContext *context) = 0;
+
     virtual std::any visitSet(ExtendedDiracParser::SetContext *context) = 0;
 
     virtual std::any visitDiracs(ExtendedDiracParser::DiracsContext *context) = 0;

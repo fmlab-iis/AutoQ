@@ -1,0 +1,6 @@
+Extended Dirac
+{v1 ∑|i|=3,i≠111 |0000i> + v2 |0000111> + v3 |0010111>}
+Constraints
+imag(v1) = 0
+imag(v2) = 0
+imag(v3) = 0

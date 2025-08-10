@@ -38,8 +38,8 @@ struct AUTOQ::Parsing::TimbukParser
     static AUTOQ::Automata<Symbol> ReadAutomaton(const std::string& filepath);
     static AUTOQ::Automata<Symbol> ReadAutomaton(const std::string& filepath, bool &do_not_throw_term_undefined_error);
     static AUTOQ::Automata<Symbol> parse_extended_dirac_from_istream(std::istream *is, bool &do_not_throw_term_undefined_error, const std::map<std::string, AUTOQ::Complex::Complex> &constants = {}, const std::string &predicateConstraints = "");
-    static std::tuple<AUTOQ::Automata<Symbol>, AUTOQ::Automata<Symbol2>, std::vector<int>, std::optional<AUTOQ::Automata<Symbol2>>> ReadTwoAutomata(const std::string& filepath1, const std::string& filepath2);
-    static std::tuple<AUTOQ::Automata<Symbol>, AUTOQ::Automata<Symbol2>, std::vector<int>, std::optional<AUTOQ::Automata<Symbol2>>> parse_two_extended_diracs_from_istream(std::istream *is1, std::istream *is2, const std::map<std::string, AUTOQ::Complex::Complex> &constants1 = {}, const std::string &predicateConstraints1 = "", const std::map<std::string, AUTOQ::Complex::Complex> &constants2 = {}, const std::string &predicateConstraints2 = "");
+    static std::pair<std::vector<AUTOQ::Automata<Symbol>>, std::vector<int>> ReadTwoAutomata(const std::string& filepath1, const std::string& filepath2, const std::string &circuitPath = "");
+    static std::pair<std::vector<AUTOQ::Automata<Symbol>>, std::vector<int>> parse_n_extended_diracs_from_istream(std::vector<std::istream*> isVec, const std::vector<std::map<std::string, AUTOQ::Complex::Complex>> &constantsVec, const std::vector<std::string> &predicateConstraintsVec);
 };
 
 std::variant<AUTOQ::Automata<AUTOQ::Symbol::Concrete>, AUTOQ::Automata<AUTOQ::Symbol::Symbolic>, AUTOQ::Automata<AUTOQ::Symbol::Predicate>> ReadAutomaton(const std::string& filepath);

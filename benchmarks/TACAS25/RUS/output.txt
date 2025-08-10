@@ -1,0 +1,6 @@
+./Figure7: The quantum program has [2] qubits and [29] gates. The verification process [OK] in [0.0s] with [6MB] memory usage.
+./Figure8: The quantum program has [2] qubits and [17] gates. The verification process [OK] in [0.0s] with [6MB] memory usage.
+./Figure9: The quantum program has [2] qubits and [27] gates. The verification process [OK] in [0.0s] with [6MB] memory usage.
+./Figure10a: The quantum program has [2] qubits and [43] gates. The verification process [OK] in [0.0s] with [6MB] memory usage.
+./Figure10b: The quantum program has [2] qubits and [77] gates. The verification process [OK] in [0.0s] with [6MB] memory usage.
+./Figure10c: The quantum program has [2] qubits and [69] gates. The verification process [OK] in [0.0s] with [6MB] memory usage.

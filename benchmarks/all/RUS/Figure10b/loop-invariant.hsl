@@ -1,0 +1,8 @@
+Constants
+c1 := 4 + 9 * ei2pi(1/8) + -1 * ei2pi(2/8) + 2 * ei2pi(3/8)
+c2 := 3 + -2 * ei2pi(1/8) + -2 * ei2pi(2/8) + 3 * ei2pi(3/8)
+c3 := 4 + 7 * ei2pi(1/8) + 1 * ei2pi(2/8) + 6 * ei2pi(3/8)
+c4 := -3 + 2 * ei2pi(1/8) + 2 * ei2pi(2/8) + -3 * ei2pi(3/8)
+Extended Dirac
+{c1 |01> + c2 |11>,
+ c3 |00> + c4 |10>}

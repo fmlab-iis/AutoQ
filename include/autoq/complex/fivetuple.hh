@@ -29,35 +29,31 @@ struct AUTOQ::Complex::FiveTuple : stdvectorboostmultiprecisioncpp_int {
                 at(4) += 2;
                 d /= 2;
             }
-            assert(d == 1); // Assume the denominator is a power of 2!
+            if (d != 1) {   // Assume the denominator is a power of 2!
+                THROW_AUTOQ_ERROR("The input number cannot be represented with the current data structure!");
+            }
             at(0) = r.numerator();
         }
     FiveTuple() : FiveTuple(0) {}
     static FiveTuple Angle(boost::rational<boost::multiprecision::cpp_int> theta) {
-        theta -= theta.numerator() / theta.denominator();
-        while (theta >= 1)
-            theta -= 1;
-        while (theta < 0)
-            theta += 1;
-        if (theta.numerator() == 0) return {1,0,0,0,0};
-        if (theta == boost::rational<boost::multiprecision::cpp_int>(1, 8)) return {0,1,0,0,0};
-        if (theta == boost::rational<boost::multiprecision::cpp_int>(2, 8)) return {0,0,1,0,0};
-        if (theta == boost::rational<boost::multiprecision::cpp_int>(3, 8)) return {0,0,0,1,0};
-        if (theta == boost::rational<boost::multiprecision::cpp_int>(4, 8)) return {-1,0,0,0,0};
-        if (theta == boost::rational<boost::multiprecision::cpp_int>(5, 8)) return {0,-1,0,0,0};
-        if (theta == boost::rational<boost::multiprecision::cpp_int>(6, 8)) return {0,0,-1,0,0};
-        if (theta == boost::rational<boost::multiprecision::cpp_int>(7, 8)) return {0,0,0,-1,0};
-        THROW_AUTOQ_ERROR("Angle not supported!");
+        return FiveTuple(1).counterclockwise(theta);
     }
-    static FiveTuple One() { return FiveTuple({1,0,0,0,0}); }
-    static FiveTuple Zero() { return FiveTuple({0,0,0,0,0}); }
-    static FiveTuple Rand() { return FiveTuple({rand()%5, rand()%5, rand()%5, rand()%5, 0}); }
-    static FiveTuple sqrt2() { return FiveTuple({1,0,0,0,-1}); }
+    static FiveTuple One() { return FiveTuple(1); }
+    static FiveTuple Zero() { return FiveTuple(0); }
+    static FiveTuple Rand() {
+        auto number = FiveTuple(0);
+        auto val = rand() % 5;
+        if (val != 0)
+            number.at(rand() % 4) = val;
+        return number;
+    }
+    static FiveTuple sqrt2() { return FiveTuple(1).divide_by_the_square_root_of_two(-1); }
     friend std::ostream& operator<<(std::ostream& os, const FiveTuple& obj) {
         os << AUTOQ::Util::Convert::ToString(static_cast<stdvectorboostmultiprecisioncpp_int>(obj));
         return os;
     }
     FiveTuple operator+(const FiveTuple &o) const { return binary_operation(o, true); }
+    FiveTuple& operator+=(const FiveTuple &o) { *this = binary_operation(o, true); return *this; }
     FiveTuple operator-(const FiveTuple &o) const { return binary_operation(o, false); }
     FiveTuple operator*(const FiveTuple &o) const {
         FiveTuple symbol;
@@ -103,7 +99,7 @@ struct AUTOQ::Complex::FiveTuple : stdvectorboostmultiprecisioncpp_int {
         return *this;
     }
     FiveTuple& divide_by_the_square_root_of_two(int times=1) {
-        assert(times >= 0);
+        // assert(times >= 0);
         at(4) += times;
         return *this;
     }
@@ -168,6 +164,8 @@ struct AUTOQ::Complex::FiveTuple : stdvectorboostmultiprecisioncpp_int {
         return boost::rational<boost::multiprecision::cpp_int>(at(0), boost::multiprecision::pow(boost::multiprecision::cpp_int(2), static_cast<int>(at(4)/2)));
     }
     std::string realToSMT() const {
+        std::string denominator = std::to_string(std::pow(std::sqrt(2.0), static_cast<int>(at(4))));
+        if (denominator == "inf") return "0";
         std::string result = "(/ (+ ";
         result += at(0).str();
         result += " (* " + std::to_string(std::sqrt(2.0) / 2.0) + " " + at(1).str() + ")";
@@ -180,6 +178,8 @@ struct AUTOQ::Complex::FiveTuple : stdvectorboostmultiprecisioncpp_int {
         return result;
     }
     std::string imagToSMT() const {
+        std::string denominator = std::to_string(std::pow(std::sqrt(2.0), static_cast<int>(at(4))));
+        if (denominator == "inf") return "0";
         std::string result = "(/ (+";
         result += " (* " + std::to_string(std::sqrt(2.0) / 2.0) + " " + at(1).str() + ") ";
         result += at(2).str();
@@ -218,12 +218,49 @@ struct AUTOQ::Complex::FiveTuple : stdvectorboostmultiprecisioncpp_int {
         // Result: {0, at(2), at(1)+at(3), at(2), at(4)+1}
         return {0, at(2), at(1)+at(3), at(2), at(4)+1};
     }
+    void increase_k() {
+        FiveTuple symbol;
+        symbol.at(1) += at(0);
+        symbol.at(3) -= at(0);
+        symbol.at(0) += at(1);
+        symbol.at(2) += at(1);
+        symbol.at(1) += at(2);
+        symbol.at(3) += at(2);
+        symbol.at(2) += at(3);
+        symbol.at(0) -= at(3);
+        symbol.at(4) += at(4) + 1;
+        *this = symbol;
+    }
+    void increase_to_k(const boost::multiprecision::cpp_int &k) {
+        while (this->k() < k)
+            increase_k();
+    }
+    FiveTuple& multiply_cos(const boost::rational<boost::multiprecision::cpp_int> &theta) {
+        auto c1 = *this;
+        auto c2 = *this;
+        *this = (c1.counterclockwise(theta) + c2.counterclockwise(-theta)).divide_by_the_square_root_of_two(2);
+        return *this;
+    }
+    FiveTuple& multiply_isin(const boost::rational<boost::multiprecision::cpp_int> &theta) {
+        auto c1 = *this;
+        auto c2 = *this;
+        *this = (c1.counterclockwise(theta) - c2.counterclockwise(-theta)).divide_by_the_square_root_of_two(2);
+        return *this;
+    }
+    boost::multiprecision::cpp_int& k() { return at(4); }
+    void back_to_zero() {
+        for (int i=0; i<4; i++) at(i) = 0;
+    }
 
 private:
-    FiveTuple binary_operation(const FiveTuple &o, bool add) const {
-        assert((at(4) == o.at(4)) ||
-            (at(0)==0 && at(1)==0 && at(2)==0 && at(3)==0 && at(4)<=o.at(4)) ||
-            (o.at(0)==0 && o.at(1)==0 && o.at(2)==0 && o.at(3)==0 && at(4)>=o.at(4)));
+    FiveTuple binary_operation(FiveTuple o, bool add) const {
+        auto This = *this;
+        while (This.at(4) < o.at(4)) {
+            This.increase_k();
+        }
+        while (This.at(4) > o.at(4)) {
+            o.increase_k();
+        }
         FiveTuple symbol;
         for (int i=0; i<4; i++) {
             if (add) symbol.at(i) = at(i) + o.at(i);
@@ -232,21 +269,18 @@ private:
         symbol.at(4) = std::max(at(4), o.at(4)); // remember to push k
         return symbol;
     }
-    // bool operator==(const FiveTuple &o) const {
-    //     if (size() != o.size()) return false;
-    //     if (size() != 5) return static_cast<stdvectorboostmultiprecisioncpp_int>(*this) == static_cast<stdvectorboostmultiprecisioncpp_int>(o);
-    //     if (at(0)==0 && at(1)==0 && at(2)==0 && at(3)==0 &&
-    //         o.at(0)==0 && o.at(1)==0 && o.at(2)==0 && o.at(3)==0)
-    //         return true;
-    //     else {
-    //         if ((at(4)&1) != (o.at(4)&1)) return false;
-    //         auto min_d = min(at(4), o.at(4));
-    //         return (at(0) << static_cast<int>((o.at(4)-min_d)/2)) == (o.at(0) << static_cast<int>((at(4)-min_d)/2))
-    //             && (at(1) << static_cast<int>((o.at(4)-min_d)/2)) == (o.at(1) << static_cast<int>((at(4)-min_d)/2))
-    //             && (at(2) << static_cast<int>((o.at(4)-min_d)/2)) == (o.at(2) << static_cast<int>((at(4)-min_d)/2))
-    //             && (at(3) << static_cast<int>((o.at(4)-min_d)/2)) == (o.at(3) << static_cast<int>((at(4)-min_d)/2));
-    //     }
-    // }
+public:
+    bool valueEqual(FiveTuple o) const {
+        if (size() != o.size()) return false;
+        if (size() != 5) return static_cast<stdvectorboostmultiprecisioncpp_int>(*this) == static_cast<stdvectorboostmultiprecisioncpp_int>(o);
+        auto This = *this;
+        if (This.k() < o.k()) {
+            This.increase_to_k(o.k());
+        } else if (This.k() > o.k()) {
+            o.increase_to_k(This.k());
+        }
+        return This.at(0)==o.at(0) && This.at(1)==o.at(1) && This.at(2)==o.at(2) && This.at(3)==o.at(3);
+    }
 };
 
 #endif

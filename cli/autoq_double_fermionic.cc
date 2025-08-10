@@ -245,7 +245,7 @@ int main(int, char**) {
     ans.sim_reduce();
     // ans.print_aut("Post-condition:\n");
 
-    aut <= ans;
+    aut <<= ans;
     aut.print_stats();
     return 0;
 }

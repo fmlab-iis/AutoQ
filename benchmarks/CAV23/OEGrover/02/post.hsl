@@ -1,5 +1,5 @@
 Extended Dirac
-{p |011>}
+{pH |011> + pL ∑ |i|=2, i≠01 |i1>}
 Constraints
 real(pL) * real(pL) < real(a) * real(a)
 imag(pL) = 0

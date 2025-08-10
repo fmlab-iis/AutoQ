@@ -23,6 +23,10 @@ public:
     return visitChildren(ctx);
   }
 
+  virtual std::any visitScset(ExtendedDiracParser::ScsetContext *ctx) override {
+    return visitChildren(ctx);
+  }
+
   virtual std::any visitSet(ExtendedDiracParser::SetContext *ctx) override {
     return visitChildren(ctx);
   }

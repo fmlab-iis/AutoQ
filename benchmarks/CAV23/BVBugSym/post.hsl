@@ -1,4 +1,7 @@
 Extended Dirac
-{p ∑ |i|=2 |i>}
+{p00|00> + p01|01> + p10|10> + p11|11>}
 Constraints
-imag(p) = 0
+imag(p00) = 0
+imag(p01) = 0
+imag(p10) = 0
+imag(p11) = 0

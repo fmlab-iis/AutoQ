@@ -12,6 +12,7 @@
 #include <regex>
 #include <fstream>
 #include <numeric>
+#include <filesystem>
 #include <boost/regex.hpp>
 #include <boost/algorithm/string/predicate.hpp>
 
@@ -610,33 +611,33 @@ template <typename Symbol>
 typename AUTOQ::Automata<Symbol>::Symbol parse_symbol(const std::string& str, std::set<std::string> &vars) {
     /************************** TreeAutomata **************************/
     if constexpr(std::is_same_v<Symbol, AUTOQ::TreeAutomata::Symbol>) {
-        if constexpr(std::is_same_v<Complex, AUTOQ::Complex::FiveTuple>) {
-            std::vector<boost::multiprecision::cpp_int> temp;
-            temp.clear();
-            if (str[0] == '[') {
-                for (int i=1; i<static_cast<int>(str.length()); i++) {
-                    size_t j = str.find(',', i);
-                    if (j == std::string::npos) j = str.length()-1;
-                    try {
-                        temp.push_back(boost::lexical_cast<boost::multiprecision::cpp_int>(str.substr(i, j-i).c_str()));
-                    } catch (...) {
-                        THROW_AUTOQ_ERROR("The input entry \"" + str.substr(i, j-i) + "\" is not an integer!");
-                    }
-                    i = j;
-                }
-            } else {
-                try {
-                    temp.push_back(boost::lexical_cast<boost::multiprecision::cpp_int>(str.c_str()));
-                } catch (...) {
-                    THROW_AUTOQ_ERROR("The input entry \"" + str + "\" is not an integer!");
-                }
-            }
-            assert(temp.size() == 1 || temp.size() == 5);
-            if (temp.size() == 1) return AUTOQ::TreeAutomata::Symbol(temp.at(0));
-            return AUTOQ::TreeAutomata::Symbol(temp);
-        } else {
+        // if constexpr(std::is_same_v<Complex, AUTOQ::Complex::FiveTuple>) {
+        //     std::vector<boost::multiprecision::cpp_int> temp;
+        //     temp.clear();
+        //     if (str[0] == '[') {
+        //         for (int i=1; i<static_cast<int>(str.length()); i++) {
+        //             size_t j = str.find(',', i);
+        //             if (j == std::string::npos) j = str.length()-1;
+        //             try {
+        //                 temp.push_back(boost::lexical_cast<boost::multiprecision::cpp_int>(str.substr(i, j-i).c_str()));
+        //             } catch (...) {
+        //                 THROW_AUTOQ_ERROR("The input entry \"" + str.substr(i, j-i) + "\" is not an integer!");
+        //             }
+        //             i = j;
+        //         }
+        //     } else {
+        //         try {
+        //             temp.push_back(boost::lexical_cast<boost::multiprecision::cpp_int>(str.c_str()));
+        //         } catch (...) {
+        //             THROW_AUTOQ_ERROR("The input entry \"" + str + "\" is not an integer!");
+        //         }
+        //     }
+        //     assert(temp.size() == 1 || temp.size() == 5);
+        //     if (temp.size() == 1) return AUTOQ::TreeAutomata::Symbol(temp.at(0));
+        //     return AUTOQ::TreeAutomata::Symbol(temp);
+        // } else {
             THROW_AUTOQ_ERROR("The type of Complex is not supported!");
-        }
+        // }
     }
     /**************************** SymbolicAutomata ****************************/
     else if constexpr(std::is_same_v<Symbol, AUTOQ::SymbolicAutomata::Symbol>) {
@@ -1214,386 +1215,6 @@ AUTOQ::Automata<Symbol> parse_automaton(const std::string& str, const std::map<s
 	return result;
 }
 
-// std::vector<int> qubit_ordering(const std::string& str)
-// {
-//     //str format: <size> [ordering] e.g. 2 4 5 3 1
-
-//     //ord_map[current_qubit]
-//     std::vector<int> ordering_map;
-//     std::istringstream iss(str);
-//     std::string token;
-
-//     while (std::getline(iss, token, ' '))
-//     {
-//         if (token.empty())
-//         {
-//             continue;
-//         }
-//         ordering_map.push_back(std::stoi(token));
-//     }
-//     return ordering_map;
-// }
-
-// std::vector<std::vector<std::string>> split_sum_state(std::vector<std::string> states)
-// {
-//     std::vector<std::vector<std::string>> summation_split;
-//     for(unsigned i = 0 ; i < states.size() ; i++)
-//     {
-//         std::vector<std::string> temp;
-//         std::string state = states[i];
-//         std::string::iterator it = state.begin();
-//         std::string::iterator start = state.begin();
-//         std::string::iterator end = state.end();
-//         while(it != end)
-//         {
-//             if(*it == '+')
-//             {
-//                 temp.push_back(std::string(start, it));
-//                 start = it + 1;
-//             }
-//             it++;
-//         }
-//         temp.push_back(std::string(start, it));
-//         summation_split.push_back(temp);
-//     }
-//     return summation_split;
-// }
-
-// std::string remove_spaces(std::string str)
-// {
-//     str.erase(std::remove(str.begin(), str.end(), ' '), str.end());
-//     return str;
-// }
-
-// std::pair<std::string,int> get_constraints_and_val(std::string input)
-// {
-//     std::pair<std::string,int> result;
-//     size_t pos = input.find('|');
-
-//     if (pos != std::string::npos)
-//     {
-//         result.first = input.substr(0, pos);
-//         std::string val_str = input.substr(pos + 1, input.size() - pos - 2);
-//         if(val_str == "*")
-//         {
-//             result.second = -1;
-//         }
-//         else
-//         {
-//             result.second = std::stoi(val_str,nullptr, 2);
-//         }
-//     }
-
-//     return result;
-// }
-
-// std::vector<std::string> star_expension(std::vector<std::string> state)
-// {
-//     for(auto& comp : state)
-//     {
-//         comp.erase(std::remove(comp.begin(), comp.end(), ' '), comp.end());
-//     }
-
-//     std::string star_constraints;
-//     for(unsigned i = 0 ; i < state.size(); i++)
-//     {
-//         if(state[i].find('*') != std::string::npos)
-//         {
-//             star_constraints = get_constraints_and_val(state[i]).first;
-//             state[i] = state.back();
-//             state.pop_back();
-//             i--;
-//         }
-//     }
-//     std::size_t size = 0;
-//     bool in_bracket = false;
-//     for(unsigned i = 0 ; i < state[0].size(); i++)
-//     {
-//         if(state[0][i] == '|')
-//         {
-//             in_bracket = true;
-//         }
-//         if(state[0][i] == '>')
-//         {
-//             in_bracket = false;
-//         }
-//         if(in_bracket && (state[0][i] == '1' || state[0][i] == '0'))
-//         {
-//             size++;
-//         }
-//     }
-//     std::vector<std::string> constraint_and_states;
-//     constraint_and_states.resize(1<<size,"");
-//     for(unsigned i = 0 ; i < state.size(); i++)
-//     {
-//         std::pair<std::string,int> information = get_constraints_and_val(state[i]);
-//         constraint_and_states[information.second] = information.first;
-//     }
-//     for(unsigned i = 0 ; i < constraint_and_states.size(); i++)
-//     {
-//         if(constraint_and_states[i] == "")
-//         {
-//             constraint_and_states[i] = star_constraints;
-//         }
-//     }
-//     for(unsigned i = 0 ; i < constraint_and_states.size(); i++)
-//     {
-//         constraint_and_states[i] = constraint_and_states[i] + "|" + std::bitset<32>(i).to_string().substr(32 - size) + ">";
-//     }
-//     return constraint_and_states;
-// }
-
-
-// std::vector<std::string> process_prod_set(const std::vector<std::string>& prod_set)
-// {
-//     std::vector<std::string> result;
-//     for (const auto& prod : prod_set) {
-//         std::string amp;
-//         std::string val;
-//         std::string::const_iterator it = prod.begin();
-//         std::string::const_iterator prev = prod.begin();
-//         while(it!=prod.end())
-//         {
-
-//             while (*it != '|')
-//             {
-//                 it++;
-//                 if(it == prod.end())
-//                     break;
-//             }
-//             if(it == prod.end())
-//                 break;
-//             std::string amp_part = std::string(prev, it);
-//             amp_part.erase(std::remove(amp_part.begin(), amp_part.end(), ' '), amp_part.end());
-//             if(amp_part != "")
-//             {
-//                 amp =amp + "*"+ amp_part;
-//             }
-//             if (it != prod.end())
-//             {
-//                 it++;
-//                 prev = it;
-//             }
-
-//             while (*it != '>')
-//             {
-//                 it++;
-//                 if(it == prod.end())
-//                     break;
-//             }
-//             if(it == prod.end())
-//                 break;
-
-//             val = val + std::string(prev, it);
-//             if (it != prod.end())
-//             {
-//                 it++;
-//                 prev = it;
-//             }
-//         }
-//         //neglect first element
-//         amp[0] = ' ';
-//         amp.erase(std::remove(amp.begin(), amp.end(), ' '), amp.end());
-//         result.push_back(amp + "|" + val + ">");
-//     }
-//     return result;
-// }
-
-// std::vector<std::string> to_summation_vec(std::string state)
-// {
-//     std::vector<std::string> summation_vec;
-//     // std::string::iterator it = state.begin();
-//     // std::string::iterator start = state.begin();
-//     // std::string::iterator end = state.end();
-//     std::stringstream iss_tensor(state);
-
-//     std::vector<std::vector<std::string>> prod_sum_split;
-//     std::string prod_comp;
-//     while (std::getline(iss_tensor, prod_comp, '#'))
-//     {
-//         prod_sum_split.push_back(std::vector<std::string>{});
-
-//         std::stringstream iss_tensor(prod_comp);
-//         std::string sum_prod;
-//         while(std::getline(iss_tensor, prod_comp, '+'))
-//         {
-//             prod_sum_split.back().push_back(prod_comp);
-//         }
-//     }
-//     for(unsigned i = 0 ; i < prod_sum_split.size(); i++)
-//     {
-//         for(unsigned j = 0 ; j < prod_sum_split[i].size(); j++)
-//         {
-//             if(prod_sum_split[i][j].find('*') != std::string::npos)
-//             {
-//                 prod_sum_split[i] = star_expension(prod_sum_split[i]);
-//                 break;
-//             }
-//         }
-//     }
-//     std::vector<std::string> prod_set = prod_sum_split[0];
-//     for(unsigned i = 1 ; i < prod_sum_split.size(); i++)
-//     {
-//         std::vector<std::string> temp;
-//         for(unsigned j = 0 ; j < prod_set.size(); j++)
-//         {
-//             for(unsigned k = 0 ; k < prod_sum_split[i].size(); k++)
-//             {
-//                 temp.push_back(prod_set[j] + prod_sum_split[i][k]);
-//             }
-//         }
-//         prod_set = temp;
-//     }
-//     std::vector<std::string> combined_strings = process_prod_set(prod_set);
-//     summation_vec = combined_strings;
-//     return summation_vec;
-// }
-
-// std::vector<std::string> state_expansion(std::string line, std::vector<int> ordering_map)
-// {
-
-//     //tree is partial state without tensor product
-
-//     replaceSubstringWithChar(line, "\\/", 'V');
-//     std::stringstream iss_tensor(line);
-//     std::string trees;
-//     std::list<std::string> expanded_states;
-//     std::list<std::vector<std::string>> stage_states;
-
-//     //i =2 |i> #  |01> v |10>  [|01> |10> |11> |00>] , [|01>, |10>]
-//     // to tensor product with the rest of the automata
-//     while (std::getline(iss_tensor, trees, '#')) {
-//         std::vector<std::string> cur_stage;
-//         cur_stage.clear();
-//         std::stringstream iss_or(trees);
-
-//         if (std::regex_search(trees, std::regex("(\\\\/|V) *\\|i\\|="))) // if startswith "\/ |i|="
-//         {
-//             std::istringstream iss(trees);
-//             std::string length;
-//             std::getline(iss, length, ':');
-//             length = AUTOQ::String::trim(length.substr(length.find('=') + 1));
-
-//             trees.clear();
-//             for (std::string t; iss >> t;)
-//                 trees += t + ' ';
-//             std::string i(std::atoi(length.c_str()), '1');
-//             bool reach_all_zero;
-//             do {
-//                 std::string ic = i;
-//                 std::replace(ic.begin(), ic.end(), '0', 'x');
-//                 std::replace(ic.begin(), ic.end(), '1', '0');
-//                 std::replace(ic.begin(), ic.end(), 'x', '1');
-//                 const boost::regex pattern(R"(\|[^>]*>)");
-//                 auto replace_ic_with_ic = [&ic](const boost::smatch& match) -> std::string {
-//                     std::string modified_str = match.str();
-//                     return std::regex_replace(modified_str, std::regex("i'"), ic);
-//                 };
-//                 std::string line2 = boost::regex_replace(trees, pattern, replace_ic_with_ic, boost::match_default | boost::format_all);
-//                 auto replace_i_with_i = [&i](const boost::smatch& match) -> std::string {
-//                     std::string modified_str = match.str();
-//                     return std::regex_replace(modified_str, std::regex("i"), i);
-//                 };
-//                 std::string line3 = boost::regex_replace(line2, pattern, replace_i_with_i, boost::match_default | boost::format_all);
-//                 cur_stage.push_back(line3);
-//                 // the following performs -1 on the binary string i
-//                 reach_all_zero = false;
-//                 for (int j=i.size()-1; j>=0; j--) {
-//                     if (i.at(j) == '0') {
-//                         if (j == 0) {
-//                             reach_all_zero = true;
-//                             break;
-//                         }
-//                         i.at(j) = '1';
-//                     } else {
-//                         i.at(j) = '0';
-//                         break;
-//                     }
-//                 }
-//             } while (!reach_all_zero);
-//         }
-//         else
-//         {
-//             std::istringstream iss_or(trees);
-//             std::string tree;
-//             // to union the rest of the automata
-//             while (std::getline(iss_or, tree, 'V'))
-//             {
-//                 cur_stage.push_back(tree);
-//             }
-//         }
-//         stage_states.push_back(cur_stage);
-//     }
-//     for(unsigned i = 0 ; i < stage_states.front().size(); i++)
-//     {
-//         expanded_states.push_back(stage_states.front()[i]);
-//     }
-//     stage_states.pop_front();
-//     while(!stage_states.empty())
-//     {
-
-//         std::list<std::string> temp{expanded_states.begin(), expanded_states.end()};
-//         expanded_states.clear();
-//         for(unsigned i = 0 ; i < stage_states.front().size(); i++)
-//         {
-//             for(auto prev_state : temp)
-//             {
-//                 expanded_states.push_back(prev_state + " # " + stage_states.front()[i]);
-//             }
-//         }
-//         stage_states.pop_front();
-//     }
-
-//     std::vector<std::vector<std::string>> summation_list; //[set][sum][equation]
-//     for(auto state : expanded_states)
-//     {
-//         summation_list.push_back(to_summation_vec(state));
-//     }
-
-//     for(unsigned i = 0 ; i < summation_list.size() ; i++)
-//         for(auto& state : summation_list[i])
-//         {
-//             std::vector<std::string::iterator> mapper;
-//             bool in_bracket = false;
-//             for (std::string::iterator it = state.begin(); it != state.end(); ++it)
-//             {
-//                 if(*it == '|')
-//                 {
-//                     in_bracket = true;
-//                 }
-//                 if(*it == '>')
-//                 {
-//                     in_bracket = false;
-//                 }
-
-//                 if((*it == '1' || *it == '0') && in_bracket)
-//                 {
-//                     mapper.push_back(it);
-//                 }
-//             }
-//             std::vector<char> org_val;
-//             org_val.reserve(mapper.size());
-//             for(auto it : mapper)
-//             {
-//                 org_val.push_back(*it);
-//             }
-//             // int cnt = 0;
-//             for(unsigned i = 0 ; i < mapper.size(); i++)
-//             {
-//                 *mapper[ordering_map[i]-1] = org_val[i];
-//             }
-//         }
-//     std::vector<std::string> result;
-//     result.resize(summation_list.size(),"");
-//     for(unsigned i = 0 ; i < summation_list.size() ; i++)
-//     {
-//         result[i] = summation_list[i][0];
-//         for(unsigned j = 1 ; j < summation_list[i].size() ; j++)
-//             result[i] = result[i] + " + " + summation_list[i][j];
-//     }
-//     return result;
-// }
-
 template <typename Symbol, typename Symbol2>
 AUTOQ::Automata<Symbol> AUTOQ::Parsing::TimbukParser<Symbol, Symbol2>::parse_extended_dirac_from_istream(std::istream *is, bool &do_not_throw_term_undefined_error, const std::map<std::string, AUTOQ::Complex::Complex> &constants, const std::string &predicateConstraints) {
 
@@ -1662,7 +1283,7 @@ AUTOQ::Automata<Symbol> AUTOQ::Parsing::TimbukParser<Symbol, Symbol2>::parse_ext
     /****************************************
     * Parse the Extended Dirac with ANTLR v4.
     *****************************************/
-    EvaluationVisitor<Symbol> visitor(constants, predicateConstraints);
+    EvaluationVisitor<Symbol> visitor({constants}, {predicateConstraints});
     auto extended_dirac2 = std::any_cast<std::string>(visitor.let_visitor_parse_string(extended_dirac));
     visitor.mode = EvaluationVisitor<Symbol>::COLLECT_KETS_AND_COMPUTE_UNIT_DECOMPOSITION_INDICES;
     typename EvaluationVisitor<Symbol>::segment2split_t segment2split = std::any_cast<typename EvaluationVisitor<Symbol>::segment2split_t>(visitor.let_visitor_parse_string(extended_dirac2));
@@ -1677,7 +1298,7 @@ AUTOQ::Automata<Symbol> AUTOQ::Parsing::TimbukParser<Symbol, Symbol2>::parse_ext
     visitor.mode = EvaluationVisitor<Symbol>::EVALUATE_EACH_SET_BRACES_TO_LSTA;
     visitor.segment2perm = segment2perm;
     visitor.do_not_throw_term_undefined_error = do_not_throw_term_undefined_error;
-    auto final = std::any_cast<AUTOQ::Automata<Symbol>>(visitor.let_visitor_parse_string(afterrewrite));
+    auto final = std::any_cast<std::vector<AUTOQ::Automata<Symbol>>>(visitor.let_visitor_parse_string(afterrewrite)).at(0);
     if (!visitor.do_not_throw_term_undefined_error || visitor.encountered_term_undefined_error) {
         do_not_throw_term_undefined_error = false;
     }
@@ -1689,18 +1310,14 @@ AUTOQ::Automata<Symbol> AUTOQ::Parsing::TimbukParser<Symbol, Symbol2>::parse_ext
     // return aut_final;
 }
 template <typename Symbol, typename Symbol2>
-std::tuple<AUTOQ::Automata<Symbol>, AUTOQ::Automata<Symbol2>, std::vector<int>, std::optional<AUTOQ::Automata<Symbol2>>>
-AUTOQ::Parsing::TimbukParser<Symbol, Symbol2>::parse_two_extended_diracs_from_istream(std::istream *is1, std::istream *is2,
-                                                                             const std::map<std::string, AUTOQ::Complex::Complex> &constants1,
-                                                                             const std::string &predicateConstraints1,
-                                                                             const std::map<std::string, AUTOQ::Complex::Complex> &constants2,
-                                                                             const std::string &predicateConstraints2) {
-    const std::map<std::string, AUTOQ::Complex::Complex> *constants[] = {&constants1, &constants2};
-    const std::string *predicateConstraints[] = {&predicateConstraints1, &predicateConstraints2};
-    std::string extended_dirac[2];
-    std::vector<std::string> exprs[4]; // A1 \ A2; B1 \ B2
+std::pair<std::vector<AUTOQ::Automata<Symbol>>, std::vector<int>>
+AUTOQ::Parsing::TimbukParser<Symbol, Symbol2>::parse_n_extended_diracs_from_istream(std::vector<std::istream*> isVec,
+                                                                              const std::vector<std::map<std::string, AUTOQ::Complex::Complex>> &constantsVec,
+                                                                              const std::vector<std::string> &predicateConstraintsVec) {
+    std::vector<std::string> extended_dirac(isVec.size()); //[2];
+    std::vector<std::vector<std::string>> exprs(isVec.size()); //[4]; // A1 \ A2; B1 \ B2
     int i = 0;
-    for (std::istream *is : {is1, is2}) {
+    for (std::istream *is : isVec) {
         bool start_transitions = false;
         std::string line;
         while (std::getline(*is, line))
@@ -1720,30 +1337,35 @@ AUTOQ::Parsing::TimbukParser<Symbol, Symbol2>::parse_two_extended_diracs_from_is
                 extended_dirac[i] += line + '\n'; // Do NOT miss '\n' for the ANTLR to parse correctly with '\n'
             }
         }
-        EvaluationVisitor<Symbol, Symbol2> visitor(*(constants[i]), *(predicateConstraints[i]));
+        EvaluationVisitor<Symbol, Symbol2> visitor({constantsVec[i]}, {predicateConstraintsVec[i]});
         visitor.mode = EvaluationVisitor<Symbol, Symbol2>::EXPAND_POWER_AND_DIRACS_AND_REWRITE_COMPLEMENT;
         auto extended_dirac2 = std::any_cast<std::string>(visitor.let_visitor_parse_string(extended_dirac[i]));
         visitor.mode = EvaluationVisitor<Symbol, Symbol2>::SPLIT_TENSORED_EXPRESSION_INTO_VECTOR_OF_SETS_WITHOUT_TENSOR;
-        std::tie(exprs[2*i], exprs[2*i+1]) = std::any_cast<std::pair<std::vector<std::string>, std::vector<std::string>>>(visitor.let_visitor_parse_string(extended_dirac2)); // may contain SETMINUS
+        exprs[i] = std::any_cast<std::vector<std::string>>(visitor.let_visitor_parse_string(extended_dirac2)); // now we assume it does NOT contain SETMINUS
         /**/
         i++;
     }
     // Notice that up to this point, exprs[0] and exprs[2] are mandatory, whereas exprs[1] and exprs[3] are optional.
-    if (!(exprs[0].size() == exprs[2].size() &&
-         (exprs[1].empty() || exprs[0].size() == exprs[1].size()) &&
-         (exprs[3].empty() || exprs[2].size() == exprs[3].size()))) {
-        THROW_AUTOQ_ERROR("The two *.hsl files are not aligned!");
+    for (size_t i=1; i<exprs.size(); i++) {
+        if (exprs[i-1].size() != exprs[i].size()) {
+            THROW_AUTOQ_ERROR("There are two *.hsl files not aligned!");
+        }
     }
 
-    AUTOQ::Automata<Symbol> resultA1, resultA2;
-    AUTOQ::Automata<Symbol2> resultB1, resultB2;
+    std::vector<AUTOQ::Automata<Symbol>> results; // A1, resultA2;
+    // AUTOQ::Automata<Symbol2> resultB1, resultB2;
     std::vector<int> qubit_permutation;
     for (size_t i=0; i<exprs[0].size(); ++i) {
-        auto new_composited_expression = exprs[0][i] +
-                                        (exprs[1].empty() ? "" : (" ; " + exprs[1][i])) +
-                                 " ; " + exprs[2][i] +
-                                        (exprs[3].empty() ? "" : (" ; " + exprs[3][i]));
-        EvaluationVisitor<Symbol, Symbol2> visitor(constants1, predicateConstraints1); // any pair of constants and predicates can do
+        auto new_composited_expression = exprs[0][i]; // +
+                                //         (exprs[1].empty() ? "" : (" ; " + exprs[1][i])) +
+                                //  " ; " + exprs[2][i] +
+                                //         (exprs[3].empty() ? "" : (" ; " + exprs[3][i]));
+        for (size_t j=1; j<exprs.size(); j++) {
+            // if (!exprs[j].empty()) {
+                new_composited_expression += " ; " + exprs[j][i];
+            // }
+        }
+        EvaluationVisitor<Symbol, Symbol2> visitor(constantsVec, predicateConstraintsVec); // any pair of constants and predicates can do
         visitor.mode = EvaluationVisitor<Symbol, Symbol2>::COLLECT_KETS_AND_COMPUTE_UNIT_DECOMPOSITION_INDICES;
         typename EvaluationVisitor<Symbol, Symbol2>::segment2split_t segment2split = std::any_cast<typename EvaluationVisitor<Symbol, Symbol2>::segment2split_t>(visitor.let_visitor_parse_string(new_composited_expression));
         visitor.mode = EvaluationVisitor<Symbol, Symbol2>::REWRITE_BY_UNIT_INDICES_AND_MAKE_ALL_VARS_DISTINCT;
@@ -1784,9 +1406,9 @@ AUTOQ::Parsing::TimbukParser<Symbol, Symbol2>::parse_two_extended_diracs_from_is
             std::string trimmed = AUTOQ::String::trim(item);
             if (!trimmed.empty()) {
                 j++;
-                if (exprs[j].empty()) j++; // skip the empty one
-                if (j == 0) {
-                    EvaluationVisitor<Symbol> visitor(constants1, predicateConstraints1);
+                // if (exprs[j].empty()) j++; // skip the empty one
+                // if (j == 0) {
+                    EvaluationVisitor<Symbol> visitor({constantsVec[j]}, {predicateConstraintsVec[j]});
                     visitor.mode = EvaluationVisitor<Symbol>::REORDER_UNITS_BY_THE_GROUP;
                     visitor.segment2perm = segment2perm;
                     auto afterrewrite = std::any_cast<std::string>(visitor.let_visitor_parse_string(trimmed));
@@ -1794,61 +1416,15 @@ AUTOQ::Parsing::TimbukParser<Symbol, Symbol2>::parse_two_extended_diracs_from_is
                     visitor.segment2perm = segment2perm;
                     // visitor.constants2 = constants2;
                     // visitor.predicateConstraints2 = predicateConstraints2;
-                    auto final = std::any_cast<AUTOQ::Automata<Symbol>>(visitor.let_visitor_parse_string(afterrewrite));
+                    auto final = std::any_cast<std::vector<AUTOQ::Automata<Symbol>>>(visitor.let_visitor_parse_string(afterrewrite)).at(0);
                     if (i == 0) {
-                        resultA1 = final;
+                        // resultA1 = final;
+                        results.push_back(final);
                     } else {
-                        resultA1 = resultA1.operator*(final);
+                        // resultA1 = resultA1.operator*(final);
+                        results.at(j) = results.at(j).operator*(final);
                     }
-                } else if (j == 1) {
-                    EvaluationVisitor<Symbol> visitor(constants1, predicateConstraints1);
-                    visitor.mode = EvaluationVisitor<Symbol>::REORDER_UNITS_BY_THE_GROUP;
-                    visitor.segment2perm = segment2perm;
-                    auto afterrewrite = std::any_cast<std::string>(visitor.let_visitor_parse_string(trimmed));
-                    visitor.mode = EvaluationVisitor<Symbol>::EVALUATE_EACH_SET_BRACES_TO_LSTA;
-                    visitor.segment2perm = segment2perm;
-                    // visitor.constants2 = constants2;
-                    // visitor.predicateConstraints2 = predicateConstraints2;
-                    auto final = std::any_cast<AUTOQ::Automata<Symbol>>(visitor.let_visitor_parse_string(afterrewrite));
-                    if (i == 0) {
-                        resultA2 = final;
-                    } else {
-                        resultA2 = resultA2.operator*(final);
-                    }
-                } else if (j == 2) {
-                    EvaluationVisitor<Symbol2> visitor(constants2, predicateConstraints2);
-                    visitor.mode = EvaluationVisitor<Symbol2>::REORDER_UNITS_BY_THE_GROUP;
-                    visitor.segment2perm = segment2perm;
-                    // visitor.constants = constants2;
-                    // visitor.predicateConstraints = predicateConstraints2;
-                    auto afterrewrite = std::any_cast<std::string>(visitor.let_visitor_parse_string(trimmed));
-                    visitor.mode = EvaluationVisitor<Symbol2>::EVALUATE_EACH_SET_BRACES_TO_LSTA;
-                    visitor.segment2perm = segment2perm;
-                    auto final = std::any_cast<AUTOQ::Automata<Symbol2>>(visitor.let_visitor_parse_string(afterrewrite));
-                    if (i == 0) {
-                        resultB1 = final;
-                    } else {
-                        resultB1 = resultB1.operator*(final);
-                    }
-                } else if (j == 3) {
-                    EvaluationVisitor<Symbol2> visitor(constants2, predicateConstraints2);
-                    visitor.mode = EvaluationVisitor<Symbol2>::REORDER_UNITS_BY_THE_GROUP;
-                    visitor.segment2perm = segment2perm;
-                    // visitor.constants = constants2;
-                    // visitor.predicateConstraints = predicateConstraints2;
-                    auto afterrewrite = std::any_cast<std::string>(visitor.let_visitor_parse_string(trimmed));
-                    visitor.mode = EvaluationVisitor<Symbol2>::EVALUATE_EACH_SET_BRACES_TO_LSTA;
-                    visitor.segment2perm = segment2perm;
-                    auto final = std::any_cast<AUTOQ::Automata<Symbol2>>(visitor.let_visitor_parse_string(afterrewrite));
-                    if (i == 0) {
-                        resultB2 = final;
-                    } else {
-                        resultB2 = resultB2.operator*(final);
-                    }
-                }
-                else {
-                    THROW_AUTOQ_ERROR("Unexpected j value: " + std::to_string(j));
-                }
+                // }
             } else {
                 THROW_AUTOQ_ERROR("Impossible case!");
             }
@@ -1863,12 +1439,7 @@ AUTOQ::Parsing::TimbukParser<Symbol, Symbol2>::parse_two_extended_diracs_from_is
         inverse_permutation[qubit_permutation[i]] = i;
     }
     // if (!exprs[1].empty()) resultA2.print_language("resultA2\n");
-    std::optional<AUTOQ::Automata<Symbol2>> optionalResultB2;
-    if (!exprs[3].empty()) {
-        optionalResultB2 = resultB2;
-        // resultB2.print_language("resultB2\n");
-    }
-    return std::make_tuple(resultA1, resultB1, inverse_permutation, optionalResultB2);
+    return std::make_pair(results, inverse_permutation);
 }
 
 template <typename Symbol>
@@ -1879,10 +1450,20 @@ AUTOQ::Automata<Symbol> parse_extended_dirac(const std::string& str, const std::
     return aut;
 }
 template <typename Symbol, typename Symbol2>
-std::tuple<AUTOQ::Automata<Symbol>, AUTOQ::Automata<Symbol2>, std::vector<int>, std::optional<AUTOQ::Automata<Symbol2>>> parse_two_extended_diracs(const std::string& str1, const std::map<std::string, Complex> &constants1, const std::string &predicateConstraints1, const std::string& str2, const std::map<std::string, Complex> &constants2, const std::string &predicateConstraints2) {
-    std::istringstream inputStream1(str1); // delimited by '\n'
-    std::istringstream inputStream2(str2); // delimited by '\n'
-    return AUTOQ::Parsing::TimbukParser<Symbol, Symbol2>::parse_two_extended_diracs_from_istream(&inputStream1, &inputStream2, constants1, predicateConstraints1, constants2, predicateConstraints2);
+std::pair<std::vector<AUTOQ::Automata<Symbol>>, std::vector<int>> parse_n_extended_diracs(const std::vector<std::string>& strVec, const std::vector<std::map<std::string, Complex>> &constantsVec, const std::vector<std::string> &predicateConstraintsVec) {
+    // Store the actual streams so they live until the function returns
+    std::vector<std::istringstream> streamStorage;
+    std::vector<std::istream*> istreamVec;
+
+    streamStorage.reserve(strVec.size());
+    istreamVec.reserve(strVec.size());
+
+    // Create istringstreams from each string and store their addresses
+    for (const auto& str : strVec) {
+        streamStorage.emplace_back(str);
+        istreamVec.push_back(&streamStorage.back());
+    }
+    return AUTOQ::Parsing::TimbukParser<Symbol, Symbol2>::parse_n_extended_diracs_from_istream(istreamVec, constantsVec, predicateConstraintsVec);
 }
 
 template <typename Symbol, typename Symbol2>
@@ -2030,10 +1611,12 @@ try {
             result.constraints += ConstraintParser(constraint, constants).getSMTexpression();
         }
         if (!result.constraints.empty())
-            result.constraints = "(assert (and " + result.constraints + "))";
-        for (const auto &var : result.vars) {
-            result.constraints = "(declare-const " + var + " Real)" + result.constraints;
-        }
+            result.constraints = "(and " + result.constraints + ")";
+        else
+            result.constraints = "true";
+        // for (const auto &var : result.vars) {
+        //     result.constraints = "(declare-const " + var + " Real)" + result.constraints;
+        // }
     }
     return result;
 } catch (AutoQError &e) {
@@ -2041,18 +1624,40 @@ try {
     THROW_AUTOQ_ERROR("(while parsing the automaton: " + filepath + ")");
 }
 }
+
+std::vector<std::string> find_all_loop_invariants(const char *filename) {
+    std::ifstream qasm(filename);
+    if (!qasm.is_open()) THROW_AUTOQ_ERROR("Failed to open file " + std::string(filename) + ".");
+    std::string line;
+    std::vector<std::string> list;
+    while (getline(qasm, line)) {
+        line = AUTOQ::String::trim(line);
+        if (line.find("while") == 0) { // while (!result) { // loop-invariant.{lsta|hsl}
+            const std::regex spec("// *(.*)");
+            std::regex_iterator<std::string::iterator> it2(line.begin(), line.end(), spec);
+            std::string dir = (std::filesystem::current_path() / filename).parent_path().string();
+            list.push_back(/*AUTOQ::Util::ReadFile(*/dir + std::string("/") + it2->str(1)); //);
+        }
+    }
+    qasm.close();
+    return list;
+}
 template <typename Symbol, typename Symbol2>
-std::tuple<AUTOQ::Automata<Symbol>, AUTOQ::Automata<Symbol2>, std::vector<int>, std::optional<AUTOQ::Automata<Symbol2>>> AUTOQ::Parsing::TimbukParser<Symbol, Symbol2>::ReadTwoAutomata(const std::string& filepath1, const std::string& filepath2) {
+std::pair<std::vector<AUTOQ::Automata<Symbol>>, std::vector<int>> AUTOQ::Parsing::TimbukParser<Symbol, Symbol2>::ReadTwoAutomata(const std::string& filepath1, const std::string& filepath2, const std::string &circuitPath) {
 try {
-    std::string filepath[] = {filepath1, filepath2};
-    std::string automaton[2];
-    std::string fileContents[2];
-    std::string constraints[2];
-    std::map<std::string, AUTOQ::Complex::Complex> constants[2];
+    std::vector<std::string> filepathVec = {filepath1, filepath2};
+    if (!circuitPath.empty()) {
+        auto filepathVec2 = find_all_loop_invariants(circuitPath.c_str());
+        filepathVec.insert(filepathVec.end(), filepathVec2.begin(), filepathVec2.end());
+    }
+    std::vector<std::string> automatonVec(filepathVec.size());
+    std::vector<std::string> fileContents(filepathVec.size());
+    std::vector<std::string> constraints(filepathVec.size());
+    std::vector<std::map<std::string, AUTOQ::Complex::Complex>> constants(filepathVec.size());
     // std::map<std::string, std::string> predicates[2];
 
-    for (int i=0; i<2; i++) { // there are two automata
-        fileContents[i] = AUTOQ::Util::ReadFile(filepath[i]);
+    for (size_t i=0; i<filepathVec.size(); i++) { // there are two automata possibly along with loop invariants
+        fileContents[i] = AUTOQ::Util::ReadFile(filepathVec[i]);
         std::string::size_type pos = 0;
         while ((pos = fileContents[i].find("//", pos)) != std::string::npos) {
             std::string::size_type end = fileContents[i].find('\n', pos);
@@ -2062,7 +1667,7 @@ try {
                 fileContents[i].erase(pos, end - pos + 1);
             }
         }
-        if (!boost::algorithm::ends_with(filepath[i], ".aut") &&
+        if (!boost::algorithm::ends_with(filepathVec[i], ".aut") &&
             (fileContents[i].find("Constants") != std::string::npos ||
             fileContents[i].find("Predicates") != std::string::npos)) {
             size_t found = std::min({fileContents[i].find("Extended"), fileContents[i].find("Root"), fileContents[i].find("Variable")});
@@ -2157,45 +1762,49 @@ try {
 
         size_t found = fileContents[i].find("Constraints");
         if (found != std::string::npos) {
-            automaton[i] = fileContents[i].substr(0, found);
+            automatonVec[i] = fileContents[i].substr(0, found);
             constraints[i] = fileContents[i].substr(found + 11); // "Constraints".length()
         } else {
-            automaton[i] = fileContents[i];
+            automatonVec[i] = fileContents[i];
             constraints[i] = "";
         }
     }
 
-    AUTOQ::Automata<Symbol> aut0;
-    AUTOQ::Automata<Symbol2> aut1;
+    std::vector<AUTOQ::Automata<Symbol>> autVec;
+    // AUTOQ::Automata<Symbol2> aut1;
     std::vector<int> qp; // qubit permutation
-    std::optional<AUTOQ::Automata<Symbol2>> autMinus;
-    if (boost::algorithm::ends_with(filepath[0], ".hsl") && boost::algorithm::ends_with(filepath[1], ".hsl")) {
-        std::tie(aut0, aut1, qp, autMinus) = parse_two_extended_diracs<Symbol, Symbol2>(automaton[0], constants[0], constraints[0], automaton[1], constants[1], constraints[1]);
+    // std::optional<AUTOQ::Automata<Symbol2>> autMinus;
+    if (boost::algorithm::ends_with(filepathVec[0], ".hsl") && boost::algorithm::ends_with(filepathVec[1], ".hsl")) {
+        std::tie(autVec, qp/*, autMinus*/) = parse_n_extended_diracs<Symbol, Symbol2>(automatonVec, constants, constraints);
     } else {
         THROW_AUTOQ_ERROR("The filename extension is not supported.");
     }
 
-    using AutomataPair = std::variant<AUTOQ::Automata<Symbol>*, AUTOQ::Automata<Symbol2>*>;
-    std::vector<AutomataPair> auts = {
-        AutomataPair{std::in_place_index<0>, &aut0},
-        AutomataPair{std::in_place_index<1>, &aut1}
-    };
-    for (const auto &v : auts) {
-        std::visit([&](const auto &autPtr){
-            auto &aut = *autPtr;
-            std::stringstream ss(AUTOQ::String::trim(constraints[v.index()]));
+    // using AutomataPair = std::variant<AUTOQ::Automata<Symbol>*, AUTOQ::Automata<Symbol2>*>;
+    // std::vector<AutomataPair> auts = {
+    //     AutomataPair{std::in_place_index<0>, &aut0},
+    //     AutomataPair{std::in_place_index<1>, &aut1}
+    // };
+    int index = 0;
+    for (auto &aut : autVec) {
+        // std::visit([&](auto &aut) {
+            // auto &aut = *autPtr;
+            std::stringstream ss(AUTOQ::String::trim(constraints[index]));
             std::string constraint;
             while (std::getline(ss, constraint, '\n')) {
-                aut.constraints += ConstraintParser(constraint, constants[v.index()]).getSMTexpression();
+                aut.constraints += ConstraintParser(constraint, constants[index]).getSMTexpression();
             }
             if (!(aut.constraints).empty())
-                aut.constraints = "(assert (and " + aut.constraints + "))";
-            for (const auto &var : aut.vars) {
-                aut.constraints = "(declare-const " + var + " Real)" + aut.constraints;
-            }
-        }, v);
+                aut.constraints = "(and " + aut.constraints + ")";
+            else
+                aut.constraints = "true";
+            // for (const auto &var : aut.vars) {
+            //     aut.constraints = "(declare-const " + var + " Real)" + aut.constraints;
+            // }
+        // }, v);
+        index++;
     }
-    return std::make_tuple(aut0, aut1, qp, autMinus);
+    return std::make_pair(autVec, qp/*, autMinus*/);
 } catch (AutoQError &e) {
     std::cout << e.what() << std::endl;
     THROW_AUTOQ_ERROR("(while parsing the automaton: " + filepath1 + " or " + filepath2 + ")");

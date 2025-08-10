@@ -22,6 +22,9 @@ public:
   virtual void enterTset(ExtendedDiracParser::TsetContext * /*ctx*/) override { }
   virtual void exitTset(ExtendedDiracParser::TsetContext * /*ctx*/) override { }
 
+  virtual void enterScset(ExtendedDiracParser::ScsetContext * /*ctx*/) override { }
+  virtual void exitScset(ExtendedDiracParser::ScsetContext * /*ctx*/) override { }
+
   virtual void enterSet(ExtendedDiracParser::SetContext * /*ctx*/) override { }
   virtual void exitSet(ExtendedDiracParser::SetContext * /*ctx*/) override { }
 

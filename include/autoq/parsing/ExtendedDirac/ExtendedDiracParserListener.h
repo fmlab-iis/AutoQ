@@ -20,6 +20,9 @@ public:
   virtual void enterTset(ExtendedDiracParser::TsetContext *ctx) = 0;
   virtual void exitTset(ExtendedDiracParser::TsetContext *ctx) = 0;
 
+  virtual void enterScset(ExtendedDiracParser::ScsetContext *ctx) = 0;
+  virtual void exitScset(ExtendedDiracParser::ScsetContext *ctx) = 0;
+
   virtual void enterSet(ExtendedDiracParser::SetContext *ctx) = 0;
   virtual void exitSet(ExtendedDiracParser::SetContext *ctx) = 0;
 

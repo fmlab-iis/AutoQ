@@ -21,7 +21,7 @@ set(autoq_cxx_compiler_flags
   -fPIC
   -Woverloaded-virtual
   -Wold-style-cast
-  -DCOMPLEX_nTuple
+  -DCOMPLEX_FiveTuple
 )
 
 foreach(flag ${autoq_cxx_compiler_flags})
