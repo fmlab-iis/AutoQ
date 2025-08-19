@@ -181,8 +181,10 @@ private:
                 }
             } else if (function == "sqrt2") {
                 return SymbolicComplex::MySymbolicComplexConstructor(Complex::Complex::sqrt2());
-            } else if (constMap_.count(function) > 0) {
+            } else if (constMap_.count(function) > 0) { // may contain i
                 return SymbolicComplex::MySymbolicComplexConstructor(constMap_.at(function));
+            } else if (function == "i") {
+                return SymbolicComplex::MySymbolicComplexConstructor(Complex::Complex::Angle(boost::rational<boost::multiprecision::cpp_int>(1, 4)));
             } else {
                 return SymbolicComplex::MySymbolicComplexConstructor(function, used_vars);
             }

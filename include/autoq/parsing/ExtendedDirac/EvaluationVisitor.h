@@ -374,15 +374,16 @@ struct EvaluationVisitor : public ExtendedDiracParserBaseVisitor {
                             } else {
                                 AUTOQ::Complex::Complex sum;
                                 for (const auto &[termId, term] : c) {
-                                    auto it = constants.find(std::get<0>(term));
-                                    if (it == constants.end()) {
+                                    auto cp = ComplexParser(std::get<0>(term), constants);
+                                    // auto it = constants.find(std::get<0>(term));
+                                    if (!cp.getConstName().empty() /*it == constants.end()*/) {
                                         if (do_not_throw_term_undefined_error) {
                                             encountered_term_undefined_error = true;
                                         } else {
                                             THROW_AUTOQ_ERROR("Constant " + std::get<0>(term) + " is not defined!");
                                         }
                                     } else {
-                                        sum += it->second;
+                                        sum += cp.getComplex(); // it->second;
                                     }
                                 }
                                 st2 = AUTOQ::Automata<AUTOQ::Symbol::Concrete>::SymbolTag(AUTOQ::Symbol::Concrete(sum), st.tag());
@@ -393,43 +394,47 @@ struct EvaluationVisitor : public ExtendedDiracParserBaseVisitor {
                             } else {
                                 AUTOQ::Complex::SymbolicComplex sum;
                                 for (const auto &[termId, term] : c) {
-                                    auto it = constants.find(std::get<0>(term));
-                                    if (it != constants.end()) {
-                                        sum += AUTOQ::Complex::SymbolicComplex::MySymbolicComplexConstructor(it->second);
-                                    } else {
-                                        sum += AUTOQ::Complex::SymbolicComplex::MySymbolicComplexConstructor(std::get<0>(term), result.vars);
-                                    }
+                                    auto scp = AUTOQ::Parsing::SymbolicComplexParser(std::get<0>(term), constants);
+                                    sum += scp.getSymbolicComplex();
+                                    auto scpgetNewVars = scp.getNewVars();
+                                    result.vars.insert(scpgetNewVars.begin(), scpgetNewVars.end());
+                                    // auto it = constants.find(std::get<0>(term));
+                                    // if (it != constants.end()) {
+                                    //     sum += AUTOQ::Complex::SymbolicComplex::MySymbolicComplexConstructor(it->second);
+                                    // } else {
+                                    //     sum += AUTOQ::Complex::SymbolicComplex::MySymbolicComplexConstructor(std::get<0>(term), result.vars);
+                                    // }
                                 }
                                 st2 = AUTOQ::Automata<AUTOQ::Symbol::Symbolic>::SymbolTag(AUTOQ::Symbol::Symbolic(sum), st.tag());
                             }
-                        } else if constexpr (std::is_same_v<SymbolV, AUTOQ::Symbol::Predicate>) {
-                            if (c.size() == 0) { // a true predicate
-                                st2 = AUTOQ::Automata<AUTOQ::Symbol::Predicate>::SymbolTag(AUTOQ::Symbol::Predicate("true"), st.tag());
-                            } else if (c.size() != 1) {
-                                THROW_AUTOQ_ERROR("All leaves should be exactly one predicate.");
-                            } else {
-                                AUTOQ::Symbol::Predicate p;
-                                for (const auto &[termId, term] : c) {
-                                    std::stringstream ss(AUTOQ::String::trim(predicateConstraints));
-                                    std::string constraint, finalPredicate;
-                                    while (std::getline(ss, constraint, '\n')) {
-                                        auto myStr = AUTOQ::Parsing::PredicateParser(constraint, std::get<0>(term)).getSMTexpression();
-                                        if (!myStr.empty()) {
-                                            if (finalPredicate.empty()) {
-                                                finalPredicate = myStr;
-                                            } else {
-                                                finalPredicate = "(and " + finalPredicate + " " + myStr + ")";
-                                            }
-                                        }
-                                    }
-                                    if (finalPredicate.empty()) {
-                                        finalPredicate = "true"; // if no constraints, then it should be always true
-                                    }
-                                    p = AUTOQ::Symbol::Predicate(finalPredicate);
-                                    // use = because c.size() == 1
-                                }
-                                st2 = AUTOQ::Automata<AUTOQ::Symbol::Predicate>::SymbolTag(p, st.tag());
-                            }
+                        // } else if constexpr (std::is_same_v<SymbolV, AUTOQ::Symbol::Predicate>) {
+                        //     if (c.size() == 0) { // a true predicate
+                        //         st2 = AUTOQ::Automata<AUTOQ::Symbol::Predicate>::SymbolTag(AUTOQ::Symbol::Predicate("true"), st.tag());
+                        //     } else if (c.size() != 1) {
+                        //         THROW_AUTOQ_ERROR("All leaves should be exactly one predicate.");
+                        //     } else {
+                        //         AUTOQ::Symbol::Predicate p;
+                        //         for (const auto &[termId, term] : c) {
+                        //             std::stringstream ss(AUTOQ::String::trim(predicateConstraints));
+                        //             std::string constraint, finalPredicate;
+                        //             while (std::getline(ss, constraint, '\n')) {
+                        //                 auto myStr = AUTOQ::Parsing::PredicateParser(constraint, std::get<0>(term)).getSMTexpression();
+                        //                 if (!myStr.empty()) {
+                        //                     if (finalPredicate.empty()) {
+                        //                         finalPredicate = myStr;
+                        //                     } else {
+                        //                         finalPredicate = "(and " + finalPredicate + " " + myStr + ")";
+                        //                     }
+                        //                 }
+                        //             }
+                        //             if (finalPredicate.empty()) {
+                        //                 finalPredicate = "true"; // if no constraints, then it should be always true
+                        //             }
+                        //             p = AUTOQ::Symbol::Predicate(finalPredicate);
+                        //             // use = because c.size() == 1
+                        //         }
+                        //         st2 = AUTOQ::Automata<AUTOQ::Symbol::Predicate>::SymbolTag(p, st.tag());
+                        //     }
                         } else {
                             THROW_AUTOQ_ERROR("Unsupported symbol type!!!");
                         }
@@ -646,6 +651,7 @@ struct EvaluationVisitor : public ExtendedDiracParserBaseVisitor {
             //     return std::make_pair(aut0, aut1);
             // }
             if (ctx->op->getType() == ExtendedDiracParser::PROD) {
+                std::cout << ctx->tset(0)->getText() << std::endl;
                 auto aut0 = std::any_cast<AUTOQ::Automata<Symbol>>(visit(ctx->tset(0)));
                 auto aut1 = std::any_cast<AUTOQ::Automata<Symbol>>(visit(ctx->tset(1)));
                 return aut0 * aut1;
@@ -1147,17 +1153,25 @@ struct EvaluationVisitor : public ExtendedDiracParserBaseVisitor {
     std::any visitDirac(ExtendedDiracParser::DiracContext *ctx) override {
         if (mode == EXPAND_POWER_AND_DIRACS_AND_REWRITE_COMPLEMENT) {
             if (ctx->dirac() == nullptr) { // RULE: term
-                    return std::any_cast<std::string>(visit(ctx->term()));
-            } else { // RULE: dirac + term
+                return std::any_cast<std::string>(visit(ctx->term()));
+            } else if (ctx->add != nullptr) { // RULE: dirac + term
                 auto str1 = std::any_cast<std::string>(visit(ctx->dirac()));
                 auto str2 = std::any_cast<std::string>(visit(ctx->term()));
                 return str1 + " + " + str2;
+            } else if (ctx->sub != nullptr) { // RULE: dirac - term
+                auto str1 = std::any_cast<std::string>(visit(ctx->dirac()));
+                auto str2 = std::any_cast<std::string>(visit(ctx->term()));
+                return str1 + " +- " + str2;
+            } else {
+                THROW_AUTOQ_ERROR("Unsupported syntax!");
             }
         } else if (mode == COLLECT_KETS_AND_COMPUTE_UNIT_DECOMPOSITION_INDICES) {
             if (ctx->dirac() == nullptr) { // RULE: term
                 strs2split_t Vstrs;
                 Vstrs.push_back(std::any_cast<strsplit_t>(visit(ctx->term())));
                 return Vstrs;
+            } else if (ctx->sub != nullptr) { // RULE: dirac - term
+                THROW_AUTOQ_ERROR("All subtractions should be replaced with additions followed by negations.");
             } else { // RULE: dirac + term
                 auto Vstrs = std::any_cast<strs2split_t>(visit(ctx->dirac()));
                 Vstrs.push_back(std::any_cast<strsplit_t>(visit(ctx->term())));
@@ -1166,6 +1180,8 @@ struct EvaluationVisitor : public ExtendedDiracParserBaseVisitor {
         } else if (mode == REWRITE_BY_UNIT_INDICES_AND_MAKE_ALL_VARS_DISTINCT) {
             if (ctx->dirac() == nullptr) { // RULE: term
                 return std::any_cast<std::string>(visit(ctx->term()));
+            } else if (ctx->sub != nullptr) { // RULE: dirac - term
+                THROW_AUTOQ_ERROR("All subtractions should be replaced with additions followed by negations.");
             } else { // RULE: dirac + term
                 auto str1 = std::any_cast<std::string>(visit(ctx->dirac()));
                 auto str2 = std::any_cast<std::string>(visit(ctx->term()));
@@ -1174,6 +1190,8 @@ struct EvaluationVisitor : public ExtendedDiracParserBaseVisitor {
         } else if (mode == COMPUTE_CONNECTED_UNITS_INTO_A_GROUP_RELATION) {
             if (ctx->dirac() == nullptr) { // RULE: term
                 return std::any_cast<relation_t>(visit(ctx->term()));
+            } else if (ctx->sub != nullptr) { // RULE: dirac - term
+                THROW_AUTOQ_ERROR("All subtractions should be replaced with additions followed by negations.");
             } else { // RULE: dirac + term
                 auto relation1 = std::any_cast<relation_t>(visit(ctx->dirac()));
                 auto relation2 = std::any_cast<relation_t>(visit(ctx->term()));
@@ -1190,6 +1208,8 @@ struct EvaluationVisitor : public ExtendedDiracParserBaseVisitor {
         } else if (mode == REORDER_UNITS_BY_THE_GROUP) {
             if (ctx->dirac() == nullptr) { // RULE: term
                 return std::any_cast<std::string>(visit(ctx->term()));
+            } else if (ctx->sub != nullptr) { // RULE: dirac - term
+                THROW_AUTOQ_ERROR("All subtractions should be replaced with additions followed by negations.");
             } else { // RULE: dirac + term
                 auto str1 = std::any_cast<std::string>(visit(ctx->dirac()));
                 auto str2 = std::any_cast<std::string>(visit(ctx->term()));
@@ -1200,6 +1220,8 @@ struct EvaluationVisitor : public ExtendedDiracParserBaseVisitor {
                 std::vector<std::tuple<std::string, std::vector<varconS_t>, std::vector<std::string>>> result;
                 result.push_back(std::any_cast<std::tuple<std::string, std::vector<varconS_t>, std::vector<std::string>>>(visit(ctx->term())));
                 return result;
+            } else if (ctx->sub != nullptr) { // RULE: dirac - term
+                THROW_AUTOQ_ERROR("All subtractions should be replaced with additions followed by negations.");
             } else { // RULE: dirac + term
                 auto result1 = std::any_cast<std::vector<std::tuple<std::string, std::vector<varconS_t>, std::vector<std::string>>>>(visit(ctx->dirac()));
                 auto result2 = std::any_cast<std::tuple<std::string, std::vector<varconS_t>, std::vector<std::string>>>(visit(ctx->term()));
@@ -1211,6 +1233,8 @@ struct EvaluationVisitor : public ExtendedDiracParserBaseVisitor {
                 std::vector<std::tuple<std::string, std::optional<std::tuple<int, std::set<char>, ineqS_t, eqs_t>>, std::string>> result;
                 result.push_back(std::any_cast<std::tuple<std::string, std::optional<std::tuple<int, std::set<char>, ineqS_t, eqs_t>>, std::string>>(visit(ctx->term())));
                 return result;
+            } else if (ctx->sub != nullptr) { // RULE: dirac - term
+                THROW_AUTOQ_ERROR("All subtractions should be replaced with additions followed by negations.");
             } else { // RULE: dirac + term
                 auto result1 = std::any_cast<std::vector<std::tuple<std::string, std::optional<std::tuple<int, std::set<char>, ineqS_t, eqs_t>>, std::string>>>(visit(ctx->dirac()));
                 auto result2 = std::any_cast<std::tuple<std::string, std::optional<std::tuple<int, std::set<char>, ineqS_t, eqs_t>>, std::string>>(visit(ctx->term()));
@@ -1235,9 +1259,9 @@ struct EvaluationVisitor : public ExtendedDiracParserBaseVisitor {
                 }
             }
             if (ctx->varcons() == nullptr) { // C=STR BAR VStr=STR RIGHT_ANGLE_BRACKET
-                return std::any_cast<std::string>(ctx->C->getText() + "|" + vstr2 + "⟩");
+                return std::any_cast<std::string>((ctx->complex() == nullptr ? (ctx->sub != nullptr ? "-1" : "") : ctx->complex()->getText()) + "|" + vstr2 + "⟩");
             } else { // C=STR SUM varcons BAR VStr=STR RIGHT_ANGLE_BRACKET
-                return std::any_cast<std::string>(ctx->C->getText() + "∑" + ctx->varcons()->getText() + "|" + vstr2 + "⟩");
+                return std::any_cast<std::string>((ctx->complex() == nullptr ? (ctx->sub != nullptr ? "-1" : "") : ctx->complex()->getText()) + "|" + vstr2 + "⟩");
             }
         } else if (mode == COLLECT_KETS_AND_COMPUTE_UNIT_DECOMPOSITION_INDICES) {
             strsplit_t intervals;
@@ -1390,7 +1414,7 @@ struct EvaluationVisitor : public ExtendedDiracParserBaseVisitor {
                     vc += ", " + std::string{v} + "=" + c;
                 }
             }
-            return ctx->C->getText() + ((!vc.empty()) ? ("∑" + vc) : "") + "|" + ket + "⟩";
+            return (ctx->complex() == nullptr ? (ctx->sub != nullptr ? "-1" : "") : ctx->complex()->getText()) + ((!vc.empty()) ? ("∑" + vc) : "") + "|" + ket + "⟩";
         } else if (mode == COMPUTE_CONNECTED_UNITS_INTO_A_GROUP_RELATION) {
             unit2vars_t first;
             auto str = ctx->VStr->getText();
@@ -1424,9 +1448,9 @@ struct EvaluationVisitor : public ExtendedDiracParserBaseVisitor {
                 }
             }
             if (ctx->varcons() == nullptr) { // C=STR BAR VStr=STR RIGHT_ANGLE_BRACKET
-                return std::any_cast<std::string>(ctx->C->getText() + "|" + vstr2 + "⟩");
+                return std::any_cast<std::string>((ctx->complex() == nullptr ? (ctx->sub != nullptr ? "-1" : "") : ctx->complex()->getText()) + "|" + vstr2 + "⟩");
             } else { // C=STR SUM varcons BAR VStr=STR RIGHT_ANGLE_BRACKET
-                return std::any_cast<std::string>(ctx->C->getText() + "∑" + ctx->varcons()->getText() + "|" + vstr2 + "⟩");
+                return std::any_cast<std::string>((ctx->complex() == nullptr ? (ctx->sub != nullptr ? "-1" : "") : ctx->complex()->getText()) + "∑" + ctx->varcons()->getText() + "|" + vstr2 + "⟩");
             }
         } else if (mode == SET_BRACES_IS_TENSOR_DECOMPOSED_INTO_GROUPS) {
             auto vecVarconS2 = ctx->varcons() == nullptr ? varconS_t() : std::any_cast<varconS_t>(visit(ctx->varcons()));
@@ -1463,11 +1487,11 @@ struct EvaluationVisitor : public ExtendedDiracParserBaseVisitor {
                 vecVarconS.push_back(varconS);
                 groups.push_back(str);
             }
-            return std::make_tuple(ctx->C->getText(), vecVarconS, groups);
+            return std::make_tuple((ctx->complex() == nullptr ? "1" : ctx->complex()->getText()), vecVarconS, groups);
         } else if (mode == SHUFFLE_UNITS_IN_A_GROUP_WRT_QUBITS_AND_CONSTRUCT_LSTA_FINALLY) {
             // std::tuple<std::string, std::optional<std::tuple<int, std::set<char>, ineqS_t, eqs_t>>, std::string>
             //            coefficient,                varcons: <len,   control vars,     inequalities>,          ket>
-            auto coefficient = ctx->C->getText();
+            auto coefficient = (ctx->complex() == nullptr ? "1" : ctx->complex()->getText());
             std::optional<std::tuple<int, std::set<char>, ineqS_t, eqs_t>> varcons;
             auto ket = ctx->VStr->getText();
             if (ctx->varcons() != nullptr) {

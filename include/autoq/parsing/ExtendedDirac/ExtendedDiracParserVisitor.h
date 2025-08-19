@@ -33,6 +33,10 @@ public:
 
     virtual std::any visitTerm(ExtendedDiracParser::TermContext *context) = 0;
 
+    virtual std::any visitComplex(ExtendedDiracParser::ComplexContext *context) = 0;
+
+    virtual std::any visitAngle(ExtendedDiracParser::AngleContext *context) = 0;
+
     virtual std::any visitVarcons(ExtendedDiracParser::VarconsContext *context) = 0;
 
     virtual std::any visitVarcon(ExtendedDiracParser::VarconContext *context) = 0;

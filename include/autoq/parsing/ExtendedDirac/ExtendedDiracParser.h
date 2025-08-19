@@ -12,15 +12,17 @@
 class  ExtendedDiracParser : public antlr4::Parser {
 public:
   enum {
-    ADD = 1, BAR = 2, COMMA = 3, COLON = 4, EQ = 5, LEFT_BRACE = 6, NE = 7, 
-    NEWLINES = 8, OR = 9, POWER = 10, PRIME = 11, PROD = 12, RIGHT_ANGLE_BRACKET = 13, 
-    RIGHT_BRACE = 14, SEMICOLON = 15, SETMINUS = 16, STR = 17, SUM = 18, 
-    UNION = 19, WS = 20
+    ADD = 1, BAR = 2, COMMA = 3, COLON = 4, DIV = 5, EQ = 6, LEFT_PARENTHESIS = 7, 
+    LEFT_BRACE = 8, MUL = 9, NE = 10, NEWLINES = 11, OR = 12, POWER = 13, 
+    PRIME = 14, PROD = 15, RIGHT_ANGLE_BRACKET = 16, RIGHT_PARENTHESIS = 17, 
+    RIGHT_BRACE = 18, SEMICOLON = 19, SETMINUS = 20, STR = 21, SUB = 22, 
+    SUM = 23, UNION = 24, WS = 25
   };
 
   enum {
     RuleExpr = 0, RuleTset = 1, RuleScset = 2, RuleSet = 3, RuleDiracs = 4, 
-    RuleDirac = 5, RuleTerm = 6, RuleVarcons = 7, RuleVarcon = 8, RuleIneq = 9
+    RuleDirac = 5, RuleTerm = 6, RuleComplex = 7, RuleAngle = 8, RuleVarcons = 9, 
+    RuleVarcon = 10, RuleIneq = 11
   };
 
   explicit ExtendedDiracParser(antlr4::TokenStream *input);
@@ -41,10 +43,13 @@ public:
 
 
       bool isSymbolicAutomaton = false;
-      std::set<std::string> predefinedVars;
+      std::set<std::string> predefinedConstants;
 
+      bool areAllDigits(const std::string& text) {
+          return std::all_of(text.begin(), text.end(), [](char c) { return '0' <= c && c <= '9'; });
+      }
       bool isNonZero(const std::string& text) {
-          return std::stoi(text) != 0;
+          return areAllDigits(text) && std::stoi(text) != 0;
       }
       bool isALowercaseLetter(const std::string& text) {
           return text.length() == 1 && 'a' <= text.at(0) && text.at(0) <= 'z';
@@ -61,6 +66,8 @@ public:
   class DiracsContext;
   class DiracContext;
   class TermContext;
+  class ComplexContext;
+  class AngleContext;
   class VarconsContext;
   class VarconContext;
   class IneqContext; 
@@ -166,12 +173,14 @@ public:
   DiracsContext* diracs(int precedence);
   class  DiracContext : public antlr4::ParserRuleContext {
   public:
-    antlr4::Token *op = nullptr;
+    antlr4::Token *add = nullptr;
+    antlr4::Token *sub = nullptr;
     DiracContext(antlr4::ParserRuleContext *parent, size_t invokingState);
     virtual size_t getRuleIndex() const override;
     TermContext *term();
     DiracContext *dirac();
     antlr4::tree::TerminalNode *ADD();
+    antlr4::tree::TerminalNode *SUB();
 
     virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
     virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
@@ -184,16 +193,17 @@ public:
   DiracContext* dirac(int precedence);
   class  TermContext : public antlr4::ParserRuleContext {
   public:
-    antlr4::Token *C = nullptr;
     antlr4::Token *VStr = nullptr;
+    antlr4::Token *sub = nullptr;
     TermContext(antlr4::ParserRuleContext *parent, size_t invokingState);
     virtual size_t getRuleIndex() const override;
     antlr4::tree::TerminalNode *BAR();
     antlr4::tree::TerminalNode *RIGHT_ANGLE_BRACKET();
-    std::vector<antlr4::tree::TerminalNode *> STR();
-    antlr4::tree::TerminalNode* STR(size_t i);
+    antlr4::tree::TerminalNode *STR();
+    ComplexContext *complex();
     antlr4::tree::TerminalNode *SUM();
     VarconsContext *varcons();
+    antlr4::tree::TerminalNode *SUB();
 
     virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
     virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
@@ -203,6 +213,56 @@ public:
   };
 
   TermContext* term();
+
+  class  ComplexContext : public antlr4::ParserRuleContext {
+  public:
+    antlr4::Token *eixpi = nullptr;
+    antlr4::Token *var = nullptr;
+    antlr4::Token *op = nullptr;
+    antlr4::Token *n = nullptr;
+    ComplexContext(antlr4::ParserRuleContext *parent, size_t invokingState);
+    virtual size_t getRuleIndex() const override;
+    antlr4::tree::TerminalNode *LEFT_PARENTHESIS();
+    std::vector<ComplexContext *> complex();
+    ComplexContext* complex(size_t i);
+    antlr4::tree::TerminalNode *RIGHT_PARENTHESIS();
+    antlr4::tree::TerminalNode *SUB();
+    AngleContext *angle();
+    antlr4::tree::TerminalNode *STR();
+    antlr4::tree::TerminalNode *MUL();
+    antlr4::tree::TerminalNode *DIV();
+    antlr4::tree::TerminalNode *ADD();
+    antlr4::tree::TerminalNode *POWER();
+
+    virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
+    virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
+
+    virtual std::any accept(antlr4::tree::ParseTreeVisitor *visitor) override;
+   
+  };
+
+  ComplexContext* complex();
+  ComplexContext* complex(int precedence);
+  class  AngleContext : public antlr4::ParserRuleContext {
+  public:
+    antlr4::Token *x = nullptr;
+    antlr4::Token *y = nullptr;
+    antlr4::Token *n = nullptr;
+    AngleContext(antlr4::ParserRuleContext *parent, size_t invokingState);
+    virtual size_t getRuleIndex() const override;
+    antlr4::tree::TerminalNode *DIV();
+    std::vector<antlr4::tree::TerminalNode *> STR();
+    antlr4::tree::TerminalNode* STR(size_t i);
+    antlr4::tree::TerminalNode *SUB();
+
+    virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
+    virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
+
+    virtual std::any accept(antlr4::tree::ParseTreeVisitor *visitor) override;
+   
+  };
+
+  AngleContext* angle();
 
   class  VarconsContext : public antlr4::ParserRuleContext {
   public:
@@ -271,6 +331,8 @@ public:
   bool setSempred(SetContext *_localctx, size_t predicateIndex);
   bool diracsSempred(DiracsContext *_localctx, size_t predicateIndex);
   bool diracSempred(DiracContext *_localctx, size_t predicateIndex);
+  bool complexSempred(ComplexContext *_localctx, size_t predicateIndex);
+  bool angleSempred(AngleContext *_localctx, size_t predicateIndex);
   bool varconsSempred(VarconsContext *_localctx, size_t predicateIndex);
   bool varconSempred(VarconContext *_localctx, size_t predicateIndex);
   bool ineqSempred(IneqContext *_localctx, size_t predicateIndex);

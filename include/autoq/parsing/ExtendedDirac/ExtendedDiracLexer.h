@@ -12,10 +12,11 @@
 class  ExtendedDiracLexer : public antlr4::Lexer {
 public:
   enum {
-    ADD = 1, BAR = 2, COMMA = 3, COLON = 4, EQ = 5, LEFT_BRACE = 6, NE = 7, 
-    NEWLINES = 8, OR = 9, POWER = 10, PRIME = 11, PROD = 12, RIGHT_ANGLE_BRACKET = 13, 
-    RIGHT_BRACE = 14, SEMICOLON = 15, SETMINUS = 16, STR = 17, SUM = 18, 
-    UNION = 19, WS = 20
+    ADD = 1, BAR = 2, COMMA = 3, COLON = 4, DIV = 5, EQ = 6, LEFT_PARENTHESIS = 7, 
+    LEFT_BRACE = 8, MUL = 9, NE = 10, NEWLINES = 11, OR = 12, POWER = 13, 
+    PRIME = 14, PROD = 15, RIGHT_ANGLE_BRACKET = 16, RIGHT_PARENTHESIS = 17, 
+    RIGHT_BRACE = 18, SEMICOLON = 19, SETMINUS = 20, STR = 21, SUB = 22, 
+    SUM = 23, UNION = 24, WS = 25
   };
 
   explicit ExtendedDiracLexer(antlr4::CharStream *input);

@@ -14,11 +14,11 @@ typedef boost::rational<boost::multiprecision::cpp_int> rational;
 
 class ComplexParser {
 public:
-    ComplexParser(const std::string &input) : input_(input), index_(0), resultC(), resultV(), constMap_(constMap2) {
+    ComplexParser(const std::string &input) : input_(input), index_(0), resultC(), resultV(), constMap_(constMap2), unknownVariableErrorOccurred(false) {
         std::erase_if(input_, [](unsigned char ch) { return std::isspace(ch); });
         parse();
     }
-    ComplexParser(const std::string &input, const std::map<std::string, Complex> &constMap) : input_(input), index_(0), resultC(), resultV(), constMap_(constMap) {
+    ComplexParser(const std::string &input, const std::map<std::string, Complex> &constMap) : input_(input), index_(0), resultC(), resultV(), constMap_(constMap), unknownVariableErrorOccurred(false) {
         std::erase_if(input_, [](unsigned char ch) { return std::isspace(ch); });
         parse();
     }
@@ -36,16 +36,19 @@ private:
     std::string resultV; // variable
     const std::map<std::string, Complex> &constMap_;
     const std::map<std::string, Complex> constMap2{}; // empty only for initialization
+    bool unknownVariableErrorOccurred;
 
     void parse() {
         try {
             resultC = parseExpression();
         } catch (std::exception& e) {
-            for (char c : input_) {
-                if (!std::isalnum(c)) {
+            if (!unknownVariableErrorOccurred) {
+            // for (char c : input_) {
+            //     if (!std::isalnum(c)) {
                     std::cerr << e.what() << std::endl;
                     throw e;
-                }
+            //     }
+            // }
             }
             resultV = input_;
         }
@@ -190,9 +193,12 @@ private:
                 }
             } else if (function == "sqrt2") {
                 return Complex::sqrt2();
-            } else if (constMap_.count(function) > 0) {
+            } else if (constMap_.count(function) > 0) { // may contain i
                 return constMap_.at(function);
+            } else if (function == "i") {
+                return Complex::Angle(boost::rational<boost::multiprecision::cpp_int>(1, 4));
             } else {
+                unknownVariableErrorOccurred = true;
                 THROW_AUTOQ_ERROR("Unknown variable: " + function);
             }
         } else if (std::isdigit(input_[index_]) || input_[index_] == '-') {
