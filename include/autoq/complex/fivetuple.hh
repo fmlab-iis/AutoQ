@@ -50,7 +50,38 @@ struct AUTOQ::Complex::FiveTuple : stdvectorboostmultiprecisioncpp_int {
     }
     static FiveTuple sqrt2() { return FiveTuple(1).divide_by_the_square_root_of_two(-1); }
     friend std::ostream& operator<<(std::ostream& os, const FiveTuple& obj) {
-        os << AUTOQ::Util::Convert::ToString(static_cast<stdvectorboostmultiprecisioncpp_int>(obj));
+        const auto &a=obj[0], &b=obj[1], &c=obj[2], &d=obj[3], &k=obj[4];
+        // [a, b, c, d, k] = (a + b*(1+i)/sqrt2 + c*i + d*(-1+i)/sqrt2) / sqrt2^k
+        //                 = ((a + (b-d)/sqrt2) + i * (c + (b+d)/sqrt2)) / sqrt2^k
+        //                 = (a*sqrt2 + (b-d)) + i * (c*sqrt2 + (b+d)) / sqrt2^(k+1)
+        //                 = (2a + (b-d)*sqrt2) + i * (2c + (b+d)*sqrt2) / sqrt2^(k+2)
+        // (k+1) % 2 == 0, = [(b-d)/2^((k+1)//2) + sqrt2 * a/2^((k+1)//2)] + i * [(b+d)/2^((k+1)//2) + sqrt2 * c/2^((k+1)//2)]
+        // (k+1) % 2 == 1, = [2a/2^((k+2)//2) + sqrt2 * (b-d)/2^((k+2)//2)]  + i * [2c/2^((k+2)//2) + sqrt2 * (b+d)/2^((k+2)//2)]
+        if (k < -2) {
+            os << AUTOQ::Util::Convert::ToString(static_cast<stdvectorboostmultiprecisioncpp_int>(obj));
+        } else if ((k+1) % 2 == 0) {
+            if (b-d != 0) os << boost::rational<boost::multiprecision::cpp_int>(b-d, boost::multiprecision::pow(boost::multiprecision::cpp_int(2), static_cast<int>((k+1)/2)));
+            if (b-d != 0 && a != 0) os << "+";
+            if (a != 0) os << "sqrt2*" << boost::rational<boost::multiprecision::cpp_int>(a, boost::multiprecision::pow(boost::multiprecision::cpp_int(2), static_cast<int>((k+1)/2)));
+            if ((b-d != 0 || a != 0) && (b+d != 0 || c != 0)) os << " + ";
+            if (b+d != 0 || c != 0) os << "i * (";
+            if (b+d != 0) os << boost::rational<boost::multiprecision::cpp_int>(b+d, boost::multiprecision::pow(boost::multiprecision::cpp_int(2), static_cast<int>((k+1)/2)));
+            if (b+d != 0 && c != 0) os << "+";
+            if (c != 0) os << "sqrt2*" << boost::rational<boost::multiprecision::cpp_int>(c, boost::multiprecision::pow(boost::multiprecision::cpp_int(2), static_cast<int>((k+1)/2)));
+            if ((b-d != 0 || a != 0) && (b+d != 0 || c != 0)) os << ")";
+            if (b-d == 0 && a == 0 && b+d == 0 && c == 0) os << "0";
+        } else {
+            if (2*a != 0) os << boost::rational<boost::multiprecision::cpp_int>(2*a, boost::multiprecision::pow(boost::multiprecision::cpp_int(2), static_cast<int>((k+2)/2)));
+            if (2*a != 0 && b-d != 0) os << "+";
+            if (b-d != 0) os << "sqrt2*" << boost::rational<boost::multiprecision::cpp_int>(b-d, boost::multiprecision::pow(boost::multiprecision::cpp_int(2), static_cast<int>((k+2)/2)));
+            if ((2*a != 0 || b-d != 0) && (2*c != 0 || b+d != 0)) os << " + ";
+            if (2*c != 0 || b+d != 0) os << "i * (";
+            if (2*c != 0) os << boost::rational<boost::multiprecision::cpp_int>(2*c, boost::multiprecision::pow(boost::multiprecision::cpp_int(2), static_cast<int>((k+2)/2)));
+            if (2*c != 0 && b+d != 0) os << "+";
+            if (b+d != 0) os << "sqrt2*" << boost::rational<boost::multiprecision::cpp_int>(b+d, boost::multiprecision::pow(boost::multiprecision::cpp_int(2), static_cast<int>((k+2)/2)));
+            if ((2*a != 0 || b-d != 0) && (2*c != 0 || b+d != 0)) os << ")";
+            if (2*a == 0 && b-d == 0 && 2*c == 0 && b+d == 0) os << "0";
+        }
         return os;
     }
     FiveTuple operator+(const FiveTuple &o) const { return binary_operation(o, true); }
