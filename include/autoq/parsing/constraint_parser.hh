@@ -97,12 +97,24 @@ private:
                     + ")";
             } else if (op == '<') {
                 index_++;
-                SymbolicComplex right = parseExpression();
-                return "(< " + left.realToSMT() + " " + right.realToSMT() + ")";
+                if (input_[index_] == '=') {
+                    index_++;
+                    SymbolicComplex right = parseExpression();
+                    return "(<= " + left.realToSMT() + " " + right.realToSMT() + ")";
+                } else {
+                    SymbolicComplex right = parseExpression();
+                    return "(< " + left.realToSMT() + " " + right.realToSMT() + ")";
+                }
             } else if (op == '>') {
                 index_++;
-                SymbolicComplex right = parseExpression();
-                return "(> " + left.realToSMT() + " " + right.realToSMT() + ")";
+                if (input_[index_] == '=') {
+                    index_++;
+                    SymbolicComplex right = parseExpression();
+                    return "(>= " + left.realToSMT() + " " + right.realToSMT() + ")";
+                } else {
+                    SymbolicComplex right = parseExpression();
+                    return "(> " + left.realToSMT() + " " + right.realToSMT() + ")";
+                }
             } else {
                 break;
             }
