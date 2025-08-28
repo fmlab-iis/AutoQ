@@ -188,18 +188,20 @@ bool AUTOQ::Automata<Symbol>::execute(const char *filename, std::vector<int> qub
             // I = AUTOQ::Parsing::TimbukParser<Symbol>::ReadAutomaton(dir + std::string("/") + it2->str(1));
             I = loopInvariants[loopInvariantCounter++];
             /**************************************************************************************************************/
-            // std::cout << "We first verify \"P ⊆ I\" here." << std::endl;
-            // this->print_language("P:\n");
+            // std::cout << "We first verify \"C(P) ⊆ I\" here." << std::endl;
+            // this->print_language("C(P):\n");
             // I.print_language("I:\n");
             this->remove_useless(); this->reduce(); I.remove_useless(); I.reduce();
             bool t = (*this <<= I);
             verify &= t;
             if (!t) {
-                AUTOQ_ERROR("[ERROR] P ⊈ I.");
+                AUTOQ_ERROR("[ERROR] C(P) ⊈ I.");
                 fraction_simplification();
-                print_language("P:\n");
+                print_language("C(P):\n");
                 I.fraction_simplification();
                 I.print_language("I:\n");
+            // } else {
+            //     std::cout << "[OK] C(P) ⊆ I." << std::endl;
             }
             if (negate) {
                 measure_to_continue = I.measure(pos, false);
@@ -233,6 +235,8 @@ bool AUTOQ::Automata<Symbol>::execute(const char *filename, std::vector<int> qub
                     print_language("C(measure_to_continue(I)):\n");
                     I.fraction_simplification();
                     I.print_language("I:\n");
+                // } else {
+                //     std::cout << "[OK] C(measure_to_continue(I)) ⊆ I." << std::endl;
                 }
                 // std::cout << "Then we verify \"measure_to_break ⊆ Q\" here." << std::endl;
                 // measure_to_break.print_language("measure_to_break:\n");
