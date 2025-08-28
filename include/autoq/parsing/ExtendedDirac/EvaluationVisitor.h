@@ -1,17 +1,42 @@
+#ifndef _AUTOQ_EVALUATION_VISITOR_HH_
+#define _AUTOQ_EVALUATION_VISITOR_HH_
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wnon-virtual-dtor"
+#pragma GCC diagnostic ignored "-Woverloaded-virtual"
+#pragma GCC diagnostic ignored "-Weffc++"
+#include "ExtendedDiracLexer.h"
 #include "ExtendedDiracParserBaseVisitor.h"
 #include "ExtendedDiracParser.h"
+#pragma GCC diagnostic pop
 
 #include "autoq/aut_description.hh"
 #include "autoq/symbol/concrete.hh"
 #include "autoq/symbol/symbolic.hh"
 #include "autoq/complex/complex.hh"
+#include "autoq/complex/symbolic_complex.hh"
 #include "autoq/complex/constrained_complex.hh"
-#include "autoq/parsing/predicate_parser.hh"
 
 #include <queue>
 
-AUTOQ::Automata<AUTOQ::Symbol::Constrained> efficiently_construct_singleton_lsta(const std::map<std::string, AUTOQ::Complex::ConstrainedComplex> &ket2amp) {
+class CustomErrorListener : public antlr4::BaseErrorListener {
+public:
+    #pragma GCC diagnostic push
+    #pragma GCC diagnostic ignored "-Wunused-parameter"
+    void syntaxError(antlr4::Recognizer *recognizer,
+                     antlr4::Token *offendingSymbol,
+                     size_t line, size_t charPositionInLine,
+                     const std::string &msg,
+                     std::exception_ptr e) override {
+        THROW_AUTOQ_ERROR("Parsing Error: Line " + std::to_string(line) + ":" + std::to_string(charPositionInLine)
+              + " in ExtendedDirac.g4 - " + msg);
+    }
+    #pragma GCC diagnostic pop
+};
+
+template <typename Symbol = AUTOQ::Symbol::Concrete, typename Symbol2 = Symbol>
+struct EvaluationVisitor : public ExtendedDiracParserBaseVisitor {
+static AUTOQ::Automata<AUTOQ::Symbol::Constrained> efficiently_construct_singleton_lsta(const std::map<std::string, AUTOQ::Complex::ConstrainedComplex> &ket2amp) {
     using State = AUTOQ::Automata<AUTOQ::Symbol::Constrained>::State;
 
     AUTOQ::Automata<AUTOQ::Symbol::Constrained> aut;
@@ -117,23 +142,89 @@ AUTOQ::Automata<AUTOQ::Symbol::Constrained> efficiently_construct_singleton_lsta
     return aut;
 }
 
-class CustomErrorListener : public antlr4::BaseErrorListener {
+    class ComplexParser {
 public:
-    #pragma GCC diagnostic push
-    #pragma GCC diagnostic ignored "-Wunused-parameter"
-    void syntaxError(antlr4::Recognizer *recognizer,
-                     antlr4::Token *offendingSymbol,
-                     size_t line, size_t charPositionInLine,
-                     const std::string &msg,
-                     std::exception_ptr e) override {
-        THROW_AUTOQ_ERROR("Parsing Error: Line " + std::to_string(line) + ":" + std::to_string(charPositionInLine)
-              + " in ExtendedDirac.g4 - " + msg);
+    ComplexParser(const std::string &input) : input_(input), index_(0), resultC(), resultV(), constMap_(constMap2), unknownVariableErrorOccurred(false) {
+        std::erase_if(input_, [](unsigned char ch) { return std::isspace(ch); });
+        parse();
     }
-    #pragma GCC diagnostic pop
+    ComplexParser(const std::string &input, const std::map<std::string, Complex> &constMap) : input_(input), index_(0), resultC(), resultV(), constMap_(constMap), unknownVariableErrorOccurred(false) {
+        std::erase_if(input_, [](unsigned char ch) { return std::isspace(ch); });
+        parse();
+    }
+    Complex getComplex() const {
+        return resultC;
+    }
+    std::string getConstName() const {
+        return resultV;
+    }
+
+private:
+    std::string input_;
+    size_t index_;
+    Complex resultC; // complex
+    std::string resultV; // variable
+    const std::map<std::string, Complex> &constMap_;
+    const std::map<std::string, Complex> constMap2{}; // empty only for initialization
+    bool unknownVariableErrorOccurred;
+
+    void parse() {
+        EvaluationVisitor<AUTOQ::Symbol::Concrete> complexVisitor({constMap_}, {});
+        complexVisitor.mode = EvaluationVisitor<AUTOQ::Symbol::Concrete>::CONCRETE_COMPLEX;
+        antlr4::ANTLRInputStream inputStream(input_);
+        ExtendedDiracLexer lexer(&inputStream);
+        antlr4::CommonTokenStream tokens(&lexer);
+        ExtendedDiracParser parser(&tokens);
+        parser.removeErrorListeners(); // Remove the default error listener
+        CustomErrorListener errorListener;
+        parser.addErrorListener(&errorListener); // Add a custom error listener
+        ExtendedDiracParser::ComplexContext* tree = parser.complex(); // Parse the input
+        resultC = std::any_cast<AUTOQ::Complex::Complex>(complexVisitor.visit(tree));
+        resultV = complexVisitor.resultV;
+    }
 };
 
-template <typename Symbol, typename Symbol2 = Symbol>
-struct EvaluationVisitor : public ExtendedDiracParserBaseVisitor {
+class SymbolicComplexParser {
+public:
+    SymbolicComplexParser(const std::string &input) : input_(input), index_(0), result(), constMap_(constMap2), used_vars() {
+        std::erase_if(input_, [](unsigned char ch) { return std::isspace(ch); });
+        parse();
+    }
+    SymbolicComplexParser(const std::string &input, const std::map<std::string, Complex> &constMap) : input_(input), index_(0), result(), constMap_(constMap), used_vars() {
+        std::erase_if(input_, [](unsigned char ch) { return std::isspace(ch); });
+        parse();
+    }
+    AUTOQ::Complex::SymbolicComplex getSymbolicComplex() const {
+        return result;
+    }
+    std::set<std::string> getNewVars() const {
+        return used_vars;
+    }
+
+private:
+    std::string input_;
+    size_t index_;
+    AUTOQ::Complex::SymbolicComplex result;
+    const std::map<std::string, Complex> &constMap_;
+    const std::map<std::string, Complex> constMap2{}; // empty only for initialization
+    std::set<std::string> used_vars;
+
+    void parse() {
+        EvaluationVisitor<AUTOQ::Symbol::Symbolic> complexVisitor({constMap_}, {});
+        complexVisitor.mode = EvaluationVisitor<AUTOQ::Symbol::Symbolic>::SYMBOLIC_COMPLEX;
+        antlr4::ANTLRInputStream inputStream(input_);
+        ExtendedDiracLexer lexer(&inputStream);
+        antlr4::CommonTokenStream tokens(&lexer);
+        ExtendedDiracParser parser(&tokens);
+        parser.removeErrorListeners(); // Remove the default error listener
+        CustomErrorListener errorListener;
+        parser.addErrorListener(&errorListener); // Add a custom error listener
+        ExtendedDiracParser::ComplexContext* tree = parser.complex(); // Parse the input
+        result = std::any_cast<AUTOQ::Complex::SymbolicComplex>(complexVisitor.visit(tree));
+        used_vars = complexVisitor.used_vars;
+    }
+};
+
     typedef std::pair<int, int> unitsplit_t;
     typedef std::vector<unitsplit_t> strsplit_t;
     typedef std::vector<strsplit_t> strs2split_t;
@@ -163,7 +254,10 @@ struct EvaluationVisitor : public ExtendedDiracParserBaseVisitor {
                  REORDER_UNITS_BY_THE_GROUP, // may input with ;
                  EVALUATE_EACH_SET_BRACES_TO_LSTA,
                  SET_BRACES_IS_TENSOR_DECOMPOSED_INTO_GROUPS, // a submode in EVALUATE_EACH_SET_BRACES_TO_LSTA
-                 SHUFFLE_UNITS_IN_A_GROUP_WRT_QUBITS_AND_CONSTRUCT_LSTA_FINALLY // a submode in EVALUATE_EACH_SET_BRACES_TO_LSTA
+                 SHUFFLE_UNITS_IN_A_GROUP_WRT_QUBITS_AND_CONSTRUCT_LSTA_FINALLY, // a submode in EVALUATE_EACH_SET_BRACES_TO_LSTA
+
+                 CONCRETE_COMPLEX,
+                 SYMBOLIC_COMPLEX,
                 };
     mode_t mode; // by default, the first one
 
@@ -177,6 +271,8 @@ struct EvaluationVisitor : public ExtendedDiracParserBaseVisitor {
     bool switch_symbol_to_second;
     bool do_not_throw_term_undefined_error;
     bool encountered_term_undefined_error;
+    std::set<std::string> used_vars;
+    std::string resultV; // variable
 
     std::map<std::string, AUTOQ::Complex::Complex> constants;
     std::vector<std::map<std::string, AUTOQ::Complex::Complex>> constantsVector;
@@ -194,9 +290,11 @@ struct EvaluationVisitor : public ExtendedDiracParserBaseVisitor {
         switch_symbol_to_second(false),
         do_not_throw_term_undefined_error(false),
         encountered_term_undefined_error(false),
-        constants(constantsVector.at(0)),
+        used_vars(),
+        resultV(),
+        constants(constantsVector.empty() ? std::map<std::string, AUTOQ::Complex::Complex>() : constantsVector.at(0)),
         constantsVector(constantsVector),
-        predicateConstraints(predicateConstraintsVector.at(0)),
+        predicateConstraints(predicateConstraintsVector.empty() ? "" : predicateConstraintsVector.at(0)),
         predicateConstraintsVector(predicateConstraintsVector) {}
     std::any let_visitor_parse_string(const std::string &input) {
         antlr4::ANTLRInputStream inputStream(input);
@@ -273,7 +371,7 @@ struct EvaluationVisitor : public ExtendedDiracParserBaseVisitor {
 
     std::any visitExpr(ExtendedDiracParser::ExprContext *ctx) override {
         if (mode == EXPAND_POWER_AND_DIRACS_AND_REWRITE_COMPLEMENT) {
-            if (ctx->op == nullptr) {
+            if (ctx->SETMINUS() == nullptr) {
                 return std::any_cast<std::string>(visit(ctx->tset(0)));
             } else { // if (ctx->op->getType() == ExtendedDiracParser::SETMINUS) {
                 THROW_AUTOQ_ERROR("We currently do not support the SETMINUS operator!");
@@ -282,7 +380,7 @@ struct EvaluationVisitor : public ExtendedDiracParserBaseVisitor {
                 // return str0 + " \\ " + str1; // This is a set minus operation.
             }
         } else if (mode == SPLIT_TENSORED_EXPRESSION_INTO_VECTOR_OF_SETS_WITHOUT_TENSOR) {
-            if (ctx->op == nullptr) {
+            if (ctx->SETMINUS() == nullptr) {
                 return visit(ctx->tset(0)); // std::make_pair(std::any_cast<std::vector<std::string>>(visit(ctx->tset(0))), std::vector<std::string>());
             } else { // if (ctx->op->getType() == ExtendedDiracParser::SETMINUS) {
                 THROW_AUTOQ_ERROR("We currently do not support the SETMINUS operator!");
@@ -394,7 +492,7 @@ struct EvaluationVisitor : public ExtendedDiracParserBaseVisitor {
                             } else {
                                 AUTOQ::Complex::SymbolicComplex sum;
                                 for (const auto &[termId, term] : c) {
-                                    auto scp = AUTOQ::Parsing::SymbolicComplexParser(std::get<0>(term), constants);
+                                    auto scp = SymbolicComplexParser(std::get<0>(term), constants);
                                     sum += scp.getSymbolicComplex();
                                     auto scpgetNewVars = scp.getNewVars();
                                     result.vars.insert(scpgetNewVars.begin(), scpgetNewVars.end());
@@ -497,8 +595,8 @@ struct EvaluationVisitor : public ExtendedDiracParserBaseVisitor {
     }
     std::any visitTset(ExtendedDiracParser::TsetContext *ctx) override {
         if (mode == EXPAND_POWER_AND_DIRACS_AND_REWRITE_COMPLEMENT) {
-            if (ctx->op == nullptr) return std::any_cast<std::string>(visit(ctx->scset()));
-            if (ctx->op->getType() == ExtendedDiracParser::POWER) {
+            if (ctx->scset() != nullptr) return std::any_cast<std::string>(visit(ctx->scset()));
+            if (ctx->POWER() != nullptr) {
                 int times = std::stoi(ctx->N->getText());
                 std::string result;
                 while ((times--) > 0) {
@@ -509,15 +607,15 @@ struct EvaluationVisitor : public ExtendedDiracParserBaseVisitor {
                 }
                 return result;
             }
-            if (ctx->op->getType() == ExtendedDiracParser::PROD) return std::any_cast<std::string>(visit(ctx->tset(0))) + " ⊗ " + std::any_cast<std::string>(visit(ctx->tset(1)));
+            if (ctx->PROD() != nullptr) return std::any_cast<std::string>(visit(ctx->tset(0))) + " ⊗ " + std::any_cast<std::string>(visit(ctx->tset(1)));
             THROW_AUTOQ_ERROR("Undefined grammar for tset!");
         } else if (mode == SPLIT_TENSORED_EXPRESSION_INTO_VECTOR_OF_SETS_WITHOUT_TENSOR) {
-            if (ctx->op == nullptr) { // Notice that in this base case, we don't continue to visit, so we don't have to deal with this mode in the following nonterminals.
+            if (ctx->scset() != nullptr) { // Notice that in this base case, we don't continue to visit, so we don't have to deal with this mode in the following nonterminals.
                 std::vector<std::string> result;
                 result.push_back(ctx->scset()->getText());
                 return result;
             }
-            if (ctx->op->getType() == ExtendedDiracParser::PROD) {
+            if (ctx->PROD() != nullptr) {
                 auto vec0 = std::any_cast<std::vector<std::string>>(visit(ctx->tset(0)));
                 auto vec1 = std::any_cast<std::vector<std::string>>(visit(ctx->tset(1)));
                 vec0.insert(vec0.end(), vec1.begin(), vec1.end());
@@ -527,13 +625,13 @@ struct EvaluationVisitor : public ExtendedDiracParserBaseVisitor {
             // Besides, we process one *.hsl at a time, so there should be no semicolon operators here.
             THROW_AUTOQ_ERROR("Undefined grammar for tset!");
         } else if (mode == COLLECT_KETS_AND_COMPUTE_UNIT_DECOMPOSITION_INDICES) {
-            if (ctx->op == nullptr) {
+            if (ctx->scset() != nullptr) {
                 segment2strs_t segment2strs;
                 segment2strs.push_back(std::any_cast<strs2split_t>(visit(ctx->scset())));
                 return segment2strs;
-            } else if (ctx->op->getType() == ExtendedDiracParser::POWER) {
+            } else if (ctx->POWER() != nullptr) {
                 THROW_AUTOQ_ERROR("Should not appear after EXPAND_POWER_AND_DIRACS_AND_REWRITE_COMPLEMENT!");
-            } else if (ctx->op->getType() == ExtendedDiracParser::PROD) { // RULE: set op=PROD set
+            } else if (ctx->PROD() != nullptr) { // RULE: set op=PROD set
                 auto vec0 = std::any_cast<segment2strs_t>(visit(ctx->tset(0)));
                 auto vec1 = std::any_cast<segment2strs_t>(visit(ctx->tset(1)));
                 vec0.insert(vec0.end(), vec1.begin(), vec1.end());
@@ -557,7 +655,7 @@ struct EvaluationVisitor : public ExtendedDiracParserBaseVisitor {
                 THROW_AUTOQ_ERROR("Undefined grammar for tset!");
             }
         } else if (mode == REWRITE_BY_UNIT_INDICES_AND_MAKE_ALL_VARS_DISTINCT) {
-            if (ctx->op == nullptr) { // set
+            if (ctx->scset() != nullptr) { // set
                 currentSplit = segment2split.front(); // access the first element
                 segment2split.erase(segment2split.begin()); // remove it (O(n) operation)
                 return std::any_cast<std::string>(visit(ctx->scset()));
@@ -573,7 +671,7 @@ struct EvaluationVisitor : public ExtendedDiracParserBaseVisitor {
             //         result += " ; " + std::any_cast<std::string>(visit(ctx->set(3)));
             //     }
             //     return result;
-            } else if (ctx->op->getType() == ExtendedDiracParser::PROD) {
+            } else if (ctx->PROD() != nullptr) {
                 std::string str0 = std::any_cast<std::string>(visit(ctx->tset(0)));
                 std::string str1 = std::any_cast<std::string>(visit(ctx->tset(1)));
                 return str0 + " ⊗ " + str1;
@@ -582,7 +680,7 @@ struct EvaluationVisitor : public ExtendedDiracParserBaseVisitor {
                 THROW_AUTOQ_ERROR("Undefined grammar for tset!");
             }
         } else if (mode == COMPUTE_CONNECTED_UNITS_INTO_A_GROUP_RELATION) {
-            if (ctx->op == nullptr) { // only one segment
+            if (ctx->scset() != nullptr) { // only one segment
                 segment2perm_t result;
                 result.push_back(sortedConnectedComponent(std::any_cast<graph_t>(visit(ctx->scset()))));
                 return result;
@@ -603,7 +701,7 @@ struct EvaluationVisitor : public ExtendedDiracParserBaseVisitor {
             //     result.push_back(sortedConnectedComponent(graph1));
             //     return result;
             // }
-            if (ctx->op->getType() == ExtendedDiracParser::PROD) {
+            if (ctx->PROD() != nullptr) {
                 auto vec0 = std::any_cast<segment2perm_t>(visit(ctx->tset(0)));
                 auto vec1 = std::any_cast<segment2perm_t>(visit(ctx->tset(1)));
                 vec0.insert(vec0.end(), vec1.begin(), vec1.end());
@@ -612,7 +710,7 @@ struct EvaluationVisitor : public ExtendedDiracParserBaseVisitor {
             // since set^N has been expanded in the first phase, there should be no power operators here.
             THROW_AUTOQ_ERROR("Undefined grammar for tset!");
         } else if (mode == REORDER_UNITS_BY_THE_GROUP) {
-            if (ctx->op == nullptr) {
+            if (ctx->scset() != nullptr) {
                 currentPerm = segment2perm.front(); // access the first element
                 segment2perm.erase(segment2perm.begin()); // remove it (O(n) operation)
                 return std::any_cast<std::string>(visit(ctx->scset()));
@@ -624,7 +722,7 @@ struct EvaluationVisitor : public ExtendedDiracParserBaseVisitor {
             //     auto res2 = std::any_cast<std::string>(visit(ctx->set(1)));
             //     return res1 + " ; " + res2;
             // }
-            if (ctx->op->getType() == ExtendedDiracParser::PROD) {
+            if (ctx->PROD() != nullptr) {
                 std::string str0 = std::any_cast<std::string>(visit(ctx->tset(0)));
                 std::string str1 = std::any_cast<std::string>(visit(ctx->tset(1)));
                 return str0 + " ⊗ " + str1;
@@ -632,7 +730,7 @@ struct EvaluationVisitor : public ExtendedDiracParserBaseVisitor {
             // since set^N has been expanded in the first phase, there should be no power operators here.
             THROW_AUTOQ_ERROR("Undefined grammar for tset!");
         } else if (mode == EVALUATE_EACH_SET_BRACES_TO_LSTA) {
-            if (ctx->op == nullptr) {
+            if (ctx->scset() != nullptr) {
                 currentPerm = segment2perm.front(); // access the first element
                 segment2perm.erase(segment2perm.begin()); // remove it (O(n) operation)
                 return std::any_cast<std::vector<AUTOQ::Automata<Symbol>>>(visit(ctx->scset()));
@@ -650,25 +748,27 @@ struct EvaluationVisitor : public ExtendedDiracParserBaseVisitor {
             //     predicateConstraints = predicateConstraints_tmp;
             //     return std::make_pair(aut0, aut1);
             // }
-            if (ctx->op->getType() == ExtendedDiracParser::PROD) {
-                std::cout << ctx->tset(0)->getText() << std::endl;
-                auto aut0 = std::any_cast<AUTOQ::Automata<Symbol>>(visit(ctx->tset(0)));
-                auto aut1 = std::any_cast<AUTOQ::Automata<Symbol>>(visit(ctx->tset(1)));
-                return aut0 * aut1;
+            if (ctx->PROD() != nullptr) {
+                auto autVec0 = std::any_cast<std::vector<AUTOQ::Automata<Symbol>>>(visit(ctx->tset(0)));
+                auto autVec1 = std::any_cast<std::vector<AUTOQ::Automata<Symbol>>>(visit(ctx->tset(1)));
+                if (autVec0.size() != 1 || autVec1.size() != 1) {
+                    THROW_AUTOQ_ERROR("We expect only one automaton in each vector here!");
+                }
+                return std::vector<AUTOQ::Automata<Symbol>>({autVec0.at(0) * autVec1.at(0)});
             }
             // since set^N has been expanded in the first phase, there should be no power operators here.
             THROW_AUTOQ_ERROR("Undefined grammar for tset!");
         } else if (mode == SET_BRACES_IS_TENSOR_DECOMPOSED_INTO_GROUPS) { // we only decompose {diracs (: varcons)?}
-            if (ctx->op != nullptr) {
+            if (ctx->scset() == nullptr) {
                 THROW_AUTOQ_ERROR("We only decompose {diracs (: varcons)?}");
             }
             return std::any_cast<std::string>(visit(ctx->scset()));
         } else if (mode == SHUFFLE_UNITS_IN_A_GROUP_WRT_QUBITS_AND_CONSTRUCT_LSTA_FINALLY) {
-            if (ctx->op == nullptr) {
+            if (ctx->scset() != nullptr) {
                 auto aut = std::any_cast<AUTOQ::Automata<AUTOQ::Symbol::Constrained>>(visit(ctx->scset()));
                 return aut;
             }
-            if (ctx->op->getType() == ExtendedDiracParser::PROD) {
+            if (ctx->PROD() != nullptr) {
                 auto aut0 = std::any_cast<AUTOQ::Automata<AUTOQ::Symbol::Constrained>>(visit(ctx->tset(0)));
                 auto aut1 = std::any_cast<AUTOQ::Automata<AUTOQ::Symbol::Constrained>>(visit(ctx->tset(1)));
                 return aut0 * aut1;
@@ -682,12 +782,12 @@ struct EvaluationVisitor : public ExtendedDiracParserBaseVisitor {
 
     std::any visitScset(ExtendedDiracParser::ScsetContext *ctx) override {
         if (mode == EXPAND_POWER_AND_DIRACS_AND_REWRITE_COMPLEMENT) {
-            if (ctx->op != nullptr) { // ctx->op->getType() == ExtendedDiracParser::SEMICOLON) {
+            if (ctx->SEMICOLON() != nullptr) { // ctx->op->getType() == ExtendedDiracParser::SEMICOLON) {
                 THROW_AUTOQ_ERROR("Semicolons are not expected in EXPAND_POWER_AND_DIRACS_AND_REWRITE_COMPLEMENT!");
             }
             return std::any_cast<std::string>(visit(ctx->set()));
         } else if (mode == SPLIT_TENSORED_EXPRESSION_INTO_VECTOR_OF_SETS_WITHOUT_TENSOR) {
-            if (ctx->op != nullptr) { // ctx->op->getType() == ExtendedDiracParser::SEMICOLON) {
+            if (ctx->SEMICOLON() != nullptr) { // ctx->op->getType() == ExtendedDiracParser::SEMICOLON) {
                 THROW_AUTOQ_ERROR("Semicolons are not expected in SPLIT_TENSORED_EXPRESSION_INTO_VECTOR_OF_SETS_WITHOUT_TENSOR!");
             }
             // if (ctx->op == nullptr) { // Notice that in this base case, we don't continue to visit, so we don't have to deal with this mode in the following nonterminals.
@@ -696,7 +796,7 @@ struct EvaluationVisitor : public ExtendedDiracParserBaseVisitor {
                 return result;
             // }
         } else if (mode == COLLECT_KETS_AND_COMPUTE_UNIT_DECOMPOSITION_INDICES) {
-            if (ctx->op == nullptr) {
+            if (ctx->SEMICOLON() == nullptr) {
                 // segment2strs_t segment2strs;
                 return std::any_cast<strs2split_t>(visit(ctx->set())); // );
                 // return segment2strs;
@@ -718,7 +818,7 @@ struct EvaluationVisitor : public ExtendedDiracParserBaseVisitor {
                 return vec0;
             }
         } else if (mode == REWRITE_BY_UNIT_INDICES_AND_MAKE_ALL_VARS_DISTINCT) {
-            if (ctx->op == nullptr) { // set
+            if (ctx->SEMICOLON() == nullptr) { // set
                 return std::any_cast<std::string>(visit(ctx->set()));
             } else { // if (ctx->op->getType() == ExtendedDiracParser::SEMICOLON) { // scset; set
                 auto result = std::any_cast<std::string>(visit(ctx->scset()));
@@ -732,7 +832,7 @@ struct EvaluationVisitor : public ExtendedDiracParserBaseVisitor {
                 return result;
             }
         } else if (mode == COMPUTE_CONNECTED_UNITS_INTO_A_GROUP_RELATION) {
-            if (ctx->op == nullptr) { // only one segment
+            if (ctx->SEMICOLON() == nullptr) { // only one segment
                 // segment2perm_t result;
                 return /*std::any_cast<graph_t>(*/visit(ctx->set()); //);
             } else { // (ctx->op->getType() == ExtendedDiracParser::SEMICOLON) { // set; set
@@ -753,7 +853,7 @@ struct EvaluationVisitor : public ExtendedDiracParserBaseVisitor {
                 // return result;
             }
         } else if (mode == REORDER_UNITS_BY_THE_GROUP) {
-            if (ctx->op == nullptr) {
+            if (ctx->SEMICOLON() == nullptr) {
                 return /*std::any_cast<std::string>(*/visit(ctx->set()); //);
             } else { // if (ctx->op->getType() == ExtendedDiracParser::SEMICOLON) { // scset; set
                 auto res1 = std::any_cast<std::string>(visit(ctx->scset()));
@@ -761,7 +861,7 @@ struct EvaluationVisitor : public ExtendedDiracParserBaseVisitor {
                 return res1 + " ; " + res2;
             }
         } else if (mode == EVALUATE_EACH_SET_BRACES_TO_LSTA) {
-            if (ctx->op == nullptr) {
+            if (ctx->SEMICOLON() == nullptr) {
                 std::vector<AUTOQ::Automata<Symbol>> result;
                 result.push_back(std::any_cast<AUTOQ::Automata<Symbol>>(visit(ctx->set())));
                 return result;
@@ -785,12 +885,12 @@ struct EvaluationVisitor : public ExtendedDiracParserBaseVisitor {
                 return vec;
             }
         } else if (mode == SET_BRACES_IS_TENSOR_DECOMPOSED_INTO_GROUPS) { // we only decompose {diracs (: varcons)?}
-            if (ctx->op != nullptr) {
+            if (ctx->SEMICOLON() != nullptr) {
                 THROW_AUTOQ_ERROR("Semicolons are not expected in SET_BRACES_IS_TENSOR_DECOMPOSED_INTO_GROUPS!");
             }
             return std::any_cast<std::string>(visit(ctx->set()));
         } else if (mode == SHUFFLE_UNITS_IN_A_GROUP_WRT_QUBITS_AND_CONSTRUCT_LSTA_FINALLY) {
-            if (ctx->op != nullptr) {
+            if (ctx->SEMICOLON() != nullptr) {
                 THROW_AUTOQ_ERROR("Semicolons are not expected in SHUFFLE_UNITS_IN_A_GROUP_WRT_QUBITS_AND_CONSTRUCT_LSTA_FINALLY!");
             }
             auto aut = std::any_cast<AUTOQ::Automata<AUTOQ::Symbol::Constrained>>(visit(ctx->set()));
@@ -802,7 +902,7 @@ struct EvaluationVisitor : public ExtendedDiracParserBaseVisitor {
 
     std::any visitSet(ExtendedDiracParser::SetContext *ctx) override {
         if (mode == EXPAND_POWER_AND_DIRACS_AND_REWRITE_COMPLEMENT) {
-            if (ctx->op != nullptr) {
+            if (ctx->UNION() != nullptr) {
                 return std::any_cast<std::string>(visit(ctx->set(0))) + " ∪ " + std::any_cast<std::string>(visit(ctx->set(1)));
             } else {
                 std::string result;
@@ -815,7 +915,7 @@ struct EvaluationVisitor : public ExtendedDiracParserBaseVisitor {
                 return result;
             }
         } else if (mode == COLLECT_KETS_AND_COMPUTE_UNIT_DECOMPOSITION_INDICES) {
-            if (ctx->op != nullptr) { // RULE: set op=UNION set
+            if (ctx->UNION() != nullptr) { // RULE: set op=UNION set
                 auto vec0 = std::any_cast<strs2split_t>(visit(ctx->set(0)));
                 auto vec1 = std::any_cast<strs2split_t>(visit(ctx->set(1)));
                 vec0.insert(vec0.end(), vec1.begin(), vec1.end());
@@ -825,7 +925,7 @@ struct EvaluationVisitor : public ExtendedDiracParserBaseVisitor {
                 return std::any_cast<strs2split_t>(visit(ctx->diracs())); // Vstrs
             }
         } else if (mode == REWRITE_BY_UNIT_INDICES_AND_MAKE_ALL_VARS_DISTINCT) {
-            if (ctx->op != nullptr) { // RULE: set op=UNION set
+            if (ctx->UNION() != nullptr) { // RULE: set op=UNION set
                 auto str1 = std::any_cast<std::string>(visit(ctx->set(0)));
                 auto str2 = std::any_cast<std::string>(visit(ctx->set(1)));
                 return str1 + " ∪ " + str2;
@@ -840,7 +940,7 @@ struct EvaluationVisitor : public ExtendedDiracParserBaseVisitor {
             result += "}";
             return result;
         } else if (mode == COMPUTE_CONNECTED_UNITS_INTO_A_GROUP_RELATION) {
-            if (ctx->op != nullptr) {
+            if (ctx->UNION() != nullptr) {
                 auto graph1 = std::any_cast<graph_t>(visit(ctx->set(0)));
                 auto graph2 = std::any_cast<graph_t>(visit(ctx->set(1)));
                 for (const auto &edge : graph2) {
@@ -896,7 +996,7 @@ struct EvaluationVisitor : public ExtendedDiracParserBaseVisitor {
             }
             return graph;
         } else if (mode == REORDER_UNITS_BY_THE_GROUP) {
-            if (ctx->op != nullptr) { // RULE: set op=UNION set
+            if (ctx->UNION() != nullptr) { // RULE: set op=UNION set
                 auto str1 = std::any_cast<std::string>(visit(ctx->set(0)));
                 auto str2 = std::any_cast<std::string>(visit(ctx->set(1)));
                 return str1 + " ∪ " + str2;
@@ -908,7 +1008,7 @@ struct EvaluationVisitor : public ExtendedDiracParserBaseVisitor {
             }
         } else if (mode == EVALUATE_EACH_SET_BRACES_TO_LSTA) {
             auto do_the_work = [&]<typename SymbolV>() -> std::any {
-                if (ctx->op != nullptr) {
+                if (ctx->UNION() != nullptr) {
                     auto aut1 = std::any_cast<AUTOQ::Automata<SymbolV>>(visit(ctx->set(0)));
                     auto aut2 = std::any_cast<AUTOQ::Automata<SymbolV>>(visit(ctx->set(1)));
                     return aut1 || aut2;
@@ -920,7 +1020,7 @@ struct EvaluationVisitor : public ExtendedDiracParserBaseVisitor {
                 visitor.do_not_throw_term_undefined_error = do_not_throw_term_undefined_error;
                 auto group_decomposition = std::any_cast<std::string>(visitor.let_visitor_parse_string(ctx->getText())); // {diracs (: varcons)?}
                 visitor.mode = SHUFFLE_UNITS_IN_A_GROUP_WRT_QUBITS_AND_CONSTRUCT_LSTA_FINALLY;
-                auto aut = visitor.let_visitor_parse_string(group_decomposition); // {diracs (: varcons)?} ⊗ {diracs (: varcons)?} ⊗ ...
+                auto aut = std::any_cast<AUTOQ::Automata<SymbolV>>(visitor.let_visitor_parse_string(group_decomposition)); // {diracs (: varcons)?} ⊗ {diracs (: varcons)?} ⊗ ...
                 encountered_term_undefined_error = visitor.encountered_term_undefined_error;
                 return aut;
             };
@@ -930,7 +1030,7 @@ struct EvaluationVisitor : public ExtendedDiracParserBaseVisitor {
                 return do_the_work.template operator()<Symbol2>();
             }
         } else if (mode == SET_BRACES_IS_TENSOR_DECOMPOSED_INTO_GROUPS) { // we only decompose {diracs (: varcons)?}
-            if (ctx->op != nullptr) {
+            if (ctx->UNION() != nullptr) {
                 THROW_AUTOQ_ERROR("We only decompose {diracs (: varcons)?}");
             }
             auto result = std::any_cast<std::vector<std::tuple<std::string, std::vector<varconS_t>, std::vector<std::string>>>>(visit(ctx->diracs()));
@@ -981,7 +1081,7 @@ struct EvaluationVisitor : public ExtendedDiracParserBaseVisitor {
             }
             return output; // {diracs (: varcons)?} ⊗ {diracs (: varcons)?} ⊗ ...
         } else if (mode == SHUFFLE_UNITS_IN_A_GROUP_WRT_QUBITS_AND_CONSTRUCT_LSTA_FINALLY) { // { c1 |u1u2u3> + c2 ∑ vc2 |u1u2u3> + ... : vcG }
-            if (ctx->op != nullptr) {
+            if (ctx->UNION() != nullptr) {
                 THROW_AUTOQ_ERROR("There should be no UNION in SHUFFLE_UNITS_IN_A_GROUP_WRT_QUBITS_AND_CONSTRUCT_LSTA_FINALLY mode.");
             }
             AUTOQ::Automata<AUTOQ::Symbol::Constrained> autAll;
@@ -1154,11 +1254,11 @@ struct EvaluationVisitor : public ExtendedDiracParserBaseVisitor {
         if (mode == EXPAND_POWER_AND_DIRACS_AND_REWRITE_COMPLEMENT) {
             if (ctx->dirac() == nullptr) { // RULE: term
                 return std::any_cast<std::string>(visit(ctx->term()));
-            } else if (ctx->add != nullptr) { // RULE: dirac + term
+            } else if (ctx->ADD() != nullptr) { // RULE: dirac + term
                 auto str1 = std::any_cast<std::string>(visit(ctx->dirac()));
                 auto str2 = std::any_cast<std::string>(visit(ctx->term()));
                 return str1 + " + " + str2;
-            } else if (ctx->sub != nullptr) { // RULE: dirac - term
+            } else if (ctx->SUB() != nullptr) { // RULE: dirac - term
                 auto str1 = std::any_cast<std::string>(visit(ctx->dirac()));
                 auto str2 = std::any_cast<std::string>(visit(ctx->term()));
                 return str1 + " +- " + str2;
@@ -1170,7 +1270,7 @@ struct EvaluationVisitor : public ExtendedDiracParserBaseVisitor {
                 strs2split_t Vstrs;
                 Vstrs.push_back(std::any_cast<strsplit_t>(visit(ctx->term())));
                 return Vstrs;
-            } else if (ctx->sub != nullptr) { // RULE: dirac - term
+            } else if (ctx->SUB() != nullptr) { // RULE: dirac - term
                 THROW_AUTOQ_ERROR("All subtractions should be replaced with additions followed by negations.");
             } else { // RULE: dirac + term
                 auto Vstrs = std::any_cast<strs2split_t>(visit(ctx->dirac()));
@@ -1180,7 +1280,7 @@ struct EvaluationVisitor : public ExtendedDiracParserBaseVisitor {
         } else if (mode == REWRITE_BY_UNIT_INDICES_AND_MAKE_ALL_VARS_DISTINCT) {
             if (ctx->dirac() == nullptr) { // RULE: term
                 return std::any_cast<std::string>(visit(ctx->term()));
-            } else if (ctx->sub != nullptr) { // RULE: dirac - term
+            } else if (ctx->SUB() != nullptr) { // RULE: dirac - term
                 THROW_AUTOQ_ERROR("All subtractions should be replaced with additions followed by negations.");
             } else { // RULE: dirac + term
                 auto str1 = std::any_cast<std::string>(visit(ctx->dirac()));
@@ -1190,7 +1290,7 @@ struct EvaluationVisitor : public ExtendedDiracParserBaseVisitor {
         } else if (mode == COMPUTE_CONNECTED_UNITS_INTO_A_GROUP_RELATION) {
             if (ctx->dirac() == nullptr) { // RULE: term
                 return std::any_cast<relation_t>(visit(ctx->term()));
-            } else if (ctx->sub != nullptr) { // RULE: dirac - term
+            } else if (ctx->SUB() != nullptr) { // RULE: dirac - term
                 THROW_AUTOQ_ERROR("All subtractions should be replaced with additions followed by negations.");
             } else { // RULE: dirac + term
                 auto relation1 = std::any_cast<relation_t>(visit(ctx->dirac()));
@@ -1208,7 +1308,7 @@ struct EvaluationVisitor : public ExtendedDiracParserBaseVisitor {
         } else if (mode == REORDER_UNITS_BY_THE_GROUP) {
             if (ctx->dirac() == nullptr) { // RULE: term
                 return std::any_cast<std::string>(visit(ctx->term()));
-            } else if (ctx->sub != nullptr) { // RULE: dirac - term
+            } else if (ctx->SUB() != nullptr) { // RULE: dirac - term
                 THROW_AUTOQ_ERROR("All subtractions should be replaced with additions followed by negations.");
             } else { // RULE: dirac + term
                 auto str1 = std::any_cast<std::string>(visit(ctx->dirac()));
@@ -1220,7 +1320,7 @@ struct EvaluationVisitor : public ExtendedDiracParserBaseVisitor {
                 std::vector<std::tuple<std::string, std::vector<varconS_t>, std::vector<std::string>>> result;
                 result.push_back(std::any_cast<std::tuple<std::string, std::vector<varconS_t>, std::vector<std::string>>>(visit(ctx->term())));
                 return result;
-            } else if (ctx->sub != nullptr) { // RULE: dirac - term
+            } else if (ctx->SUB() != nullptr) { // RULE: dirac - term
                 THROW_AUTOQ_ERROR("All subtractions should be replaced with additions followed by negations.");
             } else { // RULE: dirac + term
                 auto result1 = std::any_cast<std::vector<std::tuple<std::string, std::vector<varconS_t>, std::vector<std::string>>>>(visit(ctx->dirac()));
@@ -1233,7 +1333,7 @@ struct EvaluationVisitor : public ExtendedDiracParserBaseVisitor {
                 std::vector<std::tuple<std::string, std::optional<std::tuple<int, std::set<char>, ineqS_t, eqs_t>>, std::string>> result;
                 result.push_back(std::any_cast<std::tuple<std::string, std::optional<std::tuple<int, std::set<char>, ineqS_t, eqs_t>>, std::string>>(visit(ctx->term())));
                 return result;
-            } else if (ctx->sub != nullptr) { // RULE: dirac - term
+            } else if (ctx->SUB() != nullptr) { // RULE: dirac - term
                 THROW_AUTOQ_ERROR("All subtractions should be replaced with additions followed by negations.");
             } else { // RULE: dirac + term
                 auto result1 = std::any_cast<std::vector<std::tuple<std::string, std::optional<std::tuple<int, std::set<char>, ineqS_t, eqs_t>>, std::string>>>(visit(ctx->dirac()));
@@ -1259,9 +1359,9 @@ struct EvaluationVisitor : public ExtendedDiracParserBaseVisitor {
                 }
             }
             if (ctx->varcons() == nullptr) { // C=STR BAR VStr=STR RIGHT_ANGLE_BRACKET
-                return std::any_cast<std::string>((ctx->complex() == nullptr ? (ctx->sub != nullptr ? "-1" : "") : ctx->complex()->getText()) + "|" + vstr2 + "⟩");
+                return std::any_cast<std::string>((ctx->complex() == nullptr ? (ctx->SUB() != nullptr ? "-1" : "") : ctx->complex()->getText()) + "|" + vstr2 + "⟩");
             } else { // C=STR SUM varcons BAR VStr=STR RIGHT_ANGLE_BRACKET
-                return std::any_cast<std::string>((ctx->complex() == nullptr ? (ctx->sub != nullptr ? "-1" : "") : ctx->complex()->getText()) + "|" + vstr2 + "⟩");
+                return std::any_cast<std::string>((ctx->complex() == nullptr ? (ctx->SUB() != nullptr ? "-1" : "") : ctx->complex()->getText()) + "∑" + ctx->varcons()->getText() + "|" + vstr2 + "⟩");
             }
         } else if (mode == COLLECT_KETS_AND_COMPUTE_UNIT_DECOMPOSITION_INDICES) {
             strsplit_t intervals;
@@ -1414,7 +1514,7 @@ struct EvaluationVisitor : public ExtendedDiracParserBaseVisitor {
                     vc += ", " + std::string{v} + "=" + c;
                 }
             }
-            return (ctx->complex() == nullptr ? (ctx->sub != nullptr ? "-1" : "") : ctx->complex()->getText()) + ((!vc.empty()) ? ("∑" + vc) : "") + "|" + ket + "⟩";
+            return (ctx->complex() == nullptr ? (ctx->SUB() != nullptr ? "-1" : "") : ctx->complex()->getText()) + ((!vc.empty()) ? ("∑" + vc) : "") + "|" + ket + "⟩";
         } else if (mode == COMPUTE_CONNECTED_UNITS_INTO_A_GROUP_RELATION) {
             unit2vars_t first;
             auto str = ctx->VStr->getText();
@@ -1448,9 +1548,9 @@ struct EvaluationVisitor : public ExtendedDiracParserBaseVisitor {
                 }
             }
             if (ctx->varcons() == nullptr) { // C=STR BAR VStr=STR RIGHT_ANGLE_BRACKET
-                return std::any_cast<std::string>((ctx->complex() == nullptr ? (ctx->sub != nullptr ? "-1" : "") : ctx->complex()->getText()) + "|" + vstr2 + "⟩");
+                return std::any_cast<std::string>((ctx->complex() == nullptr ? (ctx->SUB() != nullptr ? "-1" : "") : ctx->complex()->getText()) + "|" + vstr2 + "⟩");
             } else { // C=STR SUM varcons BAR VStr=STR RIGHT_ANGLE_BRACKET
-                return std::any_cast<std::string>((ctx->complex() == nullptr ? (ctx->sub != nullptr ? "-1" : "") : ctx->complex()->getText()) + "∑" + ctx->varcons()->getText() + "|" + vstr2 + "⟩");
+                return std::any_cast<std::string>((ctx->complex() == nullptr ? (ctx->SUB() != nullptr ? "-1" : "") : ctx->complex()->getText()) + "∑" + ctx->varcons()->getText() + "|" + vstr2 + "⟩");
             }
         } else if (mode == SET_BRACES_IS_TENSOR_DECOMPOSED_INTO_GROUPS) {
             auto vecVarconS2 = ctx->varcons() == nullptr ? varconS_t() : std::any_cast<varconS_t>(visit(ctx->varcons()));
@@ -1648,4 +1748,121 @@ struct EvaluationVisitor : public ExtendedDiracParserBaseVisitor {
             THROW_AUTOQ_ERROR("Unsupported mode!");
         }
     }
+
+    /* The below are the complex number parsing part, independent of the main grammar! */
+    Complex fastPower(Complex base, int exponent) {
+        assert(exponent >= 0);
+        if (exponent == 0) return 1;
+        if (exponent % 2 == 0) {
+            Complex temp = fastPower(base, exponent / 2);
+            return temp * temp;
+        } else {
+            Complex temp = fastPower(base, (exponent - 1) / 2);
+            return base * temp * temp;
+        }
+    }
+    AUTOQ::Complex::SymbolicComplex fastPower(AUTOQ::Complex::SymbolicComplex base, int exponent) {
+        assert(exponent >= 0);
+        if (exponent == 0) {
+            return AUTOQ::Complex::SymbolicComplex::MySymbolicComplexConstructor(1);
+        }
+        if (exponent % 2 == 0) {
+            AUTOQ::Complex::SymbolicComplex temp = fastPower(base, exponent / 2);
+            return temp * temp;
+        } else {
+            AUTOQ::Complex::SymbolicComplex temp = fastPower(base, (exponent - 1) / 2);
+            return base * temp * temp;
+        }
+    }
+    std::any visitComplex(ExtendedDiracParser::ComplexContext *ctx) override {
+        if (ctx->n != nullptr) {
+            if (mode == CONCRETE_COMPLEX) return fastPower(std::any_cast<Complex>(visit(ctx->complex(0))), std::stoi(ctx->n->getText()));
+            if (mode == SYMBOLIC_COMPLEX) return fastPower(std::any_cast<AUTOQ::Complex::SymbolicComplex>(visit(ctx->complex(0))), std::stoi(ctx->n->getText()));
+            THROW_AUTOQ_ERROR("Unsupported mode!");
+        } else if (ctx->sub != nullptr) {
+            if (mode == CONCRETE_COMPLEX) return std::any_cast<Complex>(visit(ctx->complex(0))) * -1;
+            if (mode == SYMBOLIC_COMPLEX) return std::any_cast<AUTOQ::Complex::SymbolicComplex>(visit(ctx->complex(0))) * -1;
+            THROW_AUTOQ_ERROR("Unsupported mode!");
+        } else if (ctx->op != nullptr) {
+            if (ctx->op->getType() == ExtendedDiracParser::MUL) {
+                if (mode == CONCRETE_COMPLEX) return std::any_cast<Complex>(visit(ctx->complex(0))) * std::any_cast<Complex>(visit(ctx->complex(1)));
+                if (mode == SYMBOLIC_COMPLEX) return std::any_cast<AUTOQ::Complex::SymbolicComplex>(visit(ctx->complex(0))) * std::any_cast<AUTOQ::Complex::SymbolicComplex>(visit(ctx->complex(1)));
+                THROW_AUTOQ_ERROR("Unsupported mode!");
+            } else if (ctx->op->getType() == ExtendedDiracParser::DIV) {
+                if (mode == CONCRETE_COMPLEX) return std::any_cast<Complex>(visit(ctx->complex(0))) / std::any_cast<Complex>(visit(ctx->complex(1)));
+                // if (mode == SYMBOLIC_COMPLEX) return std::any_cast<AUTOQ::Complex::SymbolicComplex>(visit(ctx->complex(0))) / std::any_cast<AUTOQ::Complex::SymbolicComplex>(visit(ctx->complex(1)));
+                THROW_AUTOQ_ERROR("Unsupported mode!");
+            } else if (ctx->op->getType() == ExtendedDiracParser::ADD) {
+                if (mode == CONCRETE_COMPLEX) return std::any_cast<Complex>(visit(ctx->complex(0))) + std::any_cast<Complex>(visit(ctx->complex(1)));
+                if (mode == SYMBOLIC_COMPLEX) return std::any_cast<AUTOQ::Complex::SymbolicComplex>(visit(ctx->complex(0))) + std::any_cast<AUTOQ::Complex::SymbolicComplex>(visit(ctx->complex(1)));
+                THROW_AUTOQ_ERROR("Unsupported mode!");
+            } else if (ctx->op->getType() == ExtendedDiracParser::SUB) {
+                if (mode == CONCRETE_COMPLEX) return std::any_cast<Complex>(visit(ctx->complex(0))) - std::any_cast<Complex>(visit(ctx->complex(1)));
+                if (mode == SYMBOLIC_COMPLEX) return std::any_cast<AUTOQ::Complex::SymbolicComplex>(visit(ctx->complex(0))) - std::any_cast<AUTOQ::Complex::SymbolicComplex>(visit(ctx->complex(1)));
+                THROW_AUTOQ_ERROR("Unsupported mode!");
+            } else {
+                THROW_AUTOQ_ERROR("Unsupported operator!");
+            }
+        } else if (ctx->eixpi != nullptr) {
+            if (ctx->eixpi->getText() == "ei2pi") {
+                if (mode == CONCRETE_COMPLEX) return Complex::Angle(std::any_cast<boost::rational<boost::multiprecision::cpp_int>>(visit(ctx->angle())));
+                if (mode == SYMBOLIC_COMPLEX) return AUTOQ::Complex::SymbolicComplex::MySymbolicComplexConstructor(Complex::Angle(std::any_cast<boost::rational<boost::multiprecision::cpp_int>>(visit(ctx->angle()))));
+                THROW_AUTOQ_ERROR("Unsupported mode!");
+            } else if (ctx->eixpi->getText() == "eipi") {
+                if (mode == CONCRETE_COMPLEX) return Complex::Angle(std::any_cast<boost::rational<boost::multiprecision::cpp_int>>(visit(ctx->angle())) / 2);
+                if (mode == SYMBOLIC_COMPLEX) return AUTOQ::Complex::SymbolicComplex::MySymbolicComplexConstructor(Complex::Angle(std::any_cast<boost::rational<boost::multiprecision::cpp_int>>(visit(ctx->angle())) / 2));
+                THROW_AUTOQ_ERROR("Unsupported mode!");
+            } else {
+                THROW_AUTOQ_ERROR("Unsupported function!");
+            }
+        } else if (ctx->complex().size() == 1) {
+            return visit(ctx->complex(0));
+        } else if (ctx->var != nullptr) {
+            const auto &text = ctx->var->getText();
+            if (std::all_of(text.begin(), text.end(), [](char c) { return '0' <= c && c <= '9'; })) {
+                if (mode == CONCRETE_COMPLEX) return Complex(std::stoi(text));
+                if (mode == SYMBOLIC_COMPLEX) return AUTOQ::Complex::SymbolicComplex::MySymbolicComplexConstructor(Complex(std::stoi(text)));
+                THROW_AUTOQ_ERROR("Unsupported mode!");
+            } else {
+                auto it = constants.find(text);
+                if (it != constants.end()) {
+                    if (mode == CONCRETE_COMPLEX) return it->second;
+                    if (mode == SYMBOLIC_COMPLEX) return AUTOQ::Complex::SymbolicComplex::MySymbolicComplexConstructor(it->second);
+                    THROW_AUTOQ_ERROR("Unsupported mode!");
+                } else if (text == "i") {
+                    if (mode == CONCRETE_COMPLEX) return Complex::Angle(boost::rational<boost::multiprecision::cpp_int>(1, 4));
+                    if (mode == SYMBOLIC_COMPLEX) return AUTOQ::Complex::SymbolicComplex::MySymbolicComplexConstructor(Complex::Angle(boost::rational<boost::multiprecision::cpp_int>(1, 4)));
+                    THROW_AUTOQ_ERROR("Unsupported mode!");
+                } else if (text == "sqrt2") {
+                    if (mode == CONCRETE_COMPLEX) return Complex::sqrt2();
+                    if (mode == SYMBOLIC_COMPLEX) return AUTOQ::Complex::SymbolicComplex::MySymbolicComplexConstructor(Complex::sqrt2());
+                    THROW_AUTOQ_ERROR("Unsupported mode!");
+                } else {
+                    if (mode == CONCRETE_COMPLEX) {
+                        resultV = text;
+                        encountered_term_undefined_error = true;
+                        return Complex(0); // fake value only for continuing to execute
+                    }
+                    if (mode == SYMBOLIC_COMPLEX) {
+                        return AUTOQ::Complex::SymbolicComplex::MySymbolicComplexConstructor(text, used_vars);
+                    }
+                    THROW_AUTOQ_ERROR("Unsupported mode!");
+                }
+            }
+        } else {
+            THROW_AUTOQ_ERROR("Unsupported complex grammar!");
+        }
+    }
+
+    std::any visitAngle(ExtendedDiracParser::AngleContext *ctx) override {
+        if (ctx->n != nullptr) {
+            return 0; // ei2pi(2*pi*n) = ei2pi(0)
+        } else if (ctx->SUB() == nullptr) {
+            return boost::rational<boost::multiprecision::cpp_int>(std::stoi(ctx->x->getText()), std::stoi(ctx->y->getText()));
+        } else {
+            return boost::rational<boost::multiprecision::cpp_int>(-std::stoi(ctx->x->getText()), std::stoi(ctx->y->getText()));
+        }
+    }
 };
+
+#endif

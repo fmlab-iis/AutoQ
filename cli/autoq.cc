@@ -8,7 +8,7 @@
 #include <autoq/inclusion.hh>
 #include <autoq/util/util.hh>
 #include <autoq/util/string.hh>
-#include <autoq/complex/ntuple.hh>
+#include <autoq/parsing/ExtendedDirac/EvaluationVisitor.h>
 #include <autoq/complex/complex.hh>
 #include <sys/wait.h>
 #include <unistd.h>
@@ -89,7 +89,7 @@ void adjust_N_in_nTuple(const std::string &filename) {
             } else if (angle != "0") {
                 THROW_AUTOQ_ERROR("The angle in rx gate is not a multiple of pi!");
             }
-            auto theta = ComplexParser(angle).getComplex().to_rational() / 2;
+            auto theta = EvaluationVisitor<>::ComplexParser(angle).getComplex().to_rational() / 2;
             if (AUTOQ::Complex::nTuple::N < static_cast<decltype(AUTOQ::Complex::nTuple::N)>(theta.denominator())) {
                 AUTOQ::Complex::nTuple::N = static_cast<decltype(AUTOQ::Complex::nTuple::N)>(theta.denominator());
             }
@@ -101,7 +101,7 @@ void adjust_N_in_nTuple(const std::string &filename) {
             } else if (angle != "0") {
                 THROW_AUTOQ_ERROR("The angle in rz gate is not a multiple of pi!");
             }
-            auto theta = ComplexParser(angle).getComplex().to_rational() / 2;
+            auto theta = EvaluationVisitor<>::ComplexParser(angle).getComplex().to_rational() / 2;
             if (AUTOQ::Complex::nTuple::N < static_cast<decltype(AUTOQ::Complex::nTuple::N)>(theta.denominator())) {
                 AUTOQ::Complex::nTuple::N = static_cast<decltype(AUTOQ::Complex::nTuple::N)>(theta.denominator());
             }

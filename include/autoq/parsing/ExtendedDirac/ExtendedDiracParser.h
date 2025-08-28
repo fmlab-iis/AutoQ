@@ -74,7 +74,6 @@ public:
 
   class  ExprContext : public antlr4::ParserRuleContext {
   public:
-    antlr4::Token *op = nullptr;
     ExprContext(antlr4::ParserRuleContext *parent, size_t invokingState);
     virtual size_t getRuleIndex() const override;
     std::vector<TsetContext *> tset();
@@ -92,7 +91,6 @@ public:
 
   class  TsetContext : public antlr4::ParserRuleContext {
   public:
-    antlr4::Token *op = nullptr;
     antlr4::Token *N = nullptr;
     TsetContext(antlr4::ParserRuleContext *parent, size_t invokingState);
     virtual size_t getRuleIndex() const override;
@@ -115,7 +113,6 @@ public:
   TsetContext* tset(int precedence);
   class  ScsetContext : public antlr4::ParserRuleContext {
   public:
-    antlr4::Token *op = nullptr;
     ScsetContext(antlr4::ParserRuleContext *parent, size_t invokingState);
     virtual size_t getRuleIndex() const override;
     SetContext *set();
@@ -133,7 +130,6 @@ public:
   ScsetContext* scset(int precedence);
   class  SetContext : public antlr4::ParserRuleContext {
   public:
-    antlr4::Token *op = nullptr;
     SetContext(antlr4::ParserRuleContext *parent, size_t invokingState);
     virtual size_t getRuleIndex() const override;
     antlr4::tree::TerminalNode *LEFT_BRACE();
@@ -173,8 +169,6 @@ public:
   DiracsContext* diracs(int precedence);
   class  DiracContext : public antlr4::ParserRuleContext {
   public:
-    antlr4::Token *add = nullptr;
-    antlr4::Token *sub = nullptr;
     DiracContext(antlr4::ParserRuleContext *parent, size_t invokingState);
     virtual size_t getRuleIndex() const override;
     TermContext *term();
@@ -194,7 +188,6 @@ public:
   class  TermContext : public antlr4::ParserRuleContext {
   public:
     antlr4::Token *VStr = nullptr;
-    antlr4::Token *sub = nullptr;
     TermContext(antlr4::ParserRuleContext *parent, size_t invokingState);
     virtual size_t getRuleIndex() const override;
     antlr4::tree::TerminalNode *BAR();
@@ -216,17 +209,18 @@ public:
 
   class  ComplexContext : public antlr4::ParserRuleContext {
   public:
+    antlr4::Token *sub = nullptr;
     antlr4::Token *eixpi = nullptr;
     antlr4::Token *var = nullptr;
     antlr4::Token *op = nullptr;
     antlr4::Token *n = nullptr;
     ComplexContext(antlr4::ParserRuleContext *parent, size_t invokingState);
     virtual size_t getRuleIndex() const override;
-    antlr4::tree::TerminalNode *LEFT_PARENTHESIS();
     std::vector<ComplexContext *> complex();
     ComplexContext* complex(size_t i);
-    antlr4::tree::TerminalNode *RIGHT_PARENTHESIS();
     antlr4::tree::TerminalNode *SUB();
+    antlr4::tree::TerminalNode *LEFT_PARENTHESIS();
+    antlr4::tree::TerminalNode *RIGHT_PARENTHESIS();
     AngleContext *angle();
     antlr4::tree::TerminalNode *STR();
     antlr4::tree::TerminalNode *MUL();

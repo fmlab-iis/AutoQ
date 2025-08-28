@@ -4,6 +4,7 @@
 #include "autoq/symbol/symbolic.hh"
 #include "autoq/parsing/timbuk_parser.hh"
 #include "autoq/parsing/complex_parser.hh"
+#include "autoq/parsing/ExtendedDirac/EvaluationVisitor.h"
 #include <regex>
 #include <fstream>
 #include <filesystem>
@@ -99,7 +100,7 @@ bool AUTOQ::Automata<Symbol>::execute(const char *filename, std::vector<int> qub
             }
             std::string qubit = match_rx[2];
             // AUTOQ_DEBUG("rx(" << angle << ") @ " << qubit);
-            Rx(ComplexParser(angle).getComplex().to_rational(), 1 + qubit_permutation[atoi(qubit.c_str())]);
+            Rx(EvaluationVisitor<>::ComplexParser(angle).getComplex().to_rational(), 1 + qubit_permutation[atoi(qubit.c_str())]);
         } else if (match_rz.size() == 3) {
             std::string angle = match_rz[1];
             size_t pos = angle.find("pi");
@@ -110,7 +111,7 @@ bool AUTOQ::Automata<Symbol>::execute(const char *filename, std::vector<int> qub
             }
             std::string qubit = match_rz[2];
             // AUTOQ_DEBUG("rz(" << angle << ") @ " << qubit);
-            Rz(ComplexParser(angle).getComplex().to_rational(), 1 + qubit_permutation[atoi(qubit.c_str())]);
+            Rz(EvaluationVisitor<>::ComplexParser(angle).getComplex().to_rational(), 1 + qubit_permutation[atoi(qubit.c_str())]);
         } else if (line.find("ry(pi/2) ") == 0 || line.find("ry(pi / 2)") == 0) {
             std::regex_iterator<std::string::iterator> it(line.begin(), line.end(), digit);
             std::vector<int> pos;

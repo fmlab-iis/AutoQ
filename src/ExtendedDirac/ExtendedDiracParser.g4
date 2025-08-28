@@ -34,21 +34,21 @@ options { tokenVocab=ExtendedDiracLexer; }
 //     ;
 
 expr: tset
-    | tset op=SETMINUS tset;
+    | tset SETMINUS tset;
 
 tset: scset
-    | set op=POWER N=STR { isNonZero($N.text) }?
-    | tset op=PROD tset
+    | set POWER N=STR { isNonZero($N.text) }?
+    | tset PROD tset
     // | set op=SEMICOLON set // used for connecting different *.hsl to compute the unit decomposition together
     // | set op=SEMICOLON set SEMICOLON set // used for connecting different *.hsl to compute the unit decomposition together
     // | set op=SEMICOLON set SEMICOLON set SEMICOLON set // used for connecting different *.hsl to compute the unit decomposition together
     ;
 
-scset: scset op=SEMICOLON set
+scset: scset SEMICOLON set
     | set
     ;
 
-set: set op=UNION set
+set: set UNION set
     | LEFT_BRACE diracs RIGHT_BRACE
     | LEFT_BRACE diracs COLON varcons RIGHT_BRACE
     ;
@@ -58,14 +58,13 @@ diracs: dirac
     ;
 
 dirac: term
-    | dirac add=ADD term
-    | dirac sub=SUB term
+    | dirac (ADD|SUB) term
     ;
 
 term: complex? BAR VStr=STR RIGHT_ANGLE_BRACKET
     | complex? SUM varcons BAR VStr=STR RIGHT_ANGLE_BRACKET
-    | (sub=SUB) BAR VStr=STR RIGHT_ANGLE_BRACKET
-    | (sub=SUB) SUM varcons BAR VStr=STR RIGHT_ANGLE_BRACKET
+    | SUB BAR VStr=STR RIGHT_ANGLE_BRACKET
+    | SUB SUM varcons BAR VStr=STR RIGHT_ANGLE_BRACKET
     ;
 // (complex | complex op=MUL | SUB)? KET {
 //         std::string text = $KET.text;           // Get the full text of the KET token
@@ -73,10 +72,10 @@ term: complex? BAR VStr=STR RIGHT_ANGLE_BRACKET
 //     };
 
 complex: complex POWER n=STR { isNonZero($n.text) }?
+    | sub=SUB complex
     | complex op=(MUL|DIV) complex
     | complex op=(ADD|SUB) complex
     | LEFT_PARENTHESIS complex RIGHT_PARENTHESIS
-    | SUB complex
     | eixpi=STR LEFT_PARENTHESIS angle RIGHT_PARENTHESIS { $eixpi.text == "eipi" || $eixpi.text == "ei2pi" }?
     // | ei2pi=STR LEFT_PARENTHESIS angle RIGHT_PARENTHESIS { $ei2pi.text == "ei2pi" }?
     // | digits=STR { areAllDigits($digits.text) }?

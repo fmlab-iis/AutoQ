@@ -34,6 +34,7 @@ endforeach(param)
 #set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -pg")
 
 include_directories(../include)
+include_directories(../include/antlr4-runtime)
 
 # generate the file with version names
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/version.cc.in
