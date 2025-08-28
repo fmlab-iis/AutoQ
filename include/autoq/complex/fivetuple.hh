@@ -262,10 +262,10 @@ private:
         }
         FiveTuple symbol;
         for (int i=0; i<4; i++) {
-            if (add) symbol.at(i) = at(i) + o.at(i);
-            else symbol.at(i) = at(i) - o.at(i);
+            if (add) symbol.at(i) = This.at(i) + o.at(i);
+            else symbol.at(i) = This.at(i) - o.at(i);
         }
-        symbol.at(4) = std::max(at(4), o.at(4)); // remember to push k
+        symbol.at(4) = std::max(This.at(4), o.at(4)); // remember to push k
         return symbol;
     }
 public:
