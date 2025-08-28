@@ -1,6 +1,6 @@
-./03: The quantum program has [7] qubits and [50] gates. The verification process [OK] in [0.0s] with [39MB] memory usage.
-./10: The quantum program has [21] qubits and [169] gates. The verification process [OK] in [0.2s] with [40MB] memory usage.
-./20: The quantum program has [41] qubits and [339] gates. The verification process [OK] in [0.8s] with [40MB] memory usage.
-./30: The quantum program has [61] qubits and [509] gates. The verification process [OK] in [2.3s] with [40MB] memory usage.
-./40: The quantum program has [81] qubits and [679] gates. The verification process [OK] in [5.5s] with [41MB] memory usage.
-./50: The quantum program has [101] qubits and [849] gates. The verification process [OK] in [11s] with [41MB] memory usage.
+./03: The quantum program has [7] qubits and [50] gates. The verification process [OK] in [0.2s] with [45MB] memory usage.
+./10: The quantum program has [21] qubits and [169] gates. The verification process [OK] in [0.4s] with [45MB] memory usage.
+./20: The quantum program has [41] qubits and [339] gates. The verification process [OK] in [1.6s] with [40MB] memory usage.
+./30: The quantum program has [61] qubits and [509] gates. The verification process [OK] in [3.2s] with [42MB] memory usage.
+./40: The quantum program has [81] qubits and [679] gates. The verification process [OK] in [7.3s] with [43MB] memory usage.
+./50: The quantum program has [101] qubits and [849] gates. The verification process [OK] in [12s] with [46MB] memory usage.

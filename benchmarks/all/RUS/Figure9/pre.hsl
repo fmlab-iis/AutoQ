@@ -1,5 +1,4 @@
-Constants
-c1 := 1
 Extended Dirac
-{c1 |00>,
- c1 |01>}
+{|00>,
+ |01>,
+ 1/sqrt2 |00> + 1/sqrt2 |01>}
