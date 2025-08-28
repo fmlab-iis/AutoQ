@@ -1492,7 +1492,7 @@ BOOST_AUTO_TEST_CASE(benchmarks_RUS)
     for (const auto &entry : fs::directory_iterator(benchmarks)) {
         if (!entry.is_directory()) continue;
         auto folder = entry.path().string();
-        auto [autVec, qp] = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Concrete>::ReadTwoAutomata(folder+"/pre.hsl", folder+"/post.hsl", folder + "/circuit.qasm");
+        auto [autVec, qp] = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Concrete>::ReadTwoAutomata(folder+"/pre.hsl", folder+"/post" + ((folder.ends_with("10a") || folder.ends_with("10c")) ? "_corrected" : "") + ".hsl", folder + "/circuit.qasm");
         auto aut2 = autVec.at(0);
         auto spec2 = autVec.at(1);
         autVec.erase(autVec.begin(), autVec.begin() + 2); // remove the first two elements
