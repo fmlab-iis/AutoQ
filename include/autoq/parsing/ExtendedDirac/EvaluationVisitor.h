@@ -1021,7 +1021,7 @@ private:
                 auto group_decomposition = std::any_cast<std::string>(visitor.let_visitor_parse_string(ctx->getText())); // {diracs (: varcons)?}
                 visitor.mode = SHUFFLE_UNITS_IN_A_GROUP_WRT_QUBITS_AND_CONSTRUCT_LSTA_FINALLY;
                 auto aut = std::any_cast<AUTOQ::Automata<SymbolV>>(visitor.let_visitor_parse_string(group_decomposition)); // {diracs (: varcons)?} ⊗ {diracs (: varcons)?} ⊗ ...
-                encountered_term_undefined_error = visitor.encountered_term_undefined_error;
+                encountered_term_undefined_error |= visitor.encountered_term_undefined_error;
                 return aut;
             };
             if (!switch_symbol_to_second) {
