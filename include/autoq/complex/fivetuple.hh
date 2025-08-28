@@ -7,6 +7,7 @@
 #include "autoq/util/convert.hh"
 #include <boost/integer/common_factor.hpp>
 #include <boost/multiprecision/cpp_int.hpp>
+#include "z3/z3++.h"
 
 namespace AUTOQ
 {
@@ -164,31 +165,29 @@ struct AUTOQ::Complex::FiveTuple : stdvectorboostmultiprecisioncpp_int {
         return boost::rational<boost::multiprecision::cpp_int>(at(0), boost::multiprecision::pow(boost::multiprecision::cpp_int(2), static_cast<int>(at(4)/2)));
     }
     std::string realToSMT() const {
-        std::string denominator = std::to_string(std::pow(std::sqrt(2.0), static_cast<int>(at(4))));
-        if (denominator == "inf") return "0";
-        std::string result = "(/ (+ ";
-        result += at(0).str();
-        result += " (* " + std::to_string(std::sqrt(2.0) / 2.0) + " " + at(1).str() + ")";
-        result += " (* (- " + std::to_string(std::sqrt(2.0) / 2.0) + ") " + at(3).str() + ")";
+        z3::context ctx;
+        return realToSMT(ctx).to_string();
+    }
+    z3::expr realToSMT(z3::context &ctx) const {
         boost::multiprecision::cpp_int num = boost::multiprecision::pow(boost::multiprecision::cpp_int(2), static_cast<int>(at(4)/2));
-        if (at(4) % 2 == 0)
-            result += ") " + num.str() + ")";
-        else
-            result += ") (* " + std::to_string(std::sqrt(2.0)) + " " + num.str() + ") )";
+        auto sqrt2 = ctx.real_const("sqrt2");
+        auto result0 = (at(4) % 2 == 0) ?
+                       (ctx.real_val(at(0).str().c_str()) * 2 + (ctx.real_val(at(1).str().c_str()) - ctx.real_val(at(3).str().c_str())) * sqrt2) / (ctx.real_val(num.str().c_str()) * 2) :
+                       (ctx.real_val(at(0).str().c_str()) * sqrt2 + (ctx.real_val(at(1).str().c_str()) - ctx.real_val(at(3).str().c_str()))) / (ctx.real_val(num.str().c_str()) * 2);
+        auto result = result0.simplify();
         return result;
     }
     std::string imagToSMT() const {
-        std::string denominator = std::to_string(std::pow(std::sqrt(2.0), static_cast<int>(at(4))));
-        if (denominator == "inf") return "0";
-        std::string result = "(/ (+";
-        result += " (* " + std::to_string(std::sqrt(2.0) / 2.0) + " " + at(1).str() + ") ";
-        result += at(2).str();
-        result += " (* " + std::to_string(std::sqrt(2.0) / 2.0) + " " + at(3).str() + ")";
+        z3::context ctx;
+        return imagToSMT(ctx).to_string();
+    }
+    z3::expr imagToSMT(z3::context &ctx) const {
         boost::multiprecision::cpp_int num = boost::multiprecision::pow(boost::multiprecision::cpp_int(2), static_cast<int>(at(4)/2));
-        if (at(4) % 2 == 0)
-            result += ") " + num.str() + ")";
-        else
-            result += ") (* " + std::to_string(std::sqrt(2.0)) + " " + num.str() + ") )";
+        auto sqrt2 = ctx.real_const("sqrt2");
+        auto result0 = (at(4) % 2 == 0) ?
+                       (ctx.real_val(at(2).str().c_str()) * 2 + (ctx.real_val(at(1).str().c_str()) + ctx.real_val(at(3).str().c_str())) * sqrt2) / (ctx.real_val(num.str().c_str()) * 2) :
+                       (ctx.real_val(at(2).str().c_str()) * sqrt2 + (ctx.real_val(at(1).str().c_str()) + ctx.real_val(at(3).str().c_str()))) / (ctx.real_val(num.str().c_str()) * 2);
+        auto result = result0.simplify();
         return result;
     }
     double abs2() const {

@@ -213,7 +213,7 @@ struct AUTOQ::Complex::nTuple : AUTOQ::Util::mapped_vector<boost::multiprecision
         return result;
     }
     std::string imagToSMT() const {
-        std::string result = "(/ (+";
+        std::string result = "(/ (+ ";
         if (empty()) {
             result += " 0";
         } else {
