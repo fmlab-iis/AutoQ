@@ -23,21 +23,19 @@ struct AUTOQ::Complex::Term : std::map<std::string, boost::multiprecision::cpp_i
         }
         return o;
     }
-    std::string expand() const { // can only be used in (* ...)
-        if (empty()) return "1";
-        std::string result = size() >= 2 ? "(+" : "";
-        bool isFirst = true;
+    std::string expand() const {
+        z3::context ctx;
+        return expand(ctx).to_string();
+    }
+    z3::expr expand(z3::context &ctx) const { // can only be used in (* ...)
+        if (empty()) return ctx.real_val("1");
+        z3::expr_vector ev(ctx);
         for (const auto &kv : *this) {
             const auto &s = kv.first;
             auto v = kv.second;
-            assert(v != 0);
-            if (v == 1)
-                result += std::string((!isFirst) ? " " : "") + s;
-            else
-                result += std::string((!isFirst) ? " " : "") + "(* " + s + " " + v.str() + ")";
-            isFirst = false;
+            ev.push_back(ctx.real_const(s.c_str()) * ctx.real_val(v.str().c_str()));
         }
-        result += size() >= 2 ? ")" : "";
+        z3::expr result = z3::sum(ev).simplify();
         return result;
     }
     friend std::ostream& operator<<(std::ostream& os, const Term& obj) {
@@ -137,19 +135,18 @@ struct AUTOQ::Complex::SymbolicComplex : std::map<Term, Complex> {
         return os;
     }
     std::string realToSMT() const {
-        if (empty()) return "0";
-        bool isFirst = true;
-        std::string result = size() >= 2 ? "(+" : "";
+        z3::context ctx;
+        return realToSMT(ctx).to_string();
+    }
+    z3::expr realToSMT(z3::context &ctx) const {
+        if (empty()) return ctx.real_val("0");
+        z3::expr_vector ev(ctx);
         for (const auto &kv : *this) {
             auto k = kv.first;
             auto v = kv.second;
-            if (v.realToSMT() == "1")
-                result += std::string((!isFirst) ? " " : "") + k.expand();
-            else
-                result += std::string((!isFirst) ? " " : "") + "(* " + k.expand() + " " + v.realToSMT() + ")";
-            isFirst = false;
+            ev.push_back(k.expand(ctx) *  v.realToSMT(ctx));
         }
-        result += size() >= 2 ? ")" : "";
+        auto result = z3::sum(ev).simplify();
         return result;
     }
     SymbolicComplex real() const {
@@ -163,19 +160,18 @@ struct AUTOQ::Complex::SymbolicComplex : std::map<Term, Complex> {
         return result;
     }
     std::string imagToSMT() const {
-        if (empty()) return "0";
-        bool isFirst = true;
-        std::string result = size() >= 2 ? "(+" : "";
+        z3::context ctx;
+        return imagToSMT(ctx).to_string();
+    }
+    z3::expr imagToSMT(z3::context &ctx) const {
+        if (empty()) return ctx.real_val("0");
+        z3::expr_vector ev(ctx);
         for (const auto &kv : *this) {
             auto k = kv.first;
             auto v = kv.second;
-            if (v.imagToSMT() == "1")
-                result += std::string((!isFirst) ? " " : "") + k.expand();
-            else
-                result += std::string((!isFirst) ? " " : "") + "(* " + k.expand() + " " + v.imagToSMT() + ")";
-            isFirst = false;
+            ev.push_back(k.expand(ctx) *  v.imagToSMT(ctx));
         }
-        result += size() >= 2 ? ")" : "";
+        auto result = z3::sum(ev).simplify();
         return result;
     }
     SymbolicComplex imag() const {
