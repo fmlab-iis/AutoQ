@@ -195,12 +195,27 @@ try {
         if constexpr (std::is_same_v<std::decay_t<decltype(aut1)>, AUTOQ::PredicateAutomata>) {
             THROW_AUTOQ_ERROR("Predicate amplitudes cannot be used in a precondition.");
         }
-        std::visit([&circuit](auto& aut){
-            if constexpr (!std::is_same_v<std::decay_t<decltype(aut)>, AUTOQ::PredicateAutomata>) {
-                aut.execute(circuit);
-                aut.print_aut();
+        if (std::holds_alternative<AUTOQ::SymbolicAutomata>(aut1) || AUTOQ::SymbolicAutomata::check_the_invariants_types(circuit) == "Symbolic") {
+            auto [autVec, qp] = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Symbolic>::ReadTwoAutomata(pre, pre, circuit);
+            auto aut = autVec.at(0);
+            autVec.erase(autVec.begin(), autVec.begin() + 2); // remove the first element
+            bool verify = aut.execute(circuit, qp, autVec);
+            if (!autVec.empty()) {
+                if (verify) std::cout << "[OK] The circuit execution satisfies the loop invariant." << std::endl;
+                else std::cout << "[ERROR] The circuit execution violates the loop invariant." << std::endl;
             }
-        }, aut1);
+            aut.print_language("OUTPUT:\n");
+        } else {
+            auto [autVec, qp] = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Concrete>::ReadTwoAutomata(pre, pre, circuit);
+            auto aut = autVec.at(0);
+            autVec.erase(autVec.begin(), autVec.begin() + 2); // remove the first element
+            bool verify = aut.execute(circuit, qp, autVec);
+            if (!autVec.empty()) {
+                if (verify) std::cout << "[OK] The circuit execution satisfies the loop invariant." << std::endl;
+                else std::cout << "[ERROR] The circuit execution violates the loop invariant." << std::endl;
+            }
+            aut.print_language("OUTPUT:\n");
+        }
     } else if (verification->parsed()) {
         // runConcrete = false;
         auto spec1 = ReadAutomaton(post);
