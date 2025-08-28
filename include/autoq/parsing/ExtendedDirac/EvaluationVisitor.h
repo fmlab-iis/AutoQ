@@ -1790,7 +1790,12 @@ private:
                 THROW_AUTOQ_ERROR("Unsupported mode!");
             } else if (ctx->op->getType() == ExtendedDiracParser::DIV) {
                 if (mode == CONCRETE_COMPLEX) return std::any_cast<Complex>(visit(ctx->complex(0))) / std::any_cast<Complex>(visit(ctx->complex(1)));
-                // if (mode == SYMBOLIC_COMPLEX) return std::any_cast<AUTOQ::Complex::SymbolicComplex>(visit(ctx->complex(0))) / std::any_cast<AUTOQ::Complex::SymbolicComplex>(visit(ctx->complex(1)));
+                if (mode == SYMBOLIC_COMPLEX) {
+                    auto b = std::any_cast<AUTOQ::Complex::SymbolicComplex>(visit(ctx->complex(1)));
+                    if (b.isConst()) {
+                        return std::any_cast<AUTOQ::Complex::SymbolicComplex>(visit(ctx->complex(0))) / b.to_complex();
+                    }
+                }
                 THROW_AUTOQ_ERROR("Unsupported mode!");
             } else if (ctx->op->getType() == ExtendedDiracParser::ADD) {
                 if (mode == CONCRETE_COMPLEX) return std::any_cast<Complex>(visit(ctx->complex(0))) + std::any_cast<Complex>(visit(ctx->complex(1)));

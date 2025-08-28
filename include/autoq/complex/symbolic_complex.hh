@@ -197,6 +197,11 @@ struct AUTOQ::Complex::SymbolicComplex : std::map<Term, Complex> {
         if (empty()) return 0;
         return begin()->second.to_rational();
     }
+    Complex to_complex() const {
+        assert(isConst());
+        if (empty()) return 0;
+        return begin()->second;
+    }
     boost::multiprecision::cpp_int max_k() const {
         boost::multiprecision::cpp_int k = INT_MIN;
         for (auto kv : *this) {
