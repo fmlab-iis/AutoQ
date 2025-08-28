@@ -165,7 +165,7 @@ find_package(Boost 1.54.0 CONFIG COMPONENTS
   unit_test_framework
   REQUIRED)
 include_directories(${Boost_INCLUDE_DIRS})
-
+include_directories(../include/z3)
 
 # Doxygen - voluntary
 find_package(Doxygen)

@@ -27,6 +27,7 @@ endforeach(param)
 #set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -pg")
 
 include_directories(../include)
+include_directories(../include/z3)
 
 # add_library(tests
 # 	log_fixture.cc
