@@ -49,6 +49,9 @@ public:
   virtual void enterVarcon(ExtendedDiracParser::VarconContext * /*ctx*/) override { }
   virtual void exitVarcon(ExtendedDiracParser::VarconContext * /*ctx*/) override { }
 
+  virtual void enterEq(ExtendedDiracParser::EqContext * /*ctx*/) override { }
+  virtual void exitEq(ExtendedDiracParser::EqContext * /*ctx*/) override { }
+
   virtual void enterIneq(ExtendedDiracParser::IneqContext * /*ctx*/) override { }
   virtual void exitIneq(ExtendedDiracParser::IneqContext * /*ctx*/) override { }
 

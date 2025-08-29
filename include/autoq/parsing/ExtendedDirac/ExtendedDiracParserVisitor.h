@@ -41,6 +41,8 @@ public:
 
     virtual std::any visitVarcon(ExtendedDiracParser::VarconContext *context) = 0;
 
+    virtual std::any visitEq(ExtendedDiracParser::EqContext *context) = 0;
+
     virtual std::any visitIneq(ExtendedDiracParser::IneqContext *context) = 0;
 
 

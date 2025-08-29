@@ -47,6 +47,9 @@ public:
   virtual void enterVarcon(ExtendedDiracParser::VarconContext *ctx) = 0;
   virtual void exitVarcon(ExtendedDiracParser::VarconContext *ctx) = 0;
 
+  virtual void enterEq(ExtendedDiracParser::EqContext *ctx) = 0;
+  virtual void exitEq(ExtendedDiracParser::EqContext *ctx) = 0;
+
   virtual void enterIneq(ExtendedDiracParser::IneqContext *ctx) = 0;
   virtual void exitIneq(ExtendedDiracParser::IneqContext *ctx) = 0;
 

@@ -13,10 +13,11 @@ class  ExtendedDiracLexer : public antlr4::Lexer {
 public:
   enum {
     ADD = 1, BAR = 2, COMMA = 3, COLON = 4, DIV = 5, EQ = 6, LEFT_PARENTHESIS = 7, 
-    LEFT_BRACE = 8, MUL = 9, NE = 10, NEWLINES = 11, OR = 12, POWER = 13, 
-    PRIME = 14, PROD = 15, RIGHT_ANGLE_BRACKET = 16, RIGHT_PARENTHESIS = 17, 
-    RIGHT_BRACE = 18, SEMICOLON = 19, SETMINUS = 20, STR = 21, SUB = 22, 
-    SUM = 23, UNION = 24, WS = 25
+    LEFT_BRACE = 8, MUL = 9, NE = 10, NEWLINES = 11, POWER = 12, PRIME = 13, 
+    PROD = 14, RIGHT_ANGLE_BRACKET = 15, RIGHT_PARENTHESIS = 16, RIGHT_BRACE = 17, 
+    SEMICOLON = 18, SETMINUS = 19, STR = 20, SUB = 21, SUM = 22, UNION = 23, 
+    WS = 24, LOGICAL_AND = 25, LOGICAL_OR = 26, LOGICAL_NOT = 27, LESS_THAN = 28, 
+    LESS_EQUAL = 29, GREATER_EQUAL = 30
   };
 
   explicit ExtendedDiracLexer(antlr4::CharStream *input);

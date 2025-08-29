@@ -225,6 +225,31 @@ private:
     }
 };
 
+class ConstraintParser {
+public:
+    ConstraintParser(const std::string &input) : input_(input), index_(0), result(), constMap_(constMap2) {
+        std::erase_if(input_, [](unsigned char ch) { return std::isspace(ch); });
+        parse();
+    }
+    ConstraintParser(const std::string &input, const std::map<std::string, Complex> &constMap) : input_(input), index_(0), result(), constMap_(constMap) {
+        std::erase_if(input_, [](unsigned char ch) { return std::isspace(ch); });
+        parse();
+    }
+    std::string getSMTexpression() const {
+        return result;
+    }
+
+private:
+    std::string input_;
+    size_t index_;
+    std::string result;
+    const std::map<std::string, Complex> &constMap_;
+    const std::map<std::string, Complex> constMap2{}; // empty only for initialization
+
+    void parse() {
+    }
+};
+
     typedef std::pair<int, int> unitsplit_t;
     typedef std::vector<unitsplit_t> strsplit_t;
     typedef std::vector<strsplit_t> strs2split_t;
@@ -1680,7 +1705,7 @@ private:
                 } else {
                     THROW_AUTOQ_ERROR("The index must be a single character!");
                 }
-            } else if (ctx->CStr != nullptr) { // RULE: V=NAME EQ CStr=DIGITS
+            } else if (ctx->eq() != nullptr) { // RULE: V=NAME EQ CStr=DIGITS
                 return std::map<char, int>();
             } else {
                 THROW_AUTOQ_ERROR("Unexpected varcon format!");
@@ -1692,7 +1717,12 @@ private:
            return std::any_cast<ineqS_t>(visit(ctx->ineq()));
         } else if (mode == SET_BRACES_IS_TENSOR_DECOMPOSED_INTO_GROUPS) {
             if (ctx->ineq() == nullptr) {
-                std::string var = ctx->V->getText();
+                std::string var;
+                if (ctx->V != nullptr) {
+                    var = ctx->V->getText();
+                } else {
+                    var = std::any_cast<std::string>(visit(ctx->eq()));
+                }
                 if (var.length() != 1) {
                     THROW_AUTOQ_ERROR("Variables must be a single character!");
                 }
@@ -1704,7 +1734,7 @@ private:
                 if (ctx->N != nullptr) { // RULE: BAR V=NAME BAR EQ N=DIGITS
                     return std::make_pair(ctx->V->getText().at(0), std::stoi(ctx->N->getText()));
                 } else { //  RULE: V=NAME EQ CStr=DIGITS
-                    return std::make_pair(ctx->V->getText().at(0), ctx->CStr->getText());
+                    return visit(ctx->eq());
                 }
             } else {
                 return std::any_cast<ineq_t>(visit(ctx->ineq()));
@@ -1714,35 +1744,65 @@ private:
         }
     }
 
+    std::any visitEq(ExtendedDiracParser::EqContext *ctx) override {
+        if (mode == COLLECT_KETS_AND_COMPUTE_UNIT_DECOMPOSITION_INDICES ||
+            mode == REWRITE_BY_UNIT_INDICES_AND_MAKE_ALL_VARS_DISTINCT ||
+            mode == SHUFFLE_UNITS_IN_A_GROUP_WRT_QUBITS_AND_CONSTRUCT_LSTA_FINALLY) {
+            auto V = ctx->complex(0)->getText();
+            if (!(V.length() == 1 && 'a' <= V.at(0) && V.at(0) <= 'z')) THROW_AUTOQ_ERROR("V should be a lower case letter here.");
+            auto CStr = ctx->complex(1)->getText();
+            if (!std::all_of(CStr.begin(), CStr.end(), [](char c) { return c == '0' || c == '1'; })) THROW_AUTOQ_ERROR("CStr should be a binary string here.");
+            return std::make_pair(V.at(0), CStr);
+        } else if (mode == SET_BRACES_IS_TENSOR_DECOMPOSED_INTO_GROUPS) {
+            return ctx->complex(0)->getText();
+        } else { // ConstraintParser
+            z3::context ctxZ3;
+            return (std::any_cast<AUTOQ::Complex::SymbolicComplex>(visit(ctx->complex(0))).realToSMT(ctxZ3) == std::any_cast<AUTOQ::Complex::SymbolicComplex>(visit(ctx->complex(1))).realToSMT(ctxZ3) &&
+                    std::any_cast<AUTOQ::Complex::SymbolicComplex>(visit(ctx->complex(0))).imagToSMT(ctxZ3) == std::any_cast<AUTOQ::Complex::SymbolicComplex>(visit(ctx->complex(1))).imagToSMT(ctxZ3)).simplify().to_string();
+        }
+    }
+
     std::any visitIneq(ExtendedDiracParser::IneqContext *ctx) override {
         if (mode == COLLECT_KETS_AND_COMPUTE_UNIT_DECOMPOSITION_INDICES ||
             mode == REWRITE_BY_UNIT_INDICES_AND_MAKE_ALL_VARS_DISTINCT ||
             mode == COMPUTE_CONNECTED_UNITS_INTO_A_GROUP_RELATION) {
+            // isALowercaseLetter($L.text) && (isALowercaseLetter($R.text) || isAConstantBinaryString($R.text))
+            auto L = ctx->complex(0)->getText();
+            if (!(L.length() == 1 && 'a' <= L.at(0) && L.at(0) <= 'z')) THROW_AUTOQ_ERROR("L should be a lower case letter here.");
+            auto R = ctx->complex(1)->getText();
+            if (!((R.length() == 1 && 'a' <= R.at(0) && R.at(0) <= 'z') || std::all_of(R.begin(), R.end(), [](char c) { return c == '0' || c == '1'; }))) THROW_AUTOQ_ERROR("R should be a lower case letter or a binary string here.");
             ineqS_t set;
-            auto text = ctx->R->getText();
-            if (text.length() == 1 && 'a' <= text.at(0) && text.at(0) <= 'z') {
-                set.insert(ineq_t(std::minmax(ctx->L->getText(), text)));
+            if (R.length() == 1 && 'a' <= R.at(0) && R.at(0) <= 'z') {
+                set.insert(ineq_t(std::minmax(L, R)));
                 return set;
             } else {
                 return set;
             }
         } else if (mode == SET_BRACES_IS_TENSOR_DECOMPOSED_INTO_GROUPS) {
+            // isALowercaseLetter($L.text) && (isALowercaseLetter($R.text) || isAConstantBinaryString($R.text))
+            auto L = ctx->complex(0)->getText();
+            if (!(L.length() == 1 && 'a' <= L.at(0) && L.at(0) <= 'z')) THROW_AUTOQ_ERROR("L should be a lower case letter here.");
+            auto R = ctx->complex(1)->getText();
+            if (!((R.length() == 1 && 'a' <= R.at(0) && R.at(0) <= 'z') || std::all_of(R.begin(), R.end(), [](char c) { return c == '0' || c == '1'; }))) THROW_AUTOQ_ERROR("R should be a lower case letter or a binary string here.");
             std::set<char> vars;
-            if (ctx->L->getText().length() != 1) {
+            if (L.length() != 1) {
                 THROW_AUTOQ_ERROR("Variables should be characters!");
             }
-            vars.insert(static_cast<char>(std::tolower(ctx->L->getText().at(0))));
-            auto text = ctx->R->getText();
-            if (text.length() == 1 && 'a' <= text.at(0) && text.at(0) <= 'z') {
-                vars.insert(static_cast<char>(std::tolower(text.at(0))));
+            vars.insert(static_cast<char>(std::tolower(L.at(0))));
+            if (R.length() == 1 && 'a' <= R.at(0) && R.at(0) <= 'z') {
+                vars.insert(static_cast<char>(std::tolower(R.at(0))));
             }
             return varcon_t{vars, ctx->getText()};
         } else if (mode == SHUFFLE_UNITS_IN_A_GROUP_WRT_QUBITS_AND_CONSTRUCT_LSTA_FINALLY) {
-            auto text = ctx->R->getText();
-            if (text.length() == 1 && 'a' <= text.at(0) && text.at(0) <= 'z') {
-                return ineq_t(std::minmax(ctx->L->getText(), text));
+            // isALowercaseLetter($L.text) && (isALowercaseLetter($R.text) || isAConstantBinaryString($R.text))
+            auto L = ctx->complex(0)->getText();
+            if (!(L.length() == 1 && 'a' <= L.at(0) && L.at(0) <= 'z')) THROW_AUTOQ_ERROR("L should be a lower case letter here.");
+            auto R = ctx->complex(1)->getText();
+            if (!((R.length() == 1 && 'a' <= R.at(0) && R.at(0) <= 'z') || std::all_of(R.begin(), R.end(), [](char c) { return c == '0' || c == '1'; }))) THROW_AUTOQ_ERROR("R should be a lower case letter or a binary string here.");
+            if (R.length() == 1 && 'a' <= R.at(0) && R.at(0) <= 'z') {
+                return ineq_t(std::minmax(L, R));
             } else {
-                return ineq_t(ctx->L->getText(), ctx->R->getText());
+                return ineq_t(L, R);
             }
         } else {
             THROW_AUTOQ_ERROR("Unsupported mode!");

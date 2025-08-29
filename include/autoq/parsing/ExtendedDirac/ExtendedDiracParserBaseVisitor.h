@@ -59,6 +59,10 @@ public:
     return visitChildren(ctx);
   }
 
+  virtual std::any visitEq(ExtendedDiracParser::EqContext *ctx) override {
+    return visitChildren(ctx);
+  }
+
   virtual std::any visitIneq(ExtendedDiracParser::IneqContext *ctx) override {
     return visitChildren(ctx);
   }

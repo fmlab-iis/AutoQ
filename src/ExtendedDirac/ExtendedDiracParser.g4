@@ -92,16 +92,17 @@ varcons: varcon
     ;
 
 varcon: BAR V=STR BAR EQ N=STR { isALowercaseLetter($V.text) && isNonZero($N.text) }? // can check if V is a single letter here
-    | V=STR EQ CStr=STR { isALowercaseLetter($V.text) && isAConstantBinaryString($CStr.text) }? // can check if V is a single letter here
+    | eq
     | ineq
     ;
+
+eq: complex EQ complex; // V=STR EQ CStr=STR { isALowercaseLetter($V.text) && isAConstantBinaryString($CStr.text) }? // can check if V is a single letter here
 
 // ineqs: ineq
 //     | ineqs OR ineq
 //     ;
 
-ineq: L=STR NE R=STR { isALowercaseLetter($L.text) && (isALowercaseLetter($R.text) || isAConstantBinaryString($R.text)) }? // R can be a variable or a constant
-    ;
+ineq: complex NE complex; // L=STR NE R=STR { isALowercaseLetter($L.text) && (isALowercaseLetter($R.text) || isAConstantBinaryString($R.text)) }? // R can be a variable or a constant
 
 // ijklens: ijklen
 //     | ijklens COMMA ijklen
