@@ -189,12 +189,28 @@ struct AUTOQ::Complex::FiveTuple : stdvectorboostmultiprecisioncpp_int {
         }
         return *this;
     }
-    boost::multiprecision::cpp_int toInt() const { // TODO: fake solution
-        return at(0);
+    boost::multiprecision::cpp_int toInt() const {
+        auto r = to_rational();
+        if (r.denominator() != 1) THROW_AUTOQ_ERROR("A rational with denominator not equal to 1 cannot be converted to an integer.");
+        return r.numerator();
     }
-    boost::rational<boost::multiprecision::cpp_int> to_rational() const { // TODO: fake solution
-        return boost::rational<boost::multiprecision::cpp_int>(at(0), boost::multiprecision::pow(boost::multiprecision::cpp_int(2), static_cast<int>(at(4)/2)));
+    boost::rational<boost::multiprecision::cpp_int> to_rational() const {
+        auto imag = this->imag();
+        if (!imag.isZero()) THROW_AUTOQ_ERROR("A complex number with nonzero imaginary part cannot be converted to a rational number.");
+        auto real = this->real(); // answer: (at(1)-at(3))/sqrt2^(at(4)+1) + (at(0)/sqrt2^at(4))
+        if (((real.at(4)+1) % 2 != 0 && real.at(1) != real.at(3)) ||
+            (real.at(4) % 2 != 0 && real.at(0) != 0)) {
+            THROW_AUTOQ_ERROR("A complex number with irrational real part cannot be converted to a rational number.");
+        }
+        if (real.at(4) >= 0) {
+            return boost::rational<boost::multiprecision::cpp_int>(real.at(1)-real.at(3), boost::multiprecision::pow(boost::multiprecision::cpp_int(2), static_cast<int>(real.at(4)+1) / 2)) +
+                   boost::rational<boost::multiprecision::cpp_int>(real.at(0), boost::multiprecision::pow(boost::multiprecision::cpp_int(2), static_cast<int>(real.at(4)) / 2));
+        } else {
+            return (real.at(1)-real.at(3)) * boost::multiprecision::pow(boost::multiprecision::cpp_int(2), static_cast<int>(-real.at(4)-1) / 2) +
+                    real.at(0) * boost::multiprecision::pow(boost::multiprecision::cpp_int(2), static_cast<int>(-real.at(4)) / 2);
+        }
     }
+
     std::string realToSMT() const {
         z3::context ctx;
         return realToSMT(ctx).to_string();
@@ -238,6 +254,7 @@ struct AUTOQ::Complex::FiveTuple : stdvectorboostmultiprecisioncpp_int {
         // {at(1), 0, 0, 0, at(4)+1}
         // {-at(3), 0, 0, 0, at(4)+1}
         // Result: {at(1)-at(3), at(0), 0, -at(0), at(4)+1}
+        // That is, (at(1)-at(3))/sqrt2^(at(4)+1) + (at(0)/sqrt2^at(4))
         return {at(1)-at(3), at(0), 0, -at(0), at(4)+1};
     }
     FiveTuple imag() const {
