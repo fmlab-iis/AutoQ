@@ -1605,7 +1605,7 @@ try {
         std::stringstream ss(AUTOQ::String::trim(constraints));
         std::string constraint;
         while (std::getline(ss, constraint, '\n')) {
-            result.constraints += ConstraintParser(constraint, constants).getSMTexpression();
+            result.constraints += EvaluationVisitor<>::ConstraintParser(constraint, constants).getSMTexpression();
         }
         if (!result.constraints.empty())
             result.constraints = "(and " + result.constraints + ")";
@@ -1789,7 +1789,7 @@ try {
             std::stringstream ss(AUTOQ::String::trim(constraints[index]));
             std::string constraint;
             while (std::getline(ss, constraint, '\n')) {
-                aut.constraints += ConstraintParser(constraint, constants[index]).getSMTexpression();
+                aut.constraints += EvaluationVisitor<>::ConstraintParser(constraint, constants[index]).getSMTexpression();
             }
             if (!(aut.constraints).empty())
                 aut.constraints = "(and " + aut.constraints + ")";

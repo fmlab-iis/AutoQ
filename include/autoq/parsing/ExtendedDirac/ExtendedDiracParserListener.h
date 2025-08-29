@@ -53,6 +53,9 @@ public:
   virtual void enterIneq(ExtendedDiracParser::IneqContext *ctx) = 0;
   virtual void exitIneq(ExtendedDiracParser::IneqContext *ctx) = 0;
 
+  virtual void enterPredicate(ExtendedDiracParser::PredicateContext *ctx) = 0;
+  virtual void exitPredicate(ExtendedDiracParser::PredicateContext *ctx) = 0;
+
 
 };
 

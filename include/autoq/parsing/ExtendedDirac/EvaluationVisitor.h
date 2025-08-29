@@ -16,6 +16,7 @@
 #include "autoq/complex/complex.hh"
 #include "autoq/complex/symbolic_complex.hh"
 #include "autoq/complex/constrained_complex.hh"
+#include "z3/z3++.h"
 
 #include <queue>
 
@@ -247,6 +248,17 @@ private:
     const std::map<std::string, Complex> constMap2{}; // empty only for initialization
 
     void parse() {
+        EvaluationVisitor<AUTOQ::Symbol::Symbolic> predicateVisitor({constMap_}, {});
+        predicateVisitor.mode = EvaluationVisitor<AUTOQ::Symbol::Symbolic>::SYMBOLIC_COMPLEX;
+        antlr4::ANTLRInputStream inputStream(input_);
+        ExtendedDiracLexer lexer(&inputStream);
+        antlr4::CommonTokenStream tokens(&lexer);
+        ExtendedDiracParser parser(&tokens);
+        parser.removeErrorListeners(); // Remove the default error listener
+        CustomErrorListener errorListener;
+        parser.addErrorListener(&errorListener); // Add a custom error listener
+        ExtendedDiracParser::PredicateContext* tree = parser.predicate(); // Parse the input
+        result = std::any_cast<z3::expr>(predicateVisitor.visit(tree)).to_string();
     }
 };
 
@@ -298,6 +310,7 @@ private:
     bool encountered_term_undefined_error;
     std::set<std::string> used_vars;
     std::string resultV; // variable
+    z3::context z3Ctx;
 
     std::map<std::string, AUTOQ::Complex::Complex> constants;
     std::vector<std::map<std::string, AUTOQ::Complex::Complex>> constantsVector;
@@ -317,6 +330,7 @@ private:
         encountered_term_undefined_error(false),
         used_vars(),
         resultV(),
+        z3Ctx(),
         constants(constantsVector.empty() ? std::map<std::string, AUTOQ::Complex::Complex>() : constantsVector.at(0)),
         constantsVector(constantsVector),
         predicateConstraints(predicateConstraintsVector.empty() ? "" : predicateConstraintsVector.at(0)),
@@ -1756,9 +1770,8 @@ private:
         } else if (mode == SET_BRACES_IS_TENSOR_DECOMPOSED_INTO_GROUPS) {
             return ctx->complex(0)->getText();
         } else { // ConstraintParser
-            z3::context ctxZ3;
-            return (std::any_cast<AUTOQ::Complex::SymbolicComplex>(visit(ctx->complex(0))).realToSMT(ctxZ3) == std::any_cast<AUTOQ::Complex::SymbolicComplex>(visit(ctx->complex(1))).realToSMT(ctxZ3) &&
-                    std::any_cast<AUTOQ::Complex::SymbolicComplex>(visit(ctx->complex(0))).imagToSMT(ctxZ3) == std::any_cast<AUTOQ::Complex::SymbolicComplex>(visit(ctx->complex(1))).imagToSMT(ctxZ3)).simplify().to_string();
+            return (std::any_cast<AUTOQ::Complex::SymbolicComplex>(visit(ctx->complex(0))).realToSMT(z3Ctx) == std::any_cast<AUTOQ::Complex::SymbolicComplex>(visit(ctx->complex(1))).realToSMT(z3Ctx) &&
+                    std::any_cast<AUTOQ::Complex::SymbolicComplex>(visit(ctx->complex(0))).imagToSMT(z3Ctx) == std::any_cast<AUTOQ::Complex::SymbolicComplex>(visit(ctx->complex(1))).imagToSMT(z3Ctx)).simplify();
         }
     }
 
@@ -1805,6 +1818,8 @@ private:
                 return ineq_t(L, R);
             }
         } else {
+            return (std::any_cast<AUTOQ::Complex::SymbolicComplex>(visit(ctx->complex(0))).realToSMT(z3Ctx) != std::any_cast<AUTOQ::Complex::SymbolicComplex>(visit(ctx->complex(1))).realToSMT(z3Ctx) ||
+                    std::any_cast<AUTOQ::Complex::SymbolicComplex>(visit(ctx->complex(0))).imagToSMT(z3Ctx) != std::any_cast<AUTOQ::Complex::SymbolicComplex>(visit(ctx->complex(1))).imagToSMT(z3Ctx)).simplify();
             THROW_AUTOQ_ERROR("Unsupported mode!");
         }
     }
@@ -1868,17 +1883,25 @@ private:
             } else {
                 THROW_AUTOQ_ERROR("Unsupported operator!");
             }
-        } else if (ctx->eixpi != nullptr) {
-            if (ctx->eixpi->getText() == "ei2pi") {
-                if (mode == CONCRETE_COMPLEX) return Complex::Angle(std::any_cast<boost::rational<boost::multiprecision::cpp_int>>(visit(ctx->angle())));
-                if (mode == SYMBOLIC_COMPLEX) return AUTOQ::Complex::SymbolicComplex::MySymbolicComplexConstructor(Complex::Angle(std::any_cast<boost::rational<boost::multiprecision::cpp_int>>(visit(ctx->angle()))));
+        } else if (ctx->func != nullptr) {
+            if (ctx->func->getText() == "ei2pi") {
+                if (mode == CONCRETE_COMPLEX) return Complex::Angle(std::any_cast<Complex>(visit(ctx->complex(0))).to_rational());
+                if (mode == SYMBOLIC_COMPLEX) return AUTOQ::Complex::SymbolicComplex::MySymbolicComplexConstructor(Complex::Angle(std::any_cast<Complex>(visit(ctx->complex(0))).to_rational()));
                 THROW_AUTOQ_ERROR("Unsupported mode!");
-            } else if (ctx->eixpi->getText() == "eipi") {
-                if (mode == CONCRETE_COMPLEX) return Complex::Angle(std::any_cast<boost::rational<boost::multiprecision::cpp_int>>(visit(ctx->angle())) / 2);
-                if (mode == SYMBOLIC_COMPLEX) return AUTOQ::Complex::SymbolicComplex::MySymbolicComplexConstructor(Complex::Angle(std::any_cast<boost::rational<boost::multiprecision::cpp_int>>(visit(ctx->angle())) / 2));
+            } else if (ctx->func->getText() == "eipi") {
+                if (mode == CONCRETE_COMPLEX) return Complex::Angle(std::any_cast<Complex>(visit(ctx->complex(0))).to_rational() / 2);
+                if (mode == SYMBOLIC_COMPLEX) return AUTOQ::Complex::SymbolicComplex::MySymbolicComplexConstructor(Complex::Angle(std::any_cast<Complex>(visit(ctx->complex(0))).to_rational() / 2));
+                THROW_AUTOQ_ERROR("Unsupported mode!");
+            } else if (ctx->func->getText() == "real") {
+                if (mode == CONCRETE_COMPLEX) return std::any_cast<Complex>(visit(ctx->complex(0))).real();
+                if (mode == SYMBOLIC_COMPLEX) return std::any_cast<AUTOQ::Complex::SymbolicComplex>(visit(ctx->complex(0))).real();
+                THROW_AUTOQ_ERROR("Unsupported mode!");
+            } else if (ctx->func->getText() == "imag") {
+                if (mode == CONCRETE_COMPLEX) return std::any_cast<Complex>(visit(ctx->complex(0))).imag();
+                if (mode == SYMBOLIC_COMPLEX) return std::any_cast<AUTOQ::Complex::SymbolicComplex>(visit(ctx->complex(0))).imag();
                 THROW_AUTOQ_ERROR("Unsupported mode!");
             } else {
-                THROW_AUTOQ_ERROR("Unsupported function!");
+                THROW_AUTOQ_ERROR("Unsupported function " + ctx->func->getText() + "!");
             }
         } else if (ctx->complex().size() == 1) {
             return visit(ctx->complex(0));
@@ -1926,6 +1949,36 @@ private:
             return boost::rational<boost::multiprecision::cpp_int>(std::stoi(ctx->x->getText()), std::stoi(ctx->y->getText()));
         } else {
             return boost::rational<boost::multiprecision::cpp_int>(-std::stoi(ctx->x->getText()), std::stoi(ctx->y->getText()));
+        }
+    }
+
+    std::any visitPredicate(ExtendedDiracParser::PredicateContext *ctx) override {
+        if (ctx->eq() != nullptr) return visit(ctx->eq());
+        else if (ctx->ineq() != nullptr) return visit(ctx->ineq());
+        else if (ctx->LESS_THAN() != nullptr) {
+            return (std::any_cast<AUTOQ::Complex::SymbolicComplex>(visit(ctx->complex(0))).realToSMT(z3Ctx) < std::any_cast<AUTOQ::Complex::SymbolicComplex>(visit(ctx->complex(1))).realToSMT(z3Ctx) &&
+                    std::any_cast<AUTOQ::Complex::SymbolicComplex>(visit(ctx->complex(0))).imagToSMT(z3Ctx) == 0 &&
+                    std::any_cast<AUTOQ::Complex::SymbolicComplex>(visit(ctx->complex(1))).imagToSMT(z3Ctx) == 0).simplify();
+        } else if (ctx->LESS_EQUAL() != nullptr) {
+            return (std::any_cast<AUTOQ::Complex::SymbolicComplex>(visit(ctx->complex(0))).realToSMT(z3Ctx) <= std::any_cast<AUTOQ::Complex::SymbolicComplex>(visit(ctx->complex(1))).realToSMT(z3Ctx) &&
+                    std::any_cast<AUTOQ::Complex::SymbolicComplex>(visit(ctx->complex(0))).imagToSMT(z3Ctx) == 0 &&
+                    std::any_cast<AUTOQ::Complex::SymbolicComplex>(visit(ctx->complex(1))).imagToSMT(z3Ctx) == 0).simplify();
+        } else if (ctx->RIGHT_ANGLE_BRACKET() != nullptr) {
+            return (std::any_cast<AUTOQ::Complex::SymbolicComplex>(visit(ctx->complex(0))).realToSMT(z3Ctx) > std::any_cast<AUTOQ::Complex::SymbolicComplex>(visit(ctx->complex(1))).realToSMT(z3Ctx) &&
+                    std::any_cast<AUTOQ::Complex::SymbolicComplex>(visit(ctx->complex(0))).imagToSMT(z3Ctx) == 0 &&
+                    std::any_cast<AUTOQ::Complex::SymbolicComplex>(visit(ctx->complex(1))).imagToSMT(z3Ctx) == 0).simplify();
+        } else if (ctx->GREATER_EQUAL() != nullptr) {
+            return (std::any_cast<AUTOQ::Complex::SymbolicComplex>(visit(ctx->complex(0))).realToSMT(z3Ctx) >= std::any_cast<AUTOQ::Complex::SymbolicComplex>(visit(ctx->complex(1))).realToSMT(z3Ctx) &&
+                    std::any_cast<AUTOQ::Complex::SymbolicComplex>(visit(ctx->complex(0))).imagToSMT(z3Ctx) == 0 &&
+                    std::any_cast<AUTOQ::Complex::SymbolicComplex>(visit(ctx->complex(1))).imagToSMT(z3Ctx) == 0).simplify();
+        } else if (ctx->LOGICAL_NOT() != nullptr) {
+            return (!std::any_cast<z3::expr>(visit(ctx->predicate(0)))).simplify();
+        } else if (ctx->LOGICAL_AND() != nullptr) {
+            return (std::any_cast<z3::expr>(visit(ctx->predicate(0))) && std::any_cast<z3::expr>(visit(ctx->predicate(1)))).simplify();
+        } else if (ctx->LOGICAL_OR() != nullptr) {
+            return (std::any_cast<z3::expr>(visit(ctx->predicate(0))) || std::any_cast<z3::expr>(visit(ctx->predicate(1)))).simplify();
+        } else {
+            return visit(ctx->predicate(0));
         }
     }
 };

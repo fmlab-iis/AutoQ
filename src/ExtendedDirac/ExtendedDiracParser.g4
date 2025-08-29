@@ -76,7 +76,7 @@ complex: complex POWER n=STR { isNonZero($n.text) }?
     | complex op=(MUL|DIV) complex
     | complex op=(ADD|SUB) complex
     | LEFT_PARENTHESIS complex RIGHT_PARENTHESIS
-    | eixpi=STR LEFT_PARENTHESIS angle RIGHT_PARENTHESIS { $eixpi.text == "eipi" || $eixpi.text == "ei2pi" }?
+    | func=STR LEFT_PARENTHESIS complex RIGHT_PARENTHESIS { $func.text == "real" || $func.text == "imag" || $func.text == "eipi" || $func.text == "ei2pi" }?
     // | ei2pi=STR LEFT_PARENTHESIS angle RIGHT_PARENTHESIS { $ei2pi.text == "ei2pi" }?
     // | digits=STR { areAllDigits($digits.text) }?
     // | sqrt2=STR { $sqrt2.text == "sqrt2" }?
@@ -110,6 +110,18 @@ ineq: complex NE complex; // L=STR NE R=STR { isALowercaseLetter($L.text) && (is
 
 // ijklen: BAR var=NAME BAR EQ len=STR { isALowercaseLetter($var.text) && isNonZero($len.text) }?
 //     ;
+
+// Constraint parsing grammar rules
+predicate: eq
+    | ineq
+    | complex LESS_THAN complex
+    | complex LESS_EQUAL complex
+    | complex RIGHT_ANGLE_BRACKET complex
+    | complex GREATER_EQUAL complex
+    | LOGICAL_NOT predicate
+    | predicate LOGICAL_AND predicate
+    | predicate LOGICAL_OR predicate
+    | LEFT_PARENTHESIS predicate RIGHT_PARENTHESIS;
 
 // In the project root folder, execute:
 // antlr4 -Dlanguage=Cpp -visitor src/ExtendedDirac/ExtendedDiracLexer.g4 && antlr4 -Dlanguage=Cpp -visitor src/ExtendedDirac/ExtendedDiracParser.g4 && mv src/ExtendedDirac/*.h include/autoq/parsing/ExtendedDirac/ && make debug

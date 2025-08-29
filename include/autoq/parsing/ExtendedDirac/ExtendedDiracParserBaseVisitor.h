@@ -67,6 +67,10 @@ public:
     return visitChildren(ctx);
   }
 
+  virtual std::any visitPredicate(ExtendedDiracParser::PredicateContext *ctx) override {
+    return visitChildren(ctx);
+  }
+
 
 };
 

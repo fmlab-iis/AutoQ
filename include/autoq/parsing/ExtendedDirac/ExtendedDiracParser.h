@@ -23,7 +23,7 @@ public:
   enum {
     RuleExpr = 0, RuleTset = 1, RuleScset = 2, RuleSet = 3, RuleDiracs = 4, 
     RuleDirac = 5, RuleTerm = 6, RuleComplex = 7, RuleAngle = 8, RuleVarcons = 9, 
-    RuleVarcon = 10, RuleEq = 11, RuleIneq = 12
+    RuleVarcon = 10, RuleEq = 11, RuleIneq = 12, RulePredicate = 13
   };
 
   explicit ExtendedDiracParser(antlr4::TokenStream *input);
@@ -72,7 +72,8 @@ public:
   class VarconsContext;
   class VarconContext;
   class EqContext;
-  class IneqContext; 
+  class IneqContext;
+  class PredicateContext; 
 
   class  ExprContext : public antlr4::ParserRuleContext {
   public:
@@ -212,7 +213,7 @@ public:
   class  ComplexContext : public antlr4::ParserRuleContext {
   public:
     antlr4::Token *sub = nullptr;
-    antlr4::Token *eixpi = nullptr;
+    antlr4::Token *func = nullptr;
     antlr4::Token *var = nullptr;
     antlr4::Token *op = nullptr;
     antlr4::Token *n = nullptr;
@@ -223,7 +224,6 @@ public:
     antlr4::tree::TerminalNode *SUB();
     antlr4::tree::TerminalNode *LEFT_PARENTHESIS();
     antlr4::tree::TerminalNode *RIGHT_PARENTHESIS();
-    AngleContext *angle();
     antlr4::tree::TerminalNode *STR();
     antlr4::tree::TerminalNode *MUL();
     antlr4::tree::TerminalNode *DIV();
@@ -334,6 +334,35 @@ public:
 
   IneqContext* ineq();
 
+  class  PredicateContext : public antlr4::ParserRuleContext {
+  public:
+    PredicateContext(antlr4::ParserRuleContext *parent, size_t invokingState);
+    virtual size_t getRuleIndex() const override;
+    EqContext *eq();
+    IneqContext *ineq();
+    std::vector<ComplexContext *> complex();
+    ComplexContext* complex(size_t i);
+    antlr4::tree::TerminalNode *LESS_THAN();
+    antlr4::tree::TerminalNode *LESS_EQUAL();
+    antlr4::tree::TerminalNode *RIGHT_ANGLE_BRACKET();
+    antlr4::tree::TerminalNode *GREATER_EQUAL();
+    antlr4::tree::TerminalNode *LOGICAL_NOT();
+    std::vector<PredicateContext *> predicate();
+    PredicateContext* predicate(size_t i);
+    antlr4::tree::TerminalNode *LEFT_PARENTHESIS();
+    antlr4::tree::TerminalNode *RIGHT_PARENTHESIS();
+    antlr4::tree::TerminalNode *LOGICAL_AND();
+    antlr4::tree::TerminalNode *LOGICAL_OR();
+
+    virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
+    virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
+
+    virtual std::any accept(antlr4::tree::ParseTreeVisitor *visitor) override;
+   
+  };
+
+  PredicateContext* predicate();
+  PredicateContext* predicate(int precedence);
 
   bool sempred(antlr4::RuleContext *_localctx, size_t ruleIndex, size_t predicateIndex) override;
 
@@ -346,6 +375,7 @@ public:
   bool angleSempred(AngleContext *_localctx, size_t predicateIndex);
   bool varconsSempred(VarconsContext *_localctx, size_t predicateIndex);
   bool varconSempred(VarconContext *_localctx, size_t predicateIndex);
+  bool predicateSempred(PredicateContext *_localctx, size_t predicateIndex);
 
   // By default the static state used to implement the parser is lazily initialized during the first
   // call to the constructor. You can call this function if you wish to initialize the static state

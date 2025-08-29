@@ -45,6 +45,8 @@ public:
 
     virtual std::any visitIneq(ExtendedDiracParser::IneqContext *context) = 0;
 
+    virtual std::any visitPredicate(ExtendedDiracParser::PredicateContext *context) = 0;
+
 
 };
 

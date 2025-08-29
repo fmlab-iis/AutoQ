@@ -55,6 +55,9 @@ public:
   virtual void enterIneq(ExtendedDiracParser::IneqContext * /*ctx*/) override { }
   virtual void exitIneq(ExtendedDiracParser::IneqContext * /*ctx*/) override { }
 
+  virtual void enterPredicate(ExtendedDiracParser::PredicateContext * /*ctx*/) override { }
+  virtual void exitPredicate(ExtendedDiracParser::PredicateContext * /*ctx*/) override { }
+
 
   virtual void enterEveryRule(antlr4::ParserRuleContext * /*ctx*/) override { }
   virtual void exitEveryRule(antlr4::ParserRuleContext * /*ctx*/) override { }

@@ -20,7 +20,7 @@ LEFT_BRACE: '{';
 MUL: '*';
 NE: '≠';
 NEWLINES: [\r\n]+ { if (skipNewline) skip(); };
-OR: '∨';
+// OR: '∨';
 POWER: '^';
 PRIME: '\'';
 PROD: '⊗';
@@ -36,5 +36,14 @@ SUM: '∑' | 'Σ';
 UNION: '∪'; // | 'U'; // Notice that U may be confused with the bit-complemented variable's name.
 // WHERE: 'where' { skipNewline = false; };
 WS: [ \t]+ -> skip;
+
+// Constraint parsing tokens
+LOGICAL_AND: '&&' | '∧';
+LOGICAL_OR: '||' | '∨';
+LOGICAL_NOT: '!' | '¬';
+LESS_THAN: '<';
+// GREATER_THAN: '>'; // subsumed by RIGHT_ANGLE_BRACKET
+LESS_EQUAL: '<=' | '≦' | '≤';
+GREATER_EQUAL: '>=' | '≧' | '≥';
 
 // NAME: [A-Za-z][A-Za-z0-9]*; // the most general rule must be put at the end
