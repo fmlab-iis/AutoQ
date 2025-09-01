@@ -150,11 +150,11 @@ try {
     // set_timeout(600);
     feenableexcept(FE_ALL_EXCEPT & ~FE_INEXACT);
 
-    CLI::App app{"AutoQ: An automata-based C++ tool for quantum program verification."};
+    CLI::App app{"AutoQ 2.0: An automata-based C++ tool for quantum program verification."};
     std::string pre, circuit, post, circuit1, circuit2;
 
     CLI::App* execution = app.add_subcommand("ex", "Execute a quantum circuit with a given precondition.");
-    execution->add_option("pre.{hsl|lsta}", pre, "the precondition file")->required()->type_name("");
+    execution->add_option("pre.hsl", pre, "the precondition file")->required()->type_name("");
     execution->add_option("circuit.qasm", circuit, "the OpenQASM 2.0 circuit file")->required()->type_name("");
     execution->callback([&]() {
         adjust_N_in_nTuple(circuit);
@@ -162,10 +162,10 @@ try {
 
     bool latex = false;
     CLI::App* verification = app.add_subcommand("ver", "Verify the execution result against a given postcondition.");
-    verification->add_option("pre.{hsl|lsta}", pre, "the precondition file")->required()->type_name("");
+    verification->add_option("pre.hsl", pre, "the precondition file")->required()->type_name("");
     verification->add_option("circuit.qasm", circuit, "the OpenQASM 2.0 circuit file")->required()->type_name("");
-    verification->add_option("post.{hsl|lsta}", post, "the postcondition file")->required()->type_name("");
-    verification->add_flag("-l,--latex", latex, "Print the statistics for tables in LaTeX");
+    verification->add_option("post.hsl", post, "the postcondition file")->required()->type_name("");
+    verification->add_flag("-l,--latex", latex, "Print the statistics for tables in LaTeX.");
     verification->callback([&]() {
         adjust_N_in_nTuple(circuit);
     });
@@ -173,14 +173,14 @@ try {
     CLI::App* equivalence_checking = app.add_subcommand("eq", "Check equivalence of two given quantum circuits.");
     equivalence_checking->add_option("circuit1.qasm", circuit1, "the OpenQASM 2.0 circuit file")->required()->type_name("");
     equivalence_checking->add_option("circuit2.qasm", circuit2, "the OpenQASM 2.0 circuit file")->required()->type_name("");
-    equivalence_checking->add_flag("-l,--latex", latex, "Print the statistics for tables in LaTeX");
+    equivalence_checking->add_flag("-l,--latex", latex, "Print the statistics for tables in LaTeX.");
     equivalence_checking->callback([&]() {
         adjust_N_in_nTuple(circuit1);
         adjust_N_in_nTuple(circuit2);
     });
 
     CLI::App* print = app.add_subcommand("print", "Print the set of quantum states.");
-    print->add_option("states.{hsl|lsta}", pre, "the automaton file")->required()->type_name("");
+    print->add_option("states.hsl", pre, "the automaton file")->required()->type_name("");
 
     // bool short_time = false, long_time = false;
     // app.add_flag("-t", short_time, "print times");
