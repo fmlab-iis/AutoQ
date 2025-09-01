@@ -141,7 +141,7 @@ jobs:
     runs-on: macos-latest
     steps:
     - uses: actions/checkout@v4
-    - run: brew install gcc make cmake boost
+    - run: brew install make boost
     - run: make debug
     - run: cp /opt/homebrew/lib/libboost_unit_test_framework.dylib build/unit_tests/
     - run: cp /opt/homebrew/lib/libboost_filesystem.dylib          build/unit_tests/
@@ -173,7 +173,7 @@ jobs:
     runs-on: macos-latest
     steps:
     - uses: actions/checkout@v4
-    - run: brew install gcc make cmake boost
+    - run: brew install make boost
     - run: make release
     - run: cp /opt/homebrew/lib/libboost_unit_test_framework.dylib build/unit_tests/
     - run: cp /opt/homebrew/lib/libboost_filesystem.dylib          build/unit_tests/
