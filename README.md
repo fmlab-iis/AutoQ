@@ -32,7 +32,7 @@ Currently, for Linux (Ubuntu/Debian), macOS, and WSL2, the dependency of AutoQ c
 make release
 make test
 ```
-The first command compiles the source code with compiler optimizations enabled, while the second command runs several unit tests to verify the correctness of the implementation. Under normal circumstances, you should see 12 green check marks on the `Commits` page for the latest commit. This indicates that the continuous integration (CI) workflow in GitHub Actions has verified that both `make debug` and `make release` produce no errors and that `make test` passes successfully on Ubuntu, macOS, and WSL2.
+The first command `make release` compiles the source code with compiler optimizations enabled, while the second command `make test` runs several unit tests to verify the correctness of the implementation. Under normal circumstances, you should see 12 green check marks on the `Commits` page for the latest commit. This indicates that the continuous integration (CI) workflow in GitHub Actions has verified that both `make debug` and `make release` produce no errors and that `make test` passes successfully on Ubuntu, macOS, and WSL2.
 
 If you need to compile the library for debugging, you can replace `make release` with `make debug`.
 
