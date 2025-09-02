@@ -81,10 +81,10 @@ The quantum program has [5] qubits and [52] gates. The verification process [OK]
 
 ## Input File Formats
 
-* Quantum States
-Preconditions, postconditions, and loop invariants are all sets of quantum states. We use the `*.hsl` format (short for high-level specification language) which extends Dirac notation to describe sets of quantum states. The detailed grammar is described in the [hsl format description (under construction)](./docs/hsl_description.md).
-<br>
-* Quantum Programs
+* Quantum States<br>
+Preconditions, postconditions, and loop invariants are all sets of quantum states. We use the `*.hsl` format (short for high-level specification language) which extends Dirac notation to describe sets of quantum states. The detailed grammar is described in the [hsl format description (under construction)](./docs/hsl_description.md).<br>
+
+* Quantum Programs<br>
 Our program currently supports $X$, $Y$, $Z$, $H$, $T$, $T^\dagger$, $S$, $S^\dagger$, $R_x(\pi/2)$, $R_y(\pi/2)$, $CX$, $CZ$, $CCX$, $SWAP$ quantum gates. The supported version of OpenQASM can be 2.0 or 3.0, but the supported syntax is very limited. Please refer to the [qasm format description (under construction)](./docs/qasm_description.md) for more details.
 
 ---
