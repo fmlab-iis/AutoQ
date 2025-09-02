@@ -1,70 +1,134 @@
 ## How to describe a set of quantum states? `*.hsl`
 
-This file may contain multiple lines. Each line represents a quantum state. A quantum state is naturally described by a linear combination of computational basis states with complex coefficients. Coefficients here can be expressed in [addition `+`], [subtraction `-`], [multiplication `*`] operations on [rationals], $[e^{i2\pi(r)}\ |\ r=k/8,\ k\in\mathbb Z]$, $[e^{i\pi(r)}\ |\ r=k/4,\ k\in\mathbb Z]$ and the [exponentiation `^`] operation with "nonnegative" exponents. Operator precedence follows the standard convention. You can also do $/\sqrt2 ^ k$ by writing `/ sqrt2 ^ k` after the above operations are already done if you wish. <!--Nevertheless, due to the automatic scaling in the verification process, users do not need $/\sqrt2 ^ k$.-->
+This file is divided into three sections: `Constants`, `Extended Dirac`, and `Constraints`.
 
-### # Extended Dirac
-Here is one example.
-```
-Extended Dirac
-(-1 + -1 * ei2pi(2/8) + -2 * ei2pi(3/8)) |10> + ei2pi(3/8) |11> - ei2pi(1/8) |01>
-eipi(1/4) |00> + (1 + 1 * eipi(1/2) + -2 * eipi(3/4)) |11> - eipi(3/4) |10>
-```
-This file contains two quantum states $-e^{i2\pi(1/8)}\ |01\rangle + (-1 - e^{i2\pi(2/8)} - 2\cdot e^{i2\pi(3/8)})\ |10\rangle + e^{i2\pi(3/8)}\ |11\rangle$ and $e^{i\pi(1/4)}\ |00\rangle - e^{i\pi(3/4)}\ |10\rangle + (1 + e^{i\pi(1/2)} - 2\cdot e^{i\pi(3/4)})\ |11\rangle$. If there are so many states having the same amplitude, you can also use the "wildcard state" $|\*\rangle$ at the end of a line to denote all other computational basis states whose amplitudes have not been specified so far. For instance, $0.5\ |00\rangle - 0.5\ |*\rangle = 0.5\ |00\rangle - 0.5\ |01\rangle - 0.5\ |10\rangle - 0.5\ |11\rangle$.
+* The `Constants` section allows users to predefine complex constants for convenience.
+* The `Extended Dirac` section specifies the set of quantum states.
+* The `Constraints` section defines conditions on variable coefficients, if such coefficients are used in the `Extended Dirac` section.
+
+Among these, only the `Extended Dirac` section is mandatory, while the `Constants` and `Constraints` sections are optional. All three sections, if present, must be defined in the above order.
+
+---
 
 ### # Constants
-For simplicity, one can define some complex constants in the *Constants* section before the *Extended Dirac* section, and the example becomes
+This section is intended to let users predefine complex constants for convenience. Each line must follow the format `[var] := [constant]`.
+* `[var]` must be a nonempty string consisting of English letters and digits.
+* `[constant]` must be constructed according to the following grammar. The `func` nonterminal supports four functions:
+    - `real(c)` returns the real part of the complex number $c$,
+    - `imag(c)` returns the imaginary part of the complex number $c$,
+    - `eipi(r)` returns the complex number $e^{i\pi r}$,
+    - `ei2pi(r)` returns the complex number $e^{i2\pi r}$.
+  
+  In the `eipi` function, `r` can be in any form, but it must equal a rational number with a denominator of 4. Likewise, in the `ei2pi` function, `r` can be in any form, but it must equal a rational number with a denominator of 8.
 ```
-Constants
-c1 := ei2pi(1/8)
-c2 := ei2pi(2/8)
-c3 := eipi(3/4)
-Extended Dirac
-(-1 + -1 * c2 + -2 * c3) |10> + c3 |11> - c1 |01>
-c1 |00> + (1 + 1 * c2 + -2 * c3) |11> - c3 |10>
+constant: constant "^" n=[0-9]+      // power
+    | "-" constant                   // negation
+    | constant ("*"|"/") constant    // multiplication or division
+    | constant ("+"|"-") constant    // addition or subtraction
+    | "(" constant ")"
+    | func=("real"|"imag"|"eipi"|"ei2pi") "(" constant ")"
+    | "sqrt2"                        // the positive square root of 2
+    | n=[0-9]+                       // nonnegative integers
+    ;
 ```
+In the grammar above, the precedence of the first four operators, from top to bottom, is from highest to lowest. Defining multiple constants with the same name leads to undefined behavior. If you want to see how this is handled programmatically, check [src/ExtendedDirac/ExtendedDiracParser.g4#L74-L84](../src/ExtendedDirac/ExtendedDiracParser.g4#L74-L84). It might look a bit different from the grammar shown above, but the two are equivalent.
+
+---
+
+### # Extended Dirac
+This section is intended to let users specify the set of quantum states. In this part, *newline characters are automatically ignored*, but the specification must still conform to the following grammar.
+```
+expr: tset;
+
+tset: set
+    | set "^" n=[1-9]*[1-9]+[1-9]* // apply ⊗ (n-1) times to itself
+    | tset "⊗" tset
+    ;
+
+set: set "∪" set
+    | "{" diracs "}"
+    | "{" diracs ":" varcons "}"
+    ;
+
+diracs: dirac
+    | diracs "," dirac
+    ;
+
+dirac: term
+    | dirac ("+"|"-") term
+    ;
+
+term: complex? "|" VStr=([0-9a-zA-Z]|[a-z]')+ "⟩"
+    | complex? "∑" varcons "|" VStr=([0-9a-zA-Z]|[a-z]')+ "⟩"
+    | "-" "|" VStr=([0-9a-zA-Z]|[a-z]')+ "⟩"
+    | "-" "∑" varcons "|" VStr=([0-9a-zA-Z]|[a-z]')+ "⟩"
+    ;
+
+complex: complex "^" n=[0-9]+      // power
+    | "-" complex                  // negation
+    | complex ("*"|"/") complex    // multiplication or division
+    | complex ("+"|"-") complex    // addition or subtraction
+    | "(" complex ")"
+    | func=("real"|"imag"|"eipi"|"ei2pi") "(" complex ")"
+    | "sqrt2"                      // the positive square root of 2
+    | n=[0-9]+                     // nonnegative integers
+    ;
+
+varcons: varcon
+    | varcons "," varcon
+    ;
+
+varcon: "|" V=[a-z] "|" "=" n=[1-9]*[1-9]+[1-9]* // denote the length n of the binary string variable V
+    | V=[a-z] "=" CStr=[01]+ // assign the binary string constant CStr to the binary string variable V
+    | L=[a-z] "≠" R=([a-z]|[01]+) // the variable L is not equal to another variable or binary string constant R
+    ;
+```
+The grammar is designed to closely resemble the usual mathematical representation of sets of quantum states in Dirac notation, with a generalization of the tensor product between sets: $S_1\otimes S_2 = \\{\ket{x} \otimes \ket{y}\ |\ \ket{x}\in S_1,\ \ket{y}\in S_2\\}$. Each ket string $s$ in $\ket{s}$ may consist of not only the digits 0 and 1 but also binary string variables (each denoted by a lowercase English letter). A variable may be followed by the prime symbol `'` to indicate its bit complement. We can also insert a summation symbol `∑` followed by a summation constraint between a complex amplitude and a ket. A constraint is a sequence of variable-length indicators, equalities, and inequalities, separated by commas that represent logical conjunction. Such constraints may also appear after a colon in a set representation to control global variables. Notice that you can also use `*` instead of `⊗` for the tensor product symbol, use `Σ` instead of `∑` for the summation symbol, use `>` instead of `⟩` for the right angle bracket, and use `!=` instead of `≠` for the disequal symbol.
+
+---
 
 ### # Variables and Constraints
-Nonconstant tokens not defined in the Constants section are automatically regarded as *free symbolic variables*. These variables may have some constraints such as not being zero. One can impose some constraints on these variables in the *Constraints* section after the *Extended Dirac* section. For instance,
+Nonconstant tokens appearing in amplitudes but not defined in the `Constants` section are automatically treated as *free symbolic variables*. The target set may require some constraints on these variables, so users can specify them in this section. Similarly, the constraints must adhere to the following grammar, but notice that *newline characters are not ignored* here. Each boolean formula is processed line by line and they will eventually be combined into a larger formula through conjunction.
+```
+predicate: complex "=" complex
+    | complex "≠" complex
+    | complex "<" complex
+    | complex "≤" complex
+    | complex ">" complex
+    | complex "≥" complex
+    | "¬" predicate
+    | predicate "∧" predicate
+    | predicate "∨" predicate
+    | "(" predicate ")";
+```
+Note that you can also substitute symbols as follows: `!=` for `≠`, `<=` or `≦` for `≤`, `>=` or `≧` for `≥`, `!` for `¬`, `&&` for `∧`, and `||` for `∨`.
+
+---
+
+### # Example
+The following `*.hsl` file is adapted from [benchmarks/all/GroverSym/04/post.hsl](../benchmarks/all/GroverSym/04/post.hsl). It specifies the postcondition of Grover's algorithm where the expected hidden string can be arbitrary. The specified set is<br>
+
+$$
+\begin{aligned}
+\displaystyle & \\Bigg\\{a_H \ket{0101} + a_L \sum_{\substack{i\in\\{0,1\\}^4\setminus\newline\\{0101\\}}}\ket{i} \otimes \ket{001}\\Bigg\\}\ \bigcup\ \\Bigg\\{a_H \ket{s} + a_L \sum_{\substack{i\in\\{0,1\\}^4\setminus\newline\\{s\\}}}\ket{i} \otimes \ket{001}\ :\ s\in\\{0,1\\}^4\setminus\\{0101\\}\\Bigg\\} \\\\ = &\\Bigg\\{a_H \ket{s} + a_L \sum_{\substack{i\in\\{0,1\\}^4\setminus\newline\\{s\\}}}\ket{i} \otimes \ket{001}\ :\ s\in\\{0,1\\}^4\\Bigg\\}
+\end{aligned}
+$$
+
+with the amplitude constraints: $\text{real}^2(a_L) < \text{1/8} \land \text{imag}(a_L) = 0 \land \text{real}^2(a_H) > \text{7/8} \land \text{imag}(a_H) = 0$.
+
 ```
 Constants
-c0 := 0
+c1 := 1
 Extended Dirac
-c0 |00> + c0 |11> + v |*>
+{aH |0101> + aL ∑ |i|=4, i≠0101 |i>} ∪ {aH |s> + aL ∑ |i|=4, i≠s |i> : |s|=4, s≠0101} ⊗ {c1 |001>}
 Constraints
-imag(v) = 0
+real(aL) * real(aL) < 1/8
+imag(aL) = 0
+real(aH) * real(aH) > 7/8
+imag(aH) = 0
 ```
-the above file describes (at least) all quantum states which are linear combinations of $|01\rangle$ and $|10\rangle$ where both of them have the same real amplitude.
 
-The *Constraints* section may contain multiple lines. Each line consists of a boolean formula that will be automatically conjoined (with the *and* operator) eventually. Each formula is expressed in logical operations [not `!`], [and `&`], [or `|`] on boolean subformulae. These subformulae are expressed in comparison operations [greater than `>`], [less than `<`] on real numbers and the [equal `=`] operation on complex numbers. Operator precedence follows the standard convention. AutoQ also supports two functions `real(.)` and `imag(.)` to extract the real part and the imaginary part of a complex number.
-
-One may want to take the absolute value of a ***real*** number in some applications. Due to the branching nature of this operation, the SMT solver may not be able to solve constraints involving this operation. Please use `(.) ^ 2` as an alternative instead.
-
-We say a description file contains a quantum state $|s\rangle$ only if $|s\rangle$ satisfies all the boolean formulae in the *Constraints* section.
-
-### # Logical $\lor$ Operator
-We use the logical $\lor$ operator to compute the union of the two sets of quantum states connected by this operator. For instance, `|00> \/ |01>` means that $|00\rangle$ and $|01\rangle$ are both included in the file. Please note that you can also use `V` in place of `\/` to obtain the same result.
-
-### # Existentially Quantified Variables
-Many real-world sets of quantum states have some common patterns in qubits. In light of this, AutoQ supports the ***existentially quantified variable*** `\/|i|=n:` over all $n$-bit binary strings. This variable is used to constrain all substrings `i` and `i'` (i.e., $1$'s complement of `i`) appearing after this notation in a line. If there is some quantum state $|s\rangle$ matches the pattern in this line for some $\\{i\in\\{0,1\\}^n\\}$, then we say $|s\rangle$ is contained in this line. For instance, `\/|i|=2: a|i0> + b|i'1>` describes the following four states $\\{a|000\rangle+b|111\rangle,\ a|010\rangle+b|101\rangle,\ a|100\rangle+b|011\rangle,\ a|110\rangle+b|001\rangle\\}$.
-
-### # Tensor Products
-For convenience, AutoQ also supports the ***tensor product operator*** `#`. The usage is very easy: just put `#` between the two sets of quantum states $S_1$ and $S_2$ in a line to denote the resulting set of quantum states $\\{|x\rangle \otimes |y\rangle\ |\ |x\rangle\in S_1,\ |y\rangle\in S_2\\}$.
-
-### # Operator Precedence
-The ***tensor product operator*** `#` has the lowest precedence. That is, they split a line into multiple units. In each unit, logical $\lor$ operators and existentially quantified variables cannot be used at the same time. Besides, substrings `i` and `i'` in different units are invisible to each other.
-
-<!--One more example to get a closer look at `*.hsl`.
+If you try to remove the first part `{aH |0101> + aL ∑ |i|=4, i≠0101 |i>} ∪ `, you will get the following expected result.
 ```
-Extended Dirac
-\/ |i|=3 : |i> # vH |i> + vL |*> # |000>
-Constraints
-imag(vH) = 0
-imag(vL) = 0
-vH > vL
-vL > 0
+The quantum program has [7] qubits and [100] gates. The verification process [failed] in [0.2s] with [86MB] memory usage.
 ```
-describes the set of states<br>
-<img width="315" alt="image" src="https://user-images.githubusercontent.com/10044077/217997027-4dec8f23-811d-4747-86b3-e95d37b9ec69.png">
-<br>where $v_h > v_\ell > 0$.-->
-
-Finally, we should be noticed that not all strings described by `*.hsl` are valid quantum states. For instance, the sum of absolute squares of amplitudes of all computational basis states may not be $1$.
