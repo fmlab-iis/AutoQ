@@ -132,3 +132,14 @@ If you try to remove the first part `{aH |0101> + aL ∑ |i|=4, i≠0101 |i>} �
 ```
 The quantum program has [7] qubits and [100] gates. The verification process [failed] in [0.2s] with [86MB] memory usage.
 ```
+
+---
+
+### # Alignment
+
+One important mechanism of AutoQ 2.0 is the reordering of qubits according to the given precondition, postcondition and loop invariants for reducing the sizes of the constructed automata, and hence there are some requirements on these `*.hsl` files.
+
+1. If a tensor product symbol `⊗` appears between the $i$-th and $(i+1)$-th qubits in one `*.hsl` file, then all the other `*.hsl` files must also include a tensor product symbol `⊗` separating the $i$-th and $(i+1)$-th qubit.
+2. If a variable `x` or its bit complement `x'` occurs in any ket `|...x(')...⟩` on qubits $i$ through $j$ in any *.hsl file, then in the same range of qubits ($i$ to $j$), every other ket string—whether in the same `*.hsl` file or in the other `*.hsl` files—must contain either only constants (`0` and `1`), or exactly one variable (or its complement).
+
+Violating either of the two rules above triggers the error message `There are two *.hsl files not aligned!`, prompting users to revise their `*.hsl` files to ensure alignment.
