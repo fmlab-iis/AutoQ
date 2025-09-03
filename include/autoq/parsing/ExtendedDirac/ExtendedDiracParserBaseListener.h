@@ -40,9 +40,6 @@ public:
   virtual void enterComplex(ExtendedDiracParser::ComplexContext * /*ctx*/) override { }
   virtual void exitComplex(ExtendedDiracParser::ComplexContext * /*ctx*/) override { }
 
-  virtual void enterAngle(ExtendedDiracParser::AngleContext * /*ctx*/) override { }
-  virtual void exitAngle(ExtendedDiracParser::AngleContext * /*ctx*/) override { }
-
   virtual void enterVarcons(ExtendedDiracParser::VarconsContext * /*ctx*/) override { }
   virtual void exitVarcons(ExtendedDiracParser::VarconsContext * /*ctx*/) override { }
 

@@ -38,9 +38,6 @@ public:
   virtual void enterComplex(ExtendedDiracParser::ComplexContext *ctx) = 0;
   virtual void exitComplex(ExtendedDiracParser::ComplexContext *ctx) = 0;
 
-  virtual void enterAngle(ExtendedDiracParser::AngleContext *ctx) = 0;
-  virtual void exitAngle(ExtendedDiracParser::AngleContext *ctx) = 0;
-
   virtual void enterVarcons(ExtendedDiracParser::VarconsContext *ctx) = 0;
   virtual void exitVarcons(ExtendedDiracParser::VarconsContext *ctx) = 0;
 

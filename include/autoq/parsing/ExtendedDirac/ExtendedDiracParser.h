@@ -22,8 +22,8 @@ public:
 
   enum {
     RuleExpr = 0, RuleTset = 1, RuleScset = 2, RuleSet = 3, RuleDiracs = 4, 
-    RuleDirac = 5, RuleTerm = 6, RuleComplex = 7, RuleAngle = 8, RuleVarcons = 9, 
-    RuleVarcon = 10, RuleEq = 11, RuleIneq = 12, RulePredicate = 13
+    RuleDirac = 5, RuleTerm = 6, RuleComplex = 7, RuleVarcons = 8, RuleVarcon = 9, 
+    RuleEq = 10, RuleIneq = 11, RulePredicate = 12
   };
 
   explicit ExtendedDiracParser(antlr4::TokenStream *input);
@@ -68,7 +68,6 @@ public:
   class DiracContext;
   class TermContext;
   class ComplexContext;
-  class AngleContext;
   class VarconsContext;
   class VarconContext;
   class EqContext;
@@ -103,6 +102,7 @@ public:
     antlr4::tree::TerminalNode *STR();
     std::vector<TsetContext *> tset();
     TsetContext* tset(size_t i);
+    antlr4::tree::TerminalNode *MUL();
     antlr4::tree::TerminalNode *PROD();
 
     virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
@@ -239,27 +239,6 @@ public:
 
   ComplexContext* complex();
   ComplexContext* complex(int precedence);
-  class  AngleContext : public antlr4::ParserRuleContext {
-  public:
-    antlr4::Token *x = nullptr;
-    antlr4::Token *y = nullptr;
-    antlr4::Token *n = nullptr;
-    AngleContext(antlr4::ParserRuleContext *parent, size_t invokingState);
-    virtual size_t getRuleIndex() const override;
-    antlr4::tree::TerminalNode *DIV();
-    std::vector<antlr4::tree::TerminalNode *> STR();
-    antlr4::tree::TerminalNode* STR(size_t i);
-    antlr4::tree::TerminalNode *SUB();
-
-    virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
-    virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
-
-    virtual std::any accept(antlr4::tree::ParseTreeVisitor *visitor) override;
-   
-  };
-
-  AngleContext* angle();
-
   class  VarconsContext : public antlr4::ParserRuleContext {
   public:
     VarconsContext(antlr4::ParserRuleContext *parent, size_t invokingState);
@@ -372,7 +351,6 @@ public:
   bool diracsSempred(DiracsContext *_localctx, size_t predicateIndex);
   bool diracSempred(DiracContext *_localctx, size_t predicateIndex);
   bool complexSempred(ComplexContext *_localctx, size_t predicateIndex);
-  bool angleSempred(AngleContext *_localctx, size_t predicateIndex);
   bool varconsSempred(VarconsContext *_localctx, size_t predicateIndex);
   bool varconSempred(VarconContext *_localctx, size_t predicateIndex);
   bool predicateSempred(PredicateContext *_localctx, size_t predicateIndex);

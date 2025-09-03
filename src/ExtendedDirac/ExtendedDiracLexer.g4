@@ -18,7 +18,7 @@ EQ: '=';
 LEFT_PARENTHESIS: '(';
 LEFT_BRACE: '{';
 MUL: '*';
-NE: '≠';
+NE: '≠' | '!=';
 NEWLINES: [\r\n]+ { if (skipNewline) skip(); };
 // OR: '∨';
 POWER: '^';

@@ -38,7 +38,7 @@ expr: tset
 
 tset: scset
     | set POWER N=STR { isNonZero($N.text) }?
-    | tset PROD tset
+    | tset (MUL|PROD) tset
     // | set op=SEMICOLON set // used for connecting different *.hsl to compute the unit decomposition together
     // | set op=SEMICOLON set SEMICOLON set // used for connecting different *.hsl to compute the unit decomposition together
     // | set op=SEMICOLON set SEMICOLON set SEMICOLON set // used for connecting different *.hsl to compute the unit decomposition together
@@ -71,7 +71,7 @@ term: complex? BAR VStr=STR RIGHT_ANGLE_BRACKET
 //         std::string state = text.substr(1, text.length() - 2); // Remove the first and last characters
 //     };
 
-complex: complex POWER n=STR { isNonZero($n.text) }?
+complex: complex POWER n=STR { areAllDigits($n.text) }?
     | sub=SUB complex
     | complex op=(MUL|DIV) complex
     | complex op=(ADD|SUB) complex
@@ -83,9 +83,9 @@ complex: complex POWER n=STR { isNonZero($n.text) }?
     | var=STR // { if (!predefinedConstants.contains($var.text)) isSymbolicAutomaton = true; }
     ;
 
-angle: SUB? x=STR DIV y=STR { areAllDigits($x.text) && isNonZero($y.text) }?
-    | SUB? n=STR { areAllDigits($n.text) }?
-    ;
+// angle: SUB? x=STR DIV y=STR { areAllDigits($x.text) && isNonZero($y.text) }?
+//     | SUB? n=STR { areAllDigits($n.text) }?
+//     ;
 
 varcons: varcon
     | varcons COMMA varcon

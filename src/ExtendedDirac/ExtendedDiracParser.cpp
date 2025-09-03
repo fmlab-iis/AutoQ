@@ -54,12 +54,12 @@ void extendeddiracparserParserInitialize() {
   auto staticData = std::make_unique<ExtendedDiracParserStaticData>(
     std::vector<std::string>{
       "expr", "tset", "scset", "set", "diracs", "dirac", "term", "complex", 
-      "angle", "varcons", "varcon", "eq", "ineq", "predicate"
+      "varcons", "varcon", "eq", "ineq", "predicate"
     },
     std::vector<std::string>{
       "", "'+'", "'|'", "','", "':'", "'/'", "'='", "'('", "'{'", "'*'", 
-      "'\\u2260'", "", "'^'", "'''", "'\\u2297'", "", "')'", "'}'", "';'", 
-      "'\\'", "", "'-'", "", "'\\u222A'", "", "", "", "", "'<'"
+      "", "", "'^'", "'''", "'\\u2297'", "", "')'", "'}'", "';'", "'\\'", 
+      "", "'-'", "", "'\\u222A'", "", "", "", "", "'<'"
     },
     std::vector<std::string>{
       "", "ADD", "BAR", "COMMA", "COLON", "DIV", "EQ", "LEFT_PARENTHESIS", 
@@ -70,86 +70,80 @@ void extendeddiracparserParserInitialize() {
     }
   );
   static const int32_t serializedATNSegment[] = {
-  	4,1,30,247,2,0,7,0,2,1,7,1,2,2,7,2,2,3,7,3,2,4,7,4,2,5,7,5,2,6,7,6,2,
-  	7,7,7,2,8,7,8,2,9,7,9,2,10,7,10,2,11,7,11,2,12,7,12,2,13,7,13,1,0,1,0,
-  	1,0,1,0,1,0,3,0,34,8,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,3,1,43,8,1,1,1,1,1,
-  	1,1,5,1,48,8,1,10,1,12,1,51,9,1,1,2,1,2,1,2,1,2,1,2,1,2,5,2,59,8,2,10,
-  	2,12,2,62,9,2,1,3,1,3,1,3,1,3,1,3,1,3,1,3,1,3,1,3,1,3,1,3,3,3,75,8,3,
-  	1,3,1,3,1,3,5,3,80,8,3,10,3,12,3,83,9,3,1,4,1,4,1,4,1,4,1,4,1,4,5,4,91,
-  	8,4,10,4,12,4,94,9,4,1,5,1,5,1,5,1,5,1,5,1,5,5,5,102,8,5,10,5,12,5,105,
-  	9,5,1,6,3,6,108,8,6,1,6,1,6,1,6,1,6,3,6,114,8,6,1,6,1,6,1,6,1,6,1,6,1,
-  	6,1,6,1,6,1,6,1,6,1,6,1,6,1,6,1,6,1,6,1,6,1,6,3,6,133,8,6,1,7,1,7,1,7,
-  	1,7,1,7,1,7,1,7,1,7,1,7,1,7,1,7,1,7,1,7,1,7,3,7,149,8,7,1,7,1,7,1,7,1,
-  	7,1,7,1,7,1,7,1,7,1,7,1,7,5,7,161,8,7,10,7,12,7,164,9,7,1,8,3,8,167,8,
-  	8,1,8,1,8,1,8,1,8,1,8,3,8,174,8,8,1,8,1,8,3,8,178,8,8,1,9,1,9,1,9,1,9,
-  	1,9,1,9,5,9,186,8,9,10,9,12,9,189,9,9,1,10,1,10,1,10,1,10,1,10,1,10,1,
-  	10,1,10,3,10,199,8,10,1,11,1,11,1,11,1,11,1,12,1,12,1,12,1,12,1,13,1,
-  	13,1,13,1,13,1,13,1,13,1,13,1,13,1,13,1,13,1,13,1,13,1,13,1,13,1,13,1,
-  	13,1,13,1,13,1,13,1,13,1,13,1,13,1,13,1,13,1,13,3,13,234,8,13,1,13,1,
-  	13,1,13,1,13,1,13,1,13,5,13,242,8,13,10,13,12,13,245,9,13,1,13,0,8,2,
-  	4,6,8,10,14,18,26,14,0,2,4,6,8,10,12,14,16,18,20,22,24,26,0,2,2,0,1,1,
-  	21,21,2,0,5,5,9,9,266,0,33,1,0,0,0,2,42,1,0,0,0,4,52,1,0,0,0,6,74,1,0,
-  	0,0,8,84,1,0,0,0,10,95,1,0,0,0,12,132,1,0,0,0,14,148,1,0,0,0,16,177,1,
-  	0,0,0,18,179,1,0,0,0,20,198,1,0,0,0,22,200,1,0,0,0,24,204,1,0,0,0,26,
-  	233,1,0,0,0,28,34,3,2,1,0,29,30,3,2,1,0,30,31,5,19,0,0,31,32,3,2,1,0,
-  	32,34,1,0,0,0,33,28,1,0,0,0,33,29,1,0,0,0,34,1,1,0,0,0,35,36,6,1,-1,0,
-  	36,43,3,4,2,0,37,38,3,6,3,0,38,39,5,12,0,0,39,40,5,20,0,0,40,41,4,1,0,
-  	1,41,43,1,0,0,0,42,35,1,0,0,0,42,37,1,0,0,0,43,49,1,0,0,0,44,45,10,1,
-  	0,0,45,46,5,14,0,0,46,48,3,2,1,2,47,44,1,0,0,0,48,51,1,0,0,0,49,47,1,
-  	0,0,0,49,50,1,0,0,0,50,3,1,0,0,0,51,49,1,0,0,0,52,53,6,2,-1,0,53,54,3,
-  	6,3,0,54,60,1,0,0,0,55,56,10,2,0,0,56,57,5,18,0,0,57,59,3,6,3,0,58,55,
-  	1,0,0,0,59,62,1,0,0,0,60,58,1,0,0,0,60,61,1,0,0,0,61,5,1,0,0,0,62,60,
-  	1,0,0,0,63,64,6,3,-1,0,64,65,5,8,0,0,65,66,3,8,4,0,66,67,5,17,0,0,67,
-  	75,1,0,0,0,68,69,5,8,0,0,69,70,3,8,4,0,70,71,5,4,0,0,71,72,3,18,9,0,72,
-  	73,5,17,0,0,73,75,1,0,0,0,74,63,1,0,0,0,74,68,1,0,0,0,75,81,1,0,0,0,76,
-  	77,10,3,0,0,77,78,5,23,0,0,78,80,3,6,3,4,79,76,1,0,0,0,80,83,1,0,0,0,
-  	81,79,1,0,0,0,81,82,1,0,0,0,82,7,1,0,0,0,83,81,1,0,0,0,84,85,6,4,-1,0,
-  	85,86,3,10,5,0,86,92,1,0,0,0,87,88,10,1,0,0,88,89,5,3,0,0,89,91,3,10,
-  	5,0,90,87,1,0,0,0,91,94,1,0,0,0,92,90,1,0,0,0,92,93,1,0,0,0,93,9,1,0,
-  	0,0,94,92,1,0,0,0,95,96,6,5,-1,0,96,97,3,12,6,0,97,103,1,0,0,0,98,99,
-  	10,1,0,0,99,100,7,0,0,0,100,102,3,12,6,0,101,98,1,0,0,0,102,105,1,0,0,
-  	0,103,101,1,0,0,0,103,104,1,0,0,0,104,11,1,0,0,0,105,103,1,0,0,0,106,
-  	108,3,14,7,0,107,106,1,0,0,0,107,108,1,0,0,0,108,109,1,0,0,0,109,110,
-  	5,2,0,0,110,111,5,20,0,0,111,133,5,15,0,0,112,114,3,14,7,0,113,112,1,
-  	0,0,0,113,114,1,0,0,0,114,115,1,0,0,0,115,116,5,22,0,0,116,117,3,18,9,
-  	0,117,118,5,2,0,0,118,119,5,20,0,0,119,120,5,15,0,0,120,133,1,0,0,0,121,
-  	122,5,21,0,0,122,123,5,2,0,0,123,124,5,20,0,0,124,133,5,15,0,0,125,126,
-  	5,21,0,0,126,127,5,22,0,0,127,128,3,18,9,0,128,129,5,2,0,0,129,130,5,
-  	20,0,0,130,131,5,15,0,0,131,133,1,0,0,0,132,107,1,0,0,0,132,113,1,0,0,
-  	0,132,121,1,0,0,0,132,125,1,0,0,0,133,13,1,0,0,0,134,135,6,7,-1,0,135,
-  	136,5,21,0,0,136,149,3,14,7,6,137,138,5,7,0,0,138,139,3,14,7,0,139,140,
-  	5,16,0,0,140,149,1,0,0,0,141,142,5,20,0,0,142,143,5,7,0,0,143,144,3,14,
-  	7,0,144,145,5,16,0,0,145,146,4,7,6,1,146,149,1,0,0,0,147,149,5,20,0,0,
-  	148,134,1,0,0,0,148,137,1,0,0,0,148,141,1,0,0,0,148,147,1,0,0,0,149,162,
-  	1,0,0,0,150,151,10,5,0,0,151,152,7,1,0,0,152,161,3,14,7,6,153,154,10,
-  	4,0,0,154,155,7,0,0,0,155,161,3,14,7,5,156,157,10,7,0,0,157,158,5,12,
-  	0,0,158,159,5,20,0,0,159,161,4,7,10,1,160,150,1,0,0,0,160,153,1,0,0,0,
-  	160,156,1,0,0,0,161,164,1,0,0,0,162,160,1,0,0,0,162,163,1,0,0,0,163,15,
-  	1,0,0,0,164,162,1,0,0,0,165,167,5,21,0,0,166,165,1,0,0,0,166,167,1,0,
-  	0,0,167,168,1,0,0,0,168,169,5,20,0,0,169,170,5,5,0,0,170,171,5,20,0,0,
-  	171,178,4,8,11,1,172,174,5,21,0,0,173,172,1,0,0,0,173,174,1,0,0,0,174,
-  	175,1,0,0,0,175,176,5,20,0,0,176,178,4,8,12,1,177,166,1,0,0,0,177,173,
-  	1,0,0,0,178,17,1,0,0,0,179,180,6,9,-1,0,180,181,3,20,10,0,181,187,1,0,
-  	0,0,182,183,10,1,0,0,183,184,5,3,0,0,184,186,3,20,10,0,185,182,1,0,0,
-  	0,186,189,1,0,0,0,187,185,1,0,0,0,187,188,1,0,0,0,188,19,1,0,0,0,189,
-  	187,1,0,0,0,190,191,5,2,0,0,191,192,5,20,0,0,192,193,5,2,0,0,193,194,
-  	5,6,0,0,194,195,5,20,0,0,195,199,4,10,14,1,196,199,3,22,11,0,197,199,
-  	3,24,12,0,198,190,1,0,0,0,198,196,1,0,0,0,198,197,1,0,0,0,199,21,1,0,
-  	0,0,200,201,3,14,7,0,201,202,5,6,0,0,202,203,3,14,7,0,203,23,1,0,0,0,
-  	204,205,3,14,7,0,205,206,5,10,0,0,206,207,3,14,7,0,207,25,1,0,0,0,208,
-  	209,6,13,-1,0,209,234,3,22,11,0,210,234,3,24,12,0,211,212,3,14,7,0,212,
-  	213,5,28,0,0,213,214,3,14,7,0,214,234,1,0,0,0,215,216,3,14,7,0,216,217,
-  	5,29,0,0,217,218,3,14,7,0,218,234,1,0,0,0,219,220,3,14,7,0,220,221,5,
-  	15,0,0,221,222,3,14,7,0,222,234,1,0,0,0,223,224,3,14,7,0,224,225,5,30,
-  	0,0,225,226,3,14,7,0,226,234,1,0,0,0,227,228,5,27,0,0,228,234,3,26,13,
-  	4,229,230,5,7,0,0,230,231,3,26,13,0,231,232,5,16,0,0,232,234,1,0,0,0,
-  	233,208,1,0,0,0,233,210,1,0,0,0,233,211,1,0,0,0,233,215,1,0,0,0,233,219,
-  	1,0,0,0,233,223,1,0,0,0,233,227,1,0,0,0,233,229,1,0,0,0,234,243,1,0,0,
-  	0,235,236,10,3,0,0,236,237,5,25,0,0,237,242,3,26,13,4,238,239,10,2,0,
-  	0,239,240,5,26,0,0,240,242,3,26,13,3,241,235,1,0,0,0,241,238,1,0,0,0,
-  	242,245,1,0,0,0,243,241,1,0,0,0,243,244,1,0,0,0,244,27,1,0,0,0,245,243,
-  	1,0,0,0,22,33,42,49,60,74,81,92,103,107,113,132,148,160,162,166,173,177,
-  	187,198,233,241,243
+  	4,1,30,231,2,0,7,0,2,1,7,1,2,2,7,2,2,3,7,3,2,4,7,4,2,5,7,5,2,6,7,6,2,
+  	7,7,7,2,8,7,8,2,9,7,9,2,10,7,10,2,11,7,11,2,12,7,12,1,0,1,0,1,0,1,0,1,
+  	0,3,0,32,8,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,3,1,41,8,1,1,1,1,1,1,1,5,1,46,
+  	8,1,10,1,12,1,49,9,1,1,2,1,2,1,2,1,2,1,2,1,2,5,2,57,8,2,10,2,12,2,60,
+  	9,2,1,3,1,3,1,3,1,3,1,3,1,3,1,3,1,3,1,3,1,3,1,3,3,3,73,8,3,1,3,1,3,1,
+  	3,5,3,78,8,3,10,3,12,3,81,9,3,1,4,1,4,1,4,1,4,1,4,1,4,5,4,89,8,4,10,4,
+  	12,4,92,9,4,1,5,1,5,1,5,1,5,1,5,1,5,5,5,100,8,5,10,5,12,5,103,9,5,1,6,
+  	3,6,106,8,6,1,6,1,6,1,6,1,6,3,6,112,8,6,1,6,1,6,1,6,1,6,1,6,1,6,1,6,1,
+  	6,1,6,1,6,1,6,1,6,1,6,1,6,1,6,1,6,1,6,3,6,131,8,6,1,7,1,7,1,7,1,7,1,7,
+  	1,7,1,7,1,7,1,7,1,7,1,7,1,7,1,7,1,7,3,7,147,8,7,1,7,1,7,1,7,1,7,1,7,1,
+  	7,1,7,1,7,1,7,1,7,5,7,159,8,7,10,7,12,7,162,9,7,1,8,1,8,1,8,1,8,1,8,1,
+  	8,5,8,170,8,8,10,8,12,8,173,9,8,1,9,1,9,1,9,1,9,1,9,1,9,1,9,1,9,3,9,183,
+  	8,9,1,10,1,10,1,10,1,10,1,11,1,11,1,11,1,11,1,12,1,12,1,12,1,12,1,12,
+  	1,12,1,12,1,12,1,12,1,12,1,12,1,12,1,12,1,12,1,12,1,12,1,12,1,12,1,12,
+  	1,12,1,12,1,12,1,12,1,12,1,12,3,12,218,8,12,1,12,1,12,1,12,1,12,1,12,
+  	1,12,5,12,226,8,12,10,12,12,12,229,9,12,1,12,0,8,2,4,6,8,10,14,16,24,
+  	13,0,2,4,6,8,10,12,14,16,18,20,22,24,0,3,2,0,9,9,14,14,2,0,1,1,21,21,
+  	2,0,5,5,9,9,248,0,31,1,0,0,0,2,40,1,0,0,0,4,50,1,0,0,0,6,72,1,0,0,0,8,
+  	82,1,0,0,0,10,93,1,0,0,0,12,130,1,0,0,0,14,146,1,0,0,0,16,163,1,0,0,0,
+  	18,182,1,0,0,0,20,184,1,0,0,0,22,188,1,0,0,0,24,217,1,0,0,0,26,32,3,2,
+  	1,0,27,28,3,2,1,0,28,29,5,19,0,0,29,30,3,2,1,0,30,32,1,0,0,0,31,26,1,
+  	0,0,0,31,27,1,0,0,0,32,1,1,0,0,0,33,34,6,1,-1,0,34,41,3,4,2,0,35,36,3,
+  	6,3,0,36,37,5,12,0,0,37,38,5,20,0,0,38,39,4,1,0,1,39,41,1,0,0,0,40,33,
+  	1,0,0,0,40,35,1,0,0,0,41,47,1,0,0,0,42,43,10,1,0,0,43,44,7,0,0,0,44,46,
+  	3,2,1,2,45,42,1,0,0,0,46,49,1,0,0,0,47,45,1,0,0,0,47,48,1,0,0,0,48,3,
+  	1,0,0,0,49,47,1,0,0,0,50,51,6,2,-1,0,51,52,3,6,3,0,52,58,1,0,0,0,53,54,
+  	10,2,0,0,54,55,5,18,0,0,55,57,3,6,3,0,56,53,1,0,0,0,57,60,1,0,0,0,58,
+  	56,1,0,0,0,58,59,1,0,0,0,59,5,1,0,0,0,60,58,1,0,0,0,61,62,6,3,-1,0,62,
+  	63,5,8,0,0,63,64,3,8,4,0,64,65,5,17,0,0,65,73,1,0,0,0,66,67,5,8,0,0,67,
+  	68,3,8,4,0,68,69,5,4,0,0,69,70,3,16,8,0,70,71,5,17,0,0,71,73,1,0,0,0,
+  	72,61,1,0,0,0,72,66,1,0,0,0,73,79,1,0,0,0,74,75,10,3,0,0,75,76,5,23,0,
+  	0,76,78,3,6,3,4,77,74,1,0,0,0,78,81,1,0,0,0,79,77,1,0,0,0,79,80,1,0,0,
+  	0,80,7,1,0,0,0,81,79,1,0,0,0,82,83,6,4,-1,0,83,84,3,10,5,0,84,90,1,0,
+  	0,0,85,86,10,1,0,0,86,87,5,3,0,0,87,89,3,10,5,0,88,85,1,0,0,0,89,92,1,
+  	0,0,0,90,88,1,0,0,0,90,91,1,0,0,0,91,9,1,0,0,0,92,90,1,0,0,0,93,94,6,
+  	5,-1,0,94,95,3,12,6,0,95,101,1,0,0,0,96,97,10,1,0,0,97,98,7,1,0,0,98,
+  	100,3,12,6,0,99,96,1,0,0,0,100,103,1,0,0,0,101,99,1,0,0,0,101,102,1,0,
+  	0,0,102,11,1,0,0,0,103,101,1,0,0,0,104,106,3,14,7,0,105,104,1,0,0,0,105,
+  	106,1,0,0,0,106,107,1,0,0,0,107,108,5,2,0,0,108,109,5,20,0,0,109,131,
+  	5,15,0,0,110,112,3,14,7,0,111,110,1,0,0,0,111,112,1,0,0,0,112,113,1,0,
+  	0,0,113,114,5,22,0,0,114,115,3,16,8,0,115,116,5,2,0,0,116,117,5,20,0,
+  	0,117,118,5,15,0,0,118,131,1,0,0,0,119,120,5,21,0,0,120,121,5,2,0,0,121,
+  	122,5,20,0,0,122,131,5,15,0,0,123,124,5,21,0,0,124,125,5,22,0,0,125,126,
+  	3,16,8,0,126,127,5,2,0,0,127,128,5,20,0,0,128,129,5,15,0,0,129,131,1,
+  	0,0,0,130,105,1,0,0,0,130,111,1,0,0,0,130,119,1,0,0,0,130,123,1,0,0,0,
+  	131,13,1,0,0,0,132,133,6,7,-1,0,133,134,5,21,0,0,134,147,3,14,7,6,135,
+  	136,5,7,0,0,136,137,3,14,7,0,137,138,5,16,0,0,138,147,1,0,0,0,139,140,
+  	5,20,0,0,140,141,5,7,0,0,141,142,3,14,7,0,142,143,5,16,0,0,143,144,4,
+  	7,6,1,144,147,1,0,0,0,145,147,5,20,0,0,146,132,1,0,0,0,146,135,1,0,0,
+  	0,146,139,1,0,0,0,146,145,1,0,0,0,147,160,1,0,0,0,148,149,10,5,0,0,149,
+  	150,7,2,0,0,150,159,3,14,7,6,151,152,10,4,0,0,152,153,7,1,0,0,153,159,
+  	3,14,7,5,154,155,10,7,0,0,155,156,5,12,0,0,156,157,5,20,0,0,157,159,4,
+  	7,10,1,158,148,1,0,0,0,158,151,1,0,0,0,158,154,1,0,0,0,159,162,1,0,0,
+  	0,160,158,1,0,0,0,160,161,1,0,0,0,161,15,1,0,0,0,162,160,1,0,0,0,163,
+  	164,6,8,-1,0,164,165,3,18,9,0,165,171,1,0,0,0,166,167,10,1,0,0,167,168,
+  	5,3,0,0,168,170,3,18,9,0,169,166,1,0,0,0,170,173,1,0,0,0,171,169,1,0,
+  	0,0,171,172,1,0,0,0,172,17,1,0,0,0,173,171,1,0,0,0,174,175,5,2,0,0,175,
+  	176,5,20,0,0,176,177,5,2,0,0,177,178,5,6,0,0,178,179,5,20,0,0,179,183,
+  	4,9,12,1,180,183,3,20,10,0,181,183,3,22,11,0,182,174,1,0,0,0,182,180,
+  	1,0,0,0,182,181,1,0,0,0,183,19,1,0,0,0,184,185,3,14,7,0,185,186,5,6,0,
+  	0,186,187,3,14,7,0,187,21,1,0,0,0,188,189,3,14,7,0,189,190,5,10,0,0,190,
+  	191,3,14,7,0,191,23,1,0,0,0,192,193,6,12,-1,0,193,218,3,20,10,0,194,218,
+  	3,22,11,0,195,196,3,14,7,0,196,197,5,28,0,0,197,198,3,14,7,0,198,218,
+  	1,0,0,0,199,200,3,14,7,0,200,201,5,29,0,0,201,202,3,14,7,0,202,218,1,
+  	0,0,0,203,204,3,14,7,0,204,205,5,15,0,0,205,206,3,14,7,0,206,218,1,0,
+  	0,0,207,208,3,14,7,0,208,209,5,30,0,0,209,210,3,14,7,0,210,218,1,0,0,
+  	0,211,212,5,27,0,0,212,218,3,24,12,4,213,214,5,7,0,0,214,215,3,24,12,
+  	0,215,216,5,16,0,0,216,218,1,0,0,0,217,192,1,0,0,0,217,194,1,0,0,0,217,
+  	195,1,0,0,0,217,199,1,0,0,0,217,203,1,0,0,0,217,207,1,0,0,0,217,211,1,
+  	0,0,0,217,213,1,0,0,0,218,227,1,0,0,0,219,220,10,3,0,0,220,221,5,25,0,
+  	0,221,226,3,24,12,4,222,223,10,2,0,0,223,224,5,26,0,0,224,226,3,24,12,
+  	3,225,219,1,0,0,0,225,222,1,0,0,0,226,229,1,0,0,0,227,225,1,0,0,0,227,
+  	228,1,0,0,0,228,25,1,0,0,0,229,227,1,0,0,0,19,31,40,47,58,72,79,90,101,
+  	105,111,130,146,158,160,171,182,217,225,227
   };
   staticData->serializedATN = antlr4::atn::SerializedATNView(serializedATNSegment, sizeof(serializedATNSegment) / sizeof(serializedATNSegment[0]));
 
@@ -253,23 +247,23 @@ ExtendedDiracParser::ExprContext* ExtendedDiracParser::expr() {
     exitRule();
   });
   try {
-    setState(33);
+    setState(31);
     _errHandler->sync(this);
     switch (getInterpreter<atn::ParserATNSimulator>()->adaptivePredict(_input, 0, _ctx)) {
     case 1: {
       enterOuterAlt(_localctx, 1);
-      setState(28);
+      setState(26);
       tset(0);
       break;
     }
 
     case 2: {
       enterOuterAlt(_localctx, 2);
-      setState(29);
+      setState(27);
       tset(0);
-      setState(30);
+      setState(28);
       match(ExtendedDiracParser::SETMINUS);
-      setState(31);
+      setState(29);
       tset(0);
       break;
     }
@@ -318,6 +312,10 @@ ExtendedDiracParser::TsetContext* ExtendedDiracParser::TsetContext::tset(size_t 
   return getRuleContext<ExtendedDiracParser::TsetContext>(i);
 }
 
+tree::TerminalNode* ExtendedDiracParser::TsetContext::MUL() {
+  return getToken(ExtendedDiracParser::MUL, 0);
+}
+
 tree::TerminalNode* ExtendedDiracParser::TsetContext::PROD() {
   return getToken(ExtendedDiracParser::PROD, 0);
 }
@@ -361,7 +359,7 @@ ExtendedDiracParser::TsetContext* ExtendedDiracParser::tset(int precedence) {
   size_t startState = 2;
   enterRecursionRule(_localctx, 2, ExtendedDiracParser::RuleTset, precedence);
 
-    
+    size_t _la = 0;
 
 #if __cplusplus > 201703L
   auto onExit = finally([=, this] {
@@ -373,23 +371,23 @@ ExtendedDiracParser::TsetContext* ExtendedDiracParser::tset(int precedence) {
   try {
     size_t alt;
     enterOuterAlt(_localctx, 1);
-    setState(42);
+    setState(40);
     _errHandler->sync(this);
     switch (getInterpreter<atn::ParserATNSimulator>()->adaptivePredict(_input, 1, _ctx)) {
     case 1: {
-      setState(36);
+      setState(34);
       scset(0);
       break;
     }
 
     case 2: {
-      setState(37);
+      setState(35);
       set(0);
-      setState(38);
+      setState(36);
       match(ExtendedDiracParser::POWER);
-      setState(39);
+      setState(37);
       antlrcpp::downCast<TsetContext *>(_localctx)->N = match(ExtendedDiracParser::STR);
-      setState(40);
+      setState(38);
 
       if (!( isNonZero((antlrcpp::downCast<TsetContext *>(_localctx)->N != nullptr ? antlrcpp::downCast<TsetContext *>(_localctx)->N->getText() : "")) )) throw FailedPredicateException(this, " isNonZero($N.text) ");
       break;
@@ -399,7 +397,7 @@ ExtendedDiracParser::TsetContext* ExtendedDiracParser::tset(int precedence) {
       break;
     }
     _ctx->stop = _input->LT(-1);
-    setState(49);
+    setState(47);
     _errHandler->sync(this);
     alt = getInterpreter<atn::ParserATNSimulator>()->adaptivePredict(_input, 2, _ctx);
     while (alt != 2 && alt != atn::ATN::INVALID_ALT_NUMBER) {
@@ -409,15 +407,24 @@ ExtendedDiracParser::TsetContext* ExtendedDiracParser::tset(int precedence) {
         previousContext = _localctx;
         _localctx = _tracker.createInstance<TsetContext>(parentContext, parentState);
         pushNewRecursionContext(_localctx, startState, RuleTset);
-        setState(44);
+        setState(42);
 
         if (!(precpred(_ctx, 1))) throw FailedPredicateException(this, "precpred(_ctx, 1)");
-        setState(45);
-        match(ExtendedDiracParser::PROD);
-        setState(46);
+        setState(43);
+        _la = _input->LA(1);
+        if (!(_la == ExtendedDiracParser::MUL
+
+        || _la == ExtendedDiracParser::PROD)) {
+        _errHandler->recoverInline(this);
+        }
+        else {
+          _errHandler->reportMatch(this);
+          consume();
+        }
+        setState(44);
         tset(2); 
       }
-      setState(51);
+      setState(49);
       _errHandler->sync(this);
       alt = getInterpreter<atn::ParserATNSimulator>()->adaptivePredict(_input, 2, _ctx);
     }
@@ -499,10 +506,10 @@ ExtendedDiracParser::ScsetContext* ExtendedDiracParser::scset(int precedence) {
   try {
     size_t alt;
     enterOuterAlt(_localctx, 1);
-    setState(53);
+    setState(51);
     set(0);
     _ctx->stop = _input->LT(-1);
-    setState(60);
+    setState(58);
     _errHandler->sync(this);
     alt = getInterpreter<atn::ParserATNSimulator>()->adaptivePredict(_input, 3, _ctx);
     while (alt != 2 && alt != atn::ATN::INVALID_ALT_NUMBER) {
@@ -512,15 +519,15 @@ ExtendedDiracParser::ScsetContext* ExtendedDiracParser::scset(int precedence) {
         previousContext = _localctx;
         _localctx = _tracker.createInstance<ScsetContext>(parentContext, parentState);
         pushNewRecursionContext(_localctx, startState, RuleScset);
-        setState(55);
+        setState(53);
 
         if (!(precpred(_ctx, 2))) throw FailedPredicateException(this, "precpred(_ctx, 2)");
-        setState(56);
+        setState(54);
         match(ExtendedDiracParser::SEMICOLON);
-        setState(57);
+        setState(55);
         set(0); 
       }
-      setState(62);
+      setState(60);
       _errHandler->sync(this);
       alt = getInterpreter<atn::ParserATNSimulator>()->adaptivePredict(_input, 3, _ctx);
     }
@@ -622,29 +629,29 @@ ExtendedDiracParser::SetContext* ExtendedDiracParser::set(int precedence) {
   try {
     size_t alt;
     enterOuterAlt(_localctx, 1);
-    setState(74);
+    setState(72);
     _errHandler->sync(this);
     switch (getInterpreter<atn::ParserATNSimulator>()->adaptivePredict(_input, 4, _ctx)) {
     case 1: {
-      setState(64);
+      setState(62);
       match(ExtendedDiracParser::LEFT_BRACE);
-      setState(65);
+      setState(63);
       diracs(0);
-      setState(66);
+      setState(64);
       match(ExtendedDiracParser::RIGHT_BRACE);
       break;
     }
 
     case 2: {
-      setState(68);
+      setState(66);
       match(ExtendedDiracParser::LEFT_BRACE);
-      setState(69);
+      setState(67);
       diracs(0);
-      setState(70);
+      setState(68);
       match(ExtendedDiracParser::COLON);
-      setState(71);
+      setState(69);
       varcons(0);
-      setState(72);
+      setState(70);
       match(ExtendedDiracParser::RIGHT_BRACE);
       break;
     }
@@ -653,7 +660,7 @@ ExtendedDiracParser::SetContext* ExtendedDiracParser::set(int precedence) {
       break;
     }
     _ctx->stop = _input->LT(-1);
-    setState(81);
+    setState(79);
     _errHandler->sync(this);
     alt = getInterpreter<atn::ParserATNSimulator>()->adaptivePredict(_input, 5, _ctx);
     while (alt != 2 && alt != atn::ATN::INVALID_ALT_NUMBER) {
@@ -663,15 +670,15 @@ ExtendedDiracParser::SetContext* ExtendedDiracParser::set(int precedence) {
         previousContext = _localctx;
         _localctx = _tracker.createInstance<SetContext>(parentContext, parentState);
         pushNewRecursionContext(_localctx, startState, RuleSet);
-        setState(76);
+        setState(74);
 
         if (!(precpred(_ctx, 3))) throw FailedPredicateException(this, "precpred(_ctx, 3)");
-        setState(77);
+        setState(75);
         match(ExtendedDiracParser::UNION);
-        setState(78);
+        setState(76);
         set(4); 
       }
-      setState(83);
+      setState(81);
       _errHandler->sync(this);
       alt = getInterpreter<atn::ParserATNSimulator>()->adaptivePredict(_input, 5, _ctx);
     }
@@ -753,10 +760,10 @@ ExtendedDiracParser::DiracsContext* ExtendedDiracParser::diracs(int precedence) 
   try {
     size_t alt;
     enterOuterAlt(_localctx, 1);
-    setState(85);
+    setState(83);
     dirac(0);
     _ctx->stop = _input->LT(-1);
-    setState(92);
+    setState(90);
     _errHandler->sync(this);
     alt = getInterpreter<atn::ParserATNSimulator>()->adaptivePredict(_input, 6, _ctx);
     while (alt != 2 && alt != atn::ATN::INVALID_ALT_NUMBER) {
@@ -766,15 +773,15 @@ ExtendedDiracParser::DiracsContext* ExtendedDiracParser::diracs(int precedence) 
         previousContext = _localctx;
         _localctx = _tracker.createInstance<DiracsContext>(parentContext, parentState);
         pushNewRecursionContext(_localctx, startState, RuleDiracs);
-        setState(87);
+        setState(85);
 
         if (!(precpred(_ctx, 1))) throw FailedPredicateException(this, "precpred(_ctx, 1)");
-        setState(88);
+        setState(86);
         match(ExtendedDiracParser::COMMA);
-        setState(89);
+        setState(87);
         dirac(0); 
       }
-      setState(94);
+      setState(92);
       _errHandler->sync(this);
       alt = getInterpreter<atn::ParserATNSimulator>()->adaptivePredict(_input, 6, _ctx);
     }
@@ -860,10 +867,10 @@ ExtendedDiracParser::DiracContext* ExtendedDiracParser::dirac(int precedence) {
   try {
     size_t alt;
     enterOuterAlt(_localctx, 1);
-    setState(96);
+    setState(94);
     term();
     _ctx->stop = _input->LT(-1);
-    setState(103);
+    setState(101);
     _errHandler->sync(this);
     alt = getInterpreter<atn::ParserATNSimulator>()->adaptivePredict(_input, 7, _ctx);
     while (alt != 2 && alt != atn::ATN::INVALID_ALT_NUMBER) {
@@ -873,10 +880,10 @@ ExtendedDiracParser::DiracContext* ExtendedDiracParser::dirac(int precedence) {
         previousContext = _localctx;
         _localctx = _tracker.createInstance<DiracContext>(parentContext, parentState);
         pushNewRecursionContext(_localctx, startState, RuleDirac);
-        setState(98);
+        setState(96);
 
         if (!(precpred(_ctx, 1))) throw FailedPredicateException(this, "precpred(_ctx, 1)");
-        setState(99);
+        setState(97);
         _la = _input->LA(1);
         if (!(_la == ExtendedDiracParser::ADD
 
@@ -887,10 +894,10 @@ ExtendedDiracParser::DiracContext* ExtendedDiracParser::dirac(int precedence) {
           _errHandler->reportMatch(this);
           consume();
         }
-        setState(100);
+        setState(98);
         term(); 
       }
-      setState(105);
+      setState(103);
       _errHandler->sync(this);
       alt = getInterpreter<atn::ParserATNSimulator>()->adaptivePredict(_input, 7, _ctx);
     }
@@ -975,79 +982,79 @@ ExtendedDiracParser::TermContext* ExtendedDiracParser::term() {
     exitRule();
   });
   try {
-    setState(132);
+    setState(130);
     _errHandler->sync(this);
     switch (getInterpreter<atn::ParserATNSimulator>()->adaptivePredict(_input, 10, _ctx)) {
     case 1: {
       enterOuterAlt(_localctx, 1);
-      setState(107);
+      setState(105);
       _errHandler->sync(this);
 
       _la = _input->LA(1);
       if ((((_la & ~ 0x3fULL) == 0) &&
         ((1ULL << _la) & 3145856) != 0)) {
-        setState(106);
+        setState(104);
         complex(0);
       }
-      setState(109);
+      setState(107);
       match(ExtendedDiracParser::BAR);
-      setState(110);
+      setState(108);
       antlrcpp::downCast<TermContext *>(_localctx)->VStr = match(ExtendedDiracParser::STR);
-      setState(111);
+      setState(109);
       match(ExtendedDiracParser::RIGHT_ANGLE_BRACKET);
       break;
     }
 
     case 2: {
       enterOuterAlt(_localctx, 2);
-      setState(113);
+      setState(111);
       _errHandler->sync(this);
 
       _la = _input->LA(1);
       if ((((_la & ~ 0x3fULL) == 0) &&
         ((1ULL << _la) & 3145856) != 0)) {
-        setState(112);
+        setState(110);
         complex(0);
       }
-      setState(115);
+      setState(113);
       match(ExtendedDiracParser::SUM);
-      setState(116);
+      setState(114);
       varcons(0);
-      setState(117);
+      setState(115);
       match(ExtendedDiracParser::BAR);
-      setState(118);
+      setState(116);
       antlrcpp::downCast<TermContext *>(_localctx)->VStr = match(ExtendedDiracParser::STR);
-      setState(119);
+      setState(117);
       match(ExtendedDiracParser::RIGHT_ANGLE_BRACKET);
       break;
     }
 
     case 3: {
       enterOuterAlt(_localctx, 3);
-      setState(121);
+      setState(119);
       match(ExtendedDiracParser::SUB);
-      setState(122);
+      setState(120);
       match(ExtendedDiracParser::BAR);
-      setState(123);
+      setState(121);
       antlrcpp::downCast<TermContext *>(_localctx)->VStr = match(ExtendedDiracParser::STR);
-      setState(124);
+      setState(122);
       match(ExtendedDiracParser::RIGHT_ANGLE_BRACKET);
       break;
     }
 
     case 4: {
       enterOuterAlt(_localctx, 4);
-      setState(125);
+      setState(123);
       match(ExtendedDiracParser::SUB);
-      setState(126);
+      setState(124);
       match(ExtendedDiracParser::SUM);
-      setState(127);
+      setState(125);
       varcons(0);
-      setState(128);
+      setState(126);
       match(ExtendedDiracParser::BAR);
-      setState(129);
+      setState(127);
       antlrcpp::downCast<TermContext *>(_localctx)->VStr = match(ExtendedDiracParser::STR);
-      setState(130);
+      setState(128);
       match(ExtendedDiracParser::RIGHT_ANGLE_BRACKET);
       break;
     }
@@ -1163,44 +1170,44 @@ ExtendedDiracParser::ComplexContext* ExtendedDiracParser::complex(int precedence
   try {
     size_t alt;
     enterOuterAlt(_localctx, 1);
-    setState(148);
+    setState(146);
     _errHandler->sync(this);
     switch (getInterpreter<atn::ParserATNSimulator>()->adaptivePredict(_input, 11, _ctx)) {
     case 1: {
-      setState(135);
+      setState(133);
       antlrcpp::downCast<ComplexContext *>(_localctx)->sub = match(ExtendedDiracParser::SUB);
-      setState(136);
+      setState(134);
       complex(6);
       break;
     }
 
     case 2: {
-      setState(137);
+      setState(135);
       match(ExtendedDiracParser::LEFT_PARENTHESIS);
-      setState(138);
+      setState(136);
       complex(0);
-      setState(139);
+      setState(137);
       match(ExtendedDiracParser::RIGHT_PARENTHESIS);
       break;
     }
 
     case 3: {
-      setState(141);
+      setState(139);
       antlrcpp::downCast<ComplexContext *>(_localctx)->func = match(ExtendedDiracParser::STR);
-      setState(142);
+      setState(140);
       match(ExtendedDiracParser::LEFT_PARENTHESIS);
-      setState(143);
+      setState(141);
       complex(0);
-      setState(144);
+      setState(142);
       match(ExtendedDiracParser::RIGHT_PARENTHESIS);
-      setState(145);
+      setState(143);
 
       if (!( (antlrcpp::downCast<ComplexContext *>(_localctx)->func != nullptr ? antlrcpp::downCast<ComplexContext *>(_localctx)->func->getText() : "") == "real" || (antlrcpp::downCast<ComplexContext *>(_localctx)->func != nullptr ? antlrcpp::downCast<ComplexContext *>(_localctx)->func->getText() : "") == "imag" || (antlrcpp::downCast<ComplexContext *>(_localctx)->func != nullptr ? antlrcpp::downCast<ComplexContext *>(_localctx)->func->getText() : "") == "eipi" || (antlrcpp::downCast<ComplexContext *>(_localctx)->func != nullptr ? antlrcpp::downCast<ComplexContext *>(_localctx)->func->getText() : "") == "ei2pi" )) throw FailedPredicateException(this, " $func.text == \"real\" || $func.text == \"imag\" || $func.text == \"eipi\" || $func.text == \"ei2pi\" ");
       break;
     }
 
     case 4: {
-      setState(147);
+      setState(145);
       antlrcpp::downCast<ComplexContext *>(_localctx)->var = match(ExtendedDiracParser::STR);
       break;
     }
@@ -1209,7 +1216,7 @@ ExtendedDiracParser::ComplexContext* ExtendedDiracParser::complex(int precedence
       break;
     }
     _ctx->stop = _input->LT(-1);
-    setState(162);
+    setState(160);
     _errHandler->sync(this);
     alt = getInterpreter<atn::ParserATNSimulator>()->adaptivePredict(_input, 13, _ctx);
     while (alt != 2 && alt != atn::ATN::INVALID_ALT_NUMBER) {
@@ -1217,16 +1224,16 @@ ExtendedDiracParser::ComplexContext* ExtendedDiracParser::complex(int precedence
         if (!_parseListeners.empty())
           triggerExitRuleEvent();
         previousContext = _localctx;
-        setState(160);
+        setState(158);
         _errHandler->sync(this);
         switch (getInterpreter<atn::ParserATNSimulator>()->adaptivePredict(_input, 12, _ctx)) {
         case 1: {
           _localctx = _tracker.createInstance<ComplexContext>(parentContext, parentState);
           pushNewRecursionContext(_localctx, startState, RuleComplex);
-          setState(150);
+          setState(148);
 
           if (!(precpred(_ctx, 5))) throw FailedPredicateException(this, "precpred(_ctx, 5)");
-          setState(151);
+          setState(149);
           antlrcpp::downCast<ComplexContext *>(_localctx)->op = _input->LT(1);
           _la = _input->LA(1);
           if (!(_la == ExtendedDiracParser::DIV
@@ -1238,7 +1245,7 @@ ExtendedDiracParser::ComplexContext* ExtendedDiracParser::complex(int precedence
             _errHandler->reportMatch(this);
             consume();
           }
-          setState(152);
+          setState(150);
           complex(6);
           break;
         }
@@ -1246,10 +1253,10 @@ ExtendedDiracParser::ComplexContext* ExtendedDiracParser::complex(int precedence
         case 2: {
           _localctx = _tracker.createInstance<ComplexContext>(parentContext, parentState);
           pushNewRecursionContext(_localctx, startState, RuleComplex);
-          setState(153);
+          setState(151);
 
           if (!(precpred(_ctx, 4))) throw FailedPredicateException(this, "precpred(_ctx, 4)");
-          setState(154);
+          setState(152);
           antlrcpp::downCast<ComplexContext *>(_localctx)->op = _input->LT(1);
           _la = _input->LA(1);
           if (!(_la == ExtendedDiracParser::ADD
@@ -1261,7 +1268,7 @@ ExtendedDiracParser::ComplexContext* ExtendedDiracParser::complex(int precedence
             _errHandler->reportMatch(this);
             consume();
           }
-          setState(155);
+          setState(153);
           complex(5);
           break;
         }
@@ -1269,16 +1276,16 @@ ExtendedDiracParser::ComplexContext* ExtendedDiracParser::complex(int precedence
         case 3: {
           _localctx = _tracker.createInstance<ComplexContext>(parentContext, parentState);
           pushNewRecursionContext(_localctx, startState, RuleComplex);
-          setState(156);
+          setState(154);
 
           if (!(precpred(_ctx, 7))) throw FailedPredicateException(this, "precpred(_ctx, 7)");
-          setState(157);
+          setState(155);
           match(ExtendedDiracParser::POWER);
-          setState(158);
+          setState(156);
           antlrcpp::downCast<ComplexContext *>(_localctx)->n = match(ExtendedDiracParser::STR);
-          setState(159);
+          setState(157);
 
-          if (!( isNonZero((antlrcpp::downCast<ComplexContext *>(_localctx)->n != nullptr ? antlrcpp::downCast<ComplexContext *>(_localctx)->n->getText() : "")) )) throw FailedPredicateException(this, " isNonZero($n.text) ");
+          if (!( areAllDigits((antlrcpp::downCast<ComplexContext *>(_localctx)->n != nullptr ? antlrcpp::downCast<ComplexContext *>(_localctx)->n->getText() : "")) )) throw FailedPredicateException(this, " areAllDigits($n.text) ");
           break;
         }
 
@@ -1286,7 +1293,7 @@ ExtendedDiracParser::ComplexContext* ExtendedDiracParser::complex(int precedence
           break;
         } 
       }
-      setState(164);
+      setState(162);
       _errHandler->sync(this);
       alt = getInterpreter<atn::ParserATNSimulator>()->adaptivePredict(_input, 13, _ctx);
     }
@@ -1296,123 +1303,6 @@ ExtendedDiracParser::ComplexContext* ExtendedDiracParser::complex(int precedence
     _localctx->exception = std::current_exception();
     _errHandler->recover(this, _localctx->exception);
   }
-  return _localctx;
-}
-
-//----------------- AngleContext ------------------------------------------------------------------
-
-ExtendedDiracParser::AngleContext::AngleContext(ParserRuleContext *parent, size_t invokingState)
-  : ParserRuleContext(parent, invokingState) {
-}
-
-tree::TerminalNode* ExtendedDiracParser::AngleContext::DIV() {
-  return getToken(ExtendedDiracParser::DIV, 0);
-}
-
-std::vector<tree::TerminalNode *> ExtendedDiracParser::AngleContext::STR() {
-  return getTokens(ExtendedDiracParser::STR);
-}
-
-tree::TerminalNode* ExtendedDiracParser::AngleContext::STR(size_t i) {
-  return getToken(ExtendedDiracParser::STR, i);
-}
-
-tree::TerminalNode* ExtendedDiracParser::AngleContext::SUB() {
-  return getToken(ExtendedDiracParser::SUB, 0);
-}
-
-
-size_t ExtendedDiracParser::AngleContext::getRuleIndex() const {
-  return ExtendedDiracParser::RuleAngle;
-}
-
-void ExtendedDiracParser::AngleContext::enterRule(tree::ParseTreeListener *listener) {
-  auto parserListener = dynamic_cast<ExtendedDiracParserListener *>(listener);
-  if (parserListener != nullptr)
-    parserListener->enterAngle(this);
-}
-
-void ExtendedDiracParser::AngleContext::exitRule(tree::ParseTreeListener *listener) {
-  auto parserListener = dynamic_cast<ExtendedDiracParserListener *>(listener);
-  if (parserListener != nullptr)
-    parserListener->exitAngle(this);
-}
-
-
-std::any ExtendedDiracParser::AngleContext::accept(tree::ParseTreeVisitor *visitor) {
-  if (auto parserVisitor = dynamic_cast<ExtendedDiracParserVisitor*>(visitor))
-    return parserVisitor->visitAngle(this);
-  else
-    return visitor->visitChildren(this);
-}
-
-ExtendedDiracParser::AngleContext* ExtendedDiracParser::angle() {
-  AngleContext *_localctx = _tracker.createInstance<AngleContext>(_ctx, getState());
-  enterRule(_localctx, 16, ExtendedDiracParser::RuleAngle);
-  size_t _la = 0;
-
-#if __cplusplus > 201703L
-  auto onExit = finally([=, this] {
-#else
-  auto onExit = finally([=] {
-#endif
-    exitRule();
-  });
-  try {
-    setState(177);
-    _errHandler->sync(this);
-    switch (getInterpreter<atn::ParserATNSimulator>()->adaptivePredict(_input, 16, _ctx)) {
-    case 1: {
-      enterOuterAlt(_localctx, 1);
-      setState(166);
-      _errHandler->sync(this);
-
-      _la = _input->LA(1);
-      if (_la == ExtendedDiracParser::SUB) {
-        setState(165);
-        match(ExtendedDiracParser::SUB);
-      }
-      setState(168);
-      antlrcpp::downCast<AngleContext *>(_localctx)->x = match(ExtendedDiracParser::STR);
-      setState(169);
-      match(ExtendedDiracParser::DIV);
-      setState(170);
-      antlrcpp::downCast<AngleContext *>(_localctx)->y = match(ExtendedDiracParser::STR);
-      setState(171);
-
-      if (!( areAllDigits((antlrcpp::downCast<AngleContext *>(_localctx)->x != nullptr ? antlrcpp::downCast<AngleContext *>(_localctx)->x->getText() : "")) && isNonZero((antlrcpp::downCast<AngleContext *>(_localctx)->y != nullptr ? antlrcpp::downCast<AngleContext *>(_localctx)->y->getText() : "")) )) throw FailedPredicateException(this, " areAllDigits($x.text) && isNonZero($y.text) ");
-      break;
-    }
-
-    case 2: {
-      enterOuterAlt(_localctx, 2);
-      setState(173);
-      _errHandler->sync(this);
-
-      _la = _input->LA(1);
-      if (_la == ExtendedDiracParser::SUB) {
-        setState(172);
-        match(ExtendedDiracParser::SUB);
-      }
-      setState(175);
-      antlrcpp::downCast<AngleContext *>(_localctx)->n = match(ExtendedDiracParser::STR);
-      setState(176);
-
-      if (!( areAllDigits((antlrcpp::downCast<AngleContext *>(_localctx)->n != nullptr ? antlrcpp::downCast<AngleContext *>(_localctx)->n->getText() : "")) )) throw FailedPredicateException(this, " areAllDigits($n.text) ");
-      break;
-    }
-
-    default:
-      break;
-    }
-   
-  }
-  catch (RecognitionException &e) {
-    _errHandler->reportError(this, e);
-    _localctx->exception = std::current_exception();
-    _errHandler->recover(this, _localctx->exception);
-  }
-
   return _localctx;
 }
 
@@ -1470,8 +1360,8 @@ ExtendedDiracParser::VarconsContext* ExtendedDiracParser::varcons(int precedence
   ExtendedDiracParser::VarconsContext *_localctx = _tracker.createInstance<VarconsContext>(_ctx, parentState);
   ExtendedDiracParser::VarconsContext *previousContext = _localctx;
   (void)previousContext; // Silence compiler, in case the context is not used by generated code.
-  size_t startState = 18;
-  enterRecursionRule(_localctx, 18, ExtendedDiracParser::RuleVarcons, precedence);
+  size_t startState = 16;
+  enterRecursionRule(_localctx, 16, ExtendedDiracParser::RuleVarcons, precedence);
 
     
 
@@ -1485,12 +1375,12 @@ ExtendedDiracParser::VarconsContext* ExtendedDiracParser::varcons(int precedence
   try {
     size_t alt;
     enterOuterAlt(_localctx, 1);
-    setState(180);
+    setState(164);
     varcon();
     _ctx->stop = _input->LT(-1);
-    setState(187);
+    setState(171);
     _errHandler->sync(this);
-    alt = getInterpreter<atn::ParserATNSimulator>()->adaptivePredict(_input, 17, _ctx);
+    alt = getInterpreter<atn::ParserATNSimulator>()->adaptivePredict(_input, 14, _ctx);
     while (alt != 2 && alt != atn::ATN::INVALID_ALT_NUMBER) {
       if (alt == 1) {
         if (!_parseListeners.empty())
@@ -1498,17 +1388,17 @@ ExtendedDiracParser::VarconsContext* ExtendedDiracParser::varcons(int precedence
         previousContext = _localctx;
         _localctx = _tracker.createInstance<VarconsContext>(parentContext, parentState);
         pushNewRecursionContext(_localctx, startState, RuleVarcons);
-        setState(182);
+        setState(166);
 
         if (!(precpred(_ctx, 1))) throw FailedPredicateException(this, "precpred(_ctx, 1)");
-        setState(183);
+        setState(167);
         match(ExtendedDiracParser::COMMA);
-        setState(184);
+        setState(168);
         varcon(); 
       }
-      setState(189);
+      setState(173);
       _errHandler->sync(this);
-      alt = getInterpreter<atn::ParserATNSimulator>()->adaptivePredict(_input, 17, _ctx);
+      alt = getInterpreter<atn::ParserATNSimulator>()->adaptivePredict(_input, 14, _ctx);
     }
   }
   catch (RecognitionException &e) {
@@ -1580,7 +1470,7 @@ std::any ExtendedDiracParser::VarconContext::accept(tree::ParseTreeVisitor *visi
 
 ExtendedDiracParser::VarconContext* ExtendedDiracParser::varcon() {
   VarconContext *_localctx = _tracker.createInstance<VarconContext>(_ctx, getState());
-  enterRule(_localctx, 20, ExtendedDiracParser::RuleVarcon);
+  enterRule(_localctx, 18, ExtendedDiracParser::RuleVarcon);
 
 #if __cplusplus > 201703L
   auto onExit = finally([=, this] {
@@ -1590,22 +1480,22 @@ ExtendedDiracParser::VarconContext* ExtendedDiracParser::varcon() {
     exitRule();
   });
   try {
-    setState(198);
+    setState(182);
     _errHandler->sync(this);
-    switch (getInterpreter<atn::ParserATNSimulator>()->adaptivePredict(_input, 18, _ctx)) {
+    switch (getInterpreter<atn::ParserATNSimulator>()->adaptivePredict(_input, 15, _ctx)) {
     case 1: {
       enterOuterAlt(_localctx, 1);
-      setState(190);
+      setState(174);
       match(ExtendedDiracParser::BAR);
-      setState(191);
+      setState(175);
       antlrcpp::downCast<VarconContext *>(_localctx)->V = match(ExtendedDiracParser::STR);
-      setState(192);
+      setState(176);
       match(ExtendedDiracParser::BAR);
-      setState(193);
+      setState(177);
       match(ExtendedDiracParser::EQ);
-      setState(194);
+      setState(178);
       antlrcpp::downCast<VarconContext *>(_localctx)->N = match(ExtendedDiracParser::STR);
-      setState(195);
+      setState(179);
 
       if (!( isALowercaseLetter((antlrcpp::downCast<VarconContext *>(_localctx)->V != nullptr ? antlrcpp::downCast<VarconContext *>(_localctx)->V->getText() : "")) && isNonZero((antlrcpp::downCast<VarconContext *>(_localctx)->N != nullptr ? antlrcpp::downCast<VarconContext *>(_localctx)->N->getText() : "")) )) throw FailedPredicateException(this, " isALowercaseLetter($V.text) && isNonZero($N.text) ");
       break;
@@ -1613,14 +1503,14 @@ ExtendedDiracParser::VarconContext* ExtendedDiracParser::varcon() {
 
     case 2: {
       enterOuterAlt(_localctx, 2);
-      setState(196);
+      setState(180);
       eq();
       break;
     }
 
     case 3: {
       enterOuterAlt(_localctx, 3);
-      setState(197);
+      setState(181);
       ineq();
       break;
     }
@@ -1684,7 +1574,7 @@ std::any ExtendedDiracParser::EqContext::accept(tree::ParseTreeVisitor *visitor)
 
 ExtendedDiracParser::EqContext* ExtendedDiracParser::eq() {
   EqContext *_localctx = _tracker.createInstance<EqContext>(_ctx, getState());
-  enterRule(_localctx, 22, ExtendedDiracParser::RuleEq);
+  enterRule(_localctx, 20, ExtendedDiracParser::RuleEq);
 
 #if __cplusplus > 201703L
   auto onExit = finally([=, this] {
@@ -1695,11 +1585,11 @@ ExtendedDiracParser::EqContext* ExtendedDiracParser::eq() {
   });
   try {
     enterOuterAlt(_localctx, 1);
-    setState(200);
+    setState(184);
     complex(0);
-    setState(201);
+    setState(185);
     match(ExtendedDiracParser::EQ);
-    setState(202);
+    setState(186);
     complex(0);
    
   }
@@ -1757,7 +1647,7 @@ std::any ExtendedDiracParser::IneqContext::accept(tree::ParseTreeVisitor *visito
 
 ExtendedDiracParser::IneqContext* ExtendedDiracParser::ineq() {
   IneqContext *_localctx = _tracker.createInstance<IneqContext>(_ctx, getState());
-  enterRule(_localctx, 24, ExtendedDiracParser::RuleIneq);
+  enterRule(_localctx, 22, ExtendedDiracParser::RuleIneq);
 
 #if __cplusplus > 201703L
   auto onExit = finally([=, this] {
@@ -1768,11 +1658,11 @@ ExtendedDiracParser::IneqContext* ExtendedDiracParser::ineq() {
   });
   try {
     enterOuterAlt(_localctx, 1);
-    setState(204);
+    setState(188);
     complex(0);
-    setState(205);
+    setState(189);
     match(ExtendedDiracParser::NE);
-    setState(206);
+    setState(190);
     complex(0);
    
   }
@@ -1887,8 +1777,8 @@ ExtendedDiracParser::PredicateContext* ExtendedDiracParser::predicate(int preced
   ExtendedDiracParser::PredicateContext *_localctx = _tracker.createInstance<PredicateContext>(_ctx, parentState);
   ExtendedDiracParser::PredicateContext *previousContext = _localctx;
   (void)previousContext; // Silence compiler, in case the context is not used by generated code.
-  size_t startState = 26;
-  enterRecursionRule(_localctx, 26, ExtendedDiracParser::RulePredicate, precedence);
+  size_t startState = 24;
+  enterRecursionRule(_localctx, 24, ExtendedDiracParser::RulePredicate, precedence);
 
     
 
@@ -1902,75 +1792,75 @@ ExtendedDiracParser::PredicateContext* ExtendedDiracParser::predicate(int preced
   try {
     size_t alt;
     enterOuterAlt(_localctx, 1);
-    setState(233);
+    setState(217);
     _errHandler->sync(this);
-    switch (getInterpreter<atn::ParserATNSimulator>()->adaptivePredict(_input, 19, _ctx)) {
+    switch (getInterpreter<atn::ParserATNSimulator>()->adaptivePredict(_input, 16, _ctx)) {
     case 1: {
-      setState(209);
+      setState(193);
       eq();
       break;
     }
 
     case 2: {
-      setState(210);
+      setState(194);
       ineq();
       break;
     }
 
     case 3: {
-      setState(211);
+      setState(195);
       complex(0);
-      setState(212);
+      setState(196);
       match(ExtendedDiracParser::LESS_THAN);
-      setState(213);
+      setState(197);
       complex(0);
       break;
     }
 
     case 4: {
-      setState(215);
+      setState(199);
       complex(0);
-      setState(216);
+      setState(200);
       match(ExtendedDiracParser::LESS_EQUAL);
-      setState(217);
+      setState(201);
       complex(0);
       break;
     }
 
     case 5: {
-      setState(219);
+      setState(203);
       complex(0);
-      setState(220);
+      setState(204);
       match(ExtendedDiracParser::RIGHT_ANGLE_BRACKET);
-      setState(221);
+      setState(205);
       complex(0);
       break;
     }
 
     case 6: {
-      setState(223);
+      setState(207);
       complex(0);
-      setState(224);
+      setState(208);
       match(ExtendedDiracParser::GREATER_EQUAL);
-      setState(225);
+      setState(209);
       complex(0);
       break;
     }
 
     case 7: {
-      setState(227);
+      setState(211);
       match(ExtendedDiracParser::LOGICAL_NOT);
-      setState(228);
+      setState(212);
       predicate(4);
       break;
     }
 
     case 8: {
-      setState(229);
+      setState(213);
       match(ExtendedDiracParser::LEFT_PARENTHESIS);
-      setState(230);
+      setState(214);
       predicate(0);
-      setState(231);
+      setState(215);
       match(ExtendedDiracParser::RIGHT_PARENTHESIS);
       break;
     }
@@ -1979,26 +1869,26 @@ ExtendedDiracParser::PredicateContext* ExtendedDiracParser::predicate(int preced
       break;
     }
     _ctx->stop = _input->LT(-1);
-    setState(243);
+    setState(227);
     _errHandler->sync(this);
-    alt = getInterpreter<atn::ParserATNSimulator>()->adaptivePredict(_input, 21, _ctx);
+    alt = getInterpreter<atn::ParserATNSimulator>()->adaptivePredict(_input, 18, _ctx);
     while (alt != 2 && alt != atn::ATN::INVALID_ALT_NUMBER) {
       if (alt == 1) {
         if (!_parseListeners.empty())
           triggerExitRuleEvent();
         previousContext = _localctx;
-        setState(241);
+        setState(225);
         _errHandler->sync(this);
-        switch (getInterpreter<atn::ParserATNSimulator>()->adaptivePredict(_input, 20, _ctx)) {
+        switch (getInterpreter<atn::ParserATNSimulator>()->adaptivePredict(_input, 17, _ctx)) {
         case 1: {
           _localctx = _tracker.createInstance<PredicateContext>(parentContext, parentState);
           pushNewRecursionContext(_localctx, startState, RulePredicate);
-          setState(235);
+          setState(219);
 
           if (!(precpred(_ctx, 3))) throw FailedPredicateException(this, "precpred(_ctx, 3)");
-          setState(236);
+          setState(220);
           match(ExtendedDiracParser::LOGICAL_AND);
-          setState(237);
+          setState(221);
           predicate(4);
           break;
         }
@@ -2006,12 +1896,12 @@ ExtendedDiracParser::PredicateContext* ExtendedDiracParser::predicate(int preced
         case 2: {
           _localctx = _tracker.createInstance<PredicateContext>(parentContext, parentState);
           pushNewRecursionContext(_localctx, startState, RulePredicate);
-          setState(238);
+          setState(222);
 
           if (!(precpred(_ctx, 2))) throw FailedPredicateException(this, "precpred(_ctx, 2)");
-          setState(239);
+          setState(223);
           match(ExtendedDiracParser::LOGICAL_OR);
-          setState(240);
+          setState(224);
           predicate(3);
           break;
         }
@@ -2020,9 +1910,9 @@ ExtendedDiracParser::PredicateContext* ExtendedDiracParser::predicate(int preced
           break;
         } 
       }
-      setState(245);
+      setState(229);
       _errHandler->sync(this);
-      alt = getInterpreter<atn::ParserATNSimulator>()->adaptivePredict(_input, 21, _ctx);
+      alt = getInterpreter<atn::ParserATNSimulator>()->adaptivePredict(_input, 18, _ctx);
     }
   }
   catch (RecognitionException &e) {
@@ -2041,10 +1931,9 @@ bool ExtendedDiracParser::sempred(RuleContext *context, size_t ruleIndex, size_t
     case 4: return diracsSempred(antlrcpp::downCast<DiracsContext *>(context), predicateIndex);
     case 5: return diracSempred(antlrcpp::downCast<DiracContext *>(context), predicateIndex);
     case 7: return complexSempred(antlrcpp::downCast<ComplexContext *>(context), predicateIndex);
-    case 8: return angleSempred(antlrcpp::downCast<AngleContext *>(context), predicateIndex);
-    case 9: return varconsSempred(antlrcpp::downCast<VarconsContext *>(context), predicateIndex);
-    case 10: return varconSempred(antlrcpp::downCast<VarconContext *>(context), predicateIndex);
-    case 13: return predicateSempred(antlrcpp::downCast<PredicateContext *>(context), predicateIndex);
+    case 8: return varconsSempred(antlrcpp::downCast<VarconsContext *>(context), predicateIndex);
+    case 9: return varconSempred(antlrcpp::downCast<VarconContext *>(context), predicateIndex);
+    case 12: return predicateSempred(antlrcpp::downCast<PredicateContext *>(context), predicateIndex);
 
   default:
     break;
@@ -2109,18 +1998,7 @@ bool ExtendedDiracParser::complexSempred(ComplexContext *_localctx, size_t predi
     case 7: return precpred(_ctx, 5);
     case 8: return precpred(_ctx, 4);
     case 9: return precpred(_ctx, 7);
-    case 10: return  isNonZero((antlrcpp::downCast<ComplexContext *>(_localctx)->n != nullptr ? antlrcpp::downCast<ComplexContext *>(_localctx)->n->getText() : "")) ;
-
-  default:
-    break;
-  }
-  return true;
-}
-
-bool ExtendedDiracParser::angleSempred(AngleContext *_localctx, size_t predicateIndex) {
-  switch (predicateIndex) {
-    case 11: return  areAllDigits((antlrcpp::downCast<AngleContext *>(_localctx)->x != nullptr ? antlrcpp::downCast<AngleContext *>(_localctx)->x->getText() : "")) && isNonZero((antlrcpp::downCast<AngleContext *>(_localctx)->y != nullptr ? antlrcpp::downCast<AngleContext *>(_localctx)->y->getText() : "")) ;
-    case 12: return  areAllDigits((antlrcpp::downCast<AngleContext *>(_localctx)->n != nullptr ? antlrcpp::downCast<AngleContext *>(_localctx)->n->getText() : "")) ;
+    case 10: return  areAllDigits((antlrcpp::downCast<ComplexContext *>(_localctx)->n != nullptr ? antlrcpp::downCast<ComplexContext *>(_localctx)->n->getText() : "")) ;
 
   default:
     break;
@@ -2130,7 +2008,7 @@ bool ExtendedDiracParser::angleSempred(AngleContext *_localctx, size_t predicate
 
 bool ExtendedDiracParser::varconsSempred(VarconsContext *_localctx, size_t predicateIndex) {
   switch (predicateIndex) {
-    case 13: return precpred(_ctx, 1);
+    case 11: return precpred(_ctx, 1);
 
   default:
     break;
@@ -2140,7 +2018,7 @@ bool ExtendedDiracParser::varconsSempred(VarconsContext *_localctx, size_t predi
 
 bool ExtendedDiracParser::varconSempred(VarconContext *_localctx, size_t predicateIndex) {
   switch (predicateIndex) {
-    case 14: return  isALowercaseLetter((antlrcpp::downCast<VarconContext *>(_localctx)->V != nullptr ? antlrcpp::downCast<VarconContext *>(_localctx)->V->getText() : "")) && isNonZero((antlrcpp::downCast<VarconContext *>(_localctx)->N != nullptr ? antlrcpp::downCast<VarconContext *>(_localctx)->N->getText() : "")) ;
+    case 12: return  isALowercaseLetter((antlrcpp::downCast<VarconContext *>(_localctx)->V != nullptr ? antlrcpp::downCast<VarconContext *>(_localctx)->V->getText() : "")) && isNonZero((antlrcpp::downCast<VarconContext *>(_localctx)->N != nullptr ? antlrcpp::downCast<VarconContext *>(_localctx)->N->getText() : "")) ;
 
   default:
     break;
@@ -2150,8 +2028,8 @@ bool ExtendedDiracParser::varconSempred(VarconContext *_localctx, size_t predica
 
 bool ExtendedDiracParser::predicateSempred(PredicateContext *_localctx, size_t predicateIndex) {
   switch (predicateIndex) {
-    case 15: return precpred(_ctx, 3);
-    case 16: return precpred(_ctx, 2);
+    case 13: return precpred(_ctx, 3);
+    case 14: return precpred(_ctx, 2);
 
   default:
     break;

@@ -47,10 +47,6 @@ public:
     return visitChildren(ctx);
   }
 
-  virtual std::any visitAngle(ExtendedDiracParser::AngleContext *ctx) override {
-    return visitChildren(ctx);
-  }
-
   virtual std::any visitVarcons(ExtendedDiracParser::VarconsContext *ctx) override {
     return visitChildren(ctx);
   }

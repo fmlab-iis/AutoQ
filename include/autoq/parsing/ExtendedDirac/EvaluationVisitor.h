@@ -646,7 +646,7 @@ private:
                 }
                 return result;
             }
-            if (ctx->PROD() != nullptr) return std::any_cast<std::string>(visit(ctx->tset(0))) + " ⊗ " + std::any_cast<std::string>(visit(ctx->tset(1)));
+            if (ctx->MUL() != nullptr || ctx->PROD() != nullptr) return std::any_cast<std::string>(visit(ctx->tset(0))) + " ⊗ " + std::any_cast<std::string>(visit(ctx->tset(1)));
             THROW_AUTOQ_ERROR("Undefined grammar for tset!");
         } else if (mode == SPLIT_TENSORED_EXPRESSION_INTO_VECTOR_OF_SETS_WITHOUT_TENSOR) {
             if (ctx->scset() != nullptr) { // Notice that in this base case, we don't continue to visit, so we don't have to deal with this mode in the following nonterminals.
@@ -654,7 +654,7 @@ private:
                 result.push_back(ctx->scset()->getText());
                 return result;
             }
-            if (ctx->PROD() != nullptr) {
+            if (ctx->MUL() != nullptr || ctx->PROD() != nullptr) {
                 auto vec0 = std::any_cast<std::vector<std::string>>(visit(ctx->tset(0)));
                 auto vec1 = std::any_cast<std::vector<std::string>>(visit(ctx->tset(1)));
                 vec0.insert(vec0.end(), vec1.begin(), vec1.end());
@@ -670,7 +670,7 @@ private:
                 return segment2strs;
             } else if (ctx->POWER() != nullptr) {
                 THROW_AUTOQ_ERROR("Should not appear after EXPAND_POWER_AND_DIRACS_AND_REWRITE_COMPLEMENT!");
-            } else if (ctx->PROD() != nullptr) { // RULE: set op=PROD set
+            } else if (ctx->MUL() != nullptr || ctx->PROD() != nullptr) { // RULE: set op=PROD set
                 auto vec0 = std::any_cast<segment2strs_t>(visit(ctx->tset(0)));
                 auto vec1 = std::any_cast<segment2strs_t>(visit(ctx->tset(1)));
                 vec0.insert(vec0.end(), vec1.begin(), vec1.end());
@@ -710,7 +710,7 @@ private:
             //         result += " ; " + std::any_cast<std::string>(visit(ctx->set(3)));
             //     }
             //     return result;
-            } else if (ctx->PROD() != nullptr) {
+            } else if (ctx->MUL() != nullptr || ctx->PROD() != nullptr) {
                 std::string str0 = std::any_cast<std::string>(visit(ctx->tset(0)));
                 std::string str1 = std::any_cast<std::string>(visit(ctx->tset(1)));
                 return str0 + " ⊗ " + str1;
@@ -740,7 +740,7 @@ private:
             //     result.push_back(sortedConnectedComponent(graph1));
             //     return result;
             // }
-            if (ctx->PROD() != nullptr) {
+            if (ctx->MUL() != nullptr || ctx->PROD() != nullptr) {
                 auto vec0 = std::any_cast<segment2perm_t>(visit(ctx->tset(0)));
                 auto vec1 = std::any_cast<segment2perm_t>(visit(ctx->tset(1)));
                 vec0.insert(vec0.end(), vec1.begin(), vec1.end());
@@ -761,7 +761,7 @@ private:
             //     auto res2 = std::any_cast<std::string>(visit(ctx->set(1)));
             //     return res1 + " ; " + res2;
             // }
-            if (ctx->PROD() != nullptr) {
+            if (ctx->MUL() != nullptr || ctx->PROD() != nullptr) {
                 std::string str0 = std::any_cast<std::string>(visit(ctx->tset(0)));
                 std::string str1 = std::any_cast<std::string>(visit(ctx->tset(1)));
                 return str0 + " ⊗ " + str1;
@@ -787,7 +787,7 @@ private:
             //     predicateConstraints = predicateConstraints_tmp;
             //     return std::make_pair(aut0, aut1);
             // }
-            if (ctx->PROD() != nullptr) {
+            if (ctx->MUL() != nullptr || ctx->PROD() != nullptr) {
                 auto autVec0 = std::any_cast<std::vector<AUTOQ::Automata<Symbol>>>(visit(ctx->tset(0)));
                 auto autVec1 = std::any_cast<std::vector<AUTOQ::Automata<Symbol>>>(visit(ctx->tset(1)));
                 if (autVec0.size() != 1 || autVec1.size() != 1) {
@@ -807,7 +807,7 @@ private:
                 auto aut = std::any_cast<AUTOQ::Automata<AUTOQ::Symbol::Constrained>>(visit(ctx->scset()));
                 return aut;
             }
-            if (ctx->PROD() != nullptr) {
+            if (ctx->MUL() != nullptr || ctx->PROD() != nullptr) {
                 auto aut0 = std::any_cast<AUTOQ::Automata<AUTOQ::Symbol::Constrained>>(visit(ctx->tset(0)));
                 auto aut1 = std::any_cast<AUTOQ::Automata<AUTOQ::Symbol::Constrained>>(visit(ctx->tset(1)));
                 return aut0 * aut1;
@@ -1942,15 +1942,15 @@ private:
         }
     }
 
-    std::any visitAngle(ExtendedDiracParser::AngleContext *ctx) override {
-        if (ctx->n != nullptr) {
-            return 0; // ei2pi(2*pi*n) = ei2pi(0)
-        } else if (ctx->SUB() == nullptr) {
-            return boost::rational<boost::multiprecision::cpp_int>(std::stoi(ctx->x->getText()), std::stoi(ctx->y->getText()));
-        } else {
-            return boost::rational<boost::multiprecision::cpp_int>(-std::stoi(ctx->x->getText()), std::stoi(ctx->y->getText()));
-        }
-    }
+    // std::any visitAngle(ExtendedDiracParser::AngleContext *ctx) override {
+    //     if (ctx->n != nullptr) {
+    //         return 0; // ei2pi(2*pi*n) = ei2pi(0)
+    //     } else if (ctx->SUB() == nullptr) {
+    //         return boost::rational<boost::multiprecision::cpp_int>(std::stoi(ctx->x->getText()), std::stoi(ctx->y->getText()));
+    //     } else {
+    //         return boost::rational<boost::multiprecision::cpp_int>(-std::stoi(ctx->x->getText()), std::stoi(ctx->y->getText()));
+    //     }
+    // }
 
     std::any visitPredicate(ExtendedDiracParser::PredicateContext *ctx) override {
         if (ctx->eq() != nullptr) return visit(ctx->eq());
