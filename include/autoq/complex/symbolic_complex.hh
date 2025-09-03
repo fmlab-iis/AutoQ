@@ -14,8 +14,9 @@ namespace AUTOQ {
 	}
 }
 
+// It is used for recording something like a^3 * b^2.
 struct AUTOQ::Complex::Term : std::map<std::string, boost::multiprecision::cpp_int> {
-    Term operator+(Term o) const {
+    Term operator*(Term o) const {
         for (const auto &kv : *this) {
             o[kv.first] += kv.second;
             // if (o[kv.first] == 0)
@@ -23,19 +24,43 @@ struct AUTOQ::Complex::Term : std::map<std::string, boost::multiprecision::cpp_i
         }
         return o;
     }
+    static z3::expr mul(const std::vector<std::string> &v) {
+        z3::context ctx;
+        return mul(v, ctx);
+    }
+    static z3::expr mul(const std::vector<std::string> &v, z3::context &ctx) {
+        if (v.size() == 1) {
+            return ctx.real_const(v.at(0).c_str());
+        }
+        z3::expr_vector args(ctx);
+        for (const auto &var : v) {
+            args.push_back(ctx.real_const(var.c_str()));
+        }
+        assert(args.size() > 0);
+        z3::array<Z3_ast> _args(args);
+        Z3_ast r = Z3_mk_mul(ctx, _args.size(), _args.ptr());
+        ctx.check_error();
+        return z3::expr(ctx, r).simplify();
+    }
     std::string expand() const {
         z3::context ctx;
         return expand(ctx).to_string();
     }
     z3::expr expand(z3::context &ctx) const { // can only be used in (* ...)
         if (empty()) return ctx.real_val("1");
-        z3::expr_vector ev(ctx);
+        std::vector<std::string> vec;
         for (const auto &kv : *this) {
             const auto &s = kv.first;
             auto v = kv.second;
-            ev.push_back(ctx.real_const(s.c_str()) * ctx.real_val(v.str().c_str()));
+            if (v < 0) {
+                THROW_AUTOQ_ERROR("We do not support negative powers.");
+            }
+            while (v > 0) {
+                v--;
+                vec.push_back(s);
+            }
         }
-        z3::expr result = z3::sum(ev).simplify();
+        z3::expr result = mul(vec, ctx).simplify();
         return result;
     }
     friend std::ostream& operator<<(std::ostream& os, const Term& obj) {
@@ -90,7 +115,7 @@ struct AUTOQ::Complex::SymbolicComplex : std::map<Term, Complex> {
         std::set<Term> keys;
         for (const auto &kv1 : *this) {
             for (const auto &kv2 : o) {
-                auto key = kv1.first + kv2.first;
+                auto key = kv1.first * kv2.first;
                 keys.insert(key);
                 result[key] = result[key] + kv1.second * kv2.second;
             }
