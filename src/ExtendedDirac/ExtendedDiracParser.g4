@@ -33,8 +33,8 @@ options { tokenVocab=ExtendedDiracLexer; }
 //     | set SETMINUS set
 //     ;
 
-expr: tset
-    | tset SETMINUS tset;
+expr: tset EOF
+    | tset SETMINUS tset EOF;
 
 tset: scset
     | set POWER N=STR { isNonZero($N.text) }?

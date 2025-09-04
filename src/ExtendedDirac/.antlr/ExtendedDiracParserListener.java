@@ -27,6 +27,16 @@ public interface ExtendedDiracParserListener extends ParseTreeListener {
 	 */
 	void exitTset(ExtendedDiracParser.TsetContext ctx);
 	/**
+	 * Enter a parse tree produced by {@link ExtendedDiracParser#scset}.
+	 * @param ctx the parse tree
+	 */
+	void enterScset(ExtendedDiracParser.ScsetContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link ExtendedDiracParser#scset}.
+	 * @param ctx the parse tree
+	 */
+	void exitScset(ExtendedDiracParser.ScsetContext ctx);
+	/**
 	 * Enter a parse tree produced by {@link ExtendedDiracParser#set}.
 	 * @param ctx the parse tree
 	 */
@@ -67,6 +77,16 @@ public interface ExtendedDiracParserListener extends ParseTreeListener {
 	 */
 	void exitTerm(ExtendedDiracParser.TermContext ctx);
 	/**
+	 * Enter a parse tree produced by {@link ExtendedDiracParser#complex}.
+	 * @param ctx the parse tree
+	 */
+	void enterComplex(ExtendedDiracParser.ComplexContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link ExtendedDiracParser#complex}.
+	 * @param ctx the parse tree
+	 */
+	void exitComplex(ExtendedDiracParser.ComplexContext ctx);
+	/**
 	 * Enter a parse tree produced by {@link ExtendedDiracParser#varcons}.
 	 * @param ctx the parse tree
 	 */
@@ -87,6 +107,16 @@ public interface ExtendedDiracParserListener extends ParseTreeListener {
 	 */
 	void exitVarcon(ExtendedDiracParser.VarconContext ctx);
 	/**
+	 * Enter a parse tree produced by {@link ExtendedDiracParser#eq}.
+	 * @param ctx the parse tree
+	 */
+	void enterEq(ExtendedDiracParser.EqContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link ExtendedDiracParser#eq}.
+	 * @param ctx the parse tree
+	 */
+	void exitEq(ExtendedDiracParser.EqContext ctx);
+	/**
 	 * Enter a parse tree produced by {@link ExtendedDiracParser#ineq}.
 	 * @param ctx the parse tree
 	 */
@@ -96,4 +126,14 @@ public interface ExtendedDiracParserListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitIneq(ExtendedDiracParser.IneqContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link ExtendedDiracParser#predicate}.
+	 * @param ctx the parse tree
+	 */
+	void enterPredicate(ExtendedDiracParser.PredicateContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link ExtendedDiracParser#predicate}.
+	 * @param ctx the parse tree
+	 */
+	void exitPredicate(ExtendedDiracParser.PredicateContext ctx);
 }

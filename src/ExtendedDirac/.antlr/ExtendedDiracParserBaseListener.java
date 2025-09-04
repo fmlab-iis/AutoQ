@@ -40,6 +40,18 @@ public class ExtendedDiracParserBaseListener implements ExtendedDiracParserListe
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
+	@Override public void enterScset(ExtendedDiracParser.ScsetContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitScset(ExtendedDiracParser.ScsetContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
 	@Override public void enterSet(ExtendedDiracParser.SetContext ctx) { }
 	/**
 	 * {@inheritDoc}
@@ -88,6 +100,18 @@ public class ExtendedDiracParserBaseListener implements ExtendedDiracParserListe
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
+	@Override public void enterComplex(ExtendedDiracParser.ComplexContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitComplex(ExtendedDiracParser.ComplexContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
 	@Override public void enterVarcons(ExtendedDiracParser.VarconsContext ctx) { }
 	/**
 	 * {@inheritDoc}
@@ -112,6 +136,18 @@ public class ExtendedDiracParserBaseListener implements ExtendedDiracParserListe
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
+	@Override public void enterEq(ExtendedDiracParser.EqContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitEq(ExtendedDiracParser.EqContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
 	@Override public void enterIneq(ExtendedDiracParser.IneqContext ctx) { }
 	/**
 	 * {@inheritDoc}
@@ -119,6 +155,18 @@ public class ExtendedDiracParserBaseListener implements ExtendedDiracParserListe
 	 * <p>The default implementation does nothing.</p>
 	 */
 	@Override public void exitIneq(ExtendedDiracParser.IneqContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterPredicate(ExtendedDiracParser.PredicateContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitPredicate(ExtendedDiracParser.PredicateContext ctx) { }
 
 	/**
 	 * {@inheritDoc}

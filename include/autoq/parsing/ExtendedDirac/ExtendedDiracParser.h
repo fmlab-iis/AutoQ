@@ -80,6 +80,7 @@ public:
     virtual size_t getRuleIndex() const override;
     std::vector<TsetContext *> tset();
     TsetContext* tset(size_t i);
+    antlr4::tree::TerminalNode *EOF();
     antlr4::tree::TerminalNode *SETMINUS();
 
     virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
