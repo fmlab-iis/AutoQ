@@ -63,7 +63,7 @@ Usage: autoq ver [OPTIONS] pre.hsl circuit.qasm post.hsl
 
 Positionals:
   pre.hsl                     the precondition file
-  circuit.qasm                the OpenQASM 2.0 circuit file
+  circuit.qasm                the OpenQASM 2.0 or 3.0 circuit file
   post.hsl                    the postcondition file
 
 Options:
