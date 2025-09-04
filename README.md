@@ -47,6 +47,7 @@ Usage: autoq [OPTIONS] [SUBCOMMAND]
 
 Options:
   -h,--help                   Print this help message and exit.
+  -v,--version                Print the full Git commit hash ID.
 
 Subcommands:
   ex                          Execute a quantum circuit with a given precondition.

@@ -19,6 +19,7 @@
 #include <csignal>
 #include <fenv_darwin.h>
 #include <CLI11.hpp>
+#include <version.h>
 
 using namespace std;
 
@@ -182,10 +183,17 @@ try {
     CLI::App* print = app.add_subcommand("print", "Print the set of quantum states.");
     print->add_option("states.hsl", pre, "the automaton file")->required()->type_name("");
 
+    CLI::Option* version = app.add_flag("-v,--version", "Print the full Git commit hash ID.");
+
     // bool short_time = false, long_time = false;
     // app.add_flag("-t", short_time, "print times");
     // app.add_flag("--time", long_time, "print times");
     CLI11_PARSE(app, argc, argv); // Parse the command-line arguments
+
+    if (*version) {
+        std::cout << AUTOQ_GIT_SHA << std::endl;
+        return 0;
+    }
 
     auto start = chrono::steady_clock::now();
     // bool runConcrete; // or runSymbolic
