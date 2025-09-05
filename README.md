@@ -23,6 +23,8 @@ h qb[1];
 ```
 The program starts from an initial set of quantum states $\mathcal L(P)$. Immediately after executing each gate, AutoQ 2.0 computes the resulting transformation of the quantum states and stores it for use by the next gate. At the end of the quantum program, AutoQ 2.0 checks whether the set $\mathcal L(Q)$ contains the set $C(\mathcal L(P))$. In the above example, if we take the postcondition $Q_1$ such that $\mathcal L(Q_1) = C(\mathcal L(P))$, the verification passes. If we take another postcondition $Q_2$ such that there is some quantum state $\ket{10}/\sqrt2 + \ket{00}/\sqrt2 \in C(\mathcal L(P))$ but $\not\in \mathcal L(Q_2)$, the verification fails.
 
+Please see the introductory [video](https://www.youtube.com/watch?v=1pO6bBvEaLM) for more examples on its usage.
+
 ---
 
 ## Installation and Compilation
