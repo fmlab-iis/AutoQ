@@ -1,7 +1,5 @@
 Constants
-aH := -251 / (sqrt2 ^ 16)
-aL := 13 / (sqrt2 ^ 16)
-Variable Order
-1 2 4 6 3 5 7 8
+aH := 251 / (sqrt2 ^ 16)
+aL := -13 / (sqrt2 ^ 16)
 Extended Dirac
-aH |0101> + aL |*> # |0001>
+{aH |0101001> + aL ∑ |i|=4, i≠0101 |i001>}

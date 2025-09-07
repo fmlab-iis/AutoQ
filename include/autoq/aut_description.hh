@@ -19,6 +19,7 @@
 #include "autoq/symbol/symbolic.hh"
 #include "autoq/symbol/predicate.hh"
 #include "autoq/symbol/index.hh"
+#include "autoq/symbol/constrained.hh"
 
 namespace AUTOQ
 {
@@ -34,13 +35,14 @@ namespace AUTOQ
     typedef Automata<Symbol::Symbolic> SymbolicAutomata;
     typedef Automata<Symbol::Predicate> PredicateAutomata;
     typedef Automata<Symbol::Index> IndexAutomata;
-    typedef struct regexes{
+    typedef Automata<Symbol::Constrained> ConstrainedAutomata;
+    typedef struct regexes {
         const std::regex rx;
         const std::regex rz;
         const std::regex digit;
         const std::regex loop;
         regexes() : rx(R"(rx\((.+)\).+\[(\d+)\];)"), rz(R"(rz\((.+)\).+\[(\d+)\];)"), digit("\\d+"), loop(R"(for int (\w+) in \[(\d+):(\d+)\])") {}
-    }regexes;
+    } regexes;
 }
 
 template <typename T> constexpr auto support_fraction_simplification = requires (T x) {
@@ -50,7 +52,7 @@ template <typename T> constexpr auto support_fraction_simplification = requires 
 template <typename TT>
 struct AUTOQ::Automata
 {
-public:   // data types
+// data types
     typedef int64_t State; // TODO: will make the program slightly slower. We wish to make another dynamic type.
 	typedef std::vector<State> StateVector;
 	typedef std::set<State> StateSet;
@@ -103,8 +105,8 @@ public:   // data types
     typedef std::map<SymbolTag, std::map<StateVector, StateSet>> BottomUpTransitions;
     typedef std::vector<std::map<Tag, std::map<State, std::set<StateVector>>>> InternalTopDownTransitions; // Keys range from 1 to qubit().
 
-public:   // data members
-	std::string name;
+// data members
+    std::string name;
     StateVector finalStates;
     State stateNum;
     int qubitNum;
@@ -122,10 +124,10 @@ public:   // data members
     inline static std::chrono::time_point<std::chrono::steady_clock> start_execute, stop_execute;
     /* Notice inline is very convenient for declaring and defining a static member variable together! */
 
-public:   // methods
-
-	Automata() :
-		name(),
+// methods
+    /****************************/
+	Automata() : // initialization
+        name(),
 		finalStates(),
         stateNum(0),
         qubitNum(0),
@@ -150,6 +152,9 @@ public:   // methods
 
 	/******************************************************/
     /* inclusion.cc: checks language inclusion of two TAs */
+    bool operator_scaled_inclusion_with_renaming(Automata o) const;
+    bool operator<<=(Automata o) const;
+    bool operator>>=(const Automata &o) const { return o <<= *this; }
     bool operator<=(const Automata &o) const;
     bool operator>=(const Automata &o) const { return o <= *this; }
 	bool operator==(const Automata &o) const { return (*this <= o) && (o <= *this); }
@@ -157,6 +162,7 @@ public:   // methods
     bool operator<(const Automata &o) const { return (*this <= o) && !(o <= *this); }
     bool operator>(const Automata &o) const { return o < *this; }
     // The above comparison is done after amplitude comparison.
+    bool empty() const;
     /******************************************************/
 
     /******************************************************************/
@@ -186,9 +192,8 @@ public:   // methods
     /* gate.cc: quantum gates abstraction */
 private:
     void General_Single_Qubit_Gate(int t, const std::function<Symbol(const Symbol&, const Symbol&)> &u1u2, const std::function<Symbol(const Symbol&, const Symbol&)> &u3u4);
-    void General_Controlled_Gate(int c, int t, const std::function<Symbol(const Symbol&, const Symbol&)> &u1u2, const std::function<Symbol(const Symbol&, const Symbol&)> &u3u4);
-    void General_Controlled_Gate(int c, int c2, int t, const std::function<Symbol(const Symbol&, const Symbol&)> &u1u2, const std::function<Symbol(const Symbol&, const Symbol&)> &u3u4);
-    void General_Controlled_Gate(std::set<int> cs, int t, const std::function<Symbol(const Symbol&, const Symbol&)> &u1u2, const std::function<Symbol(const Symbol&, const Symbol&)> &u3u4);
+    void General_Controlled_Gate(int c, int t, const std::function<Symbol(const Symbol&, const Symbol&)> &u1u2, const std::function<Symbol(const Symbol&, const Symbol&)> &u3u4, const std::function<Symbol(const Symbol&)> &multiply_by_c0 = ([](const Symbol &l) -> Symbol { return l; }));
+    void General_Controlled_Gate(int c, int c2, int t, const std::function<Symbol(const Symbol&, const Symbol&)> &u1u2, const std::function<Symbol(const Symbol&, const Symbol&)> &u3u4, const std::function<Symbol(const Symbol&)> &multiply_by_c0 = ([](const Symbol &l) -> Symbol { return l; }));
     void Diagonal_Gate(int t, const std::function<void(Symbol*)> &multiply_by_c0, const std::function<void(Symbol*)> &multiply_by_c1);
 public:
     void X(int t);
@@ -203,7 +208,6 @@ public:
     void CX(int c, int t, bool opt=true);
     void CZ(int c, int t);
     void CCX(int c, int c2, int t);
-    // void Fredkin(int c, int t, int t2);
     void randG(int G, int A, int B=0, int C=0);
     void Tdg(int t);
     void Sdg(int t);
@@ -211,6 +215,8 @@ public:
     void CX();
     void CX_inv();
     void Phase(const boost::rational<boost::multiprecision::cpp_int> &r);
+    void CK(int c, int t);
+    Automata measure(int t, bool outcome) const;
     /**************************************/
 
     /*******************************************/
@@ -220,6 +226,7 @@ public:
     static Automata prefix_basis(int n);
     static Automata random(int n);
     static Automata zero(int n);
+    static Automata zero_amplitude(int n);
     static Automata basis_zero_one_zero(int n);
     static Automata zero_zero_one_zero(int n);
     static Automata zero_one_zero(int n);
@@ -227,11 +234,10 @@ public:
 
     /****************************************************/
     /* execute.cc: the main function for gate execution */
-    void execute(const char *filename);
-    void execute(const std::string& filename);
-    void execute(const std::string& filename, ParameterMap &params);
-    void execute(const char *filename, ParameterMap &params);
-    void single_gate_execute(const std::string& line, const regexes &regexes, const std::sregex_iterator& END);
+    void single_gate_execute(const std::string& line, const regexes &regexes, const std::sregex_iterator& END, const std::vector<int> &qubit_permutation);
+    bool execute(const std::string &filename, std::vector<int> qubit_permutation={}, const std::vector<AUTOQ::Automata<Symbol>> &loopInvariants={}, ParameterMap params={});
+    bool execute(const char *filename, std::vector<int> qubit_permutation={}, const std::vector<AUTOQ::Automata<Symbol>> &loopInvariants={}, ParameterMap params={});
+    static std::string check_the_invariants_types(const std::string& filename);
     /****************************************************/
 
     /**************************************************/
@@ -251,7 +257,10 @@ public:
     #pragma GCC diagnostic push
     #pragma GCC diagnostic ignored "-Weffc++"
     Automata operator||(const Automata &o) const; // use the logical OR operator to denote "union"
+    Automata operator&&(const Automata &o) const; // use the logical AND operator to denote "intersection"
     #pragma GCC diagnostic pop
+    void SwapDown(int q);
+    void SwapUp(int q);
     /**************************************************/
 };
 
@@ -304,8 +313,16 @@ namespace std {
             return seed;
         }
     };
+    template <> struct hash<typename AUTOQ::ConstrainedAutomata::SymbolTag> {
+        size_t operator()(const AUTOQ::ConstrainedAutomata::SymbolTag& obj) const {
+            std::size_t seed = 0;
+            boost::hash_combine(seed, obj.first);
+            boost::hash_combine(seed, obj.second);
+            return seed;
+        }
+    };
 }
 
-bool operator<=(const AUTOQ::SymbolicAutomata &autA, const AUTOQ::PredicateAutomata &autB);
+// bool operator<=(const AUTOQ::SymbolicAutomata &autA, const AUTOQ::PredicateAutomata &autB);
 
 #endif

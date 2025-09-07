@@ -1,2 +1,4 @@
+Constants
+c1 := 1
 Extended Dirac
-\/|i|=217 : |i>
+{c1 |i> : |i|=217}

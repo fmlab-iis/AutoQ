@@ -52,9 +52,17 @@ private:
 	};
 
 	GCC_DIAG_OFF(effc++)
-	class Iterator : public std::iterator<std::input_iterator_tag, Key>
+	// std::iterator is deprecated in C++17, using traits as below
+	// class Iterator : public std::iterator<std::input_iterator_tag, Key>
+	class Iterator
 	{
 	GCC_DIAG_ON(effc++)
+
+	public: // iterator traits
+
+		using iterator_category = std::input_iterator_tag;
+		using value_type = Key;
+		using difference_type = std::ptrdiff_t;
 
 	private:
 

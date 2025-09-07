@@ -1,5 +1,6 @@
 cmake_minimum_required(VERSION 3.5...3.28)
 
+project(AutoQ)
 
 # 3rd party modules
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake/Modules/")
@@ -139,6 +140,9 @@ endif()
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -std=c++20")
 set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -std=c++20")
 
+set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -DCOMPLEX_FiveTuple")
+set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -DCOMPLEX_FiveTuple")
+
 ##############################################################################
 #                                 PROJECT
 ##############################################################################
@@ -155,13 +159,16 @@ include(CTest)
 
 # Boost
 set(Boost_USE_MULTITHREADED OFF)
-find_package(Boost 1.54.0 COMPONENTS
+find_package(Boost 1.71.0...1.89.0 CONFIG COMPONENTS # 1.89.0 is for macOS on GitHub CI
   filesystem
-  system
+#   system
   unit_test_framework
   REQUIRED)
+# IMPORTANT CHANGE: https://github.com/facebook/folly/issues/2489
+# Boost.System has been header-only since 1.69.
+# If someone increases minimum Boost to 1.71 then can just remove the system component.
 include_directories(${Boost_INCLUDE_DIRS})
-
+include_directories(../include/z3)
 
 # Doxygen - voluntary
 find_package(Doxygen)

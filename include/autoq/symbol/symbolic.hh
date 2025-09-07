@@ -5,7 +5,11 @@
 #include "autoq/util/convert.hh"
 #include "autoq/complex/symbolic_complex.hh"
 #include <boost/multiprecision/cpp_int.hpp>
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wold-style-cast"
 #include <boost/functional/hash.hpp>
+#pragma GCC diagnostic pop
 
 namespace AUTOQ {
 	namespace Symbol {
@@ -18,11 +22,12 @@ private:
     bool internal;
 public:
     AUTOQ::Complex::SymbolicComplex complex;
+    inline static std::map<std::pair<Symbolic, Symbolic>, Symbolic> mulmap;
 
     // Notice that if we do not use is_convertible_v, type int will not be accepted in this case.
     template <typename T, typename = std::enable_if_t<std::is_convertible<T, boost::multiprecision::cpp_int>::value>>
     Symbolic(T qubit) : internal(true), complex(AUTOQ::Complex::SymbolicComplex::MySymbolicComplexConstructor(qubit)) {}
-    Symbolic(const std::map<AUTOQ::Complex::Term, AUTOQ::Complex::Complex> &c) : internal(false), complex(Complex::SymbolicComplex::MySymbolicComplexConstructor(c)) {}
+    Symbolic(const std::map<AUTOQ::Complex::Term, AUTOQ::Complex::Complex> &c) : internal(false), complex(c) {}
     Symbolic(const AUTOQ::Complex::SymbolicComplex &c) : internal(false), complex(c) {}
     Symbolic() : internal(false), complex() {} // prevent the compiler from complaining about the lack of default constructor
     // Symbolic() : internal(false), complex({{Complex::Complex::Zero(), AUTOQ::Complex::linear_combination({{"1", 1}})}}) {} // prevent the compiler from complaining about the lack of default constructor
@@ -57,6 +62,14 @@ public:
         return Symbolic(complex - o.complex);
     }
     Symbolic operator*(const Symbolic &o) const {
+        if (!mulmap.empty()) {
+            auto it = mulmap.find(std::make_pair(*this, o));
+            if (it != mulmap.end()) {
+                return it->second;
+            }
+            // it = mulmap.find(std::make_pair(o, *this));
+            // if (it != mulmap.end()) return it->second;
+        }
         return Symbolic(complex * o.complex);
     }
     Symbolic operator*(int c) const {

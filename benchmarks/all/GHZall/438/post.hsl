@@ -1,3 +1,6 @@
+Constants
+cp := 1/sqrt2
+cn := -1/sqrt2
 Extended Dirac
-\/|i|=437 : 1/sqrt2 |0i> + 1/sqrt2 |1i'>
-\/|i|=437 : 1/sqrt2 |0i> - 1/sqrt2 |1i'>
+{cp |0i> + cp |1i'> : |i|=437} ∪
+{cp |0i> + cn |1i'> : |i|=437}

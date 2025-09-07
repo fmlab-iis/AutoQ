@@ -11,7 +11,7 @@
 
 template<typename Symbol>
 void execute_loop(std::vector<std::string>& loop_body, AUTOQ::Automata<Symbol>& aut, ParameterMap& params, const AUTOQ::regexes& regexes,
-                const std::sregex_iterator& END, std::smatch match_pieces);
+                const std::sregex_iterator& END, std::smatch match_pieces, const std::vector<int> &qubit_permutation);
 
 namespace std{
     template<>

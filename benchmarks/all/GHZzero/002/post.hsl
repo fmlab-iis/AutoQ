@@ -1,2 +1,4 @@
+Constants
+cp := 1/sqrt2
 Extended Dirac
-1/sqrt2 |00> + 1/sqrt2 |11>
+{cp |00> + cp |11>}

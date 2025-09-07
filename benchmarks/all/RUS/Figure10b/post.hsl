@@ -1,0 +1,4 @@
+Extended Dirac
+{(4+i)|10>,
+ (4-i)|11>,
+ (2*sqrt2 + i / sqrt2)|10> + (2*sqrt2 - i / sqrt2)|11>}

@@ -22,7 +22,7 @@ set(autoq_compiler_add_flags_list
   -Wold-style-cast
   -fdiagnostics-show-option
   # -march=native
-  -DCOMPLEX_nTuple
+  -DCOMPLEX_FiveTuple
 )
 
 foreach(param ${autoq_compiler_add_flags_list})
@@ -34,6 +34,8 @@ endforeach(param)
 #set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -pg")
 
 include_directories(../include)
+include_directories(../include/z3)
+include_directories(../include/antlr4-runtime)
 
 # generate the file with version names
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/version.cc.in

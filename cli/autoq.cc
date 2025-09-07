@@ -8,8 +8,7 @@
 #include <autoq/inclusion.hh>
 #include <autoq/util/util.hh>
 #include <autoq/util/string.hh>
-#include <autoq/util/types.hh>
-#include <autoq/complex/ntuple.hh>
+#include <autoq/parsing/ExtendedDirac/EvaluationVisitor.h>
 #include <autoq/complex/complex.hh>
 #include <sys/wait.h>
 #include <unistd.h>
@@ -20,6 +19,7 @@
 #include <csignal>
 #include <fenv_darwin.h>
 #include <CLI11.hpp>
+#include <version.h>
 
 using namespace std;
 
@@ -90,7 +90,7 @@ void adjust_N_in_nTuple(const std::string &filename) {
             } else if (angle != "0") {
                 THROW_AUTOQ_ERROR("The angle in rx gate is not a multiple of pi!");
             }
-            auto theta = ComplexParser(angle).getComplex().to_rational() / 2;
+            auto theta = EvaluationVisitor<>::ComplexParser(angle).getComplex().to_rational() / 2;
             if (AUTOQ::Complex::nTuple::N < static_cast<decltype(AUTOQ::Complex::nTuple::N)>(theta.denominator())) {
                 AUTOQ::Complex::nTuple::N = static_cast<decltype(AUTOQ::Complex::nTuple::N)>(theta.denominator());
             }
@@ -102,7 +102,7 @@ void adjust_N_in_nTuple(const std::string &filename) {
             } else if (angle != "0") {
                 THROW_AUTOQ_ERROR("The angle in rz gate is not a multiple of pi!");
             }
-            auto theta = ComplexParser(angle).getComplex().to_rational() / 2;
+            auto theta = EvaluationVisitor<>::ComplexParser(angle).getComplex().to_rational() / 2;
             if (AUTOQ::Complex::nTuple::N < static_cast<decltype(AUTOQ::Complex::nTuple::N)>(theta.denominator())) {
                 AUTOQ::Complex::nTuple::N = static_cast<decltype(AUTOQ::Complex::nTuple::N)>(theta.denominator());
             }
@@ -116,8 +116,9 @@ void adjust_N_in_nTuple(const std::string &filename) {
         } else if (line.find("PRINT_STATS") == 0) {
         } else if (line.find("PRINT_AUT") == 0) {
         } else if (line.find("STOP") == 0) {
-        } else if (line.length() > 0)
-            THROW_AUTOQ_ERROR("unsupported gate: " + line + ".");
+        }
+        // } else if (line.length() > 0)
+        //     THROW_AUTOQ_ERROR("unsupported gate: " + line + ".");
     }
     qasm.close();
     // AUTOQ_DEBUG(AUTOQ::Complex::nTuple::N);
@@ -150,16 +151,16 @@ void set_timeout(unsigned int seconds) {
 
 int main(int argc, char **argv) {
 try {
-    set_timeout(1800);
+    // set_timeout(600);
     feenableexcept(FE_ALL_EXCEPT & ~FE_INEXACT);
 
-    CLI::App app{"AutoQ: An automata-based C++ tool for quantum program verification."};
+    CLI::App app{"AutoQ 2.0: An automata-based C++ tool for quantum program verification."};
     std::string pre, circuit, post, circuit1, circuit2;
 
     bool summarize_loops = false;
     CLI::App* execution = app.add_subcommand("ex", "Execute a quantum circuit with a given precondition.");
-    execution->add_option("pre.{hsl|lsta}", pre, "the precondition file")->required()->type_name("");
-    execution->add_option("circuit.qasm", circuit, "the OpenQASM 2.0 circuit file")->required()->type_name("");
+    execution->add_option("pre.hsl", pre, "the precondition file")->required()->type_name("");
+    execution->add_option("circuit.qasm", circuit, "the OpenQASM 2.0 or 3.0 circuit file")->required()->type_name("");
     execution->add_flag("--loopsum", summarize_loops, "Summarize loops using symbolic execution");
     execution->callback([&]() {
         adjust_N_in_nTuple(circuit);
@@ -167,32 +168,39 @@ try {
 
     bool latex = false;
     CLI::App* verification = app.add_subcommand("ver", "Verify the execution result against a given postcondition.");
-    verification->add_option("pre.{hsl|lsta}", pre, "the precondition file")->required()->type_name("");
-    verification->add_option("circuit.qasm", circuit, "the OpenQASM 2.0 circuit file")->required()->type_name("");
-    verification->add_option("post.{hsl|lsta}", post, "the postcondition file")->required()->type_name("");
+    verification->add_option("pre.hsl", pre, "the precondition file")->required()->type_name("");
+    verification->add_option("circuit.qasm", circuit, "the OpenQASM 2.0 or 3.0 circuit file")->required()->type_name("");
+    verification->add_option("post.hsl", post, "the postcondition file")->required()->type_name("");
     verification->add_flag("--loopsum", summarize_loops, "Summarize loops using symbolic execution");
-    verification->add_flag("-l,--latex", latex, "Print the statistics for tables in LaTeX");
+    verification->add_flag("-l,--latex", latex, "Print the statistics for tables in LaTeX.");
     verification->callback([&]() {
         adjust_N_in_nTuple(circuit);
     });
 
     CLI::App* equivalence_checking = app.add_subcommand("eq", "Check equivalence of two given quantum circuits.");
-    equivalence_checking->add_option("circuit1.qasm", circuit1, "the OpenQASM 2.0 circuit file")->required()->type_name("");
-    equivalence_checking->add_option("circuit2.qasm", circuit2, "the OpenQASM 2.0 circuit file")->required()->type_name("");
+    equivalence_checking->add_option("circuit1.qasm", circuit1, "the OpenQASM 2.0 or 3.0 circuit file")->required()->type_name("");
+    equivalence_checking->add_option("circuit2.qasm", circuit2, "the OpenQASM 2.0 or 3.0 circuit file")->required()->type_name("");
     equivalence_checking->add_flag("--loopsum", summarize_loops, "Summarize loops using symbolic execution");
-    equivalence_checking->add_flag("-l,--latex", latex, "Print the statistics for tables in LaTeX");
+    equivalence_checking->add_flag("-l,--latex", latex, "Print the statistics for tables in LaTeX.");
     equivalence_checking->callback([&]() {
         adjust_N_in_nTuple(circuit1);
         adjust_N_in_nTuple(circuit2);
     });
 
     CLI::App* print = app.add_subcommand("print", "Print the set of quantum states.");
-    print->add_option("states.{hsl|lsta}", pre, "the automaton file")->required()->type_name("");
+    print->add_option("states.hsl", pre, "the automaton file")->required()->type_name("");
+
+    CLI::Option* version = app.add_flag("-v,--version", "Print the full Git commit hash ID.");
 
     // bool short_time = false, long_time = false;
     // app.add_flag("-t", short_time, "print times");
     // app.add_flag("--time", long_time, "print times");
     CLI11_PARSE(app, argc, argv); // Parse the command-line arguments
+
+    if (*version) {
+        std::cout << AUTOQ_GIT_SHA << std::endl;
+        return 0;
+    }
 
     auto start = chrono::steady_clock::now();
     // bool runConcrete; // or runSymbolic
@@ -204,62 +212,110 @@ try {
     }
     if (execution->parsed()) {
         // runConcrete = true;
-        auto aut2 = ReadAutomaton(pre);
-        auto aut = std::visit([](auto&& arg) -> std::variant<AUTOQ::TreeAutomata, AUTOQ::SymbolicAutomata> {
-            if constexpr (std::is_same_v<std::decay_t<decltype(arg)>, AUTOQ::PredicateAutomata>) {
-                THROW_AUTOQ_ERROR("Predicate amplitudes cannot be used in a precondition."); // Handle other types, e.g., fallback to a default value or throw an exception
-            } else {
-                return arg; // Directly return the value if it's one of the allowed types
+        auto aut1 = ReadAutomaton(pre);
+        if constexpr (std::is_same_v<std::decay_t<decltype(aut1)>, AUTOQ::PredicateAutomata>) {
+            THROW_AUTOQ_ERROR("Predicate amplitudes cannot be used in a precondition.");
+        }
+        if (std::holds_alternative<AUTOQ::SymbolicAutomata>(aut1) || AUTOQ::SymbolicAutomata::check_the_invariants_types(circuit) == "Symbolic") {
+            auto [autVec, qp] = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Symbolic>::ReadTwoAutomata(pre, pre, circuit);
+            auto aut = autVec.at(0);
+            autVec.erase(autVec.begin(), autVec.begin() + 2); // remove the first element
+            bool verify = aut.execute(circuit, qp, autVec, params);
+            if (!autVec.empty()) {
+                if (verify) std::cout << "[OK] The circuit execution satisfies the loop invariant." << std::endl;
+                else std::cout << "[ERROR] The circuit execution violates the loop invariant." << std::endl;
             }
-        }, aut2);
-
-        std::visit([&circuit, &params](auto& aut){
-            aut.execute(circuit, params);
-            aut.print_aut();
-        }, aut);
+            aut.print_language("OUTPUT:\n");
+        } else {
+            auto [autVec, qp] = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Concrete>::ReadTwoAutomata(pre, pre, circuit);
+            auto aut = autVec.at(0);
+            autVec.erase(autVec.begin(), autVec.begin() + 2); // remove the first element
+            bool verify = aut.execute(circuit, qp, autVec, params);
+            if (!autVec.empty()) {
+                if (verify) std::cout << "[OK] The circuit execution satisfies the loop invariant." << std::endl;
+                else std::cout << "[ERROR] The circuit execution violates the loop invariant." << std::endl;
+            }
+            aut.print_language("OUTPUT:\n");
+        }
     } else if (verification->parsed()) {
         // runConcrete = false;
         auto spec1 = ReadAutomaton(post);
-        if (std::holds_alternative<AUTOQ::SymbolicAutomata>(spec1)) {
-            THROW_AUTOQ_ERROR("The postcondition must have concrete or predicate amplitudes.");
-        } else if (std::holds_alternative<AUTOQ::PredicateAutomata>(spec1)) {
-            auto &spec = std::get<AUTOQ::PredicateAutomata>(spec1);
+        auto pre1 = ReadAutomaton(pre);
+        if (std::holds_alternative<AUTOQ::SymbolicAutomata>(spec1) || std::holds_alternative<AUTOQ::SymbolicAutomata>(pre1) || AUTOQ::SymbolicAutomata::check_the_invariants_types(circuit) == "Symbolic") {
+            // THROW_AUTOQ_ERROR("The postcondition must have concrete or predicate amplitudes.");
+        // } else if (std::holds_alternative<AUTOQ::PredicateAutomata>(spec1)) {
+            // auto &spec = std::get<AUTOQ::PredicateAutomata>(spec1);
+            // spec.print_aut("POST:\n");
+            // spec.print_language("POST:\n");
             auto aut1 = ReadAutomaton(pre);
             if (std::holds_alternative<AUTOQ::PredicateAutomata>(aut1)) {
                 THROW_AUTOQ_ERROR("Predicate amplitudes cannot be used in a precondition.");
             }
-            auto aut = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Symbolic>::ReadAutomaton(pre);
-            aut.execute(circuit, params);
+            // auto aut = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Symbolic>::ReadAutomaton(pre);
+            auto [autVec, qp] = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Symbolic, AUTOQ::Symbol::Symbolic>::ReadTwoAutomata(pre, post, circuit);
+            auto aut = autVec.at(0);
+            auto spec = autVec.at(1);
+            autVec.erase(autVec.begin(), autVec.begin() + 2); // remove the first two elements
+            // aut.print_aut("PRE:\n");
+            // aut.print_language("PRE:\n");
+            bool verify = aut.execute(circuit, qp, autVec, params);
             // std::cout << "OUTPUT AUTOMATON:\n";
             // std::cout << "=================\n";
-            // aut.print_aut();
+            // aut.print_aut("OUTPUT:\n");
+            // aut.print_language("OUTPUT:\n");
             // std::cout << "=================\n";
-            bool verify = aut <= spec;
+            verify &= (aut <<= spec);
+            // aut.print_language(); spec.print_language();
             if (latex) {
                 aut.print_stats();
             } else {
-                std::cout << "The quantum program has [" << aut.qubitNum << "] qubits and [" << AUTOQ::SymbolicAutomata::gateCount << "] gates.\nThe verification process [" << (verify ? "passed" : "failed") << "] in [" << AUTOQ::Util::Convert::toString(chrono::steady_clock::now() - start) << "] with [" << AUTOQ::Util::getPeakRSS() / 1024 / 1024 << "MB] memory usage.\n";
+                std::cout << "The quantum program has [" << aut.qubitNum << "] qubits and [" << AUTOQ::SymbolicAutomata::gateCount << "] gates. The verification process [" << (verify ? "OK" : "failed") << "] in [" << AUTOQ::Util::Convert::toString(chrono::steady_clock::now() - start) << "] with [" << AUTOQ::Util::getPeakRSS() / 1024 / 1024 << "MB] memory usage.\n";
             }
+        } else if (std::holds_alternative<AUTOQ::PredicateAutomata>(spec1)) {
+            THROW_AUTOQ_ERROR("PredicateAutomata as the postcondition are currently not supported.");
+            // auto &spec = std::get<AUTOQ::PredicateAutomata>(spec1);
+            // auto aut = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Symbolic>::ReadAutomaton(pre); // TODO: can also be AUTOQ::Symbol::Concrete
+            // // cannot use std::get<AUTOQ::SymbolicAutomata> here since ReadAutomaton(...) may treat "aut1" as a TreeAutomata
+            // bool verify = aut.execute(circuit);
+            // // std::cout << "OUTPUT AUTOMATON:\n";
+            // // std::cout << "=================\n";
+            // // aut.print_aut();
+            // // std::cout << "=================\n";
+            // verify &= (aut <<= spec);
+            // // aut.print_language(); spec.print_language();
+            // if (latex) {
+            //     aut.print_stats();
+            // } else {
+            //     std::cout << "The quantum program has [" << aut.qubitNum << "] qubits and [" << AUTOQ::SymbolicAutomata::gateCount << "] gates. The verification process [" << (verify ? "OK" : "failed") << "] in [" << AUTOQ::Util::Convert::toString(chrono::steady_clock::now() - start) << "] with [" << AUTOQ::Util::getPeakRSS() / 1024 / 1024 << "MB] memory usage.\n";
+            // }
         } else if (std::holds_alternative<AUTOQ::TreeAutomata>(spec1)) {
-            auto &spec = std::get<AUTOQ::TreeAutomata>(spec1);
+            // auto &spec = std::get<AUTOQ::TreeAutomata>(spec1);
+            // // spec.print_aut("POST:\n");
+            // // spec.print_language("POST:\n");
             auto aut1 = ReadAutomaton(pre);
-            auto aut = std::visit([](auto&& arg) -> AUTOQ::TreeAutomata {
+            std::visit([](auto&& arg) {
                 if constexpr (!std::is_same_v<std::decay_t<decltype(arg)>, AUTOQ::TreeAutomata>) {
                     THROW_AUTOQ_ERROR("When the postcondition has only concrete amplitudes, the precondition must also do so.");
-                } else {
-                    return arg; // Directly return the value if it's one of the allowed types
                 }
             }, aut1);
-            aut.execute(circuit, params);
+            auto [autVec, qp] = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Concrete>::ReadTwoAutomata(pre, post, circuit);
+            auto aut = autVec.at(0);
+            auto spec = autVec.at(1);
+            autVec.erase(autVec.begin(), autVec.begin() + 2); // remove the first two elements
+            // aut.print_language("PRE:\n");
+            // spec.print_language("SPEC:\n");
+            bool verify = aut.execute(circuit, qp, autVec, params);
             // std::cout << "OUTPUT AUTOMATON:\n";
             // std::cout << "=================\n";
-            // aut.print_aut();
+            // aut.print_aut("OUTPUT:\n");
+            // autMinus.value().print_aut("AUT-MINUS:\n");
+            // aut.print_language("OUTPUT:\n");
             // std::cout << "=================\n";
-            bool verify = aut <= spec;
+            verify &= (aut <<= spec); // && (autMinus ? ((aut && (*autMinus)).empty()) : true);
             if (latex) {
                 aut.print_stats();
             } else {
-                std::cout << "The quantum program has [" << aut.qubitNum << "] qubits and [" << AUTOQ::TreeAutomata::gateCount << "] gates.\nThe verification process [" << (verify ? "passed" : "failed") << "] in [" << AUTOQ::Util::Convert::toString(chrono::steady_clock::now() - start) << "] with [" << AUTOQ::Util::getPeakRSS() / 1024 / 1024 << "MB] memory usage.\n";
+                std::cout << "The quantum program has [" << aut.qubitNum << "] qubits and [" << AUTOQ::TreeAutomata::gateCount << "] gates. The verification process [" << (verify ? "OK" : "failed") << "] in [" << AUTOQ::Util::Convert::toString(chrono::steady_clock::now() - start) << "] with [" << AUTOQ::Util::getPeakRSS() / 1024 / 1024 << "MB] memory usage.\n";
             }
         } else {
             THROW_AUTOQ_ERROR("Unsupported type of the postcondition.");
@@ -268,9 +324,9 @@ try {
         // runConcrete = true;
         /*AUTOQ::TreeAutomata*/ aut = AUTOQ::TreeAutomata::prefix_basis(extract_qubit(circuit1));
         /*AUTOQ::TreeAutomata*/ aut2 = AUTOQ::TreeAutomata::prefix_basis(extract_qubit(circuit2));
-        aut.execute(circuit1, params);
-        aut2.execute(circuit2, params);
-        bool result = aut <= aut2;
+        aut.execute(circuit1, {}, {}, params);
+        aut2.execute(circuit2, {}, {}, params);
+        bool result = aut <<= aut2;
         if (latex) {
             // if (short_time) {
             //     std::map<std::string, std::string> stats;
@@ -296,6 +352,8 @@ try {
         std::visit([](auto& aut){
             aut.print_language();
         }, aut);
+    } else {
+        THROW_AUTOQ_ERROR("Please provide at least one mode. Run \"autoq -h\" for more information.");
     }
     /**************/
     // if (long_time) {

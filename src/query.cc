@@ -3,9 +3,14 @@
 #include "autoq/symbol/symbolic.hh"
 #include "autoq/symbol/predicate.hh"
 #include "autoq/symbol/index.hh"
+#include "autoq/symbol/constrained.hh"
 #include "autoq/serialization/timbuk_serializer.hh"
-#include <boost/dynamic_bitset.hpp> // used in print_language
 #include <regex>
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wold-style-cast"
+#include <boost/dynamic_bitset.hpp> // used in print_language
+#pragma GCC diagnostic pop
 
 template <typename Symbol>
 void AUTOQ::Automata<Symbol>::initialize_stats() {
@@ -154,28 +159,35 @@ void AUTOQ::Automata<Symbol>::print_language(const std::string &str) const {
             result_trees.insert(pair.second);
         }
     }
+    std::cout << "{";
+    bool isFirstTree = true;
     for (const auto &tree : result_trees) { // each result is a tree
         std::map<std::string, int> count;
         for (unsigned i=0; i<tree.size(); i++)
             count[tree[i]]++;
-        auto ptr = std::max_element(count.begin(), count.end(), [](const auto &x, const auto &y) {
-            return x.second < y.second;
-        });
+        // auto ptr = std::max_element(count.begin(), count.end(), [](const auto &x, const auto &y) {
+        //     return x.second < y.second;
+        // });
+        if (!isFirstTree) std::cout << ",\n ";
         bool isFirst = true;
         for (unsigned i=0; i<tree.size(); i++) {
-            if (tree[i] != (ptr->first)) {
-                if (!isFirst) std::cout << " + ";
+            // if (tree[i] != (ptr->first)) {
                 std::string str = std::regex_replace(tree[i], std::regex(R"(([^ ]+)R)"), "real($1)");
                 str = std::regex_replace(str, std::regex(R"(([^ ]+)I)"), "imag($1)");
-                std::cout << "(" << str << ")|" << boost::dynamic_bitset(qubitNum, i) << ">";
-                isFirst = false;
-            }
+                if (str != "0") {
+                    if (!isFirst) std::cout << " + ";
+                    std::cout << "(" << str << ")|" << boost::dynamic_bitset(qubitNum, i) << ">";
+                    isFirst = false;
+                }
+            // }
         }
-        if (!isFirst) std::cout << " + ";
-        std::string str = std::regex_replace(ptr->first, std::regex(R"(([^ ]+)R)"), "real($1)");
-        str = std::regex_replace(str, std::regex(R"(([^ ]+)I)"), "imag($1)");
-        std::cout << "(" << str << ")|*>" << std::endl;
+        // if (!isFirst) std::cout << " + ";
+        // std::string str = std::regex_replace(ptr->first, std::regex(R"(([^ ]+)R)"), "real($1)");
+        // str = std::regex_replace(str, std::regex(R"(([^ ]+)I)"), "imag($1)");
+        // std::cout << "(" << str << ")|*>" << std::endl;
+        isFirstTree = false;
     }
+    std::cout << "}" << std::endl;
 }
 
 template <typename Symbol>
@@ -201,3 +213,4 @@ template struct AUTOQ::Automata<AUTOQ::Symbol::Concrete>;
 template struct AUTOQ::Automata<AUTOQ::Symbol::Symbolic>;
 template struct AUTOQ::Automata<AUTOQ::Symbol::Predicate>;
 template struct AUTOQ::Automata<AUTOQ::Symbol::Index>;
+template struct AUTOQ::Automata<AUTOQ::Symbol::Constrained>;

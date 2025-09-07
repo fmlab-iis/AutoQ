@@ -1,0 +1,4 @@
+Extended Dirac
+{(3-2*i)|10>,
+ (3+2*i)|11>,
+ (3*sqrt2/2 - i * sqrt2)|10> + (3*sqrt2/2 + i * sqrt2)|11>}

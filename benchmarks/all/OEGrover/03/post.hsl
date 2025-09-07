@@ -1,4 +1,7 @@
-Predicates
-p := (and (> (* real($) real($)) (* real(b) real(b))) (= imag($) 0))
 Extended Dirac
-p |010100>
+{pH |01001> + pL ∑ |i|=3, i≠010 |i01>}
+Constraints
+real(pL) * real(pL) < real(a) * real(a)
+imag(pL) = 0
+real(pH) * real(pH) > real(b) * real(b)
+imag(pH) = 0

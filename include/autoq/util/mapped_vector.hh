@@ -22,8 +22,10 @@ struct AUTOQ::Util::mapped_vector : std::map<long long, T>
         return it->second;
     }
 
-	inline bool operator==(const mapped_vector& rhs2) const
-	{
+	inline bool operator<(const mapped_vector& rhs2) const {
+        return static_cast<std::map<long long, T>>(*this) < static_cast<std::map<long long, T>>(rhs2);
+    }
+    inline bool operator==(const mapped_vector& rhs2) const {
         return static_cast<std::map<long long, T>>(*this) == static_cast<std::map<long long, T>>(rhs2);
 	}
 };

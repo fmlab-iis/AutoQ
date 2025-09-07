@@ -1,0 +1,4 @@
+Extended Dirac
+{(5-2*i)|10>,
+ (5+2*i)|11>,
+ (5*sqrt2/2 - i * sqrt2)|10> + (5*sqrt2/2 + i * sqrt2)|11>}

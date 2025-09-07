@@ -1,6 +1,5 @@
 cmake_minimum_required(VERSION 3.5...3.28)
 
-
 project(unit_tests)
 
 set(compiler_flags_list
@@ -15,7 +14,7 @@ set(compiler_flags_list
   -Wold-style-cast
   -fdiagnostics-show-option
   # -march=native
-  -DCOMPLEX_nTuple
+  -DCOMPLEX_FiveTuple
 )
 
 set(compiler_flags "")
@@ -28,6 +27,7 @@ endforeach(param)
 #set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -pg")
 
 include_directories(../include)
+include_directories(../include/z3)
 
 # add_library(tests
 # 	log_fixture.cc

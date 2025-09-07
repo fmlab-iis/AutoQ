@@ -5,7 +5,12 @@
 #include "autoq/util/convert.hh"
 #include "autoq/complex/complex.hh"
 #include <boost/multiprecision/cpp_int.hpp>
+
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wold-style-cast"
 #include <boost/functional/hash.hpp>
+#pragma GCC diagnostic pop
 
 namespace AUTOQ
 {
@@ -21,12 +26,13 @@ private:
     bool internal;
 public:
     Complex::Complex complex;
+    inline static std::map<std::pair<Concrete, Concrete>, Concrete> mulmap;
 
     // Notice that if we do not use is_convertible_v, type int will not be accepted in this case.
     template <typename T, typename = std::enable_if_t<std::is_convertible<T, boost::multiprecision::cpp_int>::value>>
     Concrete(T qubit) : internal(true), complex(qubit) {}
     Concrete(const Complex::Complex &c) : internal(false), complex(c) {}
-    Concrete() : internal(), complex() {} // prevent the compiler from complaining about the lack of default constructor
+    Concrete() : internal(false), complex(0) {} // prevent the compiler from complaining about the lack of default constructor
     bool is_internal() const { return internal; }
     bool is_leaf() const { return !internal; }
     boost::multiprecision::cpp_int qubit() const {
@@ -36,7 +42,7 @@ public:
         // assert(complex.real().denominator() == 1);
         return complex.toInt(); //.numerator();
     }
-    void back_to_zero() { complex = Complex::Complex::Zero(); }
+    void back_to_zero() { complex.back_to_zero(); } // = Complex::Complex::Zero(); }
     std::string str() const {
         std::stringstream ss;
         ss << *this; // simply employ the following operator<<
@@ -51,7 +57,15 @@ public:
     }
     Concrete operator+(const Concrete &o) const { return Concrete(complex.operator+(o.complex)); }
     Concrete operator-(const Concrete &o) const { return Concrete(complex.operator-(o.complex)); }
-    Concrete operator*(const Concrete &o) const { return Concrete(complex.operator*(o.complex)); }
+    Concrete operator*(const Concrete &o) const {
+        if (!mulmap.empty()) {
+            auto it = mulmap.find(std::make_pair(*this, o));
+            if (it != mulmap.end()) return it->second;
+            // it = mulmap.find(std::make_pair(o, *this));
+            // if (it != mulmap.end()) return it->second;
+        }
+        return Concrete(complex.operator*(o.complex));
+    }
     bool valueEqual(const Concrete &o) const { return internal == o.internal && complex.valueEqual(o.complex); }
     bool operator==(const Concrete &o) const { return internal == o.internal && complex == o.complex; }
     bool operator<(const Concrete &o) const {

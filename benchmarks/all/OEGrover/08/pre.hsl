@@ -1,5 +1,5 @@
 Extended Dirac
-b |01010101> + a |*> # |10000000>
+{b |010101010000001> + a ∑ |i|=8, i≠01010101 |i0000001>}
 Constraints
 255 * real(a) > real(b)
 real(a) > 0

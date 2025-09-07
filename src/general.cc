@@ -2,6 +2,7 @@
 #include "autoq/symbol/concrete.hh"
 #include "autoq/symbol/symbolic.hh"
 #include "autoq/symbol/predicate.hh"
+#include "autoq/symbol/constrained.hh"
 #include <numeric> // used in std::numeric_limits
 #include <chrono> // used in remove_useless
 #include <queue> // used in remove_useless
@@ -174,7 +175,197 @@ AUTOQ::Automata<Symbol> AUTOQ::Automata<Symbol>::operator||(const Automata<Symbo
     return result;
 }
 
+template <typename Symbol>
+void AUTOQ::Automata<Symbol>::SwapDown(int q) {
+    assert(!hasLoop);
+    TopDownTransitions old_transitions_at_q;
+    std::map<State, std::set<std::pair<Tag, StateVector>>> old_transitions_at_q_plus_1;
+
+    // Step 1. Delete all old transitions at level (q) and (q+1).
+    Symbol sym_at_q, sym_at_q_plus_1;
+    auto transitions_copy = transitions;
+    for (const auto &tr : transitions_copy) {
+        if (tr.first.symbol().is_internal()) {
+            if (tr.first.symbol().qubit() == q) {
+                transitions.erase(tr.first);
+                old_transitions_at_q.insert(tr);
+                sym_at_q = tr.first.symbol(); // save the symbol at level (q)
+            }
+            if (tr.first.symbol().qubit() == q+1) {
+                transitions.erase(tr.first);
+                for (const auto &out_ins : tr.second) {
+                    for (const auto &in : out_ins.second) {
+                        old_transitions_at_q_plus_1[out_ins.first].insert({tr.first.tag(), in});
+                    }
+                }
+                sym_at_q_plus_1 = tr.first.symbol(); // save the symbol at level (q+1)
+            }
+            if (tr.first.symbol().qubit() >= q+2) {
+                break;
+            }
+        } else {
+            break;
+        }
+    }
+
+    // Step 2. Rewrite the new transitions at level (q) and (q+1).
+    std::set<State> states_has_appeared;
+    for (const auto &tr : old_transitions_at_q) {
+        for (const auto &out_ins : tr.second) {
+            for (const auto &in : out_ins.second) {
+                assert(in.size() == 2);
+                auto leftChild = in.at(0);
+                auto rightChild = in.at(1);
+                if (states_has_appeared.contains(in.at(0))) leftChild = stateNum++;
+                if (states_has_appeared.contains(in.at(1))) rightChild = stateNum++;
+                transitions[SymbolTag(sym_at_q, tr.first.tag())][out_ins.first].insert({leftChild, rightChild}); // rewrite at level (q)
+                states_has_appeared.insert(in.at(0));
+                states_has_appeared.insert(in.at(1));
+                for (const auto &c1in1 : old_transitions_at_q_plus_1.at(in.at(0))) {
+                    const auto &c1 = c1in1.first;
+                    const auto &in1 = c1in1.second;
+                    for (const auto &c2in2 : old_transitions_at_q_plus_1.at(in.at(1))) {
+                        const auto &c2 = c2in2.first;
+                        const auto &in2 = c2in2.second;
+                        const auto c = c1 & c2;
+                        if (c) {
+                            transitions[SymbolTag(sym_at_q_plus_1, c)][leftChild].insert({in1.at(0), in2.at(0)}); // rewrite at level (q+1)
+                            transitions[SymbolTag(sym_at_q_plus_1, c)][rightChild].insert({in1.at(1), in2.at(1)}); // rewrite at level (q+1)
+                        }
+                    }
+                }
+            }
+        }
+    }
+    auto start = std::chrono::steady_clock::now();
+    bottom_up_reduce(q+1);
+    auto duration = std::chrono::steady_clock::now() - start;
+    total_reduce_time += duration;
+    if (opLog) std::cout << __FUNCTION__ << "：" << stateNum << " states " << count_transitions() << " transitions\n";
+}
+template <typename Symbol>
+void AUTOQ::Automata<Symbol>::SwapUp(int q) {
+    SwapDown(q-1);
+}
+
+#define PROD(s1, s2) ((s2) * (this->stateNum) + (s1))
+template <typename Symbol>
+AUTOQ::Automata<Symbol> AUTOQ::Automata<Symbol>::operator&&(const Automata<Symbol> &o) const {
+    if (this->hasLoop || o.hasLoop) {
+        THROW_AUTOQ_ERROR("Cannot perform intersection on automata with loops.");
+    }
+    if (this->qubitNum != o.qubitNum) {
+        THROW_AUTOQ_ERROR("Two automata of different numbers of qubits cannot be intersected together.");
+    }
+    /***************************************************************************************************/
+    // TODO: How to check if the two input automata have different k's?
+
+    Automata<Symbol> result;
+    result.name = "operator&&";
+    result.qubitNum = this->qubitNum;
+    result.hasLoop = false;
+    result.stateNum = this->stateNum * o.stateNum;
+
+    auto itHead = this->transitions.cbegin();
+    auto it2Head = o.transitions.cbegin();
+    while (itHead != this->transitions.cend() && it2Head != o.transitions.cend()) {
+        auto itEnd = itHead;
+        auto it2End = it2Head;
+        Automata<Symbol>::Tag totalTag1 = 0, totalTag2 = 0;
+        int maxNumOfBitsInTag1 = 0, maxNumOfBitsInTag2 = 0;
+        while (itEnd != this->transitions.cend() &&
+               itEnd->first.is_internal() == itHead->first.is_internal() &&
+              (itHead->first.is_leaf() || itEnd->first.symbol().qubit() == itHead->first.symbol().qubit())) {
+            totalTag1 |= itEnd->first.tag();
+            itEnd++;
+        }
+        while (totalTag1) {
+            maxNumOfBitsInTag1++;
+            totalTag1 >>= 1;
+        }
+        while (it2End != o.transitions.cend() &&
+               it2End->first.is_internal() == it2Head->first.is_internal() &&
+              (it2Head->first.is_leaf() || it2End->first.symbol().qubit() == it2Head->first.symbol().qubit())) {
+            totalTag2 |= it2End->first.tag();
+            it2End++;
+        }
+        while (totalTag2) {
+            maxNumOfBitsInTag2++;
+            totalTag2 >>= 1;
+        }
+
+        for (auto it = itHead; it != itEnd; it++) {
+            auto tag1 = it->first.tag();
+            for (auto it2 = it2Head; it2 != it2End; it2++) {
+                if (it2->first.symbol() != it->first.symbol()) { // (*)
+                    continue; // cannot be merged if the symbols are not the same
+                }
+                auto tag2 = it2->first.tag();
+                Tag tagNew = [&maxNumOfBitsInTag1, &maxNumOfBitsInTag2](Tag a, Tag b) {
+                    Tag result = 0;
+                    for (int i = 0; i < maxNumOfBitsInTag1; ++i) {
+                        if ((a >> i) & 1) {
+                            for (int j = 0; j < maxNumOfBitsInTag2; ++j) {
+                                if ((b >> j) & 1) {
+                                    result |= (Tag(1) << (i + j * maxNumOfBitsInTag1));
+                                }
+                            }
+                        }
+                    }
+                    return result;
+                }(tag1, tag2);
+                auto &newTrans = result.transitions[AUTOQ::Automata<Symbol>::SymbolTag(it->first.symbol(), tagNew)]; // either it or it2 is okay here, since they are the same by (*)
+                for (const auto &out_ins1 : it->second) {
+                    auto out1 = out_ins1.first;
+                    const auto &ins1 = out_ins1.second;
+                    for (const auto &out_ins2 : it2->second) {
+                        auto out2 = out_ins2.first;
+                        auto &newIns = newTrans[PROD(out1, out2)];
+                        const auto &ins2 = out_ins2.second;
+                        for (const auto &in1 : ins1) {
+                            for (const auto &in2 : ins2) {
+                                if (in1.size() != in2.size()) THROW_AUTOQ_ERROR("Two transitions to be synchronized should have the same arity.");
+                                if (in1.size() == 2) { // internal transitions
+                                    newIns.insert({PROD(in1[0], in2[0]), PROD(in1[1], in2[1])});
+                                } else if (in1.size() == 0) { // leaf transitions
+                                    newIns.insert({{}});
+                                } else {
+                                    THROW_AUTOQ_ERROR("Transitions to be synchronized should be either internal or leaf.");
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        itHead = itEnd;
+        it2Head = it2End;
+    }
+
+    for (const auto &s1 : this->finalStates) {
+        for (const auto &s2 : o.finalStates) {
+            result.finalStates.push_back(PROD(s1, s2));
+        }
+    }
+    result.reduce();
+
+    /***************************************************************/
+    if constexpr (std::is_same_v<Symbol, AUTOQ::Symbol::Symbolic>) {
+        THROW_AUTOQ_ERROR("Still don't know how to synchronize two symbolic automata!");
+        for (const auto &var : this->vars)
+            result.vars.insert(var);
+        for (const auto &var : o.vars)
+            result.vars.insert(var);
+        result.constraints += o.constraints;
+    }
+    /***************************************************************/
+
+    if (opLog) std::cout << __FUNCTION__ << "：" << stateNum << " states " << count_transitions() << " transitions\n";
+    return result;
+}
+
 // https://bytefreaks.net/programming-2/c/c-undefined-reference-to-templated-class-function
 template struct AUTOQ::Automata<AUTOQ::Symbol::Concrete>;
 template struct AUTOQ::Automata<AUTOQ::Symbol::Symbolic>;
 template struct AUTOQ::Automata<AUTOQ::Symbol::Predicate>;
+template struct AUTOQ::Automata<AUTOQ::Symbol::Constrained>;

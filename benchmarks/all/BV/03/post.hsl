@@ -1,2 +1,4 @@
+Constants
+c1 := 1
 Extended Dirac
-|1011>
+{c1 |1011>}

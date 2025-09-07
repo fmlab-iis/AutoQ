@@ -1,6 +1,7 @@
-Predicates
-pH := (and (> (* $R $R) 0.9) (= $I 0))
-Variable Order
-1 2 3 4 5 6 7 9 11 13 8 10 12 14 15
 Extended Dirac
-\/|i|=5: pH |ii00001>
+{pH |ss0001> + pL ∑ |i|=5, i≠s |si0001> : |s|=5}
+Constraints
+real(pL) * real(pL) < 1/8
+imag(pL) = 0
+real(pH) * real(pH) > 7/8
+imag(pH) = 0

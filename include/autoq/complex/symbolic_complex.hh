@@ -14,8 +14,9 @@ namespace AUTOQ {
 	}
 }
 
+// It is used for recording something like a^3 * b^2.
 struct AUTOQ::Complex::Term : std::map<std::string, boost::multiprecision::cpp_int> {
-    Term operator+(Term o) const {
+    Term operator*(Term o) const {
         for (const auto &kv : *this) {
             o[kv.first] += kv.second;
             // if (o[kv.first] == 0)
@@ -23,21 +24,43 @@ struct AUTOQ::Complex::Term : std::map<std::string, boost::multiprecision::cpp_i
         }
         return o;
     }
-    std::string expand() const { // can only be used in (* ...)
-        if (empty()) return "1";
-        std::string result = size() >= 2 ? "(+" : "";
-        bool isFirst = true;
+    static z3::expr mul(const std::vector<std::string> &v) {
+        z3::context ctx;
+        return mul(v, ctx);
+    }
+    static z3::expr mul(const std::vector<std::string> &v, z3::context &ctx) {
+        if (v.size() == 1) {
+            return ctx.real_const(v.at(0).c_str());
+        }
+        z3::expr_vector args(ctx);
+        for (const auto &var : v) {
+            args.push_back(ctx.real_const(var.c_str()));
+        }
+        assert(args.size() > 0);
+        z3::array<Z3_ast> _args(args);
+        Z3_ast r = Z3_mk_mul(ctx, _args.size(), _args.ptr());
+        ctx.check_error();
+        return z3::expr(ctx, r).simplify();
+    }
+    std::string expand() const {
+        z3::context ctx;
+        return expand(ctx).to_string();
+    }
+    z3::expr expand(z3::context &ctx) const { // can only be used in (* ...)
+        if (empty()) return ctx.real_val("1");
+        std::vector<std::string> vec;
         for (const auto &kv : *this) {
             const auto &s = kv.first;
             auto v = kv.second;
-            assert(v != 0);
-            if (v == 1)
-                result += std::string((!isFirst) ? " " : "") + s;
-            else
-                result += std::string((!isFirst) ? " " : "") + "(* " + s + " " + v.str() + ")";
-            isFirst = false;
+            if (v < 0) {
+                THROW_AUTOQ_ERROR("We do not support negative powers.");
+            }
+            while (v > 0) {
+                v--;
+                vec.push_back(s);
+            }
         }
-        result += size() >= 2 ? ")" : "";
+        z3::expr result = mul(vec, ctx).simplify();
         return result;
     }
     friend std::ostream& operator<<(std::ostream& os, const Term& obj) {
@@ -92,7 +115,7 @@ struct AUTOQ::Complex::SymbolicComplex : std::map<Term, Complex> {
         std::set<Term> keys;
         for (const auto &kv1 : *this) {
             for (const auto &kv2 : o) {
-                auto key = kv1.first + kv2.first;
+                auto key = kv1.first * kv2.first;
                 keys.insert(key);
                 result[key] = result[key] + kv1.second * kv2.second;
             }
@@ -137,19 +160,18 @@ struct AUTOQ::Complex::SymbolicComplex : std::map<Term, Complex> {
         return os;
     }
     std::string realToSMT() const {
-        if (empty()) return "0";
-        bool isFirst = true;
-        std::string result = size() >= 2 ? "(+" : "";
+        z3::context ctx;
+        return realToSMT(ctx).to_string();
+    }
+    z3::expr realToSMT(z3::context &ctx) const {
+        if (empty()) return ctx.real_val("0");
+        z3::expr_vector ev(ctx);
         for (const auto &kv : *this) {
             auto k = kv.first;
             auto v = kv.second;
-            if (v.realToSMT() == "1")
-                result += std::string((!isFirst) ? " " : "") + k.expand();
-            else
-                result += std::string((!isFirst) ? " " : "") + "(* " + k.expand() + " " + v.realToSMT() + ")";
-            isFirst = false;
+            ev.push_back(k.expand(ctx) *  v.realToSMT(ctx));
         }
-        result += size() >= 2 ? ")" : "";
+        auto result = z3::sum(ev).simplify();
         return result;
     }
     SymbolicComplex real() const {
@@ -163,19 +185,18 @@ struct AUTOQ::Complex::SymbolicComplex : std::map<Term, Complex> {
         return result;
     }
     std::string imagToSMT() const {
-        if (empty()) return "0";
-        bool isFirst = true;
-        std::string result = size() >= 2 ? "(+" : "";
+        z3::context ctx;
+        return imagToSMT(ctx).to_string();
+    }
+    z3::expr imagToSMT(z3::context &ctx) const {
+        if (empty()) return ctx.real_val("0");
+        z3::expr_vector ev(ctx);
         for (const auto &kv : *this) {
             auto k = kv.first;
             auto v = kv.second;
-            if (v.imagToSMT() == "1")
-                result += std::string((!isFirst) ? " " : "") + k.expand();
-            else
-                result += std::string((!isFirst) ? " " : "") + "(* " + k.expand() + " " + v.imagToSMT() + ")";
-            isFirst = false;
+            ev.push_back(k.expand(ctx) *  v.imagToSMT(ctx));
         }
-        result += size() >= 2 ? ")" : "";
+        auto result = z3::sum(ev).simplify();
         return result;
     }
     SymbolicComplex imag() const {
@@ -201,11 +222,16 @@ struct AUTOQ::Complex::SymbolicComplex : std::map<Term, Complex> {
         if (empty()) return 0;
         return begin()->second.to_rational();
     }
+    Complex to_complex() const {
+        assert(isConst());
+        if (empty()) return 0;
+        return begin()->second;
+    }
     boost::multiprecision::cpp_int max_k() const {
         boost::multiprecision::cpp_int k = INT_MIN;
-        for (const auto &kv : *this) {
-            if (k < kv.second.k)
-                k = kv.second.k;
+        for (auto kv : *this) {
+            if (k < kv.second.k())
+                k = kv.second.k();
         }
         return k;
     }
@@ -213,10 +239,19 @@ struct AUTOQ::Complex::SymbolicComplex : std::map<Term, Complex> {
         fraction_simplification();
         for (auto &kv : *this) {
             auto &c = kv.second;
-            while (c.k < k)
-                c.adjust_k(1);
-            c.k = 0;
+            while (c.k() < k)
+                c.increase_k();
+            c.k() = 0;
         }
+    }
+    std::set<std::string> vars() const {
+        std::set<std::string> result;
+        for (const auto &kv : *this) {
+            for (const auto &kv2 : kv.first) {
+                result.insert(kv2.first);
+            }
+        }
+        return result;
     }
 };
 

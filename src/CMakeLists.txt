@@ -21,7 +21,7 @@ set(autoq_cxx_compiler_flags
   -fPIC
   -Woverloaded-virtual
   -Wold-style-cast
-  -DCOMPLEX_nTuple
+  -DCOMPLEX_FiveTuple
 )
 
 foreach(flag ${autoq_cxx_compiler_flags})
@@ -34,23 +34,13 @@ endforeach()
 
 include_directories(../include)
 
-add_library(lsta STATIC
-	timbuk_parser-nobison.cc
-	timbuk_serializer.cc
-    util/string.cc
-	util/util.cc
-    util/memory.cpp
-	simulation/explicit_lts_sim.cc
-    reduce.cc
-    execute.cc
-    inclusion.cc
-    instance.cc
-	parameterized.cc
-    query.cc
-	gate.cc
-    general.cc
-    loop_summarization.cc
-)
+# Automatically find all .cc files recursively in the specified directory
+file(GLOB_RECURSE SOURCE_FILES "${CMAKE_CURRENT_SOURCE_DIR}/*.cc" "${CMAKE_CURRENT_SOURCE_DIR}/*.cpp")
+add_library(lsta STATIC ${SOURCE_FILES})
+
+# Suppress all warnings in the mentioned directory
+file(GLOB_RECURSE Extended_Dirac_SOURCE_FILES "./ExtendedDirac/*.cpp")
+set_source_files_properties(${Extended_Dirac_SOURCE_FILES} PROPERTIES COMPILE_FLAGS "-w")
 
 ##############################################################################
 #                              DEPENDENCIES - Z3
@@ -73,6 +63,17 @@ elseif (UNIX)
     target_link_libraries(lsta "${CMAKE_CURRENT_SOURCE_DIR}/../libz3.so.4.12")
 endif ()
 include_directories(../include/z3)
+
+##############################################################################
+#                              DEPENDENCIES - ANTLR
+##############################################################################
+if (APPLE)
+    target_link_libraries(lsta "${CMAKE_CURRENT_SOURCE_DIR}/../libantlr4-runtime.a") # have not been built yet
+elseif (UNIX)
+    target_link_libraries(lsta "${CMAKE_CURRENT_SOURCE_DIR}/../libantlr4-runtime.so.4.13.2")
+endif ()
+include_directories(../include/antlr4-runtime)
+include_directories(../include/autoq/parsing/ExtendedDirac)
 
 # https://www.weiy.city/2022/06/use-cmake-to-import-shared-library-or-static-library/
 # https://bayareanotes.com/cmake-adding-external-library/
