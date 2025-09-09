@@ -27,7 +27,7 @@ public:
     // Notice that if we do not use is_convertible_v, type int will not be accepted in this case.
     template <typename T, typename = std::enable_if_t<std::is_convertible<T, boost::multiprecision::cpp_int>::value>>
     Symbolic(T qubit) : internal(true), complex(AUTOQ::Complex::SymbolicComplex::MySymbolicComplexConstructor(qubit)) {}
-    Symbolic(const std::map<AUTOQ::Complex::Term, AUTOQ::Complex::Complex> &c) : internal(false), complex(c) {}
+    Symbolic(const std::map<AUTOQ::Complex::Term, AUTOQ::Complex::Complex> &c) : internal(false), complex(AUTOQ::Complex::SymbolicComplex::MySymbolicComplexConstructor(c)) {}
     Symbolic(const AUTOQ::Complex::SymbolicComplex &c) : internal(false), complex(c) {}
     Symbolic() : internal(false), complex() {} // prevent the compiler from complaining about the lack of default constructor
     // Symbolic() : internal(false), complex({{Complex::Complex::Zero(), AUTOQ::Complex::linear_combination({{"1", 1}})}}) {} // prevent the compiler from complaining about the lack of default constructor

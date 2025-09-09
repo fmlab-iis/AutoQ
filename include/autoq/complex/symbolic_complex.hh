@@ -72,6 +72,11 @@ struct AUTOQ::Complex::SymbolicComplex : std::map<Term, Complex> {
     static SymbolicComplex MySymbolicComplexConstructor(int i) {
         return MySymbolicComplexConstructor(Complex(i));
     }
+    static SymbolicComplex MySymbolicComplexConstructor(const std::map<Term, Complex>& m) {
+        SymbolicComplex sc;
+        sc.insert(m.begin(), m.end());
+        return sc;
+    }
     static SymbolicComplex MySymbolicComplexConstructor(const Complex &c) {
         if (c.isZero()) return {}; // IMPORTANT: keep the keys nonzero to simplify the structure very much!
         SymbolicComplex result;
