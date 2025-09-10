@@ -128,4 +128,4 @@ for int i in [1:2] {
 }
 ...
 ```
-This example executes Hadamard and T gate on qubit 0 exactly 2 times.
+This example executes Hadamard and T gates on qubit 0 exactly 2 times.

@@ -391,7 +391,6 @@ BOOST_AUTO_TEST_CASE(for_loop_classic_execution){
     ParameterMap params;
     params["loop"] = "manual";
     bool verify = aut2.execute(folder + "/circuit.qasm", qp, autVec, params);
-    std::cout << "verify: " << verify << std::endl;
     BOOST_REQUIRE_MESSAGE(verify, folder + " failed!");
     // BOOST_REQUIRE_MESSAGE(spec == spec2, folder + " failed!");
 }
@@ -407,8 +406,8 @@ BOOST_AUTO_TEST_CASE(for_loop_summarization){
     params["loop"] = "symbolic";
     bool verify = aut2.execute(folder + "/circuit.qasm", qp, autVec, params);
     verify &= (aut2 <<= spec2);
-    std::cout << "verify: " << verify << std::endl;
     BOOST_REQUIRE_MESSAGE(verify, folder + " failed!");
+    // BOOST_REQUIRE_MESSAGE(spec == spec2, folder + " failed!");
 }
 
 
