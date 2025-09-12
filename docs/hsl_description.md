@@ -79,7 +79,6 @@ varcons: varcon
     ;
 
 varcon: "|" V=[a-z] "|" "=" n=[1-9]*[1-9]+[1-9]* // denote the length n of the binary string variable V
-    | V=[a-z] "=" CStr=[01]+ // assign the binary string constant CStr to the binary string variable V
     | L=[a-z] "≠" R=([a-z]|[01]+) // the variable L is not equal to another variable or binary string constant R
     ;
 ```
@@ -143,3 +142,4 @@ One important mechanism of AutoQ 2.0 is the reordering of qubits according to th
 2. If a variable `x` or its bit complement `x'` occurs in any ket `|...x(')...⟩` on qubits $i$ through $j$ in any *.hsl file, then in the same range of qubits ($i$ to $j$), every other ket string—whether in the same `*.hsl` file or in the other `*.hsl` files—must contain either only constants (`0` and `1`), or exactly one variable (or its complement).
 
 Violating either of the two rules above triggers the error message `There are two *.hsl files not aligned!`, prompting users to revise their `*.hsl` files to ensure alignment.
+
