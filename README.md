@@ -80,6 +80,8 @@ $ ./build/cli/autoq ver benchmarks/all/Grover/03/pre.hsl benchmarks/all/Grover/0
 The quantum program has [5] qubits and [52] gates. The verification process [OK] in [0.1s] with [77MB] memory usage.
 ```
 
+The tool also includes loop summarization for circuits that include specific for loop syntax shown in [qasm format description](./docs/qasm_description.md). To apply the loop summarization algorithm, use `--loopsum` flag when using `ex` or `ver` subcommands.
+
 ---
 
 ## Input File Formats

@@ -381,6 +381,34 @@ BOOST_AUTO_TEST_CASE(CCX_gate_twice_to_identity)
     }
 }
 
+
+BOOST_AUTO_TEST_CASE(for_loop_classic_execution){
+    std::string sss(__FILE__);
+    std::string folder = sss.substr(0, sss.find_last_of("\\/")) + "/testcase/GroverFor/";
+    auto [autVec, qp] = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Concrete>::ReadTwoAutomata(folder+"/pre.hsl", folder+"/post.hsl", folder+"/circuit.qasm");
+    auto aut2 = autVec.at(0);
+    auto spec2 = autVec.at(1);
+    ParameterMap params;
+    params["loop"] = "manual";
+    bool verify = aut2.execute(folder + "/circuit.qasm", qp, autVec, params);
+    BOOST_REQUIRE_MESSAGE(verify, folder + " failed!");
+}
+
+BOOST_AUTO_TEST_CASE(for_loop_summarization){
+    std::string sss(__FILE__);
+    std::string folder = sss.substr(0, sss.find_last_of("\\/")) + "/testcase/GroverFor/";
+    auto [autVec, qp] = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Concrete>::ReadTwoAutomata(folder+"/pre.hsl", folder+"/post.hsl", folder+"/circuit.qasm");
+    auto aut2 = autVec.at(0);
+    auto spec2 = autVec.at(1);
+    autVec.erase(autVec.begin(), autVec.begin() + 2); // remove the first two elements
+    ParameterMap params;
+    params["loop"] = "symbolic";
+    bool verify = aut2.execute(folder + "/circuit.qasm", qp, autVec, params);
+    verify &= (aut2 <<= spec2);
+    BOOST_REQUIRE_MESSAGE(verify, folder + " failed!");
+}
+
+
 // BOOST_AUTO_TEST_CASE(Fredkin_gate_twice_to_identity)
 // {
 //     for (const auto &before : {AUTOQ::TreeAutomata::uniform(3),
