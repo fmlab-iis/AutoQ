@@ -112,3 +112,21 @@ while (outcome[0]) { // loop-invariant.hsl // I = {|0>/√2 + |1>/√2}
 ```
 
 Filepaths for specifying loop invariants are relative to the circuit file's location. Please refer to [this example](../benchmarks/all/control_mini/while) for its usage.
+
+---
+
+### # Looping (for)
+The usage of for loops (`for int i in [x:y] { C }`) includes evaluating the loop's body `C` exactly `y - x + 1` times. Note that when `--loopsum` CLI argument is used, the loop summarization algorithm is applied to simulate the execution of the loop's body. Otherwise, the standard sequence of gate applications is used.
+
+Here is a demonstrative example of a for loop usage.
+```
+...
+qreg qb[1]; // quantum register
+...
+for int i in [1:2] {
+    h qb[0];
+    t qb[0];
+}
+...
+```
+This example executes Hadamard and T gates on qubit 0 exactly 2 times.

@@ -71,8 +71,10 @@ Positionals:
 
 Options:
   -h,--help                   Print this help message and exit.
+  --loopsum                   Summarize loops using symbolic execution.
   -l,--latex                  Print the statistics for tables in LaTeX.
 ```
+One noteworthy feature of this tool is its support for loop summarization in circuits that use the specific syntax `for int i in [x:y] { C }`, as described in the [QASM format documentation](./docs/qasm_description.md). To enable the loop summarization algorithm, include the --loopsum flag when using the `ex` or `ver` subcommands.
 
 This is one example usage.
 ```
