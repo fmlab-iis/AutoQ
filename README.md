@@ -71,16 +71,16 @@ Positionals:
 
 Options:
   -h,--help                   Print this help message and exit.
+  --loopsum                   Summarize loops using symbolic execution.
   -l,--latex                  Print the statistics for tables in LaTeX.
 ```
+One noteworthy feature of this tool is its support for loop summarization in circuits that use the specific syntax `for int i in [x:y] { C }`, as described in the [QASM format documentation](./docs/qasm_description.md). To enable the loop summarization algorithm, include the --loopsum flag when using the `ex` or `ver` subcommands.
 
 This is one example usage.
 ```
 $ ./build/cli/autoq ver benchmarks/all/Grover/03/pre.hsl benchmarks/all/Grover/03/circuit.qasm benchmarks/all/Grover/03/post.hsl
 The quantum program has [5] qubits and [52] gates. The verification process [OK] in [0.1s] with [77MB] memory usage.
 ```
-
-The tool also includes loop summarization for circuits that include specific for loop syntax shown in [qasm format description](./docs/qasm_description.md). To apply the loop summarization algorithm, use `--loopsum` flag when using `ex` or `ver` subcommands.
 
 ---
 

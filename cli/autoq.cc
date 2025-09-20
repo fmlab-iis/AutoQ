@@ -161,7 +161,7 @@ try {
     CLI::App* execution = app.add_subcommand("ex", "Execute a quantum circuit with a given precondition.");
     execution->add_option("pre.hsl", pre, "the precondition file")->required()->type_name("");
     execution->add_option("circuit.qasm", circuit, "the OpenQASM 2.0 or 3.0 circuit file")->required()->type_name("");
-    execution->add_flag("--loopsum", summarize_loops, "Summarize loops using symbolic execution");
+    execution->add_flag("--loopsum", summarize_loops, "Summarize loops using symbolic execution.");
     execution->callback([&]() {
         adjust_N_in_nTuple(circuit);
     });
@@ -171,7 +171,7 @@ try {
     verification->add_option("pre.hsl", pre, "the precondition file")->required()->type_name("");
     verification->add_option("circuit.qasm", circuit, "the OpenQASM 2.0 or 3.0 circuit file")->required()->type_name("");
     verification->add_option("post.hsl", post, "the postcondition file")->required()->type_name("");
-    verification->add_flag("--loopsum", summarize_loops, "Summarize loops using symbolic execution");
+    verification->add_flag("--loopsum", summarize_loops, "Summarize loops using symbolic execution.");
     verification->add_flag("-l,--latex", latex, "Print the statistics for tables in LaTeX.");
     verification->callback([&]() {
         adjust_N_in_nTuple(circuit);
@@ -180,7 +180,7 @@ try {
     CLI::App* equivalence_checking = app.add_subcommand("eq", "Check equivalence of two given quantum circuits.");
     equivalence_checking->add_option("circuit1.qasm", circuit1, "the OpenQASM 2.0 or 3.0 circuit file")->required()->type_name("");
     equivalence_checking->add_option("circuit2.qasm", circuit2, "the OpenQASM 2.0 or 3.0 circuit file")->required()->type_name("");
-    equivalence_checking->add_flag("--loopsum", summarize_loops, "Summarize loops using symbolic execution");
+    equivalence_checking->add_flag("--loopsum", summarize_loops, "Summarize loops using symbolic execution.");
     equivalence_checking->add_flag("-l,--latex", latex, "Print the statistics for tables in LaTeX.");
     equivalence_checking->callback([&]() {
         adjust_N_in_nTuple(circuit1);
