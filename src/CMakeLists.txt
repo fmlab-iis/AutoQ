@@ -68,8 +68,8 @@ include_directories(../include/z3)
 #                              DEPENDENCIES - ANTLR
 ##############################################################################
 if (APPLE)
-    find_package(antlr4_runtime CONFIG REQUIRED)
-    target_link_libraries(lsta antlr4_runtime)
+    link_directories(/opt/homebrew/lib)
+    target_link_libraries(lsta antlr4-runtime)
 #     target_link_libraries(lsta "${CMAKE_CURRENT_SOURCE_DIR}/../libantlr4-runtime.a") # have not been built yet
 elseif (UNIX)
     target_link_libraries(lsta antlr4-runtime)
