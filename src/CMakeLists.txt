@@ -72,7 +72,7 @@ if (APPLE)
         COMMAND brew --prefix antlr4-cpp-runtime
         OUTPUT_VARIABLE ANTLR4_CPP_RUNTIME_PREFIX
     )
-    target_link_libraries(lsta "${ANTLR4_CPP_RUNTIME_PREFIX}/libantlr4-runtime.a") # have not been built yet
+    target_link_libraries(lsta "${ANTLR4_CPP_RUNTIME_PREFIX}/lib/libantlr4-runtime.a") # have not been built yet
 elseif (UNIX)
     target_link_libraries(lsta antlr4-runtime)
 #     target_link_libraries(lsta "${CMAKE_CURRENT_SOURCE_DIR}/../libantlr4-runtime.so.4.13.2")
