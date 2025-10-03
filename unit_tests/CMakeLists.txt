@@ -62,6 +62,7 @@ foreach (TEST ${TESTS})
 	target_link_libraries(${TEST} ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
 	target_link_libraries(${TEST} ${Boost_FILESYSTEM_LIBRARY})
 	target_link_libraries(${TEST} ${Boost_SYSTEM_LIBRARY})
+    target_link_libraries(${TEST} antlr4-runtime)
 
 	add_test(${TEST} ${CMAKE_CURRENT_BINARY_DIR}/${TEST})
 endforeach(TEST)

@@ -67,11 +67,12 @@ include_directories(../include/z3)
 ##############################################################################
 #                              DEPENDENCIES - ANTLR
 ##############################################################################
-if (APPLE)
-    target_link_libraries(lsta "${CMAKE_CURRENT_SOURCE_DIR}/../libantlr4-runtime.a") # have not been built yet
-elseif (UNIX)
-    target_link_libraries(lsta "${CMAKE_CURRENT_SOURCE_DIR}/../libantlr4-runtime.so.4.13.2")
-endif ()
+# if (APPLE)
+#     target_link_libraries(lsta "${CMAKE_CURRENT_SOURCE_DIR}/../libantlr4-runtime.a") # have not been built yet
+# elseif (UNIX)
+#     target_link_libraries(lsta "${CMAKE_CURRENT_SOURCE_DIR}/../libantlr4-runtime.so.4.13.2")
+# endif ()
+target_link_libraries(lsta antlr4-runtime)
 include_directories(../include/antlr4-runtime)
 include_directories(../include/autoq/parsing/ExtendedDirac)
 
