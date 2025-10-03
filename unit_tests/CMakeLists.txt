@@ -63,7 +63,7 @@ foreach (TEST ${TESTS})
 	target_link_libraries(${TEST} ${Boost_FILESYSTEM_LIBRARY})
 	target_link_libraries(${TEST} ${Boost_SYSTEM_LIBRARY})
     if (APPLE)
-        link_directories(/opt/homebrew/lib)
+        link_directories(/opt/homebrew/opt/antlr4-cpp-runtime/lib)
         target_link_libraries(lsta antlr4-runtime)
         # target_link_libraries(${TEST} "${CMAKE_CURRENT_SOURCE_DIR}/../libantlr4-runtime.a") # have not been built yet
     elseif (UNIX)
