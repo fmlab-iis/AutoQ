@@ -67,6 +67,7 @@ foreach (TEST ${TESTS})
             COMMAND brew --prefix antlr4-cpp-runtime
             OUTPUT_VARIABLE ANTLR4_CPP_RUNTIME_PREFIX
         )
+        string(STRIP "${ANTLR4_CPP_RUNTIME_PREFIX}" ANTLR4_CPP_RUNTIME_PREFIX)
         message(STATUS "xxx = ${ANTLR4_CPP_RUNTIME_PREFIX}")
         target_link_libraries(${TEST} "${ANTLR4_CPP_RUNTIME_PREFIX}/lib/libantlr4-runtime.a") # have not been built yet
     elseif (UNIX)
