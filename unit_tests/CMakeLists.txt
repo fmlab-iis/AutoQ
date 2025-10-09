@@ -62,18 +62,6 @@ foreach (TEST ${TESTS})
 	target_link_libraries(${TEST} ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
 	target_link_libraries(${TEST} ${Boost_FILESYSTEM_LIBRARY})
 	target_link_libraries(${TEST} ${Boost_SYSTEM_LIBRARY})
-    if (APPLE)
-        execute_process(
-            COMMAND brew --prefix antlr4-cpp-runtime
-            OUTPUT_VARIABLE ANTLR4_CPP_RUNTIME_PREFIX
-        )
-        string(STRIP "${ANTLR4_CPP_RUNTIME_PREFIX}" ANTLR4_CPP_RUNTIME_PREFIX)
-        message(STATUS "xxx = ${ANTLR4_CPP_RUNTIME_PREFIX}")
-        target_link_libraries(${TEST} "${ANTLR4_CPP_RUNTIME_PREFIX}/lib/libantlr4-runtime.a") # have not been built yet
-    elseif (UNIX)
-        target_link_libraries(${TEST} antlr4-runtime)
-        # target_link_libraries(${TEST} "${CMAKE_CURRENT_SOURCE_DIR}/../libantlr4-runtime.so.4.13.2")
-    endif ()
 
 	add_test(${TEST} ${CMAKE_CURRENT_BINARY_DIR}/${TEST})
 endforeach(TEST)
