@@ -88,7 +88,8 @@ jobs:
           cp /usr/lib/x86_64-linux-gnu/libantlr4-runtime.so.*            build/unit_tests/
         shell: wsl-bash {0} # add this to run the commands inside linux
       - run: |
-          wsl -d Ubuntu -e bash -c "tar -czf autoq-debug-wsl.tar.gz Makefile build/ unit_tests/ benchmarks/all/"
+          tar -czf autoq-debug-wsl.tar.gz Makefile build/ unit_tests/ benchmarks/all/
+        shell: wsl-bash {0} # add this to run the commands inside linux
       - uses: actions/upload-artifact@v4.3.5
         with:
           name: AutoQ-debug-wsl
@@ -130,7 +131,8 @@ jobs:
           cp /usr/lib/x86_64-linux-gnu/libantlr4-runtime.so.*            build/unit_tests/
         shell: wsl-bash {0} # add this to run the commands inside linux
       - run: |
-          wsl -d Ubuntu -e bash -c "tar -czf autoq-release-wsl.tar.gz Makefile build/ unit_tests/ benchmarks/all/"
+          tar -czf autoq-release-wsl.tar.gz Makefile build/ unit_tests/ benchmarks/all/
+        shell: wsl-bash {0} # add this to run the commands inside linux
       - uses: actions/upload-artifact@v4.3.5
         with:
           name: AutoQ-release-wsl
