@@ -72,7 +72,11 @@ jobs:
   build-debug-wsl:
     runs-on: windows-latest
     steps:
-      - uses: vedantmgoyal9/setup-wsl2@main
+      - uses: Vampire/setup-wsl@v6
+        with:
+          distribution: Ubuntu-24.04
+          wsl-version: 2
+          update: true
       - uses: actions/checkout@v4
       - run: |
           sudo apt-get update && sudo apt-get upgrade -y
@@ -94,7 +98,11 @@ jobs:
     needs: build-debug-wsl
     runs-on: windows-latest
     steps:
-      - uses: vedantmgoyal9/setup-wsl2@main
+      - uses: Vampire/setup-wsl@v6
+        with:
+          distribution: Ubuntu-24.04
+          wsl-version: 2
+          update: true
       - uses: actions/download-artifact@v4
         with:
           name: AutoQ-debug-wsl
@@ -106,7 +114,11 @@ jobs:
   build-release-wsl:
     runs-on: windows-latest
     steps:
-      - uses: vedantmgoyal9/setup-wsl2@main
+      - uses: Vampire/setup-wsl@v6
+        with:
+          distribution: Ubuntu-24.04
+          wsl-version: 2
+          update: true
       - uses: actions/checkout@v4
       - run: |
           sudo apt-get update && sudo apt-get upgrade -y
@@ -128,7 +140,11 @@ jobs:
     needs: build-release-wsl
     runs-on: windows-latest
     steps:
-      - uses: vedantmgoyal9/setup-wsl2@main
+      - uses: Vampire/setup-wsl@v6
+        with:
+          distribution: Ubuntu-24.04
+          wsl-version: 2
+          update: true
       - uses: actions/download-artifact@v4
         with:
           name: AutoQ-release-wsl
