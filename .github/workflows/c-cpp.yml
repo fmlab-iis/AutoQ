@@ -86,7 +86,7 @@ jobs:
           cp /usr/lib/x86_64-linux-gnu/libboost_regex.so.*               build/unit_tests/
           cp libz3.so.*                                                  build/unit_tests/
           cp /usr/lib/x86_64-linux-gnu/libantlr4-runtime.so.*            build/unit_tests/
-        shell: wsl-run {0} # add this to run the commands inside linux
+        shell: wsl-bash {0} # add this to run the commands inside linux
       - run: |
           wsl -d Ubuntu -e bash -c "tar -czf autoq-debug-wsl.tar.gz Makefile build/ unit_tests/ benchmarks/all/"
       - uses: actions/upload-artifact@v4.3.5
@@ -109,7 +109,7 @@ jobs:
       - run: |
           tar -xzf autoq-debug-wsl.tar.gz
           cd build/unit_tests/ && chmod +x ./explicit_tree_aut_test && LD_LIBRARY_PATH=.:$LD_LIBRARY_PATH ./explicit_tree_aut_test
-        shell: wsl-run {0} # add this to run the commands inside linux
+        shell: wsl-bash {0} # add this to run the commands inside linux
 
   build-release-wsl:
     runs-on: windows-latest
@@ -128,7 +128,7 @@ jobs:
           cp /usr/lib/x86_64-linux-gnu/libboost_regex.so.*               build/unit_tests/
           cp libz3.so.*                                                  build/unit_tests/
           cp /usr/lib/x86_64-linux-gnu/libantlr4-runtime.so.*            build/unit_tests/
-        shell: wsl-run {0} # add this to run the commands inside linux
+        shell: wsl-bash {0} # add this to run the commands inside linux
       - run: |
           wsl -d Ubuntu -e bash -c "tar -czf autoq-release-wsl.tar.gz Makefile build/ unit_tests/ benchmarks/all/"
       - uses: actions/upload-artifact@v4.3.5
@@ -151,7 +151,7 @@ jobs:
       - run: |
           tar -xzf autoq-release-wsl.tar.gz
           cd build/unit_tests/ && chmod +x ./explicit_tree_aut_test && LD_LIBRARY_PATH=.:$LD_LIBRARY_PATH ./explicit_tree_aut_test
-        shell: wsl-run {0} # add this to run the commands inside linux
+        shell: wsl-bash {0} # add this to run the commands inside linux
 
   build-debug-macos:
     runs-on: macos-latest
