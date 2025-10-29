@@ -76,7 +76,7 @@ jobs:
         with:
           distribution: Ubuntu-24.04
           wsl-version: 2
-          update: true
+          # update: true
       - uses: actions/checkout@v4
       - run: |
           sudo apt-get update && sudo apt-get upgrade -y
@@ -103,7 +103,7 @@ jobs:
         with:
           distribution: Ubuntu-24.04
           wsl-version: 2
-          update: true
+          # update: true
       - uses: actions/download-artifact@v4
         with:
           name: AutoQ-debug-wsl
@@ -119,7 +119,7 @@ jobs:
         with:
           distribution: Ubuntu-24.04
           wsl-version: 2
-          update: true
+          # update: true
       - uses: actions/checkout@v4
       - run: |
           sudo apt-get update && sudo apt-get upgrade -y
@@ -146,7 +146,7 @@ jobs:
         with:
           distribution: Ubuntu-24.04
           wsl-version: 2
-          update: true
+          # update: true
       - uses: actions/download-artifact@v4
         with:
           name: AutoQ-release-wsl
