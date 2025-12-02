@@ -6,7 +6,7 @@ ENV TZ=Asia/Taipei \
 
 SHELL ["/bin/bash", "-c"]
 # texlive-latex-extra texlive-latex-base texlive-latex-recommended libvips-tools
-RUN apt update && apt install -y python3 git g++ make cmake libboost-filesystem-dev libboost-test-dev libboost-regex-dev libantlr4-runtime-dev
+RUN apt update && apt install -y python3 git git-lfs g++ make cmake libboost-filesystem-dev libboost-test-dev libboost-regex-dev libantlr4-runtime-dev
 RUN mkdir -p /root/AutoQ
 COPY . /root/AutoQ
 
