@@ -1,4 +1,4 @@
-FROM ubuntu:latest
+FROM  --platform=linux/amd64 ubuntu:latest
 
 ENV TZ=Asia/Taipei \
     DEBIAN_FRONTEND=noninteractive \
