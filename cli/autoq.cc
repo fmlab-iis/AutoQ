@@ -174,7 +174,7 @@ try {
     verification->add_flag("--loopsum", summarize_loops, "Summarize loops using symbolic execution.");
     verification->add_flag("-l,--latex", latex, "Print the statistics for tables in LaTeX.");
     verification->callback([&]() {
-        adjust_N_in_nTuple(circuit);
+        // adjust_N_in_nTuple(circuit);
     });
 
     CLI::App* equivalence_checking = app.add_subcommand("eq", "Check equivalence of two given quantum circuits.");
@@ -241,85 +241,88 @@ try {
         // runConcrete = false;
         auto spec1 = ReadAutomaton(post);
         auto pre1 = ReadAutomaton(pre);
-        if (std::holds_alternative<AUTOQ::SymbolicAutomata>(spec1) || std::holds_alternative<AUTOQ::SymbolicAutomata>(pre1) || AUTOQ::SymbolicAutomata::check_the_invariants_types(circuit) == "Symbolic") {
-            // THROW_AUTOQ_ERROR("The postcondition must have concrete or predicate amplitudes.");
+        // if (std::holds_alternative<AUTOQ::SymbolicAutomata>(spec1) || std::holds_alternative<AUTOQ::SymbolicAutomata>(pre1) || AUTOQ::SymbolicAutomata::check_the_invariants_types(circuit) == "Symbolic") {
+        //     // THROW_AUTOQ_ERROR("The postcondition must have concrete or predicate amplitudes.");
+        // // } else if (std::holds_alternative<AUTOQ::PredicateAutomata>(spec1)) {
+        //     // auto &spec = std::get<AUTOQ::PredicateAutomata>(spec1);
+        //     // spec.print_aut("POST:\n");
+        //     // spec.print_language("POST:\n");
+        //     auto aut1 = ReadAutomaton(pre);
+        //     if (std::holds_alternative<AUTOQ::PredicateAutomata>(aut1)) {
+        //         THROW_AUTOQ_ERROR("Predicate amplitudes cannot be used in a precondition.");
+        //     }
+        //     // auto aut = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Symbolic>::ReadAutomaton(pre);
+        //     auto [autVec, qp] = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Symbolic, AUTOQ::Symbol::Symbolic>::ReadTwoAutomata(pre, post, circuit);
+        //     auto aut = autVec.at(0);
+        //     auto spec = autVec.at(1);
+        //     autVec.erase(autVec.begin(), autVec.begin() + 2); // remove the first two elements
+        //     // aut.print_aut("PRE:\n");
+        //     // aut.print_language("PRE:\n");
+        //     bool verify = aut.execute(circuit, qp, autVec, params);
+        //     // std::cout << "OUTPUT AUTOMATON:\n";
+        //     // std::cout << "=================\n";
+        //     // aut.print_aut("OUTPUT:\n");
+        //     // aut.print_language("OUTPUT:\n");
+        //     // std::cout << "=================\n";
+        //     verify &= (aut <<= spec);
+        //     // aut.print_language(); spec.print_language();
+        //     if (latex) {
+        //         aut.print_stats();
+        //     } else {
+        //         std::cout << "The quantum program has [" << aut.qubitNum << "] qubits and [" << AUTOQ::SymbolicAutomata::gateCount << "] gates. The verification process [" << (verify ? "OK" : "failed") << "] in [" << AUTOQ::Util::Convert::toString(chrono::steady_clock::now() - start) << "] with [" << AUTOQ::Util::getPeakRSS() / 1024 / 1024 << "MB] memory usage.\n";
+        //     }
         // } else if (std::holds_alternative<AUTOQ::PredicateAutomata>(spec1)) {
-            // auto &spec = std::get<AUTOQ::PredicateAutomata>(spec1);
-            // spec.print_aut("POST:\n");
-            // spec.print_language("POST:\n");
-            auto aut1 = ReadAutomaton(pre);
-            if (std::holds_alternative<AUTOQ::PredicateAutomata>(aut1)) {
-                THROW_AUTOQ_ERROR("Predicate amplitudes cannot be used in a precondition.");
-            }
-            // auto aut = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Symbolic>::ReadAutomaton(pre);
-            auto [autVec, qp] = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Symbolic, AUTOQ::Symbol::Symbolic>::ReadTwoAutomata(pre, post, circuit);
-            auto aut = autVec.at(0);
-            auto spec = autVec.at(1);
-            autVec.erase(autVec.begin(), autVec.begin() + 2); // remove the first two elements
-            // aut.print_aut("PRE:\n");
-            // aut.print_language("PRE:\n");
-            bool verify = aut.execute(circuit, qp, autVec, params);
-            // std::cout << "OUTPUT AUTOMATON:\n";
-            // std::cout << "=================\n";
-            // aut.print_aut("OUTPUT:\n");
-            // aut.print_language("OUTPUT:\n");
-            // std::cout << "=================\n";
-            verify &= (aut <<= spec);
-            // aut.print_language(); spec.print_language();
-            if (latex) {
-                aut.print_stats();
-            } else {
-                std::cout << "The quantum program has [" << aut.qubitNum << "] qubits and [" << AUTOQ::SymbolicAutomata::gateCount << "] gates. The verification process [" << (verify ? "OK" : "failed") << "] in [" << AUTOQ::Util::Convert::toString(chrono::steady_clock::now() - start) << "] with [" << AUTOQ::Util::getPeakRSS() / 1024 / 1024 << "MB] memory usage.\n";
-            }
-        } else if (std::holds_alternative<AUTOQ::PredicateAutomata>(spec1)) {
-            THROW_AUTOQ_ERROR("PredicateAutomata as the postcondition are currently not supported.");
-            // auto &spec = std::get<AUTOQ::PredicateAutomata>(spec1);
-            // auto aut = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Symbolic>::ReadAutomaton(pre); // TODO: can also be AUTOQ::Symbol::Concrete
-            // // cannot use std::get<AUTOQ::SymbolicAutomata> here since ReadAutomaton(...) may treat "aut1" as a TreeAutomata
-            // bool verify = aut.execute(circuit);
-            // // std::cout << "OUTPUT AUTOMATON:\n";
-            // // std::cout << "=================\n";
-            // // aut.print_aut();
-            // // std::cout << "=================\n";
-            // verify &= (aut <<= spec);
-            // // aut.print_language(); spec.print_language();
-            // if (latex) {
-            //     aut.print_stats();
-            // } else {
-            //     std::cout << "The quantum program has [" << aut.qubitNum << "] qubits and [" << AUTOQ::SymbolicAutomata::gateCount << "] gates. The verification process [" << (verify ? "OK" : "failed") << "] in [" << AUTOQ::Util::Convert::toString(chrono::steady_clock::now() - start) << "] with [" << AUTOQ::Util::getPeakRSS() / 1024 / 1024 << "MB] memory usage.\n";
-            // }
-        } else if (std::holds_alternative<AUTOQ::TreeAutomata>(spec1)) {
+        //     THROW_AUTOQ_ERROR("PredicateAutomata as the postcondition are currently not supported.");
+        //     // auto &spec = std::get<AUTOQ::PredicateAutomata>(spec1);
+        //     // auto aut = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Symbolic>::ReadAutomaton(pre); // TODO: can also be AUTOQ::Symbol::Concrete
+        //     // // cannot use std::get<AUTOQ::SymbolicAutomata> here since ReadAutomaton(...) may treat "aut1" as a TreeAutomata
+        //     // bool verify = aut.execute(circuit);
+        //     // // std::cout << "OUTPUT AUTOMATON:\n";
+        //     // // std::cout << "=================\n";
+        //     // // aut.print_aut();
+        //     // // std::cout << "=================\n";
+        //     // verify &= (aut <<= spec);
+        //     // // aut.print_language(); spec.print_language();
+        //     // if (latex) {
+        //     //     aut.print_stats();
+        //     // } else {
+        //     //     std::cout << "The quantum program has [" << aut.qubitNum << "] qubits and [" << AUTOQ::SymbolicAutomata::gateCount << "] gates. The verification process [" << (verify ? "OK" : "failed") << "] in [" << AUTOQ::Util::Convert::toString(chrono::steady_clock::now() - start) << "] with [" << AUTOQ::Util::getPeakRSS() / 1024 / 1024 << "MB] memory usage.\n";
+        //     // }
+        // } else if (std::holds_alternative<AUTOQ::TreeAutomata>(spec1)) {
             // auto &spec = std::get<AUTOQ::TreeAutomata>(spec1);
             // // spec.print_aut("POST:\n");
             // // spec.print_language("POST:\n");
-            auto aut1 = ReadAutomaton(pre);
-            std::visit([](auto&& arg) {
-                if constexpr (!std::is_same_v<std::decay_t<decltype(arg)>, AUTOQ::TreeAutomata>) {
-                    THROW_AUTOQ_ERROR("When the postcondition has only concrete amplitudes, the precondition must also do so.");
-                }
-            }, aut1);
-            auto [autVec, qp] = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Concrete>::ReadTwoAutomata(pre, post, circuit);
-            auto aut = autVec.at(0);
-            auto spec = autVec.at(1);
-            autVec.erase(autVec.begin(), autVec.begin() + 2); // remove the first two elements
-            // aut.print_language("PRE:\n");
-            // spec.print_language("SPEC:\n");
-            bool verify = aut.execute(circuit, qp, autVec, params);
+            auto aut = std::get<AUTOQ::TreeAutomata>(ReadAutomaton(pre));
+            auto spec = std::get<AUTOQ::TreeAutomata>(ReadAutomaton(post));
+            // std::visit([](auto&& arg) {
+            //     if constexpr (!std::is_same_v<std::decay_t<decltype(arg)>, AUTOQ::TreeAutomata>) {
+            //         THROW_AUTOQ_ERROR("When the postcondition has only concrete amplitudes, the precondition must also do so.");
+            //     }
+            // }, aut1);
+            // auto [autVec, qp] = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Concrete>::ReadTwoAutomata(pre, post, circuit);
+            // auto aut = autVec.at(0);
+            // auto spec = autVec.at(1);
+            // autVec.erase(autVec.begin(), autVec.begin() + 2); // remove the first two elements
+            // // aut.print_language("PRE:\n");
+            // // spec.print_language("SPEC:\n");
+            // bool verify = aut.execute(circuit, qp, autVec, params);
             // std::cout << "OUTPUT AUTOMATON:\n";
             // std::cout << "=================\n";
             // aut.print_aut("OUTPUT:\n");
             // autMinus.value().print_aut("AUT-MINUS:\n");
             // aut.print_language("OUTPUT:\n");
             // std::cout << "=================\n";
-            verify &= (aut <<= spec); // && (autMinus ? ((aut && (*autMinus)).empty()) : true);
+            aut.print_aut("A:\n");
+            spec.print_aut("B:\n");
+            bool verify = (aut <= spec); // && (autMinus ? ((aut && (*autMinus)).empty()) : true);
             if (latex) {
                 aut.print_stats();
             } else {
                 std::cout << "The quantum program has [" << aut.qubitNum << "] qubits and [" << AUTOQ::TreeAutomata::gateCount << "] gates. The verification process [" << (verify ? "OK" : "failed") << "] in [" << AUTOQ::Util::Convert::toString(chrono::steady_clock::now() - start) << "] with [" << AUTOQ::Util::getPeakRSS() / 1024 / 1024 << "MB] memory usage.\n";
             }
-        } else {
-            THROW_AUTOQ_ERROR("Unsupported type of the postcondition.");
-        }
+        // } else {
+        //     THROW_AUTOQ_ERROR("Unsupported type of the postcondition.");
+        // }
     } else if (equivalence_checking->parsed()) {
         // runConcrete = true;
         /*AUTOQ::TreeAutomata*/ aut = AUTOQ::TreeAutomata::prefix_basis(extract_qubit(circuit1));

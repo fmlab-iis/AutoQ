@@ -127,12 +127,12 @@ bool AUTOQ::Automata<AUTOQ::Symbol::Index>::operator<=(const Automata<AUTOQ::Sym
         assert(!created.contains(vertex));
         created.insert(vertex);
         bfs.push(vertex);
-        // AUTOQ_DEBUG("CREATE SOURCE VERTEX: " << AUTOQ::Util::Convert::ToString(vertex));
+        AUTOQ_DEBUG("CREATE SOURCE VERTEX: " << AUTOQ::Util::Convert::ToString(vertex));
     }
     // Start the BFS!
     while (!bfs.empty()) {
         vertex = bfs.front();
-        // AUTOQ_DEBUG("EXTRACT VERTEX: " << AUTOQ::Util::Convert::ToString(vertex));
+        AUTOQ_DEBUG("EXTRACT VERTEX: " << AUTOQ::Util::Convert::ToString(vertex));
         bfs.pop();
         // List all possible transition combinations of A in this vertex first!
         std::map<State, typename std::map<SymbolTag, StateVector>::iterator> A_transition_combinations;
@@ -155,11 +155,11 @@ bool AUTOQ::Automata<AUTOQ::Symbol::Index>::operator<=(const Automata<AUTOQ::Sym
             // If it is true, then we shall not create new vertices derived from this one,
             // and we shall judge whether the inclusion does not hold right now.
             bool is_leaf_vertex = true;
-            // AUTOQ_DEBUG("A's CURRENTLY CONSIDERED TRANSITIONS: ");
+            AUTOQ_DEBUG("A's CURRENTLY CONSIDERED TRANSITIONS: ");
             for (const auto &kv : A_transition_combinations) { // Print the current combination
-                // AUTOQ_DEBUG(AUTOQ::Util::Convert::ToString(kv.second->first)
-                //         + AUTOQ::Util::Convert::ToString(kv.second->second)
-                //         + " -> " + AUTOQ::Util::Convert::ToString(kv.first));
+                AUTOQ_DEBUG(AUTOQ::Util::Convert::ToString(kv.second->first)
+                         + AUTOQ::Util::Convert::ToString(kv.second->second)
+                         + " -> " + AUTOQ::Util::Convert::ToString(kv.first));
                 all_used_colors &= kv.second->first.tag();
                 if (kv.second->second.size() > 0)
                     is_leaf_vertex = false;
@@ -179,12 +179,12 @@ bool AUTOQ::Automata<AUTOQ::Symbol::Index>::operator<=(const Automata<AUTOQ::Sym
             // }
             /*************************************************************************/
             // Only pick this combination of A's transitions if it is color-consistent.
-            // AUTOQ_DEBUG("ARE " << (color_consistent ? "" : "NOT ") << "COLOR-CONSISTENT.");
+            AUTOQ_DEBUG("ARE " << (color_consistent ? "" : "NOT ") << "COLOR-CONSISTENT.");
             if (color_consistent) {
                 Vertex vertex2;
                 bool vertex_fail = true; // is_leaf_vertex
                 for (const auto &cell : vertex) {
-                    // AUTOQ_DEBUG("EXTRACT CELL: " << AUTOQ::Util::Convert::ToString(cell));
+                    AUTOQ_DEBUG("EXTRACT CELL: " << AUTOQ::Util::Convert::ToString(cell));
                     Cell cell2;
                     bool cell_fail = false; // is_leaf_vertex
                     bool have_listed_all_combinationsB = false;
@@ -242,7 +242,7 @@ bool AUTOQ::Automata<AUTOQ::Symbol::Index>::operator<=(const Automata<AUTOQ::Sym
                     if (have_listed_all_combinationsB) { // No possible combination exists!
                         cell_fail = true; // is_leaf_vertex
                         vertex2.insert(cell2);
-                        // AUTOQ_DEBUG("PUSH CELL: " << AUTOQ::Util::Convert::ToString(cell2) << " TO THE NEW VERTEX.");
+                        AUTOQ_DEBUG("PUSH CELL: " << AUTOQ::Util::Convert::ToString(cell2) << " TO THE NEW VERTEX.");
                     } // mutually exclusive with the following loop
                     while (!have_listed_all_combinationsB) { // Construct one new cell for each possible combination of B's transitions.
                         for (auto &kv : cell2) { // Initialize the current cell.
@@ -253,12 +253,12 @@ bool AUTOQ::Automata<AUTOQ::Symbol::Index>::operator<=(const Automata<AUTOQ::Sym
                         // If not, simply construct the unique cell without B's states!
                         bool color_consistent2 = true;
                         unsigned all_used_colors = ~0;
-                        // AUTOQ_DEBUG("B's CURRENTLY CONSIDERED TRANSITIONS: ");
+                        AUTOQ_DEBUG("B's CURRENTLY CONSIDERED TRANSITIONS: ");
                         for (const auto &kv : B_transition_combinations) { // Print the current combination
-                            // AUTOQ_DEBUG(AUTOQ::Util::Convert::ToString(kv.second.begin()->first)
-                            //     + "[" + AUTOQ::Util::Convert::ToString(kv.second.begin()->second->first) + "]"
-                            //     + AUTOQ::Util::Convert::ToString(kv.second.begin()->second->second)
-                            //     + " -> " + AUTOQ::Util::Convert::ToString(kv.first));
+                            AUTOQ_DEBUG(AUTOQ::Util::Convert::ToString(kv.second.begin()->first)
+                                 + "[" + AUTOQ::Util::Convert::ToString(kv.second.begin()->second->first) + "]"
+                                 + AUTOQ::Util::Convert::ToString(kv.second.begin()->second->second)
+                                 + " -> " + AUTOQ::Util::Convert::ToString(kv.first));
                             all_used_colors &= kv.second.begin()->second->first;
                         }
                         color_consistent2 = (all_used_colors != 0);
@@ -277,7 +277,7 @@ bool AUTOQ::Automata<AUTOQ::Symbol::Index>::operator<=(const Automata<AUTOQ::Sym
                         //         break; // shortcut
                         // }
                         /*************************************************************/
-                        // AUTOQ_DEBUG("ARE " << (color_consistent2 ? "" : "NOT ") << "COLOR-CONSISTENT.");
+                        AUTOQ_DEBUG("ARE " << (color_consistent2 ? "" : "NOT ") << "COLOR-CONSISTENT.");
                         // If consistent, equivalize the two input vectors of each equivalent transition pair.
                         if (color_consistent2) {
                             for (const auto &kv : A_transition_combinations) {
@@ -293,7 +293,7 @@ bool AUTOQ::Automata<AUTOQ::Symbol::Index>::operator<=(const Automata<AUTOQ::Sym
                             }
                         }
                         vertex2.insert(cell2);
-                        // AUTOQ_DEBUG("PUSH CELL: " << AUTOQ::Util::Convert::ToString(cell2) << " TO THE NEW VERTEX.");
+                        AUTOQ_DEBUG("PUSH CELL: " << AUTOQ::Util::Convert::ToString(cell2) << " TO THE NEW VERTEX.");
 
                         // Increment indices
                         for (auto it = B_transition_combinations.rbegin(); it != B_transition_combinations.rend(); it++) {
@@ -322,20 +322,20 @@ bool AUTOQ::Automata<AUTOQ::Symbol::Index>::operator<=(const Automata<AUTOQ::Sym
                     }
                 }
                 if (is_leaf_vertex) { // only when considering some particular transitions
-                    // AUTOQ_DEBUG("THE VERTEX: " << AUTOQ::Util::Convert::ToString(vertex2) << " LEADS A TO NOTHING OF STATES, SO WE SHALL NOT PUSH THIS VERTEX BUT CHECK IF B HAS POSSIBLE SIMULTANEOUS TRANSITION COMBINATIONS LEADING TO THIS VERTEX.");
+                    AUTOQ_DEBUG("THE VERTEX: " << AUTOQ::Util::Convert::ToString(vertex2) << " LEADS A TO NOTHING OF STATES, SO WE SHALL NOT PUSH THIS VERTEX BUT CHECK IF B HAS POSSIBLE SIMULTANEOUS TRANSITION COMBINATIONS LEADING TO THIS VERTEX.");
                     if (vertex_fail) {
                         auto stop_include = std::chrono::steady_clock::now();
                         include_status = AUTOQ::Util::Convert::toString(stop_include - start_include) + " X";
-                        // AUTOQ_DEBUG("UNFORTUNATELY B HAS NO POSSIBLE TRANSITION COMBINATIONS, SO THE INCLUSION DOES NOT HOLD :(");
+                        AUTOQ_DEBUG("UNFORTUNATELY B HAS NO POSSIBLE TRANSITION COMBINATIONS, SO THE INCLUSION DOES NOT HOLD :(");
                         total_include_time += stop_include - start_include;
                         return false;
                     }
                 } else if (created.contains(vertex2)) {
-                    // AUTOQ_DEBUG("THE VERTEX: " << AUTOQ::Util::Convert::ToString(vertex2) << " HAS BEEN CREATED BEFORE.");
+                    AUTOQ_DEBUG("THE VERTEX: " << AUTOQ::Util::Convert::ToString(vertex2) << " HAS BEEN CREATED BEFORE.");
                 } else {
                     created.insert(vertex2);
                     bfs.push(vertex2);
-                    // AUTOQ_DEBUG("BUILD EDGE: " << AUTOQ::Util::Convert::ToString(vertex) << " -> " << AUTOQ::Util::Convert::ToString(vertex2));
+                    AUTOQ_DEBUG("BUILD EDGE: " << AUTOQ::Util::Convert::ToString(vertex) << " -> " << AUTOQ::Util::Convert::ToString(vertex2));
                 }
             }
 
@@ -357,7 +357,7 @@ bool AUTOQ::Automata<AUTOQ::Symbol::Index>::operator<=(const Automata<AUTOQ::Sym
     }
     auto stop_include = std::chrono::steady_clock::now();
     include_status = AUTOQ::Util::Convert::toString(stop_include - start_include);
-    // AUTOQ_DEBUG("FORTUNATELY FOR EACH (MAXIMAL) PATH B HAS POSSIBLE SIMULTANEOUS TRANSITION COMBINATIONS, SO THE INCLUSION DOES HOLD :)");
+    AUTOQ_DEBUG("FORTUNATELY FOR EACH (MAXIMAL) PATH B HAS POSSIBLE SIMULTANEOUS TRANSITION COMBINATIONS, SO THE INCLUSION DOES HOLD :)");
     total_include_time += stop_include - start_include;
     return true;
 }

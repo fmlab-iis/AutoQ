@@ -1475,7 +1475,7 @@ try {
     std::string automaton, constraints;
     std::string fileContents = AUTOQ::Util::ReadFile(filepath);
     std::map<std::string, AUTOQ::Complex::Complex> constants;
-    // std::map<std::string, std::string> predicates;
+    std::map<std::string, std::string> predicates;
 
     std::string::size_type pos = 0;
     while ((pos = fileContents.find("//", pos)) != std::string::npos) {
@@ -1586,8 +1586,8 @@ try {
         constraints = "";
     }
     if (boost::algorithm::ends_with(filepath, ".lsta")) {
-        THROW_AUTOQ_ERROR("The filename extension \".lsta\" is currently disabled. Please use \".hsl\" instead.");
-        // result = parse_automaton<Symbol>(automaton, constants, predicates, do_not_throw_term_undefined_error);
+        // THROW_AUTOQ_ERROR("The filename extension \".lsta\" is currently disabled. Please use \".hsl\" instead.");
+        result = parse_automaton<Symbol>(automaton, constants, predicates, do_not_throw_term_undefined_error);
     } else if (boost::algorithm::ends_with(filepath, ".aut")) {
         result = parse_timbuk<Symbol>(automaton);
     } else if (boost::algorithm::ends_with(filepath, ".hsl")) {
