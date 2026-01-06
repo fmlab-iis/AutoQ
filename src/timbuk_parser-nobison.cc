@@ -1586,8 +1586,10 @@ try {
         constraints = "";
     }
     if (boost::algorithm::ends_with(filepath, ".lsta")) {
-        THROW_AUTOQ_ERROR("The filename extension \".lsta\" is currently disabled. Please use \".hsl\" instead.");
-        // result = parse_automaton<Symbol>(automaton, constants, predicates, do_not_throw_term_undefined_error);
+        // For now, we nonpublicly support *.lsta as usual fixing the original qubit order.
+        // THROW_AUTOQ_ERROR("The filename extension \".lsta\" is currently disabled. Please use \".hsl\" instead.");
+        std::map<std::string, std::string> dummy_predicates;
+        result = parse_automaton<Symbol>(automaton, constants, dummy_predicates, do_not_throw_term_undefined_error);
     } else if (boost::algorithm::ends_with(filepath, ".aut")) {
         result = parse_timbuk<Symbol>(automaton);
     } else if (boost::algorithm::ends_with(filepath, ".hsl")) {
@@ -1765,6 +1767,14 @@ try {
     // std::optional<AUTOQ::Automata<Symbol2>> autMinus;
     if (boost::algorithm::ends_with(filepathVec[0], ".hsl") && boost::algorithm::ends_with(filepathVec[1], ".hsl")) {
         std::tie(autVec, qp/*, autMinus*/) = parse_n_extended_diracs<Symbol, Symbol2>(automatonVec, constants, constraints);
+    } else if (boost::algorithm::ends_with(filepathVec[0], ".lsta") && boost::algorithm::ends_with(filepathVec[1], ".lsta")) {
+        autVec.reserve(filepathVec.size());
+        // Do not reorder qubits (leaving qp empty) when the input is in *.lsta format.
+        for (size_t i = 0; i < filepathVec.size(); ++i) {
+            std::map<std::string, std::string> dummy_predicates;
+            bool dummy_do_not_throw = false;
+            autVec.emplace_back(parse_automaton<Symbol>(automatonVec[i], constants[i], dummy_predicates, dummy_do_not_throw));
+        }
     } else {
         THROW_AUTOQ_ERROR("The filename extension is not supported.");
     }
