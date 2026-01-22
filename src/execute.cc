@@ -101,6 +101,8 @@ bool AUTOQ::Automata<Symbol>::execute(const char *filename, std::vector<int> qub
             print_stats(previous_line, true);
         } else if (line.find("PRINT_AUT") == 0) {
             print_aut();
+        } else if (line.find("PRINT_LANG") == 0) {
+            print_language();
         } else if (line.find("STOP") == 0) {
             break;
         } else if (line.find("while") == 0) { // while (!result) { // loop-invariant.hsl
