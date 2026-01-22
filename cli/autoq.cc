@@ -266,7 +266,7 @@ try {
             // aut.print_aut("OUTPUT:\n");
             // aut.print_language("OUTPUT:\n");
             // std::cout << "=================\n";
-            verify &= (aut <<= spec);
+            verify &= (aut <<= spec); // fake
             // aut.print_language(); spec.print_language();
             if (latex) {
                 aut.print_stats();
@@ -283,7 +283,7 @@ try {
             // // std::cout << "=================\n";
             // // aut.print_aut();
             // // std::cout << "=================\n";
-            // verify &= (aut <<= spec);
+            // verify &= (aut <= spec); // <<=
             // // aut.print_language(); spec.print_language();
             // if (latex) {
             //     aut.print_stats();
@@ -315,7 +315,7 @@ try {
             // autMinus.value().print_aut("AUT-MINUS:\n");
             // aut.print_language("OUTPUT:\n");
             // std::cout << "=================\n";
-            verify &= (aut <<= spec); // && (autMinus ? ((aut && (*autMinus)).empty()) : true);
+            verify &= (aut <= spec); // <<= ... && (autMinus ? ((aut && (*autMinus)).empty()) : true);
             if (latex) {
                 aut.print_stats();
             } else {
@@ -330,7 +330,7 @@ try {
         /*AUTOQ::TreeAutomata*/ aut2 = AUTOQ::TreeAutomata::prefix_basis(extract_qubit(circuit2));
         aut.execute(circuit1, {}, {}, params);
         aut2.execute(circuit2, {}, {}, params);
-        bool result = aut <<= aut2;
+        bool result = aut <= aut2; // <<=
         if (latex) {
             // if (short_time) {
             //     std::map<std::string, std::string> stats;
