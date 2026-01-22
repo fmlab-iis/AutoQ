@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 from datetime import timedelta
-import json, os, re, sys
+import json, os, re
 
 def parse_duration(duration_str):
     pattern = r'((?P<minutes>\d+)m)?((?P<seconds>\d+(\.\d+)?)s)?'
@@ -58,10 +58,12 @@ def compare_function2(input):
         return 6
     elif input == 'after_trans':
         return 7
-    elif input == 'total':
+    elif input == 'read_file_time':
         return 8
-    elif input == 'result':
+    elif input == 'total':
         return 9
+    elif input == 'result':
+        return 10
     # else:
     #     print(input)
 
@@ -126,7 +128,7 @@ def json_to_latex_table(tool_list, latex_filename):
             if '/' in data['total']:
                 data['result2'] = format_duration(parse_duration(str(data['total'].split('/')[0])) + parse_duration(data['result'].split('/')[0])) + '/' + format_duration(parse_duration(str(data['total'].split('/')[1])) + parse_duration(data['result'].split('/')[1]))
             else:
-                data['result2'] = format_duration(parse_duration(str(data['total'])) + parse_duration(data['result']))
+                data['result2'] = format_duration(parse_duration(data['read_file_time']) + parse_duration(str(data['total'])) + parse_duration(data['result']))
             data['result2'] = r'\textbf{' + data['result2'] + r'}'
             the_string_to_be_added += (' & ' + ' & '.join(map(str, list(data.values())))).replace('ERROR', r'\error')
         the_string_to_be_added = the_string_to_be_added.replace('TIMEOUT', r'\TO')
@@ -175,9 +177,9 @@ def json_to_latex_table(tool_list, latex_filename):
 \hoffset=-1in
 \voffset=-1in
 \setbox0\hbox{
-\begin{tabular}{crrrrrr}\hline
+\begin{tabular}{crrrrrrr}\hline
 \toprule
-  & \multicolumn{1}{c}{$n$} & \multicolumn{1}{c}{\textbf{\#q}} & \multicolumn{1}{c}{\textbf{\#G}} & \multicolumn{1}{c}{$\post{C}$} & \multicolumn{1}{c}{$\subseteq$}  & \multicolumn{1}{c}{total} \\
+  & \multicolumn{1}{c}{$n$} & \multicolumn{1}{c}{\textbf{\#q}} & \multicolumn{1}{c}{\textbf{\#G}} & \multicolumn{1}{c}{read} & \multicolumn{1}{c}{$\post{C}$} & \multicolumn{1}{c}{$\subseteq$}  & \multicolumn{1}{c}{total} \\
 \midrule
   \multirow{ 5}{*}{\rotatebox[origin=c]{90}{\bvsingbench}}
 ''' + contents['BV'] + r'''\midrule

@@ -46,9 +46,9 @@ def append_key_value_to_json_file(json_file, new_key, new_value):
 
 def LSTA(root, semaphore, lock, counter):
     with semaphore:
-        p = subprocess.run(f'grep -Po ".*qreg.*\[\K\d+(?=\];)" {root}/circuit.qasm', shell=True, capture_output=True, executable='/bin/bash')
+        p = subprocess.run(fr'grep -Po ".*qreg.*\[\K\d+(?=\];)" {root}/circuit.qasm', shell=True, capture_output=True, executable='/bin/bash')
         q = p.stdout.splitlines()[0].decode('utf-8')
-        p = subprocess.run(f'grep -P ".*(x |y |z |h |s |t |rx\(.+\) |ry\(.+\) |cx |cz |ccx |tdg |sdg |swap ).*\[\d+\];" {root}/circuit.qasm | wc -l', shell=True, capture_output=True, executable='/bin/bash')
+        p = subprocess.run(fr'grep -P ".*(x |y |z |h |s |t |rx\(.+\) |ry\(.+\) |cx |cz |ccx |tdg |sdg |swap ).*\[\d+\];" {root}/circuit.qasm | wc -l', shell=True, capture_output=True, executable='/bin/bash')
         G = p.stdout.splitlines()[0].decode('utf-8')
         data = dict()
         data['q'] = q
@@ -72,6 +72,7 @@ def LSTA(root, semaphore, lock, counter):
             if len(v) < 5:
                 data['total'] = str(round(end - begin, 1))
                 data['result'] = 'ERROR'
+                data['read_file_time'] = '---'
             else:
                 v[3], v[4] = v[4], v[3]
                 data['before_state'] = v[2]
@@ -80,12 +81,18 @@ def LSTA(root, semaphore, lock, counter):
                 data['after_trans'] = v[5]
                 data['total'] = v[6]
                 data['result'] = v[7]
+                if len(v) >= 9:
+                    data['read_file_time'] = v[8]
+                else:
+                    data['read_file_time'] = '---'
         elif ret == 124:
             data['total'] = str(TIMEOUT)
             data['result'] = 'TIMEOUT'
+            data['read_file_time'] = '---'
         else:
             data['total'] = str(round(end - begin, 1))
             data['result'] = 'ERROR'
+            data['read_file_time'] = '---'
         lock.acquire()
         ##############################################
         append_key_value_to_json_file('lsta.json', root, data)

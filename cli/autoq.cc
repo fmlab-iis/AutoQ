@@ -213,8 +213,10 @@ int main(int argc, char **argv) {
         aut.print_aut();
     } else if (verificationC->parsed()) {
         runConcrete = true;
+        AUTOQ::TreeAutomata::startFromFileToAutomata = std::chrono::steady_clock::now();
         auto aut = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Concrete>::FromFileToAutomata(pre);
         auto aut2 = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Concrete>::FromFileToAutomata(post);
+        AUTOQ::TreeAutomata::endFromFileToAutomata = std::chrono::steady_clock::now();
         aut.execute(circuit);
         bool verify = AUTOQ::TreeAutomata::check_inclusion(aut, aut2);
         if (latex) {
@@ -229,8 +231,10 @@ int main(int argc, char **argv) {
         aut.print_aut();
     } else if (verificationS->parsed()) {
         runConcrete = false;
+        AUTOQ::SymbolicAutomata::startFromFileToAutomata = std::chrono::steady_clock::now();
         AUTOQ::SymbolicAutomata aut = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Symbolic>::FromFileToAutomata(pre);
         AUTOQ::PredicateAutomata spec = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Predicate>::FromFileToAutomata(post);
+        AUTOQ::SymbolicAutomata::endFromFileToAutomata = std::chrono::steady_clock::now();
 
         std::stringstream buffer;
         if (!constraint.empty()) {
