@@ -252,7 +252,9 @@ try {
                 THROW_AUTOQ_ERROR("Predicate amplitudes cannot be used in a precondition.");
             }
             // auto aut = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Symbolic>::ReadAutomaton(pre);
+            AUTOQ::SymbolicAutomata::startFromFileToAutomata = std::chrono::steady_clock::now();
             auto [autVec, qp] = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Symbolic, AUTOQ::Symbol::Symbolic>::ReadTwoAutomata(pre, post, circuit);
+            AUTOQ::SymbolicAutomata::endFromFileToAutomata = std::chrono::steady_clock::now();
             auto aut = autVec.at(0);
             auto spec = autVec.at(1);
             autVec.erase(autVec.begin(), autVec.begin() + 2); // remove the first two elements
@@ -298,7 +300,9 @@ try {
                     THROW_AUTOQ_ERROR("When the postcondition has only concrete amplitudes, the precondition must also do so.");
                 }
             }, aut1);
+            AUTOQ::TreeAutomata::startFromFileToAutomata = std::chrono::steady_clock::now();
             auto [autVec, qp] = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Concrete>::ReadTwoAutomata(pre, post, circuit);
+            AUTOQ::TreeAutomata::endFromFileToAutomata = std::chrono::steady_clock::now();
             auto aut = autVec.at(0);
             auto spec = autVec.at(1);
             autVec.erase(autVec.begin(), autVec.begin() + 2); // remove the first two elements

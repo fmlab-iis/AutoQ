@@ -122,6 +122,7 @@ struct AUTOQ::Automata
     inline static std::chrono::steady_clock::duration binop_time, branch_rest_time, value_rest_time;
     inline static std::chrono::steady_clock::duration total_gate_time, total_removeuseless_time, total_reduce_time, total_include_time;
     inline static std::chrono::time_point<std::chrono::steady_clock> start_execute, stop_execute;
+    inline static std::chrono::time_point<std::chrono::steady_clock> startFromFileToAutomata, endFromFileToAutomata;
     /* Notice inline is very convenient for declaring and defining a static member variable together! */
 
 // methods
