@@ -7,7 +7,7 @@ p = subprocess.run(f'find correct -type f -name "*.qasm" | wc -l', shell=True, c
 TOTAL_MEMORY = 10485760 # in KB, so for now it is 10 GB.
 NUM_OF_CASES = int(p.stdout.splitlines()[0].decode('utf-8'))
 NUM_OF_THREADS = min(4, NUM_OF_CASES)
-LSTA_EXE = '../../../../build/cli/autoq'
+LSTA_EXE = '../lsta-c458d907b8f88da0ccf14d14983cb0f68811f0e9'
 
 processes = []
 def kill_processes():
