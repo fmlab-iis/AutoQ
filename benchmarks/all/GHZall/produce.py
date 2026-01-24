@@ -29,6 +29,9 @@ for n in sizes:
         file.write('Extended Dirac\n')
         file.write(f"{{c1 |ji> : |j|=1, |i|={n-1}}}\n")
     #########################################
+    with open(n_str + "/pre.hslcon", "w") as file:
+        file.write(f'|i|={n} i:1,0,0,0,0 *:0,0,0,0,0\n')
+    #########################################
     # with open(n_str + "/pre.lsta", "w") as file:
     #     file.write('Constants\n')
     #     file.write('c0 := 0\n')
@@ -51,6 +54,14 @@ for n in sizes:
         file.write('Extended Dirac\n')
         file.write(f"{{cp |0i> + cp |1i'> : |i|={n-1}}} ∪\n")
         file.write(f"{{cp |0i> + cn |1i'> : |i|={n-1}}}\n")
+    #########################################
+    with open(n_str + "/post.hslcon", "w") as file:
+        for i in range(2**(n-1)):
+            binary_str = bin(i)[2:].zfill(n-1)
+            j = 2**(n-1) - 1 - i
+            binary_strC = bin(j)[2:].zfill(n-1)
+            file.write(f'0{binary_str}:1,0,0,0,1 1{binary_strC}:1,0,0,0,1 *:0,0,0,0,0\n')
+            file.write(f'0{binary_str}:1,0,0,0,1 1{binary_strC}:-1,0,0,0,1 *:0,0,0,0,0\n')
     #########################################
 #     with open(n_str + "/post.lsta", "w") as file:
 #         file.write(

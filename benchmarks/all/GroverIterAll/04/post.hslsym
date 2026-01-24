@@ -1,0 +1,6 @@
+|i|=4 i:1,0,0,0,0 *:0,0,0,0,0 # i:pH2 *:pL2 # 001:1,0,0,0,0 *:0,0,0,0,0
+Constraints
+real(pL2) * real(pL2) < real(pL) * real(pL)
+imag(pL2) = 0
+real(pH2) * real(pH2) > real(pH) * real(pH)
+imag(pH2) = 0

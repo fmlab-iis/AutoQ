@@ -1,0 +1,8 @@
+Extended Dirac
+{pH |ss01> + pL ∑ |i|=3, i≠s |si01> : |s|=3}
+Constraints
+7 * real(pL) > real(pH)
+real(pL) > 0
+real(pH) > 0
+imag(pL) = 0
+imag(pH) = 0

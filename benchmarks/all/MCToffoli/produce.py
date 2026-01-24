@@ -165,6 +165,23 @@ for n in sizes:
         file.write('Extended Dirac\n')
         file.write('{ c1 |i' + '0'*(n-1) + '0> : |i|=' + str(n) + ' }\n')
     #########################################
+    with open(n_str + '/pre00.hsl', 'w') as file:
+        file.write('Extended Dirac\n')
+        file.write('{ |i' + '0'*(n-1) + '0> : |i|=' + str(n) + ', i ≠ ' + '1'*n + ' }\n')
+    #########################################
+    with open(n_str + '/pre00.hslcon', 'w') as file:
+        for i in range(2**n):
+            binary_str = bin(i)[2:].zfill(n)
+            if binary_str != '1'*n:
+                file.write(binary_str + '0'*(n-1) + '0:1,0,0,0,0 *:0,0,0,0,0\n')
+    #########################################
+    with open(n_str + '/pre10.hsl', 'w') as file:
+        file.write('Extended Dirac\n')
+        file.write('{ |' + '1'*n + '0'*(n-1) + '0> }\n')
+    #########################################
+    with open(n_str + '/pre10.hslcon', 'w') as file:
+        file.write('1'*n + '0'*(n-1) + '0:1,0,0,0,0 *:0,0,0,0,0\n')
+    #########################################
     # with open(n_str + "/pre0.lsta", "w") as file:
     #     file.write('Constants\n')
     #     file.write('c0 := 0\n')
@@ -191,6 +208,23 @@ for n in sizes:
         file.write('c1 := 1\n')
         file.write('Extended Dirac\n')
         file.write('{ c1 |i' + '0'*(n-1) + '1> : |i|=' + str(n) + ' }\n')
+    #########################################
+    with open(n_str + '/pre01.hsl', 'w') as file:
+        file.write('Extended Dirac\n')
+        file.write('{ |i' + '0'*(n-1) + '1> : |i|=' + str(n) + ', i ≠ ' + '1'*n + ' }\n')
+    #########################################
+    with open(n_str + '/pre01.hslcon', 'w') as file:
+        for i in range(2**n):
+            binary_str = bin(i)[2:].zfill(n)
+            if binary_str != '1'*n:
+                file.write(binary_str + '0'*(n-1) + '1:1,0,0,0,0 *:0,0,0,0,0\n')
+    #########################################
+    with open(n_str + '/pre11.hsl', 'w') as file:
+        file.write('Extended Dirac\n')
+        file.write('{ |' + '1'*n + '0'*(n-1) + '1> }\n')
+    #########################################
+    with open(n_str + '/pre11.hslcon', 'w') as file:
+        file.write('1'*n + '0'*(n-1) + '1:1,0,0,0,0 *:0,0,0,0,0\n')
     #########################################
     # with open(n_str + "/pre1.lsta", "w") as file:
     #     file.write('Constants\n')
@@ -221,6 +255,23 @@ for n in sizes:
         file.write('∪ { c1 |' + '1'*n + '0'*(n-1) + '1>}\n')
         file.write('\\ { c1 |' + '1'*n + '0'*(n-1) + '0>}\n')
     #########################################
+    with open(n_str + '/post00.hsl', 'w') as file:
+        file.write('Extended Dirac\n')
+        file.write('{ |i' + '0'*(n-1) + '0> : |i|=' + str(n) + ', i ≠ ' + '1'*n + ' }\n')
+    #########################################
+    with open(n_str + '/post00.hslcon', 'w') as file:
+        for i in range(2**n):
+            binary_str = bin(i)[2:].zfill(n)
+            if binary_str != '1'*n:
+                file.write(binary_str + '0'*(n-1) + '0:1,0,0,0,0 *:0,0,0,0,0\n')
+    #########################################
+    with open(n_str + '/post10.hsl', 'w') as file:
+        file.write('Extended Dirac\n')
+        file.write('{ |' + '1'*n + '0'*(n-1) + '1> }\n')
+    #########################################
+    with open(n_str + '/post10.hslcon', 'w') as file:
+        file.write('1'*n + '0'*(n-1) + '1:1,0,0,0,0 *:0,0,0,0,0\n')
+    #########################################
     # with open(n_str + "/post0.lsta", "w") as file:
     #     print(gen_toff_postlsta(n, False), file=file)
     #########################################
@@ -231,6 +282,23 @@ for n in sizes:
         file.write('{ c1 |i' + '0'*(n-1) + '1> : |i|=' + str(n) + ' }\n')
         file.write('∪ { c1 |' + '1'*n + '0'*(n-1) + '0>}\n')
         file.write('\\ { c1 |' + '1'*n + '0'*(n-1) + '1>}\n')
+    #########################################
+    with open(n_str + '/post01.hsl', 'w') as file:
+        file.write('Extended Dirac\n')
+        file.write('{ |i' + '0'*(n-1) + '1> : |i|=' + str(n) + ', i ≠ ' + '1'*n + ' }\n')
+    #########################################
+    with open(n_str + '/post01.hslcon', 'w') as file:
+        for i in range(2**n):
+            binary_str = bin(i)[2:].zfill(n)
+            if binary_str != '1'*n:
+                file.write(binary_str + '0'*(n-1) + '1:1,0,0,0,0 *:0,0,0,0,0\n')
+    #########################################
+    with open(n_str + '/post11.hsl', 'w') as file:
+        file.write('Extended Dirac\n')
+        file.write('{ |' + '1'*n + '0'*(n-1) + '0> }\n')
+    #########################################
+    with open(n_str + '/post11.hslcon', 'w') as file:
+        file.write('1'*n + '0'*(n-1) + '0:1,0,0,0,0 *:0,0,0,0,0\n')
     #########################################
     # with open(n_str + "/post1.lsta", "w") as file:
     #     print(gen_toff_postlsta(n, True), file=file)

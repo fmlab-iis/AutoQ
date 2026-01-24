@@ -1,0 +1,6 @@
+|i|=3 i:1,0,0,0,0 *:0,0,0,0,0 # i:pH *:pL # 01:1,0,0,0,0 *:0,0,0,0,0
+Constraints
+real(pL) * real(pL) < 1/8
+imag(pL) = 0
+real(pH) * real(pH) > 7/8
+imag(pH) = 0
