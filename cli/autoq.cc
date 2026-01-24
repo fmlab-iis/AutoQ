@@ -239,6 +239,35 @@ try {
         }
     } else if (verification->parsed()) {
         // runConcrete = false;
+      if (pre.ends_with(".hslcon") && post.ends_with(".hslcon")) {
+            AUTOQ::TreeAutomata::startFromFileToAutomata = std::chrono::steady_clock::now();
+            AUTOQ::TreeAutomata aut = ReadCAV23HSL<AUTOQ::Symbol::Concrete>(pre);
+            // aut.print_language("pre:\n");
+            AUTOQ::TreeAutomata spec = ReadCAV23HSL<AUTOQ::Symbol::Concrete>(post);
+            // spec.print_language("spec:\n");
+            AUTOQ::TreeAutomata::endFromFileToAutomata = std::chrono::steady_clock::now();
+            bool verify = aut.execute(circuit, {}, {}, params);
+            verify &= (aut <= spec); // <<=
+            if (latex) {
+                aut.print_stats();
+            } else {
+                std::cout << "The quantum program has [" << aut.qubitNum << "] qubits and [" << AUTOQ::TreeAutomata::gateCount << "] gates. The verification process [" << (verify ? "OK" : "failed") << "] in [" << AUTOQ::Util::Convert::toString(chrono::steady_clock::now() - start) << "] with [" << AUTOQ::Util::getPeakRSS() / 1024 / 1024 << "MB] memory usage.\n";
+            }
+      } else if (pre.ends_with(".hslsym") && post.ends_with(".hslsym")) {
+            AUTOQ::SymbolicAutomata::startFromFileToAutomata = std::chrono::steady_clock::now();
+            AUTOQ::SymbolicAutomata aut = ReadCAV23HSL<AUTOQ::Symbol::Symbolic>(pre);
+            // aut.print_language("pre:\n");
+            AUTOQ::SymbolicAutomata spec = ReadCAV23HSL<AUTOQ::Symbol::Symbolic>(post);
+            // spec.print_language("spec:\n");
+            AUTOQ::SymbolicAutomata::endFromFileToAutomata = std::chrono::steady_clock::now();
+            bool verify = aut.execute(circuit, {}, {}, params);
+            verify &= (aut <<= spec); // fake, actually <=
+            if (latex) {
+                aut.print_stats();
+            } else {
+                std::cout << "The quantum program has [" << aut.qubitNum << "] qubits and [" << AUTOQ::SymbolicAutomata::gateCount << "] gates. The verification process [" << (verify ? "OK" : "failed") << "] in [" << AUTOQ::Util::Convert::toString(chrono::steady_clock::now() - start) << "] with [" << AUTOQ::Util::getPeakRSS() / 1024 / 1024 << "MB] memory usage.\n";
+            }
+      } else {
         auto spec1 = ReadAutomaton(post);
         auto pre1 = ReadAutomaton(pre);
         if (std::holds_alternative<AUTOQ::SymbolicAutomata>(spec1) || std::holds_alternative<AUTOQ::SymbolicAutomata>(pre1) || AUTOQ::SymbolicAutomata::check_the_invariants_types(circuit) == "Symbolic") {
@@ -266,7 +295,7 @@ try {
             // aut.print_aut("OUTPUT:\n");
             // aut.print_language("OUTPUT:\n");
             // std::cout << "=================\n";
-            verify &= (aut <<= spec); // fake
+            verify &= (aut <<= spec); // fake, actually <=
             // aut.print_language(); spec.print_language();
             if (latex) {
                 aut.print_stats();
@@ -324,6 +353,7 @@ try {
         } else {
             THROW_AUTOQ_ERROR("Unsupported type of the postcondition.");
         }
+      }
     } else if (equivalence_checking->parsed()) {
         // runConcrete = true;
         /*AUTOQ::TreeAutomata*/ aut = AUTOQ::TreeAutomata::prefix_basis(extract_qubit(circuit1));

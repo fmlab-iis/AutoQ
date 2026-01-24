@@ -35,6 +35,7 @@ struct AUTOQ::Complex::FiveTuple : stdvectorboostmultiprecisioncpp_int {
             }
             at(0) = r.numerator();
         }
+    FiveTuple(stdvectorboostmultiprecisioncpp_int in) : stdvectorboostmultiprecisioncpp_int(in) {}
     FiveTuple() : FiveTuple(0) {}
     static FiveTuple Angle(boost::rational<boost::multiprecision::cpp_int> theta) {
         return FiveTuple(1).counterclockwise(theta);

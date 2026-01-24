@@ -44,5 +44,6 @@ struct AUTOQ::Parsing::TimbukParser
 
 std::variant<AUTOQ::Automata<AUTOQ::Symbol::Concrete>, AUTOQ::Automata<AUTOQ::Symbol::Symbolic>, AUTOQ::Automata<AUTOQ::Symbol::Predicate>> ReadAutomaton(const std::string& filepath);
 std::variant<AUTOQ::Automata<AUTOQ::Symbol::Concrete>, AUTOQ::Automata<AUTOQ::Symbol::Predicate>> ReadPossiblyPredicateAutomaton(const std::string& filepath);
+template <typename SymbolType> AUTOQ::Automata<SymbolType> ReadCAV23HSL(const std::string& filepath);
 
 #endif
