@@ -57,11 +57,22 @@ void print_verification_result(int qubitNum, int gateCount, bool verify,
 void adjust_N_in_nTuple(const std::string &filename) {
     if constexpr(!std::is_same_v<AUTOQ::Complex::Complex, AUTOQ::Complex::nTuple>) return;
     /************************************************************************************/
+    auto update_N_from_angle = [](const std::string& angle_str, const char* gate_name) {
+        std::string angle = angle_str;
+        size_t pos = angle.find("pi");
+        if (pos != std::string::npos) {
+            angle.replace(pos, 2, "1");
+        } else if (angle != "0") {
+            THROW_AUTOQ_ERROR(std::string("The angle in ") + gate_name + " gate is not a multiple of pi!");
+        }
+        auto theta = EvaluationVisitor<>::ComplexParser(angle).getComplex().to_rational() / 2;
+        if (AUTOQ::Complex::nTuple::N < static_cast<decltype(AUTOQ::Complex::nTuple::N)>(theta.denominator())) {
+            AUTOQ::Complex::nTuple::N = static_cast<decltype(AUTOQ::Complex::nTuple::N)>(theta.denominator());
+        }
+    };
     std::ifstream qasm(filename);
-    const std::regex digit("\\d+");
     const std::regex rx(R"(rx\((.+)\).+\[(\d+)\];)");
     const std::regex rz(R"(rz\((.+)\).+\[(\d+)\];)");
-    const std::regex_iterator<std::string::iterator> END;
     if (!qasm.is_open()) THROW_AUTOQ_ERROR("Failed to open file " + std::string(filename) + ".");
     std::string line;
     while (getline(qasm, line)) {
@@ -76,29 +87,9 @@ void adjust_N_in_nTuple(const std::string &filename) {
         } else if (line.find("t ") == 0 || line.find("tdg ") == 0) {
             if (AUTOQ::Complex::nTuple::N < 4) AUTOQ::Complex::nTuple::N = 4;
         } else if (match_rx.size() == 3) {
-            std::string angle = match_rx[1];
-            size_t pos = angle.find("pi");
-            if (pos != std::string::npos) {
-                angle.replace(pos, 2, "1");
-            } else if (angle != "0") {
-                THROW_AUTOQ_ERROR("The angle in rx gate is not a multiple of pi!");
-            }
-            auto theta = EvaluationVisitor<>::ComplexParser(angle).getComplex().to_rational() / 2;
-            if (AUTOQ::Complex::nTuple::N < static_cast<decltype(AUTOQ::Complex::nTuple::N)>(theta.denominator())) {
-                AUTOQ::Complex::nTuple::N = static_cast<decltype(AUTOQ::Complex::nTuple::N)>(theta.denominator());
-            }
+            update_N_from_angle(match_rx[1].str(), "rx");
         } else if (match_rz.size() == 3) {
-            std::string angle = match_rz[1];
-            size_t pos = angle.find("pi");
-            if (pos != std::string::npos) {
-                angle.replace(pos, 2, "1");
-            } else if (angle != "0") {
-                THROW_AUTOQ_ERROR("The angle in rz gate is not a multiple of pi!");
-            }
-            auto theta = EvaluationVisitor<>::ComplexParser(angle).getComplex().to_rational() / 2;
-            if (AUTOQ::Complex::nTuple::N < static_cast<decltype(AUTOQ::Complex::nTuple::N)>(theta.denominator())) {
-                AUTOQ::Complex::nTuple::N = static_cast<decltype(AUTOQ::Complex::nTuple::N)>(theta.denominator());
-            }
+            update_N_from_angle(match_rz[1].str(), "rz");
         } else if (line.find("ry(pi/2) ") == 0 || line.find("ry(pi / 2)") == 0) {
         } else if (line.find("cx ") == 0 || line.find("CX ") == 0 ) {
         } else if (line.find("cz ") == 0) {
