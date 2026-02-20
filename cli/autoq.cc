@@ -75,11 +75,14 @@ const char* kLoopSymbolic = "symbolic";
 constexpr size_t kAutVecEraseCount = 2;
 
 // Error messages (single place for user-facing strings)
+const char* kErrOpenFilePrefix = "Failed to open file ";
 const char* kErrPredicatePrecondition = "Predicate amplitudes cannot be used in a precondition.";
 const char* kErrPredicateAutomataPost = "PredicateAutomata as the postcondition are currently not supported.";
 const char* kErrConcretePostPre = "When the postcondition has only concrete amplitudes, the precondition must also do so.";
 const char* kErrUnsupportedPostType = "Unsupported type of the postcondition.";
 const char* kErrNoMode = "Please provide at least one mode. Run \"autoq -h\" for more information.";
+
+const char* kOutputLabel = "OUTPUT:\n";
 
 void print_verification_result(int qubitNum, int gateCount, bool verify,
                                const chrono::steady_clock::time_point& start) {
@@ -123,7 +126,7 @@ void adjust_N_in_nTuple(const std::string &filename) {
     std::ifstream qasm(filename);
     const std::regex rx(R"(rx\((.+)\).+\[(\d+)\];)");
     const std::regex rz(R"(rz\((.+)\).+\[(\d+)\];)");
-    if (!qasm.is_open()) THROW_AUTOQ_ERROR("Failed to open file " + std::string(filename) + ".");
+    if (!qasm.is_open()) THROW_AUTOQ_ERROR(std::string(kErrOpenFilePrefix) + filename + ".");
     std::string line;
     while (getline(qasm, line)) {
         line = AUTOQ::String::trim(line);
@@ -255,14 +258,14 @@ try {
             autVec.erase(autVec.begin(), autVec.begin() + kAutVecEraseCount);
             bool verify = aut.execute(circuit, qp, autVec, params);
             if (!autVec.empty()) print_loop_invariant_result(verify);
-            aut.print_language("OUTPUT:\n");
+            aut.print_language(kOutputLabel);
         } else {
             auto [autVec, qp] = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Concrete>::ReadTwoAutomata(pre, pre, circuit);
             auto aut = autVec.at(0);
             autVec.erase(autVec.begin(), autVec.begin() + kAutVecEraseCount);
             bool verify = aut.execute(circuit, qp, autVec, params);
             if (!autVec.empty()) print_loop_invariant_result(verify);
-            aut.print_language("OUTPUT:\n");
+            aut.print_language(kOutputLabel);
         }
     } else if (verification->parsed()) {
         // runConcrete = false;
