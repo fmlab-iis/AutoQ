@@ -71,6 +71,16 @@ const char* kParamLoop = "loop";
 const char* kLoopManual = "manual";
 const char* kLoopSymbolic = "symbolic";
 
+// Number of elements to remove from autVec after ReadTwoAutomata (pre+circuit or aut+spec)
+constexpr size_t kAutVecEraseCount = 2;
+
+// Error messages (single place for user-facing strings)
+const char* kErrPredicatePrecondition = "Predicate amplitudes cannot be used in a precondition.";
+const char* kErrPredicateAutomataPost = "PredicateAutomata as the postcondition are currently not supported.";
+const char* kErrConcretePostPre = "When the postcondition has only concrete amplitudes, the precondition must also do so.";
+const char* kErrUnsupportedPostType = "Unsupported type of the postcondition.";
+const char* kErrNoMode = "Please provide at least one mode. Run \"autoq -h\" for more information.";
+
 void print_verification_result(int qubitNum, int gateCount, bool verify,
                                const chrono::steady_clock::time_point& start) {
     std::cout << "The quantum program has [" << qubitNum << "] qubits and ["
@@ -237,19 +247,19 @@ try {
         // runConcrete = true;
         auto aut1 = ReadAutomaton(pre);
         if constexpr (std::is_same_v<std::decay_t<decltype(aut1)>, AUTOQ::PredicateAutomata>) {
-            THROW_AUTOQ_ERROR("Predicate amplitudes cannot be used in a precondition.");
+            THROW_AUTOQ_ERROR(kErrPredicatePrecondition);
         }
         if (std::holds_alternative<AUTOQ::SymbolicAutomata>(aut1) || AUTOQ::SymbolicAutomata::check_the_invariants_types(circuit) == "Symbolic") {
             auto [autVec, qp] = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Symbolic>::ReadTwoAutomata(pre, pre, circuit);
             auto aut = autVec.at(0);
-            autVec.erase(autVec.begin(), autVec.begin() + 2); // remove the first element
+            autVec.erase(autVec.begin(), autVec.begin() + kAutVecEraseCount);
             bool verify = aut.execute(circuit, qp, autVec, params);
             if (!autVec.empty()) print_loop_invariant_result(verify);
             aut.print_language("OUTPUT:\n");
         } else {
             auto [autVec, qp] = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Concrete>::ReadTwoAutomata(pre, pre, circuit);
             auto aut = autVec.at(0);
-            autVec.erase(autVec.begin(), autVec.begin() + 2); // remove the first element
+            autVec.erase(autVec.begin(), autVec.begin() + kAutVecEraseCount);
             bool verify = aut.execute(circuit, qp, autVec, params);
             if (!autVec.empty()) print_loop_invariant_result(verify);
             aut.print_language("OUTPUT:\n");
@@ -266,7 +276,7 @@ try {
             // spec.print_language("POST:\n");
             auto aut1 = ReadAutomaton(pre);
             if (std::holds_alternative<AUTOQ::PredicateAutomata>(aut1)) {
-                THROW_AUTOQ_ERROR("Predicate amplitudes cannot be used in a precondition.");
+                THROW_AUTOQ_ERROR(kErrPredicatePrecondition);
             }
             // auto aut = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Symbolic>::ReadAutomaton(pre);
             AUTOQ::SymbolicAutomata::startFromFileToAutomata = std::chrono::steady_clock::now();
@@ -274,7 +284,7 @@ try {
             AUTOQ::SymbolicAutomata::endFromFileToAutomata = std::chrono::steady_clock::now();
             auto aut = autVec.at(0);
             auto spec = autVec.at(1);
-            autVec.erase(autVec.begin(), autVec.begin() + 2); // remove the first two elements
+            autVec.erase(autVec.begin(), autVec.begin() + kAutVecEraseCount);
             // aut.print_aut("PRE:\n");
             // aut.print_language("PRE:\n");
             bool verify = aut.execute(circuit, qp, autVec, params);
@@ -291,7 +301,7 @@ try {
                 print_verification_result(aut.qubitNum, AUTOQ::SymbolicAutomata::gateCount, verify, start);
             }
         } else if (std::holds_alternative<AUTOQ::PredicateAutomata>(spec1)) {
-            THROW_AUTOQ_ERROR("PredicateAutomata as the postcondition are currently not supported.");
+            THROW_AUTOQ_ERROR(kErrPredicateAutomataPost);
             // auto &spec = std::get<AUTOQ::PredicateAutomata>(spec1);
             // auto aut = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Symbolic>::ReadAutomaton(pre); // TODO: can also be AUTOQ::Symbol::Concrete
             // // cannot use std::get<AUTOQ::SymbolicAutomata> here since ReadAutomaton(...) may treat "aut1" as a TreeAutomata
@@ -314,7 +324,7 @@ try {
             auto aut1 = ReadAutomaton(pre);
             std::visit([](auto&& arg) {
                 if constexpr (!std::is_same_v<std::decay_t<decltype(arg)>, AUTOQ::TreeAutomata>) {
-                    THROW_AUTOQ_ERROR("When the postcondition has only concrete amplitudes, the precondition must also do so.");
+                    THROW_AUTOQ_ERROR(kErrConcretePostPre);
                 }
             }, aut1);
             AUTOQ::TreeAutomata::startFromFileToAutomata = std::chrono::steady_clock::now();
@@ -322,7 +332,7 @@ try {
             AUTOQ::TreeAutomata::endFromFileToAutomata = std::chrono::steady_clock::now();
             auto aut = autVec.at(0);
             auto spec = autVec.at(1);
-            autVec.erase(autVec.begin(), autVec.begin() + 2); // remove the first two elements
+            autVec.erase(autVec.begin(), autVec.begin() + kAutVecEraseCount);
             // aut.print_language("PRE:\n");
             // spec.print_language("SPEC:\n");
             bool verify = aut.execute(circuit, qp, autVec, params);
@@ -339,7 +349,7 @@ try {
                 print_verification_result(aut.qubitNum, AUTOQ::TreeAutomata::gateCount, verify, start);
             }
         } else {
-            THROW_AUTOQ_ERROR("Unsupported type of the postcondition.");
+            THROW_AUTOQ_ERROR(kErrUnsupportedPostType);
         }
     } else if (equivalence_checking->parsed()) {
         // runConcrete = true;
@@ -374,7 +384,7 @@ try {
             aut.print_language();
         }, aut);
     } else {
-        THROW_AUTOQ_ERROR("Please provide at least one mode. Run \"autoq -h\" for more information.");
+        THROW_AUTOQ_ERROR(kErrNoMode);
     }
     /**************/
     // if (long_time) {
