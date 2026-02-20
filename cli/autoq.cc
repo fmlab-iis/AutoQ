@@ -171,8 +171,11 @@ void adjust_N_in_nTuple(const std::string &filename) {
     // AUTOQ_DEBUG(AUTOQ::Complex::nTuple::N);
 }
 
-AUTOQ::TreeAutomata aut;
-AUTOQ::TreeAutomata aut2;
+namespace {
+AUTOQ::TreeAutomata* g_timeout_aut1 = nullptr;
+AUTOQ::TreeAutomata* g_timeout_aut2 = nullptr;
+}
+
 void timeout_handler(int) {
     std::map<std::string, std::string> stats;
     stats["gate"] = AUTOQ::Util::Convert::toString(AUTOQ::TreeAutomata::total_gate_time - AUTOQ::TreeAutomata::total_removeuseless_time - AUTOQ::TreeAutomata::total_reduce_time);
@@ -181,18 +184,18 @@ void timeout_handler(int) {
     stats["include"] = AUTOQ::Util::Convert::toString(AUTOQ::TreeAutomata::total_include_time);
     stats["total"] = std::to_string(kTimeoutSeconds);
     stats["result"] = std::to_string(AUTOQ::TreeAutomata::gateCount);
-    stats["aut1.trans"] = std::to_string(aut.count_transitions());
-    stats["aut1.leaves"] = std::to_string(aut.count_leaves());
-    stats["aut2.trans"] = std::to_string(aut2.count_transitions());
-    stats["aut2.leaves"] = std::to_string(aut2.count_leaves());
+    stats["aut1.trans"] = g_timeout_aut1 ? std::to_string(g_timeout_aut1->count_transitions()) : "0";
+    stats["aut1.leaves"] = g_timeout_aut1 ? std::to_string(g_timeout_aut1->count_leaves()) : "0";
+    stats["aut2.trans"] = g_timeout_aut2 ? std::to_string(g_timeout_aut2->count_transitions()) : "0";
+    stats["aut2.leaves"] = g_timeout_aut2 ? std::to_string(g_timeout_aut2->count_leaves()) : "0";
     std::cout << AUTOQ::Util::Convert::ToString2(stats) << std::endl;
     exit(kExitCodeTimeout);
 }
 
-void set_timeout(unsigned int seconds) {
-    // Register the signal handler
+void set_timeout(unsigned int seconds, AUTOQ::TreeAutomata* aut1, AUTOQ::TreeAutomata* aut2) {
+    g_timeout_aut1 = aut1;
+    g_timeout_aut2 = aut2;
     signal(SIGALRM, timeout_handler);
-    // Set an alarm for the specified number of seconds
     alarm(seconds);
 }
 
@@ -365,9 +368,9 @@ try {
             THROW_AUTOQ_ERROR(kErrUnsupportedPostType);
         }
     } else if (equivalence_checking->parsed()) {
-        // runConcrete = true;
-        /*AUTOQ::TreeAutomata*/ aut = AUTOQ::TreeAutomata::prefix_basis(extract_qubit(circuit1));
-        /*AUTOQ::TreeAutomata*/ aut2 = AUTOQ::TreeAutomata::prefix_basis(extract_qubit(circuit2));
+        AUTOQ::TreeAutomata aut = AUTOQ::TreeAutomata::prefix_basis(extract_qubit(circuit1));
+        AUTOQ::TreeAutomata aut2 = AUTOQ::TreeAutomata::prefix_basis(extract_qubit(circuit2));
+        // set_timeout(kTimeoutSeconds, &aut, &aut2);  // optional: enable to dump stats on timeout
         aut.execute(circuit1, {}, {}, params);
         aut2.execute(circuit2, {}, {}, params);
         bool result = aut <<= aut2;
