@@ -6,6 +6,7 @@
 #include <autoq/serialization/timbuk_serializer.hh>
 #include <autoq/aut_description.hh>
 #include <autoq/inclusion.hh>
+#include <autoq/util/types.hh>
 #include <autoq/util/util.hh>
 #include <autoq/util/string.hh>
 #include <autoq/parsing/ExtendedDirac/EvaluationVisitor.h>
@@ -199,6 +200,95 @@ void set_timeout(unsigned int seconds, AUTOQ::TreeAutomata* aut1, AUTOQ::TreeAut
     alarm(seconds);
 }
 
+static void run_execution(const std::string& pre, const std::string& circuit,
+                          const ParameterMap& params) {
+    auto aut1 = ReadAutomaton(pre);
+    if (std::holds_alternative<AUTOQ::PredicateAutomata>(aut1)) {
+        THROW_AUTOQ_ERROR(kErrPredicatePrecondition);
+    }
+    if (std::holds_alternative<AUTOQ::SymbolicAutomata>(aut1) || AUTOQ::SymbolicAutomata::check_the_invariants_types(circuit) == "Symbolic") {
+        auto [autVec, qp] = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Symbolic>::ReadTwoAutomata(pre, pre, circuit);
+        auto aut = autVec.at(0);
+        autVec.erase(autVec.begin(), autVec.begin() + kAutVecEraseCount);
+        bool verify = aut.execute(circuit, qp, autVec, params);
+        if (!autVec.empty()) print_loop_invariant_result(verify);
+        aut.print_language(kOutputLabel);
+    } else {
+        auto [autVec, qp] = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Concrete>::ReadTwoAutomata(pre, pre, circuit);
+        auto aut = autVec.at(0);
+        autVec.erase(autVec.begin(), autVec.begin() + kAutVecEraseCount);
+        bool verify = aut.execute(circuit, qp, autVec, params);
+        if (!autVec.empty()) print_loop_invariant_result(verify);
+        aut.print_language(kOutputLabel);
+    }
+}
+
+static void run_equivalence(const std::string& circuit1, const std::string& circuit2,
+                           const ParameterMap& params, bool latex,
+                           const chrono::steady_clock::time_point& start) {
+    AUTOQ::TreeAutomata aut = AUTOQ::TreeAutomata::prefix_basis(extract_qubit(circuit1));
+    AUTOQ::TreeAutomata aut2 = AUTOQ::TreeAutomata::prefix_basis(extract_qubit(circuit2));
+    // set_timeout(kTimeoutSeconds, &aut, &aut2);  // optional: enable to dump stats on timeout
+    aut.execute(circuit1, {}, {}, params);
+    aut2.execute(circuit2, {}, {}, params);
+    bool result = aut <<= aut2;
+    if (latex) {
+        // (latex stats output commented out)
+    } else {
+        print_equivalence_result(result, start);
+    }
+}
+
+static void run_verification(const std::string& pre, const std::string& post, const std::string& circuit,
+                             const ParameterMap& params, bool latex,
+                             const chrono::steady_clock::time_point& start) {
+    auto spec1 = ReadAutomaton(post);
+    auto pre1 = ReadAutomaton(pre);
+    if (std::holds_alternative<AUTOQ::SymbolicAutomata>(spec1) || std::holds_alternative<AUTOQ::SymbolicAutomata>(pre1) || AUTOQ::SymbolicAutomata::check_the_invariants_types(circuit) == "Symbolic") {
+        auto aut1 = ReadAutomaton(pre);
+        if (std::holds_alternative<AUTOQ::PredicateAutomata>(aut1)) {
+            THROW_AUTOQ_ERROR(kErrPredicatePrecondition);
+        }
+        AUTOQ::SymbolicAutomata::startFromFileToAutomata = std::chrono::steady_clock::now();
+        auto [autVec, qp] = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Symbolic, AUTOQ::Symbol::Symbolic>::ReadTwoAutomata(pre, post, circuit);
+        AUTOQ::SymbolicAutomata::endFromFileToAutomata = std::chrono::steady_clock::now();
+        auto aut = autVec.at(0);
+        auto spec = autVec.at(1);
+        autVec.erase(autVec.begin(), autVec.begin() + kAutVecEraseCount);
+        bool verify = aut.execute(circuit, qp, autVec, params);
+        verify &= (aut <<= spec);
+        if (latex) {
+            aut.print_stats();
+        } else {
+            print_verification_result(aut.qubitNum, AUTOQ::SymbolicAutomata::gateCount, verify, start);
+        }
+    } else if (std::holds_alternative<AUTOQ::PredicateAutomata>(spec1)) {
+        THROW_AUTOQ_ERROR(kErrPredicateAutomataPost);
+    } else if (std::holds_alternative<AUTOQ::TreeAutomata>(spec1)) {
+        auto aut1 = ReadAutomaton(pre);
+        std::visit([](auto&& arg) {
+            if constexpr (!std::is_same_v<std::decay_t<decltype(arg)>, AUTOQ::TreeAutomata>) {
+                THROW_AUTOQ_ERROR(kErrConcretePostPre);
+            }
+        }, aut1);
+        AUTOQ::TreeAutomata::startFromFileToAutomata = std::chrono::steady_clock::now();
+        auto [autVec, qp] = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Concrete>::ReadTwoAutomata(pre, post, circuit);
+        AUTOQ::TreeAutomata::endFromFileToAutomata = std::chrono::steady_clock::now();
+        auto aut = autVec.at(0);
+        auto spec = autVec.at(1);
+        autVec.erase(autVec.begin(), autVec.begin() + kAutVecEraseCount);
+        bool verify = aut.execute(circuit, qp, autVec, params);
+        verify &= (aut <<= spec);
+        if (latex) {
+            aut.print_stats();
+        } else {
+            print_verification_result(aut.qubitNum, AUTOQ::TreeAutomata::gateCount, verify, start);
+        }
+    } else {
+        THROW_AUTOQ_ERROR(kErrUnsupportedPostType);
+    }
+}
+
 int main(int argc, char **argv) {
 try {
     // set_timeout(600);
@@ -260,140 +350,11 @@ try {
         params[kParamLoop] = kLoopSymbolic;
     }
     if (execution->parsed()) {
-        // runConcrete = true;
-        auto aut1 = ReadAutomaton(pre);
-        if constexpr (std::is_same_v<std::decay_t<decltype(aut1)>, AUTOQ::PredicateAutomata>) {
-            THROW_AUTOQ_ERROR(kErrPredicatePrecondition);
-        }
-        if (std::holds_alternative<AUTOQ::SymbolicAutomata>(aut1) || AUTOQ::SymbolicAutomata::check_the_invariants_types(circuit) == "Symbolic") {
-            auto [autVec, qp] = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Symbolic>::ReadTwoAutomata(pre, pre, circuit);
-            auto aut = autVec.at(0);
-            autVec.erase(autVec.begin(), autVec.begin() + kAutVecEraseCount);
-            bool verify = aut.execute(circuit, qp, autVec, params);
-            if (!autVec.empty()) print_loop_invariant_result(verify);
-            aut.print_language(kOutputLabel);
-        } else {
-            auto [autVec, qp] = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Concrete>::ReadTwoAutomata(pre, pre, circuit);
-            auto aut = autVec.at(0);
-            autVec.erase(autVec.begin(), autVec.begin() + kAutVecEraseCount);
-            bool verify = aut.execute(circuit, qp, autVec, params);
-            if (!autVec.empty()) print_loop_invariant_result(verify);
-            aut.print_language(kOutputLabel);
-        }
+        run_execution(pre, circuit, params);
     } else if (verification->parsed()) {
-        // runConcrete = false;
-        auto spec1 = ReadAutomaton(post);
-        auto pre1 = ReadAutomaton(pre);
-        if (std::holds_alternative<AUTOQ::SymbolicAutomata>(spec1) || std::holds_alternative<AUTOQ::SymbolicAutomata>(pre1) || AUTOQ::SymbolicAutomata::check_the_invariants_types(circuit) == "Symbolic") {
-            // THROW_AUTOQ_ERROR("The postcondition must have concrete or predicate amplitudes.");
-        // } else if (std::holds_alternative<AUTOQ::PredicateAutomata>(spec1)) {
-            // auto &spec = std::get<AUTOQ::PredicateAutomata>(spec1);
-            // spec.print_aut("POST:\n");
-            // spec.print_language("POST:\n");
-            auto aut1 = ReadAutomaton(pre);
-            if (std::holds_alternative<AUTOQ::PredicateAutomata>(aut1)) {
-                THROW_AUTOQ_ERROR(kErrPredicatePrecondition);
-            }
-            // auto aut = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Symbolic>::ReadAutomaton(pre);
-            AUTOQ::SymbolicAutomata::startFromFileToAutomata = std::chrono::steady_clock::now();
-            auto [autVec, qp] = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Symbolic, AUTOQ::Symbol::Symbolic>::ReadTwoAutomata(pre, post, circuit);
-            AUTOQ::SymbolicAutomata::endFromFileToAutomata = std::chrono::steady_clock::now();
-            auto aut = autVec.at(0);
-            auto spec = autVec.at(1);
-            autVec.erase(autVec.begin(), autVec.begin() + kAutVecEraseCount);
-            // aut.print_aut("PRE:\n");
-            // aut.print_language("PRE:\n");
-            bool verify = aut.execute(circuit, qp, autVec, params);
-            // std::cout << "OUTPUT AUTOMATON:\n";
-            // std::cout << "=================\n";
-            // aut.print_aut("OUTPUT:\n");
-            // aut.print_language("OUTPUT:\n");
-            // std::cout << "=================\n";
-            verify &= (aut <<= spec);
-            // aut.print_language(); spec.print_language();
-            if (latex) {
-                aut.print_stats();
-            } else {
-                print_verification_result(aut.qubitNum, AUTOQ::SymbolicAutomata::gateCount, verify, start);
-            }
-        } else if (std::holds_alternative<AUTOQ::PredicateAutomata>(spec1)) {
-            THROW_AUTOQ_ERROR(kErrPredicateAutomataPost);
-            // auto &spec = std::get<AUTOQ::PredicateAutomata>(spec1);
-            // auto aut = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Symbolic>::ReadAutomaton(pre); // TODO: can also be AUTOQ::Symbol::Concrete
-            // // cannot use std::get<AUTOQ::SymbolicAutomata> here since ReadAutomaton(...) may treat "aut1" as a TreeAutomata
-            // bool verify = aut.execute(circuit);
-            // // std::cout << "OUTPUT AUTOMATON:\n";
-            // // std::cout << "=================\n";
-            // // aut.print_aut();
-            // // std::cout << "=================\n";
-            // verify &= (aut <<= spec);
-            // // aut.print_language(); spec.print_language();
-            // if (latex) {
-            //     aut.print_stats();
-            // } else {
-            //     std::cout << "The quantum program has [" << aut.qubitNum << "] qubits and [" << AUTOQ::SymbolicAutomata::gateCount << "] gates. The verification process [" << (verify ? "OK" : "failed") << "] in [" << AUTOQ::Util::Convert::toString(chrono::steady_clock::now() - start) << "] with [" << AUTOQ::Util::getPeakRSS() / 1024 / 1024 << "MB] memory usage.\n";
-            // }
-        } else if (std::holds_alternative<AUTOQ::TreeAutomata>(spec1)) {
-            // auto &spec = std::get<AUTOQ::TreeAutomata>(spec1);
-            // // spec.print_aut("POST:\n");
-            // // spec.print_language("POST:\n");
-            auto aut1 = ReadAutomaton(pre);
-            std::visit([](auto&& arg) {
-                if constexpr (!std::is_same_v<std::decay_t<decltype(arg)>, AUTOQ::TreeAutomata>) {
-                    THROW_AUTOQ_ERROR(kErrConcretePostPre);
-                }
-            }, aut1);
-            AUTOQ::TreeAutomata::startFromFileToAutomata = std::chrono::steady_clock::now();
-            auto [autVec, qp] = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Concrete>::ReadTwoAutomata(pre, post, circuit);
-            AUTOQ::TreeAutomata::endFromFileToAutomata = std::chrono::steady_clock::now();
-            auto aut = autVec.at(0);
-            auto spec = autVec.at(1);
-            autVec.erase(autVec.begin(), autVec.begin() + kAutVecEraseCount);
-            // aut.print_language("PRE:\n");
-            // spec.print_language("SPEC:\n");
-            bool verify = aut.execute(circuit, qp, autVec, params);
-            // std::cout << "OUTPUT AUTOMATON:\n";
-            // std::cout << "=================\n";
-            // aut.print_aut("OUTPUT:\n");
-            // autMinus.value().print_aut("AUT-MINUS:\n");
-            // aut.print_language("OUTPUT:\n");
-            // std::cout << "=================\n";
-            verify &= (aut <<= spec); // && (autMinus ? ((aut && (*autMinus)).empty()) : true);
-            if (latex) {
-                aut.print_stats();
-            } else {
-                print_verification_result(aut.qubitNum, AUTOQ::TreeAutomata::gateCount, verify, start);
-            }
-        } else {
-            THROW_AUTOQ_ERROR(kErrUnsupportedPostType);
-        }
+        run_verification(pre, post, circuit, params, latex, start);
     } else if (equivalence_checking->parsed()) {
-        AUTOQ::TreeAutomata aut = AUTOQ::TreeAutomata::prefix_basis(extract_qubit(circuit1));
-        AUTOQ::TreeAutomata aut2 = AUTOQ::TreeAutomata::prefix_basis(extract_qubit(circuit2));
-        // set_timeout(kTimeoutSeconds, &aut, &aut2);  // optional: enable to dump stats on timeout
-        aut.execute(circuit1, {}, {}, params);
-        aut2.execute(circuit2, {}, {}, params);
-        bool result = aut <<= aut2;
-        if (latex) {
-            // if (short_time) {
-            //     std::map<std::string, std::string> stats;
-            //     stats["gate"] = AUTOQ::Util::Convert::toString(AUTOQ::TreeAutomata::total_gate_time - AUTOQ::TreeAutomata::total_removeuseless_time - AUTOQ::TreeAutomata::total_reduce_time);
-            //     stats["removeuseless"] = AUTOQ::Util::Convert::toString(AUTOQ::TreeAutomata::total_removeuseless_time);
-            //     stats["reduce"] = AUTOQ::Util::Convert::toString(AUTOQ::TreeAutomata::total_reduce_time);
-            //     stats["include"] = AUTOQ::Util::Convert::toString(AUTOQ::TreeAutomata::total_include_time);
-            //     stats["total"] = AUTOQ::Util::Convert::toString(chrono::steady_clock::now() - start);
-            //     stats["result"] = result ? "T" : "F";
-            //     stats["aut1.trans"] = std::to_string(aut.count_transitions());
-            //     stats["aut1.leaves"] = std::to_string(aut.count_leaves());
-            //     stats["aut2.trans"] = std::to_string(aut2.count_transitions());
-            //     stats["aut2.leaves"] = std::to_string(aut2.count_leaves());
-            //     std::cout << AUTOQ::Util::Convert::ToString2(stats) << std::endl;
-            // } else {
-            //     std::cout << AUTOQ::Util::Convert::toString(chrono::steady_clock::now() - start) << " & " << (result ? "T" : "F") << "\n";
-            // }
-        } else {
-            print_equivalence_result(result, start);
-        }
+        run_equivalence(circuit1, circuit2, params, latex, start);
     } else if (print->parsed()) {
         auto aut = ReadAutomaton(pre);
         std::visit([](auto& aut){
