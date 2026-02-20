@@ -1,0 +1,261 @@
+{
+    "./GHZall/008": {
+        "q": "8",
+        "G": "8",
+        "before_state": "519",
+        "before_trans": "519",
+        "after_state": "773",
+        "after_trans": "773",
+        "total": "0.0s",
+        "result": "0.2s",
+        "read_file_time": "0.6s"
+    },
+    "./BVall/08": {
+        "q": "17",
+        "G": "27",
+        "before_state": "537",
+        "before_trans": "537",
+        "after_state": "2577",
+        "after_trans": "2577",
+        "total": "0.0s",
+        "result": "0.9s",
+        "read_file_time": "1.5s"
+    },
+    "./MCToffoli/08": {
+        "q": "16",
+        "G": "15",
+        "before_state": "534+534+33+33",
+        "before_trans": "534+534+33+33",
+        "after_state": "534+534+33+33",
+        "after_trans": "534+534+33+33",
+        "total": "0.0s+0.0s+0.0s+0.0s",
+        "result": "0.2s+0.2s+0.0s+0.0s",
+        "read_file_time": "0.6s+0.6s+0.0s+0.0s"
+    },
+    "./GroverAll/07": {
+        "q": "20",
+        "G": "544",
+        "before_state": "288",
+        "before_trans": "288",
+        "after_state": "1190",
+        "after_trans": "1190",
+        "total": "0.7s",
+        "result": "2.2s",
+        "read_file_time": "0.5s"
+    },
+    "./GroverIterAll/07": {
+        "q": "20",
+        "G": "79",
+        "before_state": "1190",
+        "before_trans": "1190",
+        "after_state": "1190",
+        "after_trans": "1190",
+        "total": "0.0s",
+        "result": "2.7s",
+        "read_file_time": "0.8s"
+    },
+    "./GHZall/009": {
+        "q": "9",
+        "G": "9",
+        "before_state": "1032",
+        "before_trans": "1032",
+        "after_state": "1542",
+        "after_trans": "1542",
+        "total": "0.0s",
+        "result": "1.1s",
+        "read_file_time": "2.7s"
+    },
+    "./MCToffoli/09": {
+        "q": "18",
+        "G": "17",
+        "before_state": "1049+1049+37+37",
+        "before_trans": "1049+1049+37+37",
+        "after_state": "1049+1049+37+37",
+        "after_trans": "1049+1049+37+37",
+        "total": "0.0s+0.0s+0.0s+0.0s",
+        "result": "0.8s+0.8s+0.0s+0.0s",
+        "read_file_time": "2.2s+2.2s+0.0s+0.0s"
+    },
+    "./BVall/09": {
+        "q": "19",
+        "G": "30",
+        "before_state": "1052",
+        "before_trans": "1052",
+        "after_state": "5651",
+        "after_trans": "5651",
+        "total": "0.2s",
+        "result": "4.1s",
+        "read_file_time": "6.1s"
+    },
+    "./GroverIterAll/08": {
+        "q": "23",
+        "G": "91",
+        "before_state": "2604",
+        "before_trans": "2604",
+        "after_state": "2604",
+        "after_trans": "2604",
+        "total": "0.2s",
+        "result": "8.1s",
+        "read_file_time": "2.9s"
+    },
+    "./GroverAll/08": {
+        "q": "23",
+        "G": "927",
+        "before_state": "549",
+        "before_trans": "549",
+        "after_state": "2604",
+        "after_trans": "2604",
+        "total": "2.6s",
+        "result": "7.5s",
+        "read_file_time": "1.9s"
+    },
+    "./GHZall/010": {
+        "q": "10",
+        "G": "10",
+        "before_state": "2057",
+        "before_trans": "2057",
+        "after_state": "3079",
+        "after_trans": "3079",
+        "total": "0.0s",
+        "result": "4.8s",
+        "read_file_time": "11s"
+    },
+    "./MCToffoli/10": {
+        "q": "20",
+        "G": "19",
+        "before_state": "2076+2076+41+41",
+        "before_trans": "2076+2076+41+41",
+        "after_state": "2076+2076+41+41",
+        "after_trans": "2076+2076+41+41",
+        "total": "0.0s+0.0s+0.0s+0.0s",
+        "result": "3.7s+3.6s+0.0s+0.0s",
+        "read_file_time": "9.1s+9.0s+0.0s+0.0s"
+    },
+    "./GroverIterAll/09": {
+        "q": "26",
+        "G": "103",
+        "before_state": "5682",
+        "before_trans": "5682",
+        "after_state": "5682",
+        "after_trans": "5682",
+        "total": "0.7s",
+        "result": "30s",
+        "read_file_time": "11s"
+    },
+    "./BVall/10": {
+        "q": "21",
+        "G": "33",
+        "before_state": "2079",
+        "before_trans": "2079",
+        "after_state": "12309",
+        "after_trans": "12309",
+        "total": "1.2s",
+        "result": "18s",
+        "read_file_time": "25s"
+    },
+    "./GroverAll/09": {
+        "q": "26",
+        "G": "1475",
+        "before_state": "1066",
+        "before_trans": "1066",
+        "after_state": "5682",
+        "after_trans": "5682",
+        "total": "12s",
+        "result": "30s",
+        "read_file_time": "7.3s"
+    },
+    "./GHZall/011": {
+        "q": "11",
+        "G": "11",
+        "before_state": "4106",
+        "before_trans": "4106",
+        "after_state": "6152",
+        "after_trans": "6152",
+        "total": "0.1s",
+        "result": "19s",
+        "read_file_time": "44s"
+    },
+    "./MCToffoli/11": {
+        "q": "22",
+        "G": "21",
+        "before_state": "4127+4127+45+45",
+        "before_trans": "4127+4127+45+45",
+        "after_state": "4127+4127+45+45",
+        "after_trans": "4127+4127+45+45",
+        "total": "0.2s+0.2s+0.0s+0.0s",
+        "result": "15s+15s+0.0s+0.0s",
+        "read_file_time": "37s+36s+0.0s+0.0s"
+    },
+    "./GroverIterAll/10": {
+        "q": "29",
+        "G": "115",
+        "before_state": "12344",
+        "before_trans": "12344",
+        "after_state": "12344",
+        "after_trans": "12344",
+        "total": "3.2s",
+        "result": "2m16s",
+        "read_file_time": "50s"
+    },
+    "./GroverAll/10": {
+        "q": "29",
+        "G": "2408",
+        "before_state": "2095",
+        "before_trans": "2095",
+        "after_state": "12344",
+        "after_trans": "12344",
+        "total": "1m19s",
+        "result": "2m14s",
+        "read_file_time": "30s"
+    },
+    "./BVall/11": {
+        "q": "23",
+        "G": "36",
+        "before_state": "4130",
+        "before_trans": "4130",
+        "after_state": "26647",
+        "after_trans": "26647",
+        "total": "5.6s",
+        "result": "1m29s",
+        "read_file_time": "2m19s"
+    },
+    "./BVall/12": {
+        "q": "25",
+        "G": "39",
+        "total": "TIMEOUT",
+        "result": "TIMEOUT",
+        "read_file_time": "TIMEOUT"
+    },
+    "./GroverAll/11": {
+        "q": "32",
+        "G": "3711",
+        "total": "TIMEOUT",
+        "result": "TIMEOUT",
+        "read_file_time": "TIMEOUT"
+    },
+    "./GroverIterAll/11": {
+        "q": "32",
+        "G": "127",
+        "total": "TIMEOUT",
+        "result": "TIMEOUT",
+        "read_file_time": "TIMEOUT"
+    },
+    "./GHZall/012": {
+        "q": "12",
+        "G": "12",
+        "total": "TIMEOUT",
+        "result": "TIMEOUT",
+        "read_file_time": "TIMEOUT"
+    },
+    "./MCToffoli/12": {
+        "q": "24",
+        "G": "23",
+        "before_state": "8226+8226+49+49",
+        "before_trans": "8226+8226+49+49",
+        "after_state": "8226+8226+49+49",
+        "after_trans": "8226+8226+49+49",
+        "total": "0.4s+0.4s+0.0s+0.0s",
+        "result": "1m4s+1m4s+0.0s+0.0s",
+        "read_file_time": "2m33s+2m31s+0.0s+0.0s"
+    }
+}

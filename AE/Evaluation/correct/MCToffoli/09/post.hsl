@@ -1,0 +1,4 @@
+Constants
+c1 := 1
+Extended Dirac
+{ c1 |i00000000j> : |i|=9, |j|=1 }

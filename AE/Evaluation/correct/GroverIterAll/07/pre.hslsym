@@ -1,0 +1,7 @@
+|i|=7 i:1,0,0,0,0 *:0,0,0,0,0 # i:pH *:pL # 000001:1,0,0,0,0 *:0,0,0,0,0
+Constraints
+127 * real(pL) > real(pH)
+real(pL) > 0
+real(pH) > 0
+imag(pL) = 0
+imag(pH) = 0
