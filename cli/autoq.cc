@@ -70,29 +70,11 @@ void adjust_N_in_nTuple(const std::string &filename) {
         std::smatch match_rz; std::regex_search(line, match_rz, rz);
         if (line.find("OPENQASM") == 0 || line.find("include ") == 0|| line.find("//") == 0) continue;
         if (line.find("qreg ") == 0) {
-        } else if (line.find("x ") == 0) {
-        } else if (line.find("y ") == 0) {
-            if (AUTOQ::Complex::nTuple::N < 2) {
-                AUTOQ::Complex::nTuple::N = 2;
-            }
-        } else if (line.find("z ") == 0) {
-        } else if (line.find("h ") == 0) {
-        } else if (line.find("s ") == 0) {
-            if (AUTOQ::Complex::nTuple::N < 2) {
-                AUTOQ::Complex::nTuple::N = 2;
-            }
-        } else if (line.find("sdg ") == 0) {
-            if (AUTOQ::Complex::nTuple::N < 2) {
-                AUTOQ::Complex::nTuple::N = 2;
-            }
-        } else if (line.find("t ") == 0) {
-            if (AUTOQ::Complex::nTuple::N < 4) {
-                AUTOQ::Complex::nTuple::N = 4;
-            }
-        } else if (line.find("tdg ") == 0) {
-            if (AUTOQ::Complex::nTuple::N < 4) {
-                AUTOQ::Complex::nTuple::N = 4;
-            }
+        } else if (line.find("x ") == 0 || line.find("z ") == 0 || line.find("h ") == 0) {
+        } else if (line.find("y ") == 0 || line.find("s ") == 0 || line.find("sdg ") == 0) {
+            if (AUTOQ::Complex::nTuple::N < 2) AUTOQ::Complex::nTuple::N = 2;
+        } else if (line.find("t ") == 0 || line.find("tdg ") == 0) {
+            if (AUTOQ::Complex::nTuple::N < 4) AUTOQ::Complex::nTuple::N = 4;
         } else if (match_rx.size() == 3) {
             std::string angle = match_rx[1];
             size_t pos = angle.find("pi");

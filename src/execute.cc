@@ -14,6 +14,14 @@
 #include <numeric>
 
 namespace {
+int first_qubit_index(const std::string& line, const AUTOQ::regexes& regexes,
+                      const std::vector<int>& qubit_permutation) {
+    std::smatch m;
+    return std::regex_search(line, m, regexes.digit)
+           ? (1 + qubit_permutation[atoi(m[0].str().c_str())])
+           : -1;
+}
+
 std::vector<int> parse_qubit_indices(const std::string& line, const AUTOQ::regexes& regexes,
                                      const std::sregex_iterator& END,
                                      const std::vector<int>& qubit_permutation) {
@@ -263,37 +271,21 @@ void AUTOQ::Automata<Symbol>::single_gate_execute(const std::string& line, const
     std::smatch match_rx; std::regex_search(line, match_rx, regexes.rx);
     std::smatch match_rz; std::regex_search(line, match_rz, regexes.rz);
     if (line.find("x ") == 0) {
-        std::smatch match_pieces;
-        std::regex_search(line, match_pieces, regexes.digit);
-        X(1 + qubit_permutation[atoi(match_pieces[0].str().c_str())]);
+        X(first_qubit_index(line, regexes, qubit_permutation));
     } else if (line.find("y ") == 0) {
-        std::smatch match_pieces;
-        std::regex_search(line, match_pieces, regexes.digit);
-        Y(1 + qubit_permutation[atoi(match_pieces[0].str().c_str())]);
+        Y(first_qubit_index(line, regexes, qubit_permutation));
     } else if (line.find("z ") == 0) {
-        std::smatch match_pieces;
-        std::regex_search(line, match_pieces, regexes.digit);
-        Z(1 + qubit_permutation[atoi(match_pieces[0].str().c_str())]);
+        Z(first_qubit_index(line, regexes, qubit_permutation));
     } else if (line.find("h ") == 0) {
-        std::smatch match_pieces;
-        std::regex_search(line, match_pieces, regexes.digit);
-        H(1 + qubit_permutation[atoi(match_pieces[0].str().c_str())]);
+        H(first_qubit_index(line, regexes, qubit_permutation));
     } else if (line.find("s ") == 0) {
-        std::smatch match_pieces;
-        std::regex_search(line, match_pieces, regexes.digit);
-        S(1 + qubit_permutation[atoi(match_pieces[0].str().c_str())]);
+        S(first_qubit_index(line, regexes, qubit_permutation));
     } else if (line.find("sdg ") == 0) {
-        std::smatch match_pieces;
-        std::regex_search(line, match_pieces, regexes.digit);
-        Sdg(1 + qubit_permutation[atoi(match_pieces[0].str().c_str())]);
+        Sdg(first_qubit_index(line, regexes, qubit_permutation));
     } else if (line.find("t ") == 0) {
-        std::smatch match_pieces;
-        std::regex_search(line, match_pieces, regexes.digit);
-        T(1 + qubit_permutation[atoi(match_pieces[0].str().c_str())]);
+        T(first_qubit_index(line, regexes, qubit_permutation));
     } else if (line.find("tdg ") == 0) {
-        std::smatch match_pieces;
-        std::regex_search(line, match_pieces, regexes.digit);
-        Tdg(1 + qubit_permutation[atoi(match_pieces[0].str().c_str())]);
+        Tdg(first_qubit_index(line, regexes, qubit_permutation));
     } else if (match_rx.size() == 3) {
         std::string angle = match_rx[1];
         size_t pos = angle.find("pi");
