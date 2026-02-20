@@ -47,6 +47,7 @@ bool AUTOQ::Automata<Symbol>::empty() const {
         for (auto candidate : candidates) {
             Vertex new_vertex;
             std::optional<bool> is_internal;
+            bool skip_candidate = false;
             for (const auto &top : vertex) {
                 bool this_top_has_picked_a_transition = false;
                 for (const auto &[c, fi] : qcfi[top]) {
@@ -69,14 +70,15 @@ bool AUTOQ::Automata<Symbol>::empty() const {
                     }
                 }
                 if (!this_top_has_picked_a_transition) { // this candidate is invalid
-                    goto END;
+                    skip_candidate = true;
+                    break;
                 }
             }
+            if (skip_candidate) continue;
             if (!is_internal.has_value()) THROW_AUTOQ_ERROR("should have picked some transitions");
             if (!is_internal.value()) return false; // if all top states have picked a leaf transition, then the language is not empty.
             if (new_vertex.empty()) THROW_AUTOQ_ERROR("Internal transitions should have some children!");
             bfs.push(new_vertex);
-            END:;
         }
     }
     return true; // if we can reach here, then the language is empty.
