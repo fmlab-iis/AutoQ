@@ -33,6 +33,16 @@ std::vector<int> parse_qubit_indices(const std::string& line, const AUTOQ::regex
     }
     return pos;
 }
+
+auto parse_angle_for_rot_gate(std::string angle, const char* gate_name) {
+    size_t pos = angle.find("pi");
+    if (pos != std::string::npos) {
+        angle.replace(pos, 2, "(1/2)");
+    } else if (angle != "0") {
+        THROW_AUTOQ_ERROR("The angle in " + std::string(gate_name) + " gate is not a multiple of pi!");
+    }
+    return EvaluationVisitor<>::ComplexParser(angle).getComplex().to_rational();
+}
 }  // namespace
 
 template <typename Symbol>
@@ -287,27 +297,11 @@ void AUTOQ::Automata<Symbol>::single_gate_execute(const std::string& line, const
     } else if (line.find("tdg ") == 0) {
         Tdg(first_qubit_index(line, regexes, qubit_permutation));
     } else if (match_rx.size() == 3) {
-        std::string angle = match_rx[1];
-        size_t pos = angle.find("pi");
-        if (pos != std::string::npos) {
-            angle.replace(pos, 2, "(1/2)");
-        } else if (angle != "0") {
-            THROW_AUTOQ_ERROR("The angle in rx gate is not a multiple of pi!");
-        }
-        std::string qubit = match_rx[2];
-        // AUTOQ_DEBUG("rx(" << angle << ") @ " << qubit);
-        Rx(EvaluationVisitor<>::ComplexParser(angle).getComplex().to_rational(), 1 + qubit_permutation[atoi(qubit.c_str())]);
+        Rx(parse_angle_for_rot_gate(match_rx[1].str(), "rx"),
+           1 + qubit_permutation[atoi(match_rx[2].str().c_str())]);
     } else if (match_rz.size() == 3) {
-        std::string angle = match_rz[1];
-        size_t pos = angle.find("pi");
-        if (pos != std::string::npos) {
-            angle.replace(pos, 2, "(1/2)");
-        } else if (angle != "0") {
-            THROW_AUTOQ_ERROR("The angle in rz gate is not a multiple of pi!");
-        }
-        std::string qubit = match_rz[2];
-        // AUTOQ_DEBUG("rz(" << angle << ") @ " << qubit);
-        Rz(EvaluationVisitor<>::ComplexParser(angle).getComplex().to_rational(), 1 + qubit_permutation[atoi(qubit.c_str())]);
+        Rz(parse_angle_for_rot_gate(match_rz[1].str(), "rz"),
+           1 + qubit_permutation[atoi(match_rz[2].str().c_str())]);
     } else if (line.find("ry(pi/2) ") == 0 || line.find("ry(pi / 2)") == 0) {
         std::vector<int> pos = parse_qubit_indices(line, regexes, END, qubit_permutation);
         Ry(pos[1]);
