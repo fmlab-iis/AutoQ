@@ -110,6 +110,8 @@ void print_equivalence_result(bool result,
 void adjust_N_in_nTuple(const std::string &filename) {
     if constexpr(!std::is_same_v<AUTOQ::Complex::Complex, AUTOQ::Complex::nTuple>) return;
     /************************************************************************************/
+    using NType = decltype(AUTOQ::Complex::nTuple::N);
+    static const std::pair<const char*, NType> kGateMinN[] = {{"y ", 2}, {"s ", 2}, {"sdg ", 2}, {"t ", 4}, {"tdg ", 4}};
     auto update_N_from_angle = [](const std::string& angle_str, const char* gate_name) {
         std::string angle = angle_str;
         size_t pos = angle.find("pi");
@@ -119,8 +121,8 @@ void adjust_N_in_nTuple(const std::string &filename) {
             THROW_AUTOQ_ERROR(std::string("The angle in ") + gate_name + " gate is not a multiple of pi!");
         }
         auto theta = EvaluationVisitor<>::ComplexParser(angle).getComplex().to_rational() / 2;
-        if (AUTOQ::Complex::nTuple::N < static_cast<decltype(AUTOQ::Complex::nTuple::N)>(theta.denominator())) {
-            AUTOQ::Complex::nTuple::N = static_cast<decltype(AUTOQ::Complex::nTuple::N)>(theta.denominator());
+        if (AUTOQ::Complex::nTuple::N < static_cast<NType>(theta.denominator())) {
+            AUTOQ::Complex::nTuple::N = static_cast<NType>(theta.denominator());
         }
     };
     std::ifstream qasm(filename);
@@ -135,24 +137,32 @@ void adjust_N_in_nTuple(const std::string &filename) {
         if (line.find("OPENQASM") == 0 || line.find("include ") == 0|| line.find("//") == 0) continue;
         if (line.find("qreg ") == 0) {
         } else if (line.find("x ") == 0 || line.find("z ") == 0 || line.find("h ") == 0) {
-        } else if (line.find("y ") == 0 || line.find("s ") == 0 || line.find("sdg ") == 0) {
-            if (AUTOQ::Complex::nTuple::N < 2) AUTOQ::Complex::nTuple::N = 2;
-        } else if (line.find("t ") == 0 || line.find("tdg ") == 0) {
-            if (AUTOQ::Complex::nTuple::N < 4) AUTOQ::Complex::nTuple::N = 4;
-        } else if (match_rx.size() == 3) {
-            update_N_from_angle(match_rx[1].str(), "rx");
-        } else if (match_rz.size() == 3) {
-            update_N_from_angle(match_rz[1].str(), "rz");
-        } else if (line.find("ry(pi/2) ") == 0 || line.find("ry(pi / 2)") == 0) {
-        } else if (line.find("cx ") == 0 || line.find("CX ") == 0 ) {
-        } else if (line.find("cz ") == 0) {
-        } else if (line.find("for ") == 0){
-        } else if (line.find("}") == 0){
-        } else if (line.find("ccx ") == 0) {
-        } else if (line.find("swap ") == 0) {
-        } else if (line.find("PRINT_STATS") == 0) {
-        } else if (line.find("PRINT_AUT") == 0) {
-        } else if (line.find("STOP") == 0) {
+        } else {
+            bool gate_min_n_done = false;
+            for (const auto& [prefix, min_n] : kGateMinN) {
+                if (line.find(prefix) == 0) {
+                    if (AUTOQ::Complex::nTuple::N < min_n) AUTOQ::Complex::nTuple::N = min_n;
+                    gate_min_n_done = true;
+                    break;
+                }
+            }
+            if (!gate_min_n_done) {
+                if (match_rx.size() == 3) {
+                    update_N_from_angle(match_rx[1].str(), "rx");
+                } else if (match_rz.size() == 3) {
+                    update_N_from_angle(match_rz[1].str(), "rz");
+                } else if (line.find("ry(pi/2) ") == 0 || line.find("ry(pi / 2)") == 0) {
+                } else if (line.find("cx ") == 0 || line.find("CX ") == 0) {
+                } else if (line.find("cz ") == 0) {
+                } else if (line.find("for ") == 0) {
+                } else if (line.find("}") == 0) {
+                } else if (line.find("ccx ") == 0) {
+                } else if (line.find("swap ") == 0) {
+                } else if (line.find("PRINT_STATS") == 0) {
+                } else if (line.find("PRINT_AUT") == 0) {
+                } else if (line.find("STOP") == 0) {
+                }
+            }
         }
         // } else if (line.length() > 0)
         //     THROW_AUTOQ_ERROR("unsupported gate: " + line + ".");
