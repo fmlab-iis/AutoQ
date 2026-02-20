@@ -5,30 +5,6 @@ set(CMAKE_COLOR_MAKEFILE ON)
 
 project(autoq)
 
-set(autoq_compiler_add_flags_list
-  -std=c++20
-  -pedantic-errors
-#  -DOPT_AC
-  -DCACHE_AC
-#  -DCACHE_CONGR
- # -DOPT_CONGR
-  -DCACHE_OPT_CONGR
-  -Wextra
-  -Wall
-  -Wfloat-equal
-  -Wctor-dtor-privacy
-  -Weffc++
-  -Woverloaded-virtual
-  -Wold-style-cast
-  -fdiagnostics-show-option
-  # -march=native
-  -DCOMPLEX_FiveTuple
-)
-
-foreach(param ${autoq_compiler_add_flags_list})
-  set(autoq_compiler_flags "${autoq_compiler_flags} ${param}")
-endforeach(param)
-
 # uncomment for profiling
 #add_definitions(-pg)
 #set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -pg")
@@ -49,7 +25,8 @@ foreach(file ${main_files})
     add_executable(${binary} ${file} ${CMAKE_CURRENT_BINARY_DIR}/version.cc)
     get_target_property(sources ${binary} SOURCES)
     foreach(src ${sources})
-        set_source_files_properties(${src} PROPERTIES COMPILE_FLAGS ${autoq_compiler_flags})
+        # CLI-only: -DCACHE_AC -DCACHE_OPT_CONGR (optional: -DOPT_AC, -DCACHE_CONGR, -march=native)
+        set_source_files_properties(${src} PROPERTIES COMPILE_FLAGS "-DCACHE_AC -DCACHE_OPT_CONGR")
     endforeach()
     target_link_libraries(${binary} lsta)
 endforeach()

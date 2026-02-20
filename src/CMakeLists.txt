@@ -8,25 +8,8 @@ project(autoq)
 # Export compile commands to be used with YouCompleteMe
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-# Flags for AUTOQ
-set(autoq_cxx_compiler_flags
-  -pedantic-errors
-  -Wextra
-  -Wall
-  -Wfloat-equal
-  -fdiagnostics-show-option
-  -std=c++20
-  -Wctor-dtor-privacy
-  -Weffc++
-  -fPIC
-  -Woverloaded-virtual
-  -Wold-style-cast
-  -DCOMPLEX_FiveTuple
-)
-
-foreach(flag ${autoq_cxx_compiler_flags})
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${flag}")
-endforeach()
+# Library-only: -fPIC (common flags from parent)
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC")
 
 # uncomment for profiling
 #add_definitions(-pg)

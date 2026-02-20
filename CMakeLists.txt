@@ -136,12 +136,10 @@ if (DEBUG_INFO_FOR_RELEASE)
 	message("-- Enabling debug information for RELEASE builds")
 endif()
 
-# for the use of "concept" and "std::same_as"
-set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -std=c++20")
-set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -std=c++20")
-
-set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -DCOMPLEX_FiveTuple")
-set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -DCOMPLEX_FiveTuple")
+# C++ standard, project define, and common warning flags (all targets)
+set(AUTOQ_CXX_FLAGS_EXTRA "-std=c++20 -DCOMPLEX_FiveTuple -pedantic-errors -Wextra -Wall -Wfloat-equal -Wctor-dtor-privacy -Weffc++ -Woverloaded-virtual -Wold-style-cast -fdiagnostics-show-option")
+set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} ${AUTOQ_CXX_FLAGS_EXTRA}")
+set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} ${AUTOQ_CXX_FLAGS_EXTRA}")
 
 ##############################################################################
 #                                 PROJECT

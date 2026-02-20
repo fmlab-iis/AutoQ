@@ -2,46 +2,8 @@ cmake_minimum_required(VERSION 3.5...3.28)
 
 project(unit_tests)
 
-set(compiler_flags_list
-  -std=c++20
-  -pedantic-errors
-  -Wextra
-  -Wall
-  -Wfloat-equal
-  -Wctor-dtor-privacy
-  -Weffc++
-  -Woverloaded-virtual
-  -Wold-style-cast
-  -fdiagnostics-show-option
-  # -march=native
-  -DCOMPLEX_FiveTuple
-)
-
-set(compiler_flags "")
-foreach(param ${compiler_flags_list})
-  set(compiler_flags "${compiler_flags} ${param}")
-endforeach(param)
-
-# uncomment for profiling
-#add_definitions(-pg)
-#set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -pg")
-
 include_directories(../include)
 include_directories(../include/z3)
-
-# add_library(tests
-# 	log_fixture.cc
-# 	formula_parser.cc
-# )
-
-# get_target_property(libtests_sources tests SOURCES)
-
-foreach(src ${libtests_sources})
-
-  set_source_files_properties(
-    ${src} PROPERTIES COMPILE_FLAGS ${compiler_flags})
-
-endforeach()
 
 set(TESTS
 # 	"ondriks_mtbdd_c_test"
@@ -53,11 +15,6 @@ set(TESTS
 
 foreach (TEST ${TESTS})
 	add_executable(${TEST} ${TEST}.cc)
-
-  set_source_files_properties(
-    ${TEST} PROPERTIES COMPILE_FLAGS ${compiler_flags})
-
-	# target_link_libraries(${TEST} tests)
 	target_link_libraries(${TEST} lsta)
 	target_link_libraries(${TEST} ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
 	target_link_libraries(${TEST} ${Boost_FILESYSTEM_LIBRARY})
