@@ -43,6 +43,17 @@ int extract_qubit(const std::string& filename) {
     return -1; // Indicate that the pattern was not found
 }
 
+namespace {
+void print_verification_result(int qubitNum, int gateCount, bool verify,
+                               const chrono::steady_clock::time_point& start) {
+    std::cout << "The quantum program has [" << qubitNum << "] qubits and ["
+              << gateCount << "] gates. The verification process ["
+              << (verify ? "OK" : "failed") << "] in ["
+              << AUTOQ::Util::Convert::toString(chrono::steady_clock::now() - start)
+              << "] with [" << (AUTOQ::Util::getPeakRSS() / 1024 / 1024) << "MB] memory usage.\n";
+}
+}  // namespace
+
 void adjust_N_in_nTuple(const std::string &filename) {
     if constexpr(!std::is_same_v<AUTOQ::Complex::Complex, AUTOQ::Complex::nTuple>) return;
     /************************************************************************************/
@@ -271,7 +282,7 @@ try {
             if (latex) {
                 aut.print_stats();
             } else {
-                std::cout << "The quantum program has [" << aut.qubitNum << "] qubits and [" << AUTOQ::SymbolicAutomata::gateCount << "] gates. The verification process [" << (verify ? "OK" : "failed") << "] in [" << AUTOQ::Util::Convert::toString(chrono::steady_clock::now() - start) << "] with [" << AUTOQ::Util::getPeakRSS() / 1024 / 1024 << "MB] memory usage.\n";
+                print_verification_result(aut.qubitNum, AUTOQ::SymbolicAutomata::gateCount, verify, start);
             }
         } else if (std::holds_alternative<AUTOQ::PredicateAutomata>(spec1)) {
             THROW_AUTOQ_ERROR("PredicateAutomata as the postcondition are currently not supported.");
@@ -319,7 +330,7 @@ try {
             if (latex) {
                 aut.print_stats();
             } else {
-                std::cout << "The quantum program has [" << aut.qubitNum << "] qubits and [" << AUTOQ::TreeAutomata::gateCount << "] gates. The verification process [" << (verify ? "OK" : "failed") << "] in [" << AUTOQ::Util::Convert::toString(chrono::steady_clock::now() - start) << "] with [" << AUTOQ::Util::getPeakRSS() / 1024 / 1024 << "MB] memory usage.\n";
+                print_verification_result(aut.qubitNum, AUTOQ::TreeAutomata::gateCount, verify, start);
             }
         } else {
             THROW_AUTOQ_ERROR("Unsupported type of the postcondition.");

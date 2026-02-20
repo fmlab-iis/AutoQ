@@ -60,11 +60,9 @@ std::string AUTOQ::Util::ShellCmd(const std::string &cmd) {
         THROW_AUTOQ_ERROR("popen() failed!");
     }
 
-    // read till end of process:
-    while (!feof(pipe)) {
-        // use buffer to read and add to result
-        if (fgets(buffer, sizeof(buffer), pipe) != NULL)
-            result += buffer;
+    // read till end of process (use fgets result, not feof, to avoid one extra read)
+    while (fgets(buffer, sizeof(buffer), pipe) != nullptr) {
+        result += buffer;
     }
 
     pclose(pipe);
