@@ -52,6 +52,11 @@ void print_verification_result(int qubitNum, int gateCount, bool verify,
               << AUTOQ::Util::Convert::toString(chrono::steady_clock::now() - start)
               << "] with [" << (AUTOQ::Util::getPeakRSS() / 1024 / 1024) << "MB] memory usage.\n";
 }
+
+void print_loop_invariant_result(bool verify) {
+    if (verify) std::cout << "[OK] The circuit execution satisfies the loop invariant." << std::endl;
+    else std::cout << "[ERROR] The circuit execution violates the loop invariant." << std::endl;
+}
 }  // namespace
 
 void adjust_N_in_nTuple(const std::string &filename) {
@@ -205,20 +210,14 @@ try {
             auto aut = autVec.at(0);
             autVec.erase(autVec.begin(), autVec.begin() + 2); // remove the first element
             bool verify = aut.execute(circuit, qp, autVec, params);
-            if (!autVec.empty()) {
-                if (verify) std::cout << "[OK] The circuit execution satisfies the loop invariant." << std::endl;
-                else std::cout << "[ERROR] The circuit execution violates the loop invariant." << std::endl;
-            }
+            if (!autVec.empty()) print_loop_invariant_result(verify);
             aut.print_language("OUTPUT:\n");
         } else {
             auto [autVec, qp] = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Concrete>::ReadTwoAutomata(pre, pre, circuit);
             auto aut = autVec.at(0);
             autVec.erase(autVec.begin(), autVec.begin() + 2); // remove the first element
             bool verify = aut.execute(circuit, qp, autVec, params);
-            if (!autVec.empty()) {
-                if (verify) std::cout << "[OK] The circuit execution satisfies the loop invariant." << std::endl;
-                else std::cout << "[ERROR] The circuit execution violates the loop invariant." << std::endl;
-            }
+            if (!autVec.empty()) print_loop_invariant_result(verify);
             aut.print_language("OUTPUT:\n");
         }
     } else if (verification->parsed()) {
