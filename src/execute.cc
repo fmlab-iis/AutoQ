@@ -16,6 +16,11 @@
 namespace {
 const char* kErrOpenFilePrefix = "Failed to open file ";
 const char* kErrUnsupportedGatePrefix = "unsupported gate: ";
+const char* kErrQubitMismatch = "The number of qubits in the automaton does not match the number of qubits in the circuit.";
+const char* kErrNestedLoops = "Nested loops are not supported yet.";
+const char* kErrLoopNotEnded = "Loop not ended properly";
+const char* kErrLoopInvariantPredicate = "The loop invariant cannot be a predicate automaton.";
+const char* kErrLoopInvariantType = "The provided type of the loop invariant is not supported yet.";
 
 int first_qubit_index(const std::string& line, const AUTOQ::regexes& regexes,
                       const std::vector<int>& qubit_permutation) {
@@ -93,12 +98,12 @@ bool AUTOQ::Automata<Symbol>::execute(const char *filename, std::vector<int> qub
             std::sregex_iterator it(line.begin(), line.end(), regexes.digit);
             while (it != END) {
                 if (atoi(it->str().c_str()) != static_cast<int>(qubitNum))
-                    THROW_AUTOQ_ERROR("The number of qubits in the automaton does not match the number of qubits in the circuit.");
+                    THROW_AUTOQ_ERROR(kErrQubitMismatch);
                 ++it;
             }
         } else if(line.find("for ") == 0){
             // for i in [x:y] { ... } loop syntax
-            if(in_loop) THROW_AUTOQ_ERROR("Nested loops are not supported yet.");
+            if(in_loop) THROW_AUTOQ_ERROR(kErrNestedLoops);
             in_loop = true;
             std::smatch match_pieces;
             std::regex_search(line, match_pieces, regexes.loop);
@@ -125,7 +130,7 @@ bool AUTOQ::Automata<Symbol>::execute(const char *filename, std::vector<int> qub
                 }
             }
             if(!loop_ended){
-                THROW_AUTOQ_ERROR("Loop not ended properly");
+                THROW_AUTOQ_ERROR(kErrLoopNotEnded);
             }
             // LOOP PARSING END
 
@@ -339,14 +344,14 @@ std::string AUTOQ::Automata<Symbol>::check_the_invariants_types(const std::strin
             auto invariant = ReadAutomaton(dir + std::string("/") + it2->str(1));
             if (std::holds_alternative<AUTOQ::PredicateAutomata>(invariant)) {
                 qasm.close();
-                THROW_AUTOQ_ERROR("The loop invariant cannot be a predicate automaton.");
+                THROW_AUTOQ_ERROR(kErrLoopInvariantPredicate);
             } else if (std::holds_alternative<AUTOQ::SymbolicAutomata>(invariant)) {
                 qasm.close();
                 return "Symbolic";
             } else if (std::holds_alternative<AUTOQ::TreeAutomata>(invariant)) {
             } else {
                 qasm.close();
-                THROW_AUTOQ_ERROR("The provided type of the loop invariant is not supported yet.");
+                THROW_AUTOQ_ERROR(kErrLoopInvariantType);
             }
         }
     }
