@@ -10,6 +10,7 @@
 #include <autoq/util/util.hh>
 #include <autoq/util/string.hh>
 #include <autoq/parsing/ExtendedDirac/EvaluationVisitor.h>
+#include <autoq/parsing/angle.hh>
 #include <autoq/complex/complex.hh>
 #include <sys/wait.h>
 #include <unistd.h>
@@ -114,16 +115,9 @@ void adjust_N_in_nTuple(const std::string &filename) {
     using NType = decltype(AUTOQ::Complex::nTuple::N);
     static const std::pair<const char*, NType> kGateMinN[] = {{"y ", 2}, {"s ", 2}, {"sdg ", 2}, {"t ", 4}, {"tdg ", 4}};
     auto update_N_from_angle = [](const std::string& angle_str, const char* gate_name) {
-        std::string angle = angle_str;
-        size_t pos = angle.find("pi");
-        if (pos != std::string::npos) {
-            angle.replace(pos, 2, "1");
-        } else if (angle != "0") {
-            THROW_AUTOQ_ERROR(std::string("The angle in ") + gate_name + " gate is not a multiple of pi!");
-        }
-        auto theta = EvaluationVisitor<>::ComplexParser(angle).getComplex().to_rational() / 2;
-        if (AUTOQ::Complex::nTuple::N < static_cast<NType>(theta.denominator())) {
-            AUTOQ::Complex::nTuple::N = static_cast<NType>(theta.denominator());
+        auto half_turns = AUTOQ::Parsing::parse_angle_to_rational(angle_str, gate_name, "1") / 2;
+        if (AUTOQ::Complex::nTuple::N < static_cast<NType>(half_turns.denominator())) {
+            AUTOQ::Complex::nTuple::N = static_cast<NType>(half_turns.denominator());
         }
     };
     std::ifstream qasm(filename);
