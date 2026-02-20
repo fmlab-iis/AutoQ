@@ -23,11 +23,13 @@
 
 using namespace std;
 
+constexpr int kExtractQubitError = -1;
+
 int extract_qubit(const std::string& filename) {
     std::ifstream file(filename);
     if (!file.is_open()) {
         std::cerr << "Unable to open file" << std::endl;
-        return -1; // Indicate an error opening the file
+        return kExtractQubitError;
     }
 
     std::string line;
@@ -40,17 +42,42 @@ int extract_qubit(const std::string& filename) {
     }
 
     std::cerr << "Pattern not found" << std::endl;
-    return -1; // Indicate that the pattern was not found
+    return kExtractQubitError;
 }
 
 namespace {
+constexpr unsigned int kTimeoutSeconds = 1800;
+constexpr int kExitCodeTimeout = 124;
+constexpr size_t kBytesPerMB = 1024 * 1024;
+
+// CLI option names (placeholder names in help)
+const char* kOptPreHsl = "pre.hsl";
+const char* kOptCircuitQasm = "circuit.qasm";
+const char* kOptPostHsl = "post.hsl";
+const char* kOptCircuit1Qasm = "circuit1.qasm";
+const char* kOptCircuit2Qasm = "circuit2.qasm";
+const char* kOptStatesHsl = "states.hsl";
+
+// CLI option description strings (reused across subcommands)
+const char* kPreFileOpt = "the precondition file";
+const char* kPostFileOpt = "the postcondition file";
+const char* kStatesFileOpt = "the automaton file";
+const char* kCircuitFileOpt = "the OpenQASM 2.0 or 3.0 circuit file";
+const char* kLoopsumOpt = "Summarize loops using symbolic execution.";
+const char* kLatexOpt = "Print the statistics for tables in LaTeX.";
+
+// Parameter key and values for loop execution mode
+const char* kParamLoop = "loop";
+const char* kLoopManual = "manual";
+const char* kLoopSymbolic = "symbolic";
+
 void print_verification_result(int qubitNum, int gateCount, bool verify,
                                const chrono::steady_clock::time_point& start) {
     std::cout << "The quantum program has [" << qubitNum << "] qubits and ["
               << gateCount << "] gates. The verification process ["
               << (verify ? "OK" : "failed") << "] in ["
               << AUTOQ::Util::Convert::toString(chrono::steady_clock::now() - start)
-              << "] with [" << (AUTOQ::Util::getPeakRSS() / 1024 / 1024) << "MB] memory usage.\n";
+              << "] with [" << (AUTOQ::Util::getPeakRSS() / kBytesPerMB) << "MB] memory usage.\n";
 }
 
 void print_loop_invariant_result(bool verify) {
@@ -63,7 +90,7 @@ void print_equivalence_result(bool result,
     std::cout << "The two quantum programs are verified to be ["
               << (result ? "equal" : "unequal") << "] in ["
               << AUTOQ::Util::Convert::toString(chrono::steady_clock::now() - start)
-              << "] with [" << (AUTOQ::Util::getPeakRSS() / 1024 / 1024) << "MB] memory usage.\n";
+              << "] with [" << (AUTOQ::Util::getPeakRSS() / kBytesPerMB) << "MB] memory usage.\n";
 }
 }  // namespace
 
@@ -129,14 +156,14 @@ void timeout_handler(int) {
     stats["removeuseless"] = AUTOQ::Util::Convert::toString(AUTOQ::TreeAutomata::total_removeuseless_time);
     stats["reduce"] = AUTOQ::Util::Convert::toString(AUTOQ::TreeAutomata::total_reduce_time);
     stats["include"] = AUTOQ::Util::Convert::toString(AUTOQ::TreeAutomata::total_include_time);
-    stats["total"] = "1800";
+    stats["total"] = std::to_string(kTimeoutSeconds);
     stats["result"] = std::to_string(AUTOQ::TreeAutomata::gateCount);
     stats["aut1.trans"] = std::to_string(aut.count_transitions());
     stats["aut1.leaves"] = std::to_string(aut.count_leaves());
     stats["aut2.trans"] = std::to_string(aut2.count_transitions());
     stats["aut2.leaves"] = std::to_string(aut2.count_leaves());
     std::cout << AUTOQ::Util::Convert::ToString2(stats) << std::endl;
-    exit(124); // Terminate the program
+    exit(kExitCodeTimeout);
 }
 
 void set_timeout(unsigned int seconds) {
@@ -156,36 +183,36 @@ try {
 
     bool summarize_loops = false;
     CLI::App* execution = app.add_subcommand("ex", "Execute a quantum circuit with a given precondition.");
-    execution->add_option("pre.hsl", pre, "the precondition file")->required()->type_name("");
-    execution->add_option("circuit.qasm", circuit, "the OpenQASM 2.0 or 3.0 circuit file")->required()->type_name("");
-    execution->add_flag("--loopsum", summarize_loops, "Summarize loops using symbolic execution.");
+    execution->add_option(kOptPreHsl, pre, kPreFileOpt)->required()->type_name("");
+    execution->add_option(kOptCircuitQasm, circuit, kCircuitFileOpt)->required()->type_name("");
+    execution->add_flag("--loopsum", summarize_loops, kLoopsumOpt);
     execution->callback([&]() {
         adjust_N_in_nTuple(circuit);
     });
 
     bool latex = false;
     CLI::App* verification = app.add_subcommand("ver", "Verify the execution result against a given postcondition.");
-    verification->add_option("pre.hsl", pre, "the precondition file")->required()->type_name("");
-    verification->add_option("circuit.qasm", circuit, "the OpenQASM 2.0 or 3.0 circuit file")->required()->type_name("");
-    verification->add_option("post.hsl", post, "the postcondition file")->required()->type_name("");
-    verification->add_flag("--loopsum", summarize_loops, "Summarize loops using symbolic execution.");
-    verification->add_flag("-l,--latex", latex, "Print the statistics for tables in LaTeX.");
+    verification->add_option(kOptPreHsl, pre, kPreFileOpt)->required()->type_name("");
+    verification->add_option(kOptCircuitQasm, circuit, kCircuitFileOpt)->required()->type_name("");
+    verification->add_option(kOptPostHsl, post, kPostFileOpt)->required()->type_name("");
+    verification->add_flag("--loopsum", summarize_loops, kLoopsumOpt);
+    verification->add_flag("-l,--latex", latex, kLatexOpt);
     verification->callback([&]() {
         adjust_N_in_nTuple(circuit);
     });
 
     CLI::App* equivalence_checking = app.add_subcommand("eq", "Check equivalence of two given quantum circuits.");
-    equivalence_checking->add_option("circuit1.qasm", circuit1, "the OpenQASM 2.0 or 3.0 circuit file")->required()->type_name("");
-    equivalence_checking->add_option("circuit2.qasm", circuit2, "the OpenQASM 2.0 or 3.0 circuit file")->required()->type_name("");
-    equivalence_checking->add_flag("--loopsum", summarize_loops, "Summarize loops using symbolic execution.");
-    equivalence_checking->add_flag("-l,--latex", latex, "Print the statistics for tables in LaTeX.");
+    equivalence_checking->add_option(kOptCircuit1Qasm, circuit1, kCircuitFileOpt)->required()->type_name("");
+    equivalence_checking->add_option(kOptCircuit2Qasm, circuit2, kCircuitFileOpt)->required()->type_name("");
+    equivalence_checking->add_flag("--loopsum", summarize_loops, kLoopsumOpt);
+    equivalence_checking->add_flag("-l,--latex", latex, kLatexOpt);
     equivalence_checking->callback([&]() {
         adjust_N_in_nTuple(circuit1);
         adjust_N_in_nTuple(circuit2);
     });
 
     CLI::App* print = app.add_subcommand("print", "Print the set of quantum states.");
-    print->add_option("states.hsl", pre, "the automaton file")->required()->type_name("");
+    print->add_option(kOptStatesHsl, pre, kStatesFileOpt)->required()->type_name("");
 
     CLI::Option* version = app.add_flag("-v,--version", "Print the full Git commit hash ID.");
 
@@ -202,10 +229,9 @@ try {
     auto start = chrono::steady_clock::now();
     // bool runConcrete; // or runSymbolic
     ParameterMap params;
-    params["loop"] = "manual"; // set the default option for loop execution
-    if(summarize_loops){
-        // summarization of loops enabled
-        params["loop"] = "symbolic";
+    params[kParamLoop] = kLoopManual;
+    if (summarize_loops) {
+        params[kParamLoop] = kLoopSymbolic;
     }
     if (execution->parsed()) {
         // runConcrete = true;
