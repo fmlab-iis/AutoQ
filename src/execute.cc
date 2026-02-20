@@ -14,6 +14,9 @@
 #include <numeric>
 
 namespace {
+const char* kErrOpenFilePrefix = "Failed to open file ";
+const char* kErrUnsupportedGatePrefix = "unsupported gate: ";
+
 int first_qubit_index(const std::string& line, const AUTOQ::regexes& regexes,
                       const std::vector<int>& qubit_permutation) {
     std::smatch m;
@@ -71,7 +74,7 @@ bool AUTOQ::Automata<Symbol>::execute(const char *filename, std::vector<int> qub
     const AUTOQ::regexes regexes{};
 
     const std::sregex_iterator END;
-    if (!qasm.is_open()) THROW_AUTOQ_ERROR("Failed to open file " + std::string(filename) + ".");
+    if (!qasm.is_open()) THROW_AUTOQ_ERROR(std::string(kErrOpenFilePrefix) + filename + ".");
     std::string line, previous_line;
 
     bool in_loop = false; // nested loops are not yet taken into consideration
@@ -318,14 +321,14 @@ void AUTOQ::Automata<Symbol>::single_gate_execute(const std::string& line, const
         std::vector<int> pos = parse_qubit_indices(line, regexes, END, qubit_permutation);
         Swap(pos[0], pos[1]);
     } else if (line.length() > 0){
-        THROW_AUTOQ_ERROR("unsupported gate: " + line + ".");
+        THROW_AUTOQ_ERROR(std::string(kErrUnsupportedGatePrefix) + line + ".");
     }
 }
 
 template <typename Symbol>
 std::string AUTOQ::Automata<Symbol>::check_the_invariants_types(const std::string& filename) {
     std::ifstream qasm(filename);
-    if (!qasm.is_open()) throw std::runtime_error(AUTOQ_LOG_PREFIX + "[ERROR] Failed to open file " + std::string(filename) + ".");
+    if (!qasm.is_open()) throw std::runtime_error(std::string(AUTOQ_LOG_PREFIX) + "[ERROR] " + kErrOpenFilePrefix + filename + ".");
     std::string line;
     while (getline(qasm, line)) {
         line = AUTOQ::String::trim(line);
