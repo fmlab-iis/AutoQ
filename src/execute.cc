@@ -13,6 +13,20 @@
 #include <filesystem>
 #include <numeric>
 
+namespace {
+std::vector<int> parse_qubit_indices(const std::string& line, const AUTOQ::regexes& regexes,
+                                     const std::sregex_iterator& END,
+                                     const std::vector<int>& qubit_permutation) {
+    std::vector<int> pos;
+    std::sregex_iterator it(line.begin(), line.end(), regexes.digit);
+    while (it != END) {
+        pos.push_back(1 + qubit_permutation[atoi(it->str().c_str())]);
+        ++it;
+    }
+    return pos;
+}
+}  // namespace
+
 template <typename Symbol>
 bool AUTOQ::Automata<Symbol>::execute(const std::string &filename, std::vector<int> qubit_permutation, const std::vector<AUTOQ::Automata<Symbol>> &loopInvariants, ParameterMap params) {
     return execute(filename.c_str(), qubit_permutation, loopInvariants, params);
@@ -303,169 +317,28 @@ void AUTOQ::Automata<Symbol>::single_gate_execute(const std::string& line, const
         // AUTOQ_DEBUG("rz(" << angle << ") @ " << qubit);
         Rz(EvaluationVisitor<>::ComplexParser(angle).getComplex().to_rational(), 1 + qubit_permutation[atoi(qubit.c_str())]);
     } else if (line.find("ry(pi/2) ") == 0 || line.find("ry(pi / 2)") == 0) {
-        std::sregex_iterator it(line.begin(), line.end(), regexes.digit);
-        std::vector<int> pos;
-        while (it != END) {
-            pos.push_back(1 + qubit_permutation[atoi(it->str().c_str())]);
-            ++it;
-        }
-        // AUTOQ_DEBUG("ry(pi/2) @ " << pos[1]);
+        std::vector<int> pos = parse_qubit_indices(line, regexes, END, qubit_permutation);
         Ry(pos[1]);
     } else if (line.find("cx ") == 0 || line.find("CX ") == 0 ) {
-        std::sregex_iterator it(line.begin(), line.end(), regexes.digit);
-        std::vector<int> pos;
-        while (it != END) {
-            pos.push_back(1 + qubit_permutation[atoi(it->str().c_str())]);
-            ++it;
-        }
+        std::vector<int> pos = parse_qubit_indices(line, regexes, END, qubit_permutation);
         CX(pos[0], pos[1]);
     } else if (line.find("cz ") == 0) {
-        std::sregex_iterator it(line.begin(), line.end(), regexes.digit);
-        std::vector<int> pos;
-        while (it != END) {
-            pos.push_back(1 + qubit_permutation[atoi(it->str().c_str())]);
-            ++it;
-        }
+        std::vector<int> pos = parse_qubit_indices(line, regexes, END, qubit_permutation);
         CZ(pos[0], pos[1]);
     } else if (line.find("ck ") == 0) {
-        std::sregex_iterator it(line.begin(), line.end(), regexes.digit);
-        std::vector<int> pos;
-        while (it != END) {
-            pos.push_back(1 + qubit_permutation[atoi(it->str().c_str())]);
-            ++it;
-        }
+        std::vector<int> pos = parse_qubit_indices(line, regexes, END, qubit_permutation);
         CK(pos[0], pos[1]);
     } else if (line.find("ccx ") == 0) {
-        std::sregex_iterator it(line.begin(), line.end(), regexes.digit);
-        std::vector<int> pos;
-        while (it != END) {
-            pos.push_back(1 + qubit_permutation[atoi(it->str().c_str())]);
-            ++it;
-        }
+        std::vector<int> pos = parse_qubit_indices(line, regexes, END, qubit_permutation);
         CCX(pos[0], pos[1], pos[2]);
     } else if (line.find("swap ") == 0) {
-        std::sregex_iterator it(line.begin(), line.end(), regexes.digit);
-        std::vector<int> pos;
-        while (it != END) {
-            pos.push_back(1 + qubit_permutation[atoi(it->str().c_str())]);
-            ++it;
-        }
+        std::vector<int> pos = parse_qubit_indices(line, regexes, END, qubit_permutation);
         Swap(pos[0], pos[1]);
     } else if (line.length() > 0){
         THROW_AUTOQ_ERROR("unsupported gate: " + line + ".");
     }
 }
 
-
-// template <typename Symbol>
-// void AUTOQ::Automata<Symbol>::reverse_execute(const char *filename) {
-//     // initialize_stats();
-
-//     std::ifstream qasm(filename);
-//     const std::regex regexes.digit("\\d+");
-//     const std::sregex_iterator END;
-//     if (!qasm.is_open()) THROW_AUTOQ_ERROR("Failed to open file " + std::string(filename) + ".");
-//     std::string line, previous_line;
-//     std::vector<std::string> lines;
-//     while (getline(qasm, line)) {
-//         lines.push_back(line);
-//     } // use the reverse iterator to read the file in reverse order
-//     for (auto rit = lines.rbegin(); rit != lines.rend(); ++rit) {
-//         line = *rit;
-//         if (line.find("OPENQASM") == 0 || line.find("include ") == 0|| line.find("//") == 0) continue;
-//         if (line.find("qreg ") == 0) {
-//             continue;
-//             // std::sregex_iterator it(line.begin(), line.end(), regexes.digit);
-//             // while (it != END) {
-//             //     if (atoi(it->str().c_str()) != static_cast<int>(qubitNum))
-//             //         THROW_AUTOQ_ERROR("The number of qubits in the automaton does not match the number of qubits in the circuit.");
-//             //     ++it;
-//             // }
-//         } else if (line.find("x ") == 0) {
-//             std::smatch match_pieces;
-//             std::regex_search(line, match_pieces, regexes.digit);
-//                 X(1 + atoi(match_pieces[0].str().c_str())); // X = X^-1
-//         } else if (line.find("y ") == 0) {
-//             std::smatch match_pieces;
-//             std::regex_search(line, match_pieces, regexes.digit);
-//                 Ydg(1 + atoi(match_pieces[0].str().c_str())); // Y = Y^-1
-//         } else if (line.find("z ") == 0) {
-//             std::smatch match_pieces;
-//             std::regex_search(line, match_pieces, regexes.digit);
-//                 Z(1 + atoi(match_pieces[0].str().c_str())); // Z = Z^-1
-//         } else if (line.find("h ") == 0) {
-//             std::smatch match_pieces;
-//             std::regex_search(line, match_pieces, regexes.digit);
-//                 H(1 + atoi(match_pieces[0].str().c_str())); // H = H^-1
-//         } else if (line.find("s ") == 0) {
-//             std::smatch match_pieces;
-//             std::regex_search(line, match_pieces, regexes.digit);
-//                 Sdg(1 + atoi(match_pieces[0].str().c_str())); // Sdg = S^-1
-//         } else if (line.find("sdg ") == 0) {
-//             std::smatch match_pieces;
-//             std::regex_search(line, match_pieces, regexes.digit);
-//                 S(1 + atoi(match_pieces[0].str().c_str())); // S = Sdg^-1
-//         } else if (line.find("t ") == 0) {
-//             std::smatch match_pieces;
-//             std::regex_search(line, match_pieces, regexes.digit);
-//                 Tdg(1 + atoi(match_pieces[0].str().c_str())); // Tdg = T^-1
-//         } else if (line.find("tdg ") == 0) {
-//             std::smatch match_pieces;
-//             std::regex_search(line, match_pieces, regexes.digit);
-//                 T(1 + atoi(match_pieces[0].str().c_str())); // T = Tdg^-1
-//         } else if (line.find("rx(pi/2) ") == 0 || line.find("rx(pi / 2)") == 0) {
-//             std::smatch match_pieces;
-//             std::regex_search(line, match_pieces, regexes.digit);
-//                 Rx(1 + atoi(match_pieces[0].str().c_str()));
-//         } else if (line.find("ry(pi/2) ") == 0 || line.find("ry(pi / 2)") == 0) {
-//             std::smatch match_pieces;
-//             std::regex_search(line, match_pieces, regexes.digit);
-//                 Ry(1 + atoi(match_pieces[0].str().c_str()));
-//         } else if (line.find("cx ") == 0 || line.find("CX ") == 0 ) {
-//             std::sregex_iterator it(line.begin(), line.end(), regexes.digit);
-//             std::vector<int> pos;
-//             while (it != END) {
-//                 pos.push_back(1 + atoi(it->str().c_str()));
-//                 ++it;
-//             }
-//             CX(pos[0], pos[1]); // CX = CX^-1
-//         } else if (line.find("cz ") == 0) {
-//             std::sregex_iterator it(line.begin(), line.end(), regexes.digit);
-//             std::vector<int> pos;
-//             while (it != END) {
-//                 pos.push_back(1 + atoi(it->str().c_str()));
-//                 ++it;
-//             }
-//             CZ(pos[0], pos[1]); // CZ = CZ^-1
-//         } else if (line.find("ccx ") == 0) {
-//             std::sregex_iterator it(line.begin(), line.end(), regexes.digit);
-//             std::vector<int> pos;
-//             while (it != END) {
-//                 pos.push_back(1 + atoi(it->str().c_str()));
-//                 ++it;
-//             }
-//             CCX(pos[0], pos[1], pos[2]); // CCX = CCX^-1
-//         } else if (line.find("swap ") == 0) {
-//             std::sregex_iterator it(line.begin(), line.end(), regexes.digit);
-//             std::vector<int> pos;
-//             while (it != END) {
-//                 pos.push_back(1 + atoi(it->str().c_str()));
-//                 ++it;
-//             }
-//             Swap(pos[0], pos[1]); // SWAP = SWAP^-1
-//         } else if (line.find("PRINT_STATS") == 0) {
-//             print_stats(previous_line, true);
-//         } else if (line.find("PRINT_AUT") == 0) {
-//             print_aut();
-//         } else if (line.find("STOP") == 0) {
-//             break;
-//         } else if (line.length() > 0)
-//             THROW_AUTOQ_ERROR("unsupported gate: " + line + ".");
-//         previous_line = line;
-//         stop_execute = std::chrono::steady_clock::now();
-//     }
-//     qasm.close();
-// }
 template <typename Symbol>
 std::string AUTOQ::Automata<Symbol>::check_the_invariants_types(const std::string& filename) {
     std::ifstream qasm(filename);
