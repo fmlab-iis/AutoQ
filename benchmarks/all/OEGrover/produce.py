@@ -1,6 +1,9 @@
 #!/usr/bin/python3
 import sys
 import os
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+from common import ensure_bench_dir, write_qasm_header
 
 sizes = []
 if len(sys.argv) == 2:
@@ -12,8 +15,7 @@ else:
 
 for n in sizes:
     n_str = str(n).zfill(2)
-    if not os.path.exists(n_str):
-        os.makedirs(n_str)
+    ensure_bench_dir(n_str)
     ###########################################################################
     with open(n_str + '/pre.hsl', 'w') as file:
         file.write('Extended Dirac\n')
@@ -63,8 +65,7 @@ for n in sizes:
         a = ['nan'] + [i + len(w) for i in range(n-2)] # list(range(2, 2*n-3, 2)) # 2, 4, 6, ..., 2n-4
         t = 2*n - 2 # w[-1] + 1 # 2n-2
         ###########################################################
-        file.write('OPENQASM 2.0;\n')
-        file.write('include "qelib1.inc";\n')
+        write_qasm_header(file)
         file.write(f'qreg qubits[{2 * n - 1}];\n\n')
         for i in range(0, n, 2):
             file.write(f'x qubits[{w[i]}];\n')

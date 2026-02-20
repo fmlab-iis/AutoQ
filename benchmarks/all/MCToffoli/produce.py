@@ -3,6 +3,9 @@
 import sys
 import os
 import shutil
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+from common import ensure_bench_dir, write_qasm_header
 
 # context = """Constants
 # c0 := 0
@@ -110,8 +113,7 @@ else:
 
 for n in sizes:
     n_str = str(n).zfill(2)
-    if not os.path.exists(n_str):
-        os.makedirs(n_str)
+    ensure_bench_dir(n_str)
     #########################################
     w = range(n)
     a = [n + i for i in range(n-1)]
@@ -119,8 +121,7 @@ for n in sizes:
     #########################################
     to_be_reversed = []
     with open(n_str + "/circuit.qasm", "w") as file:
-        file.write("OPENQASM 2.0;\n")
-        file.write('include "qelib1.inc";\n')
+        write_qasm_header(file)
         file.write(f'qreg qubits[{2*n}];\n\n')
         to_be_reversed.append(f'ccx qubits[{w[0]}], qubits[{w[1]}], qubits[{a[0]}];\n')
         file.write(to_be_reversed[-1])

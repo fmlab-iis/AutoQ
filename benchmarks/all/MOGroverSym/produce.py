@@ -2,6 +2,9 @@
 import sys
 import os
 import math
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+from common import ensure_bench_dir, write_qasm_header
 
 sizes = []
 if len(sys.argv) == 2:
@@ -17,8 +20,7 @@ aL = {3: '-1 / (sqrt2 ^ 7)', 4: '13 / (sqrt2 ^ 16)', 5: '-119 / (sqrt2 ^ 29)', 6
 for n in sizes:
     q = 3 * n - 1
     n_str = str(n).zfill(2)
-    if not os.path.exists(n_str):
-        os.makedirs(n_str)
+    ensure_bench_dir(n_str)
     ###########################################################################
     with open(n_str + '/pre.hsl', 'w') as file:
         file.write('Constants\n')
@@ -50,8 +52,7 @@ for n in sizes:
         a = ['nan'] + [2*n + i for i in range(n-2)] # list(range(4, 3*n-4, 3)) # 4, 7, 10, ..., 3n-5
         t = 3*n - 2 # w[-1] + 1 # 3n-2
         ###########################################################
-        file.write('OPENQASM 2.0;\n')
-        file.write('include "qelib1.inc";\n')
+        write_qasm_header(file)
         file.write(f'qreg qubits[{q}];\n')
         file.write(f'x qubits[{t}];\n\n')
         for i in s:

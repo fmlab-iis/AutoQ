@@ -1,6 +1,9 @@
 #!/usr/bin/python3
 import sys
 import os
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+from common import ensure_bench_dir, write_qasm_header
 
 sizes = []
 if len(sys.argv) == 2:
@@ -12,12 +15,10 @@ else:
 
 for n in sizes:
     n_str = str(n).zfill(3)
-    if not os.path.exists(n_str):
-        os.makedirs(n_str)
+    ensure_bench_dir(n_str)
     #########################################
     with open(n_str + "/circuit.qasm", "w") as file:
-        file.write("OPENQASM 2.0;\n")
-        file.write('include "qelib1.inc";\n')
+        write_qasm_header(file)
         file.write(f'qreg qubits[{n}];\n\n')
         file.write(f'h qubits[0];\n')
         for i in range(0, n-1):

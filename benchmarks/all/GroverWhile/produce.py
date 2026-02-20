@@ -1,5 +1,9 @@
 #!/usr/bin/python3
 import os
+import sys
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+from common import ensure_bench_dir
 
 def oracle(file, n):
     file.write(f'ccx qb[{n+1}], qb[{n+2}], qb[{0}];\n')
@@ -27,10 +31,7 @@ def mcz(file, n):
 for n in range(3, 100):
     assert n >= 3
     folder = str(n).zfill(2)
-    try:
-        os.mkdir(folder)
-    except:
-        pass
+    ensure_bench_dir(folder)
     os.chdir(folder)
 
     #########################################
