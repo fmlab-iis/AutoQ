@@ -57,6 +57,14 @@ void print_loop_invariant_result(bool verify) {
     if (verify) std::cout << "[OK] The circuit execution satisfies the loop invariant." << std::endl;
     else std::cout << "[ERROR] The circuit execution violates the loop invariant." << std::endl;
 }
+
+void print_equivalence_result(bool result,
+                               const chrono::steady_clock::time_point& start) {
+    std::cout << "The two quantum programs are verified to be ["
+              << (result ? "equal" : "unequal") << "] in ["
+              << AUTOQ::Util::Convert::toString(chrono::steady_clock::now() - start)
+              << "] with [" << (AUTOQ::Util::getPeakRSS() / 1024 / 1024) << "MB] memory usage.\n";
+}
 }  // namespace
 
 void adjust_N_in_nTuple(const std::string &filename) {
@@ -332,7 +340,7 @@ try {
             //     std::cout << AUTOQ::Util::Convert::toString(chrono::steady_clock::now() - start) << " & " << (result ? "T" : "F") << "\n";
             // }
         } else {
-            std::cout << "The two quantum programs are verified to be [" << (result ? "equal" : "unequal") << "] in [" << AUTOQ::Util::Convert::toString(chrono::steady_clock::now() - start) << "] with [" << AUTOQ::Util::getPeakRSS() / 1024 / 1024 << "MB] memory usage.\n";
+            print_equivalence_result(result, start);
         }
     } else if (print->parsed()) {
         auto aut = ReadAutomaton(pre);
