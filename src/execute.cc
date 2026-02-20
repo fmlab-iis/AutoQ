@@ -144,8 +144,7 @@ bool AUTOQ::Automata<Symbol>::execute(const char *filename, std::vector<int> qub
             std::erase(while_measurement_guard, ' ');
             inWhileLoop = true;
             const std::regex varR("\\((.*)\\)");
-            std::regex_iterator<std::string::iterator> it(line.begin(), line.end(), varR);
-            std::regex_iterator<std::string::iterator> END;
+            std::sregex_iterator it(line.cbegin(), line.cend(), varR);
             assert(it != END);
             std::string var = AUTOQ::String::trim(it->str(1));
             bool negate = (var.at(0) == '!'); // whether the variable is negated
@@ -154,7 +153,7 @@ bool AUTOQ::Automata<Symbol>::execute(const char *filename, std::vector<int> qub
             int pos = var_is_measure_what_qubit[var];
             /********************************/
             const std::regex spec("// *(.*)");
-            std::regex_iterator<std::string::iterator> it2(line.begin(), line.end(), spec);
+            std::sregex_iterator it2(line.cbegin(), line.cend(), spec);
             std::string dir = (std::filesystem::current_path() / filename).parent_path().string();
             // I = AUTOQ::Parsing::TimbukParser<Symbol>::ReadAutomaton(dir + std::string("/") + it2->str(1));
             I = loopInvariants[loopInvariantCounter++];
@@ -231,8 +230,7 @@ bool AUTOQ::Automata<Symbol>::execute(const char *filename, std::vector<int> qub
                 throw std::runtime_error(AUTOQ_LOG_PREFIX + "[ERROR] The if guard must be a measurement operator.");
             inIfBlock = true;
             const std::regex varR("\\((.*)\\)");
-            std::regex_iterator<std::string::iterator> it(line.begin(), line.end(), varR);
-            std::regex_iterator<std::string::iterator> END;
+            std::sregex_iterator it(line.cbegin(), line.cend(), varR);
             assert(it != END);
             std::string var = AUTOQ::String::trim(it->str(1));
             bool negate = (var.at(0) == '!'); // whether the variable is negated
@@ -255,8 +253,7 @@ bool AUTOQ::Automata<Symbol>::execute(const char *filename, std::vector<int> qub
             }
         } else if (line.find("=") != std::string::npos && line.find("measure") != std::string::npos) {
             const std::regex m("([^ ]+) *= *measure.*\\[(\\d+)\\]"); // result = measure problem[4];
-            std::regex_iterator<std::string::iterator> it(line.begin(), line.end(), m);
-            std::regex_iterator<std::string::iterator> END;
+            std::sregex_iterator it(line.cbegin(), line.cend(), m);
             assert(it != END);
             std::string result = it->str(1);
             int pos = 1 + atoi(it->str(2).c_str());
@@ -334,7 +331,7 @@ std::string AUTOQ::Automata<Symbol>::check_the_invariants_types(const std::strin
         line = AUTOQ::String::trim(line);
         if (line.find("while") == 0) { // while (!result) { // loop-invariant.hsl
             const std::regex spec("// *(.*)");
-            std::regex_iterator<std::string::iterator> it2(line.begin(), line.end(), spec);
+            std::sregex_iterator it2(line.cbegin(), line.cend(), spec);
             std::string dir = (std::filesystem::current_path() / filename).parent_path().string();
             auto invariant = ReadAutomaton(dir + std::string("/") + it2->str(1));
             if (std::holds_alternative<AUTOQ::PredicateAutomata>(invariant)) {
