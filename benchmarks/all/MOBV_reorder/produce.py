@@ -1,9 +1,11 @@
 #!/usr/bin/python3
 import sys
-import os
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from common import ensure_bench_dir, write_qasm_header
+
+# Shared HSL preamble for pre.hsl and post.hsl
+HSL_HEADER = "Constants\nc1 := 1\nExtended Dirac\n"
 
 sizes = []
 if len(sys.argv) == 2:
@@ -16,75 +18,21 @@ else:
 for n in sizes:
     n_str = str(n).zfill(2)
     ensure_bench_dir(n_str)
-    #########################################
-    id = list(range(2*n+1)) #[]
-    # for i in range(1, n+1):
-    #     id.append(2*i - 1 - 1)
-    # for i in range(n+1, 2*n+1):
-    #     id.append(2 * (i-n) - 1)
-    # id.append(2*n+1 - 1)
-    #########################################
+    # Identity qubit index mapping: qubit_index[i] == i
+    qubit_index = list(range(2 * n + 1))
     with open(n_str + "/circuit.qasm", "w") as file:
         write_qasm_header(file)
         file.write(f'qreg qubits[{2*n+1}];\n\n')
         for i in range(n, -1, -1):
-            file.write(f'h qubits[{id[n+i]}];\n')
-        file.write(f'z qubits[{id[n+n]}];\n')
+            file.write(f'h qubits[{qubit_index[n+i]}];\n')
+        file.write(f'z qubits[{qubit_index[n+n]}];\n')
         for i in range(0, n):
-            file.write(f'ccx qubits[{id[i]}], qubits[{id[n+i]}], qubits[{id[n+n]}];\n')
+            file.write(f'ccx qubits[{qubit_index[i]}], qubits[{qubit_index[n+i]}], qubits[{qubit_index[n+n]}];\n')
         for i in range(n, -1, -1):
-            file.write(f'h qubits[{id[n+i]}];\n')
-    #########################################
+            file.write(f'h qubits[{qubit_index[n+i]}];\n')
     with open(n_str + "/pre.hsl", "w") as file:
-        file.write("Constants\n")
-        file.write("c1 := 1\n")
-        file.write("Extended Dirac\n")
+        file.write(HSL_HEADER)
         file.write(f'{{c1 |i{"0" * (n+1)}> : |i|={n}}}\n')
-    #########################################
-    # with open(n_str + "/pre.lsta", "w") as file:
-    #     file.write("Constants\n")
-    #     file.write("c0 := 0\n")
-    #     file.write("c1 := 1\n")
-    #     file.write("Root States 0\n")
-    #     file.write("Transitions\n")
-    #     for i in range(1, n+1):
-    #         if i > 1:
-    #             file.write(f"[{2*i - 1},3]({4*i - 3}, {4*i - 3}) -> {4*i - 5}\n")
-    #         file.write(f"[{2*i - 1},1]({4*i - 3}, {4*i - 2}) -> {4*i - 4}\n")
-    #         file.write(f"[{2*i - 1},2]({4*i - 2}, {4*i - 3}) -> {4*i - 4}\n")
-    #         file.write(f"[{2*i    },1]({4*i - 1}, {4*i - 1}) -> {4*i - 3}\n")
-    #         file.write(f"[{2*i    },1]({4*i    }, {4*i - 1}) -> {4*i - 2}\n")
-    #     file.write(f"[{2*n + 1},1]({4*n + 1}, {4*n + 1}) -> {4*n - 1}\n")
-    #     file.write(f"[{2*n + 1},1]({4*n + 2}, {4*n + 1}) -> {4*n    }\n")
-    #     file.write(f"[c0,1] -> {4*n + 1}\n")
-    #     file.write(f"[c1,1] -> {4*n + 2}\n")
-    #########################################
-
-    #########################################
-    # with open(n_str + "/post.lsta", "w") as file:
-    #     file.write("Constants\n")
-    #     file.write("c0 := 0\n")
-    #     file.write("c1 := 1\n")
-    #     file.write("Root States 0\n")
-    #     file.write("Transitions\n")
-    #     for i in range(1, n+1):
-    #         if i > 1:
-    #             file.write(f"[{2*i - 1},3]({5*i - 4}, {5*i - 4}) -> {5*i - 6}\n")
-    #         file.write(f"[{2*i - 1},1]({5*i - 4}, {5*i - 3}) -> {5*i - 5}\n")
-    #         file.write(f"[{2*i - 1},2]({5*i - 2}, {5*i - 4}) -> {5*i - 5}\n")
-    #         file.write(f"[{2*i    },3]({5*i - 1}, {5*i - 1}) -> {5*i - 4}\n")
-    #         file.write(f"[{2*i    },1]({5*i - 1}, {5*i    }) -> {5*i - 3}\n")
-    #         file.write(f"[{2*i    },2]({5*i    }, {5*i - 1}) -> {5*i - 2}\n")
-    #     file.write(f"[{2*n + 1},1]({5*n + 1}, {5*n + 1}) -> {5*n - 1}\n")
-    #     file.write(f"[{2*n + 1},1]({5*n + 1}, {5*n + 2}) -> {5*n    }\n")
-    #     file.write(f"[c0,1] -> {5*n + 1}\n")
-    #     file.write(f"[c1,1] -> {5*n + 2}\n")
-    #########################################
     with open(n_str + "/post.hsl", "w") as file:
-        file.write("Constants\n")
-        file.write("c1 := 1\n")
-        file.write("Extended Dirac\n")
+        file.write(HSL_HEADER)
         file.write(f'{{c1 |ii1> : |i|={n}}}\n')
-    #########################################
-
-# cp -rl {09,1[0-3]} ../../POPL25/MOBV_reorder/
