@@ -35,6 +35,13 @@ public:
     #pragma GCC diagnostic pop
 };
 
+namespace {
+inline const std::map<std::string, AUTOQ::Complex::Complex>& get_empty_const_map() {
+    static const std::map<std::string, AUTOQ::Complex::Complex> m{};
+    return m;
+}
+}
+
 template <typename Symbol = AUTOQ::Symbol::Concrete, typename Symbol2 = Symbol>
 struct EvaluationVisitor : public ExtendedDiracParserBaseVisitor {
 static AUTOQ::Automata<AUTOQ::Symbol::Constrained> efficiently_construct_singleton_lsta(const std::map<std::string, AUTOQ::Complex::ConstrainedComplex> &ket2amp) {
@@ -145,11 +152,8 @@ static AUTOQ::Automata<AUTOQ::Symbol::Constrained> efficiently_construct_singlet
 
     class ComplexParser {
 public:
-    ComplexParser(const std::string &input) : input_(input), index_(0), resultC(), resultV(), constMap_(constMap2), unknownVariableErrorOccurred(false) {
-        std::erase_if(input_, [](unsigned char ch) { return std::isspace(ch); });
-        parse();
-    }
-    ComplexParser(const std::string &input, const std::map<std::string, Complex> &constMap) : input_(input), index_(0), resultC(), resultV(), constMap_(constMap), unknownVariableErrorOccurred(false) {
+    ComplexParser(const std::string &input, const std::map<std::string, Complex> &constMap = get_empty_const_map())
+        : input_(input), index_(0), resultC(), resultV(), constMap_(constMap), unknownVariableErrorOccurred(false) {
         std::erase_if(input_, [](unsigned char ch) { return std::isspace(ch); });
         parse();
     }
@@ -166,7 +170,6 @@ private:
     Complex resultC; // complex
     std::string resultV; // variable
     const std::map<std::string, Complex> &constMap_;
-    const std::map<std::string, Complex> constMap2{}; // empty only for initialization
     bool unknownVariableErrorOccurred;
 
     void parse() {
@@ -187,11 +190,8 @@ private:
 
 class SymbolicComplexParser {
 public:
-    SymbolicComplexParser(const std::string &input) : input_(input), index_(0), result(), constMap_(constMap2), used_vars() {
-        std::erase_if(input_, [](unsigned char ch) { return std::isspace(ch); });
-        parse();
-    }
-    SymbolicComplexParser(const std::string &input, const std::map<std::string, Complex> &constMap) : input_(input), index_(0), result(), constMap_(constMap), used_vars() {
+    SymbolicComplexParser(const std::string &input, const std::map<std::string, Complex> &constMap = get_empty_const_map())
+        : input_(input), index_(0), result(), constMap_(constMap), used_vars() {
         std::erase_if(input_, [](unsigned char ch) { return std::isspace(ch); });
         parse();
     }
@@ -207,7 +207,6 @@ private:
     size_t index_;
     AUTOQ::Complex::SymbolicComplex result;
     const std::map<std::string, Complex> &constMap_;
-    const std::map<std::string, Complex> constMap2{}; // empty only for initialization
     std::set<std::string> used_vars;
 
     void parse() {
@@ -228,11 +227,8 @@ private:
 
 class ConstraintParser {
 public:
-    ConstraintParser(const std::string &input) : input_(input), index_(0), result(), constMap_(constMap2) {
-        std::erase_if(input_, [](unsigned char ch) { return std::isspace(ch); });
-        parse();
-    }
-    ConstraintParser(const std::string &input, const std::map<std::string, Complex> &constMap) : input_(input), index_(0), result(), constMap_(constMap) {
+    ConstraintParser(const std::string &input, const std::map<std::string, Complex> &constMap = get_empty_const_map())
+        : input_(input), index_(0), result(), constMap_(constMap) {
         std::erase_if(input_, [](unsigned char ch) { return std::isspace(ch); });
         parse();
     }
@@ -245,7 +241,6 @@ private:
     size_t index_;
     std::string result;
     const std::map<std::string, Complex> &constMap_;
-    const std::map<std::string, Complex> constMap2{}; // empty only for initialization
 
     void parse() {
         EvaluationVisitor<AUTOQ::Symbol::Symbolic> predicateVisitor({constMap_}, {});
