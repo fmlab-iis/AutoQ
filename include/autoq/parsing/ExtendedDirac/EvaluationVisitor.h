@@ -40,6 +40,19 @@ inline const std::map<std::string, AUTOQ::Complex::Complex>& get_empty_const_map
     static const std::map<std::string, AUTOQ::Complex::Complex> m{};
     return m;
 }
+
+template<typename GetTree>
+inline std::any parse_extended_dirac_and_visit(const std::string& input, GetTree get_tree, ExtendedDiracParserBaseVisitor* visitor) {
+    antlr4::ANTLRInputStream inputStream(input);
+    ExtendedDiracLexer lexer(&inputStream);
+    antlr4::CommonTokenStream tokens(&lexer);
+    ExtendedDiracParser parser(&tokens);
+    parser.removeErrorListeners();
+    CustomErrorListener errorListener;
+    parser.addErrorListener(&errorListener);
+    antlr4::tree::ParseTree* tree = get_tree(parser);
+    return visitor->visit(tree);
+}
 }
 
 template <typename Symbol = AUTOQ::Symbol::Concrete, typename Symbol2 = Symbol>
@@ -175,15 +188,8 @@ private:
     void parse() {
         EvaluationVisitor<AUTOQ::Symbol::Concrete> complexVisitor({constMap_}, {});
         complexVisitor.mode = EvaluationVisitor<AUTOQ::Symbol::Concrete>::CONCRETE_COMPLEX;
-        antlr4::ANTLRInputStream inputStream(input_);
-        ExtendedDiracLexer lexer(&inputStream);
-        antlr4::CommonTokenStream tokens(&lexer);
-        ExtendedDiracParser parser(&tokens);
-        parser.removeErrorListeners(); // Remove the default error listener
-        CustomErrorListener errorListener;
-        parser.addErrorListener(&errorListener); // Add a custom error listener
-        ExtendedDiracParser::ComplexContext* tree = parser.complex(); // Parse the input
-        resultC = std::any_cast<AUTOQ::Complex::Complex>(complexVisitor.visit(tree));
+        auto visitResult = parse_extended_dirac_and_visit(input_, [](ExtendedDiracParser& p) { return static_cast<antlr4::tree::ParseTree*>(p.complex()); }, &complexVisitor);
+        resultC = std::any_cast<AUTOQ::Complex::Complex>(visitResult);
         resultV = complexVisitor.resultV;
     }
 };
@@ -212,15 +218,8 @@ private:
     void parse() {
         EvaluationVisitor<AUTOQ::Symbol::Symbolic> complexVisitor({constMap_}, {});
         complexVisitor.mode = EvaluationVisitor<AUTOQ::Symbol::Symbolic>::SYMBOLIC_COMPLEX;
-        antlr4::ANTLRInputStream inputStream(input_);
-        ExtendedDiracLexer lexer(&inputStream);
-        antlr4::CommonTokenStream tokens(&lexer);
-        ExtendedDiracParser parser(&tokens);
-        parser.removeErrorListeners(); // Remove the default error listener
-        CustomErrorListener errorListener;
-        parser.addErrorListener(&errorListener); // Add a custom error listener
-        ExtendedDiracParser::ComplexContext* tree = parser.complex(); // Parse the input
-        result = std::any_cast<AUTOQ::Complex::SymbolicComplex>(complexVisitor.visit(tree));
+        auto visitResult = parse_extended_dirac_and_visit(input_, [](ExtendedDiracParser& p) { return static_cast<antlr4::tree::ParseTree*>(p.complex()); }, &complexVisitor);
+        result = std::any_cast<AUTOQ::Complex::SymbolicComplex>(visitResult);
         used_vars = complexVisitor.used_vars;
     }
 };
@@ -245,15 +244,8 @@ private:
     void parse() {
         EvaluationVisitor<AUTOQ::Symbol::Symbolic> predicateVisitor({constMap_}, {});
         predicateVisitor.mode = EvaluationVisitor<AUTOQ::Symbol::Symbolic>::SYMBOLIC_COMPLEX;
-        antlr4::ANTLRInputStream inputStream(input_);
-        ExtendedDiracLexer lexer(&inputStream);
-        antlr4::CommonTokenStream tokens(&lexer);
-        ExtendedDiracParser parser(&tokens);
-        parser.removeErrorListeners(); // Remove the default error listener
-        CustomErrorListener errorListener;
-        parser.addErrorListener(&errorListener); // Add a custom error listener
-        ExtendedDiracParser::PredicateContext* tree = parser.predicate(); // Parse the input
-        result = std::any_cast<z3::expr>(predicateVisitor.visit(tree)).to_string();
+        auto visitResult = parse_extended_dirac_and_visit(input_, [](ExtendedDiracParser& p) { return static_cast<antlr4::tree::ParseTree*>(p.predicate()); }, &predicateVisitor);
+        result = std::any_cast<z3::expr>(visitResult).to_string();
     }
 };
 
@@ -331,15 +323,7 @@ private:
         predicateConstraints(predicateConstraintsVector.empty() ? "" : predicateConstraintsVector.at(0)),
         predicateConstraintsVector(predicateConstraintsVector) {}
     std::any let_visitor_parse_string(const std::string &input) {
-        antlr4::ANTLRInputStream inputStream(input);
-        ExtendedDiracLexer lexer(&inputStream);
-        antlr4::CommonTokenStream tokens(&lexer);
-        ExtendedDiracParser parser(&tokens);
-        parser.removeErrorListeners(); // Remove the default error listener
-        CustomErrorListener errorListener;
-        parser.addErrorListener(&errorListener); // Add a custom error listener
-        ExtendedDiracParser::ExprContext* tree = parser.expr(); // Parse the input
-        return this->visit(tree);
+        return parse_extended_dirac_and_visit(input, [](ExtendedDiracParser& p) { return static_cast<antlr4::tree::ParseTree*>(p.expr()); }, this);
     }
 
     // std::any visitExtendedDirac(ExtendedDiracParser::ExtendedDiracContext *ctx) override {
