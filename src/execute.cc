@@ -17,6 +17,8 @@
 
 namespace {
 
+const std::sregex_iterator kRegexEnd;
+
 int first_qubit_index(const std::string& line, const AUTOQ::regexes& regexes,
                       const std::vector<int>& qubit_permutation) {
     std::smatch m;
@@ -26,11 +28,10 @@ int first_qubit_index(const std::string& line, const AUTOQ::regexes& regexes,
 }
 
 std::vector<int> parse_qubit_indices(const std::string& line, const AUTOQ::regexes& regexes,
-                                     const std::sregex_iterator& END,
-                                     const std::vector<int>& qubit_permutation) {
+                     const std::vector<int>& qubit_permutation) {
     std::vector<int> pos;
     std::sregex_iterator it(line.begin(), line.end(), regexes.digit);
-    while (it != END) {
+    while (it != kRegexEnd) {
         pos.push_back(1 + qubit_permutation[atoi(it->str().c_str())]);
         ++it;
     }
@@ -66,7 +67,6 @@ bool AUTOQ::Automata<Symbol>::execute(const char *filename, std::vector<int> qub
     std::ifstream qasm(filename);
     const AUTOQ::regexes regexes{};
 
-    const std::sregex_iterator END;
     if (!qasm.is_open()) THROW_AUTOQ_ERROR(std::string(EM::kOpenFilePrefix) + filename + ".");
     std::string line, previous_line;
 
@@ -84,7 +84,7 @@ bool AUTOQ::Automata<Symbol>::execute(const char *filename, std::vector<int> qub
         if (line.find("OPENQASM") == 0 || line.find("include ") == 0 || line.find("//") == 0 || line.find("/*") == 0 || line.find("bit") == 0) continue;
         if (line.find("qreg ") == 0 || line.find("qubit") == 0) {
             std::sregex_iterator it(line.begin(), line.end(), regexes.digit);
-            while (it != END) {
+            while (it != kRegexEnd) {
                 if (atoi(it->str().c_str()) != static_cast<int>(qubitNum))
                     THROW_AUTOQ_ERROR(EM::kQubitMismatch);
                 ++it;
@@ -122,7 +122,7 @@ bool AUTOQ::Automata<Symbol>::execute(const char *filename, std::vector<int> qub
             }
             // LOOP PARSING END
 
-            execute_loop<Symbol>(loop_body, *this, params, regexes, END, match_pieces, qubit_permutation);
+            execute_loop<Symbol>(loop_body, *this, params, regexes, match_pieces, qubit_permutation);
         // } else if(line.find("}") == 0){
         //     in_loop = false;
         } else if (line.find("PRINT_STATS") == 0) {
@@ -141,7 +141,7 @@ bool AUTOQ::Automata<Symbol>::execute(const char *filename, std::vector<int> qub
             inWhileLoop = true;
             const std::regex varR("\\((.*)\\)");
             std::sregex_iterator it(line.cbegin(), line.cend(), varR);
-            assert(it != END);
+            assert(it != kRegexEnd);
             std::string var = AUTOQ::String::trim(it->str(1));
             bool negate = (var.at(0) == '!'); // whether the variable is negated
             if (negate)
@@ -227,7 +227,7 @@ bool AUTOQ::Automata<Symbol>::execute(const char *filename, std::vector<int> qub
             inIfBlock = true;
             const std::regex varR("\\((.*)\\)");
             std::sregex_iterator it(line.cbegin(), line.cend(), varR);
-            assert(it != END);
+            assert(it != kRegexEnd);
             std::string var = AUTOQ::String::trim(it->str(1));
             bool negate = (var.at(0) == '!'); // whether the variable is negated
             if (negate)
@@ -250,7 +250,7 @@ bool AUTOQ::Automata<Symbol>::execute(const char *filename, std::vector<int> qub
         } else if (line.find("=") != std::string::npos && line.find("measure") != std::string::npos) {
             const std::regex m("([^ ]+) *= *measure.*\\[(\\d+)\\]"); // result = measure problem[4];
             std::sregex_iterator it(line.cbegin(), line.cend(), m);
-            assert(it != END);
+            assert(it != kRegexEnd);
             std::string result = it->str(1);
             int pos = 1 + atoi(it->str(2).c_str());
             var_is_measure_what_qubit[result] = pos;
@@ -258,7 +258,7 @@ bool AUTOQ::Automata<Symbol>::execute(const char *filename, std::vector<int> qub
             // are produced from the measurement outcome of 0 and 1, respectively. However, we do
             // not do this for simplicity temporarily.
         }  else {
-            single_gate_execute(line, regexes, END, qubit_permutation);
+            single_gate_execute(line, regexes, qubit_permutation);
         }
         previous_line = line;
         // print_stats(previous_line, true);
@@ -270,7 +270,7 @@ bool AUTOQ::Automata<Symbol>::execute(const char *filename, std::vector<int> qub
 }
 
 template <typename Symbol>
-void AUTOQ::Automata<Symbol>::single_gate_execute(const std::string& line, const AUTOQ::regexes &regexes, const std::sregex_iterator& END, const std::vector<int> &qubit_permutation) {
+void AUTOQ::Automata<Symbol>::single_gate_execute(const std::string& line, const AUTOQ::regexes &regexes, const std::vector<int> &qubit_permutation) {
     std::smatch match_rx; std::regex_search(line, match_rx, regexes.rx);
     std::smatch match_rz; std::regex_search(line, match_rz, regexes.rz);
     if (line.find("x ") == 0) {
@@ -296,22 +296,22 @@ void AUTOQ::Automata<Symbol>::single_gate_execute(const std::string& line, const
         Rz(AUTOQ::Parsing::parse_angle_to_rational(match_rz[1].str(), "rz", "(1/2)"),
            1 + qubit_permutation[atoi(match_rz[2].str().c_str())]);
     } else if (line.find("ry(pi/2) ") == 0 || line.find("ry(pi / 2)") == 0) {
-        std::vector<int> pos = parse_qubit_indices(line, regexes, END, qubit_permutation);
+        std::vector<int> pos = parse_qubit_indices(line, regexes, qubit_permutation);
         Ry(pos[1]);
     } else if (line.find("cx ") == 0 || line.find("CX ") == 0 ) {
-        std::vector<int> pos = parse_qubit_indices(line, regexes, END, qubit_permutation);
+        std::vector<int> pos = parse_qubit_indices(line, regexes, qubit_permutation);
         CX(pos[0], pos[1]);
     } else if (line.find("cz ") == 0) {
-        std::vector<int> pos = parse_qubit_indices(line, regexes, END, qubit_permutation);
+        std::vector<int> pos = parse_qubit_indices(line, regexes, qubit_permutation);
         CZ(pos[0], pos[1]);
     } else if (line.find("ck ") == 0) {
-        std::vector<int> pos = parse_qubit_indices(line, regexes, END, qubit_permutation);
+        std::vector<int> pos = parse_qubit_indices(line, regexes, qubit_permutation);
         CK(pos[0], pos[1]);
     } else if (line.find("ccx ") == 0) {
-        std::vector<int> pos = parse_qubit_indices(line, regexes, END, qubit_permutation);
+        std::vector<int> pos = parse_qubit_indices(line, regexes, qubit_permutation);
         CCX(pos[0], pos[1], pos[2]);
     } else if (line.find("swap ") == 0) {
-        std::vector<int> pos = parse_qubit_indices(line, regexes, END, qubit_permutation);
+        std::vector<int> pos = parse_qubit_indices(line, regexes, qubit_permutation);
         Swap(pos[0], pos[1]);
     } else if (line.length() > 0){
         THROW_AUTOQ_ERROR(std::string(EM::kUnsupportedGatePrefix) + line + ".");
