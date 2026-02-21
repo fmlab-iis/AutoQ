@@ -249,6 +249,18 @@ private:
         const std::string& previous_line, const std::string& while_measurement_guard,
         Automata<Symbol>& I, Automata<Symbol>& measure_to_break, Automata<Symbol>& measure_to_else,
         Automata<Symbol>& result_after_if, bool& verify);
+    /** Handles "while (var) {": load invariant, check inclusion, set measure_to_continue/break, *this. */
+    void handle_while_loop_start(const std::string& line, const std::string& previous_line,
+        const std::vector<Automata<Symbol>>& loopInvariants, int& loopInvariantCounter,
+        bool& inWhileLoop, std::string& while_measurement_guard,
+        const std::map<std::string, int>& var_is_measure_what_qubit,
+        Automata<Symbol>& I, Automata<Symbol>& measure_to_continue, Automata<Symbol>& measure_to_break, bool& verify);
+    /** Handles "if (var) {": split by measurement, set measure_to_else and *this. */
+    void handle_if_block_start(const std::string& line, const std::string& previous_line,
+        const std::map<std::string, int>& var_is_measure_what_qubit,
+        Automata<Symbol>& measure_to_else);
+    /** Handles "else {": switch to the other branch. */
+    void handle_else(const Automata<Symbol>& measure_to_else);
 public:
     /****************************************************/
 

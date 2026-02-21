@@ -122,75 +122,19 @@ bool AUTOQ::Automata<Symbol>::execute(const char *filename, std::vector<int> qub
             print_language();
         } else if (line.find("STOP") == 0) {
             break;
-        } else if (line.find("while") == 0) { // while (!result) { // loop-invariant.hsl
-            if (previous_line.find("measure") == std::string::npos)
-                throw std::runtime_error(AUTOQ_LOG_PREFIX + "[ERROR] The while loop guard must be a measurement operator.");
-            while_measurement_guard = previous_line;
-            std::erase(while_measurement_guard, ' ');
-            inWhileLoop = true;
-            const std::regex varR("\\((.*)\\)");
-            std::sregex_iterator it(line.cbegin(), line.cend(), varR);
-            assert(it != kRegexEnd);
-            std::string var = AUTOQ::String::trim(it->str(1));
-            bool negate = (var.at(0) == '!'); // whether the variable is negated
-            if (negate)
-                var = var.substr(1);
-            int pos = var_is_measure_what_qubit[var];
-            /********************************/
-            const std::regex spec("// *(.*)");
-            std::sregex_iterator it2(line.cbegin(), line.cend(), spec);
-            std::string dir = (std::filesystem::current_path() / filename).parent_path().string();
-            // I = AUTOQ::Parsing::TimbukParser<Symbol>::ReadAutomaton(dir + std::string("/") + it2->str(1));
-            I = loopInvariants[loopInvariantCounter++];
-            /**************************************************************************************************************/
-            // std::cout << "We first verify \"C(P) ⊆ I\" here." << std::endl;
-            // this->print_language("C(P):\n");
-            // I.print_language("I:\n");
-            this->remove_useless(); this->reduce(); I.remove_useless(); I.reduce();
-            bool t = (*this <<= I);
-            verify &= t;
-            if (!t) {
-                AUTOQ_ERROR("[ERROR] C(P) ⊈ I.");
-                fraction_simplification();
-                print_language("C(P):\n");
-                I.fraction_simplification();
-                I.print_language("I:\n");
-            // } else {
-            //     std::cout << "[OK] C(P) ⊆ I." << std::endl;
-            }
-            if (negate) {
-                measure_to_continue = I.measure(pos, false);
-                measure_to_break = I.measure(pos, true);
-            } else { // while (measure ...
-                measure_to_continue = I.measure(pos, true);
-                measure_to_break = I.measure(pos, false);
-            }
-            *this = measure_to_continue;
+        } else if (line.find("while") == 0) {
+            handle_while_loop_start(line, previous_line, loopInvariants, loopInvariantCounter,
+                inWhileLoop, while_measurement_guard, var_is_measure_what_qubit,
+                I, measure_to_continue, measure_to_break, verify);
         } else if (line.find("}") == 0) {
             handle_closing_brace(inWhileLoop, inIfBlock, inElseBlock, previous_line, while_measurement_guard,
                 I, measure_to_break, measure_to_else, result_after_if, verify);
-        } else if (line.find("if") == 0) { // if (!result) {
-            if (previous_line.find("measure") == std::string::npos)
-                throw std::runtime_error(AUTOQ_LOG_PREFIX + "[ERROR] The if guard must be a measurement operator.");
+        } else if (line.find("if") == 0) {
             inIfBlock = true;
-            const std::regex varR("\\((.*)\\)");
-            std::sregex_iterator it(line.cbegin(), line.cend(), varR);
-            assert(it != kRegexEnd);
-            std::string var = AUTOQ::String::trim(it->str(1));
-            bool negate = (var.at(0) == '!'); // whether the variable is negated
-            if (negate)
-                var = var.substr(1);
-            int pos = var_is_measure_what_qubit[var];
-            if (negate) {
-                measure_to_else = this->measure(pos, true);
-                *this = this->measure(pos, false);
-            } else { // if (measure ...
-                measure_to_else = this->measure(pos, false);
-                *this = this->measure(pos, true);
-            }
-        } else if (line.find("else") == 0) { // else {
+            handle_if_block_start(line, previous_line, var_is_measure_what_qubit, measure_to_else);
+        } else if (line.find("else") == 0) {
             inElseBlock = true;
-            *this = measure_to_else;
+            handle_else(measure_to_else);
         } else if (line.find("gate ") == 0) {
             if (line.find("}") == std::string::npos) {
                 inGateDef = true; // TODO: unsure if this is necessary
@@ -247,6 +191,79 @@ void AUTOQ::Automata<Symbol>::handle_closing_brace(bool& inWhileLoop, bool& inIf
         inElseBlock = false;
         *this = this->operator||(result_after_if);
     }
+}
+
+template <typename Symbol>
+void AUTOQ::Automata<Symbol>::handle_while_loop_start(const std::string& line, const std::string& previous_line,
+    const std::vector<Automata<Symbol>>& loopInvariants, int& loopInvariantCounter,
+    bool& inWhileLoop, std::string& while_measurement_guard,
+    const std::map<std::string, int>& var_is_measure_what_qubit,
+    Automata<Symbol>& I, Automata<Symbol>& measure_to_continue, Automata<Symbol>& measure_to_break, bool& verify) {
+    if (previous_line.find("measure") == std::string::npos)
+        throw std::runtime_error(AUTOQ_LOG_PREFIX + "[ERROR] The while loop guard must be a measurement operator.");
+    while_measurement_guard = previous_line;
+    std::erase(while_measurement_guard, ' ');
+    inWhileLoop = true;
+    const std::regex varR("\\((.*)\\)");
+    std::sregex_iterator it(line.cbegin(), line.cend(), varR);
+    if (it == kRegexEnd)
+        THROW_AUTOQ_ERROR("Invalid while guard: expected (var) in \"" + line + "\".");
+    std::string var = AUTOQ::String::trim(it->str(1));
+    bool negate = (var.at(0) == '!');
+    if (negate)
+        var = var.substr(1);
+    int pos = var_is_measure_what_qubit.at(var);
+    I = loopInvariants[loopInvariantCounter++];
+    this->remove_useless();
+    this->reduce();
+    I.remove_useless();
+    I.reduce();
+    bool t = (*this <<= I);
+    verify &= t;
+    if (!t) {
+        AUTOQ_ERROR("[ERROR] C(P) ⊈ I.");
+        fraction_simplification();
+        print_language("C(P):\n");
+        I.fraction_simplification();
+        I.print_language("I:\n");
+    }
+    if (negate) {
+        measure_to_continue = I.measure(pos, false);
+        measure_to_break = I.measure(pos, true);
+    } else {
+        measure_to_continue = I.measure(pos, true);
+        measure_to_break = I.measure(pos, false);
+    }
+    *this = measure_to_continue;
+}
+
+template <typename Symbol>
+void AUTOQ::Automata<Symbol>::handle_if_block_start(const std::string& line, const std::string& previous_line,
+    const std::map<std::string, int>& var_is_measure_what_qubit,
+    Automata<Symbol>& measure_to_else) {
+    if (previous_line.find("measure") == std::string::npos)
+        throw std::runtime_error(AUTOQ_LOG_PREFIX + "[ERROR] The if guard must be a measurement operator.");
+    const std::regex varR("\\((.*)\\)");
+    std::sregex_iterator it(line.cbegin(), line.cend(), varR);
+    if (it == kRegexEnd)
+        THROW_AUTOQ_ERROR("Invalid if guard: expected (var) in \"" + line + "\".");
+    std::string var = AUTOQ::String::trim(it->str(1));
+    bool negate = (var.at(0) == '!');
+    if (negate)
+        var = var.substr(1);
+    int pos = var_is_measure_what_qubit.at(var);
+    if (negate) {
+        measure_to_else = this->measure(pos, true);
+        *this = this->measure(pos, false);
+    } else {
+        measure_to_else = this->measure(pos, false);
+        *this = this->measure(pos, true);
+    }
+}
+
+template <typename Symbol>
+void AUTOQ::Automata<Symbol>::handle_else(const Automata<Symbol>& measure_to_else) {
+    *this = measure_to_else;
 }
 
 template <typename Symbol>
