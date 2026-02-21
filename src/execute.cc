@@ -13,6 +13,7 @@
 #include <regex>
 #include <fstream>
 #include <filesystem>
+#include <functional>
 #include <numeric>
 
 namespace {
@@ -267,52 +268,68 @@ void AUTOQ::Automata<Symbol>::handle_else(const Automata<Symbol>& measure_to_els
 }
 
 template <typename Symbol>
-void AUTOQ::Automata<Symbol>::single_gate_execute(const std::string& line, const AUTOQ::regexes &regexes, const std::vector<int> &qubit_permutation) {
-    std::smatch match_rx; std::regex_search(line, match_rx, regexes.rx);
-    std::smatch match_rz; std::regex_search(line, match_rz, regexes.rz);
-    if (line.find("x ") == 0) {
-        X(first_qubit_index(line, regexes, qubit_permutation));
-    } else if (line.find("y ") == 0) {
-        Y(first_qubit_index(line, regexes, qubit_permutation));
-    } else if (line.find("z ") == 0) {
-        Z(first_qubit_index(line, regexes, qubit_permutation));
-    } else if (line.find("h ") == 0) {
-        H(first_qubit_index(line, regexes, qubit_permutation));
-    } else if (line.find("s ") == 0) {
-        S(first_qubit_index(line, regexes, qubit_permutation));
-    } else if (line.find("sdg ") == 0) {
-        Sdg(first_qubit_index(line, regexes, qubit_permutation));
-    } else if (line.find("t ") == 0) {
-        T(first_qubit_index(line, regexes, qubit_permutation));
-    } else if (line.find("tdg ") == 0) {
-        Tdg(first_qubit_index(line, regexes, qubit_permutation));
-    } else if (match_rx.size() == 3) {
+void AUTOQ::Automata<Symbol>::single_gate_execute(const std::string& line, const AUTOQ::regexes& regexes, const std::vector<int>& qubit_permutation) {
+    std::smatch match_rx;
+    std::regex_search(line, match_rx, regexes.rx);
+    std::smatch match_rz;
+    std::regex_search(line, match_rz, regexes.rz);
+
+    // Regex-based gates
+    if (match_rx.size() == 3) {
         Rx(AUTOQ::Parsing::parse_angle_to_rational(match_rx[1].str(), "rx", "(1/2)"),
            1 + qubit_permutation[atoi(match_rx[2].str().c_str())]);
-    } else if (match_rz.size() == 3) {
+        return;
+    }
+    if (match_rz.size() == 3) {
         Rz(AUTOQ::Parsing::parse_angle_to_rational(match_rz[1].str(), "rz", "(1/2)"),
            1 + qubit_permutation[atoi(match_rz[2].str().c_str())]);
-    } else if (line.find("ry(pi/2) ") == 0 || line.find("ry(pi / 2)") == 0) {
+        return;
+    }
+    if (line.find("ry(pi/2) ") == 0 || line.find("ry(pi / 2)") == 0) {
         std::vector<int> pos = parse_qubit_indices(line, regexes, qubit_permutation);
         Ry(pos[1]);
-    } else if (line.find("cx ") == 0 || line.find("CX ") == 0 ) {
-        std::vector<int> pos = parse_qubit_indices(line, regexes, qubit_permutation);
-        CX(pos[0], pos[1]);
-    } else if (line.find("cz ") == 0) {
-        std::vector<int> pos = parse_qubit_indices(line, regexes, qubit_permutation);
-        CZ(pos[0], pos[1]);
-    } else if (line.find("ck ") == 0) {
-        std::vector<int> pos = parse_qubit_indices(line, regexes, qubit_permutation);
-        CK(pos[0], pos[1]);
-    } else if (line.find("ccx ") == 0) {
-        std::vector<int> pos = parse_qubit_indices(line, regexes, qubit_permutation);
-        CCX(pos[0], pos[1], pos[2]);
-    } else if (line.find("swap ") == 0) {
-        std::vector<int> pos = parse_qubit_indices(line, regexes, qubit_permutation);
-        Swap(pos[0], pos[1]);
-    } else if (line.length() > 0){
-        THROW_AUTOQ_ERROR(std::string(EM::kUnsupportedGatePrefix) + line + ".");
+        return;
     }
+
+    // Prefix dispatch table: (check, handler)
+    using Handler = std::function<void()>;
+    std::vector<std::pair<std::function<bool()>, Handler>> table = {
+        {[&]{ return line.find("x ") == 0; }, [&]{ X(first_qubit_index(line, regexes, qubit_permutation)); }},
+        {[&]{ return line.find("y ") == 0; }, [&]{ Y(first_qubit_index(line, regexes, qubit_permutation)); }},
+        {[&]{ return line.find("z ") == 0; }, [&]{ Z(first_qubit_index(line, regexes, qubit_permutation)); }},
+        {[&]{ return line.find("h ") == 0; }, [&]{ H(first_qubit_index(line, regexes, qubit_permutation)); }},
+        {[&]{ return line.find("s ") == 0; }, [&]{ S(first_qubit_index(line, regexes, qubit_permutation)); }},
+        {[&]{ return line.find("sdg ") == 0; }, [&]{ Sdg(first_qubit_index(line, regexes, qubit_permutation)); }},
+        {[&]{ return line.find("t ") == 0; }, [&]{ T(first_qubit_index(line, regexes, qubit_permutation)); }},
+        {[&]{ return line.find("tdg ") == 0; }, [&]{ Tdg(first_qubit_index(line, regexes, qubit_permutation)); }},
+        {[&]{ return line.find("cx ") == 0 || line.find("CX ") == 0; }, [&]{
+            auto pos = parse_qubit_indices(line, regexes, qubit_permutation);
+            CX(pos[0], pos[1]);
+        }},
+        {[&]{ return line.find("cz ") == 0; }, [&]{
+            auto pos = parse_qubit_indices(line, regexes, qubit_permutation);
+            CZ(pos[0], pos[1]);
+        }},
+        {[&]{ return line.find("ck ") == 0; }, [&]{
+            auto pos = parse_qubit_indices(line, regexes, qubit_permutation);
+            CK(pos[0], pos[1]);
+        }},
+        {[&]{ return line.find("ccx ") == 0; }, [&]{
+            auto pos = parse_qubit_indices(line, regexes, qubit_permutation);
+            CCX(pos[0], pos[1], pos[2]);
+        }},
+        {[&]{ return line.find("swap ") == 0; }, [&]{
+            auto pos = parse_qubit_indices(line, regexes, qubit_permutation);
+            Swap(pos[0], pos[1]);
+        }},
+    };
+
+    for (auto& [check, handler] : table) {
+        if (check()) { handler(); return; }
+    }
+
+    if (line.length() > 0)
+        THROW_AUTOQ_ERROR(std::string(EM::kUnsupportedGatePrefix) + line + ".");
 }
 
 template <typename Symbol>
