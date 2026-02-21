@@ -172,7 +172,7 @@ void AUTOQ::Automata<Symbol>::handle_closing_brace(bool& inWhileLoop, bool& inIf
         std::string prev = previous_line;
         std::erase(prev, ' ');
         if (while_measurement_guard != prev)
-            throw std::runtime_error(AUTOQ_LOG_PREFIX + "[ERROR] The while loop guard must be repeated at the end of the loop!");
+            THROW_AUTOQ_ERROR("The while loop guard must be repeated at the end of the loop!");
         bool t = this->operator_scaled_inclusion_with_renaming(I);
         verify &= t;
         if (!t) {
@@ -201,7 +201,7 @@ void AUTOQ::Automata<Symbol>::handle_while_loop_start(const std::string& line, c
     const std::map<std::string, int>& var_is_measure_what_qubit,
     Automata<Symbol>& I, Automata<Symbol>& measure_to_continue, Automata<Symbol>& measure_to_break, bool& verify) {
     if (previous_line.find("measure") == std::string::npos)
-        throw std::runtime_error(AUTOQ_LOG_PREFIX + "[ERROR] The while loop guard must be a measurement operator.");
+        THROW_AUTOQ_ERROR("The while loop guard must be a measurement operator.");
     while_measurement_guard = previous_line;
     std::erase(while_measurement_guard, ' ');
     inWhileLoop = true;
@@ -243,7 +243,7 @@ void AUTOQ::Automata<Symbol>::handle_if_block_start(const std::string& line, con
     const std::map<std::string, int>& var_is_measure_what_qubit,
     Automata<Symbol>& measure_to_else) {
     if (previous_line.find("measure") == std::string::npos)
-        throw std::runtime_error(AUTOQ_LOG_PREFIX + "[ERROR] The if guard must be a measurement operator.");
+        THROW_AUTOQ_ERROR("The if guard must be a measurement operator.");
     const std::regex varR("\\((.*)\\)");
     std::sregex_iterator it(line.cbegin(), line.cend(), varR);
     if (it == kRegexEnd)
@@ -335,7 +335,7 @@ void AUTOQ::Automata<Symbol>::single_gate_execute(const std::string& line, const
 template <typename Symbol>
 std::string AUTOQ::Automata<Symbol>::check_the_invariants_types(const std::string& filename) {
     std::ifstream qasm(filename);
-    if (!qasm.is_open()) throw std::runtime_error(std::string(AUTOQ_LOG_PREFIX) + "[ERROR] " + EM::kOpenFilePrefix + filename + ".");
+    if (!qasm.is_open()) THROW_AUTOQ_ERROR(std::string(EM::kOpenFilePrefix) + filename + ".");
     std::string line;
     while (getline(qasm, line)) {
         line = AUTOQ::String::trim(line);
