@@ -143,7 +143,8 @@ bool AUTOQ::Automata<Symbol>::execute(const char *filename, std::vector<int> qub
         } else if (line.find("=") != std::string::npos && line.find("measure") != std::string::npos) {
             const std::regex m("([^ ]+) *= *measure.*\\[(\\d+)\\]"); // result = measure problem[4];
             std::sregex_iterator it(line.cbegin(), line.cend(), m);
-            assert(it != kRegexEnd);
+            if (it == kRegexEnd)
+                THROW_AUTOQ_ERROR("Expected measure assignment (var = measure ...[n]) in \"" + line + "\".");
             std::string result = it->str(1);
             int pos = 1 + atoi(it->str(2).c_str());
             var_is_measure_what_qubit[result] = pos;
