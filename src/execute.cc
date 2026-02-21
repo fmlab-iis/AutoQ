@@ -167,49 +167,8 @@ bool AUTOQ::Automata<Symbol>::execute(const char *filename, std::vector<int> qub
             }
             *this = measure_to_continue;
         } else if (line.find("}") == 0) {
-            if (inWhileLoop) {
-                inWhileLoop = false;
-                std::erase(previous_line, ' ');
-                if (while_measurement_guard != previous_line)
-                    throw std::runtime_error(AUTOQ_LOG_PREFIX + "[ERROR] The while loop guard must be repeated at the end of the loop!");
-                // const std::regex spec("// *(.*)");
-                // std::regex_iterator<std::string::iterator> it(line.begin(), line.end(), spec);
-                // std::string dir = (std::filesystem::current_path() / filename).parent_path().string();
-                // auto Q = AUTOQ::Parsing::TimbukParser<Symbol>::ReadAutomaton(dir + std::string("/") + it->str(1));
-                /**************************************************************************************************************/
-                // measure_to_continue = *this; // is C(measure_to_continue)
-                // std::cout << "Then we verify \"C(measure_to_continue) ⊆ I\" here." << std::endl;
-                // measure_to_continue.print_language("C(measure_to_continue):\n");
-                // I.print_language("I:\n");
-                // measure_to_continue.remove_useless(); measure_to_continue.reduce(); // I.remove_useless(); I.reduce();
-                bool t = this->operator_scaled_inclusion_with_renaming(I);
-                verify &= t;
-                if (!t) {
-                    AUTOQ_ERROR("[ERROR] C(measure_to_continue(I)) ⊈ I.");
-                    fraction_simplification();
-                    print_language("C(measure_to_continue(I)):\n");
-                    I.fraction_simplification();
-                    I.print_language("I:\n");
-                // } else {
-                //     std::cout << "[OK] C(measure_to_continue(I)) ⊆ I." << std::endl;
-                }
-                // std::cout << "Then we verify \"measure_to_break ⊆ Q\" here." << std::endl;
-                // measure_to_break.print_language("measure_to_break:\n");
-                // Q.print_language("Q:\n");
-                // measure_to_break.remove_useless(); measure_to_break.reduce(); Q.remove_useless(); Q.reduce();
-                // t = is_scaled_spec_satisfied(measure_to_break, constraintI, Q, constraintQ);
-                // verify &= t;
-                // if (!t) AUTOQ_ERROR("[ERROR] measure_to_break ⊈ Q.");
-                *this = measure_to_break; // Use this postcondition to execute the remaining circuit!
-                gateCount--; // retract the excess counting of the measurement operator in the while loop guard
-            } else if (inIfBlock) {
-                inIfBlock = false;
-                result_after_if = *this; // this automaton is used to be merged with the result automaton after the "else" block if the "else" block is present.
-                *this = this->operator||(measure_to_else); // if the "else" block is absent, then that branch is simply the other measurement outcome.
-            } else if (inElseBlock) {
-                inElseBlock = false;
-                *this = this->operator||(result_after_if); // merge the else-branch result with the if-branch result
-            }
+            handle_closing_brace(inWhileLoop, inIfBlock, inElseBlock, previous_line, while_measurement_guard,
+                I, measure_to_break, measure_to_else, result_after_if, verify);
         } else if (line.find("if") == 0) { // if (!result) {
             if (previous_line.find("measure") == std::string::npos)
                 throw std::runtime_error(AUTOQ_LOG_PREFIX + "[ERROR] The if guard must be a measurement operator.");
@@ -256,6 +215,38 @@ bool AUTOQ::Automata<Symbol>::execute(const char *filename, std::vector<int> qub
     }
     qasm.close();
     return verify;
+}
+
+template <typename Symbol>
+void AUTOQ::Automata<Symbol>::handle_closing_brace(bool& inWhileLoop, bool& inIfBlock, bool& inElseBlock,
+    const std::string& previous_line, const std::string& while_measurement_guard,
+    Automata<Symbol>& I, Automata<Symbol>& measure_to_break, Automata<Symbol>& measure_to_else,
+    Automata<Symbol>& result_after_if, bool& verify) {
+    if (inWhileLoop) {
+        inWhileLoop = false;
+        std::string prev = previous_line;
+        std::erase(prev, ' ');
+        if (while_measurement_guard != prev)
+            throw std::runtime_error(AUTOQ_LOG_PREFIX + "[ERROR] The while loop guard must be repeated at the end of the loop!");
+        bool t = this->operator_scaled_inclusion_with_renaming(I);
+        verify &= t;
+        if (!t) {
+            AUTOQ_ERROR("[ERROR] C(measure_to_continue(I)) ⊈ I.");
+            fraction_simplification();
+            print_language("C(measure_to_continue(I)):\n");
+            I.fraction_simplification();
+            I.print_language("I:\n");
+        }
+        *this = measure_to_break;
+        gateCount--;
+    } else if (inIfBlock) {
+        inIfBlock = false;
+        result_after_if = *this;
+        *this = this->operator||(measure_to_else);
+    } else if (inElseBlock) {
+        inElseBlock = false;
+        *this = this->operator||(result_after_if);
+    }
 }
 
 template <typename Symbol>

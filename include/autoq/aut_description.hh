@@ -243,6 +243,13 @@ public:
     bool execute(const std::string &filename, std::vector<int> qubit_permutation={}, const std::vector<AUTOQ::Automata<Symbol>> &loopInvariants={}, ParameterMap params={});
     bool execute(const char *filename, std::vector<int> qubit_permutation={}, const std::vector<AUTOQ::Automata<Symbol>> &loopInvariants={}, ParameterMap params={});
     static std::string check_the_invariants_types(const std::string& filename);
+private:
+    /** Handles a closing "}" in QASM: end of while, or if-block, or else-block. */
+    void handle_closing_brace(bool& inWhileLoop, bool& inIfBlock, bool& inElseBlock,
+        const std::string& previous_line, const std::string& while_measurement_guard,
+        Automata<Symbol>& I, Automata<Symbol>& measure_to_break, Automata<Symbol>& measure_to_else,
+        Automata<Symbol>& result_after_if, bool& verify);
+public:
     /****************************************************/
 
     /**************************************************/
