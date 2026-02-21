@@ -222,8 +222,14 @@ static void run_execution(const std::string& pre, const std::string& circuit,
 static void run_equivalence(const std::string& circuit1, const std::string& circuit2,
                            const ParameterMap& params, bool latex,
                            const chrono::steady_clock::time_point& start) {
-    AUTOQ::TreeAutomata aut = AUTOQ::TreeAutomata::prefix_basis(extract_qubit(circuit1));
-    AUTOQ::TreeAutomata aut2 = AUTOQ::TreeAutomata::prefix_basis(extract_qubit(circuit2));
+    int n1 = extract_qubit(circuit1);
+    if (n1 == kExtractQubitError)
+        THROW_AUTOQ_ERROR("Cannot extract qubit count from circuit: " + circuit1);
+    int n2 = extract_qubit(circuit2);
+    if (n2 == kExtractQubitError)
+        THROW_AUTOQ_ERROR("Cannot extract qubit count from circuit: " + circuit2);
+    AUTOQ::TreeAutomata aut = AUTOQ::TreeAutomata::prefix_basis(n1);
+    AUTOQ::TreeAutomata aut2 = AUTOQ::TreeAutomata::prefix_basis(n2);
     // set_timeout(kTimeoutSeconds, &aut, &aut2);  // optional: enable to dump stats on timeout
     aut.execute(circuit1, {}, {}, params);
     aut2.execute(circuit2, {}, {}, params);
