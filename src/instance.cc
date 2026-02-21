@@ -1,7 +1,119 @@
 #include "autoq/aut_description.hh"
 #include "autoq/complex/complex.hh"
+#include "autoq/complex/constrained_complex.hh"
+#include "autoq/error.hh"
 #include "autoq/symbol/concrete.hh"
 #include "autoq/symbol/symbolic.hh"
+#include <map>
+#include <optional>
+
+template <>
+AUTOQ::ConstrainedAutomata AUTOQ::ConstrainedAutomata::efficiently_construct_singleton_lsta(
+    const std::map<std::string, AUTOQ::Complex::ConstrainedComplex> &ket2amp) {
+    using State = AUTOQ::ConstrainedAutomata::State;
+
+    AUTOQ::ConstrainedAutomata aut;
+    AUTOQ::Complex::ConstrainedComplex default_amp;
+
+    std::map<std::string, State> ket2st;
+    for (const auto &[ket, amp] : ket2amp) {
+        ket2st[ket] = 0;
+    }
+    aut.qubitNum = ket2amp.begin()->first.length();
+    aut.finalStates.push_back(0);
+    aut.stateNum = 1;
+
+    std::optional<State> default_state;
+    for (int level = 1; level <= aut.qubitNum; level++) {
+        std::map<std::pair<State, bool>, std::pair<std::optional<State>, std::optional<State>>> newTrans;
+        bool hasVar = false;
+        for (auto &[ket, st] : ket2st) {
+            char dir = ket.at(level - 1);
+            std::optional<State> &newState = [&]() -> std::optional<State> & {
+                if (dir == '0') {
+                    return newTrans[std::make_pair(st, false)].first;
+                } else if (dir == '1') {
+                    return newTrans[std::make_pair(st, false)].second;
+                } else if (dir == 'L') {
+                    hasVar = true;
+                    return newTrans[std::make_pair(st, true)].first;
+                } else if (dir == 'R') {
+                    hasVar = true;
+                    return newTrans[std::make_pair(st, true)].second;
+                } else {
+                    THROW_AUTOQ_ERROR("This is an unhandled case!");
+                }
+            }();
+            if (newState.has_value()) {
+                st = newState.value();
+            } else {
+                st = aut.stateNum++;
+                newState = st;
+            }
+        }
+
+        if (default_state.has_value()) {
+            auto old = default_state.value();
+            default_state = aut.stateNum++;
+            if (hasVar)
+                aut.transitions[typename AUTOQ::ConstrainedAutomata::SymbolTag(
+                    AUTOQ::Symbol::Constrained(level),
+                    typename AUTOQ::ConstrainedAutomata::Tag(2 | 1))][old]
+                    .insert({default_state.value(), default_state.value()});
+            else
+                aut.transitions[typename AUTOQ::ConstrainedAutomata::SymbolTag(
+                    AUTOQ::Symbol::Constrained(level),
+                    typename AUTOQ::ConstrainedAutomata::Tag(1))][old]
+                    .insert({default_state.value(), default_state.value()});
+        }
+
+        for (auto &[top_isVar, children] : newTrans) {
+            auto &left = children.first;
+            auto &right = children.second;
+            if (!left.has_value()) {
+                if (!default_state.has_value())
+                    default_state = aut.stateNum++;
+                left = default_state;
+            }
+            if (!right.has_value()) {
+                if (!default_state.has_value())
+                    default_state = aut.stateNum++;
+                right = default_state;
+            }
+            auto top = top_isVar.first;
+            auto isVar = top_isVar.second;
+            if (isVar) {
+                aut.transitions[typename AUTOQ::ConstrainedAutomata::SymbolTag(
+                    AUTOQ::Symbol::Constrained(level),
+                    typename AUTOQ::ConstrainedAutomata::Tag(1))][top]
+                    .insert({left.value(), right.value()});
+                aut.transitions[typename AUTOQ::ConstrainedAutomata::SymbolTag(
+                    AUTOQ::Symbol::Constrained(level),
+                    typename AUTOQ::ConstrainedAutomata::Tag(2))][top]
+                    .insert({right.value(), left.value()});
+            } else {
+                aut.transitions[typename AUTOQ::ConstrainedAutomata::SymbolTag(
+                    AUTOQ::Symbol::Constrained(level),
+                    typename AUTOQ::ConstrainedAutomata::Tag(1))][top]
+                    .insert({left.value(), right.value()});
+            }
+        }
+    }
+    for (const auto &[ket, st] : ket2st) {
+        auto amp = ket2amp.at(ket);
+        aut.transitions[typename AUTOQ::ConstrainedAutomata::SymbolTag(
+            AUTOQ::Symbol::Constrained(amp),
+            typename AUTOQ::ConstrainedAutomata::Tag(1))][st]
+            .insert({{}});
+    }
+    if (default_state.has_value())
+        aut.transitions[typename AUTOQ::ConstrainedAutomata::SymbolTag(
+            AUTOQ::Symbol::Constrained(default_amp),
+            typename AUTOQ::ConstrainedAutomata::Tag(1))][default_state.value()]
+            .insert({{}});
+    aut.reduce();
+    return aut;
+}
 
 template <>
 AUTOQ::TreeAutomata AUTOQ::TreeAutomata::uniform(int n) {

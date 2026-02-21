@@ -15,112 +15,6 @@
 
 template <typename Symbol = AUTOQ::Symbol::Concrete, typename Symbol2 = Symbol>
 struct EvaluationVisitor : public ExtendedDiracParserBaseVisitor {
-static AUTOQ::Automata<AUTOQ::Symbol::Constrained> efficiently_construct_singleton_lsta(const std::map<std::string, AUTOQ::Complex::ConstrainedComplex> &ket2amp) {
-    using State = AUTOQ::Automata<AUTOQ::Symbol::Constrained>::State;
-
-    AUTOQ::Automata<AUTOQ::Symbol::Constrained> aut;
-    AUTOQ::Complex::ConstrainedComplex default_amp;
-
-    // Step 1. Build the array map from kets to LSTA states at each level.
-    std::map<std::string, State> ket2st;
-    for (const auto &[ket, amp] : ket2amp) {
-        ket2st[ket] = 0;
-    }
-    // IMPORTANT NOTE: We assume ket2amp[ket] are initialized to 0 automatically.
-    // Also remember to specify the number of qubits!
-    // if (aut.qubitNum == 0) {
-        aut.qubitNum = ket2amp.begin()->first.length();
-    // } else if (aut.qubitNum != static_cast<int>(ket.length())) {
-    //     THROW_AUTOQ_ERROR("The numbers of qubits in different |...⟩'s are not consistent!");
-    // }
-    aut.finalStates.push_back(0);
-    aut.stateNum = 1; // since we already have 0 for the root state
-
-    // Step 2. We start to construct the automaton below level by level.
-    std::optional<State> default_state; // no values by default
-    for (int level=1; level<=aut.qubitNum; level++) {
-        // transitions to be constructed at this level
-        std::map<std::pair<State, bool>, std::pair<std::optional<State>, std::optional<State>>> newTrans; // (top, var?) -> (left, right)
-        // Notice that only one of newTrans[{st, false}] and newTrans[{st, true}] can exist, but it is inherently guaranteed by the logic.
-
-        // Step 2-a. Build newTrans with known states so far and update the new children into ket2st.
-        bool hasVar = false;
-        for (auto &[ket, st] : ket2st) {
-            char dir = ket.at(level-1); // -1 because the index starts from 0
-            std::optional<State> &newState = [&]() -> std::optional<State>& {
-                if (dir == '0') {
-                    return newTrans[std::make_pair(st, false)].first;
-                } else if (dir == '1') {
-                    return newTrans[std::make_pair(st, false)].second;
-                } else if (dir == 'L') { // loop variable: i
-                    hasVar = true;
-                    return newTrans[std::make_pair(st, true)].first;
-                } else if (dir == 'R') { // loop variable: i'
-                    hasVar = true;
-                    return newTrans[std::make_pair(st, true)].second;
-                } else {
-                    THROW_AUTOQ_ERROR("This is an unhandled case!");
-                }
-            }();
-            // Note that "st" is a reference here.
-            if (newState.has_value()) {
-                st = newState.value();
-            } else {
-                st = aut.stateNum++;
-                newState = st;
-            }
-        }
-
-        // Step 2-b. Check if a default state is needed at this level.
-        // If the default state at the previous level already exists, also create another one at this level.
-        // Otherwise, create if needed during the traversal of newTrans.
-        if (default_state.has_value()) {
-            auto old = default_state.value();
-            default_state = aut.stateNum++;
-            if (hasVar)
-                aut.transitions[typename AUTOQ::Automata<AUTOQ::Symbol::Constrained>::SymbolTag(AUTOQ::Symbol::Constrained(level), typename AUTOQ::Automata<AUTOQ::Symbol::Constrained>::Tag(2 | 1))][old].insert({default_state.value(), default_state.value()});
-            else
-                aut.transitions[typename AUTOQ::Automata<AUTOQ::Symbol::Constrained>::SymbolTag(AUTOQ::Symbol::Constrained(level), typename AUTOQ::Automata<AUTOQ::Symbol::Constrained>::Tag(1))][old].insert({default_state.value(), default_state.value()});
-        }
-        // Now "default_state" has been updated (if it is extended from the previous level)!
-
-        // Step 2-c. Construct the transitions from newTrans at this level.
-        for (auto &[top_isVar, children] : newTrans) {
-            auto &left = children.first;
-            auto &right = children.second;
-            if (!left.has_value()) {
-                if (!default_state.has_value()) {
-                    default_state = aut.stateNum++;
-                }
-                left = default_state;
-            }
-            if (!right.has_value()) {
-                if (!default_state.has_value()) {
-                    default_state = aut.stateNum++;
-                }
-                right = default_state;
-            }
-            auto top = top_isVar.first;
-            auto isVar = top_isVar.second;
-            if (isVar) {
-                aut.transitions[typename AUTOQ::Automata<AUTOQ::Symbol::Constrained>::SymbolTag(AUTOQ::Symbol::Constrained(level), typename AUTOQ::Automata<AUTOQ::Symbol::Constrained>::Tag(1))][top].insert({left.value(), right.value()});
-                aut.transitions[typename AUTOQ::Automata<AUTOQ::Symbol::Constrained>::SymbolTag(AUTOQ::Symbol::Constrained(level), typename AUTOQ::Automata<AUTOQ::Symbol::Constrained>::Tag(2))][top].insert({right.value(), left.value()});
-            } else {
-                aut.transitions[typename AUTOQ::Automata<AUTOQ::Symbol::Constrained>::SymbolTag(AUTOQ::Symbol::Constrained(level), typename AUTOQ::Automata<AUTOQ::Symbol::Constrained>::Tag(1))][top].insert({left.value(), right.value()});
-            }
-        }
-    }
-    // Step 2-d. Finally, create leaf transitions.
-    for (const auto &[ket, st] : ket2st) {
-        auto amp = ket2amp.at(ket);
-        aut.transitions[typename AUTOQ::Automata<AUTOQ::Symbol::Constrained>::SymbolTag(AUTOQ::Symbol::Constrained(amp), typename AUTOQ::Automata<AUTOQ::Symbol::Constrained>::Tag(1))][st].insert({{}});
-    } // Also don't forget the default value!!!
-    if (default_state.has_value())
-        aut.transitions[typename AUTOQ::Automata<AUTOQ::Symbol::Constrained>::SymbolTag(AUTOQ::Symbol::Constrained(default_amp), typename AUTOQ::Automata<AUTOQ::Symbol::Constrained>::Tag(1))][default_state.value()].insert({{}});
-    aut.reduce();
-    return aut;
-}
-
     class ComplexParser {
 public:
     ComplexParser(const std::string &input, const std::map<std::string, Complex> &constMap = get_empty_const_map())
@@ -1162,7 +1056,7 @@ private:
                         }
                         termId++;
                     }
-                    autQ = autQ || efficiently_construct_singleton_lsta(dirac);
+                    autQ = autQ || AUTOQ::ConstrainedAutomata::efficiently_construct_singleton_lsta(dirac);
                 }
                 if (q == 0) {
                     autAll = autQ;

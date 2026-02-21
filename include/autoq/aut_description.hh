@@ -20,6 +20,8 @@
 #include "autoq/symbol/predicate.hh"
 #include "autoq/symbol/index.hh"
 #include "autoq/symbol/constrained.hh"
+#include "autoq/complex/constrained_complex.hh"
+#include <map>
 
 namespace AUTOQ
 {
@@ -231,6 +233,8 @@ public:
     static Automata basis_zero_one_zero(int n);
     static Automata zero_zero_one_zero(int n);
     static Automata zero_one_zero(int n);
+    static ConstrainedAutomata efficiently_construct_singleton_lsta(
+        const std::map<std::string, AUTOQ::Complex::ConstrainedComplex> &ket2amp);
     /*******************************************/
 
     /****************************************************/
