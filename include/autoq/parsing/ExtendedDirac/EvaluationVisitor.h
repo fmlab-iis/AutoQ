@@ -95,6 +95,7 @@ struct EvaluationVisitor : public ExtendedDiracParserBaseVisitor {
         return parse_extended_dirac_and_visit(input, [](ExtendedDiracParser& p) { return static_cast<antlr4::tree::ParseTree*>(p.expr()); }, this);
     }
 
+    /* -------- VisitExpr: expression (expr → tset → scset → set) -------- */
     // std::any visitExtendedDirac(ExtendedDiracParser::ExtendedDiracContext *ctx) override {
     //     if (ctx->muloperators() != nullptr) { // RULE: accepted WHERE NEWLINES muloperators
     //         visit(ctx->muloperators()); // Notice that "mulmap" will be updated during the visit.
@@ -380,6 +381,8 @@ struct EvaluationVisitor : public ExtendedDiracParserBaseVisitor {
         }
         return result;
     }
+
+    /* -------- VisitTset: tensor product (tset → scset | set^N | tset ⊗ tset) -------- */
     std::any visitTset(ExtendedDiracParser::TsetContext *ctx) override {
         if (mode == EXPAND_POWER_AND_DIRACS_AND_REWRITE_COMPLEMENT) {
             if (ctx->scset() != nullptr) return std::any_cast<std::string>(visit(ctx->scset()));
@@ -567,6 +570,7 @@ struct EvaluationVisitor : public ExtendedDiracParserBaseVisitor {
         }
     }
 
+    /* -------- VisitScset: semicolon-separated sets (scset → set | scset; set) -------- */
     std::any visitScset(ExtendedDiracParser::ScsetContext *ctx) override {
         if (mode == EXPAND_POWER_AND_DIRACS_AND_REWRITE_COMPLEMENT) {
             if (ctx->SEMICOLON() != nullptr) { // ctx->op->getType() == ExtendedDiracParser::SEMICOLON) {
@@ -687,6 +691,7 @@ struct EvaluationVisitor : public ExtendedDiracParserBaseVisitor {
         }
     }
 
+    /* -------- VisitSet: brace-enclosed set ({ diracs }) -------- */
     std::any visitSet(ExtendedDiracParser::SetContext *ctx) override {
         if (mode == EXPAND_POWER_AND_DIRACS_AND_REWRITE_COMPLEMENT) {
             if (ctx->UNION() != nullptr) {
@@ -989,6 +994,7 @@ struct EvaluationVisitor : public ExtendedDiracParserBaseVisitor {
         }
     }
 
+    /* -------- VisitDiracs, VisitDirac, VisitTerm: Dirac notation (diracs → dirac | diracs, dirac; dirac → term | dirac ± term) -------- */
     std::any visitDiracs(ExtendedDiracParser::DiracsContext *ctx) override {
         if (mode == EXPAND_POWER_AND_DIRACS_AND_REWRITE_COMPLEMENT) {
             std::vector<std::string> result;
@@ -1390,6 +1396,7 @@ struct EvaluationVisitor : public ExtendedDiracParserBaseVisitor {
         }
     }
 
+    /* -------- VisitVarcons, VisitVarcon, VisitEq, VisitIneq: variables and constraints (varcons, varcon, eq, ineq) -------- */
     std::any visitVarcons(ExtendedDiracParser::VarconsContext *ctx) override {
         if (mode == COLLECT_KETS_AND_COMPUTE_UNIT_DECOMPOSITION_INDICES ||
             mode == REWRITE_BY_UNIT_INDICES_AND_MAKE_ALL_VARS_DISTINCT) {
@@ -1572,7 +1579,7 @@ struct EvaluationVisitor : public ExtendedDiracParserBaseVisitor {
         }
     }
 
-    /* The below are the complex number parsing part, independent of the main grammar! */
+    /* -------- VisitComplex: complex number parsing (independent of main grammar) -------- */
     Complex fastPower(Complex base, int exponent) {
         assert(exponent >= 0);
         if (exponent == 0) return 1;
@@ -1700,6 +1707,7 @@ struct EvaluationVisitor : public ExtendedDiracParserBaseVisitor {
     //     }
     // }
 
+    /* -------- VisitPredicate: predicate / SMT expressions (eq, ineq, <, <=, >, >=, !, &&, ||) -------- */
     std::any visitPredicate(ExtendedDiracParser::PredicateContext *ctx) override {
         if (ctx->eq() != nullptr) return visit(ctx->eq());
         else if (ctx->ineq() != nullptr) return visit(ctx->ineq());
