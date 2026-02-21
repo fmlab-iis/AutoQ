@@ -6,7 +6,7 @@
 // #include <autoq/util/types.hh>
 #include <autoq/loop_summarization.hh>
 #include <autoq/aut_description.hh>
-#include <autoq/parsing/timbuk_parser.hh>
+#include <autoq/parsing/parser/timbuk_parser.hh>
 #include <autoq/parsing/complex_parser.hh>
 #include <autoq/parsing/ExtendedDirac/EvaluationVisitor.h>
 #include <autoq/parsing/angle.hh>

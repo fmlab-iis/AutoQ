@@ -3,7 +3,7 @@
 #include <iostream>
 #include <autoq/error.hh>
 #include <autoq/error_messages.hh>
-#include <autoq/parsing/timbuk_parser.hh>
+#include <autoq/parsing/parser/timbuk_parser.hh>
 #include <autoq/parsing/complex_parser.hh>
 #include <autoq/serialization/timbuk_serializer.hh>
 #include <autoq/aut_description.hh>

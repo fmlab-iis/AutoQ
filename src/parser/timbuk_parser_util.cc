@@ -11,10 +11,30 @@
 
 #include "autoq/error.hh"
 #include "autoq/util/string.hh"
-#include "autoq/parsing/timbuk_parser_util.hh"
+#include "autoq/parsing/parser/timbuk_parser_util.hh"
 
 namespace AUTOQ {
 namespace Parsing {
+
+void strip_line_comments(std::string& s) {
+    std::string::size_type pos = 0;
+    while ((pos = s.find("//", pos)) != std::string::npos) {
+        std::string::size_type end = s.find('\n', pos);
+        if (end == std::string::npos) {
+            s.erase(pos);
+            break;
+        }
+        s.erase(pos, end - pos + 1);
+    }
+}
+
+std::pair<std::string, std::string> split_automaton_and_constraints(const std::string& fileContents) {
+    const size_t found = fileContents.find("Constraints");
+    if (found != std::string::npos) {
+        return {fileContents.substr(0, found), fileContents.substr(found + 11)};
+    }
+    return {fileContents, ""};
+}
 
 std::vector<std::string> find_all_loop_invariants(const char* filename) {
     std::ifstream qasm(filename);

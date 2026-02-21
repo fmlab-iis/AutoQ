@@ -19,7 +19,7 @@
 #include "autoq/complex/complex.hh"
 #include "autoq/symbol/concrete.hh"
 #include "autoq/aut_description.hh"
-#include "autoq/parsing/timbuk_parser.hh"
+#include "autoq/parsing/parser/timbuk_parser.hh"
 #include "autoq/serialization/timbuk_serializer.hh"
 
 #define BOOST_TEST_DYN_LINK
