@@ -19,6 +19,24 @@ namespace {
 
 const std::sregex_iterator kRegexEnd;
 
+/** Reads lines from \a qasm until a line starting with "}". Sets \a in_loop to false on success.
+ *  (\a is Doxygen syntax: it marks the following word as a parameter name.) */
+std::vector<std::string> parse_for_loop_body(std::ifstream& qasm, bool& in_loop) {
+    std::vector<std::string> loop_body;
+    std::string line;
+    while (std::getline(qasm, line)) {
+        line = AUTOQ::String::trim(line);
+        if (line.find("{") == 0)
+            continue;
+        if (line.find("}") == 0) {
+            in_loop = false;
+            return loop_body;
+        }
+        loop_body.push_back(line);
+    }
+    THROW_AUTOQ_ERROR(AUTOQ::ErrorMessages::kLoopNotEnded);
+}
+
 int first_qubit_index(const std::string& line, const AUTOQ::regexes& regexes,
                       const std::vector<int>& qubit_permutation) {
     std::smatch m;
@@ -89,42 +107,13 @@ bool AUTOQ::Automata<Symbol>::execute(const char *filename, std::vector<int> qub
                     THROW_AUTOQ_ERROR(EM::kQubitMismatch);
                 ++it;
             }
-        } else if(line.find("for ") == 0){
-            // for i in [x:y] { ... } loop syntax
-            if(in_loop) THROW_AUTOQ_ERROR(EM::kNestedLoops);
+        } else if (line.find("for ") == 0) {
+            if (in_loop) THROW_AUTOQ_ERROR(EM::kNestedLoops);
             in_loop = true;
             std::smatch match_pieces;
             std::regex_search(line, match_pieces, regexes.loop);
-
-            std::vector<std::string> loop_body;
-
-            // LOOP PARSING
-            std::string line;
-            bool loop_ended = false;
-            while(std::getline(qasm, line)){
-                line = AUTOQ::String::trim(line);
-
-                if(line.find("{") == 0){
-                    continue;
-                }
-                // loop ended properly
-                else if(line.find("}") == 0){
-                    loop_ended = true;
-                    in_loop = false;
-                    break;
-                }
-                else{
-                    loop_body.emplace_back(line);
-                }
-            }
-            if(!loop_ended){
-                THROW_AUTOQ_ERROR(EM::kLoopNotEnded);
-            }
-            // LOOP PARSING END
-
+            std::vector<std::string> loop_body = parse_for_loop_body(qasm, in_loop);
             execute_loop<Symbol>(loop_body, *this, params, regexes, match_pieces, qubit_permutation);
-        // } else if(line.find("}") == 0){
-        //     in_loop = false;
         } else if (line.find("PRINT_STATS") == 0) {
             print_stats(previous_line, true);
         } else if (line.find("PRINT_AUT") == 0) {
