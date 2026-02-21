@@ -21,7 +21,9 @@
 #include <regex>
 #include <fenv.h>
 #include <csignal>
+#ifdef __APPLE__
 #include <fenv_darwin.h>
+#endif
 #include <CLI11.hpp>
 #include <version.h>
 
