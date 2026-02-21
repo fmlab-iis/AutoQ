@@ -3,19 +3,12 @@ import sys
 import os
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-from common import ensure_bench_dir, write_qasm_header
+from common import ensure_bench_dir_for_n, write_qasm_header, parse_sizes
 
-sizes = []
-if len(sys.argv) == 2:
-    n = int(sys.argv[1])
-    assert(n >= 1)
-    sizes.append(n)
-else:
-    sizes = list(range(1, 1001))
+sizes = parse_sizes(1, 1001, min_n=1)
 
 for n in sizes:
-    n_str = str(n).zfill(2)
-    ensure_bench_dir(n_str)
+    n_str = ensure_bench_dir_for_n(n)
     ###########################################################################
     with open(n_str + '/pre.hsl', 'w') as file:
         file.write('Constants\n')

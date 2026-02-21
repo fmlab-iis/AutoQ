@@ -3,26 +3,12 @@ import sys
 import shutil
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-from common import ensure_bench_dir, write_qasm_header
+from common import ensure_bench_dir_for_n, write_qasm_header, write_hsl, parse_sizes
 
-HSL_HEADER = "Constants\nc1 := 1\nExtended Dirac\n"
-
-def write_hsl(path: str, body: str) -> None:
-    with open(path, "w") as f:
-        f.write(HSL_HEADER)
-        f.write(body)
-
-sizes = []
-if len(sys.argv) == 2:
-    n = int(sys.argv[1])
-    assert(n >= 3)
-    sizes.append(n)
-else:
-    sizes = list(range(3, 1001))
+sizes = parse_sizes(3, 1001, min_n=3)
 
 for n in sizes:
-    n_str = str(n).zfill(2)
-    ensure_bench_dir(n_str)
+    n_str = ensure_bench_dir_for_n(n)
     w = range(n)
     a = [n + i for i in range(n - 1)]
     t = 2 * n - 1
