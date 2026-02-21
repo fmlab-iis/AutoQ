@@ -1,3 +1,4 @@
+#include <autoq/error_messages.hh>
 #include <autoq/symbol/concrete.hh>
 #include <autoq/symbol/symbolic.hh>
 #include <autoq/symbol/predicate.hh>
@@ -15,13 +16,6 @@
 #include <numeric>
 
 namespace {
-const char* kErrOpenFilePrefix = "Failed to open file ";
-const char* kErrUnsupportedGatePrefix = "unsupported gate: ";
-const char* kErrQubitMismatch = "The number of qubits in the automaton does not match the number of qubits in the circuit.";
-const char* kErrNestedLoops = "Nested loops are not supported yet.";
-const char* kErrLoopNotEnded = "Loop not ended properly";
-const char* kErrLoopInvariantPredicate = "The loop invariant cannot be a predicate automaton.";
-const char* kErrLoopInvariantType = "The provided type of the loop invariant is not supported yet.";
 
 int first_qubit_index(const std::string& line, const AUTOQ::regexes& regexes,
                       const std::vector<int>& qubit_permutation) {
@@ -44,6 +38,8 @@ std::vector<int> parse_qubit_indices(const std::string& line, const AUTOQ::regex
 }
 
 }  // namespace
+
+namespace EM = AUTOQ::ErrorMessages;
 
 template <typename Symbol>
 bool AUTOQ::Automata<Symbol>::execute(const std::string &filename, std::vector<int> qubit_permutation, const std::vector<AUTOQ::Automata<Symbol>> &loopInvariants, ParameterMap params) {
@@ -71,7 +67,7 @@ bool AUTOQ::Automata<Symbol>::execute(const char *filename, std::vector<int> qub
     const AUTOQ::regexes regexes{};
 
     const std::sregex_iterator END;
-    if (!qasm.is_open()) THROW_AUTOQ_ERROR(std::string(kErrOpenFilePrefix) + filename + ".");
+    if (!qasm.is_open()) THROW_AUTOQ_ERROR(std::string(EM::kOpenFilePrefix) + filename + ".");
     std::string line, previous_line;
 
     bool in_loop = false; // nested loops are not yet taken into consideration
@@ -90,12 +86,12 @@ bool AUTOQ::Automata<Symbol>::execute(const char *filename, std::vector<int> qub
             std::sregex_iterator it(line.begin(), line.end(), regexes.digit);
             while (it != END) {
                 if (atoi(it->str().c_str()) != static_cast<int>(qubitNum))
-                    THROW_AUTOQ_ERROR(kErrQubitMismatch);
+                    THROW_AUTOQ_ERROR(EM::kQubitMismatch);
                 ++it;
             }
         } else if(line.find("for ") == 0){
             // for i in [x:y] { ... } loop syntax
-            if(in_loop) THROW_AUTOQ_ERROR(kErrNestedLoops);
+            if(in_loop) THROW_AUTOQ_ERROR(EM::kNestedLoops);
             in_loop = true;
             std::smatch match_pieces;
             std::regex_search(line, match_pieces, regexes.loop);
@@ -122,7 +118,7 @@ bool AUTOQ::Automata<Symbol>::execute(const char *filename, std::vector<int> qub
                 }
             }
             if(!loop_ended){
-                THROW_AUTOQ_ERROR(kErrLoopNotEnded);
+                THROW_AUTOQ_ERROR(EM::kLoopNotEnded);
             }
             // LOOP PARSING END
 
@@ -318,14 +314,14 @@ void AUTOQ::Automata<Symbol>::single_gate_execute(const std::string& line, const
         std::vector<int> pos = parse_qubit_indices(line, regexes, END, qubit_permutation);
         Swap(pos[0], pos[1]);
     } else if (line.length() > 0){
-        THROW_AUTOQ_ERROR(std::string(kErrUnsupportedGatePrefix) + line + ".");
+        THROW_AUTOQ_ERROR(std::string(EM::kUnsupportedGatePrefix) + line + ".");
     }
 }
 
 template <typename Symbol>
 std::string AUTOQ::Automata<Symbol>::check_the_invariants_types(const std::string& filename) {
     std::ifstream qasm(filename);
-    if (!qasm.is_open()) throw std::runtime_error(std::string(AUTOQ_LOG_PREFIX) + "[ERROR] " + kErrOpenFilePrefix + filename + ".");
+    if (!qasm.is_open()) throw std::runtime_error(std::string(AUTOQ_LOG_PREFIX) + "[ERROR] " + EM::kOpenFilePrefix + filename + ".");
     std::string line;
     while (getline(qasm, line)) {
         line = AUTOQ::String::trim(line);
@@ -336,14 +332,14 @@ std::string AUTOQ::Automata<Symbol>::check_the_invariants_types(const std::strin
             auto invariant = ReadAutomaton(dir + std::string("/") + it2->str(1));
             if (std::holds_alternative<AUTOQ::PredicateAutomata>(invariant)) {
                 qasm.close();
-                THROW_AUTOQ_ERROR(kErrLoopInvariantPredicate);
+                THROW_AUTOQ_ERROR(EM::kLoopInvariantPredicate);
             } else if (std::holds_alternative<AUTOQ::SymbolicAutomata>(invariant)) {
                 qasm.close();
                 return "Symbolic";
             } else if (std::holds_alternative<AUTOQ::TreeAutomata>(invariant)) {
             } else {
                 qasm.close();
-                THROW_AUTOQ_ERROR(kErrLoopInvariantType);
+                THROW_AUTOQ_ERROR(EM::kLoopInvariantType);
             }
         }
     }

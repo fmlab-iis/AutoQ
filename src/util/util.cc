@@ -14,6 +14,7 @@
 #include "autoq/util/util.hh"
 
 // Standard library headers
+#include <iostream>
 #include <sstream>
 #include <fstream>
 #include <sys/types.h>
@@ -56,7 +57,7 @@ std::string AUTOQ::Util::ShellCmd(const std::string &cmd) {
     // Open pipe to file
     FILE* pipe = popen(cmd.c_str(), "r");
     if (!pipe) {
-        std::cout << cmd << std::endl;
+        Log::error(cmd);
         THROW_AUTOQ_ERROR("popen() failed!");
     }
 
@@ -67,6 +68,14 @@ std::string AUTOQ::Util::ShellCmd(const std::string &cmd) {
 
     pclose(pipe);
     return result;
+}
+
+void AUTOQ::Util::Log::info(const std::string& msg) {
+    std::cout << msg << std::endl;
+}
+
+void AUTOQ::Util::Log::error(const std::string& msg) {
+    std::cerr << msg << std::endl;
 }
 
 // removed due to compilation issue
@@ -99,7 +108,7 @@ std::string AUTOQ::Util::ShellCmd(const std::vector<std::string> &cmd) {
         execvp(args[0], const_cast<char**>(args));
         // If execvp() fails, this block will be executed
         delete[] args; // Free the array itself
-        std::cerr << "[ERROR] Failed to execute command." << std::endl;
+        Log::error("[ERROR] Failed to execute command.");
         exit(1);
     } else { // Parent process
         close(pipefd[1]); // Close unused write end

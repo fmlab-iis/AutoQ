@@ -11,6 +11,7 @@
 #ifndef _AUTOQ_UTIL_HH_
 #define _AUTOQ_UTIL_HH_
 
+#include <string>
 #include <vector>
 #include <chrono>
 
@@ -29,6 +30,12 @@ namespace AUTOQ
         std::string print_duration(const std::chrono::steady_clock::duration &tp);
         size_t getPeakRSS();
         size_t getCurrentRSS();
+
+		/** User-visible output: stdout for normal messages, stderr for errors. */
+		namespace Log {
+			void info(const std::string& msg);
+			void error(const std::string& msg);
+		}
 	}
 }
 

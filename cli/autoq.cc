@@ -1,6 +1,8 @@
 #include <fstream>
+#include <sstream>
 #include <iostream>
 #include <autoq/error.hh>
+#include <autoq/error_messages.hh>
 #include <autoq/parsing/timbuk_parser.hh>
 #include <autoq/parsing/complex_parser.hh>
 #include <autoq/serialization/timbuk_serializer.hh>
@@ -30,7 +32,7 @@ constexpr int kExtractQubitError = -1;
 int extract_qubit(const std::string& filename) {
     std::ifstream file(filename);
     if (!file.is_open()) {
-        std::cerr << "Unable to open file" << std::endl;
+        AUTOQ::Util::Log::error("Unable to open file");
         return kExtractQubitError;
     }
 
@@ -43,7 +45,7 @@ int extract_qubit(const std::string& filename) {
         }
     }
 
-    std::cerr << "Pattern not found" << std::endl;
+    AUTOQ::Util::Log::error("Pattern not found");
     return kExtractQubitError;
 }
 
@@ -76,36 +78,34 @@ const char* kLoopSymbolic = "symbolic";
 // Number of elements to remove from autVec after ReadTwoAutomata (pre+circuit or aut+spec)
 constexpr size_t kAutVecEraseCount = 2;
 
-// Error messages (single place for user-facing strings)
-const char* kErrOpenFilePrefix = "Failed to open file ";
-const char* kErrPredicatePrecondition = "Predicate amplitudes cannot be used in a precondition.";
-const char* kErrPredicateAutomataPost = "PredicateAutomata as the postcondition are currently not supported.";
-const char* kErrConcretePostPre = "When the postcondition has only concrete amplitudes, the precondition must also do so.";
-const char* kErrUnsupportedPostType = "Unsupported type of the postcondition.";
-const char* kErrNoMode = "Please provide at least one mode. Run \"autoq -h\" for more information.";
+namespace EM = AUTOQ::ErrorMessages;
 
 const char* kOutputLabel = "OUTPUT:\n";
 
 void print_verification_result(int qubitNum, int gateCount, bool verify,
                                const chrono::steady_clock::time_point& start) {
-    std::cout << "The quantum program has [" << qubitNum << "] qubits and ["
-              << gateCount << "] gates. The verification process ["
-              << (verify ? "OK" : "failed") << "] in ["
-              << AUTOQ::Util::Convert::toString(chrono::steady_clock::now() - start)
-              << "] with [" << (AUTOQ::Util::getPeakRSS() / kBytesPerMB) << "MB] memory usage.\n";
+    std::ostringstream oss;
+    oss << "The quantum program has [" << qubitNum << "] qubits and ["
+        << gateCount << "] gates. The verification process ["
+        << (verify ? "OK" : "failed") << "] in ["
+        << AUTOQ::Util::Convert::toString(chrono::steady_clock::now() - start)
+        << "] with [" << (AUTOQ::Util::getPeakRSS() / kBytesPerMB) << "MB] memory usage.";
+    AUTOQ::Util::Log::info(oss.str());
 }
 
 void print_loop_invariant_result(bool verify) {
-    if (verify) std::cout << "[OK] The circuit execution satisfies the loop invariant." << std::endl;
-    else std::cout << "[ERROR] The circuit execution violates the loop invariant." << std::endl;
+    AUTOQ::Util::Log::info(verify ? "[OK] The circuit execution satisfies the loop invariant."
+                                  : "[ERROR] The circuit execution violates the loop invariant.");
 }
 
 void print_equivalence_result(bool result,
                                const chrono::steady_clock::time_point& start) {
-    std::cout << "The two quantum programs are verified to be ["
-              << (result ? "equal" : "unequal") << "] in ["
-              << AUTOQ::Util::Convert::toString(chrono::steady_clock::now() - start)
-              << "] with [" << (AUTOQ::Util::getPeakRSS() / kBytesPerMB) << "MB] memory usage.\n";
+    std::ostringstream oss;
+    oss << "The two quantum programs are verified to be ["
+        << (result ? "equal" : "unequal") << "] in ["
+        << AUTOQ::Util::Convert::toString(chrono::steady_clock::now() - start)
+        << "] with [" << (AUTOQ::Util::getPeakRSS() / kBytesPerMB) << "MB] memory usage.";
+    AUTOQ::Util::Log::info(oss.str());
 }
 }  // namespace
 
@@ -123,7 +123,7 @@ void adjust_N_in_nTuple(const std::string &filename) {
     std::ifstream qasm(filename);
     const std::regex rx(R"(rx\((.+)\).+\[(\d+)\];)");
     const std::regex rz(R"(rz\((.+)\).+\[(\d+)\];)");
-    if (!qasm.is_open()) THROW_AUTOQ_ERROR(std::string(kErrOpenFilePrefix) + filename + ".");
+    if (!qasm.is_open()) THROW_AUTOQ_ERROR(std::string(EM::kOpenFilePrefix) + filename + ".");
     std::string line;
     while (getline(qasm, line)) {
         line = AUTOQ::String::trim(line);
@@ -183,7 +183,7 @@ void timeout_handler(int) {
     stats["aut1.leaves"] = g_timeout_aut1 ? std::to_string(g_timeout_aut1->count_leaves()) : "0";
     stats["aut2.trans"] = g_timeout_aut2 ? std::to_string(g_timeout_aut2->count_transitions()) : "0";
     stats["aut2.leaves"] = g_timeout_aut2 ? std::to_string(g_timeout_aut2->count_leaves()) : "0";
-    std::cout << AUTOQ::Util::Convert::ToString2(stats) << std::endl;
+        AUTOQ::Util::Log::info(AUTOQ::Util::Convert::ToString2(stats));
     exit(kExitCodeTimeout);
 }
 
@@ -198,7 +198,7 @@ static void run_execution(const std::string& pre, const std::string& circuit,
                           const ParameterMap& params) {
     auto aut1 = ReadAutomaton(pre);
     if (std::holds_alternative<AUTOQ::PredicateAutomata>(aut1)) {
-        THROW_AUTOQ_ERROR(kErrPredicatePrecondition);
+        THROW_AUTOQ_ERROR(EM::kPredicatePrecondition);
     }
     if (std::holds_alternative<AUTOQ::SymbolicAutomata>(aut1) || AUTOQ::SymbolicAutomata::check_the_invariants_types(circuit) == "Symbolic") {
         auto [autVec, qp] = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Symbolic>::ReadTwoAutomata(pre, pre, circuit);
@@ -241,7 +241,7 @@ static void run_verification(const std::string& pre, const std::string& post, co
     if (std::holds_alternative<AUTOQ::SymbolicAutomata>(spec1) || std::holds_alternative<AUTOQ::SymbolicAutomata>(pre1) || AUTOQ::SymbolicAutomata::check_the_invariants_types(circuit) == "Symbolic") {
         auto aut1 = ReadAutomaton(pre);
         if (std::holds_alternative<AUTOQ::PredicateAutomata>(aut1)) {
-            THROW_AUTOQ_ERROR(kErrPredicatePrecondition);
+            THROW_AUTOQ_ERROR(EM::kPredicatePrecondition);
         }
         AUTOQ::SymbolicAutomata::startFromFileToAutomata = std::chrono::steady_clock::now();
         auto [autVec, qp] = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Symbolic, AUTOQ::Symbol::Symbolic>::ReadTwoAutomata(pre, post, circuit);
@@ -257,12 +257,12 @@ static void run_verification(const std::string& pre, const std::string& post, co
             print_verification_result(aut.qubitNum, AUTOQ::SymbolicAutomata::gateCount, verify, start);
         }
     } else if (std::holds_alternative<AUTOQ::PredicateAutomata>(spec1)) {
-        THROW_AUTOQ_ERROR(kErrPredicateAutomataPost);
+        THROW_AUTOQ_ERROR(EM::kPredicateAutomataPost);
     } else if (std::holds_alternative<AUTOQ::TreeAutomata>(spec1)) {
         auto aut1 = ReadAutomaton(pre);
         std::visit([](auto&& arg) {
             if constexpr (!std::is_same_v<std::decay_t<decltype(arg)>, AUTOQ::TreeAutomata>) {
-                THROW_AUTOQ_ERROR(kErrConcretePostPre);
+                THROW_AUTOQ_ERROR(EM::kConcretePostPre);
             }
         }, aut1);
         AUTOQ::TreeAutomata::startFromFileToAutomata = std::chrono::steady_clock::now();
@@ -279,7 +279,7 @@ static void run_verification(const std::string& pre, const std::string& post, co
             print_verification_result(aut.qubitNum, AUTOQ::TreeAutomata::gateCount, verify, start);
         }
     } else {
-        THROW_AUTOQ_ERROR(kErrUnsupportedPostType);
+        THROW_AUTOQ_ERROR(EM::kUnsupportedPostType);
     }
 }
 
@@ -332,7 +332,7 @@ try {
     CLI11_PARSE(app, argc, argv); // Parse the command-line arguments
 
     if (*version) {
-        std::cout << AUTOQ_GIT_SHA << std::endl;
+        AUTOQ::Util::Log::info(AUTOQ_GIT_SHA);
         return 0;
     }
 
@@ -355,7 +355,7 @@ try {
             aut.print_language();
         }, aut);
     } else {
-        THROW_AUTOQ_ERROR(kErrNoMode);
+        THROW_AUTOQ_ERROR(EM::kNoMode);
     }
     /**************/
     // if (long_time) {
@@ -374,7 +374,7 @@ try {
     // }
     /**************/
 } catch (AutoQError &e) {
-    std::cout << e.what() << std::endl;
+    AUTOQ::Util::Log::error(e.what());
 }
     return 0;
 }

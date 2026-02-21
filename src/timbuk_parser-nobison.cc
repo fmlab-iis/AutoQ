@@ -1343,8 +1343,8 @@ AUTOQ::Parsing::TimbukParser<Symbol, Symbol2>::parse_n_extended_diracs_from_istr
     // Notice that up to this point, exprs[0] and exprs[2] are mandatory, whereas exprs[1] and exprs[3] are optional.
     for (size_t i=1; i<exprs.size(); i++) {
         if (exprs[i-1].size() != exprs[i].size()) {
-            std::cout << "[ERROR] The 1st list of expressions: " << AUTOQ::Util::Convert::ToString(exprs[i-1]) << std::endl;
-            std::cout << "[ERROR] The 2nd list of expressions: " << AUTOQ::Util::Convert::ToString(exprs[i]) << std::endl;
+            AUTOQ::Util::Log::error("[ERROR] The 1st list of expressions: " + AUTOQ::Util::Convert::ToString(exprs[i-1]));
+            AUTOQ::Util::Log::error("[ERROR] The 2nd list of expressions: " + AUTOQ::Util::Convert::ToString(exprs[i]));
             THROW_AUTOQ_ERROR("There are two *.hsl files not aligned!");
         }
     }
@@ -1615,7 +1615,7 @@ try {
     }
     return result;
 } catch (AutoQError &e) {
-    std::cout << e.what() << std::endl;
+    AUTOQ::Util::Log::error(e.what());
     THROW_AUTOQ_ERROR("(while parsing the automaton: " + filepath + ")");
 }
 }
@@ -1805,7 +1805,7 @@ try {
     }
     return std::make_pair(autVec, qp/*, autMinus*/);
 } catch (AutoQError &e) {
-    std::cout << e.what() << std::endl;
+    AUTOQ::Util::Log::error(e.what());
     THROW_AUTOQ_ERROR("(while parsing the automaton: " + filepath1 + " or " + filepath2 + ")");
 }
 }
