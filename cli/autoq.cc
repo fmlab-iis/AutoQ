@@ -375,6 +375,7 @@ try {
     /**************/
 } catch (AutoQError &e) {
     AUTOQ::Util::Log::error(e.what());
+    return 1;
 }
     return 0;
 }

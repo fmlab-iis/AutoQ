@@ -66,6 +66,6 @@ else
   sudo -u $SUDO_USER mkdir -p build
 fi
 
-exit 1
+exit 0
 
 
