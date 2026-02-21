@@ -66,8 +66,3 @@ include_directories(../include/autoq/parsing/ExtendedDirac)
 
 # https://www.weiy.city/2022/06/use-cmake-to-import-shared-library-or-static-library/
 # https://bayareanotes.com/cmake-adding-external-library/
-
-if (APPLE)
-elseif (UNIX)
-    target_link_libraries(lsta boost_regex)
-endif ()
