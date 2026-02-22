@@ -1,5 +1,6 @@
 BUILD_DIR=build
-MAKE_FLAGS=-j64
+# Use nproc on Linux, sysctl on macOS, fallback 2
+MAKE_FLAGS=-j$(shell nproc 2>/dev/null || sysctl -n hw.ncpu 2>/dev/null || echo 2)
 # TEST_FLAGS=-j 8
 TEST_FLAGS=--output-on-failure
 

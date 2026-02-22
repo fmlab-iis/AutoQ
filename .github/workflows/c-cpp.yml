@@ -79,7 +79,7 @@ jobs:
       - run: |
           sudo apt-get update && sudo apt-get upgrade -y
           sudo apt-get install -y libboost-filesystem-dev libboost-test-dev git make gcc g++ cmake libantlr4-runtime-dev
-          MAKE_FLAGS=-j2 make debug
+          make debug
           cp /usr/lib/x86_64-linux-gnu/libboost_unit_test_framework.so.* build/unit_tests/
           cp libz3.so.*                                                  build/unit_tests/
           cp /usr/lib/x86_64-linux-gnu/libantlr4-runtime.so.*            build/unit_tests/
@@ -121,7 +121,7 @@ jobs:
       - run: |
           sudo apt-get update && sudo apt-get upgrade -y
           sudo apt-get install -y libboost-filesystem-dev libboost-test-dev git make gcc g++ cmake libantlr4-runtime-dev
-          MAKE_FLAGS=-j2 make release
+          make release
           cp /usr/lib/x86_64-linux-gnu/libboost_unit_test_framework.so.* build/unit_tests/
           cp libz3.so.*                                                  build/unit_tests/
           cp /usr/lib/x86_64-linux-gnu/libantlr4-runtime.so.*            build/unit_tests/
