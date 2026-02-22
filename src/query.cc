@@ -1,3 +1,8 @@
+/**
+ * Query and utility functions for tree automata.
+ * - initialize_stats, count_leaves, count_states, count_transitions.
+ * - get_all_languages_under_the_state_at_this_level, print_language, print_aut, print_stats.
+ */
 #include "autoq/aut_description.hh"
 #include "autoq/symbol/concrete.hh"
 #include "autoq/symbol/symbolic.hh"
