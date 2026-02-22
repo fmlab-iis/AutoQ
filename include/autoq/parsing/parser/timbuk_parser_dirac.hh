@@ -11,7 +11,7 @@
 #define AUTOQ_PARSING_TIMBUK_PARSER_DIRAC_HH
 
 template <typename Symbol, typename Symbol2>
-AUTOQ::Automata<Symbol> AUTOQ::Parsing::TimbukParser<Symbol, Symbol2>::parse_extended_dirac_from_istream(std::istream *is, bool &do_not_throw_term_undefined_error, const std::map<std::string, AUTOQ::Complex::Complex> &constants, const std::string &predicateConstraints) {
+AUTOQ::Automata<Symbol> AUTOQ::Parsing::TimbukParser<Symbol, Symbol2>::parse_extended_dirac_from_istream(std::istream *is, bool throw_on_undefined, bool* out_encountered_undefined, const std::map<std::string, AUTOQ::Complex::Complex> &constants, const std::string &predicateConstraints) {
     bool start_transitions = false;
     std::string line;
     std::string extended_dirac;
@@ -52,11 +52,10 @@ AUTOQ::Automata<Symbol> AUTOQ::Parsing::TimbukParser<Symbol, Symbol2>::parse_ext
     auto afterrewrite = std::any_cast<std::string>(visitor.let_visitor_parse_string(extended_dirac3));
     visitor.mode = EvaluationVisitor<Symbol>::EVALUATE_EACH_SET_BRACES_TO_LSTA;
     visitor.segment2perm = segment2perm;
-    visitor.do_not_throw_term_undefined_error = do_not_throw_term_undefined_error;
+    visitor.tolerate_undefined_term = !throw_on_undefined;
     auto final = std::any_cast<std::vector<AUTOQ::Automata<Symbol>>>(visitor.let_visitor_parse_string(afterrewrite)).at(0);
-    if (!visitor.do_not_throw_term_undefined_error || visitor.encountered_term_undefined_error) {
-        do_not_throw_term_undefined_error = false;
-    }
+    if (visitor.encountered_undefined_term && out_encountered_undefined)
+        *out_encountered_undefined = true;
     return final;
 }
 template <typename Symbol, typename Symbol2>
@@ -174,9 +173,9 @@ AUTOQ::Parsing::TimbukParser<Symbol, Symbol2>::parse_n_extended_diracs_from_istr
 }
 
 template <typename Symbol>
-AUTOQ::Automata<Symbol> parse_extended_dirac(const std::string& str, const std::map<std::string, Complex> &constants, const std::string &predicateConstraints, bool &do_not_throw_term_undefined_error) {
+AUTOQ::Automata<Symbol> parse_extended_dirac(const std::string& str, const std::map<std::string, Complex> &constants, const std::string &predicateConstraints, bool throw_on_undefined, bool* out_encountered_undefined) {
     std::istringstream inputStream(str);
-    return AUTOQ::Parsing::TimbukParser<Symbol>::parse_extended_dirac_from_istream(&inputStream, do_not_throw_term_undefined_error, constants, predicateConstraints);
+    return AUTOQ::Parsing::TimbukParser<Symbol>::parse_extended_dirac_from_istream(&inputStream, throw_on_undefined, out_encountered_undefined, constants, predicateConstraints);
 }
 template <typename Symbol, typename Symbol2>
 std::pair<std::vector<AUTOQ::Automata<Symbol>>, std::vector<int>> parse_n_extended_diracs(const std::vector<std::string>& strVec, const std::vector<std::map<std::string, Complex>> &constantsVec, const std::vector<std::string> &predicateConstraintsVec) {

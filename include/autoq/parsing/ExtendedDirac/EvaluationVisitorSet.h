@@ -118,11 +118,11 @@
                 visitor.mode = SET_BRACES_IS_TENSOR_DECOMPOSED_INTO_GROUPS;
                 visitor.currentPerm = currentPerm;
                 visitor.switch_symbol_to_second = switch_symbol_to_second;
-                visitor.do_not_throw_term_undefined_error = do_not_throw_term_undefined_error;
+                visitor.tolerate_undefined_term = tolerate_undefined_term;
                 auto group_decomposition = std::any_cast<std::string>(visitor.let_visitor_parse_string(ctx->getText())); // {diracs (: varcons)?}
                 visitor.mode = SHUFFLE_UNITS_IN_A_GROUP_WRT_QUBITS_AND_CONSTRUCT_LSTA_FINALLY;
                 auto aut = std::any_cast<AUTOQ::Automata<SymbolV>>(visitor.let_visitor_parse_string(group_decomposition)); // {diracs (: varcons)?} ⊗ {diracs (: varcons)?} ⊗ ...
-                encountered_term_undefined_error |= visitor.encountered_term_undefined_error;
+                encountered_undefined_term |= visitor.encountered_undefined_term;
                 return aut;
             };
             if (!switch_symbol_to_second) {

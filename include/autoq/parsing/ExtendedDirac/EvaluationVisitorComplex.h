@@ -103,7 +103,7 @@
                 } else {
                     if (mode == CONCRETE_COMPLEX) {
                         resultV = text;
-                        encountered_term_undefined_error = true;
+                        encountered_undefined_term = true;
                         return Complex(0); // fake value only for continuing to execute
                     }
                     if (mode == SYMBOLIC_COMPLEX) {

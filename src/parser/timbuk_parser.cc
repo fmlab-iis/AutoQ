@@ -48,23 +48,21 @@ std::variant<AUTOQ::Automata<AUTOQ::Symbol::Concrete>, AUTOQ::Automata<AUTOQ::Sy
     if (fileContents.find("Predicates") != std::string::npos) {
         return AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Predicate>::ReadAutomaton(filepath);
     } else {
-        bool do_not_throw_term_undefined_error = true;
-        auto aut = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Concrete>::ReadAutomaton(filepath, do_not_throw_term_undefined_error);
-        if (do_not_throw_term_undefined_error)
+        bool encountered_undefined = false;
+        auto aut = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Concrete>::ReadAutomaton(filepath, false, &encountered_undefined);
+        if (!encountered_undefined)
             return aut;
-        else
-            return AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Symbolic>::ReadAutomaton(filepath);
+        return AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Symbolic>::ReadAutomaton(filepath);
     }
 }
 
 std::variant<AUTOQ::Automata<AUTOQ::Symbol::Concrete>, AUTOQ::Automata<AUTOQ::Symbol::Predicate>> ReadPossiblyPredicateAutomaton(const std::string& filepath) {
     std::string fileContents = AUTOQ::Util::ReadFile(filepath);
-    bool do_not_throw_term_undefined_error = true;
-    auto aut = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Concrete>::ReadAutomaton(filepath, do_not_throw_term_undefined_error);
-    if (do_not_throw_term_undefined_error)
+    bool encountered_undefined = false;
+    auto aut = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Concrete>::ReadAutomaton(filepath, false, &encountered_undefined);
+    if (!encountered_undefined)
         return aut;
-    else
-        return AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Predicate>::ReadAutomaton(filepath);
+    return AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Predicate>::ReadAutomaton(filepath);
 }
 
 // https://bytefreaks.net/programming-2/c/c-undefined-reference-to-templated-class-function

@@ -23,11 +23,10 @@
 
 template <typename Symbol, typename Symbol2>
 AUTOQ::Automata<Symbol> AUTOQ::Parsing::TimbukParser<Symbol, Symbol2>::ReadAutomaton(const std::string& filepath) {
-    bool do_not_throw_term_undefined_error = false;
-    return AUTOQ::Parsing::TimbukParser<Symbol, Symbol2>::ReadAutomaton(filepath, do_not_throw_term_undefined_error);
+    return AUTOQ::Parsing::TimbukParser<Symbol, Symbol2>::ReadAutomaton(filepath, true, nullptr);
 }
 template <typename Symbol, typename Symbol2>
-AUTOQ::Automata<Symbol> AUTOQ::Parsing::TimbukParser<Symbol, Symbol2>::ReadAutomaton(const std::string& filepath, bool &do_not_throw_term_undefined_error) {
+AUTOQ::Automata<Symbol> AUTOQ::Parsing::TimbukParser<Symbol, Symbol2>::ReadAutomaton(const std::string& filepath, bool throw_on_undefined, bool* out_encountered_undefined) {
 try {
     AUTOQ::Automata<Symbol> result;
     std::string automaton, constraints;
@@ -41,11 +40,11 @@ try {
     std::tie(automaton, constraints) = AUTOQ::Parsing::split_automaton_and_constraints(fileContents);
     if (boost::algorithm::ends_with(filepath, ".lsta")) {
         std::map<std::string, std::string> dummy_predicates;
-        result = parse_automaton<Symbol>(automaton, constants, dummy_predicates, do_not_throw_term_undefined_error);
+        result = parse_automaton<Symbol>(automaton, constants, dummy_predicates, throw_on_undefined, out_encountered_undefined);
     } else if (boost::algorithm::ends_with(filepath, ".aut")) {
         result = parse_timbuk<Symbol>(automaton);
     } else if (boost::algorithm::ends_with(filepath, ".hsl")) {
-        result = parse_extended_dirac<Symbol>(automaton, constants, constraints, do_not_throw_term_undefined_error);
+        result = parse_extended_dirac<Symbol>(automaton, constants, constraints, throw_on_undefined, out_encountered_undefined);
     } else {
         THROW_AUTOQ_ERROR("The filename extension is not supported.");
     }
@@ -101,8 +100,7 @@ try {
         autVec.reserve(filepathVec.size());
         for (size_t i = 0; i < filepathVec.size(); ++i) {
             std::map<std::string, std::string> dummy_predicates;
-            bool dummy_do_not_throw = false;
-            autVec.emplace_back(parse_automaton<Symbol>(automatonVec[i], constants[i], dummy_predicates, dummy_do_not_throw));
+            autVec.emplace_back(parse_automaton<Symbol>(automatonVec[i], constants[i], dummy_predicates, true, nullptr));
         }
     } else {
         THROW_AUTOQ_ERROR("The filename extension is not supported.");

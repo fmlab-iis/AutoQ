@@ -11,7 +11,7 @@
 #include "autoq/parsing/parser/timbuk_parser_grammar.hh"
 
 template <typename Symbol>
-AUTOQ::Automata<Symbol> parse_automaton(const std::string& str, const std::map<std::string, Complex> &constants, const std::map<std::string, std::string> &predicates, bool &do_not_throw_term_undefined_error) {
+AUTOQ::Automata<Symbol> parse_automaton(const std::string& str, const std::map<std::string, Complex> &constants, const std::map<std::string, std::string> &predicates, bool throw_on_undefined, bool* out_encountered_undefined) {
     bool colored = false;
     bool start_transitions = false;
     bool already_root_states = false;
@@ -104,8 +104,8 @@ AUTOQ::Automata<Symbol> parse_automaton(const std::string& str, const std::map<s
                             std::getline(ss, token, ',');
                             auto it = constants.find(token);
                             if (it == constants.end()) {
-                                if (do_not_throw_term_undefined_error) {
-                                    do_not_throw_term_undefined_error = false;
+                                if (!throw_on_undefined) {
+                                    if (out_encountered_undefined) *out_encountered_undefined = true;
                                     return {};
                                 }
                                 THROW_AUTOQ_ERROR("The constant \"" + token + "\" is not defined yet!");
@@ -117,8 +117,8 @@ AUTOQ::Automata<Symbol> parse_automaton(const std::string& str, const std::map<s
                         } else {
                             auto it = constants.find(lhs);
                             if (it == constants.end()) {
-                                if (do_not_throw_term_undefined_error) {
-                                    do_not_throw_term_undefined_error = false;
+                                if (!throw_on_undefined) {
+                                    if (out_encountered_undefined) *out_encountered_undefined = true;
                                     return {};
                                 }
                                 THROW_AUTOQ_ERROR("The constant \"" + lhs + "\" is not defined yet!");
@@ -146,8 +146,8 @@ AUTOQ::Automata<Symbol> parse_automaton(const std::string& str, const std::map<s
                             std::getline(ss, token, ',');
                             auto it = predicates.find(token);
                             if (it == predicates.end()) {
-                                if (do_not_throw_term_undefined_error) {
-                                    do_not_throw_term_undefined_error = false;
+                                if (!throw_on_undefined) {
+                                    if (out_encountered_undefined) *out_encountered_undefined = true;
                                     return {};
                                 }
                                 THROW_AUTOQ_ERROR("The constant \"" + token + "\" is not defined yet!");
@@ -159,8 +159,8 @@ AUTOQ::Automata<Symbol> parse_automaton(const std::string& str, const std::map<s
                         } else {
                             auto it = predicates.find(lhs);
                             if (it == predicates.end()) {
-                                if (do_not_throw_term_undefined_error) {
-                                    do_not_throw_term_undefined_error = false;
+                                if (!throw_on_undefined) {
+                                    if (out_encountered_undefined) *out_encountered_undefined = true;
                                     return {};
                                 }
                                 THROW_AUTOQ_ERROR("The predicate \"" + lhs + "\" is not defined yet!");

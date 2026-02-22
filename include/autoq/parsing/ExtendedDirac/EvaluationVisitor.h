@@ -62,8 +62,8 @@ struct EvaluationVisitor : public ExtendedDiracParserBaseVisitor {
     perm_t currentPerm;
     std::vector<size_t> remember_the_lengths_of_each_unit_position;
     bool switch_symbol_to_second;
-    bool do_not_throw_term_undefined_error;
-    bool encountered_term_undefined_error;
+    bool tolerate_undefined_term;   // if true, set encountered_undefined_term instead of throwing
+    bool encountered_undefined_term;
     std::set<std::string> used_vars;
     std::string resultV; // variable
     z3::context z3Ctx;
@@ -82,8 +82,8 @@ struct EvaluationVisitor : public ExtendedDiracParserBaseVisitor {
         currentPerm(),
         remember_the_lengths_of_each_unit_position(),
         switch_symbol_to_second(false),
-        do_not_throw_term_undefined_error(false),
-        encountered_term_undefined_error(false),
+        tolerate_undefined_term(false),
+        encountered_undefined_term(false),
         used_vars(),
         resultV(),
         z3Ctx(),

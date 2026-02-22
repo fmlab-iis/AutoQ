@@ -103,8 +103,8 @@
                                 for (const auto &[termId, term] : c) {
                                     auto cp = ComplexParser(std::get<0>(term), constants);
                                     if (!cp.getConstName().empty()) {
-                                        if (do_not_throw_term_undefined_error) {
-                                            encountered_term_undefined_error = true;
+                                        if (tolerate_undefined_term) {
+                                            encountered_undefined_term = true;
                                         } else {
                                             THROW_AUTOQ_ERROR("Constant " + std::get<0>(term) + " is not defined!");
                                         }
