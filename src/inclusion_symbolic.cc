@@ -87,95 +87,49 @@ static bool call_smt_solver(const std::string &var_defs, const std::string &asse
     }
 }
 
-// -------- Inclusion: Symbolic automata (scaled inclusion) --------
-bool scaled_inclusion_with_or_without_renaming(AUTOQ::SymbolicAutomata autA, AUTOQ::SymbolicAutomata autB, bool renaming) {
-    if (AUTOQ::String::trim(autA.constraints).empty()) autA.constraints = "true";
-    if (AUTOQ::String::trim(autB.constraints).empty()) autB.constraints = "true";
-    autB = autB.operator||(AUTOQ::SymbolicAutomata::zero_amplitude(autB.qubitNum));
-    // autA.k_unification(); autB.k_unification(); // TODO: is it necessary for LSTA?
-    // autA.print_aut("R:\n"); autB.print_aut("Q:\n");
-    // if (autA.StrictlyEqual(autB)) return true;
-
-    /*********************************************************/
-    if (renaming) {
-        // Rename the variables in autA's transitions and constraints!
-        auto transitions2 = autA.transitions;
-        for (const auto &tr : transitions2) {
-            if (tr.first.symbol().is_leaf()) {
-                AUTOQ::Complex::SymbolicComplex complex_new;
-                for (const auto &t_c : tr.first.symbol().complex) { // Term -> Complex
-                    auto term = t_c.first;
-                    AUTOQ::Complex::Term term2;
-                    for (const auto &v_i : term) { // std::string -> boost::multiprecision::cpp_int
-                        if (autA.vars.contains(v_i.first))
-                            term2["R_" + v_i.first] = v_i.second;
-                        else
-                            term2[v_i.first] = v_i.second;
-                    }
-                    complex_new[term2] = t_c.second;
+namespace {
+// Rename variables in automaton's leaf transitions and constraints with a prefix (e.g. "R_" or "Q_").
+void rename_symbolic_aut_vars(AUTOQ::SymbolicAutomata& aut, const std::string& prefix) {
+    auto transitions2 = aut.transitions;
+    for (const auto &tr : transitions2) {
+        if (tr.first.symbol().is_leaf()) {
+            AUTOQ::Complex::SymbolicComplex complex_new;
+            for (const auto &t_c : tr.first.symbol().complex) {
+                AUTOQ::Complex::Term term2;
+                for (const auto &v_i : t_c.first) {
+                    if (aut.vars.contains(v_i.first))
+                        term2[prefix + v_i.first] = v_i.second;
+                    else
+                        term2[v_i.first] = v_i.second;
                 }
-                autA.transitions.erase(tr.first);
-                auto trfirst = tr.first;
-                trfirst.symbol().complex = complex_new;
-                autA.transitions[trfirst] = tr.second;
+                complex_new[term2] = t_c.second;
             }
+            aut.transitions.erase(tr.first);
+            auto trfirst = tr.first;
+            trfirst.symbol().complex = complex_new;
+            aut.transitions[trfirst] = tr.second;
         }
-        for (const auto &var : autA.vars)
-            autA.constraints = std::regex_replace(autA.constraints, std::regex("(\\b" + var + "\\b)"), "R_" + var);
-        std::set<std::string> vars2;
-        for (const auto &var : autA.vars)
-            vars2.insert("R_" + var);
-        autA.vars = vars2;
-        // autA.print_aut("R:\n");
-        // if (AUTOQ::String::trim(autA.constraints).empty()) autA.constraints = "true";
-        /*********************************************************/
-        // Rename the variables in autB's transitions and constraints!
-        transitions2 = autB.transitions;
-        for (const auto &tr : transitions2) {
-            if (tr.first.symbol().is_leaf()) {
-                AUTOQ::Complex::SymbolicComplex complex_new;
-                for (const auto &t_c : tr.first.symbol().complex) { // Term -> Complex
-                    auto term = t_c.first;
-                    AUTOQ::Complex::Term term2;
-                    for (const auto &v_i : term) { // std::string -> boost::multiprecision::cpp_int
-                        if (autB.vars.contains(v_i.first))
-                            term2["Q_" + v_i.first] = v_i.second;
-                        else
-                            term2[v_i.first] = v_i.second;
-                    }
-                    complex_new[term2] = t_c.second;
-                }
-                autB.transitions.erase(tr.first);
-                auto trfirst = tr.first;
-                trfirst.symbol().complex = complex_new;
-                autB.transitions[trfirst] = tr.second;
-            }
-        }
-        for (const auto &var : autB.vars)
-            autB.constraints = std::regex_replace(autB.constraints, std::regex("(\\b" + var + "\\b)"), "Q_" + var);
-        std::set<std::string> vars3;
-        for (const auto &var : autB.vars)
-            vars3.insert("Q_" + var);
-        autB.vars = vars3;
-        // autB.print_aut("Q:\n");
-        // if (AUTOQ::String::trim(autB.constraints).empty()) autB.constraints = "true";
     }
-    /*********************************************************/
+    for (const auto &var : aut.vars)
+        aut.constraints = std::regex_replace(aut.constraints, std::regex("(\\b" + var + "\\b)"), prefix + var);
+    std::set<std::string> vars2;
+    for (const auto &var : aut.vars)
+        vars2.insert(prefix + var);
+    aut.vars = vars2;
+}
 
-    // AUTOQ::Constraint C = AUTOQ::Constraint(autA.constraints.c_str());
-    // autA.fraction_simplification();
-    // autB.fraction_simplification();
-    auto start_include = std::chrono::steady_clock::now();
-
-    // Preparation: Transform transitions into the new data structure.
-    std::vector<std::map<AUTOQ::SymbolicAutomata::SymbolTag, AUTOQ::SymbolicAutomata::StateVector>> transA(autA.stateNum);
-    std::vector<std::map<AUTOQ::SymbolicAutomata::Symbol, std::map<AUTOQ::SymbolicAutomata::Tag, AUTOQ::SymbolicAutomata::StateVector>>> transB(autB.stateNum);
+using SymbolicTransA = std::vector<std::map<AUTOQ::SymbolicAutomata::SymbolTag, AUTOQ::SymbolicAutomata::StateVector>>;
+using SymbolicTransB = std::vector<std::map<AUTOQ::SymbolicAutomata::Symbol, std::map<AUTOQ::SymbolicAutomata::Tag, AUTOQ::SymbolicAutomata::StateVector>>>;
+void build_symbolic_trans(const AUTOQ::SymbolicAutomata& autA, const AUTOQ::SymbolicAutomata& autB,
+                          SymbolicTransA& transA, SymbolicTransB& transB) {
+    transA.resize(autA.stateNum);
+    transB.resize(autB.stateNum);
     for (const auto &t : autA.transitions) {
         const auto &symbol_tag = t.first;
         for (const auto &out_ins : t.second) {
             const auto &out = out_ins.first;
             const auto &ins = out_ins.second;
-            assert(ins.size() == 1); // already assume one (q,fc) corresponds to only one input vector.
+            assert(ins.size() == 1);
             transA[out][symbol_tag] = *(ins.begin());
         }
     }
@@ -184,12 +138,29 @@ bool scaled_inclusion_with_or_without_renaming(AUTOQ::SymbolicAutomata autA, AUT
         for (const auto &out_ins : t.second) {
             const auto &out = out_ins.first;
             const auto &ins = out_ins.second;
-            assert(ins.size() == 1); // already assume one (q,fc) corresponds to only one input vector.
+            assert(ins.size() == 1);
             transB[out][symbol_tag.symbol()][symbol_tag.tag()] = *(ins.begin());
         }
     }
-    // autA.print_aut("autA\n");
-    // autB.print_aut("autB\n");
+}
+}  // namespace
+
+// -------- Inclusion: Symbolic automata (scaled inclusion) --------
+bool scaled_inclusion_with_or_without_renaming(AUTOQ::SymbolicAutomata autA, AUTOQ::SymbolicAutomata autB, bool renaming) {
+    if (AUTOQ::String::trim(autA.constraints).empty()) autA.constraints = "true";
+    if (AUTOQ::String::trim(autB.constraints).empty()) autB.constraints = "true";
+    autB = autB.operator||(AUTOQ::SymbolicAutomata::zero_amplitude(autB.qubitNum));
+
+    if (renaming) {
+        rename_symbolic_aut_vars(autA, "R_");
+        rename_symbolic_aut_vars(autB, "Q_");
+    }
+
+    auto start_include = std::chrono::steady_clock::now();
+
+    SymbolicTransA transA;
+    SymbolicTransB transB;
+    build_symbolic_trans(autA, autB, transA, transB);
 
     // Main Routine: Graph Traversal
     typedef std::map<AUTOQ::SymbolicAutomata::State, AUTOQ::SymbolicAutomata::StateSet> Cell;

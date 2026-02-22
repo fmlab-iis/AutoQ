@@ -14,16 +14,17 @@ template<typename Symbol>
 void execute_loop(std::vector<std::string>& loop_body, AUTOQ::Automata<Symbol>& aut, ParameterMap& params, const AUTOQ::QasmRegexes& re,
                 std::smatch match_pieces, const std::vector<int>& qubit_permutation);
 
-namespace std{
+// std::hash for Symbol types (required by std::unordered_map; symbol headers only provide boost::hash).
+namespace std {
     template<>
     struct hash<AUTOQ::Symbol::Concrete> {
-        std::size_t operator()(const AUTOQ::Symbol::Concrete symbol) const {
+        std::size_t operator()(const AUTOQ::Symbol::Concrete& symbol) const {
             return boost::hash<std::string>()(symbol.str());
         }
     };
     template<>
     struct hash<AUTOQ::Symbol::Symbolic> {
-        std::size_t operator()(const AUTOQ::Symbol::Symbolic symbol) const {
+        std::size_t operator()(const AUTOQ::Symbol::Symbolic& symbol) const {
             return boost::hash<std::string>()(symbol.str());
         }
     };
