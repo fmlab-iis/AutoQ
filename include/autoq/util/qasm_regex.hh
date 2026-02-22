@@ -29,6 +29,9 @@ struct QasmRegexes {
 /** @deprecated Use QasmRegexes. Kept for backward compatibility. */
 using regexes = QasmRegexes;
 
+/** Regex for extracting content after "// " (e.g. loop-invariant path in while stmt). */
+inline const std::regex kTrailingComment(R"(// *(.*))");
+
 }  // namespace AUTOQ
 
 #endif

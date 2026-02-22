@@ -339,9 +339,8 @@ std::string AUTOQ::Automata<Symbol>::check_the_invariants_types(const std::strin
     std::string line;
     while (getline(qasm, line)) {
         line = AUTOQ::String::trim(line);
-        if (line.find("while") == 0) { // while (!result) { // loop-invariant.hsl
-            const std::regex spec("// *(.*)");
-            std::sregex_iterator it2(line.cbegin(), line.cend(), spec);
+        if (line.find("while") == 0) {  // while (!result) { // loop-invariant.hsl
+            std::sregex_iterator it2(line.cbegin(), line.cend(), AUTOQ::kTrailingComment);
             std::string dir = (std::filesystem::current_path() / filename).parent_path().string();
             auto invariant = ReadAutomaton(dir + std::string("/") + it2->str(1));
             if (std::holds_alternative<AUTOQ::PredicateAutomata>(invariant)) {
