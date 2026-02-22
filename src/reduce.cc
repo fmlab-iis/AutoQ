@@ -1,3 +1,9 @@
+/**
+ * Automata reduction and LTS-based simulation.
+ * - LTS translation (translate_to_lts_downward, compute_down_sim) for sim_reduce.
+ * - Light reduce up/down, bottom-up reduce, reduce(), remove_useless().
+ * - Helpers: reindex_aut_states, compact_aut, state_renumbering, fraction_simplification, k_unification.
+ */
 #include <queue>
 
 #include "autoq/aut_description.hh"
@@ -11,6 +17,8 @@ using namespace AUTOQ;
 using namespace AUTOQ::Util;
 
 namespace { // anonymous namespace
+
+  // --- LTS translation and simulation (used by sim_reduce) ---
 
   template <class Index, typename Symbol>
   AUTOQ::ExplicitLTS translate_to_lts_downward(
@@ -127,6 +135,8 @@ namespace { // anonymous namespace
     return DiscontBinaryRelOnStates(ltsSim, translMap);
   }
 
+  // --- Reindexing and compaction helpers ---
+
   template <class Index, typename Symbol>
   void reindex_aut_states(Automata<Symbol>& aut, Index& index)
   {
@@ -204,6 +214,8 @@ namespace { // anonymous namespace
     // AUTOQ_DEBUG("After compact stateNum = " + Convert::ToString(aut.stateNum));
   }
 } // anonymous namespace
+
+// --- Reduction API: sim_reduce, light_reduce_*, bottom_up_reduce, reduce ---
 
 template <typename Symbol>
 void AUTOQ::Automata<Symbol>::sim_reduce()
@@ -671,6 +683,8 @@ void AUTOQ::Automata<Symbol>::reduce() {
     total_reduce_time += duration;
     if (opLog) std::cout << __FUNCTION__ << "：" << stateNum << " states " << count_transitions() << " transitions\n";
 }
+
+// --- Symbol/constraint utilities: fraction_simplification, k_unification, remove_useless ---
 
 template <typename Symbol>
 void AUTOQ::Automata<Symbol>::fraction_simplification() requires support_fraction_simplification<Symbol> {
