@@ -1,5 +1,6 @@
 #ifndef AUTOQ_PARSING_TIMBUK_PARSER_GRAMMAR_HH
 #define AUTOQ_PARSING_TIMBUK_PARSER_GRAMMAR_HH
+#include "autoq/error_messages.hh"
 /*****************************************************************************
  *  Timbuk grammar and classic .aut format.
  *  Main functions: parse_symbol(str [, vars]), parse_timbuk(str).
@@ -243,13 +244,13 @@ AUTOQ::Automata<Symbol> parse_timbuk(const std::string& str) {
 
 	if (!are_transitions)
 	{
-		THROW_AUTOQ_ERROR("Transitions not specified.");
+		THROW_AUTOQ_ERROR(AUTOQ::ErrorMessages::kTransitionsNotSpecified);
 	}
 
     for (const auto &kv : result.transitions) {
         if (kv.first.is_internal()) {
             if (kv.first.symbol().qubit() > INT_MAX)
-                THROW_AUTOQ_ERROR("The number of qubits is too large!");
+                THROW_AUTOQ_ERROR(AUTOQ::ErrorMessages::kQubitNumTooLarge);
             result.qubitNum = std::max(result.qubitNum, static_cast<int>(kv.first.symbol().qubit()));
         }
     }

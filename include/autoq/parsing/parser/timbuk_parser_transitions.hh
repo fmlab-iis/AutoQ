@@ -8,6 +8,7 @@
  *****************************************************************************/
 #ifndef AUTOQ_PARSING_TIMBUK_PARSER_TRANSITIONS_HH
 #define AUTOQ_PARSING_TIMBUK_PARSER_TRANSITIONS_HH
+#include "autoq/error_messages.hh"
 #include "autoq/parsing/parser/timbuk_parser_grammar.hh"
 
 template <typename Symbol>
@@ -41,7 +42,7 @@ AUTOQ::Automata<Symbol> parse_automaton(const std::string& str, const std::map<s
             if (str == "Transitions") {
                 colored = true;
                 if (!already_root_states) {
-                    THROW_AUTOQ_ERROR("Root states not specified.");
+                    THROW_AUTOQ_ERROR(AUTOQ::ErrorMessages::kRootStatesNotSpecified);
                 }
                 start_transitions = true;
                 continue;
@@ -108,7 +109,7 @@ AUTOQ::Automata<Symbol> parse_automaton(const std::string& str, const std::map<s
                                     if (out_encountered_undefined) *out_encountered_undefined = true;
                                     return {};
                                 }
-                                THROW_AUTOQ_ERROR("The constant \"" + token + "\" is not defined yet!");
+                                THROW_AUTOQ_ERROR(std::string(AUTOQ::ErrorMessages::kConstantNotDefinedPrefix) + token + AUTOQ::ErrorMessages::kConstantNotDefinedSuffix);
                             }
                             auto sym = Symbol(it->second);
                             std::getline(ss, token, ',');
@@ -121,7 +122,7 @@ AUTOQ::Automata<Symbol> parse_automaton(const std::string& str, const std::map<s
                                     if (out_encountered_undefined) *out_encountered_undefined = true;
                                     return {};
                                 }
-                                THROW_AUTOQ_ERROR("The constant \"" + lhs + "\" is not defined yet!");
+                                THROW_AUTOQ_ERROR(std::string(AUTOQ::ErrorMessages::kConstantNotDefinedPrefix) + lhs + AUTOQ::ErrorMessages::kConstantNotDefinedSuffix);
                             }
                             result.transitions[AUTOQ::TreeAutomata::SymbolTag(Symbol(it->second), AUTOQ::TreeAutomata::Tag(1))][t].insert(std::vector<AUTOQ::TreeAutomata::State>());
                         }
@@ -150,7 +151,7 @@ AUTOQ::Automata<Symbol> parse_automaton(const std::string& str, const std::map<s
                                     if (out_encountered_undefined) *out_encountered_undefined = true;
                                     return {};
                                 }
-                                THROW_AUTOQ_ERROR("The constant \"" + token + "\" is not defined yet!");
+                                THROW_AUTOQ_ERROR(std::string(AUTOQ::ErrorMessages::kConstantNotDefinedPrefix) + token + AUTOQ::ErrorMessages::kConstantNotDefinedSuffix);
                             }
                             auto sym = Symbol(it->second.c_str());
                             std::getline(ss, token, ',');
@@ -163,7 +164,7 @@ AUTOQ::Automata<Symbol> parse_automaton(const std::string& str, const std::map<s
                                     if (out_encountered_undefined) *out_encountered_undefined = true;
                                     return {};
                                 }
-                                THROW_AUTOQ_ERROR("The predicate \"" + lhs + "\" is not defined yet!");
+                                THROW_AUTOQ_ERROR(std::string(AUTOQ::ErrorMessages::kPredicateNotDefinedPrefix) + lhs + AUTOQ::ErrorMessages::kPredicateNotDefinedSuffix);
                             }
                             result.transitions[AUTOQ::PredicateAutomata::SymbolTag(Symbol(it->second.c_str()), AUTOQ::PredicateAutomata::Tag(1))][t].insert(std::vector<AUTOQ::TreeAutomata::State>());
                         }
@@ -289,13 +290,13 @@ AUTOQ::Automata<Symbol> parse_automaton(const std::string& str, const std::map<s
 	}
 
 	if (!start_transitions) {
-		THROW_AUTOQ_ERROR("Transitions not specified.");
+		THROW_AUTOQ_ERROR(AUTOQ::ErrorMessages::kTransitionsNotSpecified);
 	}
 
     for (const auto &kv : result.transitions) {
         if (kv.first.is_internal()) {
             if (kv.first.symbol().qubit() > INT_MAX)
-                THROW_AUTOQ_ERROR("The number of qubits is too large!");
+                THROW_AUTOQ_ERROR(AUTOQ::ErrorMessages::kQubitNumTooLarge);
             result.qubitNum = std::max(result.qubitNum, static_cast<int>(kv.first.symbol().qubit()));
         }
     }

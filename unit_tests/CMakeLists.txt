@@ -6,10 +6,6 @@ include_directories(../include)
 include_directories(../include/z3)
 
 set(TESTS
-# 	"ondriks_mtbdd_c_test"
-#   "timbuk_parser_test"
-# 	"bdd_bu_tree_aut_test"
-# 	"bdd_td_tree_aut_test"
   "explicit_tree_aut_test"
 )
 

@@ -15,6 +15,16 @@ inline constexpr const char* kLoopNotEnded = "Loop not ended properly";
 inline constexpr const char* kLoopInvariantPredicate = "The loop invariant cannot be a predicate automaton.";
 inline constexpr const char* kLoopInvariantType = "The provided type of the loop invariant is not supported yet.";
 
+// Parser / Timbuk
+inline constexpr const char* kFilenameExtensionUnsupported = "The filename extension is not supported.";
+inline constexpr const char* kConstantNotDefinedPrefix = "The constant \"";
+inline constexpr const char* kConstantNotDefinedSuffix = "\" is not defined yet!";
+inline constexpr const char* kPredicateNotDefinedPrefix = "The predicate \"";
+inline constexpr const char* kPredicateNotDefinedSuffix = "\" is not defined yet!";
+inline constexpr const char* kTransitionsNotSpecified = "Transitions not specified.";
+inline constexpr const char* kRootStatesNotSpecified = "Root states not specified.";
+inline constexpr const char* kQubitNumTooLarge = "The number of qubits is too large!";
+
 // CLI / verification
 inline constexpr const char* kPredicatePrecondition = "Predicate amplitudes cannot be used in a precondition.";
 inline constexpr const char* kPredicateAutomataPost = "PredicateAutomata as the postcondition are currently not supported.";

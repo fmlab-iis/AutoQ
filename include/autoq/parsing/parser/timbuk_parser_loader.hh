@@ -16,6 +16,7 @@
  *****************************************************************************/
 #ifndef AUTOQ_PARSING_TIMBUK_PARSER_LOADER_HH
 #define AUTOQ_PARSING_TIMBUK_PARSER_LOADER_HH
+#include "autoq/error_messages.hh"
 #include "autoq/parsing/parser/timbuk_parser_util.hh"
 #include "autoq/parsing/parser/timbuk_parser_grammar.hh"
 #include "autoq/parsing/parser/timbuk_parser_transitions.hh"
@@ -46,7 +47,7 @@ try {
     } else if (boost::algorithm::ends_with(filepath, ".hsl")) {
         result = parse_extended_dirac<Symbol>(automaton, constants, constraints, throw_on_undefined, out_encountered_undefined);
     } else {
-        THROW_AUTOQ_ERROR("The filename extension is not supported.");
+        THROW_AUTOQ_ERROR(AUTOQ::ErrorMessages::kFilenameExtensionUnsupported);
     }
 
     if constexpr (std::is_same_v<Symbol, AUTOQ::Symbol::Symbolic>) {
@@ -103,7 +104,7 @@ try {
             autVec.emplace_back(parse_automaton<Symbol>(automatonVec[i], constants[i], dummy_predicates, true, nullptr));
         }
     } else {
-        THROW_AUTOQ_ERROR("The filename extension is not supported.");
+        THROW_AUTOQ_ERROR(AUTOQ::ErrorMessages::kFilenameExtensionUnsupported);
     }
 
     int index = 0;
