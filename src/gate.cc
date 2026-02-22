@@ -18,6 +18,32 @@
 
 #define L(s1, s2) (stateNum + (s1) * stateNum + (s2))
 #define R(s1, s2) (stateNum + stateNum * stateNum + (s1) * stateNum + (s2))
+
+namespace {
+template <typename Symbol>
+void flush_qcfi_to_result(
+    AUTOQ::Automata<Symbol>& result,
+    std::map<typename AUTOQ::Automata<Symbol>::State, std::map<typename AUTOQ::Automata<Symbol>::Tag, std::map<Symbol, std::vector<typename AUTOQ::Automata<Symbol>::StateVector>>>>& qcfi,
+    std::vector<bool>& possible_next_level_states,
+    bool update_possible_states = true)
+{
+    for (const auto &q_ : qcfi) {
+        for (const auto &c_ : q_.second) {
+            for (const auto &f_ : c_.second) {
+                result.transitions[{f_.first, c_.first}][q_.first].insert(f_.second.begin(), f_.second.end());
+                if (update_possible_states) {
+                    for (const auto &i : f_.second) {
+                        for (const auto &s : i)
+                            possible_next_level_states[s] = true;
+                    }
+                }
+            }
+        }
+    }
+    qcfi.clear();
+}
+}  // namespace
+
 template <typename Symbol>
 void AUTOQ::Automata<Symbol>::General_Single_Qubit_Gate(int t, const std::function<Symbol(const Symbol&, const Symbol&)> &u1u2, const std::function<Symbol(const Symbol&, const Symbol&)> &u3u4) {
     AUTOQ::Automata<Symbol> result;
@@ -105,18 +131,7 @@ void AUTOQ::Automata<Symbol>::General_Single_Qubit_Gate(int t, const std::functi
             }
         }
         if (std::next(it, 1) == transitions.end() || std::next(it, 1)->first.is_leaf() || qubit != std::next(it, 1)->first.symbol().qubit()) { // this layer is finished!
-            for (const auto &q_ : qcfi) {
-                for (const auto &c_ : q_.second) {
-                    for (const auto &f_ : c_.second) {
-                        result.transitions[{f_.first, c_.first}][q_.first].insert(f_.second.begin(), f_.second.end());
-                        for (const auto &i : f_.second) {
-                            for (const auto &s : i)
-                                possible_next_level_states[s] = true;
-                        }
-                    }
-                }
-            }
-            qcfi.clear(); // = std::map<State, std::map<Tag, std::vector<std::pair<Symbol, StateVector>>>>();
+            flush_qcfi_to_result<Symbol>(result, qcfi, possible_next_level_states, true);
         }
     }
 
@@ -144,13 +159,7 @@ void AUTOQ::Automata<Symbol>::General_Single_Qubit_Gate(int t, const std::functi
             }
         }
     }
-    for (const auto &q_ : qcfi) {
-        for (const auto &c_ : q_.second) {
-            for (const auto &f_ : c_.second) { // f_.second := a lot of input vectors
-                result.transitions[{f_.first, c_.first}][q_.first].insert(f_.second.begin(), f_.second.end());
-            }
-        }
-    }
+    flush_qcfi_to_result<Symbol>(result, qcfi, possible_next_level_states, false);
     result.stateNum = R(stateNum-1, stateNum-1) + 1;
     // result.state_renumbering();
     result.reduce();
@@ -301,18 +310,7 @@ void AUTOQ::Automata<Symbol>::General_Controlled_Gate(int c, int c2, int t, cons
             }
         }
         if (std::next(it, 1) == transitions.end() || std::next(it, 1)->first.is_leaf() || qubit != std::next(it, 1)->first.symbol().qubit()) { // this layer is finished!
-            for (const auto &q_ : qcfi) {
-                for (const auto &c_ : q_.second) {
-                    for (const auto &f_ : c_.second) {
-                        result.transitions[{f_.first, c_.first}][q_.first].insert(f_.second.begin(), f_.second.end());
-                        for (const auto &i : f_.second) {
-                            for (const auto &s : i)
-                                possible_next_level_states[s] = true;
-                        }
-                    }
-                }
-            }
-            qcfi.clear(); // = std::map<State, std::map<Tag, std::vector<std::pair<Symbol, StateVector>>>>();
+            flush_qcfi_to_result<Symbol>(result, qcfi, possible_next_level_states, true);
         }
     }
 
@@ -340,13 +338,7 @@ void AUTOQ::Automata<Symbol>::General_Controlled_Gate(int c, int c2, int t, cons
             }
         }
     }
-    for (const auto &q_ : qcfi) {
-        for (const auto &c_ : q_.second) {
-            for (const auto &f_ : c_.second) { // f_.second := a lot of input vectors
-                result.transitions[{f_.first, c_.first}][q_.first].insert(f_.second.begin(), f_.second.end());
-            }
-        }
-    }
+    flush_qcfi_to_result<Symbol>(result, qcfi, possible_next_level_states, false);
     result.stateNum = R(stateNum-1, stateNum-1) + 1;
     // Notice that we cannot do operations including state_renumbering() here
     // since this function may be used as a subroutine in another gate.
