@@ -2,6 +2,7 @@
 #define _AUTOQ_PREDICATE_HH_
 
 #include <string>
+#include "autoq/symbol/symbol_base.hh"
 #include <autoq/autoq.hh>
 #include <boost/multiprecision/cpp_int.hpp>
 
@@ -13,18 +14,15 @@ namespace AUTOQ
 	}
 }
 
-struct AUTOQ::Symbol::Predicate : std::string {
+struct AUTOQ::Symbol::Predicate : std::string, AUTOQ::Symbol::SymbolBase<Predicate> {
     using std::string::string;
-    bool is_leaf_v = true;
     inline static std::map<std::pair<Predicate, Predicate>, Predicate> mulmap;
-    Predicate(const std::string& str) : std::string(str) {} // Constructor accepting std::string
+    Predicate(const std::string& str) : std::string(str), SymbolBase<Predicate>(false) {} // leaf: internal_ = false
     template <typename T, typename = std::enable_if_t<std::is_convertible<T, boost::multiprecision::cpp_int>::value>>
-        Predicate(T qubit) : std::string(static_cast<boost::multiprecision::cpp_int>(qubit).str()) { is_leaf_v = false; }
-    // boost::multiprecision::cpp_int k() const { return 0; } // for complying with the other two types in parse_timbuk
-    bool is_leaf() const { return is_leaf_v; }
-    bool is_internal() const { return !is_leaf_v; }
+    Predicate(T qubit) : std::string(static_cast<boost::multiprecision::cpp_int>(qubit).str()), SymbolBase<Predicate>(true) {} // internal
+
     boost::multiprecision::cpp_int qubit() const {
-        if (is_leaf_v) {
+        if (is_leaf()) {
             THROW_AUTOQ_ERROR("Leaf symbols do not have qubit().");
         }
         return boost::multiprecision::cpp_int(*this);
@@ -48,7 +46,7 @@ struct AUTOQ::Symbol::Predicate : std::string {
         if (is_internal() && !o.is_internal()) return true;
         if (o.is_internal() && !is_internal()) return false;
         if (is_internal() && o.is_internal()) return std::stoi(*this) < std::stoi(o);
-        return std::string(*this) < std::string(o);
+        return static_cast<const std::string&>(*this) < static_cast<const std::string&>(o);
     }
 };
 

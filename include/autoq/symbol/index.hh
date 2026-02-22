@@ -1,6 +1,7 @@
 #ifndef _AUTOQ_INDEX_HH_
 #define _AUTOQ_INDEX_HH_
 
+#include "autoq/symbol/symbol_base.hh"
 #include <boost/functional/hash.hpp>
 #include <autoq/autoq.hh>
 
@@ -12,23 +13,21 @@ namespace AUTOQ
 	}
 }
 
-struct AUTOQ::Symbol::Index {
+struct AUTOQ::Symbol::Index : AUTOQ::Symbol::SymbolBase<Index> {
     int index;
-    bool is_leaf_v = true;
-    Index() : index(), is_leaf_v() {} // prevent the compiler from complaining about the lack of default constructor
-    Index(bool is_leaf_v, int index) : index(index), is_leaf_v(is_leaf_v) {}
-    bool is_leaf() const { return is_leaf_v; }
-    bool is_internal() const { return !is_leaf_v; }
+    Index() : SymbolBase<Index>(false), index() {} // default: leaf (internal_ = false)
+    Index(bool is_leaf_v, int idx) : SymbolBase<Index>(!is_leaf_v), index(idx) {} // internal_ = true when is_leaf_v is false
+
     int qubit() const {
-        if (is_leaf_v) {
+        if (is_leaf()) {
             THROW_AUTOQ_ERROR("Leaf symbols do not have qubit().");
         }
         return index;
     }
-    bool operator==(const Index &o) const { return is_leaf_v == o.is_leaf_v && index == o.index; }
+    bool operator==(const Index &o) const { return is_leaf() == o.is_leaf() && index == o.index; }
     bool operator<(const Index &o) const {
-        if (is_leaf_v && !o.is_leaf_v) return false;
-        if (o.is_leaf_v && !is_leaf_v) return true;
+        if (is_internal() && !o.is_internal()) return true;
+        if (o.is_internal() && !is_internal()) return false;
         return index < o.index;
     }
     friend std::ostream& operator<<(std::ostream& os, const Index& obj) {

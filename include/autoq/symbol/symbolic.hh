@@ -1,6 +1,7 @@
 #ifndef _AUTOQ_SYMBOLIC_HH_
 #define _AUTOQ_SYMBOLIC_HH_
 
+#include "autoq/symbol/symbol_base.hh"
 #include "autoq/error.hh"
 #include "autoq/util/convert.hh"
 #include "autoq/complex/symbolic_complex.hh"
@@ -17,24 +18,19 @@ namespace AUTOQ {
 	}
 }
 
-struct AUTOQ::Symbol::Symbolic {
-private:
-    bool internal;
-public:
+struct AUTOQ::Symbol::Symbolic : AUTOQ::Symbol::SymbolBase<Symbolic> {
     AUTOQ::Complex::SymbolicComplex complex;
     inline static std::map<std::pair<Symbolic, Symbolic>, Symbolic> mulmap;
 
     // Notice that if we do not use is_convertible_v, type int will not be accepted in this case.
     template <typename T, typename = std::enable_if_t<std::is_convertible<T, boost::multiprecision::cpp_int>::value>>
-    Symbolic(T qubit) : internal(true), complex(AUTOQ::Complex::SymbolicComplex::MySymbolicComplexConstructor(qubit)) {}
-    Symbolic(const std::map<AUTOQ::Complex::Term, AUTOQ::Complex::Complex> &c) : internal(false), complex(AUTOQ::Complex::SymbolicComplex::MySymbolicComplexConstructor(c)) {}
-    Symbolic(const AUTOQ::Complex::SymbolicComplex &c) : internal(false), complex(c) {}
-    Symbolic() : internal(false), complex() {} // prevent the compiler from complaining about the lack of default constructor
-    // Symbolic() : internal(false), complex({{Complex::Complex::Zero(), AUTOQ::Complex::linear_combination({{"1", 1}})}}) {} // prevent the compiler from complaining about the lack of default constructor
-    bool is_internal() const { return internal; }
-    bool is_leaf() const { return !internal; }
+    Symbolic(T qubit) : SymbolBase<Symbolic>(true), complex(AUTOQ::Complex::SymbolicComplex::MySymbolicComplexConstructor(qubit)) {}
+    Symbolic(const std::map<AUTOQ::Complex::Term, AUTOQ::Complex::Complex> &c) : SymbolBase<Symbolic>(false), complex(AUTOQ::Complex::SymbolicComplex::MySymbolicComplexConstructor(c)) {}
+    Symbolic(const AUTOQ::Complex::SymbolicComplex &c) : SymbolBase<Symbolic>(false), complex(c) {}
+    Symbolic() : SymbolBase<Symbolic>(false), complex() {} // prevent the compiler from complaining about the lack of default constructor
+
     boost::multiprecision::cpp_int qubit() const {
-        if (!internal) {
+        if (!is_internal()) {
             THROW_AUTOQ_ERROR("Leaf symbols do not have qubit().");
         }
         return complex.begin()->second.toInt();
@@ -49,10 +45,10 @@ public:
         os << AUTOQ::Util::Convert::ToString(obj.complex);
         return os;
     }
-    bool operator==(const Symbolic &o) const { return internal == o.internal && complex == o.complex; }
+    bool operator==(const Symbolic &o) const { return is_internal() == o.is_internal() && complex == o.complex; }
     bool operator<(const Symbolic &o) const {
-        if (internal && !o.internal) return true;
-        if (o.internal && !internal) return false;
+        if (is_internal() && !o.is_internal()) return true;
+        if (o.is_internal() && !is_internal()) return false;
         return complex < o.complex;
     }
     Symbolic operator+(const Symbolic &o) const {

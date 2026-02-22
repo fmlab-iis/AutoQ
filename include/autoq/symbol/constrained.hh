@@ -2,6 +2,7 @@
 #define _AUTOQ_CONSTRAINED_HH_
 
 #include <vector>
+#include "autoq/symbol/symbol_base.hh"
 #include "autoq/util/convert.hh"
 #include "autoq/complex/complex.hh"
 #include "autoq/complex/constrained_complex.hh"
@@ -17,18 +18,16 @@ namespace AUTOQ
 }
 
 // Constrained symbol
-struct AUTOQ::Symbol::Constrained {
-public:
+struct AUTOQ::Symbol::Constrained : AUTOQ::Symbol::SymbolBase<Constrained> {
     int qubiT = 0;
     Complex::ConstrainedComplex complex;
 
     // Notice that if we do not use is_convertible_v, type int will not be accepted in this case.
     template <typename T, typename = std::enable_if_t<std::is_convertible<T, boost::multiprecision::cpp_int>::value>>
-        Constrained(T qubit) : qubiT(qubit), complex() {}
-    Constrained(const Complex::ConstrainedComplex &c) : qubiT(0), complex(c) {}
-    Constrained() : qubiT(), complex() {} // prevent the compiler from complaining about the lack of default constructor
-    bool is_internal() const { return qubiT != 0; }
-    bool is_leaf() const { return qubiT == 0; }
+    Constrained(T qubit) : SymbolBase<Constrained>(true), qubiT(qubit), complex() {}
+    Constrained(const Complex::ConstrainedComplex &c) : SymbolBase<Constrained>(false), qubiT(0), complex(c) {}
+    Constrained() : SymbolBase<Constrained>(false), qubiT(), complex() {} // default: leaf
+
     boost::multiprecision::cpp_int qubit() const {
         return qubiT;
     }

@@ -2,6 +2,7 @@
 #define _AUTOQ_CONCRETE_HH_
 
 #include <vector>
+#include "autoq/symbol/symbol_base.hh"
 #include "autoq/util/convert.hh"
 #include "autoq/complex/complex.hh"
 #include <boost/multiprecision/cpp_int.hpp>
@@ -21,22 +22,18 @@ namespace AUTOQ
 }
 
 // Concrete symbol
-struct AUTOQ::Symbol::Concrete {
-private:
-    bool internal;
-public:
+struct AUTOQ::Symbol::Concrete : AUTOQ::Symbol::SymbolBase<Concrete> {
     Complex::Complex complex;
     inline static std::map<std::pair<Concrete, Concrete>, Concrete> mulmap;
 
     // Notice that if we do not use is_convertible_v, type int will not be accepted in this case.
     template <typename T, typename = std::enable_if_t<std::is_convertible<T, boost::multiprecision::cpp_int>::value>>
-    Concrete(T qubit) : internal(true), complex(qubit) {}
-    Concrete(const Complex::Complex &c) : internal(false), complex(c) {}
-    Concrete() : internal(false), complex(0) {} // prevent the compiler from complaining about the lack of default constructor
-    bool is_internal() const { return internal; }
-    bool is_leaf() const { return !internal; }
+    Concrete(T qubit) : SymbolBase<Concrete>(true), complex(qubit) {}
+    Concrete(const Complex::Complex &c) : SymbolBase<Concrete>(false), complex(c) {}
+    Concrete() : SymbolBase<Concrete>(false), complex(0) {} // prevent the compiler from complaining about the lack of default constructor
+
     boost::multiprecision::cpp_int qubit() const {
-        if (!internal) {
+        if (!is_internal()) {
             THROW_AUTOQ_ERROR("Leaf symbols do not have qubit().");
         }
         // assert(complex.real().denominator() == 1);
@@ -49,7 +46,7 @@ public:
         return ss.str();
     }
     friend std::ostream& operator<<(std::ostream& os, const Concrete& obj) {
-        if (obj.internal)
+        if (obj.is_internal())
             os << obj.qubit().str();
         else
             os << obj.complex;
@@ -66,11 +63,11 @@ public:
         }
         return Concrete(complex.operator*(o.complex));
     }
-    bool valueEqual(const Concrete &o) const { return internal == o.internal && complex.valueEqual(o.complex); }
-    bool operator==(const Concrete &o) const { return internal == o.internal && complex == o.complex; }
+    bool valueEqual(const Concrete &o) const { return is_internal() == o.is_internal() && complex.valueEqual(o.complex); }
+    bool operator==(const Concrete &o) const { return is_internal() == o.is_internal() && complex == o.complex; }
     bool operator<(const Concrete &o) const {
-        if (internal && !o.internal) return true;
-        if (o.internal && !internal) return false;
+        if (is_internal() && !o.is_internal()) return true;
+        if (o.is_internal() && !is_internal()) return false;
         return complex < o.complex;
     }
     Concrete omega_multiplication(int rotation=1) {
