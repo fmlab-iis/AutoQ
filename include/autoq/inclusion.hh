@@ -34,6 +34,8 @@ struct AUTOQ::Constraint {
 
 namespace AUTOQ {
     bool check_validity(Constraint C, const PredicateAutomata::Symbol &ps, const SymbolicAutomata::Symbol &te);
+    /// Index-inclusion implementation (used to avoid instantiating generic operator<= for Symbol=Index).
+    bool inclusion_index_compare(const IndexAutomata &autA, const IndexAutomata &autB);
 }
 
 #endif
