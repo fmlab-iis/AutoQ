@@ -10,8 +10,9 @@
 
 // AUTOQ headers
 #include <cmath>
-#include <fstream>
 #include <filesystem>
+#include <fstream>
+#include <functional>
 
 #include "autoq/error.hh"
 #include "autoq/inclusion.hh"
@@ -28,6 +29,44 @@
 #include <boost/test/unit_test.hpp>
 
 using AUTOQ::Complex::Complex;
+
+/** Test gate applied loop times returns to identity. Positions empty = {1, n/2+1, n}. */
+static void test_gate_n_times_to_identity(
+    std::function<void(AUTOQ::TreeAutomata&, int)> gate_fn,
+    int n, int loop) {
+    std::vector<int> positions = {1, n/2+1, n};
+    auto states = std::vector{AUTOQ::TreeAutomata::uniform(n), AUTOQ::TreeAutomata::basis(n), AUTOQ::TreeAutomata::random(n)};
+    for (const auto& before : states) {
+        for (int t : positions) {
+            AUTOQ::TreeAutomata after = before;
+            for (int i = 0; i < loop; i++) {
+                gate_fn(after, t);
+                if (i < loop - 1) {
+                    BOOST_REQUIRE_MESSAGE(before != after, "\n" +
+                        AUTOQ::Serialization::TimbukSerializer::Serialize(before) +
+                        AUTOQ::Serialization::TimbukSerializer::Serialize(after));
+                } else {
+                    BOOST_REQUIRE_MESSAGE(before == after, "\n" +
+                        AUTOQ::Serialization::TimbukSerializer::Serialize(before) +
+                        AUTOQ::Serialization::TimbukSerializer::Serialize(after));
+                }
+            }
+        }
+    }
+}
+
+/** Shared benchmark verification: reads pre/post, executes circuit, checks inclusion. */
+template<typename SymbolType>
+void run_benchmark_verification(const char* test_file, const std::string& benchmark_rel_path, int max_size = kMaxBenchmarkSize) {
+    std::string benchmarks = test_dir_from_file(test_file, benchmark_rel_path);
+    for_each_benchmark_case(benchmarks, [](const std::string& folder) {
+        auto [autVec, qp] = AUTOQ::Parsing::TimbukParser<SymbolType, SymbolType>::ReadTwoAutomata(folder + "/pre.hsl", folder + "/post.hsl");
+        auto aut2 = autVec.at(0);
+        auto spec2 = autVec.at(1);
+        aut2.execute(folder + "/circuit.qasm", qp);
+        BOOST_REQUIRE_MESSAGE(aut2 <<= spec2, folder + " failed!");
+    }, max_size);
+}
 using AUTOQ::Symbol::Concrete;
 
 int size = 14; // the number of qubits.
@@ -71,95 +110,22 @@ BOOST_AUTO_TEST_CASE(X_gate_twice_to_identity)
 
 BOOST_AUTO_TEST_CASE(Y_gate_twice_to_identity)
 {
-    int n = size;
-    for (const auto &before : {AUTOQ::TreeAutomata::uniform(n), AUTOQ::TreeAutomata::basis(n)}) {
-        int loop = 2;
-        for (auto t : {1, n/2+1, n}) {
-            AUTOQ::TreeAutomata after = before;
-            for (int i=0; i<loop; i++) {
-                after.Y(t);
-
-                if (i < loop-1) {
-                    BOOST_REQUIRE_MESSAGE(before != after, "\n" +
-                        AUTOQ::Serialization::TimbukSerializer::Serialize(before) +
-                        AUTOQ::Serialization::TimbukSerializer::Serialize(after));
-				}
-                else {
-                    BOOST_REQUIRE_MESSAGE(before == after, "\n" +
-                        AUTOQ::Serialization::TimbukSerializer::Serialize(before) +
-                        AUTOQ::Serialization::TimbukSerializer::Serialize(after));
-				}
-            }
-        }
-    }
+    test_gate_n_times_to_identity([](AUTOQ::TreeAutomata& a, int t) { a.Y(t); }, size, 2);
 }
 
 BOOST_AUTO_TEST_CASE(Z_gate_twice_to_identity)
 {
-    for (const auto &before : {AUTOQ::TreeAutomata::uniform(size), AUTOQ::TreeAutomata::basis(size)}) {
-        AUTOQ::TreeAutomata after = before;
-        int loop = 2;
-        for (int i=0; i<loop; i++) {
-            after.Z(size/2);
-
-            if (i < loop-1) {
-                BOOST_REQUIRE_MESSAGE(before != after, "\n" +
-                        AUTOQ::Serialization::TimbukSerializer::Serialize(before) +
-                        AUTOQ::Serialization::TimbukSerializer::Serialize(after));
-			}
-            else {
-                BOOST_REQUIRE_MESSAGE(before == after, "\n" +
-                        AUTOQ::Serialization::TimbukSerializer::Serialize(before) +
-                        AUTOQ::Serialization::TimbukSerializer::Serialize(after));
-			}
-        }
-    }
+    test_gate_n_times_to_identity([](AUTOQ::TreeAutomata& a, int t) { a.Z(t); }, size, 2);
 }
 
 BOOST_AUTO_TEST_CASE(H_gate_twice_to_identity)
 {
-    int n = size;
-    for (const auto &before : {AUTOQ::TreeAutomata::uniform(n), AUTOQ::TreeAutomata::basis(n)}) {
-        int loop = 2;
-        for (auto t : {1, n/2+1, n}) {
-            AUTOQ::TreeAutomata after = before;
-            for (int i=0; i<loop; i++) {
-                after.H(t);
-
-                if (i < loop-1) {
-                    BOOST_REQUIRE_MESSAGE(before != after, "\n" +
-                        AUTOQ::Serialization::TimbukSerializer::Serialize(before) +
-                        AUTOQ::Serialization::TimbukSerializer::Serialize(after));
-                }
-                else {
-                    BOOST_REQUIRE_MESSAGE(before == after, "\n" +
-                        AUTOQ::Serialization::TimbukSerializer::Serialize(before) +
-                        AUTOQ::Serialization::TimbukSerializer::Serialize(after));
-                }
-            }
-        }
-    }
+    test_gate_n_times_to_identity([](AUTOQ::TreeAutomata& a, int t) { a.H(t); }, size, 2);
 }
 
 BOOST_AUTO_TEST_CASE(S_gate_fourth_to_identity)
 {
-    for (const auto &before : {AUTOQ::TreeAutomata::uniform(size), AUTOQ::TreeAutomata::basis(size)}) {
-        AUTOQ::TreeAutomata after = before;
-        int loop = 4;
-        for (int i=0; i<loop; i++) {
-            after.S(size/2);
-
-            if (i < loop-1) {
-                BOOST_REQUIRE_MESSAGE(before != after, "\n" +
-                        AUTOQ::Serialization::TimbukSerializer::Serialize(before) +
-                        AUTOQ::Serialization::TimbukSerializer::Serialize(after));
-            } else {
-                BOOST_REQUIRE_MESSAGE(before == after, "\n" +
-                        AUTOQ::Serialization::TimbukSerializer::Serialize(before) +
-                        AUTOQ::Serialization::TimbukSerializer::Serialize(after));
-            }
-        }
-    }
+    test_gate_n_times_to_identity([](AUTOQ::TreeAutomata& a, int t) { a.S(t); }, size, 4);
 }
 
 BOOST_AUTO_TEST_CASE(Sdg_gate_equal_to_S_three_times)
@@ -182,23 +148,7 @@ BOOST_AUTO_TEST_CASE(Sdg_gate_equal_to_S_three_times)
 
 BOOST_AUTO_TEST_CASE(T_gate_eighth_to_identity)
 {
-    for (const auto &before : {AUTOQ::TreeAutomata::uniform(size), AUTOQ::TreeAutomata::basis(size)}) {
-        AUTOQ::TreeAutomata after = before;
-        int loop = 8;
-        for (int i=0; i<loop; i++) {
-            after.T(size/2);
-
-            if (i < loop-1) {
-                BOOST_REQUIRE_MESSAGE(before != after, "\n" +
-                        AUTOQ::Serialization::TimbukSerializer::Serialize(before) +
-                        AUTOQ::Serialization::TimbukSerializer::Serialize(after));
-            } else {
-                BOOST_REQUIRE_MESSAGE(before == after, "\n" +
-                        AUTOQ::Serialization::TimbukSerializer::Serialize(before) +
-                        AUTOQ::Serialization::TimbukSerializer::Serialize(after));
-            }
-        }
-    }
+    test_gate_n_times_to_identity([](AUTOQ::TreeAutomata& a, int t) { a.T(t); }, size, 8);
 }
 
 BOOST_AUTO_TEST_CASE(Tdg_gate_equal_to_T_seven_times)
@@ -384,8 +334,7 @@ BOOST_AUTO_TEST_CASE(CCX_gate_twice_to_identity)
 
 
 BOOST_AUTO_TEST_CASE(for_loop_classic_execution){
-    std::string sss(__FILE__);
-    std::string folder = sss.substr(0, sss.find_last_of("\\/")) + "/testcase/GroverFor/";
+    std::string folder = test_dir_from_file(__FILE__, "testcase/GroverFor/");
     auto [autVec, qp] = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Concrete>::ReadTwoAutomata(folder+"/pre.hsl", folder+"/post.hsl", folder+"/circuit.qasm");
     auto aut2 = autVec.at(0);
     auto spec2 = autVec.at(1);
@@ -396,8 +345,7 @@ BOOST_AUTO_TEST_CASE(for_loop_classic_execution){
 }
 
 BOOST_AUTO_TEST_CASE(for_loop_summarization){
-    std::string sss(__FILE__);
-    std::string folder = sss.substr(0, sss.find_last_of("\\/")) + "/testcase/GroverFor/";
+    std::string folder = test_dir_from_file(__FILE__, "testcase/GroverFor/");
     auto [autVec, qp] = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Concrete>::ReadTwoAutomata(folder+"/pre.hsl", folder+"/post.hsl", folder+"/circuit.qasm");
     auto aut2 = autVec.at(0);
     auto spec2 = autVec.at(1);
@@ -1076,134 +1024,57 @@ namespace fs = std::filesystem;
 
 BOOST_AUTO_TEST_CASE(benchmarks_OEGrover)
 {
-    std::string benchmarks = test_dir_from_file(__FILE__, "../benchmarks/all/OEGrover/");
-    for_each_benchmark_case(benchmarks, [](const std::string& folder) {
-        auto [autVec, qp] = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Symbolic>::ReadTwoAutomata(folder+"/pre.hsl", folder+"/post.hsl");
-        auto aut2 = autVec.at(0);
-        auto spec2 = autVec.at(1);
-        aut2.execute(folder + "/circuit.qasm", qp);
-        BOOST_REQUIRE_MESSAGE(aut2 <<= spec2, folder + " failed!");
-    });
+    run_benchmark_verification<AUTOQ::Symbol::Symbolic>(__FILE__, "../benchmarks/all/OEGrover/");
 }
 
 BOOST_AUTO_TEST_CASE(benchmarks_BV)
 {
-    std::string benchmarks = test_dir_from_file(__FILE__, "../benchmarks/all/BV/");
-    for_each_benchmark_case(benchmarks, [](const std::string& folder) {
-        auto [autVec, qp] = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Concrete, AUTOQ::Symbol::Concrete>::ReadTwoAutomata(folder+"/pre.hsl", folder+"/post.hsl");
-        auto aut2 = autVec.at(0);
-        auto spec2 = autVec.at(1);
-        aut2.execute(folder + "/circuit.qasm", qp);
-        BOOST_REQUIRE_MESSAGE(aut2 <<= spec2, folder + " failed!");
-    });
+    run_benchmark_verification<AUTOQ::Symbol::Concrete>(__FILE__, "../benchmarks/all/BV/");
 }
 
 BOOST_AUTO_TEST_CASE(benchmarks_MOBV_reorder)
 {
-    std::string benchmarks = test_dir_from_file(__FILE__, "../benchmarks/all/MOBV_reorder/");
-    for_each_benchmark_case(benchmarks, [](const std::string& folder) {
-        auto [autVec, qp] = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Concrete, AUTOQ::Symbol::Concrete>::ReadTwoAutomata(folder+"/pre.hsl", folder+"/post.hsl");
-        auto aut2 = autVec.at(0);
-        auto spec2 = autVec.at(1);
-        aut2.execute(folder + "/circuit.qasm", qp);
-        BOOST_REQUIRE_MESSAGE(aut2 <<= spec2, folder + " failed!");
-    });
+    run_benchmark_verification<AUTOQ::Symbol::Concrete>(__FILE__, "../benchmarks/all/MOBV_reorder/");
 }
 
 BOOST_AUTO_TEST_CASE(benchmarks_GHZzero)
 {
-    std::string benchmarks = test_dir_from_file(__FILE__, "../benchmarks/all/GHZzero/");
-    for_each_benchmark_case(benchmarks, [](const std::string& folder) {
-        auto [autVec, qp] = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Concrete, AUTOQ::Symbol::Concrete>::ReadTwoAutomata(folder+"/pre.hsl", folder+"/post.hsl");
-        auto aut2 = autVec.at(0);
-        auto spec2 = autVec.at(1);
-        aut2.execute(folder + "/circuit.qasm", qp);
-        BOOST_REQUIRE_MESSAGE(aut2 <<= spec2, folder + " failed!");
-    });
+    run_benchmark_verification<AUTOQ::Symbol::Concrete>(__FILE__, "../benchmarks/all/GHZzero/");
 }
 
 BOOST_AUTO_TEST_CASE(benchmarks_GHZall)
 {
-    std::string benchmarks = test_dir_from_file(__FILE__, "../benchmarks/all/GHZall/");
-    for_each_benchmark_case(benchmarks, [](const std::string& folder) {
-        auto [autVec, qp] = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Concrete, AUTOQ::Symbol::Concrete>::ReadTwoAutomata(folder+"/pre.hsl", folder+"/post.hsl");
-        auto aut2 = autVec.at(0);
-        auto spec2 = autVec.at(1);
-        aut2.execute(folder + "/circuit.qasm", qp);
-        BOOST_REQUIRE_MESSAGE(aut2 <<= spec2, folder + " failed!");
-    });
+    run_benchmark_verification<AUTOQ::Symbol::Concrete>(__FILE__, "../benchmarks/all/GHZall/");
 }
 
 BOOST_AUTO_TEST_CASE(benchmarks_H2)
 {
-    std::string benchmarks = test_dir_from_file(__FILE__, "../benchmarks/all/H2/");
-    for_each_benchmark_case(benchmarks, [](const std::string& folder) {
-        auto [autVec, qp] = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Concrete, AUTOQ::Symbol::Concrete>::ReadTwoAutomata(folder+"/pre.hsl", folder+"/post.hsl");
-        auto aut2 = autVec.at(0);
-        auto spec2 = autVec.at(1);
-        aut2.execute(folder + "/circuit.qasm", qp);
-        BOOST_REQUIRE_MESSAGE(aut2 <<= spec2, folder + " failed!");
-    });
+    run_benchmark_verification<AUTOQ::Symbol::Concrete>(__FILE__, "../benchmarks/all/H2/");
 }
 
 BOOST_AUTO_TEST_CASE(benchmarks_HXH)
 {
-    std::string benchmarks = test_dir_from_file(__FILE__, "../benchmarks/all/HXH/");
-    for_each_benchmark_case(benchmarks, [](const std::string& folder) {
-        auto [autVec, qp] = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Concrete, AUTOQ::Symbol::Concrete>::ReadTwoAutomata(folder+"/pre.hsl", folder+"/post.hsl");
-        auto aut2 = autVec.at(0);
-        auto spec2 = autVec.at(1);
-        aut2.execute(folder + "/circuit.qasm", qp);
-        BOOST_REQUIRE_MESSAGE(aut2 <<= spec2, folder + " failed!");
-    });
+    run_benchmark_verification<AUTOQ::Symbol::Concrete>(__FILE__, "../benchmarks/all/HXH/");
 }
 
 BOOST_AUTO_TEST_CASE(benchmarks_MCToffoli)
 {
-    std::string benchmarks = test_dir_from_file(__FILE__, "../benchmarks/all/MCToffoli/");
-    for_each_benchmark_case(benchmarks, [](const std::string& folder) {
-        auto [autVec, qp] = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Concrete, AUTOQ::Symbol::Concrete>::ReadTwoAutomata(folder+"/pre.hsl", folder+"/post.hsl");
-        auto aut2 = autVec.at(0);
-        auto spec2 = autVec.at(1);
-        aut2.execute(folder + "/circuit.qasm", qp);
-        BOOST_REQUIRE_MESSAGE(aut2 <<= spec2, folder + " failed!");
-    });
+    run_benchmark_verification<AUTOQ::Symbol::Concrete>(__FILE__, "../benchmarks/all/MCToffoli/");
 }
 
 BOOST_AUTO_TEST_CASE(benchmarks_Grover)
 {
-    std::string benchmarks = test_dir_from_file(__FILE__, "../benchmarks/all/Grover/");
-    for_each_benchmark_case(benchmarks, [](const std::string& folder) {
-        auto [autVec, qp] = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Concrete, AUTOQ::Symbol::Concrete>::ReadTwoAutomata(folder+"/pre.hsl", folder+"/post.hsl");
-        auto aut2 = autVec.at(0);
-        auto spec2 = autVec.at(1);
-        aut2.execute(folder + "/circuit.qasm", qp);
-        BOOST_REQUIRE_MESSAGE(aut2 <<= spec2, folder + " failed!");
-    });
+    run_benchmark_verification<AUTOQ::Symbol::Concrete>(__FILE__, "../benchmarks/all/Grover/");
 }
 
 BOOST_AUTO_TEST_CASE(benchmarks_MOGrover)
 {
-    std::string benchmarks = test_dir_from_file(__FILE__, "../benchmarks/all/MOGrover/");
-    for_each_benchmark_case(benchmarks, [](const std::string& folder) {
-        auto [autVec, qp] = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Concrete, AUTOQ::Symbol::Concrete>::ReadTwoAutomata(folder+"/pre.hsl", folder+"/post.hsl");
-        auto aut2 = autVec.at(0);
-        auto spec2 = autVec.at(1);
-        aut2.execute(folder + "/circuit.qasm", qp);
-        BOOST_REQUIRE_MESSAGE(aut2 <<= spec2, folder + " failed!");
-    });
+    run_benchmark_verification<AUTOQ::Symbol::Concrete>(__FILE__, "../benchmarks/all/MOGrover/");
 }
 
 BOOST_AUTO_TEST_CASE(benchmarks_GroverSym)
 {
-    std::string benchmarks = test_dir_from_file(__FILE__, "../benchmarks/all/GroverSym/");
-    for_each_benchmark_case(benchmarks, [](const std::string& folder) {
-        auto [autVec, qp] = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Symbolic>::ReadTwoAutomata(folder+"/pre.hsl", folder+"/post.hsl");
-        auto aut2 = autVec.at(0);
-        auto spec2 = autVec.at(1);
-        aut2.execute(folder + "/circuit.qasm", qp);
-        BOOST_REQUIRE_MESSAGE(aut2 <<= spec2, folder + " failed!");
-    });
+    run_benchmark_verification<AUTOQ::Symbol::Symbolic>(__FILE__, "../benchmarks/all/GroverSym/");
 }
 
 BOOST_AUTO_TEST_CASE(benchmarks_GroverWhile)
@@ -1221,14 +1092,7 @@ BOOST_AUTO_TEST_CASE(benchmarks_GroverWhile)
 
 BOOST_AUTO_TEST_CASE(benchmarks_MOGroverSym)
 {
-    std::string benchmarks = test_dir_from_file(__FILE__, "../benchmarks/all/MOGroverSym/");
-    for_each_benchmark_case(benchmarks, [](const std::string& folder) {
-        auto [autVec, qp] = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Symbolic>::ReadTwoAutomata(folder+"/pre.hsl", folder+"/post.hsl");
-        auto aut2 = autVec.at(0);
-        auto spec2 = autVec.at(1);
-        aut2.execute(folder + "/circuit.qasm", qp);
-        BOOST_REQUIRE_MESSAGE(aut2 <<= spec2, folder + " failed!");
-    });
+    run_benchmark_verification<AUTOQ::Symbol::Symbolic>(__FILE__, "../benchmarks/all/MOGroverSym/");
 }
 
 BOOST_AUTO_TEST_CASE(benchmarks_H2Sym)
