@@ -3,7 +3,6 @@
 #include <autoq/symbol/symbolic.hh>
 #include <autoq/symbol/predicate.hh>
 #include <autoq/util/string.hh>
-// #include <autoq/util/types.hh>
 #include <autoq/loop_summarization.hh>
 #include <autoq/aut_description.hh>
 #include <autoq/parsing/parser/timbuk_parser.hh>

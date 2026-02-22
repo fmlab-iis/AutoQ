@@ -89,21 +89,6 @@ AUTOQ::Automata<Symbol> parse_timbuk(const std::string& str) {
 			}
 			else if ("Ops" == first_word)
 			{
-				// if (ops_parsed)
-				// {
-				// 	THROW_AUTOQ_ERROR("Ops already parsed!");
-				// }
-
-				// ops_parsed = true;
-
-				// while (!str.empty())
-				// {
-				// 	std::string label = AUTOQ::String::read_word(str);
-				// 	auto label_num = AUTOQ::String::parse_colonned_token(label);
-                //     auto temp = symbol_converter<Symbol>(label_num.first);
-
-				// 	// result.symbols[temp] = label_num.second;
-				// }
 			}
 			else if ("States" == first_word)
 			{
@@ -113,17 +98,6 @@ AUTOQ::Automata<Symbol> parse_timbuk(const std::string& str) {
 				}
 
 				states_parsed = true;
-
-				// while (!str.empty())
-				// {
-				// 	std::string state = AUTOQ::String::read_word(str);
-				// 	auto state_num = AUTOQ::String::parse_colonned_token(state);
-				// 	// result.states.insert(state_num.first);
-                //     /****************************************************************************************/
-                //     // assert(result.stateNum.FindFwd(state_num.first) == result.stateNum.end());
-                //     result.stateNum++; //.insert(std::make_pair(state_num.first, result.stateNum.size()));
-                //     /****************************************************************************************/
-				// }
 			}
 			else if ("Final" == first_word)
 			{
