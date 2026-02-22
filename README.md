@@ -29,7 +29,7 @@ Please see the introductory [video](https://www.youtube.com/watch?v=1pO6bBvEaLM)
 
 ## Installation and Compilation
 
-Currently, for Linux (Ubuntu/Debian), macOS, and WSL2, the dependency of AutoQ can be built with the command `./install-dependencies.sh`. After the configuration, please run the following command.
+Currently, for Linux (Ubuntu/Debian), macOS, and WSL2, the dependency of AutoQ can be built with the command `./install-dependencies.sh`. If you want to use a system-installed Z3 instead of the bundled library, change `option(USE_SYSTEM_Z3 ... OFF)` to `ON` in the top-level `CMakeLists.txt` before building. After the configuration, please run the following command.
 ```
 make
 make test

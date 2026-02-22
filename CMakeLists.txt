@@ -32,6 +32,9 @@ option(BUILD_32B_MEM_MODEL "build with 32-bit memory model" OFF)
 # Building with debug information even in release (use e.g. for profiling with Callgrind)
 option(DEBUG_INFO_FOR_RELEASE "build with debug info even in release builds" OFF)
 
+# Use system-installed Z3 instead of bundled libz3. Change to ON to use find_library(z3).
+option(USE_SYSTEM_Z3 "use system-installed Z3 instead of bundled libz3" OFF)
+
 ##############################################################################
 #                               COMPILER FUN
 ##############################################################################

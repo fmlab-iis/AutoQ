@@ -29,21 +29,22 @@ set_source_files_properties(${Extended_Dirac_SOURCE_FILES} PROPERTIES COMPILE_FL
 #                              DEPENDENCIES - Z3
 ##############################################################################
 
-# find_package(Z3 4.12.5
-#   REQUIRED
-#   CONFIG
-#   # `NO_DEFAULT_PATH` is set so that -DZ3_DIR has to be passed to find Z3.
-#   # This should prevent us from accidentally picking up an installed
-#   # copy of Z3. This is here to benefit Z3's build system when building
-#   # this project. When making your own project you probably shouldn't
-#   # use this option.
-#   NO_DEFAULT_PATH
-# )
-# target_link_libraries(lsta ${Z3_LIBRARIES})
+# USE_SYSTEM_Z3 is defined in the parent CMakeLists.txt (change OFF to ON there to use system Z3).
 if (APPLE)
     target_link_libraries(lsta "${CMAKE_CURRENT_SOURCE_DIR}/../libz3.a")
 elseif (UNIX)
-    target_link_libraries(lsta "${CMAKE_CURRENT_SOURCE_DIR}/../libz3.so.4.12")
+    if (USE_SYSTEM_Z3)
+        find_library(Z3_LIBRARY z3)
+        if (Z3_LIBRARY)
+            target_link_libraries(lsta ${Z3_LIBRARY})
+            message(STATUS "Using system Z3: ${Z3_LIBRARY}")
+        else ()
+            message(STATUS "USE_SYSTEM_Z3=ON but Z3 not found, falling back to bundled libz3.so.4.12")
+            target_link_libraries(lsta "${CMAKE_CURRENT_SOURCE_DIR}/../libz3.so.4.12")
+        endif ()
+    else ()
+        target_link_libraries(lsta "${CMAKE_CURRENT_SOURCE_DIR}/../libz3.so.4.12")
+    endif ()
 endif ()
 include_directories(../include/z3)
 
