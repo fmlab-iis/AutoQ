@@ -111,6 +111,8 @@ struct AUTOQ::Automata
     std::string constraints;
     bool hasLoop;
     bool isTopdownDeterministic;
+    // Process-wide execution/inclusion stats (one per Symbol instantiation). For testability or
+    // multi-threading, a future refactor could pass an explicit context (e.g. ExecutionStats) instead.
     inline static int gateCount, stateBefore, transitionBefore;
     inline static bool gateLog, opLog;
     inline static std::string include_status;
@@ -118,7 +120,6 @@ struct AUTOQ::Automata
     inline static std::chrono::steady_clock::duration total_gate_time, total_removeuseless_time, total_reduce_time, total_include_time;
     inline static std::chrono::time_point<std::chrono::steady_clock> start_execute, stop_execute;
     inline static std::chrono::time_point<std::chrono::steady_clock> startFromFileToAutomata, endFromFileToAutomata;
-    /* Notice inline is very convenient for declaring and defining a static member variable together! */
 
 // methods
     /****************************/
