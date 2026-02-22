@@ -143,6 +143,90 @@ void build_symbolic_trans(const AUTOQ::SymbolicAutomata& autA, const AUTOQ::Symb
         }
     }
 }
+
+// Build SMT formula for leaf-pair ratio consistency and run solver. Returns true iff SAT (inclusion fails).
+using LeafPairsOfVertex = std::set<std::set<std::pair<AUTOQ::Symbol::Symbolic, AUTOQ::Symbol::Symbolic>>>;
+bool symbolic_leaf_pairs_smt_is_sat(
+    const AUTOQ::SymbolicAutomata& autA,
+    const AUTOQ::SymbolicAutomata& autB,
+    const LeafPairsOfVertex& leaf_pairs_of_one_new_vertex)
+{
+    std::set<std::string> Y, Z, Z2;
+    for (const auto &leaf_pairs_of_one_new_cell : leaf_pairs_of_one_new_vertex) {
+        for (const auto &pair : leaf_pairs_of_one_new_cell) {
+            for (const auto &var : pair.first.complex.vars())
+                Y.insert(var);
+            for (const auto &var : pair.second.complex.vars())
+                Z2.insert(var);
+        }
+    }
+    for (const auto &var : autA.vars) {
+        if (autA.constraints.find(var) != std::string::npos)
+            Y.insert(var);
+    }
+    for (const auto &var : autB.vars) {
+        if (autB.constraints.find(var) != std::string::npos)
+            Z2.insert(var);
+    }
+    for (const auto &var : Z2) {
+        if (Y.find(var) == Y.end())
+            Z.insert(var);
+    }
+    std::string define_varA = "(declare-const sqrt2 Real)\n(assert (>= sqrt2 0))\n(assert (= (* sqrt2 sqrt2) 2))\n";
+    for (const auto &var : Y)
+        define_varA += "(declare-const " + var + " Real)\n";
+    define_varA += "\n";
+    std::string assertion = std::string("(and \n") +
+        autA.constraints + "\n" +
+        "(forall (";
+    for (const auto &var : Z)
+        assertion += "(" + var + " Real)";
+    assertion += "(ratioR Real)";
+    assertion += "(ratioI Real)";
+    assertion += ")\n(or\n";
+    assertion += "(not " + autB.constraints + ")\n";
+    assertion += "(and (= ratioR 0) (= ratioI 0))\n";
+    assertion += "(and ";
+    int counter = 0;
+    for (const auto &leaf_pairs_of_one_new_cell : leaf_pairs_of_one_new_vertex) {
+        assertion += "(or ";
+        for (const auto &pair : leaf_pairs_of_one_new_cell) {
+            define_varA += "(define-fun E" + std::to_string(counter) + "r () Real " + pair.first.complex.realToSMT() + "); " + (std::ostringstream{} << pair.first).str() + "\n";
+            define_varA += "(define-fun E" + std::to_string(counter) + "i () Real " + pair.first.complex.imagToSMT() + "); " + (std::ostringstream{} << pair.first).str() + "\n";
+            std::string arguments;
+            for (const auto &var : pair.second.complex.vars()) {
+                if (Y.find(var) == Y.end()) {
+                    arguments += "(" + var + " Real)";
+                }
+            }
+            define_varA += "(define-fun F" + std::to_string(counter) + "r (" + arguments + ") Real " + pair.second.complex.realToSMT() + "); " + (std::ostringstream{} << pair.second).str() + "\n";
+            define_varA += "(define-fun F" + std::to_string(counter) + "i (" + arguments + ") Real " + pair.second.complex.imagToSMT() + "); " + (std::ostringstream{} << pair.second).str() + "\n";
+            assertion += "(distinct ";
+            assertion += "E" + std::to_string(counter) + "r ";
+            arguments = "";
+            for (const auto &var : pair.second.complex.vars()) {
+                if (Y.find(var) == Y.end()) {
+                    arguments += " " + var;
+                }
+            }
+            if (arguments.empty())
+                assertion += "(- (* ratioR F" + std::to_string(counter) + "r) (* ratioI F" + std::to_string(counter) + "i)))\n";
+            else
+                assertion += "(- (* ratioR (F" + std::to_string(counter) + "r" + arguments + ")) (* ratioI (F" + std::to_string(counter) + "i" + arguments + "))))\n";
+            assertion += "(distinct ";
+            assertion += "E" + std::to_string(counter) + "i ";
+            if (arguments.empty())
+                assertion += "(+ (* ratioR F" + std::to_string(counter) + "i) (* ratioI F" + std::to_string(counter) + "r)))\n";
+            else
+                assertion += "(+ (* ratioR (F" + std::to_string(counter) + "i" + arguments + ")) (* ratioI (F" + std::to_string(counter) + "r" + arguments + "))))\n";
+            counter++;
+        }
+        assertion += ")\n";
+    }
+    assertion += ")\n";
+    assertion += ")))";
+    return call_smt_solver(define_varA, assertion);
+}
 }  // namespace
 
 // -------- Inclusion: Symbolic automata (scaled inclusion) --------
@@ -416,82 +500,7 @@ bool scaled_inclusion_with_or_without_renaming(AUTOQ::SymbolicAutomata autA, AUT
                         AUTOQ::SymbolicAutomata::total_include_time += stop_include - start_include;
                         return false;
                     }
-                    // Build the formula and check its satisfiability.
-                    std::set<std::string> Y, Z, Z2;
-                    for (const auto &leaf_pairs_of_one_new_cell : leaf_pairs_of_one_new_vertex) {
-                        for (const auto &pair : leaf_pairs_of_one_new_cell) {
-                            for (const auto &var : pair.first.complex.vars())
-                                Y.insert(var);
-                            for (const auto &var : pair.second.complex.vars())
-                                Z2.insert(var);
-                        }
-                    }
-                    for (const auto &var : autA.vars) {
-                        if (autA.constraints.find(var) != std::string::npos)
-                            Y.insert(var);
-                    }
-                    for (const auto &var : autB.vars) {
-                        if (autB.constraints.find(var) != std::string::npos)
-                            Z2.insert(var);
-                    }
-                    for (const auto &var : Z2) {
-                        if (Y.find(var) == Y.end())
-                            Z.insert(var);
-                    }
-                    std::string define_varA = "(declare-const sqrt2 Real)\n(assert (>= sqrt2 0))\n(assert (= (* sqrt2 sqrt2) 2))\n";
-                    for (const auto &var : Y)
-                        define_varA += "(declare-const " + var + " Real)\n";
-                    define_varA += "\n";
-                    std::string assertion = std::string("(and \n") +
-                        autA.constraints + "\n" +
-                        "(forall (";
-                    for (const auto &var : Z) // (forall ((x1 σ1) (x2 σ2) ··· (xn σn)) (exists ((x1 σ1) (x2 σ2) ··· (xn σn)) ϕ))
-                        assertion += "(" + var + " Real)";
-                    assertion += "(ratioR Real)";
-                    assertion += "(ratioI Real)";
-                    assertion += ")\n(or\n";
-                    assertion += "(not " + autB.constraints + ")\n";
-                    assertion += "(and (= ratioR 0) (= ratioI 0))\n";
-                    assertion += "(and ";
-                    int counter = 0;
-                    for (const auto &leaf_pairs_of_one_new_cell : leaf_pairs_of_one_new_vertex) {
-                        assertion += "(or ";
-                        for (const auto &pair : leaf_pairs_of_one_new_cell) {
-                            define_varA += "(define-fun E" + std::to_string(counter) + "r () Real " + pair.first.complex.realToSMT() + "); " + (std::ostringstream{} << pair.first).str() + "\n";
-                            define_varA += "(define-fun E" + std::to_string(counter) + "i () Real " + pair.first.complex.imagToSMT() + "); " + (std::ostringstream{} << pair.first).str() + "\n";
-                            std::string arguments;
-                            for (const auto &var : pair.second.complex.vars()) {
-                                if (Y.find(var) == Y.end()) {
-                                    arguments += "(" + var + " Real)";
-                                }
-                            }
-                            define_varA += "(define-fun F" + std::to_string(counter) + "r (" + arguments + ") Real " + pair.second.complex.realToSMT() + "); " + (std::ostringstream{} << pair.second).str() + "\n";
-                            define_varA += "(define-fun F" + std::to_string(counter) + "i (" + arguments + ") Real " + pair.second.complex.imagToSMT() + "); " + (std::ostringstream{} << pair.second).str() + "\n";
-                            assertion += "(distinct ";
-                            assertion += "E" + std::to_string(counter) + "r ";
-                            arguments = "";
-                            for (const auto &var : pair.second.complex.vars()) {
-                                if (Y.find(var) == Y.end()) {
-                                    arguments += " " + var;
-                                }
-                            }
-                            if (arguments.empty())
-                                assertion += "(- (* ratioR F" + std::to_string(counter) + "r) (* ratioI F" + std::to_string(counter) + "i)))\n";
-                            else
-                                assertion += "(- (* ratioR (F" + std::to_string(counter) + "r" + arguments + ")) (* ratioI (F" + std::to_string(counter) + "i" + arguments + "))))\n";
-                            assertion += "(distinct ";
-                            assertion += "E" + std::to_string(counter) + "i ";
-                            if (arguments.empty())
-                                assertion += "(+ (* ratioR F" + std::to_string(counter) + "i) (* ratioI F" + std::to_string(counter) + "r)))\n";
-                            else
-                                assertion += "(+ (* ratioR (F" + std::to_string(counter) + "i" + arguments + ")) (* ratioI (F" + std::to_string(counter) + "r" + arguments + "))))\n";
-                            counter++;
-                        }
-                        assertion += ")\n"; // "(or "
-                    }
-                    assertion += ")\n"; // "(and "
-                    assertion += ")))";
-                    if (call_smt_solver(define_varA, assertion)) {
+                    if (symbolic_leaf_pairs_smt_is_sat(autA, autB, leaf_pairs_of_one_new_vertex)) {
                         auto stop_include = std::chrono::steady_clock::now();
                         AUTOQ::SymbolicAutomata::include_status = AUTOQ::Util::Convert::ToString(stop_include - start_include) + " X";
                         INCLUSION_DEBUG("UNFORTUNATELY B HAS NO POSSIBLE TRANSITION COMBINATIONS, SO THE INCLUSION DOES NOT HOLD :(");
