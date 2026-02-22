@@ -650,7 +650,7 @@ void AUTOQ::Automata<Symbol>::Rz(const boost::rational<boost::multiprecision::cp
     gateCount++;
     auto duration = std::chrono::steady_clock::now() - start;
     total_gate_time += duration;
-    if (gateLog) std::cout << "Rz" << t << "：" << stateNum << " states " << count_transitions() << " transitions " << AUTOQ::Util::Convert::toString(duration) << "\n";
+    if (gateLog) std::cout << "Rz" << t << "：" << stateNum << " states " << count_transitions() << " transitions " << AUTOQ::Util::Convert::ToString(duration) << "\n";
 }
 
 template <typename Symbol>
@@ -1528,7 +1528,7 @@ void AUTOQ::Automata<Symbol>::CX_inv() {
     reduce();
     gateCount++;
     // auto duration = std::chrono::steady_clock::now() - start;
-    // if (gateLog) std::cout << "CNOT" << c << "," << t << "：" << stateNum << " states " << count_transitions() << " transitions " << AUTOQ::Util::Convert::toString(duration) << "\n";
+    // if (gateLog) std::cout << "CNOT" << c << "," << t << "：" << stateNum << " states " << count_transitions() << " transitions " << AUTOQ::Util::Convert::ToString(duration) << "\n";
 }
 
 template <typename Symbol>
@@ -1546,7 +1546,7 @@ void AUTOQ::Automata<Symbol>::Phase(const boost::rational<boost::multiprecision:
     transitions = transitions_result;
     gateCount++;
     // auto duration = std::chrono::steady_clock::now() - start;
-    // if (gateLog) std::cout << "Phase" << c << "," << t << "：" << stateNum << " states " << count_transitions() << " transitions " << AUTOQ::Util::Convert::toString(duration) << "\n";
+    // if (gateLog) std::cout << "Phase" << c << "," << t << "：" << stateNum << " states " << count_transitions() << " transitions " << AUTOQ::Util::Convert::ToString(duration) << "\n";
 }
 
 template <typename Symbol>

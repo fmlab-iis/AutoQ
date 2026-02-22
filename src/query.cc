@@ -203,8 +203,8 @@ void AUTOQ::Automata<Symbol>::print_stats(const std::string &str, bool newline) 
     std::cout << AUTOQ::Util::Convert::ToString(qubitNum) << " & " << AUTOQ::TreeAutomata::gateCount
               << " & " << stateBefore << " & " << stateNum
               << " & " << transitionBefore << " & " << count_transitions()
-              << " & " << AUTOQ::Util::Convert::toString(stop_execute - start_execute) << " & " << include_status
-              << " & " << AUTOQ::Util::Convert::toString(endFromFileToAutomata - startFromFileToAutomata);
+              << " & " << AUTOQ::Util::Convert::ToString(stop_execute - start_execute) << " & " << include_status
+              << " & " << AUTOQ::Util::Convert::ToString(endFromFileToAutomata - startFromFileToAutomata);
     if (newline)
         std::cout << std::endl;
 }

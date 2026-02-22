@@ -90,7 +90,7 @@ void print_verification_result(int qubitNum, int gateCount, bool verify,
     oss << "The quantum program has [" << qubitNum << "] qubits and ["
         << gateCount << "] gates. The verification process ["
         << (verify ? "OK" : "failed") << "] in ["
-        << AUTOQ::Util::Convert::toString(chrono::steady_clock::now() - start)
+        << AUTOQ::Util::Convert::ToString(chrono::steady_clock::now() - start)
         << "] with [" << (AUTOQ::Util::getPeakRSS() / kBytesPerMB) << "MB] memory usage.";
     AUTOQ::Util::Log::info(oss.str());
 }
@@ -105,7 +105,7 @@ void print_equivalence_result(bool result,
     std::ostringstream oss;
     oss << "The two quantum programs are verified to be ["
         << (result ? "equal" : "unequal") << "] in ["
-        << AUTOQ::Util::Convert::toString(chrono::steady_clock::now() - start)
+        << AUTOQ::Util::Convert::ToString(chrono::steady_clock::now() - start)
         << "] with [" << (AUTOQ::Util::getPeakRSS() / kBytesPerMB) << "MB] memory usage.";
     AUTOQ::Util::Log::info(oss.str());
 }
@@ -120,10 +120,10 @@ AUTOQ::TreeAutomata* g_timeout_aut2 = nullptr;
 
 void timeout_handler(int) {
     std::map<std::string, std::string> stats;
-    stats["gate"] = AUTOQ::Util::Convert::toString(AUTOQ::TreeAutomata::total_gate_time - AUTOQ::TreeAutomata::total_removeuseless_time - AUTOQ::TreeAutomata::total_reduce_time);
-    stats["removeuseless"] = AUTOQ::Util::Convert::toString(AUTOQ::TreeAutomata::total_removeuseless_time);
-    stats["reduce"] = AUTOQ::Util::Convert::toString(AUTOQ::TreeAutomata::total_reduce_time);
-    stats["include"] = AUTOQ::Util::Convert::toString(AUTOQ::TreeAutomata::total_include_time);
+    stats["gate"] = AUTOQ::Util::Convert::ToString(AUTOQ::TreeAutomata::total_gate_time - AUTOQ::TreeAutomata::total_removeuseless_time - AUTOQ::TreeAutomata::total_reduce_time);
+    stats["removeuseless"] = AUTOQ::Util::Convert::ToString(AUTOQ::TreeAutomata::total_removeuseless_time);
+    stats["reduce"] = AUTOQ::Util::Convert::ToString(AUTOQ::TreeAutomata::total_reduce_time);
+    stats["include"] = AUTOQ::Util::Convert::ToString(AUTOQ::TreeAutomata::total_include_time);
     stats["total"] = std::to_string(kTimeoutSeconds);
     stats["result"] = std::to_string(AUTOQ::TreeAutomata::gateCount);
     stats["aut1.trans"] = g_timeout_aut1 ? std::to_string(g_timeout_aut1->count_transitions()) : "0";
@@ -307,16 +307,16 @@ try {
     // if (long_time) {
     //     if (runConcrete)
     //         std::cout << "=\n"
-    //                 << "The total time spent on gate operations (excluding remove_useless and reduce) is [" << AUTOQ::Util::Convert::toString(AUTOQ::TreeAutomata::total_gate_time - AUTOQ::TreeAutomata::total_removeuseless_time - AUTOQ::TreeAutomata::total_reduce_time) << "].\n"
-    //                 << "The total time spent on remove_useless(...) is [" << AUTOQ::Util::Convert::toString(AUTOQ::TreeAutomata::total_removeuseless_time) << "].\n"
-    //                 << "The total time spent on reduce(...) is [" << AUTOQ::Util::Convert::toString(AUTOQ::TreeAutomata::total_reduce_time) << "].\n"
-    //                 << "The total time spent on check_inclusion(...) is [" << AUTOQ::Util::Convert::toString(AUTOQ::TreeAutomata::total_include_time) << "].\n";
+    //                 << "The total time spent on gate operations (excluding remove_useless and reduce) is [" << AUTOQ::Util::Convert::ToString(AUTOQ::TreeAutomata::total_gate_time - AUTOQ::TreeAutomata::total_removeuseless_time - AUTOQ::TreeAutomata::total_reduce_time) << "].\n"
+    //                 << "The total time spent on remove_useless(...) is [" << AUTOQ::Util::Convert::ToString(AUTOQ::TreeAutomata::total_removeuseless_time) << "].\n"
+    //                 << "The total time spent on reduce(...) is [" << AUTOQ::Util::Convert::ToString(AUTOQ::TreeAutomata::total_reduce_time) << "].\n"
+    //                 << "The total time spent on check_inclusion(...) is [" << AUTOQ::Util::Convert::ToString(AUTOQ::TreeAutomata::total_include_time) << "].\n";
     //     else
     //         std::cout << "=\n"
-    //                 << "The total time spent on gate operations (excluding remove_useless and reduce) is [" << AUTOQ::Util::Convert::toString(AUTOQ::SymbolicAutomata::total_gate_time - AUTOQ::SymbolicAutomata::total_removeuseless_time - AUTOQ::SymbolicAutomata::total_reduce_time) << "].\n"
-    //                 << "The total time spent on remove_useless(...) is [" << AUTOQ::Util::Convert::toString(AUTOQ::SymbolicAutomata::total_removeuseless_time) << "].\n"
-    //                 << "The total time spent on reduce(...) is [" << AUTOQ::Util::Convert::toString(AUTOQ::SymbolicAutomata::total_reduce_time) << "].\n"
-    //                 << "The total time spent on check_inclusion(...) is [" << AUTOQ::Util::Convert::toString(AUTOQ::SymbolicAutomata::total_include_time) << "].\n";
+    //                 << "The total time spent on gate operations (excluding remove_useless and reduce) is [" << AUTOQ::Util::Convert::ToString(AUTOQ::SymbolicAutomata::total_gate_time - AUTOQ::SymbolicAutomata::total_removeuseless_time - AUTOQ::SymbolicAutomata::total_reduce_time) << "].\n"
+    //                 << "The total time spent on remove_useless(...) is [" << AUTOQ::Util::Convert::ToString(AUTOQ::SymbolicAutomata::total_removeuseless_time) << "].\n"
+    //                 << "The total time spent on reduce(...) is [" << AUTOQ::Util::Convert::ToString(AUTOQ::SymbolicAutomata::total_reduce_time) << "].\n"
+    //                 << "The total time spent on check_inclusion(...) is [" << AUTOQ::Util::Convert::ToString(AUTOQ::SymbolicAutomata::total_include_time) << "].\n";
     // }
     /**************/
 } catch (AutoQError &e) {

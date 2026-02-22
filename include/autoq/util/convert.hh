@@ -85,7 +85,7 @@ private:
 
 public:
 
-    static std::string toString(std::chrono::steady_clock::duration tp) {
+    static std::string ToString(std::chrono::steady_clock::duration tp) {
         using namespace std;
         using namespace std::chrono;
         nanoseconds ns = duration_cast<nanoseconds>(tp);
