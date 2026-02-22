@@ -1,3 +1,9 @@
+/**
+ * QASM execution: parse and run circuits, loops, gates.
+ * - execute(filename), parse_for_loop_body, parse_qubit_indices.
+ * - handle_while_loop_start, handle_if_block_start, handle_else, handle_closing_brace.
+ * - single_gate_execute, check_the_invariants_types.
+ */
 #include <autoq/error_messages.hh>
 #include <autoq/symbol/concrete.hh>
 #include <autoq/symbol/symbolic.hh>
