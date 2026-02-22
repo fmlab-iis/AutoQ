@@ -20,6 +20,25 @@
 #define R(s1, s2) (stateNum + stateNum * stateNum + (s1) * stateNum + (s2))
 
 namespace {
+/// Copy result base fields from src and check state-number overflow for product-shaped expansion.
+template <typename Symbol>
+void gate_copy_result_base_and_check_overflow(
+    AUTOQ::Automata<Symbol>& result,
+    const AUTOQ::Automata<Symbol>& src)
+{
+    using State = typename AUTOQ::Automata<Symbol>::State;
+    result.name = src.name;
+    result.qubitNum = src.qubitNum;
+    result.isTopdownDeterministic = src.isTopdownDeterministic;
+    result.finalStates = src.finalStates;
+    result.hasLoop = src.hasLoop;
+    result.vars = src.vars;
+    result.constraints = src.constraints;
+    bool overflow = (src.stateNum > (std::numeric_limits<State>::max() - src.stateNum) / src.stateNum / 2);
+    if (overflow)
+        THROW_AUTOQ_ERROR("The number of states after multiplication is too large.");
+}
+
 template <typename Symbol>
 void flush_qcfi_to_result(
     AUTOQ::Automata<Symbol>& result,
@@ -47,20 +66,7 @@ void flush_qcfi_to_result(
 template <typename Symbol>
 void AUTOQ::Automata<Symbol>::general_single_qubit_gate(int t, const std::function<Symbol(const Symbol&, const Symbol&)> &u1u2, const std::function<Symbol(const Symbol&, const Symbol&)> &u3u4) {
     AUTOQ::Automata<Symbol> result;
-    result.name = name;
-    result.qubitNum = qubitNum;
-    result.isTopdownDeterministic = isTopdownDeterministic; // IMPORTANT: Avoid missing copying new fields afterwards.
-    result.finalStates = finalStates;
-    result.hasLoop = hasLoop; // IMPORTANT: Avoid missing copying new fields afterwards.
-    result.vars = vars; // IMPORTANT: Avoid missing copying new fields afterwards.
-    result.constraints = constraints; // IMPORTANT: Avoid missing copying new fields afterwards.
-
-    bool overflow = (stateNum > (std::numeric_limits<State>::max()-stateNum) / stateNum / 2); // want: 2 * stateNum^2 + stateNum <= max
-    if (overflow)
-        THROW_AUTOQ_ERROR("The number of states after multiplication is too large.");
-    // s < stateNum -> s
-    // (s1, s2, L) -> stateNum + s1 * stateNum + s2
-    // (s1, s2, R) -> stateNum + stateNum^2 + s1 * stateNum + s2 -> max == 2 * stateNum^2 + stateNum - 1
+    gate_copy_result_base_and_check_overflow(result, *this);
 
     // We assume here transitions are ordered by symbols.
     // x_i are placed in the beginning, and leaves are placed in the end.
@@ -181,20 +187,7 @@ void AUTOQ::Automata<Symbol>::general_controlled_gate(int c, int c2, int t, cons
     }
 
     AUTOQ::Automata<Symbol> result;
-    result.name = name;
-    result.qubitNum = qubitNum;
-    result.isTopdownDeterministic = isTopdownDeterministic; // IMPORTANT: Avoid missing copying new fields afterwards.
-    result.finalStates = finalStates;
-    result.hasLoop = hasLoop; // IMPORTANT: Avoid missing copying new fields afterwards.
-    result.vars = vars; // IMPORTANT: Avoid missing copying new fields afterwards.
-    result.constraints = constraints; // IMPORTANT: Avoid missing copying new fields afterwards.
-
-    bool overflow = (stateNum > (std::numeric_limits<State>::max()-stateNum) / stateNum / 2); // want: 2 * stateNum^2 + stateNum <= max
-    if (overflow)
-        THROW_AUTOQ_ERROR("The number of states after multiplication is too large.");
-    // s < stateNum -> s
-    // (s1, s2, L) -> stateNum + s1 * stateNum + s2
-    // (s1, s2, R) -> stateNum + stateNum^2 + s1 * stateNum + s2 -> max == 2 * stateNum^2 + stateNum
+    gate_copy_result_base_and_check_overflow(result, *this);
 
     // We assume here transitions are ordered by symbols.
     // x_i are placed in the beginning, and leaves are placed in the end.
