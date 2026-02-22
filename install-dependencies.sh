@@ -23,7 +23,6 @@ if [ "$OS_TYPE" = "Linux" ]; then
         apt install cmake
         apt install libboost-filesystem-dev
         apt install libboost-test-dev
-        apt install libboost-regex-dev
         apt install libantlr4-runtime-dev
         ;;
       *)

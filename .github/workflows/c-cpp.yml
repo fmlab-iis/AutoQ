@@ -13,10 +13,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
-    - run: sudo apt-get install libboost-filesystem-dev libboost-test-dev libboost-regex-dev libantlr4-runtime-dev
+    - run: sudo apt-get install libboost-filesystem-dev libboost-test-dev libantlr4-runtime-dev
     - run: make debug
     - run: cp /usr/lib/x86_64-linux-gnu/libboost_unit_test_framework.so.* build/unit_tests/
-    - run: cp /usr/lib/x86_64-linux-gnu/libboost_regex.so.*               build/unit_tests/
     - run: cp libz3.so.*                                                  build/unit_tests/
     - run: cp /usr/lib/x86_64-linux-gnu/libantlr4-runtime.so.*            build/unit_tests/
     - uses: actions/upload-artifact@v4.3.5
@@ -43,10 +42,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
-    - run: sudo apt-get install libboost-filesystem-dev libboost-test-dev libboost-regex-dev libantlr4-runtime-dev
+    - run: sudo apt-get install libboost-filesystem-dev libboost-test-dev libantlr4-runtime-dev
     - run: make release
     - run: cp /usr/lib/x86_64-linux-gnu/libboost_unit_test_framework.so.* build/unit_tests/
-    - run: cp /usr/lib/x86_64-linux-gnu/libboost_regex.so.*               build/unit_tests/
     - run: cp libz3.so.*                                                  build/unit_tests/
     - run: cp /usr/lib/x86_64-linux-gnu/libantlr4-runtime.so.*            build/unit_tests/
     - uses: actions/upload-artifact@v4.3.5
@@ -80,10 +78,9 @@ jobs:
       - uses: actions/checkout@v4
       - run: |
           sudo apt-get update && sudo apt-get upgrade -y
-          sudo apt-get install -y libboost-filesystem-dev libboost-test-dev libboost-regex-dev git make gcc g++ cmake libantlr4-runtime-dev
+          sudo apt-get install -y libboost-filesystem-dev libboost-test-dev git make gcc g++ cmake libantlr4-runtime-dev
           make debug
           cp /usr/lib/x86_64-linux-gnu/libboost_unit_test_framework.so.* build/unit_tests/
-          cp /usr/lib/x86_64-linux-gnu/libboost_regex.so.*               build/unit_tests/
           cp libz3.so.*                                                  build/unit_tests/
           cp /usr/lib/x86_64-linux-gnu/libantlr4-runtime.so.*            build/unit_tests/
         shell: wsl-bash {0} # add this to run the commands inside linux
@@ -123,10 +120,9 @@ jobs:
       - uses: actions/checkout@v4
       - run: |
           sudo apt-get update && sudo apt-get upgrade -y
-          sudo apt-get install -y libboost-filesystem-dev libboost-test-dev libboost-regex-dev git make gcc g++ cmake libantlr4-runtime-dev
+          sudo apt-get install -y libboost-filesystem-dev libboost-test-dev git make gcc g++ cmake libantlr4-runtime-dev
           make release
           cp /usr/lib/x86_64-linux-gnu/libboost_unit_test_framework.so.* build/unit_tests/
-          cp /usr/lib/x86_64-linux-gnu/libboost_regex.so.*               build/unit_tests/
           cp libz3.so.*                                                  build/unit_tests/
           cp /usr/lib/x86_64-linux-gnu/libantlr4-runtime.so.*            build/unit_tests/
         shell: wsl-bash {0} # add this to run the commands inside linux
@@ -164,7 +160,6 @@ jobs:
     - run: cp /opt/homebrew/lib/libboost_unit_test_framework.dylib build/unit_tests/
     - run: cp /opt/homebrew/lib/libboost_filesystem.dylib          build/unit_tests/
     # - run: cp /opt/homebrew/lib/libboost_system.dylib              build/unit_tests/
-    - run: cp /opt/homebrew/lib/libboost_regex.dylib               build/unit_tests/
     - run: cp /opt/homebrew/lib/libboost_atomic.dylib              build/unit_tests/
     # # - run: cp /home/runner/work/AutoQ/AutoQ/AutoQ/libz3.so.* /Users/runner/work/AutoQ/AutoQ/AutoQ/build/unit_tests/
     - run: cp /opt/homebrew/lib/libantlr4-runtime.a                build/unit_tests/
@@ -197,7 +192,6 @@ jobs:
     - run: cp /opt/homebrew/lib/libboost_unit_test_framework.dylib build/unit_tests/
     - run: cp /opt/homebrew/lib/libboost_filesystem.dylib          build/unit_tests/
     # - run: cp /opt/homebrew/lib/libboost_system.dylib              build/unit_tests/
-    - run: cp /opt/homebrew/lib/libboost_regex.dylib               build/unit_tests/
     - run: cp /opt/homebrew/lib/libboost_atomic.dylib              build/unit_tests/
     # # - run: cp /home/runner/work/AutoQ/AutoQ/AutoQ/libz3.so.* /Users/runner/work/AutoQ/AutoQ/AutoQ/build/unit_tests/
     - run: cp /opt/homebrew/lib/libantlr4-runtime.a                build/unit_tests/
