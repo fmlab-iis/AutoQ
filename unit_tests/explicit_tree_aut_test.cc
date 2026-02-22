@@ -40,13 +40,9 @@ static std::vector<AUTOQ::TreeAutomata> kExtendedInitialStates(int n) {
 /** Test gate applied loop times returns to identity. Positions empty = {1, n/2+1, n}. */
 static void test_gate_n_times_to_identity(
     std::function<void(AUTOQ::TreeAutomata&, int)> gate_fn,
-    int n, int loop,
-    bool include_random = true,
-    std::vector<int> positions = {}) {
-    if (positions.empty()) positions = {1, n/2+1, n};
-    auto states = include_random
-        ? std::vector{AUTOQ::TreeAutomata::uniform(n), AUTOQ::TreeAutomata::basis(n), AUTOQ::TreeAutomata::random(n)}
-        : std::vector{AUTOQ::TreeAutomata::uniform(n), AUTOQ::TreeAutomata::basis(n)};
+    int n, int loop) {
+    std::vector<int> positions = {1, n/2+1, n};
+    std::vector<AUTOQ::TreeAutomata> states = {AUTOQ::TreeAutomata::uniform(n), AUTOQ::TreeAutomata::basis(n), AUTOQ::TreeAutomata::random(n)};
     for (const auto& before : states) {
         for (int t : positions) {
             AUTOQ::TreeAutomata after = before;
@@ -114,7 +110,8 @@ void run_benchmark_verification(const char* test_file, const std::string& benchm
 }
 using AUTOQ::Symbol::Concrete;
 
-int size = 14; // the number of qubits.
+/** Odd n that keeps positions {1, n/2+1, n} and CCX/Swap indices distinct; larger values slow tests. */
+static constexpr int kDefaultQubits = 7;
 
 struct F {
     F() {
@@ -129,7 +126,7 @@ BOOST_TEST_GLOBAL_FIXTURE(F);
 
 BOOST_AUTO_TEST_CASE(X_gate_twice_to_identity)
 {
-    int n = size;
+    int n = kDefaultQubits;
     for (const auto &before : {AUTOQ::TreeAutomata::uniform(n),
                                AUTOQ::TreeAutomata::basis(n),
                                AUTOQ::TreeAutomata::random(n)}) {
@@ -138,7 +135,6 @@ BOOST_AUTO_TEST_CASE(X_gate_twice_to_identity)
             AUTOQ::TreeAutomata after = before;
             for (int i=0; i<loop; i++) {
                 after.X(t);
-
                 if (i < loop-1 && before.name == "Random") {
                     BOOST_REQUIRE_MESSAGE(before != after, "\n" +
                     AUTOQ::Serialization::TimbukSerializer::Serialize(before) +
@@ -147,7 +143,7 @@ BOOST_AUTO_TEST_CASE(X_gate_twice_to_identity)
                     BOOST_REQUIRE_MESSAGE(before == after, "\n" +
                         AUTOQ::Serialization::TimbukSerializer::Serialize(before) +
                         AUTOQ::Serialization::TimbukSerializer::Serialize(after));
-				}
+                }
             }
         }
     }
@@ -155,46 +151,52 @@ BOOST_AUTO_TEST_CASE(X_gate_twice_to_identity)
 
 BOOST_AUTO_TEST_CASE(Y_gate_twice_to_identity)
 {
-    test_gate_n_times_to_identity([](AUTOQ::TreeAutomata& a, int t) { a.Y(t); }, size, 2);
+    test_gate_n_times_to_identity([](AUTOQ::TreeAutomata& a, int t) { a.Y(t); }, kDefaultQubits, 2);
 }
 
 BOOST_AUTO_TEST_CASE(Z_gate_twice_to_identity)
 {
-    test_gate_n_times_to_identity([](AUTOQ::TreeAutomata& a, int t) { a.Z(t); }, size, 2);
+    test_gate_n_times_to_identity([](AUTOQ::TreeAutomata& a, int t) { a.Z(t); }, kDefaultQubits, 2);
 }
 
 BOOST_AUTO_TEST_CASE(H_gate_twice_to_identity)
 {
-    test_gate_n_times_to_identity([](AUTOQ::TreeAutomata& a, int t) { a.H(t); }, size, 2);
+    test_gate_n_times_to_identity([](AUTOQ::TreeAutomata& a, int t) { a.H(t); }, kDefaultQubits, 2);
 }
 
 BOOST_AUTO_TEST_CASE(S_gate_fourth_to_identity)
 {
-    test_gate_n_times_to_identity([](AUTOQ::TreeAutomata& a, int t) { a.S(t); }, size, 4);
+    test_gate_n_times_to_identity([](AUTOQ::TreeAutomata& a, int t) { a.S(t); }, kDefaultQubits, 4);
 }
 
 BOOST_AUTO_TEST_CASE(Sdg_gate_equal_to_S_three_times)
 {
-    test_gate_inverse_equivalence([](auto& a, int t) { a.S(t); }, [](auto& a, int t) { a.Sdg(t); }, size, 3, size/2);
+    test_gate_inverse_equivalence([](auto& a, int t) { a.S(t); }, [](auto& a, int t) { a.Sdg(t); }, kDefaultQubits, 3, kDefaultQubits/2);
 }
 
 BOOST_AUTO_TEST_CASE(T_gate_eighth_to_identity)
 {
-    test_gate_n_times_to_identity([](AUTOQ::TreeAutomata& a, int t) { a.T(t); }, size, 8);
+    test_gate_n_times_to_identity([](AUTOQ::TreeAutomata& a, int t) { a.T(t); }, kDefaultQubits, 8);
 }
 
 BOOST_AUTO_TEST_CASE(Tdg_gate_equal_to_T_seven_times)
 {
-    test_gate_inverse_equivalence([](auto& a, int t) { a.T(t); }, [](auto& a, int t) { a.Tdg(t); }, size, 7, size/2);
+    test_gate_inverse_equivalence([](auto& a, int t) { a.T(t); }, [](auto& a, int t) { a.Tdg(t); }, kDefaultQubits, 7, kDefaultQubits/2);
+}
+
+/** Initial states for swap gate (kExtendedInitialStates minus random). */
+static std::vector<AUTOQ::TreeAutomata> kSwapInitialStates(int n) {
+    return {AUTOQ::TreeAutomata::uniform(n), AUTOQ::TreeAutomata::basis(n), AUTOQ::TreeAutomata::zero(n),
+            AUTOQ::TreeAutomata::basis_zero_one_zero(n), AUTOQ::TreeAutomata::zero_zero_one_zero(n),
+            AUTOQ::TreeAutomata::zero_one_zero(n)};
 }
 
 BOOST_AUTO_TEST_CASE(swap_gate_simply_exchanges_basis)
 {
-    for (const auto& before : std::vector{AUTOQ::TreeAutomata::uniform(size), AUTOQ::TreeAutomata::basis(size),
-            AUTOQ::TreeAutomata::zero(size), AUTOQ::TreeAutomata::basis_zero_one_zero(size),
-            AUTOQ::TreeAutomata::zero_zero_one_zero(size), AUTOQ::TreeAutomata::zero_one_zero(size)}) {
+    const int n = kDefaultQubits;
+    for (const auto& before : kSwapInitialStates(n)) {
         AUTOQ::TreeAutomata after = before;
-        after.Swap(size*1/3, size*2/3);
+        after.Swap(n*1/3, n*2/3);
         BOOST_REQUIRE_MESSAGE(before == after, "\n" +
             AUTOQ::Serialization::TimbukSerializer::Serialize(before) +
             AUTOQ::Serialization::TimbukSerializer::Serialize(after));
@@ -203,22 +205,22 @@ BOOST_AUTO_TEST_CASE(swap_gate_simply_exchanges_basis)
 
 BOOST_AUTO_TEST_CASE(Rx_gate_eighth_to_identity)
 {
-    test_gate_n_times_to_identity([](auto& a, int t) { a.Rx(boost::rational<boost::multiprecision::cpp_int>(1, 4), t); }, size, 8, false);
+    test_gate_n_times_to_identity([](auto& a, int t) { a.Rx(boost::rational<boost::multiprecision::cpp_int>(1, 4), t); }, kDefaultQubits, 8);
 }
 
 BOOST_AUTO_TEST_CASE(Ry_gate_eighth_to_identity)
 {
-    test_gate_n_times_to_identity([](auto& a, int t) { a.Ry(t); }, size, 8, false);
+    test_gate_n_times_to_identity([](auto& a, int t) { a.Ry(t); }, kDefaultQubits, 8);
 }
 
 BOOST_AUTO_TEST_CASE(Rz_gate_eighth_to_identity)
 {
-    test_gate_n_times_to_identity([](auto& a, int t) { a.Rz(boost::rational<boost::multiprecision::cpp_int>(1, 4), t); }, size, 8, false);
+    test_gate_n_times_to_identity([](auto& a, int t) { a.Rz(boost::rational<boost::multiprecision::cpp_int>(1, 4), t); }, kDefaultQubits, 8);
 }
 
 BOOST_AUTO_TEST_CASE(CX_gate_twice_to_identity)
 {
-    int n = size;
+    int n = kDefaultQubits;
     for (const auto &before : {AUTOQ::TreeAutomata::uniform(n),
                                AUTOQ::TreeAutomata::basis(n),
                                AUTOQ::TreeAutomata::random(n)}) {
@@ -226,7 +228,6 @@ BOOST_AUTO_TEST_CASE(CX_gate_twice_to_identity)
         int loop = 2;
         for (int i=0; i<loop; i++) {
             after.CX(n*2/3, n/3);
-
             if (i < loop-1 && before.name == "Random") {
                 BOOST_REQUIRE_MESSAGE(before != after, "\n" +
                     AUTOQ::Serialization::TimbukSerializer::Serialize(before) +
@@ -242,15 +243,16 @@ BOOST_AUTO_TEST_CASE(CX_gate_twice_to_identity)
 
 BOOST_AUTO_TEST_CASE(CZ_gate_twice_to_identity)
 {
-    test_gate_n_times_to_identity([](auto& a, int) { a.CZ(size*2/3, size/3); }, size, 2, false, {0});
+    test_gate_n_times_to_identity([](auto& a, int) { a.CZ(kDefaultQubits*2/3, kDefaultQubits/3); }, kDefaultQubits, 2);
 }
 
 BOOST_AUTO_TEST_CASE(CCX_gate_twice_to_identity)
 {
-    for (const auto &before : {AUTOQ::TreeAutomata::uniform(size*3/4+3),
-                               AUTOQ::TreeAutomata::basis(size*3/4+3),
-                               AUTOQ::TreeAutomata::random(size*3/4+3)}) {
-        int v[] = {1, size*3/8, size*3/4};
+    const int n = kDefaultQubits * 3 / 4 + 3;
+    for (const auto &before : {AUTOQ::TreeAutomata::uniform(n),
+                               AUTOQ::TreeAutomata::basis(n),
+                               AUTOQ::TreeAutomata::random(n)}) {
+        int v[] = {1, kDefaultQubits*3/8, kDefaultQubits*3/4};
         do {
             AUTOQ::TreeAutomata after = before;
             int loop = 2;
@@ -297,7 +299,41 @@ BOOST_AUTO_TEST_CASE(for_loop_summarization){
 }
 
 
-void dfs(const std::map<AUTOQ::TreeAutomata::State, AUTOQ::TreeAutomata::StateVector> &edge,
+static void grover_oracle(AUTOQ::TreeAutomata& aut, unsigned ans, int n) {
+    for (int i=1; i<=n; i++) {
+        if ((ans & (1 << (i-1))) == 0) aut.X(n+1-i);
+    }
+    if (n >= 3) {
+        aut.CCX(1, 2, n+2);
+        for (int i=3; i<=n; i++) aut.CCX(i, n+i-1, n+i);
+        aut.CX(2*n, n+1);
+        for (int i=n; i>=3; i--) aut.CCX(i, n+i-1, n+i);
+        aut.CCX(1, 2, n+2);
+    } else {
+        aut.CCX(1, 2, 3);
+    }
+    for (int i=1; i<=n; i++) {
+        if ((ans & (1 << (i-1))) == 0) aut.X(n+1-i);
+    }
+}
+
+static void grover_diffuser(AUTOQ::TreeAutomata& aut, int n) {
+    for (int i=1; i<=n; i++) aut.H(i);
+    for (int i=1; i<=n; i++) aut.X(i);
+    if (n >= 3) {
+        aut.CCX(1, 2, n+2);
+        for (int i=3; i<n; i++) aut.CCX(i, n+i-1, n+i);
+        aut.CZ(2*n-1, n);
+        for (int i=n-1; i>=3; i--) aut.CCX(i, n+i-1, n+i);
+        aut.CCX(1, 2, n+2);
+    } else {
+        aut.CZ(1, 2);
+    }
+    for (int i=1; i<=n; i++) aut.X(i);
+    for (int i=1; i<=n; i++) aut.H(i);
+}
+
+static void dfs(const std::map<AUTOQ::TreeAutomata::State, AUTOQ::TreeAutomata::StateVector> &edge,
          const std::map<AUTOQ::TreeAutomata::State, AUTOQ::TreeAutomata::SymbolTag> &leaf,
          const AUTOQ::TreeAutomata::StateVector &layer,
          #if defined COMPLEX_Plain
@@ -335,55 +371,8 @@ BOOST_AUTO_TEST_CASE(Grover_Search_only_one_oracle)
     /**********************************/
 
     for (int iter=1; iter <= M_PI / (4 * asin(1 / pow(2, n/2.0))); iter++) {
-        /********************************/
-        for (int i=1; i<=n; i++) {
-            if ((ans & (1 << (i-1))) == 0)
-                aut.X(n+1-i);
-        }
-        /* multi-controlled NOT gate */
-        if (n >= 3) {
-            aut.CCX(1, 2, n+2);
-            for (int i=3; i<=n; i++)
-                aut.CCX(i, n+i-1, n+i);
-            aut.CX(2*n, n+1);
-            for (int i=n; i>=3; i--)
-                aut.CCX(i, n+i-1, n+i);
-            aut.CCX(1, 2, n+2);
-        } else {
-            assert(n == 2);
-            aut.CCX(1, 2, 3);
-        }
-        /********************************/
-        for (int i=1; i<=n; i++) {
-            if ((ans & (1 << (i-1))) == 0)
-                aut.X(n+1-i);
-        }
-        /********************************/
-
-        /********************************/
-        for (int i=1; i<=n; i++) aut.H(i);
-        for (int i=1; i<=n; i++) aut.X(i);
-        /* multi-controlled Z gate */
-        if (n >= 3) {
-            aut.CCX(1, 2, n+2);
-            for (int i=3; i<n; i++) // Note that < does not include n!
-                aut.CCX(i, n+i-1, n+i);
-            aut.CZ(2*n-1, n);
-            for (int i=n-1; i>=3; i--)
-                aut.CCX(i, n+i-1, n+i);
-            aut.CCX(1, 2, n+2);
-        // } else if (n == 3) {
-        //     aut.H(2*n);
-        //     aut.CCX(4, 5, 6);
-        //     aut.H(2*n);
-        } else {
-            assert(n == 2);
-            aut.CZ(1, 2);
-        }
-        /********************************/
-        for (int i=1; i<=n; i++) aut.X(i);
-        for (int i=1; i<=n; i++) aut.H(i);
-        /********************************/
+        grover_oracle(aut, ans, n);
+        grover_diffuser(aut, n);
     }
 
     /******************************** Answer Validation *********************************/
@@ -415,41 +404,37 @@ BOOST_AUTO_TEST_CASE(Grover_Search_only_one_oracle)
             two_n_minus_one <<= 1; // N := 2^(n-1)
         N = two_n_minus_one * 2; // N := 2^n
     }
-    BOOST_REQUIRE_MESSAGE(first_layers.size() == 1, "");
+    BOOST_REQUIRE_MESSAGE(first_layers.size() == 1, "expected single first layer");
     std::vector<bool> ans_found(N);
     for (const auto &fl : first_layers) {
         std::vector<double> prob;
         dfs(edge, leaf, fl, prob);
-        // std::cout << prob.size() << AUTOQ::Util::Convert::ToString(prob) << "\n";
         std::vector<double> nonzero;
         for (unsigned i=0; i<prob.size(); i++) {
             if (i % two_n_minus_one != 0) {
-                BOOST_REQUIRE_MESSAGE(prob[i] <= 0, ""); /* in fact check = (make the compiler not complain) */
+                BOOST_REQUIRE_MESSAGE(prob[i] <= 0, "off-diagonal prob should be zero");
             } else {
                 nonzero.push_back(prob[i]);
             }
         }
         for (unsigned i=0; i<nonzero.size(); i+=2) {
-            BOOST_REQUIRE_MESSAGE(nonzero[i] >= nonzero[i+1] && nonzero[i] <= nonzero[i+1], ""); /* in fact check = (make the compiler not complain) */
+            BOOST_REQUIRE_MESSAGE(nonzero[i] >= nonzero[i+1] && nonzero[i] <= nonzero[i+1], "paired amplitudes equal");
             if (i == ans*2)
-                BOOST_REQUIRE_MESSAGE(nonzero[ans*2] * 2 >= 0.9, "");
+                BOOST_REQUIRE_MESSAGE(nonzero[ans*2] * 2 >= 0.9, "ans amplitude squared should be >= 0.9");
             else
-                BOOST_REQUIRE_MESSAGE(nonzero[i] < nonzero[ans*2], "");
+                BOOST_REQUIRE_MESSAGE(nonzero[i] < nonzero[ans*2], "non-ans amplitude should be less than ans");
         }
-        BOOST_REQUIRE_MESSAGE(!ans_found[ans], "");
+        BOOST_REQUIRE_MESSAGE(!ans_found[ans], "duplicate ans in first layers");
         ans_found[ans] = true;
     }
     for (unsigned i=0; i<N; i++) {
         if (i == ans)
-            BOOST_REQUIRE_MESSAGE(ans_found[i], "");
+            BOOST_REQUIRE_MESSAGE(ans_found[i], "expected ans to be found");
         else
-            BOOST_REQUIRE_MESSAGE(!ans_found[i], "");
+            BOOST_REQUIRE_MESSAGE(!ans_found[i], "non-ans should not appear");
     }
     /************************************************************************************/
 }
-
-#include <autoq/inclusion.hh>
-namespace fs = std::filesystem;
 
 BOOST_AUTO_TEST_CASE(benchmarks_OEGrover)
 {
@@ -595,16 +580,12 @@ BOOST_AUTO_TEST_CASE(qubit_reordering)
         AUTOQ::TreeAutomata aut = spec;
         for (int j=1; j<=z-1; j++)
             aut.SwapDown(j);
-        // aut.print_language();
-        // spec2.print_language();
-        BOOST_REQUIRE_MESSAGE(aut == spec2, __LINE__);
+        BOOST_REQUIRE_MESSAGE(aut == spec2, "SwapDown(z=" << z << ") should match spec2");
         /*****************************/
         aut = spec2;
         for (int j=z; j>=2; j--)
             aut.SwapUp(j);
-        // aut.print_language();
-        // spec.print_language();
-        BOOST_REQUIRE_MESSAGE(aut == spec, __LINE__);
+        BOOST_REQUIRE_MESSAGE(aut == spec, "SwapUp(z=" << z << ") should restore spec");
     }
     for (int z=2; z<=6; z+=2) {
         AUTOQ::TreeAutomata spec;
@@ -638,16 +619,12 @@ BOOST_AUTO_TEST_CASE(qubit_reordering)
         AUTOQ::TreeAutomata aut = spec;
         for (int j=1; j<=z; j+=2)
             aut.SwapDown(j);
-        // aut.print_language();
-        // spec2.print_language();
-        BOOST_REQUIRE_MESSAGE(aut == spec2, __LINE__);
+        BOOST_REQUIRE_MESSAGE(aut == spec2, "SwapDown odd(z=" << z << ") should match spec2");
         /*****************************/
         aut = spec2;
         for (int j=1; j<=z; j+=2)
             aut.SwapDown(j);
-        // aut.print_language();
-        // spec.print_language();
-        BOOST_REQUIRE_MESSAGE(aut == spec, __LINE__);
+        BOOST_REQUIRE_MESSAGE(aut == spec, "SwapDown odd(z=" << z << ") should restore spec");
     }
 }
 
