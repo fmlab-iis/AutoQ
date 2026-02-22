@@ -202,25 +202,12 @@ bool symbolic_leaf_pairs_smt_is_sat(
     assertion += ")))";
     return call_smt_solver(define_varA, assertion);
 }
-}  // namespace
-
-// -------- Inclusion: Symbolic automata (scaled inclusion) --------
-bool scaled_inclusion_with_or_without_renaming(AUTOQ::SymbolicAutomata autA, AUTOQ::SymbolicAutomata autB, bool renaming) {
-    if (AUTOQ::String::trim(autA.constraints).empty()) autA.constraints = "true";
-    if (AUTOQ::String::trim(autB.constraints).empty()) autB.constraints = "true";
-    autB = autB.operator||(AUTOQ::SymbolicAutomata::zero_amplitude(autB.qubitNum));
-
-    if (renaming) {
-        rename_symbolic_aut_vars(autA, "R_");
-        rename_symbolic_aut_vars(autB, "Q_");
-    }
-
-    auto start_include = std::chrono::steady_clock::now();
-
-    std::vector<std::map<AUTOQ::SymbolicAutomata::SymbolTag, AUTOQ::SymbolicAutomata::StateVector>> transA;
-    std::vector<std::map<AUTOQ::SymbolicAutomata::Symbol, std::map<AUTOQ::SymbolicAutomata::Tag, AUTOQ::SymbolicAutomata::StateVector>>> transB;
-    AUTOQ::build_inclusion_trans(autA, autB, transA, transB);
-
+static bool symbolic_inclusion_bfs_holds(
+    const AUTOQ::SymbolicAutomata& autA,
+    const AUTOQ::SymbolicAutomata& autB,
+    std::vector<std::map<AUTOQ::SymbolicAutomata::SymbolTag, AUTOQ::SymbolicAutomata::StateVector>>& transA,
+    std::vector<std::map<AUTOQ::SymbolicAutomata::Symbol, std::map<AUTOQ::SymbolicAutomata::Tag, AUTOQ::SymbolicAutomata::StateVector>>>& transB)
+{
     // Main Routine: Graph Traversal
     typedef std::map<AUTOQ::SymbolicAutomata::State, AUTOQ::SymbolicAutomata::StateSet> Cell;
     typedef std::set<Cell> Vertex;
@@ -469,17 +456,11 @@ bool scaled_inclusion_with_or_without_renaming(AUTOQ::SymbolicAutomata autA, AUT
                 if (is_leaf_vertex) { // only when considering some particular transitions
                     INCLUSION_DEBUG("THE VERTEX: " << AUTOQ::Util::Convert::ToString(vertex2) << " LEADS A TO NOTHING OF STATES, SO WE SHALL NOT PUSH THIS VERTEX BUT CHECK IF B HAS POSSIBLE SIMULTANEOUS TRANSITION COMBINATIONS LEADING TO THIS VERTEX.");
                     if (vertex_fail) {
-                        auto stop_include = std::chrono::steady_clock::now();
-                        AUTOQ::SymbolicAutomata::include_status = AUTOQ::Util::Convert::ToString(stop_include - start_include) + " X";
                         INCLUSION_DEBUG("UNFORTUNATELY B HAS NO POSSIBLE TRANSITION COMBINATIONS, SO THE INCLUSION DOES NOT HOLD :(");
-                        AUTOQ::SymbolicAutomata::total_include_time += stop_include - start_include;
                         return false;
                     }
                     if (symbolic_leaf_pairs_smt_is_sat(autA, autB, leaf_pairs_of_one_new_vertex)) {
-                        auto stop_include = std::chrono::steady_clock::now();
-                        AUTOQ::SymbolicAutomata::include_status = AUTOQ::Util::Convert::ToString(stop_include - start_include) + " X";
                         INCLUSION_DEBUG("UNFORTUNATELY B HAS NO POSSIBLE TRANSITION COMBINATIONS, SO THE INCLUSION DOES NOT HOLD :(");
-                        AUTOQ::SymbolicAutomata::total_include_time += stop_include - start_include;
                         return false;
                     }
                 } else if (created.contains(vertex2)) {
@@ -507,11 +488,34 @@ bool scaled_inclusion_with_or_without_renaming(AUTOQ::SymbolicAutomata autA, AUT
             }
         } while (!have_listed_all_combinationsA);
     }
-    auto stop_include = std::chrono::steady_clock::now();
-    AUTOQ::SymbolicAutomata::include_status = AUTOQ::Util::Convert::ToString(stop_include - start_include);
     INCLUSION_DEBUG("FORTUNATELY FOR EACH (MAXIMAL) PATH B HAS POSSIBLE SIMULTANEOUS TRANSITION COMBINATIONS, SO THE INCLUSION DOES HOLD :)");
-    AUTOQ::SymbolicAutomata::total_include_time += stop_include - start_include;
     return true;
+}
+
+}  // namespace
+
+// -------- Inclusion: Symbolic automata (scaled inclusion) --------
+bool scaled_inclusion_with_or_without_renaming(AUTOQ::SymbolicAutomata autA, AUTOQ::SymbolicAutomata autB, bool renaming) {
+    if (AUTOQ::String::trim(autA.constraints).empty()) autA.constraints = "true";
+    if (AUTOQ::String::trim(autB.constraints).empty()) autB.constraints = "true";
+    autB = autB.operator||(AUTOQ::SymbolicAutomata::zero_amplitude(autB.qubitNum));
+
+    if (renaming) {
+        rename_symbolic_aut_vars(autA, "R_");
+        rename_symbolic_aut_vars(autB, "Q_");
+    }
+
+    auto start_include = std::chrono::steady_clock::now();
+
+    std::vector<std::map<AUTOQ::SymbolicAutomata::SymbolTag, AUTOQ::SymbolicAutomata::StateVector>> transA;
+    std::vector<std::map<AUTOQ::SymbolicAutomata::Symbol, std::map<AUTOQ::SymbolicAutomata::Tag, AUTOQ::SymbolicAutomata::StateVector>>> transB;
+    AUTOQ::build_inclusion_trans(autA, autB, transA, transB);
+
+    bool holds = symbolic_inclusion_bfs_holds(autA, autB, transA, transB);
+    auto stop_include = std::chrono::steady_clock::now();
+    AUTOQ::SymbolicAutomata::include_status = AUTOQ::Util::Convert::ToString(stop_include - start_include) + (holds ? "" : " X");
+    AUTOQ::SymbolicAutomata::total_include_time += stop_include - start_include;
+    return holds;
 }
 template <>
 // -------- SymbolicAutomata::operator<<= --------
