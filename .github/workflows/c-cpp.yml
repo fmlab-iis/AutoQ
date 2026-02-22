@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
-    - run: sudo apt-get install libboost-filesystem-dev libboost-test-dev libantlr4-runtime-dev
+    - run: sudo apt-get update && sudo apt-get install -y libboost-filesystem-dev libboost-test-dev libantlr4-runtime-dev
     - run: make debug
     - run: cp /usr/lib/x86_64-linux-gnu/libboost_unit_test_framework.so.* build/unit_tests/
     - run: cp libz3.so.*                                                  build/unit_tests/
@@ -42,7 +42,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
-    - run: sudo apt-get install libboost-filesystem-dev libboost-test-dev libantlr4-runtime-dev
+    - run: sudo apt-get update && sudo apt-get install -y libboost-filesystem-dev libboost-test-dev libantlr4-runtime-dev
     - run: make release
     - run: cp /usr/lib/x86_64-linux-gnu/libboost_unit_test_framework.so.* build/unit_tests/
     - run: cp libz3.so.*                                                  build/unit_tests/
