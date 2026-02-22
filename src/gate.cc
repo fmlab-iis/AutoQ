@@ -45,7 +45,7 @@ void flush_qcfi_to_result(
 }  // namespace
 
 template <typename Symbol>
-void AUTOQ::Automata<Symbol>::General_Single_Qubit_Gate(int t, const std::function<Symbol(const Symbol&, const Symbol&)> &u1u2, const std::function<Symbol(const Symbol&, const Symbol&)> &u3u4) {
+void AUTOQ::Automata<Symbol>::general_single_qubit_gate(int t, const std::function<Symbol(const Symbol&, const Symbol&)> &u1u2, const std::function<Symbol(const Symbol&, const Symbol&)> &u3u4) {
     AUTOQ::Automata<Symbol> result;
     result.name = name;
     result.qubitNum = qubitNum;
@@ -167,14 +167,14 @@ void AUTOQ::Automata<Symbol>::General_Single_Qubit_Gate(int t, const std::functi
 }
 
 template <typename Symbol>
-void AUTOQ::Automata<Symbol>::General_Controlled_Gate(int c, int t, const std::function<Symbol(const Symbol&, const Symbol&)> &u1u2, const std::function<Symbol(const Symbol&, const Symbol&)> &u3u4, const std::function<Symbol(const Symbol&)> &multiply_by_c0) {
+void AUTOQ::Automata<Symbol>::general_controlled_gate(int c, int t, const std::function<Symbol(const Symbol&, const Symbol&)> &u1u2, const std::function<Symbol(const Symbol&, const Symbol&)> &u3u4, const std::function<Symbol(const Symbol&)> &multiply_by_c0) {
     if (c <= t) {
         THROW_AUTOQ_ERROR("We require c > t here.");
     }
-    General_Controlled_Gate(c, c, t, u1u2, u3u4, multiply_by_c0);
+    general_controlled_gate(c, c, t, u1u2, u3u4, multiply_by_c0);
 }
 template <typename Symbol>
-void AUTOQ::Automata<Symbol>::General_Controlled_Gate(int c, int c2, int t, const std::function<Symbol(const Symbol&, const Symbol&)> &u1u2, const std::function<Symbol(const Symbol&, const Symbol&)> &u3u4, const std::function<Symbol(const Symbol&)> &multiply_by_c0) {
+void AUTOQ::Automata<Symbol>::general_controlled_gate(int c, int c2, int t, const std::function<Symbol(const Symbol&, const Symbol&)> &u1u2, const std::function<Symbol(const Symbol&, const Symbol&)> &u3u4, const std::function<Symbol(const Symbol&)> &multiply_by_c0) {
     auto minC = std::min(c, c2);
     if (minC <= t) {
         THROW_AUTOQ_ERROR("We require all c's > t here.");
@@ -364,7 +364,7 @@ void AUTOQ::Automata<Symbol>::General_Controlled_Gate(int c, int c2, int t, cons
     //         newID = it->second; \
     // }*/
 template <typename Symbol>
-void AUTOQ::Automata<Symbol>::Diagonal_Gate(int t, const std::function<void(Symbol*)> &multiply_by_c0, const std::function<void(Symbol*)> &multiply_by_c1) {
+void AUTOQ::Automata<Symbol>::diagonal_gate(int t, const std::function<void(Symbol*)> &multiply_by_c0, const std::function<void(Symbol*)> &multiply_by_c1) {
     TopDownTransitions transitions2;
     std::map<State, int> topStateIsLeftOrRight, childStateIsLeftOrRight; // 0b10: original tree, 0b01: copied tree, 0b11: both trees
     // std::map<State, State> topStateMap, childStateMap;
@@ -523,7 +523,7 @@ void AUTOQ::Automata<Symbol>::Y(int t) {
     #endif
     auto start = std::chrono::steady_clock::now();
     X(t); gateCount--;
-    Diagonal_Gate(t, std::bind(&Symbol::degree90cw, std::placeholders::_1), std::bind(&Symbol::omega_multiplication, std::placeholders::_1, 2));
+    diagonal_gate(t, std::bind(&Symbol::degree90cw, std::placeholders::_1), std::bind(&Symbol::omega_multiplication, std::placeholders::_1, 2));
     // remove_useless();
     reduce();
     gateCount++;
@@ -539,7 +539,7 @@ void AUTOQ::Automata<Symbol>::Z(int t, bool opt) {
         return;
     #endif
     auto start = std::chrono::steady_clock::now();
-    Diagonal_Gate(t, [](Symbol*) {}, std::bind(&Symbol::negate, std::placeholders::_1));
+    diagonal_gate(t, [](Symbol*) {}, std::bind(&Symbol::negate, std::placeholders::_1));
     if (opt) {
         // remove_useless();
         reduce();
@@ -557,7 +557,7 @@ void AUTOQ::Automata<Symbol>::H(int t) {
         return;
     #endif
     auto start = std::chrono::steady_clock::now();
-    General_Single_Qubit_Gate(t,
+    general_single_qubit_gate(t,
         [](const Symbol &l, const Symbol &r) -> Symbol { return (l + r).divide_by_the_square_root_of_two(); },
         [](const Symbol &l, const Symbol &r) -> Symbol { return (l - r).divide_by_the_square_root_of_two(); });
     gateCount++;
@@ -572,7 +572,7 @@ void AUTOQ::Automata<Symbol>::S(int t) {
         return;
     #endif
     auto start = std::chrono::steady_clock::now();
-    Diagonal_Gate(t, [](Symbol*) {}, std::bind(&Symbol::omega_multiplication, std::placeholders::_1, 2));
+    diagonal_gate(t, [](Symbol*) {}, std::bind(&Symbol::omega_multiplication, std::placeholders::_1, 2));
     // remove_useless();
     reduce();
     gateCount++;
@@ -587,7 +587,7 @@ void AUTOQ::Automata<Symbol>::T(int t) {
         return;
     #endif
     auto start = std::chrono::steady_clock::now();
-    Diagonal_Gate(t, [](Symbol*) {}, std::bind(&Symbol::omega_multiplication, std::placeholders::_1, 1));
+    diagonal_gate(t, [](Symbol*) {}, std::bind(&Symbol::omega_multiplication, std::placeholders::_1, 1));
     // remove_useless();
     reduce();
     gateCount++;
@@ -602,7 +602,7 @@ void AUTOQ::Automata<Symbol>::Rx(const boost::rational<boost::multiprecision::cp
         return;
     #endif
     auto start = std::chrono::steady_clock::now();
-    General_Single_Qubit_Gate(t,
+    general_single_qubit_gate(t,
         [theta](Symbol l, Symbol r) -> Symbol { return l.multiply_cos(theta/2) - r.multiply_isin(theta/2); },
         [theta](Symbol l, Symbol r) -> Symbol { return r.multiply_cos(theta/2) - l.multiply_isin(theta/2); });
     gateCount++;
@@ -617,7 +617,7 @@ void AUTOQ::Automata<Symbol>::Ry(int t) {
         return;
     #endif
     auto start = std::chrono::steady_clock::now();
-    General_Single_Qubit_Gate(t,
+    general_single_qubit_gate(t,
         [](const Symbol &l, const Symbol &r) -> Symbol { return (l - r).divide_by_the_square_root_of_two(); },
         [](const Symbol &l, const Symbol &r) -> Symbol { return (l + r).divide_by_the_square_root_of_two(); });
     gateCount++;
@@ -633,10 +633,10 @@ void AUTOQ::Automata<Symbol>::Rz(const boost::rational<boost::multiprecision::cp
         return;
     #endif
     auto start = std::chrono::steady_clock::now();
-    // General_Single_Qubit_Gate(t,
+    // general_single_qubit_gate(t,
     //     [theta](Symbol l, const Symbol &r) -> Symbol { return l.counterclockwise(-theta / 2); },
     //     [theta](const Symbol &l, Symbol r) -> Symbol { return r.counterclockwise(theta / 2); });
-    Diagonal_Gate(t, std::bind(&Symbol::counterclockwise, std::placeholders::_1, -theta / 2), std::bind(&Symbol::counterclockwise, std::placeholders::_1, theta / 2));
+    diagonal_gate(t, std::bind(&Symbol::counterclockwise, std::placeholders::_1, -theta / 2), std::bind(&Symbol::counterclockwise, std::placeholders::_1, theta / 2));
     // remove_useless();
     reduce();
     gateCount++;
@@ -654,7 +654,7 @@ void AUTOQ::Automata<Symbol>::CX(int c, int t, bool opt) {
     auto start = std::chrono::steady_clock::now();
     assert(c != t);
     if (c > t) {
-        General_Controlled_Gate(c, t,
+        general_controlled_gate(c, t,
             [](const Symbol &, const Symbol &r) -> Symbol { return r; },
             [](const Symbol &l, const Symbol &) -> Symbol { return l; });
     } else {
@@ -1354,7 +1354,7 @@ void AUTOQ::Automata<Symbol>::CCX(int c, int c2, int t) {
         transitions = transitions2;
         stateNum *= 3;
     } else if (t < c) { // t < c < c2
-        General_Controlled_Gate(c, c2, t,
+        general_controlled_gate(c, c2, t,
             [](const Symbol &, const Symbol &r) -> Symbol { return r; },
             [](const Symbol &l, const Symbol &) -> Symbol { return l; });
     } else { // c < t < c2
@@ -1406,7 +1406,7 @@ void AUTOQ::Automata<Symbol>::Tdg(int t) {
     //     return;
     // #endif
     auto start = std::chrono::steady_clock::now();
-    Diagonal_Gate(t, [](Symbol*) {}, std::bind(&Symbol::degree45cw, std::placeholders::_1));
+    diagonal_gate(t, [](Symbol*) {}, std::bind(&Symbol::degree45cw, std::placeholders::_1));
     // remove_useless();
     reduce();
     gateCount++;
@@ -1422,7 +1422,7 @@ void AUTOQ::Automata<Symbol>::Sdg(int t) {
     //     return;
     // #endif
     auto start = std::chrono::steady_clock::now();
-    Diagonal_Gate(t, [](Symbol*) {}, std::bind(&Symbol::degree90cw, std::placeholders::_1));
+    diagonal_gate(t, [](Symbol*) {}, std::bind(&Symbol::degree90cw, std::placeholders::_1));
     // remove_useless();
     reduce();
     gateCount++;
@@ -1548,7 +1548,7 @@ void AUTOQ::Automata<Symbol>::CK(int c, int t) {
         return;
     #endif
     auto start = std::chrono::steady_clock::now();
-    General_Controlled_Gate(c, t,
+    general_controlled_gate(c, t,
         [](const Symbol &l, const Symbol &r) -> Symbol { return l * 220 - r * 21; },
         [](const Symbol &l, const Symbol &r) -> Symbol { return l * 21 + r * 220; },
         [](const Symbol &l) -> Symbol { return l * 221; });
@@ -1567,9 +1567,9 @@ AUTOQ::Automata<Symbol> AUTOQ::Automata<Symbol>::measure(int t, bool outcome) co
     auto start = std::chrono::steady_clock::now();
     auto aut = *this;
     if (outcome)
-        aut.Diagonal_Gate(t, std::bind(&Symbol::back_to_zero, std::placeholders::_1), [](Symbol*) {});
+        aut.diagonal_gate(t, std::bind(&Symbol::back_to_zero, std::placeholders::_1), [](Symbol*) {});
     else
-        aut.Diagonal_Gate(t, [](Symbol*) {}, std::bind(&Symbol::back_to_zero, std::placeholders::_1));
+        aut.diagonal_gate(t, [](Symbol*) {}, std::bind(&Symbol::back_to_zero, std::placeholders::_1));
     // if (opt) {
         // remove_useless();
         aut.reduce();
