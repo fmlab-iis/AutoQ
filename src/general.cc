@@ -1,3 +1,8 @@
+/**
+ * Product, union, and general automata operations.
+ * - operator* (tensor product), operator|| (union), operator&& (intersection).
+ * - SwapDown, SwapUp.
+ */
 #include "autoq/aut_description.hh"
 #include "autoq/symbol/concrete.hh"
 #include "autoq/symbol/symbolic.hh"
