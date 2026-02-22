@@ -116,8 +116,8 @@ AUTOQ::ConstrainedAutomata AUTOQ::ConstrainedAutomata::efficiently_construct_sin
 }
 
 template <>
-AUTOQ::TreeAutomata AUTOQ::TreeAutomata::uniform(int n) {
-    TreeAutomata aut;
+AUTOQ::ConcreteAutomata AUTOQ::ConcreteAutomata::uniform(int n) {
+    ConcreteAutomata aut;
     aut.name = "Uniform";
     aut.qubitNum = n;
     for (int level=1; level<=n; level++) {
@@ -132,8 +132,8 @@ AUTOQ::TreeAutomata AUTOQ::TreeAutomata::uniform(int n) {
 }
 
 template <>
-AUTOQ::TreeAutomata AUTOQ::TreeAutomata::basis(int n) {
-    TreeAutomata aut;
+AUTOQ::ConcreteAutomata AUTOQ::ConcreteAutomata::basis(int n) {
+    ConcreteAutomata aut;
     aut.name = "Classical";
     aut.qubitNum = n;
 
@@ -153,8 +153,8 @@ AUTOQ::TreeAutomata AUTOQ::TreeAutomata::basis(int n) {
 }
 
 template <>
-AUTOQ::TreeAutomata AUTOQ::TreeAutomata::prefix_basis(int n) {
-    TreeAutomata aut;
+AUTOQ::ConcreteAutomata AUTOQ::ConcreteAutomata::prefix_basis(int n) {
+    ConcreteAutomata aut;
     aut.name = "Prefix Basis";
     aut.qubitNum = n;
 
@@ -177,8 +177,8 @@ AUTOQ::TreeAutomata AUTOQ::TreeAutomata::prefix_basis(int n) {
 }
 
 template <>
-AUTOQ::TreeAutomata AUTOQ::TreeAutomata::random(int n) {
-    TreeAutomata aut;
+AUTOQ::ConcreteAutomata AUTOQ::ConcreteAutomata::random(int n) {
+    ConcreteAutomata aut;
     aut.name = "Random";
     aut.qubitNum = n;
     int pow_of_two = 1;
@@ -201,7 +201,7 @@ AUTOQ::TreeAutomata AUTOQ::TreeAutomata::random(int n) {
 }
 
 template <>
-AUTOQ::TreeAutomata AUTOQ::TreeAutomata::zero(int n) {
+AUTOQ::ConcreteAutomata AUTOQ::ConcreteAutomata::zero(int n) {
     /* Example of n = 6:
         Final States 0
         Transitions
@@ -219,7 +219,7 @@ AUTOQ::TreeAutomata AUTOQ::TreeAutomata::zero(int n) {
         [0,0,0,0,0] -> 11
         [1,0,0,0,0] -> 12
     */
-    TreeAutomata aut;
+    ConcreteAutomata aut;
     aut.name = "Zero";
     aut.qubitNum = n;
     aut.finalStates.push_back(0);
@@ -251,8 +251,8 @@ AUTOQ::Automata<Symbol> AUTOQ::Automata<Symbol>::zero_amplitude(int n) {
 }
 
 template <>
-AUTOQ::TreeAutomata AUTOQ::TreeAutomata::basis_zero_one_zero(int n) {
-    TreeAutomata aut;
+AUTOQ::ConcreteAutomata AUTOQ::ConcreteAutomata::basis_zero_one_zero(int n) {
+    ConcreteAutomata aut;
     assert(n >= 2);
     aut.name = "Classical_Zero_One_Zero";
     aut.qubitNum = n + (n+1) + (n>=3) * (n-1);
@@ -288,8 +288,8 @@ AUTOQ::TreeAutomata AUTOQ::TreeAutomata::basis_zero_one_zero(int n) {
 }
 
 template <>
-AUTOQ::TreeAutomata AUTOQ::TreeAutomata::zero_zero_one_zero(int n) {
-    TreeAutomata aut;
+AUTOQ::ConcreteAutomata AUTOQ::ConcreteAutomata::zero_zero_one_zero(int n) {
+    ConcreteAutomata aut;
     assert(n >= 2);
     aut.name = "Zero_Zero_One_Zero";
     aut.qubitNum = n + (n+1) + (n>=3) * (n-1);
@@ -325,8 +325,8 @@ AUTOQ::TreeAutomata AUTOQ::TreeAutomata::zero_zero_one_zero(int n) {
 }
 
 template <>
-AUTOQ::TreeAutomata AUTOQ::TreeAutomata::zero_one_zero(int n) {
-    TreeAutomata aut;
+AUTOQ::ConcreteAutomata AUTOQ::ConcreteAutomata::zero_one_zero(int n) {
+    ConcreteAutomata aut;
     assert(n >= 2);
     aut.name = "Zero_One_Zero";
     aut.qubitNum = (n+1) + (n>=3) * (n-1);

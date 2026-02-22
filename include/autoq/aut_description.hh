@@ -33,7 +33,7 @@ namespace AUTOQ
         struct Index;
     }
     template <typename TT> struct Automata;
-    typedef Automata<Symbol::Concrete> TreeAutomata;
+    typedef Automata<Symbol::Concrete> ConcreteAutomata;
     typedef Automata<Symbol::Symbolic> SymbolicAutomata;
     typedef Automata<Symbol::Predicate> PredicateAutomata;
     typedef Automata<Symbol::Index> IndexAutomata;
@@ -292,7 +292,7 @@ namespace std {
             return seed; \
         } \
     }
-    AUTOQ_HASH_SYMBOL_TAG(TreeAutomata);
+    AUTOQ_HASH_SYMBOL_TAG(ConcreteAutomata);
     AUTOQ_HASH_SYMBOL_TAG(SymbolicAutomata);
     AUTOQ_HASH_SYMBOL_TAG(PredicateAutomata);
     AUTOQ_HASH_SYMBOL_TAG(IndexAutomata);

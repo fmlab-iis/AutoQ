@@ -59,7 +59,7 @@ BOOST_AUTO_TEST_CASE(qasm_parsing_minimal_circuit)
 
 BOOST_AUTO_TEST_CASE(inclusion_checker_equal_automata)
 {
-    auto aut = AUTOQ::TreeAutomata::basis(3);
+    auto aut = AUTOQ::ConcreteAutomata::basis(3);
     auto spec = aut;
     BOOST_REQUIRE(aut <<= spec);
     BOOST_REQUIRE(spec <<= aut);

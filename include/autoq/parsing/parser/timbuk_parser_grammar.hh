@@ -11,8 +11,8 @@
  */
 template <typename Symbol>
 typename AUTOQ::Automata<Symbol>::Symbol parse_symbol(const std::string& str, std::set<std::string> &vars) {
-    /************************** TreeAutomata **************************/
-    if constexpr(std::is_same_v<Symbol, AUTOQ::TreeAutomata::Symbol>) {
+    /************************** ConcreteAutomata **************************/
+    if constexpr(std::is_same_v<Symbol, AUTOQ::ConcreteAutomata::Symbol>) {
             THROW_AUTOQ_ERROR("The type of Complex is not supported!");
     }
     /**************************** SymbolicAutomata ****************************/
@@ -169,16 +169,16 @@ AUTOQ::Automata<Symbol> parse_timbuk(const std::string& str) {
 					THROW_AUTOQ_ERROR(invalid_trans_str);
 				}
 
-				// result.transitions.insert(AUTOQ::TreeAutomata::Transition({}, lhs, rhs));
+				// result.transitions.insert(AUTOQ::ConcreteAutomata::Transition({}, lhs, rhs));
                 /*******************************************************************************************************************/
                 int t = atoi(rhs.c_str());
                 if (t > result.stateNum) result.stateNum = t;
-                if constexpr(std::is_same_v<Symbol, AUTOQ::TreeAutomata::Symbol>) {
+                if constexpr(std::is_same_v<Symbol, AUTOQ::ConcreteAutomata::Symbol>) {
                     auto temp = parse_symbol<Symbol>(lhs);
-                    result.transitions[temp][t].insert(std::vector<AUTOQ::TreeAutomata::State>()); //.stateNum.TranslateFwd(rhs));
+                    result.transitions[temp][t].insert(std::vector<AUTOQ::ConcreteAutomata::State>()); //.stateNum.TranslateFwd(rhs));
                 } else if constexpr(std::is_same_v<Symbol, AUTOQ::PredicateAutomata::Symbol>) {
                     auto temp = parse_symbol<Symbol>(lhs);
-                    result.transitions[temp][t].insert(std::vector<AUTOQ::TreeAutomata::State>()); //.stateNum.TranslateFwd(rhs));
+                    result.transitions[temp][t].insert(std::vector<AUTOQ::ConcreteAutomata::State>()); //.stateNum.TranslateFwd(rhs));
                 } else {
                     auto temp = parse_symbol<Symbol>(lhs, result.vars);
                     result.transitions[temp][t].insert(std::vector<AUTOQ::SymbolicAutomata::State>()); //.stateNum.TranslateFwd(rhs));
@@ -231,7 +231,7 @@ AUTOQ::Automata<Symbol> parse_timbuk(const std::string& str) {
 					state_tuple = { };
 				}
 
-				// result.transitions.insert(AUTOQ::TreeAutomata::Transition(state_tuple, lab, rhs));
+				// result.transitions.insert(AUTOQ::ConcreteAutomata::Transition(state_tuple, lab, rhs));
                 /*********************************************************************************************/
                 int t = atoi(rhs.c_str());
                 if (t > result.stateNum) result.stateNum = t;

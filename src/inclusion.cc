@@ -204,7 +204,7 @@ bool AUTOQ::Automata<Symbol>::operator<=(const Automata<Symbol> &autB) const {
 }
 
 // (Symbolic inclusion: check_validity, scaled_inclusion, SymbolicAutomata::operator<<= in inclusion_symbolic.cc)
-// (TreeAutomata::operator<<= in inclusion_concrete.cc)
+// (ConcreteAutomata::operator<<= in inclusion_concrete.cc)
 
 template <>
 bool AUTOQ::PredicateAutomata::operator<<=(AUTOQ::PredicateAutomata) const {

@@ -349,7 +349,7 @@ std::string AUTOQ::Automata<Symbol>::check_the_invariants_types(const std::strin
             } else if (std::holds_alternative<AUTOQ::SymbolicAutomata>(invariant)) {
                 qasm.close();
                 return "Symbolic";
-            } else if (std::holds_alternative<AUTOQ::TreeAutomata>(invariant)) {
+            } else if (std::holds_alternative<AUTOQ::ConcreteAutomata>(invariant)) {
             } else {
                 qasm.close();
                 THROW_AUTOQ_ERROR(EM::kLoopInvariantType);

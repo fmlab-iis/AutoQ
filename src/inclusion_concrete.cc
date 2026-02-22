@@ -7,9 +7,9 @@
 #include <queue>
 
 template <>
-bool AUTOQ::TreeAutomata::operator<<=(AUTOQ::TreeAutomata autB) const {
+bool AUTOQ::ConcreteAutomata::operator<<=(AUTOQ::ConcreteAutomata autB) const {
     const auto &autA = *this;
-    autB = autB.operator||(AUTOQ::TreeAutomata::zero_amplitude(autB.qubitNum));
+    autB = autB.operator||(AUTOQ::ConcreteAutomata::zero_amplitude(autB.qubitNum));
     // autA.print_aut("R:\n"); autB.print_aut("Q:\n");
     // if (autA.StrictlyEqual(autB)) return true;
 
@@ -19,8 +19,8 @@ bool AUTOQ::TreeAutomata::operator<<=(AUTOQ::TreeAutomata autB) const {
     auto start_include = std::chrono::steady_clock::now();
 
     // Preparation: Transform transitions into the new data structure.
-    std::vector<std::map<AUTOQ::TreeAutomata::SymbolTag, AUTOQ::TreeAutomata::StateVector>> transA(autA.stateNum);
-    std::vector<std::map<AUTOQ::TreeAutomata::Symbol, std::map<AUTOQ::TreeAutomata::Tag, AUTOQ::TreeAutomata::StateVector>>> transB(autB.stateNum);
+    std::vector<std::map<AUTOQ::ConcreteAutomata::SymbolTag, AUTOQ::ConcreteAutomata::StateVector>> transA(autA.stateNum);
+    std::vector<std::map<AUTOQ::ConcreteAutomata::Symbol, std::map<AUTOQ::ConcreteAutomata::Tag, AUTOQ::ConcreteAutomata::StateVector>>> transB(autB.stateNum);
     for (const auto &t : autA.transitions) {
         const auto &symbol_tag = t.first;
         for (const auto &out_ins : t.second) {
@@ -43,7 +43,7 @@ bool AUTOQ::TreeAutomata::operator<<=(AUTOQ::TreeAutomata autB) const {
     // autB.print_aut("autB\n");
 
     // Main Routine: Graph Traversal
-    typedef std::map<AUTOQ::TreeAutomata::State, AUTOQ::TreeAutomata::StateSet> Cell;
+    typedef std::map<AUTOQ::ConcreteAutomata::State, AUTOQ::ConcreteAutomata::StateSet> Cell;
     typedef std::set<Cell> Vertex;
     std::set<Vertex> created; // Remember created configurations.
     std::queue<Vertex> bfs; // the queue used for traversing the graph
@@ -65,8 +65,8 @@ bool AUTOQ::TreeAutomata::operator<<=(AUTOQ::TreeAutomata autB) const {
         INCLUSION_DEBUG("EXTRACT VERTEX: " << AUTOQ::Util::Convert::ToString(vertex));
         bfs.pop();
         // List all possible transition combinations of A in this vertex first!
-        std::map<AUTOQ::TreeAutomata::State, typename std::map<AUTOQ::TreeAutomata::SymbolTag, AUTOQ::TreeAutomata::StateVector>::iterator> A_transition_combinations;
-        std::map<AUTOQ::TreeAutomata::State, std::vector<AUTOQ::TreeAutomata::Tag>> possible_colors_for_qA; // Elements may repeat in the vector!
+        std::map<AUTOQ::ConcreteAutomata::State, typename std::map<AUTOQ::ConcreteAutomata::SymbolTag, AUTOQ::ConcreteAutomata::StateVector>::iterator> A_transition_combinations;
+        std::map<AUTOQ::ConcreteAutomata::State, std::vector<AUTOQ::ConcreteAutomata::Tag>> possible_colors_for_qA; // Elements may repeat in the vector!
         for (const auto& qA_qBs : *(vertex.begin())) {
             auto qA = qA_qBs.first;
             A_transition_combinations[qA] = transA[qA].begin();
@@ -118,13 +118,13 @@ bool AUTOQ::TreeAutomata::operator<<=(AUTOQ::TreeAutomata autB) const {
                     Cell cell2;
                     bool cell_fail = false; // is_leaf_vertex
                     bool have_listed_all_combinationsB = false;
-                    // std::map<TreeAutomata::State, std::vector<TreeAutomata::Tag>> possible_colors_for_qB;
+                    // std::map<ConcreteAutomata::State, std::vector<ConcreteAutomata::Tag>> possible_colors_for_qB;
 
                     // The following loop is used to build all possible transition combinations of B,
                     // given the cell (set) of constraints, each of which describes "some A's state <==> some B's states".
-                    std::map<AUTOQ::TreeAutomata::State, std::set<AUTOQ::Symbol::Concrete>> As_symbols_associated_with_Bs_states;
-                    std::map<AUTOQ::TreeAutomata::State, std::map<AUTOQ::TreeAutomata::Symbol, std::map<AUTOQ::TreeAutomata::Tag, AUTOQ::TreeAutomata::StateVector>::iterator>> B_transition_combinations_data;
-                    std::map<AUTOQ::TreeAutomata::State, AUTOQ::TreeAutomata::Symbol> B_transition_combinations;
+                    std::map<AUTOQ::ConcreteAutomata::State, std::set<AUTOQ::Symbol::Concrete>> As_symbols_associated_with_Bs_states;
+                    std::map<AUTOQ::ConcreteAutomata::State, std::map<AUTOQ::ConcreteAutomata::Symbol, std::map<AUTOQ::ConcreteAutomata::Tag, AUTOQ::ConcreteAutomata::StateVector>::iterator>> B_transition_combinations_data;
+                    std::map<AUTOQ::ConcreteAutomata::State, AUTOQ::ConcreteAutomata::Symbol> B_transition_combinations;
                     for (const auto &kv : A_transition_combinations) { // simply loop through all qA's in this cell
                         const auto &qA = kv.first;
                         const auto &fc_in = *(kv.second); // the currently picked transition for qA
@@ -154,7 +154,7 @@ bool AUTOQ::TreeAutomata::operator<<=(AUTOQ::TreeAutomata autB) const {
                             // }
                             /***********************************************/
                             if (desired_symbol.is_internal()) {
-                                AUTOQ::TreeAutomata::Symbol desired_symbol2(desired_symbol.qubit());
+                                AUTOQ::ConcreteAutomata::Symbol desired_symbol2(desired_symbol.qubit());
                                 if (transB[qB].find(desired_symbol2) == transB[qB].end()) {
                                     // If qB has no transitions with the desired symbol,
                                     // simply construct the unique cell without B's states!
@@ -314,9 +314,9 @@ L1372:                  INCLUSION_DEBUG("ARE " << (color_consistent2 ? "" : "NOT
                     INCLUSION_DEBUG("THE VERTEX: " << AUTOQ::Util::Convert::ToString(vertex2) << " LEADS A TO NOTHING OF STATES, SO WE SHALL NOT PUSH THIS VERTEX BUT CHECK IF B HAS POSSIBLE SIMULTANEOUS TRANSITION COMBINATIONS LEADING TO THIS VERTEX.");
                     if (vertex_fail) {
                         auto stop_include = std::chrono::steady_clock::now();
-                        AUTOQ::TreeAutomata::include_status = AUTOQ::Util::Convert::ToString(stop_include - start_include) + " X";
+                        AUTOQ::ConcreteAutomata::include_status = AUTOQ::Util::Convert::ToString(stop_include - start_include) + " X";
                         INCLUSION_DEBUG("UNFORTUNATELY B HAS NO POSSIBLE TRANSITION COMBINATIONS, SO THE INCLUSION DOES NOT HOLD :(");
-                        AUTOQ::TreeAutomata::total_include_time += stop_include - start_include;
+                        AUTOQ::ConcreteAutomata::total_include_time += stop_include - start_include;
                         return false;
                     }
                 } else if (created.contains(vertex2)) {
@@ -345,12 +345,12 @@ L1372:                  INCLUSION_DEBUG("ARE " << (color_consistent2 ? "" : "NOT
         } while (!have_listed_all_combinationsA);
     }
     auto stop_include = std::chrono::steady_clock::now();
-    AUTOQ::TreeAutomata::include_status = AUTOQ::Util::Convert::ToString(stop_include - start_include);
+    AUTOQ::ConcreteAutomata::include_status = AUTOQ::Util::Convert::ToString(stop_include - start_include);
     INCLUSION_DEBUG("FORTUNATELY FOR EACH (MAXIMAL) PATH B HAS POSSIBLE SIMULTANEOUS TRANSITION COMBINATIONS, SO THE INCLUSION DOES HOLD :)");
-    AUTOQ::TreeAutomata::total_include_time += stop_include - start_include;
+    AUTOQ::ConcreteAutomata::total_include_time += stop_include - start_include;
     return true;
 }
 template <>
-bool AUTOQ::TreeAutomata::operator_scaled_inclusion_with_renaming(AUTOQ::TreeAutomata autB) const {
+bool AUTOQ::ConcreteAutomata::operator_scaled_inclusion_with_renaming(AUTOQ::ConcreteAutomata autB) const {
     return operator<<=(autB);
 }

@@ -31,21 +31,21 @@
 using AUTOQ::Complex::Complex;
 
 /** Extended initial states for gate equivalence tests (Sdg/Tdg/swap). */
-static std::vector<AUTOQ::TreeAutomata> kExtendedInitialStates(int n) {
-    return {AUTOQ::TreeAutomata::uniform(n), AUTOQ::TreeAutomata::basis(n), AUTOQ::TreeAutomata::random(n),
-            AUTOQ::TreeAutomata::zero(n), AUTOQ::TreeAutomata::basis_zero_one_zero(n),
-            AUTOQ::TreeAutomata::zero_zero_one_zero(n), AUTOQ::TreeAutomata::zero_one_zero(n)};
+static std::vector<AUTOQ::ConcreteAutomata> kExtendedInitialStates(int n) {
+    return {AUTOQ::ConcreteAutomata::uniform(n), AUTOQ::ConcreteAutomata::basis(n), AUTOQ::ConcreteAutomata::random(n),
+            AUTOQ::ConcreteAutomata::zero(n), AUTOQ::ConcreteAutomata::basis_zero_one_zero(n),
+            AUTOQ::ConcreteAutomata::zero_zero_one_zero(n), AUTOQ::ConcreteAutomata::zero_one_zero(n)};
 }
 
 /** Test gate applied loop times returns to identity. Positions empty = {1, n/2+1, n}. */
 static void test_gate_n_times_to_identity(
-    std::function<void(AUTOQ::TreeAutomata&, int)> gate_fn,
+    std::function<void(AUTOQ::ConcreteAutomata&, int)> gate_fn,
     int n, int loop) {
     std::vector<int> positions = {1, n/2+1, n};
-    std::vector<AUTOQ::TreeAutomata> states = {AUTOQ::TreeAutomata::uniform(n), AUTOQ::TreeAutomata::basis(n), AUTOQ::TreeAutomata::random(n)};
+    std::vector<AUTOQ::ConcreteAutomata> states = {AUTOQ::ConcreteAutomata::uniform(n), AUTOQ::ConcreteAutomata::basis(n), AUTOQ::ConcreteAutomata::random(n)};
     for (const auto& before : states) {
         for (int t : positions) {
-            AUTOQ::TreeAutomata after = before;
+            AUTOQ::ConcreteAutomata after = before;
             for (int i = 0; i < loop; i++) {
                 gate_fn(after, t);
                 if (i < loop - 1) {
@@ -64,11 +64,11 @@ static void test_gate_n_times_to_identity(
 
 /** Test gate^gate_loop equals inverse_gate (e.g. S^3 == Sdg). */
 static void test_gate_inverse_equivalence(
-    std::function<void(AUTOQ::TreeAutomata&, int)> gate_fn,
-    std::function<void(AUTOQ::TreeAutomata&, int)> inverse_fn,
+    std::function<void(AUTOQ::ConcreteAutomata&, int)> gate_fn,
+    std::function<void(AUTOQ::ConcreteAutomata&, int)> inverse_fn,
     int n, int gate_loop, int qubit_pos) {
     for (const auto& before : kExtendedInitialStates(n)) {
-        AUTOQ::TreeAutomata after1 = before, after2 = before;
+        AUTOQ::ConcreteAutomata after1 = before, after2 = before;
         for (int i = 0; i < gate_loop; i++) gate_fn(after1, qubit_pos);
         inverse_fn(after2, qubit_pos);
         BOOST_REQUIRE_MESSAGE(after1 == after2, "\n" +
@@ -127,12 +127,12 @@ BOOST_TEST_GLOBAL_FIXTURE(F);
 BOOST_AUTO_TEST_CASE(X_gate_twice_to_identity)
 {
     int n = kDefaultQubits;
-    for (const auto &before : {AUTOQ::TreeAutomata::uniform(n),
-                               AUTOQ::TreeAutomata::basis(n),
-                               AUTOQ::TreeAutomata::random(n)}) {
+    for (const auto &before : {AUTOQ::ConcreteAutomata::uniform(n),
+                               AUTOQ::ConcreteAutomata::basis(n),
+                               AUTOQ::ConcreteAutomata::random(n)}) {
         int loop = 2;
         for (auto t : {1, n/2+1, n}) {
-            AUTOQ::TreeAutomata after = before;
+            AUTOQ::ConcreteAutomata after = before;
             for (int i=0; i<loop; i++) {
                 after.X(t);
                 if (i < loop-1 && before.name == "Random") {
@@ -151,22 +151,22 @@ BOOST_AUTO_TEST_CASE(X_gate_twice_to_identity)
 
 BOOST_AUTO_TEST_CASE(Y_gate_twice_to_identity)
 {
-    test_gate_n_times_to_identity([](AUTOQ::TreeAutomata& a, int t) { a.Y(t); }, kDefaultQubits, 2);
+    test_gate_n_times_to_identity([](AUTOQ::ConcreteAutomata& a, int t) { a.Y(t); }, kDefaultQubits, 2);
 }
 
 BOOST_AUTO_TEST_CASE(Z_gate_twice_to_identity)
 {
-    test_gate_n_times_to_identity([](AUTOQ::TreeAutomata& a, int t) { a.Z(t); }, kDefaultQubits, 2);
+    test_gate_n_times_to_identity([](AUTOQ::ConcreteAutomata& a, int t) { a.Z(t); }, kDefaultQubits, 2);
 }
 
 BOOST_AUTO_TEST_CASE(H_gate_twice_to_identity)
 {
-    test_gate_n_times_to_identity([](AUTOQ::TreeAutomata& a, int t) { a.H(t); }, kDefaultQubits, 2);
+    test_gate_n_times_to_identity([](AUTOQ::ConcreteAutomata& a, int t) { a.H(t); }, kDefaultQubits, 2);
 }
 
 BOOST_AUTO_TEST_CASE(S_gate_fourth_to_identity)
 {
-    test_gate_n_times_to_identity([](AUTOQ::TreeAutomata& a, int t) { a.S(t); }, kDefaultQubits, 4);
+    test_gate_n_times_to_identity([](AUTOQ::ConcreteAutomata& a, int t) { a.S(t); }, kDefaultQubits, 4);
 }
 
 BOOST_AUTO_TEST_CASE(Sdg_gate_equal_to_S_three_times)
@@ -176,7 +176,7 @@ BOOST_AUTO_TEST_CASE(Sdg_gate_equal_to_S_three_times)
 
 BOOST_AUTO_TEST_CASE(T_gate_eighth_to_identity)
 {
-    test_gate_n_times_to_identity([](AUTOQ::TreeAutomata& a, int t) { a.T(t); }, kDefaultQubits, 8);
+    test_gate_n_times_to_identity([](AUTOQ::ConcreteAutomata& a, int t) { a.T(t); }, kDefaultQubits, 8);
 }
 
 BOOST_AUTO_TEST_CASE(Tdg_gate_equal_to_T_seven_times)
@@ -185,17 +185,17 @@ BOOST_AUTO_TEST_CASE(Tdg_gate_equal_to_T_seven_times)
 }
 
 /** Initial states for swap gate (kExtendedInitialStates minus random). */
-static std::vector<AUTOQ::TreeAutomata> kSwapInitialStates(int n) {
-    return {AUTOQ::TreeAutomata::uniform(n), AUTOQ::TreeAutomata::basis(n), AUTOQ::TreeAutomata::zero(n),
-            AUTOQ::TreeAutomata::basis_zero_one_zero(n), AUTOQ::TreeAutomata::zero_zero_one_zero(n),
-            AUTOQ::TreeAutomata::zero_one_zero(n)};
+static std::vector<AUTOQ::ConcreteAutomata> kSwapInitialStates(int n) {
+    return {AUTOQ::ConcreteAutomata::uniform(n), AUTOQ::ConcreteAutomata::basis(n), AUTOQ::ConcreteAutomata::zero(n),
+            AUTOQ::ConcreteAutomata::basis_zero_one_zero(n), AUTOQ::ConcreteAutomata::zero_zero_one_zero(n),
+            AUTOQ::ConcreteAutomata::zero_one_zero(n)};
 }
 
 BOOST_AUTO_TEST_CASE(swap_gate_simply_exchanges_basis)
 {
     const int n = kDefaultQubits;
     for (const auto& before : kSwapInitialStates(n)) {
-        AUTOQ::TreeAutomata after = before;
+        AUTOQ::ConcreteAutomata after = before;
         after.Swap(n*1/3, n*2/3);
         BOOST_REQUIRE_MESSAGE(before == after, "\n" +
             AUTOQ::Serialization::TimbukSerializer::Serialize(before) +
@@ -221,10 +221,10 @@ BOOST_AUTO_TEST_CASE(Rz_gate_eighth_to_identity)
 BOOST_AUTO_TEST_CASE(CX_gate_twice_to_identity)
 {
     int n = kDefaultQubits;
-    for (const auto &before : {AUTOQ::TreeAutomata::uniform(n),
-                               AUTOQ::TreeAutomata::basis(n),
-                               AUTOQ::TreeAutomata::random(n)}) {
-        AUTOQ::TreeAutomata after = before;
+    for (const auto &before : {AUTOQ::ConcreteAutomata::uniform(n),
+                               AUTOQ::ConcreteAutomata::basis(n),
+                               AUTOQ::ConcreteAutomata::random(n)}) {
+        AUTOQ::ConcreteAutomata after = before;
         int loop = 2;
         for (int i=0; i<loop; i++) {
             after.CX(n*2/3, n/3);
@@ -249,12 +249,12 @@ BOOST_AUTO_TEST_CASE(CZ_gate_twice_to_identity)
 BOOST_AUTO_TEST_CASE(CCX_gate_twice_to_identity)
 {
     const int n = kDefaultQubits * 3 / 4 + 3;
-    for (const auto &before : {AUTOQ::TreeAutomata::uniform(n),
-                               AUTOQ::TreeAutomata::basis(n),
-                               AUTOQ::TreeAutomata::random(n)}) {
+    for (const auto &before : {AUTOQ::ConcreteAutomata::uniform(n),
+                               AUTOQ::ConcreteAutomata::basis(n),
+                               AUTOQ::ConcreteAutomata::random(n)}) {
         int v[] = {1, kDefaultQubits*3/8, kDefaultQubits*3/4};
         do {
-            AUTOQ::TreeAutomata after = before;
+            AUTOQ::ConcreteAutomata after = before;
             int loop = 2;
             for (int i=0; i<loop; i++) {
                 after.CCX(v[0], v[1], v[2]);
@@ -299,7 +299,7 @@ BOOST_AUTO_TEST_CASE(for_loop_summarization){
 }
 
 
-static void grover_oracle(AUTOQ::TreeAutomata& aut, unsigned ans, int n) {
+static void grover_oracle(AUTOQ::ConcreteAutomata& aut, unsigned ans, int n) {
     for (int i=1; i<=n; i++) {
         if ((ans & (1 << (i-1))) == 0) aut.X(n+1-i);
     }
@@ -317,7 +317,7 @@ static void grover_oracle(AUTOQ::TreeAutomata& aut, unsigned ans, int n) {
     }
 }
 
-static void grover_diffuser(AUTOQ::TreeAutomata& aut, int n) {
+static void grover_diffuser(AUTOQ::ConcreteAutomata& aut, int n) {
     for (int i=1; i<=n; i++) aut.H(i);
     for (int i=1; i<=n; i++) aut.X(i);
     if (n >= 3) {
@@ -333,15 +333,15 @@ static void grover_diffuser(AUTOQ::TreeAutomata& aut, int n) {
     for (int i=1; i<=n; i++) aut.H(i);
 }
 
-static void dfs(const std::map<AUTOQ::TreeAutomata::State, AUTOQ::TreeAutomata::StateVector> &edge,
-         const std::map<AUTOQ::TreeAutomata::State, AUTOQ::TreeAutomata::SymbolTag> &leaf,
-         const AUTOQ::TreeAutomata::StateVector &layer,
+static void dfs(const std::map<AUTOQ::ConcreteAutomata::State, AUTOQ::ConcreteAutomata::StateVector> &edge,
+         const std::map<AUTOQ::ConcreteAutomata::State, AUTOQ::ConcreteAutomata::SymbolTag> &leaf,
+         const AUTOQ::ConcreteAutomata::StateVector &layer,
          #if defined COMPLEX_Plain
          std::vector<float128> &prob) {
          #else
          std::vector<double> &prob) {
          #endif
-    for (const AUTOQ::TreeAutomata::State &s : layer) {
+    for (const AUTOQ::ConcreteAutomata::State &s : layer) {
         const auto &new_layer = edge.at(s);
         if (!new_layer.empty()) {
             dfs(edge, leaf, new_layer, prob);
@@ -356,7 +356,7 @@ BOOST_AUTO_TEST_CASE(Grover_Search_only_one_oracle)
 {
     int n = 4;
     assert(n >= 2);
-    auto aut = AUTOQ::TreeAutomata::zero_one_zero(n);
+    auto aut = AUTOQ::ConcreteAutomata::zero_one_zero(n);
 
     /***********************/
     unsigned ans = 0;
@@ -376,9 +376,9 @@ BOOST_AUTO_TEST_CASE(Grover_Search_only_one_oracle)
     }
 
     /******************************** Answer Validation *********************************/
-    std::map<AUTOQ::TreeAutomata::State, AUTOQ::TreeAutomata::StateVector> edge;
-    std::map<AUTOQ::TreeAutomata::State, AUTOQ::TreeAutomata::SymbolTag> leaf;
-    std::vector<AUTOQ::TreeAutomata::StateVector> first_layers;
+    std::map<AUTOQ::ConcreteAutomata::State, AUTOQ::ConcreteAutomata::StateVector> edge;
+    std::map<AUTOQ::ConcreteAutomata::State, AUTOQ::ConcreteAutomata::SymbolTag> leaf;
+    std::vector<AUTOQ::ConcreteAutomata::StateVector> first_layers;
     for (const auto &t : aut.transitions) {
         const auto &symbol_tag = t.first;
         for (const auto &out_ins : t.second) {
@@ -540,10 +540,10 @@ BOOST_AUTO_TEST_CASE(benchmarks_RUS)
 BOOST_AUTO_TEST_CASE(qubit_reordering)
 {
     for (int z=2; z<=5; z++) {
-        AUTOQ::TreeAutomata spec;
+        AUTOQ::ConcreteAutomata spec;
         spec.qubitNum = z;
         int pow_of_two = 1;
-        AUTOQ::TreeAutomata::State state_counter = 0;
+        AUTOQ::ConcreteAutomata::State state_counter = 0;
         for (int level=1; level<=z; level++) {
             for (int i=0; i<pow_of_two; i++) {
                 spec.transitions[{level, 1}][state_counter].insert({state_counter*2+1, state_counter*2+2});
@@ -551,13 +551,13 @@ BOOST_AUTO_TEST_CASE(qubit_reordering)
             }
             pow_of_two *= 2;
         }
-        for (AUTOQ::TreeAutomata::State i=state_counter; i<=state_counter*2; i++) {
-            spec.transitions[AUTOQ::TreeAutomata::SymbolTag(AUTOQ::Symbol::Concrete(Complex(i)), 1)][i].insert({{}});
+        for (AUTOQ::ConcreteAutomata::State i=state_counter; i<=state_counter*2; i++) {
+            spec.transitions[AUTOQ::ConcreteAutomata::SymbolTag(AUTOQ::Symbol::Concrete(Complex(i)), 1)][i].insert({{}});
         }
         spec.finalStates.push_back(0);
         spec.stateNum = state_counter*2 + 1;
         /************************/
-        AUTOQ::TreeAutomata spec2;
+        AUTOQ::ConcreteAutomata spec2;
         spec2.qubitNum = z;
         pow_of_two = 1;
         state_counter = 0;
@@ -568,16 +568,16 @@ BOOST_AUTO_TEST_CASE(qubit_reordering)
             }
             pow_of_two *= 2;
         }
-        for (AUTOQ::TreeAutomata::State i=state_counter; i<=state_counter*2; i++) {
+        for (AUTOQ::ConcreteAutomata::State i=state_counter; i<=state_counter*2; i++) {
             if (i % 2) // odd
-                spec2.transitions[AUTOQ::TreeAutomata::SymbolTag(AUTOQ::Symbol::Concrete(Complex(state_counter + (i-state_counter)/2)), 1)][i].insert({{}});
+                spec2.transitions[AUTOQ::ConcreteAutomata::SymbolTag(AUTOQ::Symbol::Concrete(Complex(state_counter + (i-state_counter)/2)), 1)][i].insert({{}});
             else // even
-                spec2.transitions[AUTOQ::TreeAutomata::SymbolTag(AUTOQ::Symbol::Concrete(Complex((state_counter*3+1)/2 + (i-state_counter-1)/2)), 1)][i].insert({{}});
+                spec2.transitions[AUTOQ::ConcreteAutomata::SymbolTag(AUTOQ::Symbol::Concrete(Complex((state_counter*3+1)/2 + (i-state_counter-1)/2)), 1)][i].insert({{}});
         }
         spec2.finalStates.push_back(0);
         spec2.stateNum = state_counter*2 + 1;
         /*****************************/
-        AUTOQ::TreeAutomata aut = spec;
+        AUTOQ::ConcreteAutomata aut = spec;
         for (int j=1; j<=z-1; j++)
             aut.SwapDown(j);
         BOOST_REQUIRE_MESSAGE(aut == spec2, "SwapDown(z=" << z << ") should match spec2");
@@ -588,7 +588,7 @@ BOOST_AUTO_TEST_CASE(qubit_reordering)
         BOOST_REQUIRE_MESSAGE(aut == spec, "SwapUp(z=" << z << ") should restore spec");
     }
     for (int z=2; z<=6; z+=2) {
-        AUTOQ::TreeAutomata spec;
+        AUTOQ::ConcreteAutomata spec;
         spec.qubitNum = z;
         for (int level=1; level<=z; level++) {
             if (level >= 2)
@@ -597,12 +597,12 @@ BOOST_AUTO_TEST_CASE(qubit_reordering)
                 spec.transitions[{level, 0b01}][2*level - 2].insert({2*level - 1, 2*level});
             spec.transitions[{level, 0b10}][2*level - 2].insert({2*level, 2*level - 1});
         }
-        spec.transitions[AUTOQ::TreeAutomata::SymbolTag(AUTOQ::Symbol::Concrete(Complex::One()), 1)][2*z].insert({{}});
-        spec.transitions[AUTOQ::TreeAutomata::SymbolTag(AUTOQ::Symbol::Concrete(Complex::Zero()), 1)][2*z - 1].insert({{}});
+        spec.transitions[AUTOQ::ConcreteAutomata::SymbolTag(AUTOQ::Symbol::Concrete(Complex::One()), 1)][2*z].insert({{}});
+        spec.transitions[AUTOQ::ConcreteAutomata::SymbolTag(AUTOQ::Symbol::Concrete(Complex::Zero()), 1)][2*z - 1].insert({{}});
         spec.finalStates.push_back(0);
         spec.stateNum = 2*z + 1;
         /************************/
-        AUTOQ::TreeAutomata spec2;
+        AUTOQ::ConcreteAutomata spec2;
         spec2.qubitNum = z;
         for (int level=1; level<=z; level++) {
             if (level >= 2)
@@ -611,12 +611,12 @@ BOOST_AUTO_TEST_CASE(qubit_reordering)
                 spec2.transitions[{level, 0b01}][2*level - 2].insert({2*level - 1, 2*level});
             spec2.transitions[{level, 0b10}][2*level - 2].insert({2*level, 2*level - 1});
         }
-        spec2.transitions[AUTOQ::TreeAutomata::SymbolTag(AUTOQ::Symbol::Concrete(Complex::One()), 1)][2*z].insert({{}});
-        spec2.transitions[AUTOQ::TreeAutomata::SymbolTag(AUTOQ::Symbol::Concrete(Complex::Zero()), 1)][2*z - 1].insert({{}});
+        spec2.transitions[AUTOQ::ConcreteAutomata::SymbolTag(AUTOQ::Symbol::Concrete(Complex::One()), 1)][2*z].insert({{}});
+        spec2.transitions[AUTOQ::ConcreteAutomata::SymbolTag(AUTOQ::Symbol::Concrete(Complex::Zero()), 1)][2*z - 1].insert({{}});
         spec2.finalStates.push_back(0);
         spec2.stateNum = 2*z + 1;
         /*****************************/
-        AUTOQ::TreeAutomata aut = spec;
+        AUTOQ::ConcreteAutomata aut = spec;
         for (int j=1; j<=z; j+=2)
             aut.SwapDown(j);
         BOOST_REQUIRE_MESSAGE(aut == spec2, "SwapDown odd(z=" << z << ") should match spec2");

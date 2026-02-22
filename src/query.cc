@@ -200,7 +200,7 @@ template <typename Symbol>
 void AUTOQ::Automata<Symbol>::print_stats(const std::string &str, bool newline) {
     state_renumbering();
     std::cout << str;
-    std::cout << AUTOQ::Util::Convert::ToString(qubitNum) << " & " << AUTOQ::TreeAutomata::gateCount
+    std::cout << AUTOQ::Util::Convert::ToString(qubitNum) << " & " << AUTOQ::ConcreteAutomata::gateCount
               << " & " << stateBefore << " & " << stateNum
               << " & " << transitionBefore << " & " << count_transitions()
               << " & " << AUTOQ::Util::Convert::ToString(stop_execute - start_execute) << " & " << include_status

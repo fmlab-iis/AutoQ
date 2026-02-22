@@ -19,7 +19,7 @@
 
 using AUTOQ::Util::Convert;
 using AUTOQ::Automata;
-using AUTOQ::TreeAutomata;
+using AUTOQ::ConcreteAutomata;
 using AUTOQ::SymbolicAutomata;
 using AUTOQ::PredicateAutomata;
 using AUTOQ::Serialization::TimbukSerializer;
@@ -143,7 +143,7 @@ std::string TimbukSerializer::Serialize(Automata<Symbol> desc)
 }
 
 // https://bytefreaks.net/programming-2/c/c-undefined-reference-to-templated-class-function
-template std::string TimbukSerializer::Serialize(TreeAutomata desc);
+template std::string TimbukSerializer::Serialize(ConcreteAutomata desc);
 template std::string TimbukSerializer::Serialize(SymbolicAutomata desc);
 template std::string TimbukSerializer::Serialize(PredicateAutomata desc);
 template std::string TimbukSerializer::Serialize(IndexAutomata desc);
