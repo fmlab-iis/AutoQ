@@ -5,6 +5,9 @@
  *
  *  Description:
  *    Source for explicit LTS simulation algorithm.
+ *    - Block / StateListElem / RemoveQueue: partition and refinement structures.
+ *    - SimulationEngine: main simulation computation (computeSimulation).
+ *    - ExplicitLTS::addTransition, init, computeSimulation: LTS API.
  *
  *****************************************************************************/
 
@@ -42,6 +45,8 @@ using AUTOQ::Util::SharedCounter;
 using AUTOQ::Util::Convert;
 
 typedef CachingAllocator<std::vector<size_t>> VectorAllocator;
+
+// --- Partition and refinement: StateListElem, Block, RemoveQueue ---
 
 struct SharedListInitF
 {
@@ -265,6 +270,8 @@ public:
 		return os << " )";
 	}
 };
+
+// --- Simulation engine: partition refinement for computeSimulation ---
 
 class SimulationEngine
 {
@@ -866,6 +873,8 @@ public:
 		return os << "relation:" << std::endl << relation;
 	}
 };
+
+// --- ExplicitLTS API: computeSimulation, addTransition ---
 
 BinaryRelation AUTOQ::ExplicitLTS::computeSimulation(
 	const std::vector<std::vector<size_t>>&   partition,
