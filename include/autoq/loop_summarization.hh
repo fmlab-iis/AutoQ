@@ -1,6 +1,6 @@
 
-#ifndef _AUTOQ_LOOP_SUMARIZATION_HH_
-#define _AUTOQ_LOOP_SUMARIZATION_HH_
+#ifndef _AUTOQ_LOOP_SUMMARIZATION_HH_
+#define _AUTOQ_LOOP_SUMMARIZATION_HH_
 
 #include "autoq/symbol/concrete.hh"
 #include "autoq/symbol/symbolic.hh"

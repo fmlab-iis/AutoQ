@@ -223,39 +223,24 @@ bool AUTOQ::ConcreteAutomata::operator<<=(AUTOQ::ConcreteAutomata autB) const {
                         for (const auto &pair : leaf_pairs) {
                             for (int i=0; i<4; i++) {
                                 if (pair.first.complex.isZero() && pair.second.complex.isZero()) continue;
-                                else if (!pair.first.complex.isZero() && !pair.second.complex.isZero()) {
+                                if (!pair.first.complex.isZero() && !pair.second.complex.isZero()) {
                                     if (!startRatio) {
                                         startRatio = true;
                                         ratio = std::make_pair(pair.first.complex, pair.second.complex);
-                                        // std::cout << "ratio: " << ratio << "\n";
-                                        // if (!ratio.imag().isZero()) { // is not real
-                                        //     color_consistent2 = false; goto L1372;
-                                        // }
                                     } else if (!(ratio.first * pair.second.complex).valueEqual(ratio.second * pair.first.complex)) {
-                                        color_consistent2 = false; goto L1372;
+                                        color_consistent2 = false;
+                                        break;
                                     }
                                 } else {
-                                    color_consistent2 = false; goto L1372;
+                                    color_consistent2 = false;
+                                    break;
                                 }
                             }
+                            if (!color_consistent2) break;
                         }
                         /*****************************************/
-                        // for (const auto &qB_c : possible_colors_for_qB) { // for each fixed qB
-                        //     int counter = 0;
-                        //     for (const auto &color : qB_c.second) { // loop through all possible colors
-                        //         if ((color | all_used_colors) == all_used_colors) { // color is a subset of all_used_colors
-                        //             counter++;
-                        //             if (counter >= 2) {
-                        //                 color_consistent2 = false;
-                        //                 break;
-                        //             }
-                        //         }
-                        //     }
-                        //     if (!color_consistent2)
-                        //         break; // shortcut
-                        // }
                         /*************************************************************/
-L1372:                  INCLUSION_DEBUG("ARE " << (color_consistent2 ? "" : "NOT ") << "COLOR-CONSISTENT.");
+                        INCLUSION_DEBUG("ARE " << (color_consistent2 ? "" : "NOT ") << "COLOR-CONSISTENT.");
                         // If consistent, equivalize the two input vectors of each equivalent transition pair.
                         if (color_consistent2) {
                             at_least_one_feasible_combination_in_the_following_while_loop = true;

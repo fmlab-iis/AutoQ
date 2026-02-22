@@ -91,6 +91,45 @@ bool AUTOQ::Automata<Symbol>::empty() const {
 
 #include "autoq/inclusion_common.hh"
 
+namespace {
+// Helper: map symbols to indices and fill an Index automata's transitions (shared by both aut1 and aut2).
+template <typename Symbol>
+void migrate_transitions_to_index(
+    const typename AUTOQ::Automata<Symbol>::TopDownTransitions& transitions,
+    std::vector<Symbol>& symbol_map,
+    AUTOQ::Automata<AUTOQ::Symbol::Index>& aut)
+{
+    using IndexAutomata = AUTOQ::Automata<AUTOQ::Symbol::Index>;
+    for (const auto &t : transitions) {
+        const auto &symbol_tag = t.first;
+        const auto &symbol = symbol_tag.symbol();
+        unsigned i = 0;
+        for (; i <= symbol_map.size(); i++) {
+            if (i == symbol_map.size()) {
+                symbol_map.push_back(symbol);
+            }
+            bool eq;
+            if constexpr (std::is_same_v<Symbol, AUTOQ::Symbol::Concrete>) {
+                eq = symbol_map.at(i).valueEqual(symbol);
+            } else {
+                eq = symbol_map.at(i) == symbol;
+            }
+            if (i == symbol_map.size() || eq) {
+                typename IndexAutomata::SymbolTag symbol_tag2{AUTOQ::Symbol::Index(symbol.is_leaf(), i), symbol_tag.tag()};
+                for (const auto &out_ins : t.second) {
+                    const auto &out = out_ins.first;
+                    const auto &ins = out_ins.second;
+                    for (const auto &in : ins) {
+                        aut.transitions[symbol_tag2][out].insert(in);
+                    }
+                }
+                break;
+            }
+        }
+    }
+}
+}  // namespace
+
 // -------- Inclusion: generic Automata<Symbol> (convert to Index then compare) --------
 template <typename Symbol>
 bool AUTOQ::Automata<Symbol>::operator<=(const Automata<Symbol> &autB) const {
@@ -103,14 +142,12 @@ bool AUTOQ::Automata<Symbol>::operator<=(const Automata<Symbol> &autB) const {
     aut1.finalStates = this->finalStates;
     aut1.stateNum = this->stateNum;
     aut1.qubitNum = this->qubitNum;
-    // aut1.transitions = this->transitions;
     aut1.isTopdownDeterministic = this->isTopdownDeterministic;
     Automata<AUTOQ::Symbol::Index> aut2;
     aut2.name = autB.name;
     aut2.finalStates = autB.finalStates;
     aut2.stateNum = autB.stateNum;
     aut2.qubitNum = autB.qubitNum;
-    // aut2.transitions = autB.transitions;
     aut2.isTopdownDeterministic = autB.isTopdownDeterministic;
     // migrate static variables
     Automata<AUTOQ::Symbol::Index>::gateCount = Automata<Symbol>::gateCount;
@@ -128,60 +165,10 @@ bool AUTOQ::Automata<Symbol>::operator<=(const Automata<Symbol> &autB) const {
     Automata<AUTOQ::Symbol::Index>::total_include_time = Automata<Symbol>::total_include_time;
     Automata<AUTOQ::Symbol::Index>::start_execute = Automata<Symbol>::start_execute;
     Automata<AUTOQ::Symbol::Index>::stop_execute = Automata<Symbol>::stop_execute;
-    // migrate transitions
+    // migrate transitions (shared symbol_map for both automata)
     std::vector<Symbol> symbol_map;
-    for (const auto &t : this->transitions) {
-        const auto &symbol_tag = t.first;
-        const auto &symbol = symbol_tag.symbol();
-        unsigned i = 0;
-        for (; i<=symbol_map.size(); i++) {
-            if (i == symbol_map.size()) {
-                symbol_map.push_back(symbol);
-            }
-            bool eq;
-            if constexpr (std::is_same_v<Symbol, AUTOQ::Symbol::Concrete>) {
-                eq = symbol_map.at(i).valueEqual(symbol);
-            } else {
-                eq = symbol_map.at(i) == symbol;
-            }
-            if (i == symbol_map.size() || eq) {
-                Automata<AUTOQ::Symbol::Index>::SymbolTag symbol_tag2 = {AUTOQ::Symbol::Index(symbol.is_leaf(), i), symbol_tag.tag()};
-                for (const auto &out_ins : t.second) {
-                    const auto &out = out_ins.first;
-                    const auto &ins = out_ins.second;
-                    for (const auto &in : ins)
-                        aut1.transitions[symbol_tag2][out].insert(in);
-                }
-                break;
-            }
-        }
-    }
-    for (const auto &t : autB.transitions) {
-        const auto &symbol_tag = t.first;
-        const auto &symbol = symbol_tag.symbol();
-        unsigned i = 0;
-        for (; i<=symbol_map.size(); i++) {
-            if (i == symbol_map.size()) {
-                symbol_map.push_back(symbol);
-            }
-            bool eq;
-            if constexpr (std::is_same_v<Symbol, AUTOQ::Symbol::Concrete>) {
-                eq = symbol_map.at(i).valueEqual(symbol);
-            } else {
-                eq = symbol_map.at(i) == symbol;
-            }
-            if (i == symbol_map.size() || eq) {
-                Automata<AUTOQ::Symbol::Index>::SymbolTag symbol_tag2 = {AUTOQ::Symbol::Index(symbol.is_leaf(), i), symbol_tag.tag()};
-                for (const auto &out_ins : t.second) {
-                    const auto &out = out_ins.first;
-                    const auto &ins = out_ins.second;
-                    for (const auto &in : ins)
-                        aut2.transitions[symbol_tag2][out].insert(in);
-                }
-                break;
-            }
-        }
-    }
+    migrate_transitions_to_index<Symbol>(this->transitions, symbol_map, aut1);
+    migrate_transitions_to_index<Symbol>(autB.transitions, symbol_map, aut2);
     // main routine
     bool result = aut1 <= aut2;
     // migrate static variables
