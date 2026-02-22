@@ -1,6 +1,6 @@
 /**
  * Automata reduction and LTS-based simulation.
- * - LTS translation (translate_to_lts_downward, compute_down_sim) for sim_reduce.
+ * - sim_reduce uses LTS build (simulation::translate_to_lts_downward, count_aut_states) and compute_down_sim.
  * - Light reduce up/down, bottom-up reduce, reduce(), remove_useless().
  * - Helpers: reindex_aut_states, compact_aut, state_renumbering, fraction_simplification, k_unification.
  */
@@ -12,109 +12,14 @@
 #include "autoq/symbol/predicate.hh"
 #include "autoq/symbol/constrained.hh"
 #include "simulation/explicit_lts.hh"
+#include "simulation/automata_to_lts.hh"
 
 using namespace AUTOQ;
 using namespace AUTOQ::Util;
 
 namespace { // anonymous namespace
 
-  // --- LTS translation and simulation (used by sim_reduce) ---
-
-  template <class Index, typename Symbol>
-  AUTOQ::ExplicitLTS translate_to_lts_downward(
-    const Automata<Symbol>& aut,
-    size_t              numStates,
-    Index&              stateIndex)
-  {
-    using State = typename Automata<Symbol>::State;
-    using SymbolTag = typename Automata<Symbol>::SymbolTag;
-    using StateVector = typename Automata<Symbol>::StateVector;
-
-    std::unordered_map<SymbolTag, size_t> symbolMap;
-    std::unordered_map<const StateVector*, size_t> lhsMap;
-
-    size_t symbolCnt = 0;
-    Util::TranslatorWeak2<std::unordered_map<SymbolTag, size_t>>
-      symbolTranslator(symbolMap, [&symbolCnt](const SymbolTag&){ return symbolCnt++; });
-
-    size_t lhsCnt = numStates;
-    Util::TranslatorWeak2<std::unordered_map<const StateVector*, size_t>>
-      lhsTranslator(lhsMap, [&lhsCnt](const StateVector*){ return lhsCnt++; });
-
-    AUTOQ::ExplicitLTS result(numStates);
-
-    // start with getting translation for final states
-    for (const State& finState : aut.finalStates) {
-      stateIndex[finState];
-    }
-
-    // Iterate through all transitions and adds them to the LTS.
-    for (const auto& symMap : aut.transitions) {
-      const auto& symbolName = symbolTranslator(symMap.first);
-
-      for (const auto& vecSet : symMap.second) {
-        const auto& parent = vecSet.first;
-
-        for (const auto& tuple : vecSet.second) {
-          const auto& parentName = stateIndex[parent];
-
-          size_t dest;
-          if (1 == tuple.size())
-          { // a(p) -> q ... inline lhs of size 1 >:-)
-            dest = stateIndex[tuple.front()];
-            assert(dest < numStates);
-          } else
-          { // a(p,r) -> q
-            dest = lhsTranslator(&tuple);
-          }
-
-          result.addTransition(parentName, symbolName, dest);
-        }
-      }
-    }
-
-    for (auto& tupleIndexPair : lhsMap)
-    {	// for n-ary transition (n > 1), decompose the hyperedge into n ordinary
-      // edges
-      assert(tupleIndexPair.first);
-
-      size_t i = 0;
-      for (auto& state : *tupleIndexPair.first) {
-        size_t dest = stateIndex[state];
-        assert(dest < numStates);
-
-        result.addTransition(tupleIndexPair.second, symbolMap.size() + i, dest);
-        ++i;
-      }
-    }
-
-    result.init();
-
-    return result;
-  }
-
-  template <typename Symbol>
-  size_t count_aut_states(const AUTOQ::Automata<Symbol>& aut)
-  {
-    using State = typename Automata<Symbol>::State;
-
-    std::set<State> states;
-    for (const auto& state : aut.finalStates) {
-      states.insert(state);
-    }
-
-    for (const auto& symMap : aut.transitions) {
-      for (const auto& out_ins : symMap.second) {
-        states.insert(out_ins.first);
-        for (const auto& in : out_ins.second) {
-            for (const auto& child : in)
-                states.insert(child);
-        }
-      }
-    }
-
-    return states.size();
-  }
+  // --- LTS-based simulation (used by sim_reduce) ---
 
   template <typename Symbol>
   typename Util::DiscontBinaryRelation<typename Automata<Symbol>::State> compute_down_sim(const AUTOQ::Automata<Symbol>& aut)
@@ -129,8 +34,8 @@ namespace { // anonymous namespace
     StateToIndexTranslWeak transl(translMap,
         [&stateCnt](const State&) {return stateCnt++;});
 
-    size_t num_states = count_aut_states(aut);
-    AUTOQ::ExplicitLTS lts = translate_to_lts_downward(aut, num_states, transl);
+    size_t num_states = simulation::count_aut_states(aut);
+    AUTOQ::ExplicitLTS lts = simulation::translate_to_lts_downward(aut, num_states, transl);
     BinaryRelation ltsSim = lts.computeSimulation(num_states);
     return DiscontBinaryRelOnStates(ltsSim, translMap);
   }
