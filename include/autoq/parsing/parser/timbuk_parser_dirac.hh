@@ -10,6 +10,12 @@
 #ifndef AUTOQ_PARSING_TIMBUK_PARSER_DIRAC_HH
 #define AUTOQ_PARSING_TIMBUK_PARSER_DIRAC_HH
 
+#include <regex>
+
+namespace {
+const std::regex kExtendedDirac("Extended +Dirac");
+}
+
 template <typename Symbol, typename Symbol2>
 AUTOQ::Automata<Symbol> AUTOQ::Parsing::TimbukParser<Symbol, Symbol2>::parse_extended_dirac_from_istream(std::istream *is, bool throw_on_undefined, bool* out_encountered_undefined, const std::map<std::string, AUTOQ::Complex::Complex> &constants, const std::string &predicateConstraints) {
     bool start_transitions = false;
@@ -23,7 +29,7 @@ AUTOQ::Automata<Symbol> AUTOQ::Parsing::TimbukParser<Symbol, Symbol2>::parse_ext
             continue;
 		else if (!start_transitions)
         {
-            if (std::regex_search(line, std::regex("Extended +Dirac")))
+            if (std::regex_search(line, kExtendedDirac))
             {
                 start_transitions = true;
                 continue;
@@ -75,7 +81,7 @@ AUTOQ::Parsing::TimbukParser<Symbol, Symbol2>::parse_n_extended_diracs_from_istr
             if (line.empty()) { continue; }
             else if (!start_transitions)
             {
-                if (std::regex_search(line, std::regex("Extended +Dirac")))
+                if (std::regex_search(line, kExtendedDirac))
                 {
                     start_transitions = true;
                     continue;

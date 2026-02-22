@@ -8,8 +8,11 @@
  *****************************************************************************/
 #ifndef AUTOQ_PARSING_TIMBUK_PARSER_TRANSITIONS_HH
 #define AUTOQ_PARSING_TIMBUK_PARSER_TRANSITIONS_HH
+#include <regex>
 #include "autoq/error_messages.hh"
 #include "autoq/parsing/parser/timbuk_parser_grammar.hh"
+
+namespace { const std::regex kRootStates("Root +States"); }
 
 template <typename Symbol>
 AUTOQ::Automata<Symbol> parse_automaton(const std::string& str, const std::map<std::string, Complex> &constants, const std::map<std::string, std::string> &predicates, bool throw_on_undefined, bool* out_encountered_undefined) {
@@ -30,7 +33,7 @@ AUTOQ::Automata<Symbol> parse_automaton(const std::string& str, const std::map<s
                 AUTOQ::String::read_word(str); // after this command, "str" is expected to be "Transitions"
                 colored = true;
             }
-            if (std::regex_search(str, std::regex("Root +States"))) { // processing root states
+            if (std::regex_search(str, kRootStates)) {  // processing root states
                 while (!str.empty()) {
                     std::string state = AUTOQ::String::read_word(str);
                     auto state_num = AUTOQ::String::parse_colonned_token(state);
