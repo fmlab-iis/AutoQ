@@ -232,7 +232,7 @@ public:
 
     /****************************************************/
     /* execute.cc: the main function for gate execution */
-    void single_gate_execute(const std::string& line, const QasmRegexes &regexes, const std::vector<int> &qubit_permutation);
+    void single_gate_execute(const std::string& line, const QasmRegexes& re, const std::vector<int>& qubit_permutation);
     bool execute(const std::string &filename, std::vector<int> qubit_permutation={}, const std::vector<AUTOQ::Automata<Symbol>> &loopInvariants={}, ParameterMap params={});
     bool execute(const char *filename, std::vector<int> qubit_permutation={}, const std::vector<AUTOQ::Automata<Symbol>> &loopInvariants={}, ParameterMap params={});
     static std::string check_the_invariants_types(const std::string& filename);

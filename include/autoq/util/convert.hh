@@ -85,6 +85,7 @@ private:
 
 public:
 
+    /** Converts a chrono::steady_clock::duration to a human-readable string (e.g. "2.5s", "1m30s"). */
     static std::string ToString(std::chrono::steady_clock::duration tp) {
         using namespace std;
         using namespace std::chrono;

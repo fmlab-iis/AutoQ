@@ -4,24 +4,24 @@
 #include <queue>
 
 template<typename Symbol>
-AUTOQ::Automata<Symbol> symbolic_loop(const std::vector<std::string>& loop_body, AUTOQ::Automata<Symbol>& aut, const AUTOQ::regexes& regexes, int num_of_iterations, const std::vector<int> &qubit_permutation);
+AUTOQ::Automata<Symbol> symbolic_loop(const std::vector<std::string>& loop_body, AUTOQ::Automata<Symbol>& aut, const AUTOQ::QasmRegexes& re, int num_of_iterations, const std::vector<int>& qubit_permutation);
 
 template<typename Symbol>
 void execute_loop(std::vector<std::string>& loop_body, AUTOQ::Automata<Symbol>& aut, ParameterMap& params,
-                const AUTOQ::regexes& regexes, std::smatch match_pieces, const std::vector<int> &qubit_permutation) {
+                const AUTOQ::QasmRegexes& re, std::smatch match_pieces, const std::vector<int>& qubit_permutation) {
     int start = std::stoi(match_pieces[2].str());
     int end = std::stoi(match_pieces[3].str());
     int num_of_iterations = end - start + 1;
     if(params["loop"] == "manual"){
         for(int i = start; i <= end; i++){
             for(const std::string& line : loop_body){
-                aut.single_gate_execute(line, regexes, qubit_permutation);
+                aut.single_gate_execute(line, re, qubit_permutation);
             }
         }
         return;
     }
     if(params["loop"] == "symbolic"){
-        aut = symbolic_loop<Symbol>(loop_body, aut, regexes, num_of_iterations, qubit_permutation);
+        aut = symbolic_loop<Symbol>(loop_body, aut, re, num_of_iterations, qubit_permutation);
     }
 }
 
@@ -309,7 +309,7 @@ AUTOQ::Automata<Symbol> post_process_sumarization(  AUTOQ::Automata<AUTOQ::Symbo
 
 
 template<typename Symbol>
-AUTOQ::Automata<Symbol> symbolic_loop(const std::vector<std::string>& loop_body, AUTOQ::Automata<Symbol>& aut, const AUTOQ::regexes& regexes, int num_of_iterations, const std::vector<int> &qubit_permutation){
+AUTOQ::Automata<Symbol> symbolic_loop(const std::vector<std::string>& loop_body, AUTOQ::Automata<Symbol>& aut, const AUTOQ::QasmRegexes& re, int num_of_iterations, const std::vector<int>& qubit_permutation){
     InverseAbstractionMap<Symbol> inverse_alpha;
     AUTOQ::Automata<AUTOQ::Symbol::Symbolic> T = initial_abstraction<Symbol>(aut, inverse_alpha);
     AUTOQ::Automata<AUTOQ::Symbol::Symbolic> Tref = T;
@@ -321,7 +321,7 @@ AUTOQ::Automata<Symbol> symbolic_loop(const std::vector<std::string>& loop_body,
         T = Tref;
         //execute gates
         for(const std::string& line : loop_body){
-            T.single_gate_execute(line, regexes, qubit_permutation);
+            T.single_gate_execute(line, re, qubit_permutation);
         }
         tau.clear();
 
@@ -338,5 +338,5 @@ AUTOQ::Automata<Symbol> symbolic_loop(const std::vector<std::string>& loop_body,
 // https://bytefreaks.net/programming-2/c/c-undefined-reference-to-templated-class-function
 template struct AUTOQ::Automata<AUTOQ::Symbol::Concrete>;
 template struct AUTOQ::Automata<AUTOQ::Symbol::Symbolic>;
-template void execute_loop<AUTOQ::Symbol::Concrete>(std::vector<std::string>&, AUTOQ::Automata<AUTOQ::Symbol::Concrete>&, ParameterMap&, const AUTOQ::regexes&, std::smatch match_pieces, const std::vector<int> &qubit_permutation);
-template void execute_loop<AUTOQ::Symbol::Symbolic>(std::vector<std::string>&,AUTOQ::Automata<AUTOQ::Symbol::Symbolic>&, ParameterMap&, const AUTOQ::regexes&, std::smatch match_pieces, const std::vector<int> &qubit_permutation);
+template void execute_loop<AUTOQ::Symbol::Concrete>(std::vector<std::string>&, AUTOQ::Automata<AUTOQ::Symbol::Concrete>&, ParameterMap&, const AUTOQ::QasmRegexes&, std::smatch, const std::vector<int>&);
+template void execute_loop<AUTOQ::Symbol::Symbolic>(std::vector<std::string>&, AUTOQ::Automata<AUTOQ::Symbol::Symbolic>&, ParameterMap&, const AUTOQ::QasmRegexes&, std::smatch, const std::vector<int>&);

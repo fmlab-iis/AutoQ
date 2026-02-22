@@ -8,10 +8,11 @@
 #include "autoq/symbol/index.hh"
 #include "autoq/util/types.hh"
 #include "autoq/aut_description.hh"
+#include "autoq/util/qasm_regex.hh"
 
 template<typename Symbol>
-void execute_loop(std::vector<std::string>& loop_body, AUTOQ::Automata<Symbol>& aut, ParameterMap& params, const AUTOQ::regexes& regexes,
-                std::smatch match_pieces, const std::vector<int> &qubit_permutation);
+void execute_loop(std::vector<std::string>& loop_body, AUTOQ::Automata<Symbol>& aut, ParameterMap& params, const AUTOQ::QasmRegexes& re,
+                std::smatch match_pieces, const std::vector<int>& qubit_permutation);
 
 namespace std{
     template<>
