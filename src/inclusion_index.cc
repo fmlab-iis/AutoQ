@@ -3,6 +3,7 @@
  */
 #include "autoq/inclusion.hh"
 #include "autoq/inclusion_common.hh"
+#include "autoq/inclusion_build_trans.hh"
 #include "autoq/util/util.hh"
 #include "autoq/aut_description.hh"
 #include <queue>
@@ -12,27 +13,9 @@ namespace AUTOQ {
 bool inclusion_index_compare(const IndexAutomata &autA, const IndexAutomata &autB) {
     auto start_include = std::chrono::steady_clock::now();
 
-    // Preparation: Transform transitions into the new data structure.
-    std::vector<std::map<IndexAutomata::SymbolTag, IndexAutomata::StateVector>> transA(autA.stateNum);
-    std::vector<std::map<IndexAutomata::Symbol, std::map<IndexAutomata::Tag, IndexAutomata::StateVector>>> transB(autB.stateNum);
-    for (const auto &t : autA.transitions) {
-        const IndexAutomata::SymbolTag &symbol_tag = t.first;
-        for (const auto &out_ins : t.second) {
-            const auto &out = out_ins.first;
-            const auto &ins = out_ins.second;
-            assert(ins.size() == 1); // already assume one (q,fc) corresponds to only one input vector.
-            transA[out][symbol_tag] = *(ins.begin());
-        }
-    }
-    for (const auto &t : autB.transitions) {
-        const IndexAutomata::SymbolTag &symbol_tag = t.first;
-        for (const auto &out_ins : t.second) {
-            const auto &out = out_ins.first;
-            const auto &ins = out_ins.second;
-            assert(ins.size() == 1); // already assume one (q,fc) corresponds to only one input vector.
-            transB[out][symbol_tag.symbol()][symbol_tag.tag()] = *(ins.begin());
-        }
-    }
+    std::vector<std::map<IndexAutomata::SymbolTag, IndexAutomata::StateVector>> transA;
+    std::vector<std::map<IndexAutomata::Symbol, std::map<IndexAutomata::Tag, IndexAutomata::StateVector>>> transB;
+    build_inclusion_trans(autA, autB, transA, transB);
 
     // Main Routine: Graph Traversal
     typedef std::map<IndexAutomata::State, IndexAutomata::StateSet> Cell;

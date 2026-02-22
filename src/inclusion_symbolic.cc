@@ -3,6 +3,7 @@
  */
 #include "z3/z3++.h"
 #include "autoq/inclusion_common.hh"
+#include "autoq/inclusion_build_trans.hh"
 #include "autoq/util/util.hh"
 #include "autoq/util/string.hh"
 #include "autoq/inclusion.hh"
@@ -118,32 +119,6 @@ void rename_symbolic_aut_vars(AUTOQ::SymbolicAutomata& aut, const std::string& p
     aut.vars = vars2;
 }
 
-using SymbolicTransA = std::vector<std::map<AUTOQ::SymbolicAutomata::SymbolTag, AUTOQ::SymbolicAutomata::StateVector>>;
-using SymbolicTransB = std::vector<std::map<AUTOQ::SymbolicAutomata::Symbol, std::map<AUTOQ::SymbolicAutomata::Tag, AUTOQ::SymbolicAutomata::StateVector>>>;
-void build_symbolic_trans(const AUTOQ::SymbolicAutomata& autA, const AUTOQ::SymbolicAutomata& autB,
-                          SymbolicTransA& transA, SymbolicTransB& transB) {
-    transA.resize(autA.stateNum);
-    transB.resize(autB.stateNum);
-    for (const auto &t : autA.transitions) {
-        const auto &symbol_tag = t.first;
-        for (const auto &out_ins : t.second) {
-            const auto &out = out_ins.first;
-            const auto &ins = out_ins.second;
-            assert(ins.size() == 1);
-            transA[out][symbol_tag] = *(ins.begin());
-        }
-    }
-    for (const auto &t : autB.transitions) {
-        const auto &symbol_tag = t.first;
-        for (const auto &out_ins : t.second) {
-            const auto &out = out_ins.first;
-            const auto &ins = out_ins.second;
-            assert(ins.size() == 1);
-            transB[out][symbol_tag.symbol()][symbol_tag.tag()] = *(ins.begin());
-        }
-    }
-}
-
 // Build SMT formula for leaf-pair ratio consistency and run solver. Returns true iff SAT (inclusion fails).
 using LeafPairsOfVertex = std::set<std::set<std::pair<AUTOQ::Symbol::Symbolic, AUTOQ::Symbol::Symbolic>>>;
 bool symbolic_leaf_pairs_smt_is_sat(
@@ -242,9 +217,9 @@ bool scaled_inclusion_with_or_without_renaming(AUTOQ::SymbolicAutomata autA, AUT
 
     auto start_include = std::chrono::steady_clock::now();
 
-    SymbolicTransA transA;
-    SymbolicTransB transB;
-    build_symbolic_trans(autA, autB, transA, transB);
+    std::vector<std::map<AUTOQ::SymbolicAutomata::SymbolTag, AUTOQ::SymbolicAutomata::StateVector>> transA;
+    std::vector<std::map<AUTOQ::SymbolicAutomata::Symbol, std::map<AUTOQ::SymbolicAutomata::Tag, AUTOQ::SymbolicAutomata::StateVector>>> transB;
+    AUTOQ::build_inclusion_trans(autA, autB, transA, transB);
 
     // Main Routine: Graph Traversal
     typedef std::map<AUTOQ::SymbolicAutomata::State, AUTOQ::SymbolicAutomata::StateSet> Cell;

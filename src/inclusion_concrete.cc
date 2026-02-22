@@ -2,6 +2,7 @@
  * Inclusion checking for Concrete (Tree) automata: operator<<=.
  */
 #include "autoq/inclusion_common.hh"
+#include "autoq/inclusion_build_trans.hh"
 #include "autoq/util/util.hh"
 #include "autoq/aut_description.hh"
 #include <queue>
@@ -10,37 +11,11 @@ template <>
 bool AUTOQ::ConcreteAutomata::operator<<=(AUTOQ::ConcreteAutomata autB) const {
     const auto &autA = *this;
     autB = autB.operator||(AUTOQ::ConcreteAutomata::zero_amplitude(autB.qubitNum));
-    // autA.print_aut("R:\n"); autB.print_aut("Q:\n");
-    // if (autA.StrictlyEqual(autB)) return true;
-
-    // AUTOQ::Constraint C = AUTOQ::Constraint(autA.constraints.c_str());
-    // autA.fraction_simplification();
-    // autB.fraction_simplification();
     auto start_include = std::chrono::steady_clock::now();
 
-    // Preparation: Transform transitions into the new data structure.
-    std::vector<std::map<AUTOQ::ConcreteAutomata::SymbolTag, AUTOQ::ConcreteAutomata::StateVector>> transA(autA.stateNum);
-    std::vector<std::map<AUTOQ::ConcreteAutomata::Symbol, std::map<AUTOQ::ConcreteAutomata::Tag, AUTOQ::ConcreteAutomata::StateVector>>> transB(autB.stateNum);
-    for (const auto &t : autA.transitions) {
-        const auto &symbol_tag = t.first;
-        for (const auto &out_ins : t.second) {
-            const auto &out = out_ins.first;
-            const auto &ins = out_ins.second;
-            assert(ins.size() == 1); // already assume one (q,fc) corresponds to only one input vector.
-            transA[out][symbol_tag] = *(ins.begin());
-        }
-    }
-    for (const auto &t : autB.transitions) {
-        const auto &symbol_tag = t.first;
-        for (const auto &out_ins : t.second) {
-            const auto &out = out_ins.first;
-            const auto &ins = out_ins.second;
-            assert(ins.size() == 1); // already assume one (q,fc) corresponds to only one input vector.
-            transB[out][symbol_tag.symbol()][symbol_tag.tag()] = *(ins.begin());
-        }
-    }
-    // autA.print_aut("autA\n");
-    // autB.print_aut("autB\n");
+    std::vector<std::map<AUTOQ::ConcreteAutomata::SymbolTag, AUTOQ::ConcreteAutomata::StateVector>> transA;
+    std::vector<std::map<AUTOQ::ConcreteAutomata::Symbol, std::map<AUTOQ::ConcreteAutomata::Tag, AUTOQ::ConcreteAutomata::StateVector>>> transB;
+    AUTOQ::build_inclusion_trans(autA, autB, transA, transB);
 
     // Main Routine: Graph Traversal
     typedef std::map<AUTOQ::ConcreteAutomata::State, AUTOQ::ConcreteAutomata::StateSet> Cell;
