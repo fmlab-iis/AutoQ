@@ -4,6 +4,7 @@ project(unit_tests)
 
 include_directories(../include)
 include_directories(../include/z3)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 
 set(TESTS
   "explicit_tree_aut_test"

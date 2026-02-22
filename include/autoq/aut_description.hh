@@ -13,8 +13,8 @@
 
 // AUTOQ headers
 #include <chrono>
-#include <regex>
 #include <autoq/util/types.hh>
+#include <autoq/util/qasm_regex.hh>
 #include "autoq/symbol/concrete.hh"
 #include "autoq/symbol/symbolic.hh"
 #include "autoq/symbol/predicate.hh"
@@ -38,13 +38,6 @@ namespace AUTOQ
     typedef Automata<Symbol::Predicate> PredicateAutomata;
     typedef Automata<Symbol::Index> IndexAutomata;
     typedef Automata<Symbol::Constrained> ConstrainedAutomata;
-    typedef struct regexes {
-        const std::regex rx;
-        const std::regex rz;
-        const std::regex digit;
-        const std::regex loop;
-        regexes() : rx(R"(rx\((.+)\).+\[(\d+)\];)"), rz(R"(rz\((.+)\).+\[(\d+)\];)"), digit("\\d+"), loop(R"(for int (\w+) in \[(\d+):(\d+)\])") {}
-    } regexes;
 }
 
 template <typename T> constexpr auto support_fraction_simplification = requires (T x) {
@@ -239,7 +232,7 @@ public:
 
     /****************************************************/
     /* execute.cc: the main function for gate execution */
-    void single_gate_execute(const std::string& line, const regexes &regexes, const std::vector<int> &qubit_permutation);
+    void single_gate_execute(const std::string& line, const QasmRegexes &regexes, const std::vector<int> &qubit_permutation);
     bool execute(const std::string &filename, std::vector<int> qubit_permutation={}, const std::vector<AUTOQ::Automata<Symbol>> &loopInvariants={}, ParameterMap params={});
     bool execute(const char *filename, std::vector<int> qubit_permutation={}, const std::vector<AUTOQ::Automata<Symbol>> &loopInvariants={}, ParameterMap params={});
     static std::string check_the_invariants_types(const std::string& filename);
@@ -290,61 +283,21 @@ public:
 
 
 namespace std {
-//     template<> class numeric_limits<__int128_t> {
-//         public:
-//             static __int128_t max() {
-//                 return (static_cast<__int128_t>(numeric_limits<__int64_t>::max()) << 64) + numeric_limits<__uint64_t>::max();
-//             }
-//             static __int128_t min() {
-//                 return static_cast<__uint128_t>(1) << 127;
-//             }
-//             inline static int digits = 127;
-//     };
-//     template<> struct hash<__int128_t> {
-//         size_t operator()(__int128_t var) const {
-//             return std::hash<__uint64_t>{}(static_cast<__uint64_t>(var) ^ static_cast<__uint64_t>(var >> 64));
-//         }
-//     };
-    template <> struct hash<typename AUTOQ::TreeAutomata::SymbolTag> {
-        size_t operator()(const AUTOQ::TreeAutomata::SymbolTag& obj) const {
-            std::size_t seed = 0;
-            boost::hash_combine(seed, obj.first);
-            boost::hash_combine(seed, obj.second);
-            return seed;
-        }
-    };
-    template <> struct hash<typename AUTOQ::SymbolicAutomata::SymbolTag> {
-        size_t operator()(const AUTOQ::SymbolicAutomata::SymbolTag& obj) const {
-            std::size_t seed = 0;
-            boost::hash_combine(seed, obj.first);
-            boost::hash_combine(seed, obj.second);
-            return seed;
-        }
-    };
-    template <> struct hash<typename AUTOQ::PredicateAutomata::SymbolTag> {
-        size_t operator()(const AUTOQ::PredicateAutomata::SymbolTag& obj) const {
-            std::size_t seed = 0;
-            boost::hash_combine(seed, obj.first);
-            boost::hash_combine(seed, obj.second);
-            return seed;
-        }
-    };
-    template <> struct hash<typename AUTOQ::IndexAutomata::SymbolTag> {
-        size_t operator()(const AUTOQ::IndexAutomata::SymbolTag& obj) const {
-            std::size_t seed = 0;
-            boost::hash_combine(seed, obj.first);
-            boost::hash_combine(seed, obj.second);
-            return seed;
-        }
-    };
-    template <> struct hash<typename AUTOQ::ConstrainedAutomata::SymbolTag> {
-        size_t operator()(const AUTOQ::ConstrainedAutomata::SymbolTag& obj) const {
-            std::size_t seed = 0;
-            boost::hash_combine(seed, obj.first);
-            boost::hash_combine(seed, obj.second);
-            return seed;
-        }
-    };
+#define AUTOQ_HASH_SYMBOL_TAG(AutType) \
+    template <> struct hash<typename AUTOQ::AutType::SymbolTag> { \
+        size_t operator()(const AUTOQ::AutType::SymbolTag& obj) const { \
+            std::size_t seed = 0; \
+            boost::hash_combine(seed, obj.first); \
+            boost::hash_combine(seed, obj.second); \
+            return seed; \
+        } \
+    }
+    AUTOQ_HASH_SYMBOL_TAG(TreeAutomata);
+    AUTOQ_HASH_SYMBOL_TAG(SymbolicAutomata);
+    AUTOQ_HASH_SYMBOL_TAG(PredicateAutomata);
+    AUTOQ_HASH_SYMBOL_TAG(IndexAutomata);
+    AUTOQ_HASH_SYMBOL_TAG(ConstrainedAutomata);
+#undef AUTOQ_HASH_SYMBOL_TAG
 }
 
 // bool operator<=(const AUTOQ::SymbolicAutomata &autA, const AUTOQ::PredicateAutomata &autB);

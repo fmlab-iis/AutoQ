@@ -22,6 +22,7 @@
 #include "autoq/parsing/parser/timbuk_parser.hh"
 #include "autoq/serialization/timbuk_serializer.hh"
 #include "autoq/inclusion.hh"
+#include "test_util.hh"
 
 using AUTOQ::Complex::Complex;
 using AUTOQ::Symbol::Concrete;
@@ -37,9 +38,7 @@ BOOST_TEST_GLOBAL_FIXTURE(Fixture);
 
 BOOST_AUTO_TEST_CASE(qasm_parsing_minimal_circuit)
 {
-    std::string base(__FILE__);
-    base = base.substr(0, base.find_last_of("\\/"));
-    std::string folder = base + "/testcase/GroverFor/";
+    std::string folder = test_dir_from_file(__FILE__, "testcase/GroverFor/");
     std::string pre = folder + "pre.hsl";
     std::string post = folder + "post.hsl";
     std::string circuit = folder + "circuit.qasm";
@@ -72,9 +71,7 @@ BOOST_AUTO_TEST_CASE(inclusion_checker_equal_automata)
 
 BOOST_AUTO_TEST_CASE(cli_subprocess_verification)
 {
-    std::string base(__FILE__);
-    base = base.substr(0, base.find_last_of("\\/"));
-    std::string folder = base + "/../benchmarks/all/BV/03/";
+    std::string folder = test_dir_from_file(__FILE__, "../benchmarks/all/BV/03/");
     std::string pre = folder + "pre.hsl";
     std::string post = folder + "post.hsl";
     std::string circuit = folder + "circuit.qasm";

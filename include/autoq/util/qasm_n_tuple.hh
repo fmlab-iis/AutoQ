@@ -6,9 +6,9 @@
 #include <autoq/error.hh>
 #include <autoq/error_messages.hh>
 #include <autoq/parsing/angle.hh>
+#include <autoq/util/qasm_regex.hh>
 #include <autoq/util/string.hh>
 #include <fstream>
-#include <regex>
 #include <string>
 
 namespace AUTOQ {
@@ -27,17 +27,16 @@ inline void adjust_N_in_nTuple(const std::string& filename) {
         }
     };
     std::ifstream qasm(filename);
-    const std::regex rx(R"(rx\((.+)\).+\[(\d+)\];)");
-    const std::regex rz(R"(rz\((.+)\).+\[(\d+)\];)");
+    const AUTOQ::QasmRegexes re;
     if (!qasm.is_open())
         THROW_AUTOQ_ERROR(std::string(ErrorMessages::kOpenFilePrefix) + filename + ".");
     std::string line;
     while (std::getline(qasm, line)) {
         line = AUTOQ::String::trim(line);
         std::smatch match_rx;
-        std::regex_search(line, match_rx, rx);
+        std::regex_search(line, match_rx, re.rx);
         std::smatch match_rz;
-        std::regex_search(line, match_rz, rz);
+        std::regex_search(line, match_rz, re.rz);
         if (line.find("OPENQASM") == 0 || line.find("include ") == 0 ||
             line.find("//") == 0)
             continue;
