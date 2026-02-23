@@ -12,8 +12,8 @@
 #define _AUTOQ_TRIPLE_HH_
 
 // AUTOQ headers
-#include	<autoq/autoq.hh>
-#include	<autoq/util/convert.hh>
+#include "autoq/autoq.hh"
+#include "autoq/util/convert.hh"
 
 // Boost library headers
 #include <boost/functional/hash.hpp>

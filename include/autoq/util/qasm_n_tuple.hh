@@ -1,13 +1,13 @@
 #ifndef _AUTOQ_UTIL_QASM_N_TUPLE_HH_
 #define _AUTOQ_UTIL_QASM_N_TUPLE_HH_
 
-#include <autoq/complex/complex.hh>
-#include <autoq/complex/ntuple.hh>
-#include <autoq/error.hh>
-#include <autoq/error_messages.hh>
-#include <autoq/parsing/angle.hh>
-#include <autoq/util/qasm_regex.hh>
-#include <autoq/util/string.hh>
+#include "autoq/complex/complex.hh"
+#include "autoq/complex/ntuple.hh"
+#include "autoq/error.hh"
+#include "autoq/error_messages.hh"
+#include "autoq/parsing/angle.hh"
+#include "autoq/util/qasm_regex.hh"
+#include "autoq/util/string.hh"
 #include <fstream>
 #include <string>
 

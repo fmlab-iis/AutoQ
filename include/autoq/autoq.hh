@@ -16,7 +16,7 @@
 // Standard library headers
 #include <cassert>
 #include <iostream>
-#include <autoq/util/convert.hh>
+#include "autoq/util/convert.hh"
 
 //#define NDEBUG
 

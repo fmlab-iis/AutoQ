@@ -4,9 +4,9 @@
 #include <regex>
 #include <string>
 #include <vector>
-#include <autoq/complex/complex.hh>
-#include <autoq/symbol/symbolic.hh>
-#include <autoq/aut_description.hh>
+#include "autoq/complex/complex.hh"
+#include "autoq/symbol/symbolic.hh"
+#include "autoq/aut_description.hh"
 
 namespace AUTOQ
 {

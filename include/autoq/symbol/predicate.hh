@@ -3,7 +3,7 @@
 
 #include <string>
 #include "autoq/symbol/symbol_base.hh"
-#include <autoq/autoq.hh>
+#include "autoq/autoq.hh"
 #include <boost/multiprecision/cpp_int.hpp>
 
 namespace AUTOQ

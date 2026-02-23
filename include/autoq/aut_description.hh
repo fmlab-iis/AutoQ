@@ -13,8 +13,8 @@
 
 // AUTOQ headers
 #include <chrono>
-#include <autoq/util/types.hh>
-#include <autoq/util/qasm_regex.hh>
+#include "autoq/util/types.hh"
+#include "autoq/util/qasm_regex.hh"
 #include "autoq/symbol/concrete.hh"
 #include "autoq/symbol/symbolic.hh"
 #include "autoq/symbol/predicate.hh"
@@ -54,16 +54,16 @@ struct AUTOQ::Automata
 
     typedef TT Symbol;
 	typedef unsigned long long Tag;
-    inline static constexpr auto Tag_MAX = static_cast<Tag>(1) << (std::numeric_limits<Tag>::digits - 1);
-    typedef std::pair<Symbol, Tag> stdpairSymbolTag;
+    inline static constexpr auto tag_max = static_cast<Tag>(1) << (std::numeric_limits<Tag>::digits - 1);
+    typedef std::pair<Symbol, Tag> SymbolTagPair;
     // in a transition of a form (Symbol, Tag)[q1, ..., qn] -> q
     // Symbol represents the qbit and tag represent the color
     // color is a bitset, where the i-th bit is 1 if the i-th color is used
-    struct SymbolTag : stdpairSymbolTag {
-        using stdpairSymbolTag::stdpairSymbolTag; // inherit parent constructors
-        // template<typename... Args> SymbolTag(Args... args) : stdpairSymbolTag({args...}, {}) {}
+    struct SymbolTag : SymbolTagPair {
+        using SymbolTagPair::SymbolTagPair; // inherit parent constructors
+        // template<typename... Args> SymbolTag(Args... args) : SymbolTagPair({args...}, {}) {}
         // Reference: https://stackoverflow.com/a/32595916/11550178
-        SymbolTag(const Symbol &sym) : stdpairSymbolTag(sym, 0) {}
+        SymbolTag(const Symbol &sym) : SymbolTagPair(sym, 0) {}
         Symbol& symbol() & { return this->first; }
         const Symbol& symbol() const & { return this->first; }
         Tag& tag() & { return this->second; }

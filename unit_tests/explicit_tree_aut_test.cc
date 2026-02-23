@@ -352,7 +352,7 @@ static void dfs(const std::map<AUTOQ::ConcreteAutomata::State, AUTOQ::ConcreteAu
     }
 }
 
-BOOST_AUTO_TEST_CASE(Grover_Search_only_one_oracle)
+BOOST_AUTO_TEST_CASE(GroverSearch_only_one_oracle)
 {
     int n = 4;
     assert(n >= 2);

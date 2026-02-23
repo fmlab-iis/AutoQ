@@ -4,10 +4,10 @@
 #include <cmath>
 #include <algorithm>
 #include <boost/rational.hpp>
-#include <autoq/error.hh>
-#include <autoq/util/convert.hh>
-#include <autoq/util/mapped_vector.hh>
-#include <autoq/complex/fivetuple.hh>
+#include "autoq/error.hh"
+#include "autoq/util/convert.hh"
+#include "autoq/util/mapped_vector.hh"
+#include "autoq/complex/fivetuple.hh"
 #include <boost/integer/common_factor.hpp>
 #include <boost/multiprecision/cpp_int.hpp>
 #include "z3/z3++.h"

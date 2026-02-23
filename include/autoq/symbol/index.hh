@@ -3,7 +3,7 @@
 
 #include "autoq/symbol/symbol_base.hh"
 #include <boost/functional/hash.hpp>
-#include <autoq/autoq.hh>
+#include "autoq/autoq.hh"
 
 namespace AUTOQ
 {

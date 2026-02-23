@@ -1,6 +1,6 @@
-#include <autoq/aut_description.hh>
-#include <autoq/symbol/concrete.hh>
-#include <autoq/symbol/symbolic.hh>
+#include "autoq/aut_description.hh"
+#include "autoq/symbol/concrete.hh"
+#include "autoq/symbol/symbolic.hh"
 
 template <typename Symbol>
 void AUTOQ::Automata<Symbol>::unfold_top() {

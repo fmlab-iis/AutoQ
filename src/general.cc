@@ -27,7 +27,7 @@ AUTOQ::Automata<Symbol> AUTOQ::Automata<Symbol>::operator*(Automata<Symbol> aut2
     int num_of_colors_used_in_aut2 = 0;
     for (auto it = aut2.transitions.cbegin(); it != aut2.transitions.cend() /* not hoisted */; /* no increment */) {
         if (it->first.is_internal() && it->first.symbol().qubit() == 1) {
-            if (color == AUTOQ::Automata<Symbol>::Tag_MAX) {
+            if (color == AUTOQ::Automata<Symbol>::tag_max) {
                 THROW_AUTOQ_ERROR("Colors are not enough!!!");
             }
             for (const auto &out_ins : it->second) {
