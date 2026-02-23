@@ -1,7 +1,7 @@
 /** Concrete other: Tdg, Sdg, Swap, CX(), Phase, CK, randG, measure. */
 #include "autoq/aut_description.hh"
 #include "autoq/util/util.hh"
-#include "gate_macros.hh"
+#include "autoq/gate_macros.hh"
 #include <boost/rational.hpp>
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wold-style-cast"

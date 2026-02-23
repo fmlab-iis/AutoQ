@@ -15,7 +15,7 @@
 #include "autoq/error.hh"
 #include "autoq/util/convert.hh"
 #include "autoq/util/two_way_dict.hh"
-#include "transl_weak.hh"
+#include "autoq/simulation/transl_weak.hh"
 
 // Standard library headers
 #include <vector>

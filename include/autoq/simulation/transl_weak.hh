@@ -15,7 +15,7 @@
 
 // AUTOQ headers
 #include "autoq/error.hh"
-#include "abstract_transl.hh"
+#include "autoq/simulation/abstract_transl.hh"
 
 
 namespace AUTOQ

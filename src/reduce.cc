@@ -11,8 +11,8 @@
 #include "autoq/symbol/symbolic.hh"
 #include "autoq/symbol/predicate.hh"
 #include "autoq/symbol/constrained.hh"
-#include "simulation/explicit_lts.hh"
-#include "simulation/automata_to_lts.hh"
+#include "autoq/simulation/explicit_lts.hh"
+#include "autoq/simulation/automata_to_lts.hh"
 
 using namespace AUTOQ;
 using namespace AUTOQ::Util;

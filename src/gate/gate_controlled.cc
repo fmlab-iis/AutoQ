@@ -1,7 +1,7 @@
 /** Controlled gate (1 or 2 controls) template. */
 #include "autoq/aut_description.hh"
-#include "gate_helpers.hh"
-#include "gate_macros.hh"
+#include "autoq/gate_helpers.hh"
+#include "autoq/gate_macros.hh"
 
 template <typename Symbol>
 void AUTOQ::Automata<Symbol>::general_controlled_gate(int c, int t, const std::function<Symbol(const Symbol&, const Symbol&)> &u1u2, const std::function<Symbol(const Symbol&, const Symbol&)> &u3u4, const std::function<Symbol(const Symbol&)> &multiply_by_c0) {

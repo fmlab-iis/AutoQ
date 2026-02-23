@@ -14,7 +14,7 @@
 #include <cstring>
 #include <vector>
 
-#include "caching_allocator.hh"
+#include "autoq/simulation/caching_allocator.hh"
 
 namespace AUTOQ { namespace Util {
 	class SharedCounter;

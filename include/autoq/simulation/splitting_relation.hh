@@ -17,7 +17,7 @@
 // AUTOQ headers
 #include "autoq/error.hh"
 
-#include "caching_allocator.hh"
+#include "autoq/simulation/caching_allocator.hh"
 
 namespace AUTOQ
 {

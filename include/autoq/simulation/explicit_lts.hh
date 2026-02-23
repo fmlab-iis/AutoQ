@@ -13,8 +13,8 @@
 
 #include <vector>
 
-#include "binary_relation.hh"
-#include "smart_set.hh"
+#include "autoq/simulation/binary_relation.hh"
+#include "autoq/simulation/smart_set.hh"
 
 
 namespace AUTOQ { class ExplicitLTS; }

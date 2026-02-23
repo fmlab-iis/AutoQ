@@ -24,16 +24,14 @@
 
 
 // AUTOQ headers
-#include "explicit_lts.hh"
-#include "binary_relation.hh"
-#include "smart_set.hh"
+#include "autoq/simulation/explicit_lts.hh"
+#include "autoq/simulation/binary_relation.hh"
+#include "autoq/simulation/smart_set.hh"
 #include "autoq/util/convert.hh"
-
-
-#include "caching_allocator.hh"
-#include "shared_counter.hh"
-#include "shared_list.hh"
-#include "splitting_relation.hh"
+#include "autoq/simulation/caching_allocator.hh"
+#include "autoq/simulation/shared_counter.hh"
+#include "autoq/simulation/shared_list.hh"
+#include "autoq/simulation/splitting_relation.hh"
 
 
 using AUTOQ::Util::BinaryRelation;

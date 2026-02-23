@@ -1,7 +1,7 @@
 /** Single-qubit gate template. */
 #include "autoq/aut_description.hh"
-#include "gate_helpers.hh"
-#include "gate_macros.hh"
+#include "autoq/gate_helpers.hh"
+#include "autoq/gate_macros.hh"
 
 template <typename Symbol>
 void AUTOQ::Automata<Symbol>::general_single_qubit_gate(int t, const std::function<Symbol(const Symbol&, const Symbol&)> &u1u2, const std::function<Symbol(const Symbol&, const Symbol&)> &u3u4) {

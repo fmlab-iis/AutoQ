@@ -1,6 +1,6 @@
 /** Diagonal gate template. */
 #include "autoq/aut_description.hh"
-#include "gate_macros.hh"
+#include "autoq/gate_macros.hh"
 
 template <typename Symbol>
 void AUTOQ::Automata<Symbol>::diagonal_gate(int t, const std::function<void(Symbol*)> &multiply_by_c0, const std::function<void(Symbol*)> &multiply_by_c1) {

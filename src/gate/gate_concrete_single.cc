@@ -1,8 +1,8 @@
 /** Concrete single-qubit gates: X, Y, Z, H, S, T, Rx, Ry, Rz. */
 #include "autoq/aut_description.hh"
 #include "autoq/util/util.hh"
-#include "gate_helpers.hh"
-#include "gate_macros.hh"
+#include "autoq/gate_helpers.hh"
+#include "autoq/gate_macros.hh"
 #include <boost/rational.hpp>
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wold-style-cast"

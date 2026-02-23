@@ -10,8 +10,8 @@
 #include <set>
 
 #include "autoq/aut_description.hh"
-#include "explicit_lts.hh"
-#include "transl_weak.hh"
+#include "autoq/simulation/explicit_lts.hh"
+#include "autoq/simulation/transl_weak.hh"
 
 namespace AUTOQ {
 namespace simulation {
