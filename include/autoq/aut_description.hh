@@ -192,6 +192,9 @@ private:
     void general_controlled_gate(int c, int t, const std::function<Symbol(const Symbol&, const Symbol&)> &u1u2, const std::function<Symbol(const Symbol&, const Symbol&)> &u3u4, const std::function<Symbol(const Symbol&)> &multiply_by_c0 = ([](const Symbol &l) -> Symbol { return l; }));
     void general_controlled_gate(int c, int c2, int t, const std::function<Symbol(const Symbol&, const Symbol&)> &u1u2, const std::function<Symbol(const Symbol&, const Symbol&)> &u3u4, const std::function<Symbol(const Symbol&)> &multiply_by_c0 = ([](const Symbol &l) -> Symbol { return l; }));
     void diagonal_gate(int t, const std::function<void(Symbol*)> &multiply_by_c0, const std::function<void(Symbol*)> &multiply_by_c1);
+    void run_single_qubit_concrete_gate(int t, const char* log_name, const char* qasm_name, const std::function<Symbol(const Symbol&, const Symbol&)>& u1u2, const std::function<Symbol(const Symbol&, const Symbol&)>& u3u4);
+    void run_diagonal_concrete_gate(int t, const char* log_name, const char* qasm_name, const std::function<void(Symbol*)>& multiply_by_c0, const std::function<void(Symbol*)>& multiply_by_c1, bool do_reduce);
+    void run_concrete_gate_with_body(int t, const char* log_name, const char* qasm_name, std::function<void()> body);
 public:
     void X(int t);
     void Y(int t);
@@ -210,7 +213,6 @@ public:
     void Sdg(int t);
     void Swap(int t1, int t2);
     void CX();
-    void CX_inv();
     void Phase(const boost::rational<boost::multiprecision::cpp_int> &r);
     void CK(int c, int t);
     Automata measure(int t, bool outcome) const;
