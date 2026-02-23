@@ -1,8 +1,6 @@
 /**
- * Automata reduction and LTS-based simulation.
- * - sim_reduce uses LTS build (simulation::translate_to_lts_downward, count_aut_states) and compute_down_sim.
- * - Light reduce up/down, bottom-up reduce, reduce(), remove_useless().
- * - Helpers: reindex_aut_states, compact_aut, state_renumbering, fraction_simplification, k_unification.
+ * Automata reduction: light reduce, bottom-up reduce, remove_useless, fraction_simplification, k_unification.
+ * LTS-based sim_reduce is in reduce_sim.cc. Shared helpers in reduce_common.hh.
  */
 #include <queue>
 
@@ -11,143 +9,12 @@
 #include "autoq/symbol/symbolic.hh"
 #include "autoq/symbol/predicate.hh"
 #include "autoq/symbol/constrained.hh"
-#include "autoq/simulation/explicit_lts.hh"
-#include "autoq/simulation/automata_to_lts.hh"
+#include "autoq/reduce_common.hh"
 
 using namespace AUTOQ;
 using namespace AUTOQ::Util;
 
-namespace { // anonymous namespace
-
-  // --- LTS-based simulation (used by sim_reduce) ---
-
-  template <typename Symbol>
-  typename Util::DiscontBinaryRelation<typename Automata<Symbol>::State> compute_down_sim(const AUTOQ::Automata<Symbol>& aut)
-  {
-    using State = typename Automata<Symbol>::State;
-    using StateToIndexMap = typename std::unordered_map<State, size_t>;
-    using StateToIndexTranslWeak = typename Util::TranslatorWeak<StateToIndexMap>;
-    using DiscontBinaryRelOnStates = typename Util::DiscontBinaryRelation<State>;
-
-    StateToIndexMap translMap;
-    size_t stateCnt = 0;
-    StateToIndexTranslWeak transl(translMap,
-        [&stateCnt](const State&) {return stateCnt++;});
-
-    size_t num_states = simulation::count_aut_states(aut);
-    AUTOQ::ExplicitLTS lts = simulation::translate_to_lts_downward(aut, num_states, transl);
-    BinaryRelation ltsSim = lts.computeSimulation(num_states);
-    return DiscontBinaryRelOnStates(ltsSim, translMap);
-  }
-
-  // --- Reindexing and compaction helpers ---
-
-  template <class Index, typename Symbol>
-  void reindex_aut_states(Automata<Symbol>& aut, Index& index)
-  {
-    using State = typename Automata<Symbol>::State;
-    using StateVector = typename Automata<Symbol>::StateVector;
-
-    StateVector newFinal;
-
-    for (const State& state : aut.finalStates) { // process final states
-      if (newFinal.end() == std::find(newFinal.begin(), newFinal.end(), index[state])) {
-        newFinal.push_back(index[state]);
-      }
-    }
-    typename Automata<Symbol>::TopDownTransitions transitions_new;
-    for (const auto &t : aut.transitions) {
-        for (const auto &out_ins : t.second) {
-            const auto &out = out_ins.first;
-            for (auto in : out_ins.second) {
-                for (auto &e : in) {
-                    e = index[e];
-                }
-                transitions_new[t.first][index[out]].insert(in);
-            }
-        }
-    }
-
-    aut.finalStates = newFinal;
-    aut.transitions = transitions_new;
-  }
-
-  template <class T>
-  int findIndex(const std::vector<T> &arr, T item) {
-      for (int i = 0; i < static_cast<int>(arr.size()); ++i) {
-          if (arr[i] == item)
-              return i;
-      }
-      std::__throw_out_of_range("[ERROR] findIndex: item not found.");
-  }
-
-  /// Checks that a state is at most once on the right-hand (parent) side of
-  /// any rule.
-  template <typename Symbol>
-  bool aut_is_single_occurrence(const Automata<Symbol>& aut)
-  {
-    using State = typename Automata<Symbol>::State;
-
-    std::set<State> occurrences;
-    for (auto symbMapPair : aut.transitions) {
-      for (auto vecSetPair : symbMapPair.second) {
-        for (auto state : vecSetPair.second) {
-          auto itBoolPair = occurrences.insert(state);
-          if (!itBoolPair.second) { return false; }
-        }
-      }
-    }
-
-    return true;
-  }
-
-  // Makes a TA compact (states are renumbered to start from 0 and go consecutively up
-  template <typename Symbol>
-  void compact_aut(Automata<Symbol>& aut)
-  {
-    using State = typename Automata<Symbol>::State;
-    using StateToStateMap = typename std::unordered_map<State, State>;
-    using StateToStateTranslWeak = typename Util::TranslatorWeak<StateToStateMap>;
-    StateToStateMap translMap;
-    size_t stateCnt = 0;
-    StateToStateTranslWeak transl(translMap,
-        [&stateCnt](const State&) {return stateCnt++;});
-
-    // AUTOQ_DEBUG("Before compact stateNum = " + Convert::ToString(aut.stateNum));
-    reindex_aut_states(aut, transl);
-    aut.stateNum = stateCnt;
-    // AUTOQ_DEBUG("After compact stateNum = " + Convert::ToString(aut.stateNum));
-  }
-} // anonymous namespace
-
-// --- Reduction API: sim_reduce, light_reduce_*, bottom_up_reduce, reduce ---
-
-template <typename Symbol>
-void AUTOQ::Automata<Symbol>::sim_reduce()
-{
-  using State = typename Automata<Symbol>::State;
-  using DiscontBinaryRelOnStates = typename Util::DiscontBinaryRelation<State>;
-  using StateToStateMap = typename std::unordered_map<State, State>;
-
-  DiscontBinaryRelOnStates sim = compute_down_sim(*this);
-
-  // TODO: this is probably not optimal, we could probably get the mapping of
-  // states for collapsing in a faster way
-  sim.RestrictToSymmetric();       // sim is now an equivalence relation
-
-  StateToStateMap collapseMap;
-  sim.GetQuotientProjection(collapseMap);
-
-  // Automata old = *this;
-  reindex_aut_states(*this, collapseMap);
-
-  // if (!check_equal_aut(*this, old)) {
-  //   AUTOQ_DEBUG("wrong simulation result!");
-  //   AUTOQ_DEBUG("old: " + old.ToString());
-  //   AUTOQ_DEBUG("new: " + this->ToString());
-  //   AUTOQ_DEBUG("simulation: " + sim.ToString());
-  // }
-}
+// --- Reduction API: light_reduce_*, bottom_up_reduce, reduce, remove_useless, etc. ---
 
 template <typename Symbol>
 bool AUTOQ::Automata<Symbol>::light_reduce_up()
@@ -194,7 +61,7 @@ bool AUTOQ::Automata<Symbol>::light_reduce_up()
   // AUTOQ_DEBUG("index: " + Convert::ToString(index));
   if (changed) {
     // Automata old = *this;
-    reindex_aut_states(*this, index);
+    reduce_detail::reindex_aut_states(*this, index);
     // assert(check_equal_aut(old, *this));
   }
 
@@ -247,7 +114,7 @@ bool AUTOQ::Automata<Symbol>::light_reduce_down()
 
     StateToStateTranslWeak transl(index, [](const State& state) {return state;});
 
-    reindex_aut_states(*this, transl);
+    reduce_detail::reindex_aut_states(*this, transl);
     return true;
   }
 
@@ -333,7 +200,7 @@ bool AUTOQ::Automata<Symbol>::light_reduce_down()
           }
 
           StateToStateTranslWeak transl(index, [](const State& state) { return state; });
-          reindex_aut_states(*this, transl);
+          reduce_detail::reindex_aut_states(*this, transl);
           return true;
         }
       }
@@ -573,7 +440,7 @@ void AUTOQ::Automata<Symbol>::reduce() {
                 this->light_reduce_down_iter();
                 // AUTOQ_DEBUG("after light_reduce_down: " + Convert::ToString(count_aut_states(*this)));
 
-                compact_aut(*this);
+                reduce_detail::compact_aut(*this);
                 // assert(check_equal_aut(old, *this));
 
                 auto a = transitions; //count_transitions();
