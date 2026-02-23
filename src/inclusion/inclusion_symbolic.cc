@@ -492,21 +492,24 @@ static bool symbolic_inclusion_bfs_holds(
     return true;
 }
 
-}  // namespace
-
-// -------- Inclusion: Symbolic automata (scaled inclusion) --------
-bool scaled_inclusion_with_or_without_renaming(AUTOQ::SymbolicAutomata autA, AUTOQ::SymbolicAutomata autB, bool renaming) {
+// Prepare autA/autB for scaled inclusion: normalize constraints, add zero amplitude to B, optional variable renaming.
+static void prepare_aut_for_scaled_inclusion(AUTOQ::SymbolicAutomata& autA, AUTOQ::SymbolicAutomata& autB, bool renaming) {
     if (AUTOQ::String::trim(autA.constraints).empty()) autA.constraints = "true";
     if (AUTOQ::String::trim(autB.constraints).empty()) autB.constraints = "true";
     autB = autB.operator||(AUTOQ::SymbolicAutomata::zero_amplitude(autB.qubitNum));
-
     if (renaming) {
         rename_symbolic_aut_vars(autA, "R_");
         rename_symbolic_aut_vars(autB, "Q_");
     }
+}
+
+}  // namespace
+
+// -------- Inclusion: Symbolic automata (scaled inclusion) --------
+bool scaled_inclusion_with_or_without_renaming(AUTOQ::SymbolicAutomata autA, AUTOQ::SymbolicAutomata autB, bool renaming) {
+    prepare_aut_for_scaled_inclusion(autA, autB, renaming);
 
     auto start_include = std::chrono::steady_clock::now();
-
     std::vector<std::map<AUTOQ::SymbolicAutomata::SymbolTag, AUTOQ::SymbolicAutomata::StateVector>> transA;
     std::vector<std::map<AUTOQ::SymbolicAutomata::Symbol, std::map<AUTOQ::SymbolicAutomata::Tag, AUTOQ::SymbolicAutomata::StateVector>>> transB;
     AUTOQ::build_inclusion_trans(autA, autB, transA, transB);
