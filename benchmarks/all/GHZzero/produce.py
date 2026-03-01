@@ -3,9 +3,11 @@ import sys
 import os
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-from common import ensure_bench_dir_for_n, write_qasm_header, parse_sizes
+from common import ensure_bench_dir_for_n, write_qasm_header, write_hsl, parse_sizes
 
 sizes = parse_sizes(2, 1001, min_n=2)
+PRE_HSL_HEADER = "Constants\nc1 := 1\nExtended Dirac\n"
+POST_HSL_HEADER = "Constants\ncp := 1/sqrt2\nExtended Dirac\n"
 
 for n in sizes:
     n_str = ensure_bench_dir_for_n(n, zfill=3)
@@ -17,11 +19,7 @@ for n in sizes:
         for i in range(0, n-1):
             file.write(f'cx qubits[{i}], qubits[{i+1}];\n')
     #########################################
-    with open(n_str + '/pre.hsl', 'w') as file:
-        file.write('Constants\n')
-        file.write(f"c1 := 1\n")
-        file.write('Extended Dirac\n')
-        file.write(f"{{c1 |{'0' * n}>}}\n")
+    write_hsl(n_str + '/pre.hsl', f"{{c1 |{'0' * n}>}}\n", header=PRE_HSL_HEADER)
     #########################################
     # with open(n_str + "/pre.lsta", "w") as file:
     #     file.write('Constants\n')
@@ -36,11 +34,7 @@ for n in sizes:
     #     file.write(f"[c0,1] -> {2*n-1}\n")
     #     file.write(f"[c1,1] -> {2*n}\n")
     #########################################
-    with open(n_str + '/post.hsl', 'w') as file:
-        file.write('Constants\n')
-        file.write(f"cp := 1/sqrt2\n")
-        file.write('Extended Dirac\n')
-        file.write(f"{{cp |{'0' * n}> + cp |{'1' * n}>}}\n")
+    write_hsl(n_str + '/post.hsl', f"{{cp |{'0' * n}> + cp |{'1' * n}>}}\n", header=POST_HSL_HEADER)
     #########################################
     # with open(n_str + "/post.lsta", "w") as file:
     #     file.write('Constants\n')

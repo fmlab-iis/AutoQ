@@ -3,18 +3,14 @@ import sys
 import os
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-from common import ensure_bench_dir_for_n, write_qasm_header, parse_sizes
+from common import ensure_bench_dir_for_n, write_qasm_header, write_hsl, parse_sizes
 
 sizes = parse_sizes(1, 1001, min_n=1)
 
 for n in sizes:
     n_str = ensure_bench_dir_for_n(n)
     ###########################################################################
-    with open(n_str + '/pre.hsl', 'w') as file:
-        file.write('Constants\n')
-        file.write('c1 := 1\n')
-        file.write('Extended Dirac\n')
-        file.write(f"{{c1 |{'0' * (n+1)}>}}\n")
+    write_hsl(n_str + '/pre.hsl', f"{{c1 |{'0' * (n+1)}>}}\n")
     ###########################################################################
     # with open(n_str + '/pre.lsta', 'w') as file:
     #     file.write('Constants\n')

@@ -3,7 +3,7 @@ import sys
 import math
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-from common import ensure_bench_dir_for_n, write_qasm_header, parse_sizes
+from common import ensure_bench_dir_for_n, write_qasm_header, write_hsl, parse_sizes
 
 sizes = parse_sizes(3, 22, min_n=3)
 
@@ -16,11 +16,7 @@ for n in sizes:
     q = 2 * n - 1
     n_str = ensure_bench_dir_for_n(n)
     ###########################################################################
-    with open(n_str + '/pre.hsl', 'w') as file:
-        file.write('Constants\n')
-        file.write('c1 := 1\n')
-        file.write('Extended Dirac\n')
-        file.write("{c1 |" + '0' * q + ">}\n")
+    write_hsl(n_str + '/pre.hsl', "{c1 |" + '0' * q + ">}\n")
     ###########################################################################
     with open(n_str + '/circuit.qasm', 'w') as file:
         w = range(n) # [0] + list(range(1, 2*n-2, 2)) # 0, 1, 3, 5, ..., 2n-3

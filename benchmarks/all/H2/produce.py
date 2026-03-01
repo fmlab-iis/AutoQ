@@ -1,10 +1,9 @@
 #!/usr/bin/python3
 import sys
 import os
-import shutil
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-from common import ensure_bench_dir_for_n, write_qasm_header, parse_sizes
+from common import ensure_bench_dir_for_n, write_qasm_header, write_hsl, parse_sizes
 
 sizes = parse_sizes(1, 1001, min_n=1)
 
@@ -18,12 +17,9 @@ for n in sizes:
             file.write(f'h qubits[{i}];\n')
             file.write(f'h qubits[{i}];\n')
     #########################################
-    with open(n_str + '/pre.hsl', 'w') as file:
-        file.write('Constants\n')
-        file.write('c1 := 1\n')
-        file.write('Extended Dirac\n')
-        file.write(f"{{c1 |i> : |i|={n}}}\n")
-    shutil.copy(n_str + '/pre.hsl', n_str + '/post.hsl')
+    body = f"{{c1 |i> : |i|={n}}}\n"
+    write_hsl(n_str + '/pre.hsl', body)
+    write_hsl(n_str + '/post.hsl', body)
     #########################################
     # with open(n_str + "/pre.lsta", "w") as file:
     #     file.write('Constants\n')
