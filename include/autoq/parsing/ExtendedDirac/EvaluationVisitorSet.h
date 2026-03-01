@@ -1,5 +1,9 @@
 // Included inside struct EvaluationVisitor { ... } — visitSet.
 
+    static std::string varconsSuffix(ExtendedDiracParser::SetContext *ctx) {
+        return (ctx->varcons() == nullptr) ? std::string() : (" : " + ctx->varcons()->getText());
+    }
+
     /* -------- VisitSet: brace-enclosed set ({ diracs }) -------- */
     std::any visitSet(ExtendedDiracParser::SetContext *ctx) override {
         if (mode == EXPAND_POWER_AND_DIRACS_AND_REWRITE_COMPLEMENT) {
@@ -9,9 +13,7 @@
                 std::string result;
                 for (const auto &dirac : std::any_cast<std::vector<std::string>>(visit(ctx->diracs()))) {
                     if (result.length() > 0) result += " ∪ ";
-                    result += "{" + dirac;
-                    result += (ctx->varcons() == nullptr) ? "" : (" : " + ctx->varcons()->getText());
-                    result += "}";
+                    result += "{" + dirac + varconsSuffix(ctx) + "}";
                 }
                 return result;
             }
@@ -36,10 +38,7 @@
             for (const auto &[k, v] : globalVar2len) {
                 usedVars.insert(k);
             }
-            std::string result = "{" + std::any_cast<std::string>(visit(ctx->diracs())); // after expansion, diracs contains only one dirac.
-            result += (ctx->varcons() == nullptr) ? "" : (" : " + ctx->varcons()->getText());
-            result += "}";
-            return result;
+            return "{" + std::any_cast<std::string>(visit(ctx->diracs())) + varconsSuffix(ctx) + "}";
         } else if (mode == COMPUTE_CONNECTED_UNITS_INTO_A_GROUP_RELATION) {
             if (ctx->UNION() != nullptr) {
                 auto graph1 = std::any_cast<graph_t>(visit(ctx->set(0)));
@@ -68,31 +67,29 @@
                     relation.second.insert(ineq);
                 }
             }
+            auto units_connected = [&relation](size_t i, size_t j) {
+                const auto &set1 = relation.first.at(i);
+                const auto &set2 = relation.first.at(j);
+                for (char ch : set1) {
+                    if (set2.find(ch) != set2.end()) return true;
+                }
+                for (char ch : set2) {
+                    if (set1.find(ch) != set1.end()) return true;
+                }
+                for (const auto &ineq : relation.second) {
+                    if ((set1.find(ineq.first.at(0)) != set1.end() && set2.find(ineq.second.at(0)) != set2.end()) ||
+                        (set2.find(ineq.first.at(0)) != set2.end() && set1.find(ineq.second.at(0)) != set1.end())) {
+                        return true;
+                    }
+                }
+                return false;
+            };
             graph_t graph;
-            for (size_t i=0; i<relation.first.size(); i++) {
-                auto set1 = relation.first.at(i);
-                for (size_t j=0; j<relation.first.size(); j++) {
-                    auto set2 = relation.first.at(j);
-                    for (char ch : set1) {
-                        if (set2.find(ch) != set2.end()) {
-                            graph.insert(std::make_pair(i, j)); // i < j
-                            goto BOTTOM;
-                        }
+            for (size_t i = 0; i < relation.first.size(); i++) {
+                for (size_t j = 0; j < relation.first.size(); j++) {
+                    if (units_connected(i, j)) {
+                        graph.insert(std::make_pair(i, j));
                     }
-                    for (char ch : set2) {
-                        if (set1.find(ch) != set1.end()) {
-                            graph.insert(std::make_pair(i, j)); // i < j
-                            goto BOTTOM;
-                        }
-                    }
-                    for (const auto &ineq : relation.second) {
-                        if ((set1.find(ineq.first.at(0)) != set1.end() && set2.find(ineq.second.at(0)) != set2.end()) ||
-                            (set2.find(ineq.first.at(0)) != set2.end() && set1.find(ineq.second.at(0)) != set1.end())) {
-                            graph.insert(std::make_pair(i, j)); // i < j
-                            goto BOTTOM;
-                        }
-                    }
-                    BOTTOM:;
                 }
             }
             return graph;
@@ -102,10 +99,7 @@
                 auto str2 = std::any_cast<std::string>(visit(ctx->set(1)));
                 return str1 + " ∪ " + str2;
             } else {
-                std::string result = "{" + std::any_cast<std::string>(visit(ctx->diracs())); // after expansion, diracs contains only one dirac.
-                result += (ctx->varcons() == nullptr) ? "" : (" : " + ctx->varcons()->getText());
-                result += "}";
-                return result;
+                return "{" + std::any_cast<std::string>(visit(ctx->diracs())) + varconsSuffix(ctx) + "}";
             }
         } else if (mode == EVALUATE_EACH_SET_BRACES_TO_LSTA) {
             auto do_the_work = [&]<typename SymbolV>() -> std::any {
