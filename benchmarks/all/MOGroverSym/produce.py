@@ -4,7 +4,7 @@ import os
 import math
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-from common import ensure_bench_dir_for_n, write_qasm_header, parse_sizes
+from common import ensure_bench_dir_for_n, write_qasm_header, write_hsl, parse_sizes
 
 sizes = parse_sizes(3, 12, min_n=3)
 
@@ -16,11 +16,7 @@ for n in sizes:
     q = 3 * n - 1
     n_str = ensure_bench_dir_for_n(n)
     ###########################################################################
-    with open(n_str + '/pre.hsl', 'w') as file:
-        file.write('Constants\n')
-        file.write('c1 := 1\n')
-        file.write('Extended Dirac\n')
-        file.write('{c1 |s' + '0'*(2*n-1) + '> : |s|=' + str(n) + '}\n')
+    write_hsl(n_str + '/pre.hsl', '{c1 |s' + '0'*(2*n-1) + '> : |s|=' + str(n) + '}\n')
     ###########################################################################
     # with open(n_str + "/pre.lsta", "w") as file:
     #     file.write('Constants\n')
@@ -117,14 +113,13 @@ for n in sizes:
     #     file.write(f'[aL,1] -> {3*(2*n-1-4)+12}\n')
     #     file.write(f'[aH,1] -> {3*(2*n-1-4)+13}')
     ###########################################################################
-    with open(n_str + '/post.hsl', 'w') as file:
-        file.write('Extended Dirac\n')
-        file.write('{' + f'pH |ss{"0" * (n-2)}1> + pL ∑ |i|={n}, i≠s |si{"0" * (n-2)}1>' + ' : |s|=' + str(n) + '}\n')
-        file.write('Constraints\n')
-        file.write('real(pL) * real(pL) < 1/8\n')
-        file.write('imag(pL) = 0\n')
-        file.write('real(pH) * real(pH) > 7/8\n')
-        file.write('imag(pH) = 0\n')
+    post_body = ('{' + f'pH |ss{"0" * (n-2)}1> + pL ∑ |i|={n}, i≠s |si{"0" * (n-2)}1>' + ' : |s|=' + str(n) + '}\n'
+                 'Constraints\n'
+                 'real(pL) * real(pL) < 1/8\n'
+                 'imag(pL) = 0\n'
+                 'real(pH) * real(pH) > 7/8\n'
+                 'imag(pH) = 0\n')
+    write_hsl(n_str + '/post.hsl', post_body, header='Extended Dirac\n')
     ###########################################################################
 
 # cp -rl 0{3,8,9} ../../CAV23/MOGroverSym/

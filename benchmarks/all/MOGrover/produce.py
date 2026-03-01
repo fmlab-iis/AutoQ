@@ -4,7 +4,7 @@ import os
 import math
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-from common import ensure_bench_dir_for_n, write_qasm_header, parse_sizes
+from common import ensure_bench_dir_for_n, write_qasm_header, write_hsl, parse_sizes
 
 sizes = parse_sizes(3, 12, min_n=3)
 
@@ -16,11 +16,7 @@ for n in sizes:
     q = 3 * n - 1
     n_str = ensure_bench_dir_for_n(n)
     ###########################################################################
-    with open(n_str + '/pre.hsl', 'w') as file:
-        file.write('Constants\n')
-        file.write('c1 := 1\n')
-        file.write('Extended Dirac\n')
-        file.write('{c1 |s' + '0'*(2*n-1) + '> : |s|=' + str(n) + '}\n')
+    write_hsl(n_str + '/pre.hsl', '{c1 |s' + '0'*(2*n-1) + '> : |s|=' + str(n) + '}\n')
     ###########################################################################
     # with open(n_str + "/pre.lsta", "w") as file:
     #     file.write('Constants\n')
@@ -117,12 +113,8 @@ for n in sizes:
     #     file.write(f'[aL,1] -> {3*(2*n-1-4)+12}\n')
     #     file.write(f'[aH,1] -> {3*(2*n-1-4)+13}')
     ###########################################################################
-    with open(n_str + '/post.hsl', 'w') as file:
-        file.write('Constants\n')
-        file.write(f'aH := {aH[n]}\n')
-        file.write(f'aL := {aL[n]}\n')
-        file.write('Extended Dirac\n')
-        file.write('{' + f'aH |ss{"0" * (n-2)}1> + aL ∑ |i|={n}, i≠s |si{"0" * (n-2)}1>' + ' : |s|=' + str(n) + '}\n')
+    post_header = f"Constants\naH := {aH[n]}\naL := {aL[n]}\nExtended Dirac\n"
+    write_hsl(n_str + '/post.hsl', '{' + f'aH |ss{"0" * (n-2)}1> + aL ∑ |i|={n}, i≠s |si{"0" * (n-2)}1>' + ' : |s|=' + str(n) + '}\n', header=post_header)
         # file.write("{aH|00> + aL|01>, aH|11> + aL|10>} ⊗ ({aH|00> + aL|01>, aH|11> + aL|10>} ⊗ {|0>}) ^ " + f'{n-2}' + " ⊗ {aH|00> + aL|01>, aH|11> + aL|10>} ⊗ {|1>}\n")
         # file.write('where\n')
         # file.write('aH ⊗ aH = aH\n')

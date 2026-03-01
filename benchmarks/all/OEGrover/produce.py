@@ -3,27 +3,21 @@ import sys
 import os
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-from common import ensure_bench_dir_for_n, write_qasm_header, parse_sizes
+from common import ensure_bench_dir_for_n, write_qasm_header, write_hsl, parse_sizes
 
 sizes = parse_sizes(3, 101, min_n=3)
 
 for n in sizes:
     n_str = ensure_bench_dir_for_n(n)
     ###########################################################################
-    with open(n_str + '/pre.hsl', 'w') as file:
-        file.write('Extended Dirac\n')
-        file.write('{' + f'b |{"01" * (n//2) + "0" * (n % 2)}{"0" * (n-2)}1> + a ∑ |i|={n}, i≠{"01" * (n//2) + "0" * (n % 2)} |i{"0" * (n-2)}1>' + '}\n')
-        # file.write('where\n')
-        # file.write('b ⊗ b = b\n')
-        # file.write('b ⊗ a = a\n')
-        # file.write('a ⊗ b = a\n')
-        # file.write('a ⊗ a = a\n')
-        file.write('Constraints\n')
-        file.write(f'{2 ** n - 1} * real(a) > real(b)\n')
-        file.write('real(a) > 0\n')
-        file.write('real(b) > 0\n')
-        file.write('imag(a) = 0\n')
-        file.write('imag(b) = 0\n')
+    pre_body = ('{' + f'b |{"01" * (n//2) + "0" * (n % 2)}{"0" * (n-2)}1> + a ∑ |i|={n}, i≠{"01" * (n//2) + "0" * (n % 2)} |i{"0" * (n-2)}1>' + '}\n'
+                'Constraints\n'
+                f'{2 ** n - 1} * real(a) > real(b)\n'
+                'real(a) > 0\n'
+                'real(b) > 0\n'
+                'imag(a) = 0\n'
+                'imag(b) = 0\n')
+    write_hsl(n_str + '/pre.hsl', pre_body, header='Extended Dirac\n')
     ###########################################################################
     # with open(n_str + '/pre.lsta', 'w') as file:
     #     file.write('Constants\n')
@@ -112,19 +106,13 @@ for n in sizes:
     #     file.write(f'[p2,1] -> {2*(n+2)+3*(i-n-2)+1}\n')
     #     file.write(f'[p3,1] -> {2*(n+2)+3*(i-n-2)+2}')
     ###########################################################################
-    with open(n_str + '/post.hsl', 'w') as file:
-        file.write('Extended Dirac\n')
-        file.write('{' + f'pH |{"01" * (n//2) + "0" * (n % 2)}{"0" * (n-2)}1> + pL ∑ |i|={n}, i≠{"01" * (n//2) + "0" * (n % 2)} |i{"0" * (n-2)}1>' + '}\n')
-        file.write('Constraints\n')
-        file.write('real(pL) * real(pL) < real(a) * real(a)\n')
-        file.write('imag(pL) = 0\n')
-        file.write('real(pH) * real(pH) > real(b) * real(b)\n')
-        file.write('imag(pH) = 0\n')
-        # file.write('where\n')
-        # file.write('pH ⊗ pH = pH\n')
-        # file.write('pH ⊗ pL = pL\n')
-        # file.write('pL ⊗ pH = pL\n')
-        # file.write('pL ⊗ pL = pL\n')
+    post_body = ('{' + f'pH |{"01" * (n//2) + "0" * (n % 2)}{"0" * (n-2)}1> + pL ∑ |i|={n}, i≠{"01" * (n//2) + "0" * (n % 2)} |i{"0" * (n-2)}1>' + '}\n'
+                 'Constraints\n'
+                 'real(pL) * real(pL) < real(a) * real(a)\n'
+                 'imag(pL) = 0\n'
+                 'real(pH) * real(pH) > real(b) * real(b)\n'
+                 'imag(pH) = 0\n')
+    write_hsl(n_str + '/post.hsl', post_body, header='Extended Dirac\n')
     ###########################################################################
 
 # cp -rl {02,18,50,75,100} ../../POPL25/OEGrover/

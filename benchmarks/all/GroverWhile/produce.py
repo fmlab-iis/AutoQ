@@ -3,7 +3,7 @@ import os
 import sys
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-from common import ensure_bench_dir
+from common import ensure_bench_dir, write_hsl
 
 def oracle(file, n):
     file.write(f'ccx qb[{n+1}], qb[{n+2}], qb[{0}];\n')
@@ -86,33 +86,20 @@ gate ck q1, q2 {
     #########################################
 
     #########################################
-    with open("pre.hsl", "w") as file:
-        file.write("Constants\n")
-        file.write("c1 := 1\n")
-        file.write("Extended Dirac\n")
-        file.write("{c1 |" + ('0'*(2*n+1)) + ">}\n")
+    write_hsl("pre.hsl", "{c1 |" + ('0'*(2*n+1)) + ">}\n")
     #########################################
 
     #########################################
-    with open("loop-invariant.hsl", "w") as file:
-        # file.write("v1\n")
-        # file.write("v2\n")
-        # file.write("v3\n")
-        file.write(f"Extended Dirac\n")
-        file.write("{v1 ∑|i|=" + str(n) + ",i≠" + ('1'*n) + " |" + ('0'*(n+1)+'i') + "> + v2 |" + ('0'*(n+1)+'1'*n) + "> + v3 |" + ('0'*(n-1)+'10'+'1'*n) + ">}\n")
-        file.write(f"Constraints\n")
-        file.write(f"imag(v1) = 0\n")
-        file.write(f"imag(v2) = 0\n")
-        file.write(f"imag(v3) = 0\n")
-        # file.write(f'(and (not (= v3 0)) (and (> v1 0) (> v2 0) (<= v2 v1)))')
+    loop_body = ("{v1 ∑|i|=" + str(n) + ",i≠" + ('1'*n) + " |" + ('0'*(n+1)+'i') + "> + v2 |" + ('0'*(n+1)+'1'*n) + "> + v3 |" + ('0'*(n-1)+'10'+'1'*n) + ">}\n"
+                 "Constraints\n"
+                 "imag(v1) = 0\n"
+                 "imag(v2) = 0\n"
+                 "imag(v3) = 0\n")
+    write_hsl("loop-invariant.hsl", loop_body, header="Extended Dirac\n")
     #########################################
 
     #########################################
-    with open("post.hsl", "w") as file:
-        file.write("Constants\n")
-        file.write("c1 := 1\n")
-        file.write("Extended Dirac\n")
-        file.write("{c1 |" + ('0'*(n-1)+'10'+'1'*n) + ">}\n")
+    write_hsl("post.hsl", "{c1 |" + ('0'*(n-1)+'10'+'1'*n) + ">}\n")
     #########################################
 
     os.chdir('..')

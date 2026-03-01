@@ -61,14 +61,13 @@ for n in sizes:
     ###########################################################################
     if n <= 2: continue
     ###########################################################################
-    with open(n_str + '/post.hsl', 'w') as file:
-        file.write('Extended Dirac\n')
-        file.write('{' + f'pH |{"01" * (n//2) + "0" * (n % 2)}{"0" * (n-2)}1> + pL ∑ |i|={n}, i≠{"01" * (n//2) + "0" * (n % 2)} |i{"0" * (n-2)}1>' + '}\n')
-        file.write('Constraints\n')
-        file.write('real(pL) * real(pL) < 1/8\n')
-        file.write('imag(pL) = 0\n')
-        file.write('real(pH) * real(pH) > 7/8\n')
-        file.write('imag(pH) = 0\n')
+    post_body = ('{' + f'pH |{"01" * (n//2) + "0" * (n % 2)}{"0" * (n-2)}1> + pL ∑ |i|={n}, i≠{"01" * (n//2) + "0" * (n % 2)} |i{"0" * (n-2)}1>' + '}\n'
+                 'Constraints\n'
+                 'real(pL) * real(pL) < 1/8\n'
+                 'imag(pL) = 0\n'
+                 'real(pH) * real(pH) > 7/8\n'
+                 'imag(pH) = 0\n')
+    write_hsl(n_str + '/post.hsl', post_body, header='Extended Dirac\n')
     ###########################################################################
 
 # cp -rl {03,16,18,20} ../../CAV23/GroverSym/

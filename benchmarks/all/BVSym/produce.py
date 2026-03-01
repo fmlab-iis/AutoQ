@@ -53,11 +53,8 @@ for n in sizes:
     #     file.write(f'[p,1] -> {2*n+1}\n')
     #     file.write(f'[p,1] -> {2*n+2}\n')
     ###########################################################################
-    with open(n_str + '/post.hsl', 'w') as file:
-        file.write('Extended Dirac\n')
-        file.write(f"{{p ∑ |i|={n+1} |i>}}\n")
-        file.write('Constraints\n')
-        file.write('imag(p) = 0\n')
+    post_body = f"{{p ∑ |i|={n+1} |i>}}\nConstraints\nimag(p) = 0\n"
+    write_hsl(n_str + '/post.hsl', post_body, header='Extended Dirac\n')
     ###########################################################################
 
 # cp -rl {01,99,999}/ ../../CAV23/BVSym/
