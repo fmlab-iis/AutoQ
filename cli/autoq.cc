@@ -119,13 +119,14 @@ AUTOQ::ConcreteAutomata* g_timeout_aut2 = nullptr;
 }
 
 void timeout_handler(int) {
+    auto& st = AUTOQ::default_execution_stats();
     std::map<std::string, std::string> stats;
-    stats["gate"] = AUTOQ::Util::Convert::ToString(AUTOQ::ConcreteAutomata::total_gate_time - AUTOQ::ConcreteAutomata::total_removeuseless_time - AUTOQ::ConcreteAutomata::total_reduce_time);
-    stats["removeuseless"] = AUTOQ::Util::Convert::ToString(AUTOQ::ConcreteAutomata::total_removeuseless_time);
-    stats["reduce"] = AUTOQ::Util::Convert::ToString(AUTOQ::ConcreteAutomata::total_reduce_time);
-    stats["include"] = AUTOQ::Util::Convert::ToString(AUTOQ::ConcreteAutomata::total_include_time);
+    stats["gate"] = AUTOQ::Util::Convert::ToString(st.total_gate_time - st.total_removeuseless_time - st.total_reduce_time);
+    stats["removeuseless"] = AUTOQ::Util::Convert::ToString(st.total_removeuseless_time);
+    stats["reduce"] = AUTOQ::Util::Convert::ToString(st.total_reduce_time);
+    stats["include"] = AUTOQ::Util::Convert::ToString(st.total_include_time);
     stats["total"] = std::to_string(kTimeoutSeconds);
-    stats["result"] = std::to_string(AUTOQ::ConcreteAutomata::gateCount);
+    stats["result"] = std::to_string(st.gateCount);
     stats["aut1.trans"] = g_timeout_aut1 ? std::to_string(g_timeout_aut1->count_transitions()) : "0";
     stats["aut1.leaves"] = g_timeout_aut1 ? std::to_string(g_timeout_aut1->count_leaves()) : "0";
     stats["aut2.trans"] = g_timeout_aut2 ? std::to_string(g_timeout_aut2->count_transitions()) : "0";
@@ -191,9 +192,10 @@ static void run_verification_impl(const std::string& pre, const std::string& pos
                                   const ParameterMap& params, bool latex,
                                   const chrono::steady_clock::time_point& start) {
     using Aut = AUTOQ::Automata<Symbol>;
-    Aut::startFromFileToAutomata = std::chrono::steady_clock::now();
+    auto& st = AUTOQ::default_execution_stats();
+    st.startFromFileToAutomata = std::chrono::steady_clock::now();
     auto [autVec, qp] = AUTOQ::Parsing::TimbukParser<Symbol, Symbol>::ReadTwoAutomata(pre, post, circuit);
-    Aut::endFromFileToAutomata = std::chrono::steady_clock::now();
+    st.endFromFileToAutomata = std::chrono::steady_clock::now();
     auto aut = autVec.at(0);
     auto spec = autVec.at(1);
     autVec.erase(autVec.begin(), autVec.begin() + kAutVecEraseCount);
@@ -202,7 +204,7 @@ static void run_verification_impl(const std::string& pre, const std::string& pos
     if (latex)
         aut.print_stats();
     else
-        print_verification_result(aut.qubitNum, Aut::gateCount, verify, start);
+        print_verification_result(aut.qubitNum, aut.execution_stats()->gateCount, verify, start);
 }
 
 static void run_verification(const std::string& pre, const std::string& post, const std::string& circuit,

@@ -176,7 +176,7 @@ AUTOQ::Automata<Symbol> AUTOQ::Automata<Symbol>::operator||(const Automata<Symbo
     for (const auto &var : o.vars)
         result.vars.insert(var);
     result.constraints += o.constraints;
-    if (opLog) std::cout << __FUNCTION__ << "：" << stateNum << " states " << count_transitions() << " transitions\n";
+    if (stats_->opLog) std::cout << __FUNCTION__ << "：" << stateNum << " states " << count_transitions() << " transitions\n";
     return result;
 }
 
@@ -245,8 +245,8 @@ void AUTOQ::Automata<Symbol>::SwapDown(int q) {
     auto start = std::chrono::steady_clock::now();
     bottom_up_reduce(q+1);
     auto duration = std::chrono::steady_clock::now() - start;
-    total_reduce_time += duration;
-    if (opLog) std::cout << __FUNCTION__ << "：" << stateNum << " states " << count_transitions() << " transitions\n";
+    stats_->total_reduce_time += duration;
+    if (stats_->opLog) std::cout << __FUNCTION__ << "：" << stateNum << " states " << count_transitions() << " transitions\n";
 }
 template <typename Symbol>
 void AUTOQ::Automata<Symbol>::SwapUp(int q) {
@@ -365,7 +365,7 @@ AUTOQ::Automata<Symbol> AUTOQ::Automata<Symbol>::operator&&(const Automata<Symbo
     }
     /***************************************************************/
 
-    if (opLog) std::cout << __FUNCTION__ << "：" << stateNum << " states " << count_transitions() << " transitions\n";
+    if (stats_->opLog) std::cout << __FUNCTION__ << "：" << stateNum << " states " << count_transitions() << " transitions\n";
     return result;
 }
 

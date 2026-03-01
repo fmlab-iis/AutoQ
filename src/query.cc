@@ -19,9 +19,9 @@
 
 template <typename Symbol>
 void AUTOQ::Automata<Symbol>::initialize_stats() {
-    stateBefore = stateNum;
-    transitionBefore = count_transitions();
-    start_execute = std::chrono::steady_clock::now();
+    stats_->stateBefore = stateNum;
+    stats_->transitionBefore = count_transitions();
+    stats_->start_execute = std::chrono::steady_clock::now();
 }
 
 template <typename Symbol>
@@ -205,11 +205,11 @@ template <typename Symbol>
 void AUTOQ::Automata<Symbol>::print_stats(const std::string &str, bool newline) {
     state_renumbering();
     std::cout << str;
-    std::cout << AUTOQ::Util::Convert::ToString(qubitNum) << " & " << AUTOQ::ConcreteAutomata::gateCount
-              << " & " << stateBefore << " & " << stateNum
-              << " & " << transitionBefore << " & " << count_transitions()
-              << " & " << AUTOQ::Util::Convert::ToString(stop_execute - start_execute) << " & " << include_status
-              << " & " << AUTOQ::Util::Convert::ToString(endFromFileToAutomata - startFromFileToAutomata);
+    std::cout << AUTOQ::Util::Convert::ToString(qubitNum) << " & " << stats_->gateCount
+              << " & " << stats_->stateBefore << " & " << stateNum
+              << " & " << stats_->transitionBefore << " & " << count_transitions()
+              << " & " << AUTOQ::Util::Convert::ToString(stats_->stop_execute - stats_->start_execute) << " & " << stats_->include_status
+              << " & " << AUTOQ::Util::Convert::ToString(stats_->endFromFileToAutomata - stats_->startFromFileToAutomata);
     if (newline)
         std::cout << std::endl;
 }

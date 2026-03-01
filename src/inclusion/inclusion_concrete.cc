@@ -274,9 +274,9 @@ bool AUTOQ::ConcreteAutomata::operator<<=(AUTOQ::ConcreteAutomata autB) const {
                     INCLUSION_DEBUG("THE VERTEX: " << AUTOQ::Util::Convert::ToString(vertex2) << " LEADS A TO NOTHING OF STATES, SO WE SHALL NOT PUSH THIS VERTEX BUT CHECK IF B HAS POSSIBLE SIMULTANEOUS TRANSITION COMBINATIONS LEADING TO THIS VERTEX.");
                     if (vertex_fail) {
                         auto stop_include = std::chrono::steady_clock::now();
-                        AUTOQ::ConcreteAutomata::include_status = AUTOQ::Util::Convert::ToString(stop_include - start_include) + " X";
+                        this->stats_->include_status = AUTOQ::Util::Convert::ToString(stop_include - start_include) + " X";
                         INCLUSION_DEBUG("UNFORTUNATELY B HAS NO POSSIBLE TRANSITION COMBINATIONS, SO THE INCLUSION DOES NOT HOLD :(");
-                        AUTOQ::ConcreteAutomata::total_include_time += stop_include - start_include;
+                        this->stats_->total_include_time += stop_include - start_include;
                         return false;
                     }
                 } else if (created.contains(vertex2)) {
@@ -305,9 +305,9 @@ bool AUTOQ::ConcreteAutomata::operator<<=(AUTOQ::ConcreteAutomata autB) const {
         } while (!have_listed_all_combinationsA);
     }
     auto stop_include = std::chrono::steady_clock::now();
-    AUTOQ::ConcreteAutomata::include_status = AUTOQ::Util::Convert::ToString(stop_include - start_include);
+    this->stats_->include_status = AUTOQ::Util::Convert::ToString(stop_include - start_include);
     INCLUSION_DEBUG("FORTUNATELY FOR EACH (MAXIMAL) PATH B HAS POSSIBLE SIMULTANEOUS TRANSITION COMBINATIONS, SO THE INCLUSION DOES HOLD :)");
-    AUTOQ::ConcreteAutomata::total_include_time += stop_include - start_include;
+    this->stats_->total_include_time += stop_include - start_include;
     return true;
 }
 template <>

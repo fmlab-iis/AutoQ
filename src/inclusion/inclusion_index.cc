@@ -138,8 +138,8 @@ bool inclusion_index_compare(const IndexAutomata &autA, const IndexAutomata &aut
                 if (is_leaf_vertex) {
                     if (vertex_fail) {
                         auto stop_include = std::chrono::steady_clock::now();
-                        IndexAutomata::include_status = AUTOQ::Util::Convert::ToString(stop_include - start_include) + " X";
-                        IndexAutomata::total_include_time += stop_include - start_include;
+                        autA.stats_->include_status = AUTOQ::Util::Convert::ToString(stop_include - start_include) + " X";
+                        autA.stats_->total_include_time += stop_include - start_include;
                         return false;
                     }
                 } else if (created.contains(vertex2)) {
@@ -166,8 +166,8 @@ bool inclusion_index_compare(const IndexAutomata &autA, const IndexAutomata &aut
         } while (!have_listed_all_combinationsA);
     }
     auto stop_include = std::chrono::steady_clock::now();
-    IndexAutomata::include_status = AUTOQ::Util::Convert::ToString(stop_include - start_include);
-    IndexAutomata::total_include_time += stop_include - start_include;
+    autA.stats_->include_status = AUTOQ::Util::Convert::ToString(stop_include - start_include);
+    autA.stats_->total_include_time += stop_include - start_include;
     return true;
 }
 

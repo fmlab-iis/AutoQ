@@ -38,6 +38,32 @@ namespace AUTOQ
     typedef Automata<Symbol::Predicate> PredicateAutomata;
     typedef Automata<Symbol::Index> IndexAutomata;
     typedef Automata<Symbol::Constrained> ConstrainedAutomata;
+
+    /// Explicit execution/inclusion stats. Replaces inline static members for testability and multi-threading.
+    struct ExecutionStats {
+        int gateCount = 0;
+        int stateBefore = 0;
+        int transitionBefore = 0;
+        bool gateLog = false;
+        bool opLog = false;
+        std::string include_status;
+        std::chrono::steady_clock::duration binop_time{};
+        std::chrono::steady_clock::duration branch_rest_time{};
+        std::chrono::steady_clock::duration value_rest_time{};
+        std::chrono::steady_clock::duration total_gate_time{};
+        std::chrono::steady_clock::duration total_removeuseless_time{};
+        std::chrono::steady_clock::duration total_reduce_time{};
+        std::chrono::steady_clock::duration total_include_time{};
+        std::chrono::steady_clock::time_point start_execute{};
+        std::chrono::steady_clock::time_point stop_execute{};
+        std::chrono::steady_clock::time_point startFromFileToAutomata{};
+        std::chrono::steady_clock::time_point endFromFileToAutomata{};
+    };
+
+    inline ExecutionStats& default_execution_stats() {
+        static ExecutionStats e;
+        return e;
+    }
 }
 
 template <typename T> constexpr auto support_fraction_simplification = requires (T x) {
@@ -111,15 +137,12 @@ struct AUTOQ::Automata
     std::string constraints;
     bool hasLoop;
     bool isTopdownDeterministic;
-    // Process-wide execution/inclusion stats (one per Symbol instantiation). For testability or
-    // multi-threading, a future refactor could pass an explicit context (e.g. ExecutionStats) instead.
-    inline static int gateCount, stateBefore, transitionBefore;
-    inline static bool gateLog, opLog;
-    inline static std::string include_status;
-    inline static std::chrono::steady_clock::duration binop_time, branch_rest_time, value_rest_time;
-    inline static std::chrono::steady_clock::duration total_gate_time, total_removeuseless_time, total_reduce_time, total_include_time;
-    inline static std::chrono::time_point<std::chrono::steady_clock> start_execute, stop_execute;
-    inline static std::chrono::time_point<std::chrono::steady_clock> startFromFileToAutomata, endFromFileToAutomata;
+    ExecutionStats* stats_;
+
+    void set_execution_stats(ExecutionStats* s) { stats_ = s; }
+    void set_execution_stats(const ExecutionStats* s) { stats_ = const_cast<ExecutionStats*>(s); }
+    ExecutionStats* execution_stats() { return stats_; }
+    const ExecutionStats* execution_stats() const { return stats_; }
 
 // methods
     /****************************/
@@ -133,16 +156,17 @@ struct AUTOQ::Automata
         vars(),
         constraints(),
         hasLoop(false),
-        isTopdownDeterministic(false)
+        isTopdownDeterministic(false),
+        stats_(&default_execution_stats())
 	{
         auto envptr = std::getenv("LOG");
         if (envptr != nullptr) {
             auto envstr = std::string(envptr);
             if (envstr.find("gate") != std::string::npos) {
-                gateLog = true;
+                stats_->gateLog = true;
             }
             if (envstr.find("op") != std::string::npos) {
-                opLog = true;
+                stats_->opLog = true;
             }
         }
     }

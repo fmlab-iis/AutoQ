@@ -452,8 +452,8 @@ void AUTOQ::Automata<Symbol>::reduce() {
         }
     }
     auto duration = std::chrono::steady_clock::now() - start;
-    total_reduce_time += duration;
-    if (opLog) std::cout << __FUNCTION__ << "：" << stateNum << " states " << count_transitions() << " transitions\n";
+    stats_->total_reduce_time += duration;
+    if (stats_->opLog) std::cout << __FUNCTION__ << "：" << stateNum << " states " << count_transitions() << " transitions\n";
 }
 
 // --- Symbol/constraint utilities: fraction_simplification, k_unification, remove_useless ---
@@ -486,7 +486,7 @@ void AUTOQ::Automata<Symbol>::fraction_simplification() requires support_fractio
     }
     // remove_useless();
     // reduce();
-    if (opLog) std::cout << __FUNCTION__ << "：" << stateNum << " states " << count_transitions() << " transitions\n";
+    if (stats_->opLog) std::cout << __FUNCTION__ << "：" << stateNum << " states " << count_transitions() << " transitions\n";
 }
 
 template <>
@@ -531,7 +531,7 @@ void AUTOQ::Automata<AUTOQ::Symbol::Symbolic>::k_unification() {
     }
     // remove_useless();
     // reduce();
-    if (opLog) std::cout << __FUNCTION__ << "：" << stateNum << " states " << count_transitions() << " transitions\n";
+    if (stats_->opLog) std::cout << __FUNCTION__ << "：" << stateNum << " states " << count_transitions() << " transitions\n";
 }
 
 template <typename Symbol>
@@ -640,8 +640,8 @@ void AUTOQ::Automata<Symbol>::remove_useless(bool only_bottom_up) {
      *********************/
     state_renumbering();
     auto duration = std::chrono::steady_clock::now() - start;
-    total_removeuseless_time += duration;
-    if (opLog) std::cout << __FUNCTION__ << "：" << stateNum << " states " << count_transitions() << " transitions\n";
+    stats_->total_removeuseless_time += duration;
+    if (stats_->opLog) std::cout << __FUNCTION__ << "：" << stateNum << " states " << count_transitions() << " transitions\n";
 }
 
 // https://bytefreaks.net/programming-2/c/c-undefined-reference-to-templated-class-function

@@ -152,10 +152,10 @@ void AUTOQ::Automata<Symbol>::CX(int c, int t, bool opt) {
         // remove_useless();
         reduce();
     }
-    gateCount++;
+    stats_->gateCount++;
     auto duration = std::chrono::steady_clock::now() - start;
-    total_gate_time += duration;
-    if (gateLog) std::cout << "CX" << c << "," << t << "：" << stateNum << " states " << count_transitions() << " transitions " << AUTOQ::Util::print_duration(duration) << "\n";
+    stats_->total_gate_time += duration;
+    if (stats_->gateLog) std::cout << "CX" << c << "," << t << "：" << stateNum << " states " << count_transitions() << " transitions " << AUTOQ::Util::print_duration(duration) << "\n";
 }
     // }*/
 template <typename Symbol>
@@ -419,10 +419,10 @@ void AUTOQ::Automata<Symbol>::CZ(int c, int t) {
     transitions = transitions2;
     stateNum *= 3;
     reduce();
-    gateCount++;
+    stats_->gateCount++;
     auto duration = std::chrono::steady_clock::now() - start;
-    total_gate_time += duration;
-    if (gateLog) std::cout << "CZ" << c << "," << t << "：" << stateNum << " states " << count_transitions() << " transitions " << AUTOQ::Util::print_duration(duration) << "\n";
+    stats_->total_gate_time += duration;
+    if (stats_->gateLog) std::cout << "CZ" << c << "," << t << "：" << stateNum << " states " << count_transitions() << " transitions " << AUTOQ::Util::print_duration(duration) << "\n";
 }
 
 template <typename Symbol>
@@ -694,7 +694,7 @@ void AUTOQ::Automata<Symbol>::CCX(int c, int c2, int t) {
             [](const Symbol &l, const Symbol &) -> Symbol { return l; });
     } else { // c < t < c2
         auto aut2 = *this;
-        aut2.CX(c2, t, false); gateCount--; // prevent repeated counting
+        aut2.CX(c2, t, false); stats_->gateCount--; // prevent repeated counting
         for (const auto &tr : aut2.transitions) {
             const SymbolTag &symbol_tag = tr.first;
             if (!(symbol_tag.is_internal() && symbol_tag.symbol().qubit() <= c)) {
@@ -728,10 +728,10 @@ void AUTOQ::Automata<Symbol>::CCX(int c, int c2, int t) {
         remove_useless();
     }
     reduce();
-    gateCount++;
+    stats_->gateCount++;
     auto duration = std::chrono::steady_clock::now() - start;
-    total_gate_time += duration;
-    if (gateLog) std::cout << "CCX" << c << "," << c2 << "," << t << "：" << stateNum << " states " << count_transitions() << " transitions " << AUTOQ::Util::print_duration(duration) << "\n";
+    stats_->total_gate_time += duration;
+    if (stats_->gateLog) std::cout << "CCX" << c << "," << c2 << "," << t << "：" << stateNum << " states " << count_transitions() << " transitions " << AUTOQ::Util::print_duration(duration) << "\n";
 }
 
 template struct AUTOQ::Automata<AUTOQ::Symbol::Concrete>;

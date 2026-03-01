@@ -77,7 +77,7 @@ template <typename Symbol>
 void AUTOQ::Automata<Symbol>::Y(int t) {
     run_concrete_gate_with_body(t, "Y", "y", [this, t]() {
         X(t);
-        gateCount--;
+        stats_->gateCount--;
         diagonal_gate(t, std::bind(&Symbol::degree90cw, std::placeholders::_1), std::bind(&Symbol::omega_multiplication, std::placeholders::_1, 2));
         reduce();
     });

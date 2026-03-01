@@ -149,44 +149,14 @@ bool AUTOQ::Automata<Symbol>::operator<=(const Automata<Symbol> &autB) const {
     aut2.stateNum = autB.stateNum;
     aut2.qubitNum = autB.qubitNum;
     aut2.isTopdownDeterministic = autB.isTopdownDeterministic;
-    // migrate static variables
-    Automata<AUTOQ::Symbol::Index>::gateCount = Automata<Symbol>::gateCount;
-    Automata<AUTOQ::Symbol::Index>::stateBefore = Automata<Symbol>::stateBefore;
-    Automata<AUTOQ::Symbol::Index>::transitionBefore = Automata<Symbol>::transitionBefore;
-    Automata<AUTOQ::Symbol::Index>::gateLog = Automata<Symbol>::gateLog;
-    Automata<AUTOQ::Symbol::Index>::opLog = Automata<Symbol>::opLog;
-    Automata<AUTOQ::Symbol::Index>::include_status = Automata<Symbol>::include_status;
-    Automata<AUTOQ::Symbol::Index>::binop_time = Automata<Symbol>::binop_time;
-    Automata<AUTOQ::Symbol::Index>::branch_rest_time = Automata<Symbol>::branch_rest_time;
-    Automata<AUTOQ::Symbol::Index>::value_rest_time = Automata<Symbol>::value_rest_time;
-    Automata<AUTOQ::Symbol::Index>::total_gate_time = Automata<Symbol>::total_gate_time;
-    Automata<AUTOQ::Symbol::Index>::total_removeuseless_time = Automata<Symbol>::total_removeuseless_time;
-    Automata<AUTOQ::Symbol::Index>::total_reduce_time = Automata<Symbol>::total_reduce_time;
-    Automata<AUTOQ::Symbol::Index>::total_include_time = Automata<Symbol>::total_include_time;
-    Automata<AUTOQ::Symbol::Index>::start_execute = Automata<Symbol>::start_execute;
-    Automata<AUTOQ::Symbol::Index>::stop_execute = Automata<Symbol>::stop_execute;
+    aut2.set_execution_stats(this->execution_stats());
     // migrate transitions (shared symbol_map for both automata)
     std::vector<Symbol> symbol_map;
     migrate_transitions_to_index<Symbol>(this->transitions, symbol_map, aut1);
     migrate_transitions_to_index<Symbol>(autB.transitions, symbol_map, aut2);
     // main routine
     bool result = aut1 <= aut2;
-    // migrate static variables
-    Automata<Symbol>::gateCount = Automata<AUTOQ::Symbol::Index>::gateCount;
-    Automata<Symbol>::stateBefore = Automata<AUTOQ::Symbol::Index>::stateBefore;
-    Automata<Symbol>::transitionBefore = Automata<AUTOQ::Symbol::Index>::transitionBefore;
-    Automata<Symbol>::gateLog = Automata<AUTOQ::Symbol::Index>::gateLog;
-    Automata<Symbol>::opLog = Automata<AUTOQ::Symbol::Index>::opLog;
-    Automata<Symbol>::include_status = Automata<AUTOQ::Symbol::Index>::include_status;
-    Automata<Symbol>::binop_time = Automata<AUTOQ::Symbol::Index>::binop_time;
-    Automata<Symbol>::branch_rest_time = Automata<AUTOQ::Symbol::Index>::branch_rest_time;
-    Automata<Symbol>::value_rest_time = Automata<AUTOQ::Symbol::Index>::value_rest_time;
-    Automata<Symbol>::total_gate_time = Automata<AUTOQ::Symbol::Index>::total_gate_time;
-    Automata<Symbol>::total_removeuseless_time = Automata<AUTOQ::Symbol::Index>::total_removeuseless_time;
-    Automata<Symbol>::total_reduce_time = Automata<AUTOQ::Symbol::Index>::total_reduce_time;
-    Automata<Symbol>::total_include_time = Automata<AUTOQ::Symbol::Index>::total_include_time;
-    Automata<Symbol>::start_execute = Automata<AUTOQ::Symbol::Index>::start_execute;
-    Automata<Symbol>::stop_execute = Automata<AUTOQ::Symbol::Index>::stop_execute;
+    // aut1 and aut2 shared stats_ during check, no copy back needed
     return result;
 }
 

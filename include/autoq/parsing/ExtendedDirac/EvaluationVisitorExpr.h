@@ -74,21 +74,7 @@
                 result.constraints = aut.constraints;
                 result.hasLoop = aut.hasLoop;
                 result.isTopdownDeterministic = aut.isTopdownDeterministic;
-                result.gateCount = aut.gateCount;
-                result.stateBefore = aut.stateBefore;
-                result.transitionBefore = aut.transitionBefore;
-                result.gateLog = aut.gateLog;
-                result.opLog = aut.opLog;
-                result.include_status = aut.include_status;
-                result.binop_time = aut.binop_time;
-                result.branch_rest_time = aut.branch_rest_time;
-                result.value_rest_time = aut.value_rest_time;
-                result.total_gate_time = aut.total_gate_time;
-                result.total_removeuseless_time = aut.total_removeuseless_time;
-                result.total_reduce_time = aut.total_reduce_time;
-                result.total_include_time = aut.total_include_time;
-                result.start_execute = aut.start_execute;
-                result.stop_execute = aut.stop_execute;
+                *result.stats_ = *aut.stats_;
                 for (const auto &[st, v] : aut.transitions) {
                     typename AUTOQ::Automata<SymbolV>::SymbolTag st2;
                     if (st.is_internal()) {

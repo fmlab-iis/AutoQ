@@ -516,8 +516,8 @@ bool scaled_inclusion_with_or_without_renaming(AUTOQ::SymbolicAutomata autA, AUT
 
     bool holds = symbolic_inclusion_bfs_holds(autA, autB, transA, transB);
     auto stop_include = std::chrono::steady_clock::now();
-    AUTOQ::SymbolicAutomata::include_status = AUTOQ::Util::Convert::ToString(stop_include - start_include) + (holds ? "" : " X");
-    AUTOQ::SymbolicAutomata::total_include_time += stop_include - start_include;
+    autA.stats_->include_status = AUTOQ::Util::Convert::ToString(stop_include - start_include) + (holds ? "" : " X");
+    autA.stats_->total_include_time += stop_include - start_include;
     return holds;
 }
 template <>

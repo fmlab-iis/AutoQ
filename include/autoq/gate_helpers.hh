@@ -12,9 +12,9 @@ template <typename Symbol>
 void concrete_gate_finish(AUTOQ::Automata<Symbol>& self, const char* name, int t,
     std::chrono::steady_clock::time_point start) {
     auto duration = std::chrono::steady_clock::now() - start;
-    self.gateCount++;
-    self.total_gate_time += duration;
-    if (self.gateLog)
+    self.stats_->gateCount++;
+    self.stats_->total_gate_time += duration;
+    if (self.stats_->gateLog)
         std::cout << name << t << "：" << self.stateNum << " states " << self.count_transitions()
                   << " transitions " << AUTOQ::Util::print_duration(duration) << "\n";
 }
