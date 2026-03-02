@@ -1719,8 +1719,9 @@ private:
                 } else {
                     THROW_AUTOQ_ERROR("The index must be a single character!");
                 }
-            } else if (ctx->eq() != nullptr) { // RULE: V=NAME EQ CStr=DIGITS
-                return std::map<char, int>();
+            } else if (ctx->eq() != nullptr) { // RULE: V=CStr, infer |V|=|CStr|
+                auto eq = std::any_cast<eq_t>(visit(ctx->eq()));
+                return std::map<char, int>{{eq.first, static_cast<int>(eq.second.length())}};
             } else {
                 THROW_AUTOQ_ERROR("Unexpected varcon format!");
             }
