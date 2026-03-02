@@ -299,6 +299,7 @@ private:
     mode_t mode; // by default, the first one
 
     std::map<char, int> globalVar2len; // record all control variables used in {diracs : varcons}
+    std::map<char, int> var2lenSoFar;  // accumulated var2len when building varcons, for ineq length inference
     std::set<char> usedVars; // record all variables currently used in {diracs : varcons} for preventing naming collision.
     segment2split_t segment2split;
     currentSplit_t currentSplit;
@@ -319,6 +320,7 @@ private:
     EvaluationVisitor(const std::vector<std::map<std::string, AUTOQ::Complex::Complex>> &constantsVector, const std::vector<std::string> &predicateConstraintsVector) :
         mode(EXPAND_POWER_AND_DIRACS_AND_REWRITE_COMPLEMENT),
         globalVar2len(),
+        var2lenSoFar(),
         usedVars(),
         segment2split(),
         currentSplit(),
@@ -1646,15 +1648,18 @@ private:
         if (mode == COLLECT_KETS_AND_COMPUTE_UNIT_DECOMPOSITION_INDICES ||
             mode == REWRITE_BY_UNIT_INDICES_AND_MAKE_ALL_VARS_DISTINCT) {
             if (ctx->varcons() == nullptr) { // RULE: varcon
+                var2lenSoFar = globalVar2len;  // include set-level vars so term-level s≠i can infer |i| from |s|
                 return std::any_cast<std::map<char, int>>(visit(ctx->varcon()));
             } else { // RULE: varcons ',' varcon
                 auto result = std::any_cast<std::map<char, int>>(visit(ctx->varcons())); // previous
+                var2lenSoFar = result;  // pass context for ineq length inference
                 auto present = std::any_cast<std::map<char, int>>(visit(ctx->varcon()));
-                if (!present.empty()) {
-                    if (result.find(present.begin()->first) == result.end()) {
-                        result[present.begin()->first] = present.begin()->second;
-                    } else {
-                        THROW_AUTOQ_ERROR("The same index is used more than once!");
+                for (const auto &[var, len] : present) {
+                    auto it = result.find(var);
+                    if (it == result.end()) {
+                        result[var] = len;
+                    } else if (it->second != len) {
+                        THROW_AUTOQ_ERROR("Conflicting length declaration for variable!");
                     }
                 }
                 return result;
@@ -1710,6 +1715,19 @@ private:
         if (mode == COLLECT_KETS_AND_COMPUTE_UNIT_DECOMPOSITION_INDICES ||
             mode == REWRITE_BY_UNIT_INDICES_AND_MAKE_ALL_VARS_DISTINCT) {
             if (ctx->ineq() != nullptr) {
+                // Infer |V| from the other side of ineq: V≠CStr => |V|=|CStr|; V≠W with |W| known => |V|=|W|
+                auto L = ctx->ineq()->complex(0)->getText();
+                auto R = ctx->ineq()->complex(1)->getText();
+                if (!(L.length() == 1 && 'a' <= L.at(0) && L.at(0) <= 'z')) return std::map<char, int>();
+                if (std::all_of(R.begin(), R.end(), [](char c) { return c == '0' || c == '1'; })) {
+                    return std::map<char, int>{{static_cast<char>(std::tolower(L.at(0))), static_cast<int>(R.length())}};
+                }
+                if (R.length() == 1 && 'a' <= R.at(0) && R.at(0) <= 'z') {
+                    char l = static_cast<char>(std::tolower(L.at(0))), r = static_cast<char>(std::tolower(R.at(0)));
+                    auto itL = var2lenSoFar.find(l), itR = var2lenSoFar.find(r);
+                    if (itL != var2lenSoFar.end()) return std::map<char, int>{{r, itL->second}};
+                    if (itR != var2lenSoFar.end()) return std::map<char, int>{{l, itR->second}};
+                }
                 return std::map<char, int>();
             } else if (ctx->N != nullptr) { // RULE: BAR V=NAME BAR EQ N=DIGITS
                 std::string var = ctx->V->getText();
