@@ -5,9 +5,6 @@ ENV DEBIAN_FRONTEND=noninteractive \
     PATH="/workspace/AutoQ/build/cli:${PATH}"
 
 SHELL ["/bin/bash", "-c"]
-RUN apt-get update && apt-get install -y git g++ make cmake libboost-filesystem-dev libboost-test-dev python3 texlive-latex-extra texlive-latex-base texlive-latex-recommended libvips-tools
-RUN mkdir -p /root/AutoQ
-COPY . /root/AutoQ
 
 # Install build dependencies
 RUN apt-get update && apt-get install -y \

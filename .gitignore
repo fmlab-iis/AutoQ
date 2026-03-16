@@ -29,10 +29,9 @@ POPL24/TABLES/Algorithms/*.tex
 POPL24/TABLES/Algorithms/*.log
 POPL24/TABLES/Algorithms/*.aux
 benchmark*/_others/**
-.cache
-.DS_Store
 test_eq/**
 **/.DS_Store
+.cache/**
 py
 # Generated experiment results (re-run scripts to reproduce)
 table1.csv
