@@ -1,5 +1,5 @@
 Extended Dirac
-{pH |ss000001> + pL ∑ |i|=7, i≠s |si000001> : |s|=7}
+{pH |ss000001> + pL ∑ i≠s |si000001> : |s|=7}
 Constraints
 127 * real(pL) > real(pH)
 real(pL) > 0

@@ -1,5 +1,5 @@
 Extended Dirac
-{pH |ss0000001> + pL ∑ |i|=8, i≠s |si0000001> : |s|=8}
+{pH |ss0000001> + pL ∑ i≠s |si0000001> : |s|=8}
 Constraints
 255 * real(pL) > real(pH)
 real(pL) > 0

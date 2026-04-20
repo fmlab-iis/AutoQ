@@ -19,7 +19,7 @@
         "after_trans": "2577",
         "total": "0.0s",
         "result": "0.9s",
-        "read_file_time": "1.5s"
+        "read_file_time": "1.4s"
     },
     "./MCToffoli/08": {
         "q": "16",
@@ -40,7 +40,7 @@
         "after_state": "1190",
         "after_trans": "1190",
         "total": "0.7s",
-        "result": "2.2s",
+        "result": "2.3s",
         "read_file_time": "0.5s"
     },
     "./GroverIterAll/07": {
@@ -50,8 +50,8 @@
         "before_trans": "1190",
         "after_state": "1190",
         "after_trans": "1190",
-        "total": "0.0s",
-        "result": "2.7s",
+        "total": "0.1s",
+        "result": "2.8s",
         "read_file_time": "0.8s"
     },
     "./GHZall/009": {
@@ -73,19 +73,8 @@
         "after_state": "1049+1049+37+37",
         "after_trans": "1049+1049+37+37",
         "total": "0.0s+0.0s+0.0s+0.0s",
-        "result": "0.8s+0.8s+0.0s+0.0s",
-        "read_file_time": "2.2s+2.2s+0.0s+0.0s"
-    },
-    "./BVall/09": {
-        "q": "19",
-        "G": "30",
-        "before_state": "1052",
-        "before_trans": "1052",
-        "after_state": "5651",
-        "after_trans": "5651",
-        "total": "0.2s",
-        "result": "4.1s",
-        "read_file_time": "6.1s"
+        "result": "0.9s+0.8s+0.0s+0.0s",
+        "read_file_time": "2.3s+2.3s+0.0s+0.0s"
     },
     "./GroverIterAll/08": {
         "q": "23",
@@ -95,8 +84,8 @@
         "after_state": "2604",
         "after_trans": "2604",
         "total": "0.2s",
-        "result": "8.1s",
-        "read_file_time": "2.9s"
+        "result": "8.2s",
+        "read_file_time": "3.0s"
     },
     "./GroverAll/08": {
         "q": "23",
@@ -105,9 +94,20 @@
         "before_trans": "549",
         "after_state": "2604",
         "after_trans": "2604",
-        "total": "2.6s",
-        "result": "7.5s",
+        "total": "2.8s",
+        "result": "7.7s",
         "read_file_time": "1.9s"
+    },
+    "./BVall/09": {
+        "q": "19",
+        "G": "30",
+        "before_state": "1052",
+        "before_trans": "1052",
+        "after_state": "5651",
+        "after_trans": "5651",
+        "total": "0.2s",
+        "result": "4.2s",
+        "read_file_time": "6.4s"
     },
     "./GHZall/010": {
         "q": "10",
@@ -128,8 +128,8 @@
         "after_state": "2076+2076+41+41",
         "after_trans": "2076+2076+41+41",
         "total": "0.0s+0.0s+0.0s+0.0s",
-        "result": "3.7s+3.6s+0.0s+0.0s",
-        "read_file_time": "9.1s+9.0s+0.0s+0.0s"
+        "result": "3.8s+3.7s+0.0s+0.0s",
+        "read_file_time": "9.2s+9.0s+0.0s+0.0s"
     },
     "./GroverIterAll/09": {
         "q": "26",
@@ -139,8 +139,8 @@
         "after_state": "5682",
         "after_trans": "5682",
         "total": "0.7s",
-        "result": "30s",
-        "read_file_time": "11s"
+        "result": "31s",
+        "read_file_time": "12s"
     },
     "./BVall/10": {
         "q": "21",
@@ -150,7 +150,7 @@
         "after_state": "12309",
         "after_trans": "12309",
         "total": "1.2s",
-        "result": "18s",
+        "result": "19s",
         "read_file_time": "25s"
     },
     "./GroverAll/09": {
@@ -161,8 +161,8 @@
         "after_state": "5682",
         "after_trans": "5682",
         "total": "12s",
-        "result": "30s",
-        "read_file_time": "7.3s"
+        "result": "31s",
+        "read_file_time": "7.5s"
     },
     "./GHZall/011": {
         "q": "11",
@@ -172,8 +172,8 @@
         "after_state": "6152",
         "after_trans": "6152",
         "total": "0.1s",
-        "result": "19s",
-        "read_file_time": "44s"
+        "result": "20s",
+        "read_file_time": "45s"
     },
     "./MCToffoli/11": {
         "q": "22",
@@ -184,7 +184,7 @@
         "after_trans": "4127+4127+45+45",
         "total": "0.2s+0.2s+0.0s+0.0s",
         "result": "15s+15s+0.0s+0.0s",
-        "read_file_time": "37s+36s+0.0s+0.0s"
+        "read_file_time": "37s+37s+0.0s+0.0s"
     },
     "./GroverIterAll/10": {
         "q": "29",
@@ -193,20 +193,9 @@
         "before_trans": "12344",
         "after_state": "12344",
         "after_trans": "12344",
-        "total": "3.2s",
-        "result": "2m16s",
-        "read_file_time": "50s"
-    },
-    "./GroverAll/10": {
-        "q": "29",
-        "G": "2408",
-        "before_state": "2095",
-        "before_trans": "2095",
-        "after_state": "12344",
-        "after_trans": "12344",
-        "total": "1m19s",
-        "result": "2m14s",
-        "read_file_time": "30s"
+        "total": "3.3s",
+        "result": "2m20s",
+        "read_file_time": "51s"
     },
     "./BVall/11": {
         "q": "23",
@@ -215,9 +204,20 @@
         "before_trans": "4130",
         "after_state": "26647",
         "after_trans": "26647",
-        "total": "5.6s",
-        "result": "1m29s",
-        "read_file_time": "2m19s"
+        "total": "5.7s",
+        "result": "1m25s",
+        "read_file_time": "2m21s"
+    },
+    "./GroverAll/10": {
+        "q": "29",
+        "G": "2408",
+        "before_state": "2095",
+        "before_trans": "2095",
+        "after_state": "12344",
+        "after_trans": "12344",
+        "total": "1m21s",
+        "result": "2m18s",
+        "read_file_time": "30s"
     },
     "./BVall/12": {
         "q": "25",
@@ -254,8 +254,8 @@
         "before_trans": "8226+8226+49+49",
         "after_state": "8226+8226+49+49",
         "after_trans": "8226+8226+49+49",
-        "total": "0.4s+0.4s+0.0s+0.0s",
-        "result": "1m4s+1m4s+0.0s+0.0s",
-        "read_file_time": "2m33s+2m31s+0.0s+0.0s"
+        "total": "0.5s+0.5s+0.0s+0.0s",
+        "result": "1m5s+1m5s+0.0s+0.0s",
+        "read_file_time": "2m36s+2m33s+0.0s+0.0s"
     }
 }

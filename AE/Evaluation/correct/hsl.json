@@ -10,24 +10,13 @@
         "result": "0.0s",
         "read_file_time": "0.0s"
     },
-    "./BVall/09": {
-        "q": "19",
-        "G": "30",
-        "before_state": "40",
-        "before_trans": "48",
-        "after_state": "49",
-        "after_trans": "57",
-        "total": "0.0s",
-        "result": "0.0s",
-        "read_file_time": "0.0s"
-    },
-    "./BVall/12": {
-        "q": "25",
-        "G": "39",
-        "before_state": "52",
-        "before_trans": "63",
-        "after_state": "64",
-        "after_trans": "75",
+    "./BVall/10": {
+        "q": "21",
+        "G": "33",
+        "before_state": "44",
+        "before_trans": "53",
+        "after_state": "54",
+        "after_trans": "63",
         "total": "0.0s",
         "result": "0.0s",
         "read_file_time": "0.0s"
@@ -54,13 +43,24 @@
         "result": "0.0s",
         "read_file_time": "0.0s"
     },
-    "./BVall/10": {
-        "q": "21",
-        "G": "33",
-        "before_state": "44",
-        "before_trans": "53",
-        "after_state": "54",
-        "after_trans": "63",
+    "./BVall/09": {
+        "q": "19",
+        "G": "30",
+        "before_state": "40",
+        "before_trans": "48",
+        "after_state": "49",
+        "after_trans": "57",
+        "total": "0.0s",
+        "result": "0.0s",
+        "read_file_time": "0.0s"
+    },
+    "./BVall/12": {
+        "q": "25",
+        "G": "39",
+        "before_state": "52",
+        "before_trans": "63",
+        "after_state": "64",
+        "after_trans": "75",
         "total": "0.0s",
         "result": "0.0s",
         "read_file_time": "0.0s"
@@ -193,7 +193,7 @@
         "before_trans": "128",
         "after_state": "108",
         "after_trans": "128",
-        "total": "0.0s",
+        "total": "0.1s",
         "result": "0.1s",
         "read_file_time": "0.0s"
     },
@@ -252,17 +252,6 @@
         "result": "0.0s+0.0s+0.0s+0.0s",
         "read_file_time": "0.0s+0.0s+0.0s+0.0s"
     },
-    "./GroverAll/11": {
-        "q": "32",
-        "G": "3711",
-        "before_state": "66",
-        "before_trans": "76",
-        "after_state": "108",
-        "after_trans": "128",
-        "total": "3.4s",
-        "result": "0.1s",
-        "read_file_time": "0.0s"
-    },
     "./MCToffoli/12": {
         "q": "24",
         "G": "23",
@@ -273,5 +262,16 @@
         "total": "0.0s+0.0s+0.0s+0.0s",
         "result": "0.0s+0.0s+0.0s+0.0s",
         "read_file_time": "0.0s+0.0s+0.0s+0.0s"
+    },
+    "./GroverAll/11": {
+        "q": "32",
+        "G": "3711",
+        "before_state": "66",
+        "before_trans": "76",
+        "after_state": "108",
+        "after_trans": "128",
+        "total": "3.5s",
+        "result": "0.1s",
+        "read_file_time": "0.0s"
     }
 }
