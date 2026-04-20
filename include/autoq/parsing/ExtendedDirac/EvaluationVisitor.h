@@ -300,6 +300,13 @@ private:
 
     std::map<char, int> globalVar2len; // record all control variables used in {diracs : varcons}
     std::set<char> usedVars; // record all variables currently used in {diracs : varcons} for preventing naming collision.
+
+    // ---- Length-inference state used only during EXPAND_POWER_AND_DIRACS_AND_REWRITE_COMPLEMENT ----
+    // When a {diracs (: varcons)?} scope is analyzed at the start of visitSet, we record here
+    // the additional |v|=n declarations that should be injected into each summation term's
+    // varcons so that downstream passes see a fully-declared input.
+    std::map<ExtendedDiracParser::TermContext*, std::set<char>> inferred_local_additions_;
+    std::map<char, int> inferred_var_lengths_; // per-var length, used when emitting |v|=n for the additions
     segment2split_t segment2split;
     currentSplit_t currentSplit;
     segment2perm_t segment2perm;
@@ -320,6 +327,8 @@ private:
         mode(EXPAND_POWER_AND_DIRACS_AND_REWRITE_COMPLEMENT),
         globalVar2len(),
         usedVars(),
+        inferred_local_additions_(),
+        inferred_var_lengths_(),
         segment2split(),
         currentSplit(),
         segment2perm(),
@@ -345,6 +354,269 @@ private:
         parser.addErrorListener(&errorListener); // Add a custom error listener
         ExtendedDiracParser::ExprContext* tree = parser.expr(); // Parse the input
         return this->visit(tree);
+    }
+
+    // --------------------------------------------------------------------
+    // Length-inference helpers (used during EXPAND_POWER_AND_DIRACS_AND_REWRITE_COMPLEMENT).
+    //
+    // Rationale: users may omit some |v|=n declarations and instead rely on
+    // (in)equalities or constant binary strings to fix the length. We analyse
+    // each {diracs (: varcons)?} scope, infer the missing length declarations
+    // and emit them into the rewritten string. All downstream passes then see
+    // a fully-declared input and do not need to change.
+    //
+    // Scope classification rule (implicit scoping):
+    //   - A lowercase variable is GLOBAL if it appears inside the set
+    //     predicate (the "varcons" after the colon) OR inside the ket body
+    //     of a non-summation term.
+    //   - Otherwise, it is a LOCAL variable of the particular summation
+    //     term that mentions it.
+    //
+    // Length-propagation rule: two lowercase variables share the same length
+    // iff they are linked (directly or transitively) by (in)equalities. This
+    // is represented as a graph whose connected components each resolve to a
+    // single length, taken from |v|=n, v=const, or constants appearing inside
+    // (in)equalities involving a member of the component.
+    // --------------------------------------------------------------------
+
+    struct VarconsInferInfo {
+        std::set<char> declared{};                        // vars with |v|=n
+        std::set<char> constants{};                       // vars with v=const
+        std::set<char> mentioned{};                       // all lowercase single-char vars
+        std::map<char, std::set<int>> var_hinted_lens{};  // hints attached to a specific var
+        std::set<std::pair<char, char>> edges{};          // var-var links (sorted)
+    };
+
+    static std::set<char> extractKetVarsForInference(ExtendedDiracParser::TermContext *termCtx) {
+        std::set<char> result;
+        if (termCtx == nullptr || termCtx->VStr == nullptr) return result;
+        for (char ch : termCtx->VStr->getText()) {
+            if (ch == '\'') continue; // bit-complement marker
+            char cl = static_cast<char>(std::tolower(ch));
+            if ('a' <= cl && cl <= 'z') result.insert(cl);
+        }
+        return result;
+    }
+
+    static bool isLowercaseVar(const std::string &s) {
+        return s.length() == 1 && 'a' <= s.at(0) && s.at(0) <= 'z';
+    }
+    static bool isBinaryString(const std::string &s) {
+        return !s.empty() && std::all_of(s.begin(), s.end(), [](char c){ return c == '0' || c == '1'; });
+    }
+
+    static VarconsInferInfo collectVarconsInferInfo(ExtendedDiracParser::VarconsContext *ctx) {
+        VarconsInferInfo info;
+        std::function<void(ExtendedDiracParser::VarconsContext*)> walk = [&](ExtendedDiracParser::VarconsContext *c) {
+            if (c == nullptr) return;
+            if (c->varcons() != nullptr) walk(c->varcons());
+            auto vc = c->varcon();
+            if (vc == nullptr) return;
+            if (vc->N != nullptr) { // |V|=N
+                std::string vs = vc->V->getText();
+                if (isLowercaseVar(vs)) {
+                    info.declared.insert(vs.at(0));
+                    info.mentioned.insert(vs.at(0));
+                    int n = std::stoi(vc->N->getText());
+                    if (n > 0) info.var_hinted_lens[vs.at(0)].insert(n);
+                }
+            } else if (vc->eq() != nullptr) { // V=const
+                auto L = vc->eq()->complex(0)->getText();
+                auto R = vc->eq()->complex(1)->getText();
+                if (isLowercaseVar(L)) {
+                    info.constants.insert(L.at(0));
+                    info.mentioned.insert(L.at(0));
+                    if (isBinaryString(R)) {
+                        info.var_hinted_lens[L.at(0)].insert(static_cast<int>(R.length()));
+                    }
+                }
+            } else if (vc->ineq() != nullptr) { // L != R
+                auto L = vc->ineq()->complex(0)->getText();
+                auto R = vc->ineq()->complex(1)->getText();
+                bool L_is_var = isLowercaseVar(L);
+                bool R_is_var = isLowercaseVar(R);
+                bool L_is_const = isBinaryString(L);
+                bool R_is_const = isBinaryString(R);
+                if (L_is_var) info.mentioned.insert(L.at(0));
+                if (R_is_var) info.mentioned.insert(R.at(0));
+                if (L_is_var && R_is_var) {
+                    info.edges.emplace(std::min(L.at(0), R.at(0)), std::max(L.at(0), R.at(0)));
+                }
+                if (L_is_var && R_is_const) {
+                    info.var_hinted_lens[L.at(0)].insert(static_cast<int>(R.length()));
+                }
+                if (R_is_var && L_is_const) {
+                    info.var_hinted_lens[R.at(0)].insert(static_cast<int>(L.length()));
+                }
+            }
+        };
+        walk(ctx);
+        return info;
+    }
+
+    struct TermScanResult {
+        ExtendedDiracParser::TermContext *ctx = nullptr;
+        bool hasSum = false;
+        VarconsInferInfo localInfo{};
+        std::set<char> ketBodyVars{};
+    };
+
+    static void collectTermsFromDirac(ExtendedDiracParser::DiracContext *dCtx,
+                                      std::vector<TermScanResult> &out) {
+        if (dCtx == nullptr) return;
+        if (dCtx->dirac() != nullptr) {
+            collectTermsFromDirac(dCtx->dirac(), out);
+        }
+        auto termCtx = dCtx->term();
+        if (termCtx == nullptr) return;
+        TermScanResult ts;
+        ts.ctx = termCtx;
+        ts.hasSum = termCtx->SUM() != nullptr;
+        if (termCtx->varcons() != nullptr) {
+            ts.localInfo = collectVarconsInferInfo(termCtx->varcons());
+        }
+        ts.ketBodyVars = extractKetVarsForInference(termCtx);
+        out.push_back(ts);
+    }
+
+    static void collectTermsFromDiracs(ExtendedDiracParser::DiracsContext *ctx,
+                                       std::vector<TermScanResult> &out) {
+        if (ctx == nullptr) return;
+        if (ctx->diracs() != nullptr) {
+            collectTermsFromDiracs(ctx->diracs(), out);
+        }
+        collectTermsFromDirac(ctx->dirac(), out);
+    }
+
+    struct SetInferenceResult {
+        std::set<char> globalAdditions{};
+        std::map<ExtendedDiracParser::TermContext*, std::set<char>> localAdditions{};
+        std::map<char, int> varLengths{}; // inferred length per variable that needs a declaration
+    };
+
+    static SetInferenceResult analyzeSetForLengthInference(ExtendedDiracParser::SetContext *ctx) {
+        SetInferenceResult result;
+        if (ctx == nullptr || ctx->UNION() != nullptr) return result;
+
+        // 1. Gather info from the set predicate.
+        VarconsInferInfo globalInfo;
+        if (ctx->varcons() != nullptr) {
+            globalInfo = collectVarconsInferInfo(ctx->varcons());
+        }
+
+        // 2. Gather info from every term.
+        std::vector<TermScanResult> terms;
+        collectTermsFromDiracs(ctx->diracs(), terms);
+
+        // 3. Merge all var info and all edges into one graph for the whole scope.
+        // Note: v=const hints the length but does NOT produce a |v|=n declaration,
+        // so we must still add |v|=n for such variables.
+        std::set<char> all_mentioned = globalInfo.mentioned;
+        std::map<char, std::set<ExtendedDiracParser::TermContext*>> declared_scopes;
+        for (char v : globalInfo.declared) declared_scopes[v].insert(nullptr); // nullptr marks global
+        std::map<char, std::set<int>> all_hinted_lens = globalInfo.var_hinted_lens;
+        std::set<std::pair<char, char>> all_edges = globalInfo.edges;
+        for (const auto &t : terms) {
+            all_mentioned.insert(t.localInfo.mentioned.begin(), t.localInfo.mentioned.end());
+            all_mentioned.insert(t.ketBodyVars.begin(), t.ketBodyVars.end());
+            for (char v : t.localInfo.declared) declared_scopes[v].insert(t.ctx);
+            for (const auto &kv : t.localInfo.var_hinted_lens) {
+                all_hinted_lens[kv.first].insert(kv.second.begin(), kv.second.end());
+            }
+            all_edges.insert(t.localInfo.edges.begin(), t.localInfo.edges.end());
+        }
+
+        // 4. Determine scope of each variable.
+        // A var is GLOBAL iff it appears in the set predicate OR the ket body of a non-summation term.
+        std::set<char> globalScope = globalInfo.mentioned;
+        for (const auto &t : terms) {
+            if (!t.hasSum) globalScope.insert(t.ketBodyVars.begin(), t.ketBodyVars.end());
+        }
+
+        // 5. Union-find to compute connected components among mentioned vars.
+        std::map<char, char> parent;
+        std::function<char(char)> find = [&](char x) -> char {
+            auto it = parent.find(x);
+            if (it == parent.end()) { parent[x] = x; return x; }
+            if (it->second == x) return x;
+            return parent[x] = find(it->second);
+        };
+        auto unite = [&](char a, char b) {
+            char ra = find(a), rb = find(b);
+            if (ra != rb) parent[ra] = rb;
+        };
+        for (char v : all_mentioned) (void)find(v);
+        for (const auto &e : all_edges) unite(e.first, e.second);
+
+        // 6. Gather length hints per component and verify consistency.
+        std::map<char, std::set<int>> comp_lens;
+        for (const auto &kv : all_hinted_lens) {
+            char r = find(kv.first);
+            comp_lens[r].insert(kv.second.begin(), kv.second.end());
+        }
+        for (const auto &kv : comp_lens) {
+            if (kv.second.size() > 1) {
+                std::string members;
+                for (char v : all_mentioned) {
+                    if (find(v) == kv.first) {
+                        if (!members.empty()) members += ",";
+                        members += std::string(1, v);
+                    }
+                }
+                std::string msg = "Length mismatch detected during inference for {" + members + "}:";
+                bool first = true;
+                for (int l : kv.second) { msg += (first ? " " : " vs "); msg += std::to_string(l); first = false; }
+                THROW_AUTOQ_ERROR(msg);
+            }
+        }
+
+        // 7. For each mentioned var, determine which scope(s) must receive a |v|=n
+        // declaration. A scope already has one if |v|=n was written there explicitly.
+        for (char v : all_mentioned) {
+            char r = find(v);
+            auto lit = comp_lens.find(r);
+            if (lit == comp_lens.end() || lit->second.empty()) {
+                THROW_AUTOQ_ERROR(std::string("Cannot infer length for variable '") + v +
+                                  "'. Please provide at least one length declaration.");
+            }
+            int len = *lit->second.begin();
+            const auto &decl_scopes = declared_scopes[v];
+            if (globalScope.count(v)) {
+                // Global var: needs |v|=n in the set predicate unless already there.
+                if (decl_scopes.count(nullptr) == 0) {
+                    result.globalAdditions.insert(v);
+                    result.varLengths[v] = len;
+                }
+            } else {
+                // Local var: needs |v|=n in every summation term that references it
+                // (either in its varcons or its ket body) and does not yet declare it.
+                for (const auto &t : terms) {
+                    if (!t.hasSum) continue;
+                    bool referenced = t.localInfo.mentioned.count(v) || t.ketBodyVars.count(v);
+                    if (!referenced) continue;
+                    if (decl_scopes.count(t.ctx)) continue; // already declared in this term
+                    result.localAdditions[t.ctx].insert(v);
+                    result.varLengths[v] = len;
+                }
+            }
+        }
+        return result;
+    }
+
+    static std::string prependDeclarations(const std::string &existing,
+                                           const std::set<char> &additions,
+                                           const std::map<char, int> &varLengths) {
+        if (additions.empty()) return existing;
+        std::string decls;
+        for (char v : additions) {
+            auto it = varLengths.find(v);
+            if (it == varLengths.end()) continue;
+            if (!decls.empty()) decls += ", ";
+            decls += std::string("|") + v + "|=" + std::to_string(it->second);
+        }
+        if (decls.empty()) return existing;
+        if (existing.empty()) return decls;
+        return decls + ", " + existing;
     }
 
     // std::any visitExtendedDirac(ExtendedDiracParser::ExtendedDiracContext *ctx) override {
@@ -944,11 +1216,29 @@ private:
             if (ctx->UNION() != nullptr) {
                 return std::any_cast<std::string>(visit(ctx->set(0))) + " ∪ " + std::any_cast<std::string>(visit(ctx->set(1)));
             } else {
+                // Analyse the scope first so we know which |v|=n declarations
+                // are missing. The per-term local additions are stashed on the
+                // visitor so visitTerm (called via visit(ctx->diracs())) can pick
+                // them up when emitting each summation term's varcons.
+                auto inf = analyzeSetForLengthInference(ctx);
+                auto saved_local_additions = inferred_local_additions_;
+                auto saved_var_lengths = inferred_var_lengths_;
+                inferred_local_additions_ = inf.localAdditions;
+                inferred_var_lengths_ = inf.varLengths;
+
+                auto diracs_vec = std::any_cast<std::vector<std::string>>(visit(ctx->diracs()));
+
+                inferred_local_additions_ = saved_local_additions;
+                inferred_var_lengths_ = saved_var_lengths;
+
+                std::string globalVcText = (ctx->varcons() == nullptr) ? "" : ctx->varcons()->getText();
+                globalVcText = prependDeclarations(globalVcText, inf.globalAdditions, inf.varLengths);
+
                 std::string result;
-                for (const auto &dirac : std::any_cast<std::vector<std::string>>(visit(ctx->diracs()))) {
+                for (const auto &dirac : diracs_vec) {
                     if (result.length() > 0) result += " ∪ ";
                     result += "{" + dirac;
-                    result += (ctx->varcons() == nullptr) ? "" : (" : " + ctx->varcons()->getText());
+                    result += globalVcText.empty() ? "" : (" : " + globalVcText);
                     result += "}";
                 }
                 return result;
@@ -1400,7 +1690,13 @@ private:
             if (ctx->varcons() == nullptr) { // C=STR BAR VStr=STR RIGHT_ANGLE_BRACKET
                 return std::any_cast<std::string>((ctx->complex() == nullptr ? (ctx->SUB() != nullptr ? "-1" : "") : ctx->complex()->getText()) + "|" + vstr2 + "⟩");
             } else { // C=STR SUM varcons BAR VStr=STR RIGHT_ANGLE_BRACKET
-                return std::any_cast<std::string>((ctx->complex() == nullptr ? (ctx->SUB() != nullptr ? "-1" : "") : ctx->complex()->getText()) + "∑" + ctx->varcons()->getText() + "|" + vstr2 + "⟩");
+                // Inject any inferred |v|=n declarations for this summation's local scope.
+                std::string vcText = ctx->varcons()->getText();
+                auto it = inferred_local_additions_.find(ctx);
+                if (it != inferred_local_additions_.end() && !it->second.empty()) {
+                    vcText = prependDeclarations(vcText, it->second, inferred_var_lengths_);
+                }
+                return std::any_cast<std::string>((ctx->complex() == nullptr ? (ctx->SUB() != nullptr ? "-1" : "") : ctx->complex()->getText()) + "∑" + vcText + "|" + vstr2 + "⟩");
             }
         } else if (mode == COLLECT_KETS_AND_COMPUTE_UNIT_DECOMPOSITION_INDICES) {
             strsplit_t intervals;
