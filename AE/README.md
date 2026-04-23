@@ -179,6 +179,12 @@ On Ubuntu 24.04, install:
 - `libboost-filesystem-dev`, `libboost-test-dev`, `libboost-regex-dev`, `libantlr4-runtime-dev`
 - `libvips-tools`
 
+You can install all of them in one command:
+
+```bash
+sudo apt-get update && sudo apt-get install -y ca-certificates g++ make cmake python3 libboost-filesystem-dev libboost-test-dev libboost-regex-dev libantlr4-runtime-dev libvips-tools
+```
+
 Then:
 
 ```bash
