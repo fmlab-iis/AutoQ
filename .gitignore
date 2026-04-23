@@ -12,7 +12,7 @@ tags
 # documentation
 doc/*
 # Python cache
-python_interface/__pycache__
+**/__pycache__
 
 .vscode/*
 backup/*
@@ -29,3 +29,8 @@ POPL24/TABLES/Algorithms/*.tex
 POPL24/TABLES/Algorithms/*.log
 POPL24/TABLES/Algorithms/*.aux
 benchmark*/_others/**
+
+# CAV'26 AE packaging (large generated artifacts)
+AE/artifact-package/*
+AE/*.zip
+AE/*.zip.sha256

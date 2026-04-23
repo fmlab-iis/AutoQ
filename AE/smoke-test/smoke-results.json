@@ -1,0 +1,108 @@
+{
+  "dataset": "/home/alan23273850/AutoQ/AE/full-review/bench",
+  "autoq": "/home/alan23273850/AutoQ/build/cli/autoq",
+  "timeout_sec": 300,
+  "benchmarks": {
+    "BVall": {
+      "size": "08",
+      "checks": {
+        "hsl": {
+          "status": "PASS",
+          "returncode": 0,
+          "elapsed_sec": 0.21,
+          "stdout_tail": "The quantum program has [17] qubits and [27] gates. The verification process [OK] in [0.1s] with [84MB] memory usage.",
+          "stderr_tail": ""
+        },
+        "cav23": {
+          "status": "PASS",
+          "returncode": 0,
+          "elapsed_sec": 2.74,
+          "stdout_tail": "The quantum program has [17] qubits and [27] gates. The verification process [OK] in [2.6s] with [263MB] memory usage.",
+          "stderr_tail": ""
+        }
+      }
+    },
+    "GHZall": {
+      "size": "008",
+      "checks": {
+        "hsl": {
+          "status": "PASS",
+          "returncode": 0,
+          "elapsed_sec": 0.14,
+          "stdout_tail": "The quantum program has [8] qubits and [8] gates. The verification process [OK] in [0.1s] with [77MB] memory usage.",
+          "stderr_tail": ""
+        },
+        "cav23": {
+          "status": "PASS",
+          "returncode": 0,
+          "elapsed_sec": 1.02,
+          "stdout_tail": "The quantum program has [8] qubits and [8] gates. The verification process [OK] in [1.0s] with [82MB] memory usage.",
+          "stderr_tail": ""
+        }
+      }
+    },
+    "GroverAll": {
+      "size": "07",
+      "checks": {
+        "hsl": {
+          "status": "PASS",
+          "returncode": 0,
+          "elapsed_sec": 0.53,
+          "stdout_tail": "The quantum program has [20] qubits and [544] gates. The verification process [OK] in [0.5s] with [87MB] memory usage.",
+          "stderr_tail": ""
+        },
+        "cav23": {
+          "status": "PASS",
+          "returncode": 0,
+          "elapsed_sec": 3.58,
+          "stdout_tail": "The quantum program has [20] qubits and [544] gates. The verification process [OK] in [3.5s] with [95MB] memory usage.",
+          "stderr_tail": ""
+        }
+      }
+    },
+    "GroverIterAll": {
+      "size": "07",
+      "checks": {
+        "hsl": {
+          "status": "PASS",
+          "returncode": 0,
+          "elapsed_sec": 0.53,
+          "stdout_tail": "The quantum program has [20] qubits and [79] gates. The verification process [OK] in [0.5s] with [77MB] memory usage.",
+          "stderr_tail": ""
+        },
+        "cav23": {
+          "status": "PASS",
+          "returncode": 0,
+          "elapsed_sec": 3.69,
+          "stdout_tail": "The quantum program has [20] qubits and [79] gates. The verification process [OK] in [3.6s] with [95MB] memory usage.",
+          "stderr_tail": ""
+        }
+      }
+    },
+    "MCToffoli": {
+      "size": "08",
+      "checks": {
+        "hsl": {
+          "status": "PASS",
+          "returncode": 0,
+          "elapsed_sec": 0.21,
+          "stdout_tail": "The quantum program has [16] qubits and [15] gates. The verification process [OK] in [0.1s] with [76MB] memory usage.",
+          "stderr_tail": ""
+        },
+        "cav23": {
+          "status": "PASS",
+          "returncode": 0,
+          "elapsed_sec": 0.88,
+          "stdout_tail": "The quantum program has [16] qubits and [15] gates. The verification process [OK] in [0.8s] with [70MB] memory usage.",
+          "stderr_tail": ""
+        }
+      }
+    }
+  },
+  "summary": {
+    "total_checks": 10,
+    "passed": 10,
+    "failed_or_timeout": 0,
+    "status": "PASS"
+  }
+}
