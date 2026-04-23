@@ -15,6 +15,8 @@ The final upload package (`.zip`) is expected to contain:
 - Linux/macOS with Docker installed
 - CPU architecture: `x86_64` (or Docker with `linux/amd64` emulation)
 
+If you prefer not to use Docker for evaluation, you can skip directly to [Section 7](#7-build-and-test-without-docker-optional), which provides a non-Docker build path on Ubuntu 24.04.
+
 ## 3) Load Image and Start Container
 
 Before running smoke/full-review commands, load the image into your local Docker daemon:
@@ -239,7 +241,7 @@ Below we map each reusable criterion to concrete elements in this artifact.
 
 - How to use and extend with custom `pre/circuit/post` inputs is documented in Section 6.
 - The project is open source at [https://github.com/fmlab-iis/AutoQ/](https://github.com/fmlab-iis/AutoQ/).
-- The input format references are documented at [https://github.com/fmlab-iis/AutoQ/blob/CAV26/docs/hsl_description.md](https://github.com/fmlab-iis/AutoQ/blob/CAV26/docs/hsl_description.md) and [https://github.com/fmlab-iis/AutoQ/blob/CAV26/docs/qasm_description.md](https://github.com/fmlab-iis/AutoQ/blob/CAV26/docs/qasm_description.md).
+- The input format references are documented at [hsl_description.md](https://github.com/fmlab-iis/AutoQ/blob/CAV26/docs/hsl_description.md) and [qasm_description.md](https://github.com/fmlab-iis/AutoQ/blob/CAV26/docs/qasm_description.md).
 
 5. Usable in a different environment (outside Docker / another system).
 
