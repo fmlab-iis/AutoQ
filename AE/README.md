@@ -233,7 +233,7 @@ Below we map each reusable criterion to concrete elements in this artifact.
 
 - How to use and extend with custom `pre/circuit/post` inputs is documented in Section 6.
 - The project is open source at [https://github.com/fmlab-iis/AutoQ/](https://github.com/fmlab-iis/AutoQ/).
-- The input format references are documented at [https://github.com/fmlab-iis/AutoQ/blob/main/docs/hsl_description.md](https://github.com/fmlab-iis/AutoQ/blob/main/docs/hsl_description.md) and [https://github.com/fmlab-iis/AutoQ/blob/main/docs/qasm_description.md](https://github.com/fmlab-iis/AutoQ/blob/main/docs/qasm_description.md).
+- The input format references are documented at [https://github.com/fmlab-iis/AutoQ/blob/CAV26/docs/hsl_description.md](https://github.com/fmlab-iis/AutoQ/blob/CAV26/docs/hsl_description.md) and [https://github.com/fmlab-iis/AutoQ/blob/CAV26/docs/qasm_description.md](https://github.com/fmlab-iis/AutoQ/blob/CAV26/docs/qasm_description.md).
 
 5. Usable in a different environment (outside Docker / another system).
 
