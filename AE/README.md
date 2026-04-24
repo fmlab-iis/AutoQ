@@ -15,6 +15,15 @@ The final upload package (`.zip`) is expected to contain:
 - Linux/macOS with Docker installed
 - CPU architecture: `x86_64` (or Docker with `linux/amd64` emulation)
 
+### Windows hosts (Docker Desktop / WSL2 / Hyper-V / VirtualBox)
+
+If you evaluate on a **Windows PC** with virtualization (Docker Desktop, WSL2, Hyper-V, VirtualBox, etc.), host RAM matters beyond the in-container `~21 GB` peak per `autoq` process (see Section 5).
+
+- **64 GB host RAM**: measured by the authors; **safest** when accounting for typical Windows overhead together with WSL2, Docker Desktop, or Hyper-V.
+- **48 GB host RAM**: not measured by the authors on Windows, but **likely still safe** given the per-process peak plus reasonable host overhead.
+- **32 GB host RAM + Docker Desktop or VirtualBox** (guest VM configured around **21 GB** RAM): runs can **complete**, but you may see **a few extra** cases end as `TIMEOUT` or `ERROR` (out-of-memory) compared to a well-provisioned native Linux host.
+- **Do NOT use 32 GB host RAM + WSL2** for full-review since WSL2 may **hard-terminate** the process under memory pressure.
+
 If you prefer not to use Docker for evaluation, you can skip directly to [Section 7](#7-build-and-test-without-docker-optional), which provides a non-Docker build path on Ubuntu 24.04.
 
 ## 3) Load Image and Start Container
@@ -167,24 +176,24 @@ autoq ver /path/to/pre.hsl /path/to/circuit.qasm /path/to/post.hsl
 
 ## 7) Build and Test Without Docker (Optional)
 
-First, clone the source code and check out the `CAV26` branch:
-
-```bash
-git clone -b CAV26 https://github.com/fmlab-iis/AutoQ.git
-cd AutoQ
-```
-
-On Ubuntu 24.04, install:
+First, on Ubuntu 24.04, install:
 
 - `ca-certificates` (system CA roots for HTTPS certificate verification)
-- `g++`, `make`, `cmake`, `python3`
+- `git`, `g++`, `make`, `cmake`, `python3`
 - `libboost-filesystem-dev`, `libboost-test-dev`, `libboost-regex-dev`, `libantlr4-runtime-dev`
 - `libvips-tools`
 
 You can install all of them in one command:
 
 ```bash
-sudo apt-get update && sudo apt-get install -y ca-certificates g++ make cmake python3 libboost-filesystem-dev libboost-test-dev libboost-regex-dev libantlr4-runtime-dev libvips-tools
+sudo apt-get update && sudo apt-get install -y ca-certificates git g++ make cmake python3 libboost-filesystem-dev libboost-test-dev libboost-regex-dev libantlr4-runtime-dev libvips-tools
+```
+
+Then, clone the source code and check out the `CAV26` branch:
+
+```bash
+git clone -b CAV26 https://github.com/fmlab-iis/AutoQ.git
+cd AutoQ
 ```
 
 Then:
