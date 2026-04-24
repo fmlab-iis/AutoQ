@@ -42,7 +42,7 @@ def exceeds_timeout(value):
     s = str(value)
     if s in ("---", "ERROR", ""):
         return False
-    if s in ("TO", "TIMEOUT"):
+    if s in ("TO", "TIMEOUT") or s.strip() == "TO":
         return True
     try:
         if "/" in s:
@@ -56,7 +56,13 @@ def exceeds_timeout(value):
 # 新增：專門用來將兩個時間字串相加 (處理一般格式與 / 格式)
 def add_time_strings(t1, t2):
     # 如果任一為非時間數值 (如 TIMEOUT, ERROR)，直接回傳該狀態
-    if 'TIMEOUT' in str(t1) or 'TIMEOUT' in str(t2): return 'TIMEOUT'
+    if (
+        str(t1).strip() == "TO"
+        or str(t2).strip() == "TO"
+        or "TIMEOUT" in str(t1)
+        or "TIMEOUT" in str(t2)
+    ):
+        return "TIMEOUT"
     if 'ERROR' in str(t1) or 'ERROR' in str(t2): return 'ERROR'
     if '---' in str(t1) or '---' in str(t2): return '---'
 
@@ -90,7 +96,7 @@ def sum_plus_separated_values(value_str):
     for part in parts:
         if not part:
             continue
-        if part == "TIMEOUT" or "TIMEOUT" in part:
+        if part == "TO" or part == "TIMEOUT" or "TIMEOUT" in part:
             return "TIMEOUT"
     for part in parts:
         if not part:
@@ -104,7 +110,7 @@ def sum_plus_separated_values(value_str):
 
     for part in parts:
         # 跳過非時間格式的字串
-        if part in ['---', 'TIMEOUT', 'ERROR', '']:
+        if part in ["---", "TO", "TIMEOUT", "ERROR", ""]:
             continue
 
         if '/' in part:
@@ -437,7 +443,7 @@ def build_plain_table_rows(tool_list):
                 or exceeds_timeout(ver)
                 or exceeds_timeout(total)
             ):
-                trans, ver, total = "TO", "TO", "TO"
+                trans, ver, total = "TIMEOUT", "TIMEOUT", "TIMEOUT"
 
             per_tool[tool_path] = (trans, ver, total)
 
@@ -563,12 +569,19 @@ def write_plain_table_jpg(tool_list, jpg_filename):
                     )
 
                 this_triplet = [str(vals[2]), str(vals[3]), str(vals[4])]
-                if this_triplet == ["TO", "TO", "TO"]:
+                if this_triplet == ["TIMEOUT", "TIMEOUT", "TIMEOUT"]:
                     for x in (x_edges[4], x_edges[5]):
                         parts.append(
                             f'<line x1="{x}" y1="{row_top + 0.8}" x2="{x}" y2="{row_bottom - 0.8}" stroke="white" stroke-width="2.6"/>'
                         )
-                    parts.append(text((x_edges[3] + x_edges[6]) / 2, (row_top + row_bottom) / 2, "TO", size=18))
+                    parts.append(
+                        text(
+                            (x_edges[3] + x_edges[6]) / 2,
+                            (row_top + row_bottom) / 2,
+                            "TIMEOUT",
+                            size=18,
+                        )
+                    )
                 elif this_triplet == ["ERROR", "ERROR", "ERROR"]:
                     for x in (x_edges[4], x_edges[5]):
                         parts.append(
@@ -584,18 +597,25 @@ def write_plain_table_jpg(tool_list, jpg_filename):
                                 str(val),
                                 size=18,
                                 weight="bold"
-                                if (table_col == 5 and str(val) not in ("TO", "ERROR"))
+                                if (table_col == 5 and str(val) not in ("TIMEOUT", "ERROR"))
                                 else "normal",
                             )
                         )
 
                 cav23_triplet = [str(vals[5]), str(vals[6]), str(vals[7])]
-                if cav23_triplet == ["TO", "TO", "TO"]:
+                if cav23_triplet == ["TIMEOUT", "TIMEOUT", "TIMEOUT"]:
                     for x in (x_edges[7], x_edges[8]):
                         parts.append(
                             f'<line x1="{x}" y1="{row_top + 0.8}" x2="{x}" y2="{row_bottom - 0.8}" stroke="white" stroke-width="2.6"/>'
                         )
-                    parts.append(text((x_edges[6] + x_edges[9]) / 2, (row_top + row_bottom) / 2, "TO", size=18))
+                    parts.append(
+                        text(
+                            (x_edges[6] + x_edges[9]) / 2,
+                            (row_top + row_bottom) / 2,
+                            "TIMEOUT",
+                            size=18,
+                        )
+                    )
                 elif cav23_triplet == ["ERROR", "ERROR", "ERROR"]:
                     for x in (x_edges[7], x_edges[8]):
                         parts.append(
@@ -611,7 +631,7 @@ def write_plain_table_jpg(tool_list, jpg_filename):
                                 str(val),
                                 size=18,
                                 weight="bold"
-                                if (table_col == 8 and str(val) not in ("TO", "ERROR"))
+                                if (table_col == 8 and str(val) not in ("TIMEOUT", "ERROR"))
                                 else "normal",
                             )
                         )
