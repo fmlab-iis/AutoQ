@@ -12,7 +12,7 @@ The final upload package (`.zip`) is expected to contain:
 
 ## 2) Environment Requirements
 
-- Linux/macOS with Docker installed
+- Native Linux or Windows with Docker installed (macOS is untested but should work in principle.)
 - CPU architecture: `x86_64` (or Docker with `linux/amd64` emulation)
 
 ### Windows hosts (Docker Desktop / WSL2 / Hyper-V / VirtualBox)
@@ -176,7 +176,7 @@ autoq ver /path/to/pre.hsl /path/to/circuit.qasm /path/to/post.hsl
 
 ## 7) Build and Test Without Docker (Optional)
 
-First, on Ubuntu 24.04, install:
+First, on WSL2 or Ubuntu 24.04 (native or in a virtual machine), install the following packages:
 
 - `ca-certificates` (system CA roots for HTTPS certificate verification)
 - `git`, `g++`, `make`, `cmake`, `python3`
@@ -254,5 +254,5 @@ Below we map each reusable criterion to concrete elements in this artifact.
 
 5. Usable in a different environment (outside Docker / another system).
 
-- Section 7 provides an explicit non-Docker build path on Ubuntu 24.04.
+- Section 7 provides an explicit non-Docker build path on WSL2 and Ubuntu 24.04.
 - Core command-line usage works both inside Docker and directly on host (`autoq ver ...`).
