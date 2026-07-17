@@ -38,14 +38,14 @@ int extract_qubit(const std::string& filename) {
         return kExtractQubitError;
     }
 
-   std::string line;
-   std::regex  pattern(R"(qreg\s+\w+\[(\d+)\];)");
-   std::smatch match;
-   while (std::getline(file, line)) {
-      if (std::regex_search(line, match, pattern)) {
-         return std::stoi(match[1].str());
-      }
-   }
+    std::string line;
+    std::regex pattern(R"(qreg\s+\w+\[(\d+)\];)");
+    std::smatch match;
+    while (std::getline(file, line)) {
+        if (std::regex_search(line, match, pattern)) {
+            return std::stoi(match[1].str());
+        }
+    }
 
     AUTOQ::Util::Log::error("Pattern not found");
     return kExtractQubitError;
@@ -55,6 +55,7 @@ namespace {
 constexpr unsigned int kTimeoutSeconds = 1800;
 constexpr int kExitCodeTimeout = 124;
 constexpr size_t kBytesPerMB = 1024 * 1024;
+
 // CLI option names (placeholder names in help)
 const char* kOptPreHsl = "pre.hsl";
 const char* kOptCircuitQasm = "circuit.qasm";
@@ -231,12 +232,12 @@ static void run_verification(const std::string& pre, const std::string& post, co
 }
 
 int main(int argc, char **argv) {
-   try {
-      // set_timeout(600);
-      feenableexcept(FE_ALL_EXCEPT & ~FE_INEXACT);
+try {
+    // set_timeout(600);
+    feenableexcept(FE_ALL_EXCEPT & ~FE_INEXACT);
 
-      CLI::App    app{"AutoQ 2.0: An automata-based C++ tool for quantum program verification."};
-      std::string pre, circuit, post, circuit1, circuit2;
+    CLI::App app{"AutoQ 2.0: An automata-based C++ tool for quantum program verification."};
+    std::string pre, circuit, post, circuit1, circuit2;
 
     bool summarize_loops = false;
     CLI::App* execution = app.add_subcommand("ex", "Execute a quantum circuit with a given precondition.");
@@ -270,4 +271,59 @@ int main(int argc, char **argv) {
 
     CLI::App* print = app.add_subcommand("print", "Print the set of quantum states.");
     print->add_option(kOptStatesHsl, pre, kStatesFileOpt)->required()->type_name("");
+
+    CLI::Option* version = app.add_flag("-v,--version", "Print the full Git commit hash ID.");
+
+    // bool short_time = false, long_time = false;
+    // app.add_flag("-t", short_time, "print times");
+    // app.add_flag("--time", long_time, "print times");
+    CLI11_PARSE(app, argc, argv); // Parse the command-line arguments
+
+    if (*version) {
+        AUTOQ::Util::Log::info(AUTOQ_GIT_SHA);
+        return 0;
+    }
+
+    auto start = chrono::steady_clock::now();
+    // bool runConcrete; // or runSymbolic
+    ParameterMap params;
+    params[kParamLoop] = kLoopManual;
+    if (summarize_loops) {
+        params[kParamLoop] = kLoopSymbolic;
+    }
+    if (execution->parsed()) {
+        run_execution(pre, circuit, params);
+    } else if (verification->parsed()) {
+        run_verification(pre, post, circuit, params, latex, start);
+    } else if (equivalence_checking->parsed()) {
+        run_equivalence(circuit1, circuit2, params, latex, start);
+    } else if (print->parsed()) {
+        auto aut = ReadAutomaton(pre);
+        std::visit([](auto& aut){
+            aut.print_language();
+        }, aut);
+    } else {
+        THROW_AUTOQ_ERROR(EM::kNoMode);
+    }
+    /**************/
+    // if (long_time) {
+    //     if (runConcrete)
+    //         std::cout << "=\n"
+    //                 << "The total time spent on gate operations (excluding remove_useless and reduce) is [" << AUTOQ::Util::Convert::ToString(AUTOQ::ConcreteAutomata::total_gate_time - AUTOQ::ConcreteAutomata::total_removeuseless_time - AUTOQ::ConcreteAutomata::total_reduce_time) << "].\n"
+    //                 << "The total time spent on remove_useless(...) is [" << AUTOQ::Util::Convert::ToString(AUTOQ::ConcreteAutomata::total_removeuseless_time) << "].\n"
+    //                 << "The total time spent on reduce(...) is [" << AUTOQ::Util::Convert::ToString(AUTOQ::ConcreteAutomata::total_reduce_time) << "].\n"
+    //                 << "The total time spent on check_inclusion(...) is [" << AUTOQ::Util::Convert::ToString(AUTOQ::ConcreteAutomata::total_include_time) << "].\n";
+    //     else
+    //         std::cout << "=\n"
+    //                 << "The total time spent on gate operations (excluding remove_useless and reduce) is [" << AUTOQ::Util::Convert::ToString(AUTOQ::SymbolicAutomata::total_gate_time - AUTOQ::SymbolicAutomata::total_removeuseless_time - AUTOQ::SymbolicAutomata::total_reduce_time) << "].\n"
+    //                 << "The total time spent on remove_useless(...) is [" << AUTOQ::Util::Convert::ToString(AUTOQ::SymbolicAutomata::total_removeuseless_time) << "].\n"
+    //                 << "The total time spent on reduce(...) is [" << AUTOQ::Util::Convert::ToString(AUTOQ::SymbolicAutomata::total_reduce_time) << "].\n"
+    //                 << "The total time spent on check_inclusion(...) is [" << AUTOQ::Util::Convert::ToString(AUTOQ::SymbolicAutomata::total_include_time) << "].\n";
+    // }
+    /**************/
+} catch (AutoQError &e) {
+    AUTOQ::Util::Log::error(e.what());
+    return 1;
+}
+    return 0;
 }
