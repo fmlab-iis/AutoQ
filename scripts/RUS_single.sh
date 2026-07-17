@@ -24,11 +24,11 @@ for FIG in "${FIGURES[@]}"; do
             TARGET_FIG="𝑉${FIG}"
         fi
         RESULT=$("$AUTOQ_BIN" ver "$PRE" "$CIRCUIT" "$POST" 2>/dev/null | tail -n 1)
-        printf "%-26s => %s\n" "${TARGET_FIG}" "${RESULT}"
+        printf "%-18s => %s\n" "${TARGET_FIG}" "${RESULT}"
         POST_CORRECTED="${BENCHMARK_BASE}/${FIG}/post_corrected.lsta"
         if [[ -f "$POST_CORRECTED" ]]; then
             RESULT=$("$AUTOQ_BIN" ver "$PRE" "$CIRCUIT" "$POST_CORRECTED" 2>/dev/null | tail -n 1)
-            printf "%-26s => %s\n" "${TARGET_FIG}_corrected" "${RESULT}"
+            printf "%-18s => %s\n" "${TARGET_FIG}_corrected" "${RESULT}"
         fi
     else
         echo "${FIG} => Error: Missing hls files"

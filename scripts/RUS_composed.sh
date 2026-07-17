@@ -84,10 +84,10 @@ for sort_key in "${sorted_keys[@]}"; do
             TARGET_NAME="RUS/${EX_DIR}"
         fi
         RESULT=$("$AUTOQ_BIN" ver "$PRE_FILE" "$CIRCUIT_FILE" "$POST_FILE" 2>/dev/null | tail -n 1)
-        printf "%-31s => %s\n" "${TARGET_NAME}" "${RESULT}"
+        printf "%-24s => %s\n" "${TARGET_NAME}" "${RESULT}"
     else
         echo "${EX_DIR} => Error: Missing required files"
     fi
 done
 
-echo "Ex benchmarks execution completed."
+echo "Benchmarks execution completed."

@@ -3,8 +3,7 @@
 # AutoQ — Formal Verification of Quantum Programs
 # Artifact evaluation entry point
 #
-# Usage:  bash run.sh
-# Build:  make            (then re-run this script)
+# Usage:  bash run.sh    (auto-builds via `make release` if needed)
 # Docker: see README_DOCKER.md
 # =============================================================================
 
@@ -19,40 +18,26 @@ echo -e "${BOLD}============================================================${NC
 echo ""
 
 if [ ! -f "$AUTOQ_BIN" ]; then
-    echo -e "${RED}[!] Binary not found. Please run: make${NC}"
-    exit 1
+    echo -e "${RED}[!] Binary not found. Running: make release${NC}"
+    echo ""
+    if ! make -C "$SCRIPT_DIR" release; then
+        echo -e "${RED}[!] Build failed.${NC}"
+        exit 1
+    fi
+    echo ""
+    if [ ! -f "$AUTOQ_BIN" ]; then
+        echo -e "${RED}[!] Build succeeded but binary still not found at $AUTOQ_BIN${NC}"
+        exit 1
+    fi
 fi
 echo -e "${GREEN}[✓] $AUTOQ_BIN${NC}"
 echo ""
 
-echo "Select an option:"
-echo "  1) Individual RUS circuits  — Figure 7–10, Table 1"
-echo "  2) Composed RUS circuits    — V_i → CX → V_j, Table 2"
-echo "  3) Both                     — run 1 then 2"
-echo "  q) Quit"
-echo ""
-read -rp "Choice [1-3/q]: " CHOICE
-echo ""
-
 export AUTOQ_BIN
 
-case "$CHOICE" in
-    1)
-        bash "${SCRIPT_DIR}/scripts/RUS_single.sh"
-        ;;
-    2)
-        bash "${SCRIPT_DIR}/scripts/RUS_composed.sh"
-        ;;
-    3)
-        bash "${SCRIPT_DIR}/scripts/RUS_single.sh"
-        echo ""
-        bash "${SCRIPT_DIR}/scripts/RUS_composed.sh"
-        ;;
-    q|Q)
-        exit 0 ;;
-    *)
-        echo -e "${RED}Invalid choice.${NC}"; exit 1 ;;
-esac
+bash "${SCRIPT_DIR}/scripts/RUS_single.sh"
+echo ""
+bash "${SCRIPT_DIR}/scripts/RUS_composed.sh"
 
 echo ""
 
@@ -80,24 +65,10 @@ for r in rows:
     echo ""
 }
 
-case "$CHOICE" in
-    1)
-        echo -e "${BOLD}Generating Table 1...${NC}"
-        bash "${SCRIPT_DIR}/scripts/analysis/RUS_benchmarks_table1.sh" > /dev/null 2>&1
-        print_table "table1.csv" "Table 1: Individual RUS Circuits"
-        ;;
-    2)
-        echo -e "${BOLD}Generating Table 2...${NC}"
-        bash "${SCRIPT_DIR}/scripts/analysis/RUS_benchmarks_table2.sh" > /dev/null 2>&1
-        print_table "table2.csv" "Table 2: Composed RUS Circuits"
-        ;;
-    3)
-        echo -e "${BOLD}Generating Tables...${NC}"
-        bash "${SCRIPT_DIR}/scripts/analysis/RUS_benchmarks_table1.sh" > /dev/null 2>&1
-        bash "${SCRIPT_DIR}/scripts/analysis/RUS_benchmarks_table2.sh" > /dev/null 2>&1
-        print_table "table1.csv" "Table 1: Individual RUS Circuits"
-        print_table "table2.csv" "Table 2: Composed RUS Circuits"
-        ;;
-esac
+echo -e "${BOLD}Generating Tables...${NC}"
+bash "${SCRIPT_DIR}/scripts/analysis/RUS_benchmarks_table1.sh" > /dev/null 2>&1
+bash "${SCRIPT_DIR}/scripts/analysis/RUS_benchmarks_table2.sh" > /dev/null 2>&1
+print_table "table1.csv" "Table 1: Individual RUS Circuits"
+print_table "table2.csv" "Table 2: Composed RUS Circuits"
 
 echo -e "${BOLD}Done.${NC}"
