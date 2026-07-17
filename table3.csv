@@ -1,0 +1,19 @@
+program,qubits,gates,result,time,memory
+unitary V_7,2,30,OK,0.0s,27MB
+unitary V_8,2,17,OK,0.0s,27MB
+unitary V_9,2,27,OK,0.0s,27MB
+unitary V_10a,2,43,failed,0.0s,27MB
+unitary V_10a_corrected,2,43,OK,0.0s,27MB
+unitary V_10b,2,76,OK,0.0s,27MB
+unitary V_10c,2,67,failed,0.0s,27MB
+unitary V_10c_corrected,2,67,OK,0.0s,27MB
+unitary V_7_ex7,2,61,OK,0.0s,27MB
+unitary V_7_ex8,2,48,OK,0.0s,27MB
+unitary V_8_ex7,2,48,OK,0.0s,27MB
+unitary V_8_ex8,2,35,OK,0.0s,27MB
+unitary V_8_ex9,2,45,OK,0.0s,27MB
+unitary V_9_ex10a,2,71,OK,0.0s,27MB
+unitary V_9_ex10a_old,2,71,failed,0.0s,27MB
+unitary V_10a_ex10b,2,120,OK,0.0s,27MB
+unitary V_10b_ex10c,2,144,OK,0.0s,27MB
+unitary V_10b_ex10c_old,2,144,failed,0.0s,27MB

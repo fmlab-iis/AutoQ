@@ -20,3 +20,27 @@ test: create_folder
 
 clean: create_folder
 	cd $(BUILD_DIR) && rm -rf *
+
+# Argument handling for generate_circuit
+ifeq ($(firstword $(MAKECMDGOALS)),generate_circuit)
+  GEN_ARGS := $(wordlist 2,$(words $(MAKECMDGOALS)),$(MAKECMDGOALS))
+  $(eval $(GEN_ARGS):;@:)
+endif
+
+generate_circuit:
+	@NAME=$(word 1,$(GEN_ARGS)); \
+	N=$(word 2,$(GEN_ARGS)); \
+	if [ -z "$$NAME" ] || [ -z "$$N" ]; then \
+		echo "Usage: make generate_circuit <name> <n>"; \
+		exit 1; \
+	fi; \
+	NAME_UPPER=$$(echo $$NAME | tr '[:lower:]' '[:upper:]'); \
+	DIR="benchmarks/$$NAME_UPPER/q$$N"; \
+	SCRIPT="benchmarks/$$NAME_UPPER/circuit.qasm.mako.py"; \
+	if [ ! -f "$$SCRIPT" ]; then \
+		echo "Error: Generator script $$SCRIPT not found."; \
+		exit 1; \
+	fi; \
+	mkdir -p $$DIR; \
+	./$$SCRIPT $$N > $$DIR/circuit.qasm; \
+	echo "Generated $$DIR/circuit.qasm"

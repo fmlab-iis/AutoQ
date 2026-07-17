@@ -40,6 +40,23 @@ If you need to compile the library for debugging, you can replace `make` with `m
 
 ---
 
+## Quick Start: Artifact Evaluation
+
+After building with `make`, run the artifact evaluation entry point from the project root:
+
+```
+bash run.sh
+```
+
+Follow the interactive menu to verify the experimental results from the paper:
+- **Option 1**: Individual RUS circuits — Figure 7–10, Table 1 (TACAS'25)
+- **Option 2**: Composed RUS circuits — V_i → CX → V_j, Table 2 (TACAS'25)
+- **Option 3**: Both tables
+
+For Docker-based evaluation, see [README_DOCKER.md](README_DOCKER.md).
+
+---
+
 ## Command-Line Execution
 The following help message lists four modes, each of which can be accessed by typing its corresponding subcommand. Each subcommand also provides its own usage instructions via the `-h` option.
 ```

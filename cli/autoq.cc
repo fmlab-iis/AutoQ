@@ -38,14 +38,14 @@ int extract_qubit(const std::string& filename) {
         return kExtractQubitError;
     }
 
-    std::string line;
-    std::regex pattern(R"(qreg\s+\w+\[(\d+)\];)");
-    std::smatch match;
-    while (std::getline(file, line)) {
-        if (std::regex_search(line, match, pattern)) {
-            return std::stoi(match[1].str());
-        }
-    }
+   std::string line;
+   std::regex  pattern(R"(qreg\s+\w+\[(\d+)\];)");
+   std::smatch match;
+   while (std::getline(file, line)) {
+      if (std::regex_search(line, match, pattern)) {
+         return std::stoi(match[1].str());
+      }
+   }
 
     AUTOQ::Util::Log::error("Pattern not found");
     return kExtractQubitError;
@@ -232,12 +232,12 @@ static void run_verification(const std::string& pre, const std::string& post, co
 }
 
 int main(int argc, char **argv) {
-try {
-    // set_timeout(600);
-    feenableexcept(FE_ALL_EXCEPT & ~FE_INEXACT);
+   try {
+      // set_timeout(600);
+      feenableexcept(FE_ALL_EXCEPT & ~FE_INEXACT);
 
-    CLI::App app{"AutoQ 2.0: An automata-based C++ tool for quantum program verification."};
-    std::string pre, circuit, post, circuit1, circuit2;
+      CLI::App    app{"AutoQ 2.0: An automata-based C++ tool for quantum program verification."};
+      std::string pre, circuit, post, circuit1, circuit2;
 
     bool summarize_loops = false;
     CLI::App* execution = app.add_subcommand("ex", "Execute a quantum circuit with a given precondition.");
@@ -272,12 +272,12 @@ try {
     CLI::App* print = app.add_subcommand("print", "Print the set of quantum states.");
     print->add_option(kOptStatesHsl, pre, kStatesFileOpt)->required()->type_name("");
 
-    CLI::Option* version = app.add_flag("-v,--version", "Print the full Git commit hash ID.");
+      CLI::Option *version = app.add_flag("-v,--version", "Print the full Git commit hash ID.");
 
-    // bool short_time = false, long_time = false;
-    // app.add_flag("-t", short_time, "print times");
-    // app.add_flag("--time", long_time, "print times");
-    CLI11_PARSE(app, argc, argv); // Parse the command-line arguments
+      // bool short_time = false, long_time = false;
+      // app.add_flag("-t", short_time, "print times");
+      // app.add_flag("--time", long_time, "print times");
+      CLI11_PARSE(app, argc, argv); // Parse the command-line arguments
 
     if (*version) {
         AUTOQ::Util::Log::info(AUTOQ_GIT_SHA);

@@ -1,0 +1,22 @@
+{
+    // https://containers.dev/guide/dockerfile
+    "name": "Ubuntu 22.04 Development",
+    "build": {
+        "context": "..",
+        "dockerfile": "Dockerfile"
+    },
+    "runArgs": [
+        "--ulimit",
+        "nofile=65535:65535"
+    ],
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "ms-vscode.cpptools",
+                "ms-vscode.cpptools-extension-pack"
+            ]
+        }
+    },
+    "postCreateCommand": "./install-dependencies.sh && make && make test && ./build/cli/autoq -h",
+    "forwardPorts": []
+}

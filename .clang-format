@@ -1,0 +1,68 @@
+# 基礎風格
+BasedOnStyle: LLVM
+
+# 縮排 2 空格
+IndentWidth: 3
+
+# 每行最大字元數
+ColumnLimit: 120
+
+# 垂直間距設定
+MaxEmptyLinesToKeep: 2
+KeepEmptyLinesAtTheStartOfBlocks: false
+SeparateDefinitionBlocks: Always
+
+# 大括號樣式
+BreakBeforeBraces: Custom
+BraceWrapping:
+  AfterControlStatement: false
+  BeforeElse: true
+  AfterFunction: false
+  AfterClass: false
+  AfterNamespace: false
+  AfterStruct: false
+  AfterUnion: false
+  AfterExternBlock: false
+  BeforeCatch: true
+  IndentBraces: false
+  SplitEmptyFunction: true
+  SplitEmptyRecord: true
+  SplitEmptyNamespace: true
+
+# 對齊連續的變數宣告
+# 不跨空行對齊，這樣可以用空行來「打斷」不想對齊的地方
+AlignConsecutiveDeclarations:
+  Enabled: true
+  AcrossEmptyLines: false
+  AcrossComments: true
+
+# 對齊連續的賦值（讓 = 號垂直對齊）
+# abc   = 10;
+# bbbbb = 2000;
+AlignConsecutiveAssignments:
+  Enabled: true
+  AcrossEmptyLines: true
+  AcrossComments: true
+  PadOperators: true
+
+# 對齊函數參數
+AlignAfterOpenBracket: Align
+
+# 指標/引用靠右 (int &data)
+PointerAlignment: Right
+ReferenceAlignment: Right
+
+# 不格式化註解
+ReflowComments: false
+
+# 保留括號內的空格（不移除 `( const` 這類的空格）
+# 注意：clang-format 預設會移除多餘空格，如果要完全保留需要用 // clang-format off                               
+# clang-format off
+# 這裡的內容不會被格式化
+# clang-format on
+
+# 函數返回型別不換行
+AlwaysBreakAfterReturnType: None
+
+# 允許短函數在同一行
+AllowShortFunctionsOnASingleLine: Inline

@@ -1,0 +1,48 @@
+digraph LSTA {
+    node [shape=box, style="filled,rounded", fontname="Arial", fillcolor="#f0f0f0"];
+    edge [fontname="Arial"];
+    rankdir=TB;
+    splines=polyline;
+    n1 [label=<<TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0"><TR><TD BGCOLOR="#2C3E50"><FONT COLOR="#FFFFFF"><B>q0</B></FONT></TD></TR><TR><TD BGCOLOR="#EBF5FB">L1<BR/><FONT POINT-SIZE="10">Tag: 1</FONT></TD></TR></TABLE>>, shape=none, fillcolor=none];
+    n2 [label=<<TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0"><TR><TD BGCOLOR="#2C3E50"><FONT COLOR="#FFFFFF"><B>q1</B></FONT></TD></TR><TR><TD BGCOLOR="#EBF5FB">L2<BR/><FONT POINT-SIZE="10">Tag: 1</FONT></TD></TR></TABLE>>, shape=none, fillcolor=none];
+    n1 -> n2 [label="0"];
+    n3 [label=<<TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0"><TR><TD BGCOLOR="#7D6608"><FONT COLOR="#FFFFFF"><B>q7</B></FONT></TD></TR><TR><TD BGCOLOR="#FEF9E7">0<BR/><FONT POINT-SIZE="10">Tag: 1</FONT></TD></TR></TABLE>>, shape=none, fillcolor=none];
+    n2 -> n3 [label="0"];
+    n4 [label=<<TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0"><TR><TD BGCOLOR="#7D6608"><FONT COLOR="#FFFFFF"><B>q7</B></FONT></TD></TR><TR><TD BGCOLOR="#FEF9E7">0<BR/><FONT POINT-SIZE="10">Tag: 1</FONT></TD></TR></TABLE>>, shape=none, fillcolor=none];
+    n2 -> n4 [label="1"];
+    n5 [label=<<TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0"><TR><TD BGCOLOR="#2C3E50"><FONT COLOR="#FFFFFF"><B>q2</B></FONT></TD></TR><TR><TD BGCOLOR="#EBF5FB">L2<BR/><FONT POINT-SIZE="10">Tag: 1</FONT></TD></TR></TABLE>>, shape=none, fillcolor=none];
+    n1 -> n5 [label="1"];
+    n6 [label=<<TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0"><TR><TD BGCOLOR="#7D6608"><FONT COLOR="#FFFFFF"><B>q8</B></FONT></TD></TR><TR><TD BGCOLOR="#FEF9E7">-1/1 + i * ( 8 /1 )<BR/><FONT POINT-SIZE="10">Tag: 1</FONT></TD></TR></TABLE>>, shape=none, fillcolor=none];
+    n5 -> n6 [label="0"];
+    n7 [label=<<TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0"><TR><TD BGCOLOR="#7D6608"><FONT COLOR="#FFFFFF"><B>q9</B></FONT></TD></TR><TR><TD BGCOLOR="#FEF9E7">-1/1 + i * ( -8/1 )<BR/><FONT POINT-SIZE="10">Tag: 1</FONT></TD></TR></TABLE>>, shape=none, fillcolor=none];
+    n5 -> n7 [label="1"];
+    n8 [label=<<TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0"><TR><TD BGCOLOR="#2C3E50"><FONT COLOR="#FFFFFF"><B>q3</B></FONT></TD></TR><TR><TD BGCOLOR="#EBF5FB">L1<BR/><FONT POINT-SIZE="10">Tag: 1</FONT></TD></TR></TABLE>>, shape=none, fillcolor=none];
+    n9 [label=<<TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0"><TR><TD BGCOLOR="#2C3E50"><FONT COLOR="#FFFFFF"><B>q1</B></FONT></TD></TR><TR><TD BGCOLOR="#EBF5FB">L2<BR/><FONT POINT-SIZE="10">Tag: 1</FONT></TD></TR></TABLE>>, shape=none, fillcolor=none];
+    n8 -> n9 [label="0"];
+    n10 [label=<<TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0"><TR><TD BGCOLOR="#7D6608"><FONT COLOR="#FFFFFF"><B>q7</B></FONT></TD></TR><TR><TD BGCOLOR="#FEF9E7">0<BR/><FONT POINT-SIZE="10">Tag: 1</FONT></TD></TR></TABLE>>, shape=none, fillcolor=none];
+    n9 -> n10 [label="0"];
+    n11 [label=<<TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0"><TR><TD BGCOLOR="#7D6608"><FONT COLOR="#FFFFFF"><B>q7</B></FONT></TD></TR><TR><TD BGCOLOR="#FEF9E7">0<BR/><FONT POINT-SIZE="10">Tag: 1</FONT></TD></TR></TABLE>>, shape=none, fillcolor=none];
+    n9 -> n11 [label="1"];
+    n12 [label=<<TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0"><TR><TD BGCOLOR="#2C3E50"><FONT COLOR="#FFFFFF"><B>q4</B></FONT></TD></TR><TR><TD BGCOLOR="#EBF5FB">L2<BR/><FONT POINT-SIZE="10">Tag: 1</FONT></TD></TR></TABLE>>, shape=none, fillcolor=none];
+    n8 -> n12 [label="1"];
+    n13 [label=<<TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0"><TR><TD BGCOLOR="#7D6608"><FONT COLOR="#FFFFFF"><B>q8</B></FONT></TD></TR><TR><TD BGCOLOR="#FEF9E7">-1/1 + i * ( 8 /1 )<BR/><FONT POINT-SIZE="10">Tag: 1</FONT></TD></TR></TABLE>>, shape=none, fillcolor=none];
+    n12 -> n13 [label="0"];
+    n14 [label=<<TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0"><TR><TD BGCOLOR="#7D6608"><FONT COLOR="#FFFFFF"><B>q7</B></FONT></TD></TR><TR><TD BGCOLOR="#FEF9E7">0<BR/><FONT POINT-SIZE="10">Tag: 1</FONT></TD></TR></TABLE>>, shape=none, fillcolor=none];
+    n12 -> n14 [label="1"];
+    n15 [label=<<TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0"><TR><TD BGCOLOR="#2C3E50"><FONT COLOR="#FFFFFF"><B>q5</B></FONT></TD></TR><TR><TD BGCOLOR="#EBF5FB">L1<BR/><FONT POINT-SIZE="10">Tag: 1</FONT></TD></TR></TABLE>>, shape=none, fillcolor=none];
+    n16 [label=<<TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0"><TR><TD BGCOLOR="#2C3E50"><FONT COLOR="#FFFFFF"><B>q1</B></FONT></TD></TR><TR><TD BGCOLOR="#EBF5FB">L2<BR/><FONT POINT-SIZE="10">Tag: 1</FONT></TD></TR></TABLE>>, shape=none, fillcolor=none];
+    n15 -> n16 [label="0"];
+    n17 [label=<<TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0"><TR><TD BGCOLOR="#7D6608"><FONT COLOR="#FFFFFF"><B>q7</B></FONT></TD></TR><TR><TD BGCOLOR="#FEF9E7">0<BR/><FONT POINT-SIZE="10">Tag: 1</FONT></TD></TR></TABLE>>, shape=none, fillcolor=none];
+    n16 -> n17 [label="0"];
+    n18 [label=<<TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0"><TR><TD BGCOLOR="#7D6608"><FONT COLOR="#FFFFFF"><B>q7</B></FONT></TD></TR><TR><TD BGCOLOR="#FEF9E7">0<BR/><FONT POINT-SIZE="10">Tag: 1</FONT></TD></TR></TABLE>>, shape=none, fillcolor=none];
+    n16 -> n18 [label="1"];
+    n19 [label=<<TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0"><TR><TD BGCOLOR="#2C3E50"><FONT COLOR="#FFFFFF"><B>q6</B></FONT></TD></TR><TR><TD BGCOLOR="#EBF5FB">L2<BR/><FONT POINT-SIZE="10">Tag: 1</FONT></TD></TR></TABLE>>, shape=none, fillcolor=none];
+    n15 -> n19 [label="1"];
+    n20 [label=<<TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0"><TR><TD BGCOLOR="#7D6608"><FONT COLOR="#FFFFFF"><B>q7</B></FONT></TD></TR><TR><TD BGCOLOR="#FEF9E7">0<BR/><FONT POINT-SIZE="10">Tag: 1</FONT></TD></TR></TABLE>>, shape=none, fillcolor=none];
+    n19 -> n20 [label="0"];
+    n21 [label=<<TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0"><TR><TD BGCOLOR="#7D6608"><FONT COLOR="#FFFFFF"><B>q9</B></FONT></TD></TR><TR><TD BGCOLOR="#FEF9E7">-1/1 + i * ( -8/1 )<BR/><FONT POINT-SIZE="10">Tag: 1</FONT></TD></TR></TABLE>>, shape=none, fillcolor=none];
+    n19 -> n21 [label="1"];
+    { rank=same; n1 n8 n15 }
+    { rank=same; n2 n5 n9 n12 n16 n19 }
+    { rank=same; n3 n4 n6 n7 n10 n11 n13 n14 n17 n18 n20 n21 }
+}

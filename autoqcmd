@@ -1,0 +1,3 @@
+autoqcmd
+autoq ver pre.hsl circuit.qasm  post.hsl
+autoq ver pre_.lsta circuit_.qasm post_.lsta

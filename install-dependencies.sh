@@ -59,11 +59,7 @@ SCRIPT_DIR=$(cd "$(dirname "$0")"; pwd -P)
 
 cd "$SCRIPT_DIR"
 
-if [ "$EUID" -ne 0 ]; then
-  mkdir build
-else
-  sudo -u $SUDO_USER mkdir -p build
-fi
+mkdir -p build
 
 exit 0
 
