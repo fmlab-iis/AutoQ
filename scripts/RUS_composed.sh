@@ -3,7 +3,7 @@
 # Configuration
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 AUTOQ_BIN="${AUTOQ_BIN:-${SCRIPT_DIR}/../build/cli/autoq}"
-BENCHMARK_BASE="${SCRIPT_DIR}/../benchmarks/TACAS25/RUS"
+BENCHMARK_BASE="${SCRIPT_DIR}/../benchmarks/OOPSLA26/RUS"
 
 # Extract numeric parts for proper sorting: Figure7_ex7, Figure7_ex8, Figure8_ex7, etc.
 declare -A dir_order
