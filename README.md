@@ -79,7 +79,7 @@ One noteworthy feature of this tool is its support for loop summarization in cir
 This is one example usage.
 ```
 $ ./build/cli/autoq ver benchmarks/all/Grover/03/pre.hsl benchmarks/all/Grover/03/circuit.qasm benchmarks/all/Grover/03/post.hsl
-The quantum program has [5] qubits and [52] gates. The verification process [OK] in [0.1s] with [77MB] memory usage.
+The quantum program has [5] qubits and [52] gates. The verification process [OK] in [118ms] with [76MB] memory usage.
 ```
 
 ---

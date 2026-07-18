@@ -26,7 +26,7 @@ This artifact evaluates this enhanced verifier specifically on repeat-until-succ
 
 The packaged submission (`autoq-oopsla26-artifact.zip`, produced by `package-artifact.sh`) contains:
 
-- `image.tar.gz` — the Docker image (ID: `a1fc611728a1`), saved with `docker save`
+- `image.tar.gz` — the Docker image (ID: `cf4867b13d7f`), saved with `docker save`
 - `README.md` — this file
 - `LICENSE` — AutoQ's MIT license (see §9)
 
@@ -36,7 +36,7 @@ The packaged submission (`autoq-oopsla26-artifact.zip`, produced by `package-art
 
 - Docker (any recent version). Host OS: 64-bit Linux or Windows. Other host OS/architecture combinations may work but are not tested.
 - Disk: ~1 GB total — the loaded image is 863 MB, plus ~60 MB for the build output produced inside the container on first run.
-- RAM: 2 GB is comfortably enough. Unlike some AE artifacts, this one does **not** need tens of GB of RAM — all benchmarks are small (≤2 qubits, ≤150 gates) and each `autoq ver` call finishes in well under a second using ~25–30 MB.
+- RAM: 2 GB is comfortably enough. Unlike some AE artifacts, this one does **not** need tens of GB of RAM — all benchmarks are small (≤2 qubits, ≤150 gates) and each `autoq ver` call finishes in well under 200ms using ~25–30 MB.
 
 ---
 
@@ -76,28 +76,28 @@ The first invocation auto-builds via `make release` (about 1–2 minutes; measur
 The full run reproduces the table below verbatim in terms of results, with slight variations in runtime and memory usage.
 ```
 Table 1: Individual RUS Circuits
-program   qubits  gates  result  time  memory
-𝑉7        2       30     OK      0.0s  27MB
-𝑉8        2       17     OK      0.0s  26MB
-𝑉9        2       27     OK      0.0s  27MB
-𝑉10a_bug  2       43     failed  0.0s  25MB
-𝑉10a_fix  2       43     OK      0.0s  25MB
-𝑉10b      2       76     OK      0.0s  27MB
-𝑉10c_bug  2       67     failed  0.0s  26MB
-𝑉10c_fix  2       67     OK      0.0s  27MB
+program   qubits  gates  result   time  memory
+𝑉7             2     30    OK    116ms    27MB
+𝑉8             2     17    OK     84ms    27MB
+𝑉9             2     27    OK     89ms    27MB
+𝑉10a_bug       2     43  failed   93ms    25MB
+𝑉10a_fix       2     43    OK     97ms    27MB
+𝑉10b           2     76    OK    104ms    27MB
+𝑉10c_bug       2     67  failed   96ms    27MB
+𝑉10c_fix       2     67    OK     95ms    27MB
 
 Table 2: Composed RUS Circuits
-program          qubits  gates  result  time  memory
-𝑉7 ◦ 𝑉7          2       61     OK      0.1s  25MB
-𝑉7 ◦ 𝑉8          2       48     OK      0.1s  26MB
-𝑉8 ◦ 𝑉7          2       48     OK      0.1s  26MB
-𝑉8 ◦ 𝑉8          2       35     OK      0.0s  27MB
-𝑉8 ◦ 𝑉9          2       45     OK      0.1s  26MB
-𝑉9 ◦ 𝑉10a_fix    2       71     OK      0.1s  26MB
-𝑉9 ◦ 𝑉10a_bug    2       71     failed  0.1s  26MB
-𝑉10a_fix ◦ 𝑉10b  2       120    OK      0.1s  26MB
-𝑉10b ◦ 𝑉10c_fix  2       144    OK      0.1s  25MB
-𝑉10b ◦ 𝑉10c_bug  2       144    failed  0.1s  26MB
+program          qubits  gates  result   time  memory
+𝑉7 ◦ 𝑉7               2     61    OK    121ms    27MB
+𝑉7 ◦ 𝑉8               2     48    OK    167ms    26MB
+𝑉8 ◦ 𝑉7               2     48    OK    137ms    26MB
+𝑉8 ◦ 𝑉8               2     35    OK    106ms    27MB
+𝑉8 ◦ 𝑉9               2     45    OK    133ms    27MB
+𝑉9 ◦ 𝑉10a_fix         2     71    OK    127ms    27MB
+𝑉9 ◦ 𝑉10a_bug         2     71  failed  146ms    27MB
+𝑉10a_fix ◦ 𝑉10b       2    120    OK    114ms    27MB
+𝑉10b ◦ 𝑉10c_fix       2    144    OK    129ms    27MB
+𝑉10b ◦ 𝑉10c_bug       2    144  failed  154ms    26MB
 ```
 
 **Some `failed` rows are expected, not bugs in the artifact**: `V10a_bug`, `V10c_bug`, `V9 ◦ V10a_bug`, and `V10b ◦ V10c_bug` are deliberately-flawed protocol variants from the paper, included specifically to demonstrate that AutoQ correctly rejects them; the `_fix` variants (`V10a_fix`, `V10c_fix`) show the fix passing.
@@ -116,7 +116,7 @@ docker cp autoq-ae-session:/opt/AutoQ/AE/table2.csv .
 
 **Expected range of deviation:**
 - `result` (`OK`/`failed`) — must match the paper **exactly**, with zero tolerance. This is a decision procedure's yes/no output, not a statistical measurement, so any mismatch here would indicate a real problem.
-- `time` — may vary depending on host CPU, but every case completes in well under a second on any machine that can run Docker, so this is not observable in practice.
+- `time` — reported in milliseconds; varies with host CPU, but every case in Tables 1–2 completes in the tens-to-low-hundreds-of-milliseconds range (well under a second) on any machine that can run Docker.
 - `memory` — should stay within the same tens-of-MB range (roughly 20–35 MB) regardless of host; this reflects the automata sizes for these specific benchmarks, not host-dependent tuning, so it should not vary much.
 
 ---
@@ -200,7 +200,7 @@ Yes — `reusable-example/` demonstrates editing a postcondition to flip the ver
 Yes — both Table 1 and Table 2 claims are exercised by the single `bash run.sh` command.
 
 **Q17. What do you expect as a reasonable range of deviation?**
-`Result` (`OK`/`failed`) must match exactly, zero tolerance. `Time` should always be close to 0.0 seconds. `Memory` should stay within the same ~20–35 MB band. (See full detail in §6.)
+`Result` (`OK`/`failed`) must match exactly, zero tolerance. `Time` is reported in milliseconds and should stay in the tens-to-low-hundreds range. `Memory` should stay within the same ~20–35 MB band. (See full detail in §6.)
 
 ---
 

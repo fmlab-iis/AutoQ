@@ -58,13 +58,24 @@ def vw(s):
     return sum(2 if unicodedata.east_asian_width(c) in 'WF' else 1 for c in s)
 rows=list(csv.reader(open(sys.argv[1])))
 if not rows: sys.exit()
-n=len(rows[0])
+headers=rows[0]
+n=len(headers)
 w=[max(vw(r[i]) if i<len(r) else 0 for r in rows) for i in range(n)]
+right_cols={'qubits','gates','time','memory'}
+center_cols={'result'}
 for r in rows:
     parts=[]
     for i in range(n):
         c=r[i] if i<len(r) else ''
-        parts.append(c+' '*(w[i]-vw(c)))
+        pad=w[i]-vw(c)
+        name=headers[i]
+        if name in right_cols:
+            parts.append(' '*pad+c)
+        elif name in center_cols:
+            left=pad//2
+            parts.append(' '*left+c+' '*(pad-left))
+        else:
+            parts.append(c+' '*pad)
     print('  '.join(parts))
 " "$csv_file"
     echo ""
