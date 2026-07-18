@@ -2,8 +2,8 @@
 
 # Configuration
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-AUTOQ_BIN="${AUTOQ_BIN:-${SCRIPT_DIR}/../build/cli/autoq}"
-BENCHMARK_BASE="${SCRIPT_DIR}/../benchmarks/OOPSLA26/RUS"
+AUTOQ_BIN="${AUTOQ_BIN:-${SCRIPT_DIR}/../../build/cli/autoq}"
+BENCHMARK_BASE="${SCRIPT_DIR}/../../benchmarks/OOPSLA26/RUS"
 FIGURES=("Figure7" "Figure8" "Figure9" "Figure10a" "Figure10b" "Figure10c")
 
 echo "Starting Table 1 benchmarks execution..."
@@ -23,12 +23,21 @@ for FIG in "${FIGURES[@]}"; do
         else
             TARGET_FIG="𝑉${FIG}"
         fi
-        RESULT=$("$AUTOQ_BIN" ver "$PRE" "$CIRCUIT" "$POST" 2>/dev/null | tail -n 1)
-        printf "%-18s => %s\n" "${TARGET_FIG}" "${RESULT}"
+
+        # Figures with a post_corrected.lsta are the deliberately-buggy
+        # variants: label the buggy run "_bug" and the fixed run "_fix".
         POST_CORRECTED="${BENCHMARK_BASE}/${FIG}/post_corrected.lsta"
         if [[ -f "$POST_CORRECTED" ]]; then
+            BASE_LABEL="${TARGET_FIG}_bug"
+        else
+            BASE_LABEL="${TARGET_FIG}"
+        fi
+
+        RESULT=$("$AUTOQ_BIN" ver "$PRE" "$CIRCUIT" "$POST" 2>/dev/null | tail -n 1)
+        printf "%-18s => %s\n" "${BASE_LABEL}" "${RESULT}"
+        if [[ -f "$POST_CORRECTED" ]]; then
             RESULT=$("$AUTOQ_BIN" ver "$PRE" "$CIRCUIT" "$POST_CORRECTED" 2>/dev/null | tail -n 1)
-            printf "%-18s => %s\n" "${TARGET_FIG}_corrected" "${RESULT}"
+            printf "%-18s => %s\n" "${TARGET_FIG}_fix" "${RESULT}"
         fi
     else
         echo "${FIG} => Error: Missing hls files"

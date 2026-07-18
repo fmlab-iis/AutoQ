@@ -3,12 +3,17 @@
 # AutoQ — Formal Verification of Quantum Programs
 # Artifact evaluation entry point
 #
-# Usage:  bash run.sh    (auto-builds via `make release` if needed)
-# Docker: see README_DOCKER.md
+# Usage:  cd AE && bash run.sh    (auto-builds via `make release` if needed)
+# Docker: see README.md in this directory
 # =============================================================================
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-AUTOQ_BIN="${SCRIPT_DIR}/build/cli/autoq"
+REPO_ROOT="$(dirname "$SCRIPT_DIR")"
+AUTOQ_BIN="${REPO_ROOT}/build/cli/autoq"
+
+# Outputs (table1.csv, table2.csv) are always written here, in AE/,
+# regardless of the caller's working directory.
+cd "$SCRIPT_DIR"
 
 BOLD='\033[1m'; GREEN='\033[0;32m'; RED='\033[0;31m'; NC='\033[0m'
 
@@ -20,7 +25,7 @@ echo ""
 if [ ! -f "$AUTOQ_BIN" ]; then
     echo -e "${RED}[!] Binary not found. Running: make release${NC}"
     echo ""
-    if ! make -C "$SCRIPT_DIR" release; then
+    if ! make -C "$REPO_ROOT" release; then
         echo -e "${RED}[!] Build failed.${NC}"
         exit 1
     fi

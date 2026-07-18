@@ -1,2 +1,30 @@
 ./build
-./benchmarks/all
+./benchmarks
+!./benchmarks/OOPSLA26
+./demo
+
+# .git (hundreds of MB of history) and backup/ (old PDFs, multiple GB) were
+# previously being copied into every image via `COPY . .` — neither is needed
+# to build or run autoq. This was the actual source of image bloat.
+.git
+./backup
+
+# Documentation-only image assets, not needed to build/run.
+./algorithms
+
+# Legacy pre-MIT-relicensing artifacts (see AE/README.md "Licensing"): not on
+# the code path exercised by this artifact, no need to ship them in the image.
+./vata
+./COPYING
+
+# Stale generated tables from a native (non-Docker) run, regenerated fresh by
+# run.sh inside the container anyway.
+AE/table1.csv
+AE/table2.csv
+
+# Stale reference material from a prior CAV26 packaging run — not part of
+# the OOPSLA26 AE artifact, kept on disk locally but must not enter any image.
+./AE
+!./AE/run.sh
+!./AE/reusable-example
+!./AE/scripts

@@ -2,8 +2,8 @@
 
 # Configuration
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-AUTOQ_BIN="${AUTOQ_BIN:-${SCRIPT_DIR}/../../build/cli/autoq}"
-BENCHMARK_BASE="${SCRIPT_DIR}/../../benchmarks/OOPSLA26/RUS"
+AUTOQ_BIN="${AUTOQ_BIN:-${SCRIPT_DIR}/../../../build/cli/autoq}"
+BENCHMARK_BASE="${SCRIPT_DIR}/../../../benchmarks/OOPSLA26/RUS"
 FIGURES=("Figure7" "Figure8" "Figure9" "Figure10a" "Figure10b" "Figure10c")
 
 OUTPUT_FILE="table1.csv"
@@ -29,42 +29,49 @@ for FIG in "${FIGURES[@]}"; do
         else
             TARGET_FIG="𝑉${FIG}"
         fi
-        
+
+        # Figures with a post_corrected.lsta are the deliberately-buggy
+        # variants: label the buggy row "_bug" and the fixed row "_fix".
+        POST_CORRECTED="${BENCHMARK_BASE}/${FIG}/post_corrected.lsta"
+        if [[ -f "$POST_CORRECTED" ]]; then
+            BASE_LABEL="${TARGET_FIG}_bug"
+        else
+            BASE_LABEL="${TARGET_FIG}"
+        fi
+
         OUTPUT=$("$AUTOQ_BIN" ver "$PRE" "$CIRCUIT" "$POST" 2>/dev/null | tail -n 1)
-        
+
         # Parse the output using sed
         # Format: "The quantum program has [2] qubits and [30] gates. The verification process [OK] in [0.0s] with [27MB] memory usage."
         PARSED=$(echo "$OUTPUT" | sed -n 's/.*has \[\([0-9]*\)\] qubits and \[\([0-9]*\)\] gates.*process \[\([^]]*\)\] in \[\([^]]*\)\] with \[\([^]]*\)\] memory.*/\1,\2,\3,\4,\5/p')
-        
+
         if [ -n "$PARSED" ]; then
             IFS=',' read -r qubits gates result time memory <<< "$PARSED"
-            
+
             # Write to CSV
-            echo "${TARGET_FIG},${qubits},${gates},${result},${time},${memory}" >> "$OUTPUT_FILE"
-            echo "Processed: ${TARGET_FIG}"
+            echo "${BASE_LABEL},${qubits},${gates},${result},${time},${memory}" >> "$OUTPUT_FILE"
+            echo "Processed: ${BASE_LABEL}"
         else
             echo "Error parsing output for ${FIG}: $OUTPUT"
-            echo "${TARGET_FIG},,,,," >> "$OUTPUT_FILE"
+            echo "${BASE_LABEL},,,,," >> "$OUTPUT_FILE"
         fi
-        
-            # Check for corrected version
-        POST_CORRECTED="${BENCHMARK_BASE}/${FIG}/post_corrected.lsta"
+
         if [[ -f "$POST_CORRECTED" ]]; then
             OUTPUT=$("$AUTOQ_BIN" ver "$PRE" "$CIRCUIT" "$POST_CORRECTED" 2>/dev/null | tail -n 1)
-            TARGET_FIG_CORRECTED="𝑉${FIG_NUM}${FIG_SUFFIX}_corrected"
-            
+            TARGET_FIG_FIXED="${TARGET_FIG}_fix"
+
             # Parse the output using sed
             PARSED=$(echo "$OUTPUT" | sed -n 's/.*has \[\([0-9]*\)\] qubits and \[\([0-9]*\)\] gates.*process \[\([^]]*\)\] in \[\([^]]*\)\] with \[\([^]]*\)\] memory.*/\1,\2,\3,\4,\5/p')
-            
+
             if [ -n "$PARSED" ]; then
                 IFS=',' read -r qubits gates result time memory <<< "$PARSED"
-                
+
                 # Write to CSV
-                echo "${TARGET_FIG_CORRECTED},${qubits},${gates},${result},${time},${memory}" >> "$OUTPUT_FILE"
-                echo "Processed: ${TARGET_FIG_CORRECTED}"
+                echo "${TARGET_FIG_FIXED},${qubits},${gates},${result},${time},${memory}" >> "$OUTPUT_FILE"
+                echo "Processed: ${TARGET_FIG_FIXED}"
             else
-                echo "Error parsing output for ${FIG}_corrected: $OUTPUT"
-                echo "${TARGET_FIG_CORRECTED},,,,," >> "$OUTPUT_FILE"
+                echo "Error parsing output for ${FIG}_fix: $OUTPUT"
+                echo "${TARGET_FIG_FIXED},,,,," >> "$OUTPUT_FILE"
             fi
         fi
     else

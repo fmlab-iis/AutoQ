@@ -2,8 +2,27 @@
 
 # Configuration
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-AUTOQ_BIN="${AUTOQ_BIN:-${SCRIPT_DIR}/../build/cli/autoq}"
-BENCHMARK_BASE="${SCRIPT_DIR}/../benchmarks/OOPSLA26/RUS"
+AUTOQ_BIN="${AUTOQ_BIN:-${SCRIPT_DIR}/../../build/cli/autoq}"
+BENCHMARK_BASE="${SCRIPT_DIR}/../../benchmarks/OOPSLA26/RUS"
+
+# Deliberately-buggy composed operands end in "_old" in the directory name;
+# relabel those "_bug", and their non-"_old" (fixed) counterparts "_fix".
+# Figures without a buggy/fixed pair (7, 8, 9, 10b) are left unchanged.
+relabel_ex_ref() {
+    local ref="$1"
+    if [[ "$ref" == *_old ]]; then
+        local base="${ref%_old}"
+        case "$base" in
+            10a|10c) echo "${base}_bug" ;;
+            *) echo "$ref" ;;
+        esac
+    else
+        case "$ref" in
+            10a|10c) echo "${ref}_fix" ;;
+            *) echo "$ref" ;;
+        esac
+    fi
+}
 
 # Extract numeric parts for proper sorting: Figure7_ex7, Figure7_ex8, Figure8_ex7, etc.
 declare -A dir_order
@@ -79,7 +98,7 @@ for sort_key in "${sorted_keys[@]}"; do
         # Run the command and extract the last meaningful line
         # Convert FigureX_exY to 𝑉X ◦ 𝑉Y format
         if [[ "$EX_DIR" =~ ^Figure([0-9]+[a-z]?)_ex(.+)$ ]]; then
-            TARGET_NAME="𝑉${BASH_REMATCH[1]} ◦ 𝑉${BASH_REMATCH[2]}"
+            TARGET_NAME="𝑉$(relabel_ex_ref "${BASH_REMATCH[1]}") ◦ 𝑉$(relabel_ex_ref "${BASH_REMATCH[2]}")"
         else
             TARGET_NAME="RUS/${EX_DIR}"
         fi

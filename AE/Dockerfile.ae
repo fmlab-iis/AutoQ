@@ -1,0 +1,26 @@
+FROM ubuntu:24.04
+
+ENV DEBIAN_FRONTEND=noninteractive \
+    TZ=Etc/UTC \
+    PATH="/opt/AutoQ/build/cli:${PATH}"
+
+SHELL ["/bin/bash", "-c"]
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    ca-certificates \
+    g++ \
+    make \
+    cmake \
+    python3 \
+    libboost-filesystem-dev \
+    libboost-test-dev \
+    libboost-regex-dev \
+    libantlr4-runtime-dev \
+    libvips-tools \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /opt/AutoQ
+COPY . /opt/AutoQ
+
+WORKDIR /opt/AutoQ/AE
+CMD ["/bin/bash"]

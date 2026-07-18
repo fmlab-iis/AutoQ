@@ -2,8 +2,27 @@
 
 # Configuration
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-AUTOQ_BIN="${AUTOQ_BIN:-${SCRIPT_DIR}/../../build/cli/autoq}"
-BENCHMARK_BASE="${SCRIPT_DIR}/../../benchmarks/OOPSLA26/RUS"
+AUTOQ_BIN="${AUTOQ_BIN:-${SCRIPT_DIR}/../../../build/cli/autoq}"
+BENCHMARK_BASE="${SCRIPT_DIR}/../../../benchmarks/OOPSLA26/RUS"
+
+# Deliberately-buggy composed operands end in "_old" in the directory name;
+# relabel those "_bug", and their non-"_old" (fixed) counterparts "_fix".
+# Figures without a buggy/fixed pair (7, 8, 9, 10b) are left unchanged.
+relabel_ex_ref() {
+    local ref="$1"
+    if [[ "$ref" == *_old ]]; then
+        local base="${ref%_old}"
+        case "$base" in
+            10a|10c) echo "${base}_bug" ;;
+            *) echo "$ref" ;;
+        esac
+    else
+        case "$ref" in
+            10a|10c) echo "${ref}_fix" ;;
+            *) echo "$ref" ;;
+        esac
+    fi
+}
 
 OUTPUT_FILE="table2.csv"
 
@@ -75,8 +94,8 @@ for sort_key in "${sorted_keys[@]}"; do
         echo "${EX_DIR} => Error: No post*.lsta file found"
         # Convert name for CSV
         if [[ "$EX_DIR" =~ ^Figure([0-9]+[a-z]?)_ex(.+)$ ]]; then
-            FIG_NUM="${BASH_REMATCH[1]}"
-            EX_PART="${BASH_REMATCH[2]}"
+            FIG_NUM=$(relabel_ex_ref "${BASH_REMATCH[1]}")
+            EX_PART=$(relabel_ex_ref "${BASH_REMATCH[2]}")
             TARGET_NAME="𝑉${FIG_NUM} ◦ 𝑉${EX_PART}"
         else
             TARGET_NAME="𝑉${EX_DIR}"
@@ -92,8 +111,8 @@ for sort_key in "${sorted_keys[@]}"; do
         echo "${EX_DIR} => Error: No circuit_lsta_*.qasm file found"
         # Convert name for CSV
         if [[ "$EX_DIR" =~ ^Figure([0-9]+[a-z]?)_ex(.+)$ ]]; then
-            FIG_NUM="${BASH_REMATCH[1]}"
-            EX_PART="${BASH_REMATCH[2]}"
+            FIG_NUM=$(relabel_ex_ref "${BASH_REMATCH[1]}")
+            EX_PART=$(relabel_ex_ref "${BASH_REMATCH[2]}")
             TARGET_NAME="𝑉${FIG_NUM} ◦ 𝑉${EX_PART}"
         else
             TARGET_NAME="𝑉${EX_DIR}"
@@ -116,8 +135,8 @@ for sort_key in "${sorted_keys[@]}"; do
             
             # Convert ex directory name to 𝑉X ◦ 𝑉Y format
             if [[ "$EX_DIR" =~ ^Figure([0-9]+[a-z]?)_ex(.+)$ ]]; then
-                FIG_NUM="${BASH_REMATCH[1]}"
-                EX_PART="${BASH_REMATCH[2]}"
+                FIG_NUM=$(relabel_ex_ref "${BASH_REMATCH[1]}")
+                EX_PART=$(relabel_ex_ref "${BASH_REMATCH[2]}")
                 TARGET_NAME="𝑉${FIG_NUM} ◦ 𝑉${EX_PART}"
             else
                 TARGET_NAME="𝑉${EX_DIR}"
@@ -129,8 +148,8 @@ for sort_key in "${sorted_keys[@]}"; do
             echo "Error parsing output for ${EX_DIR}: $OUTPUT"
             # Still convert name even for errors
             if [[ "$EX_DIR" =~ ^Figure([0-9]+[a-z]?)_ex(.+)$ ]]; then
-                FIG_NUM="${BASH_REMATCH[1]}"
-                EX_PART="${BASH_REMATCH[2]}"
+                FIG_NUM=$(relabel_ex_ref "${BASH_REMATCH[1]}")
+                EX_PART=$(relabel_ex_ref "${BASH_REMATCH[2]}")
                 TARGET_NAME="𝑉${FIG_NUM} ◦ 𝑉${EX_PART}"
             else
                 TARGET_NAME="𝑉${EX_DIR}"
@@ -141,8 +160,8 @@ for sort_key in "${sorted_keys[@]}"; do
         echo "${EX_DIR} => Error: Missing required files"
         # Still convert name even for errors
         if [[ "$EX_DIR" =~ ^Figure([0-9]+[a-z]?)_ex(.+)$ ]]; then
-            FIG_NUM="${BASH_REMATCH[1]}"
-            EX_PART="${BASH_REMATCH[2]}"
+            FIG_NUM=$(relabel_ex_ref "${BASH_REMATCH[1]}")
+            EX_PART=$(relabel_ex_ref "${BASH_REMATCH[2]}")
             TARGET_NAME="𝑉${FIG_NUM} ◦ 𝑉${EX_PART}"
         else
             TARGET_NAME="𝑉${EX_DIR}"
