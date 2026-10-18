@@ -1,0 +1,47 @@
+# Deploys the static landing page in site/ to GitHub Pages. No build step.
+#
+# One-time setup before the first run: in the repository settings, open
+# Settings -> Pages -> Build and deployment and set Source to "GitHub Actions".
+# Without that, the Configure Pages step fails. (Passing `enablement: true` to
+# actions/configure-pages would enable Pages automatically, but it needs a
+# token with admin rights; the default GITHUB_TOKEN does not have them.)
+#
+# After the first deploy, compare the page_url printed by the deploy step with
+# the canonical and og: URLs in site/index.html (https://fmlab-iis.github.io/AutoQ/).
+name: Deploy landing page
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "site/**"
+      - ".github/workflows/pages.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+      - name: Upload site
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
