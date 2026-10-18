@@ -115,7 +115,7 @@ Please cite the following papers if you use this tool for your research.
 ```
 
 * <summary>
-  <a href="https://link.springer.com/chapter/10.1007/978-3-031-90660-2_5">Y.-F. Chen, K.-M. Chen, M.-H. Hsieh, W.-J. Huang, O. Lengál, J.-A. Lin, and W.-L. Tsai, “AutoQ 2.0: From Verification of Quantum Circuits to Verification of Quantum Programs,” in <em>International Conference on Tools and Algorithms for the Construction and Analysis of Systems (TACAS)</em>, 2025, pp. 87–108</a>
+  <a href="https://link.springer.com/chapter/10.1007/978-3-031-90660-2_5">Y.-F. Chen, K.-M. Chung, M.-H. Hsieh, W.-J. Huang, O. Lengál, J.-A. Lin, and W.-L. Tsai, “AutoQ 2.0: From Verification of Quantum Circuits to Verification of Quantum Programs,” in <em>International Conference on Tools and Algorithms for the Construction and Analysis of Systems (TACAS)</em>, 2025, pp. 87–108</a>
 </summary>
 
 ```bibtex
