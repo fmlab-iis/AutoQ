@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>AutoQ playground: verify quantum programs in your browser</title>
+<meta name="description" content="Run AutoQ, the automata-based quantum program verifier, in your browser. The C++ tool is compiled to WebAssembly and runs locally; nothing is uploaded.">
+<link rel="canonical" href="https://fmlab-iis.github.io/AutoQ/playground/">
+<meta name="theme-color" content="#F5F5F0" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#13171D" media="(prefers-color-scheme: dark)">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="AutoQ">
+<meta property="og:url" content="https://fmlab-iis.github.io/AutoQ/playground/">
+<meta property="og:title" content="AutoQ playground">
+<meta property="og:description" content="Verify quantum programs in your browser with AutoQ compiled to WebAssembly.">
+<meta property="og:image" content="https://fmlab-iis.github.io/AutoQ/assets/og.png">
+<link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="../assets/favicon-32.png" type="image/png" sizes="32x32">
+<link rel="apple-touch-icon" href="../assets/apple-touch-icon.png">
+<link rel="modulepreload" href="worker.js">
+<script>
+(function () {
+  var r = document.documentElement, t = null;
+  r.classList.add('js');
+  try { t = localStorage.getItem('autoq-theme'); } catch (e) {}
+  if (t === 'light' || t === 'dark') r.setAttribute('data-theme', t);
+})();
+</script>
+<link rel="stylesheet" href="playground.css">
+</head>
+<body>
+<a class="skip" href="#main">Skip to the playground</a>
+<header class="masthead">
+  <div class="wrap">
+    <a class="wordmark" href="../">AutoQ</a>
+    <span class="crumb">Playground</span>
+    <nav class="links" aria-label="Site">
+      <a href="../">Home</a>
+      <a href="https://github.com/fmlab-iis/AutoQ">GitHub</a>
+      <button type="button" class="theme" hidden aria-label="Switch to dark theme"><svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="7.25" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M10 2.75 A7.25 7.25 0 0 1 10 17.25 Z" fill="currentColor"/></svg></button>
+    </nav>
+  </div>
+</header>
+
+<main id="main">
+  <section class="intro wrap" aria-labelledby="title">
+    <h1 id="title">Playground</h1>
+    <p>Run AutoQ in your browser. This is the command-line tool itself, compiled to WebAssembly: it reads the same <code>.hsl</code> and OpenQASM files and prints the same output. Everything runs on your machine; nothing is uploaded.</p>
+    <p class="meta" id="version">Loading AutoQ…</p>
+  </section>
+
+  <noscript><div class="wrap"><p class="noscript">The playground needs JavaScript and WebAssembly.</p></div></noscript>
+
+  <section class="wrap" aria-label="Playground">
+    <form class="toolbar" id="toolbar">
+      <label class="field">
+        <span>Example</span>
+        <select id="example"></select>
+      </label>
+      <fieldset class="modes">
+        <legend class="legend">Command</legend>
+        <div class="seg" role="radiogroup">
+          <label><input type="radio" name="mode" value="ver" checked><span>ver</span></label>
+          <label><input type="radio" name="mode" value="ex"><span>ex</span></label>
+          <label><input type="radio" name="mode" value="eq"><span>eq</span></label>
+        </div>
+      </fieldset>
+      <label class="check" id="loopsum-wrap"><input type="checkbox" id="loopsum"> --loopsum</label>
+      <div class="actions">
+        <button type="button" class="btn quiet" id="reset">Reset</button>
+        <button type="button" class="btn quiet" id="stop" disabled>Stop</button>
+        <button type="submit" class="btn" id="run" disabled>Run <kbd aria-hidden="true">Ctrl ↵</kbd></button>
+      </div>
+    </form>
+
+    <div class="workspace">
+      <div class="panel">
+        <div class="panel-head">
+          <div class="tabs" role="tablist" aria-label="Input files" id="tabs"></div>
+        </div>
+        <textarea class="editor" id="editor" spellcheck="false" autocapitalize="off" autocomplete="off" autocorrect="off" aria-label="File contents"></textarea>
+        <pre class="cmd" id="cmd" aria-label="Command"></pre>
+      </div>
+      <div class="panel">
+        <div class="panel-head">
+          <span class="panel-title" id="output-label">Output</span>
+          <span class="status" id="status" role="status" aria-live="polite"></span>
+        </div>
+        <pre class="output" id="output" tabindex="0" aria-labelledby="output-label"></pre>
+      </div>
+    </div>
+  </section>
+
+  <section class="notes wrap" aria-labelledby="notes-title">
+    <h2 id="notes-title">Notes</h2>
+    <ul>
+      <li><code>ver</code> checks the circuit against the postcondition and prints <code>[OK]</code> or <code>[failed]</code>. <code>ex</code> prints the set of states after the circuit. <code>eq</code> compares two circuits; it reads the qubit count from an OpenQASM 2.0 <code>qreg</code> declaration.</li>
+      <li>A <code>while</code> loop names its invariant file in a trailing comment, as in the <em>While loop</em> example. Every file in the tabs is available to the run under its tab name.</li>
+      <li>The first run downloads the WebAssembly module (it includes the Z3 solver). Later runs reuse it.</li>
+      <li>Runs use a single thread and the memory your browser allows a page, so the larger benchmarks from the papers may be slow or run out of memory here. Use the native build for those.</li>
+      <li>One difference from the native build: WebAssembly has no floating-point traps, so an arithmetic error that stops the native tool with <code>SIGFPE</code> continues here.</li>
+      <li>The file formats are described in the <a href="https://github.com/fmlab-iis/AutoQ/blob/main/docs/hsl_description.md">.hsl</a> and <a href="https://github.com/fmlab-iis/AutoQ/blob/main/docs/qasm_description.md">OpenQASM</a> documentation.</li>
+    </ul>
+  </section>
+</main>
+
+<script type="module" src="playground.js"></script>
+</body>
+</html>

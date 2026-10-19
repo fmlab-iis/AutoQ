@@ -34,3 +34,23 @@ endforeach()
 if (MAKE_STATIC_AUTOQ)
   SET(CMAKE_CXX_LINK_EXECUTABLE "${CMAKE_CXX_LINK_EXECUTABLE} -static")
 endif()
+
+if (EMSCRIPTEN)
+  # WebAssembly build (wasm/build.sh): an ES module exporting createAutoQ().
+  # The playground (site/playground) writes the input files into the
+  # in-memory filesystem and runs main() through callMain() on a fresh
+  # instance per run.
+  target_link_options(autoq PRIVATE
+    -fwasm-exceptions
+    -sMODULARIZE=1
+    -sEXPORT_ES6=1
+    -sEXPORT_NAME=createAutoQ
+    -sENVIRONMENT=web,worker,node
+    -sINVOKE_RUN=0
+    -sEXIT_RUNTIME=1
+    -sALLOW_MEMORY_GROWTH=1
+    -sMAXIMUM_MEMORY=4GB
+    -sSTACK_SIZE=8MB
+    -sFORCE_FILESYSTEM=1
+    -sEXPORTED_RUNTIME_METHODS=callMain,FS)
+endif()

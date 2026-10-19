@@ -1,4 +1,5 @@
-# Deploys the static landing page in site/ to GitHub Pages. No build step.
+# Deploys the site in site/ to GitHub Pages: the landing page plus the
+# playground, which runs AutoQ compiled to WebAssembly (wasm/build.sh).
 #
 # One-time setup before the first run: in the repository settings, open
 # Settings -> Pages -> Build and deployment and set Source to "GitHub Actions".
@@ -8,6 +9,9 @@
 #
 # After the first deploy, compare the page_url printed by the deploy step with
 # the canonical and og: URLs in site/index.html (https://fmlab-iis.github.io/AutoQ/).
+#
+# The first run builds Z3 and the ANTLR runtime for WebAssembly, which takes
+# a while; later runs restore them from the cache.
 name: Deploy landing page
 
 on:
@@ -15,6 +19,11 @@ on:
     branches: [main]
     paths:
       - "site/**"
+      - "wasm/**"
+      - "src/**"
+      - "include/**"
+      - "cli/**"
+      - "CMakeLists.txt"
       - ".github/workflows/pages.yml"
   workflow_dispatch:
 
@@ -27,6 +36,9 @@ concurrency:
   group: "pages"
   cancel-in-progress: false
 
+env:
+  EMSDK_VERSION: "6.0.12"
+
 jobs:
   deploy:
     environment:
@@ -36,6 +48,29 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # autoq -v reports the commit from git describe
+
+      - name: Install Boost headers
+        run: sudo apt-get update && sudo apt-get install -y libboost-dev
+
+      - name: Install Emscripten
+        run: |
+          git clone --depth 1 https://github.com/emscripten-core/emsdk.git "$RUNNER_TEMP/emsdk"
+          "$RUNNER_TEMP/emsdk/emsdk" install "$EMSDK_VERSION"
+          "$RUNNER_TEMP/emsdk/emsdk" activate "$EMSDK_VERSION"
+
+      - name: Cache Z3 and ANTLR for WebAssembly
+        uses: actions/cache@v4
+        with:
+          path: build-wasm/deps
+          key: wasm-deps-${{ env.EMSDK_VERSION }}-${{ hashFiles('wasm/build.sh') }}
+
+      - name: Build the playground (AutoQ to WebAssembly)
+        run: |
+          source "$RUNNER_TEMP/emsdk/emsdk_env.sh"
+          wasm/build.sh site/playground
+
       - name: Configure Pages
         uses: actions/configure-pages@v5
       - name: Upload site
