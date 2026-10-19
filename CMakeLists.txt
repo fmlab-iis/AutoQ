@@ -158,17 +158,26 @@ include(CTest)
 #                                DEPENDENCIES
 ##############################################################################
 
-# Boost
-set(Boost_USE_MULTITHREADED OFF)
-find_package(Boost 1.71.0...1.89.0 CONFIG COMPONENTS # 1.89.0 is for macOS on GitHub CI
-  filesystem
-#   system
-  unit_test_framework
-  REQUIRED)
-# IMPORTANT CHANGE: https://github.com/facebook/folly/issues/2489
-# Boost.System has been header-only since 1.69.
-# If someone increases minimum Boost to 1.71 then can just remove the system component.
-include_directories(${Boost_INCLUDE_DIRS})
+if (EMSCRIPTEN)
+  # WebAssembly build (wasm/build.sh). Only header-only parts of Boost are
+  # used, and Z3 and the ANTLR runtime are prebuilt static libraries.
+  set(AUTOQ_WASM_BOOST_INCLUDE "" CACHE PATH "Directory containing the boost/ headers")
+  set(AUTOQ_WASM_Z3_LIB "" CACHE FILEPATH "Z3 static library built with Emscripten")
+  set(AUTOQ_WASM_ANTLR4_LIB "" CACHE FILEPATH "ANTLR4 C++ runtime static library built with Emscripten")
+  include_directories(${AUTOQ_WASM_BOOST_INCLUDE})
+else()
+  # Boost
+  set(Boost_USE_MULTITHREADED OFF)
+  find_package(Boost 1.71.0...1.89.0 CONFIG COMPONENTS # 1.89.0 is for macOS on GitHub CI
+    filesystem
+  #   system
+    unit_test_framework
+    REQUIRED)
+  # IMPORTANT CHANGE: https://github.com/facebook/folly/issues/2489
+  # Boost.System has been header-only since 1.69.
+  # If someone increases minimum Boost to 1.71 then can just remove the system component.
+  include_directories(${Boost_INCLUDE_DIRS})
+endif()
 include_directories(../include/z3)
 
 # Doxygen - voluntary
@@ -189,6 +198,8 @@ endif()
 # Process subdirectories
 add_subdirectory(src)
 add_subdirectory(cli)
-add_subdirectory(unit_tests)
+if (NOT EMSCRIPTEN)
+  add_subdirectory(unit_tests)
+endif()
 # add_subdirectory(parametric)
 # add_subdirectory(tests)

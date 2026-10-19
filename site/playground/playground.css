@@ -1,0 +1,338 @@
+/* AutoQ playground. Fonts and colour tokens are copied from ../index.html. */
+/* Self-hosted subsets of Bodoni Moda, Instrument Sans, JetBrains Mono, Noto Sans Math and Noto Sans Mono (SIL OFL 1.1, see assets/fonts/OFL.txt). */
+@font-face {
+  font-family: 'Bodoni Moda';
+  font-style: italic;
+  font-weight: 400 700;
+  font-display: swap;
+  src: url(../assets/fonts/bodoni-moda-italic-math.woff2) format('woff2');
+  unicode-range: U+0302-0303, U+0305, U+0307-0308, U+0310, U+0312, U+0315, U+031A, U+0326-0327, U+032C, U+032F-0330, U+0332-0333, U+0338, U+033A, U+0346, U+034D, U+0391-03A1, U+03A3-03A9, U+03B1-03C9, U+03D1, U+03D5-03D6, U+03F0-03F1, U+03F4-03F5, U+2016-2017, U+2034-2038, U+203C, U+2040, U+2043, U+2047, U+2050, U+2057, U+205F, U+2070-2071, U+2074-209F, U+20D0-20DC, U+20E1, U+20E5-20EF, U+2100-2112, U+2114-2115, U+2117-2121, U+2123-214F, U+2190, U+2192, U+2194-21AE, U+21B0-21E5, U+21F1-21F2, U+21F4-2211, U+2213-2214, U+2216-22FF, U+2308-230B, U+2310, U+2319, U+231C-2321, U+2336-237A, U+237C, U+2395, U+239B-23B7, U+23D0, U+23DC-23E1, U+2474-2475, U+25AF, U+25B3, U+25B7, U+25BD, U+25C1, U+25CA, U+25CC, U+25FB, U+266D-266F, U+27C0-27FF, U+2900-2AFF, U+2B0E-2B11, U+2B30-2B4C, U+2BFE, U+3030, U+FF5B, U+FF5D, U+1D400-1D7FF, U+1EE00-1EEFF;
+}
+@font-face {
+  font-family: 'Bodoni Moda';
+  font-style: italic;
+  font-weight: 400 700;
+  font-display: swap;
+  src: url(../assets/fonts/bodoni-moda-italic-symbols.woff2) format('woff2');
+  unicode-range: U+0001-000C, U+000E-001F, U+007F-009F, U+20DD-20E0, U+20E2-20E4, U+2150-218F, U+2190, U+2192, U+2194-2199, U+21AF, U+21E6-21F0, U+21F3, U+2218-2219, U+2299, U+22C4-22C6, U+2300-243F, U+2440-244A, U+2460-24FF, U+25A0-27BF, U+2800-28FF, U+2921-2922, U+2981, U+29BF, U+29EB, U+2B00-2BFF, U+4DC0-4DFF, U+FFF9-FFFB, U+10140-1018E, U+10190-1019C, U+101A0, U+101D0-101FD, U+102E0-102FB, U+10E60-10E7E, U+1D2C0-1D2D3, U+1D2E0-1D37F, U+1F000-1F0FF, U+1F100-1F1AE, U+1F1E6-1F1FF, U+1F30D-1F30F, U+1F315, U+1F31C, U+1F31E, U+1F320-1F32C, U+1F336, U+1F378, U+1F37D, U+1F382, U+1F393-1F39F, U+1F3A7-1F3A8, U+1F3AC-1F3AF, U+1F3C2, U+1F3C4-1F3C6, U+1F3CA-1F3CE, U+1F3D4-1F3E0, U+1F3ED, U+1F3F1-1F3F3, U+1F3F5-1F3F7, U+1F408, U+1F415, U+1F41F, U+1F426, U+1F43F, U+1F441-1F442, U+1F444, U+1F446-1F449, U+1F44C-1F44E, U+1F453, U+1F46A, U+1F47D, U+1F4A3, U+1F4B0, U+1F4B3, U+1F4B9, U+1F4BB, U+1F4BF, U+1F4C8-1F4CB, U+1F4D6, U+1F4DA, U+1F4DF, U+1F4E3-1F4E6, U+1F4EA-1F4ED, U+1F4F7, U+1F4F9-1F4FB, U+1F4FD-1F4FE, U+1F503, U+1F507-1F50B, U+1F50D, U+1F512-1F513, U+1F53E-1F54A, U+1F54F-1F5FA, U+1F610, U+1F650-1F67F, U+1F687, U+1F68D, U+1F691, U+1F694, U+1F698, U+1F6AD, U+1F6B2, U+1F6B9-1F6BA, U+1F6BC, U+1F6C6-1F6CF, U+1F6D3-1F6D7, U+1F6E0-1F6EA, U+1F6F0-1F6F3, U+1F6F7-1F6FC, U+1F700-1F80B, U+1F810-1F847, U+1F850-1F859, U+1F860-1F887, U+1F890-1F8AD, U+1F8B0-1F8BB, U+1F8C0-1F8C1, U+1F8D0-1F8D8, U+1F900-1F90B, U+1F93B, U+1F946, U+1F984, U+1F996, U+1F9E9, U+1FA00-1FA6F, U+1FA70-1FA7C, U+1FA80-1FAC6, U+1FAC8, U+1FACC-1FADD, U+1FADF-1FAEB, U+1FAEF-1FAFA, U+1FB00-1FBFF;
+}
+@font-face {
+  font-family: 'Bodoni Moda';
+  font-style: italic;
+  font-weight: 400 700;
+  font-display: swap;
+  src: url(../assets/fonts/bodoni-moda-italic-latin-ext.woff2) format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Bodoni Moda';
+  font-style: italic;
+  font-weight: 400 700;
+  font-display: swap;
+  src: url(../assets/fonts/bodoni-moda-italic-latin.woff2) format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Bodoni Moda';
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: swap;
+  src: url(../assets/fonts/bodoni-moda-normal-math.woff2) format('woff2');
+  unicode-range: U+0302-0303, U+0305, U+0307-0308, U+0310, U+0312, U+0315, U+031A, U+0326-0327, U+032C, U+032F-0330, U+0332-0333, U+0338, U+033A, U+0346, U+034D, U+0391-03A1, U+03A3-03A9, U+03B1-03C9, U+03D1, U+03D5-03D6, U+03F0-03F1, U+03F4-03F5, U+2016-2017, U+2034-2038, U+203C, U+2040, U+2043, U+2047, U+2050, U+2057, U+205F, U+2070-2071, U+2074-209F, U+20D0-20DC, U+20E1, U+20E5-20EF, U+2100-2112, U+2114-2115, U+2117-2121, U+2123-214F, U+2190, U+2192, U+2194-21AE, U+21B0-21E5, U+21F1-21F2, U+21F4-2211, U+2213-2214, U+2216-22FF, U+2308-230B, U+2310, U+2319, U+231C-2321, U+2336-237A, U+237C, U+2395, U+239B-23B7, U+23D0, U+23DC-23E1, U+2474-2475, U+25AF, U+25B3, U+25B7, U+25BD, U+25C1, U+25CA, U+25CC, U+25FB, U+266D-266F, U+27C0-27FF, U+2900-2AFF, U+2B0E-2B11, U+2B30-2B4C, U+2BFE, U+3030, U+FF5B, U+FF5D, U+1D400-1D7FF, U+1EE00-1EEFF;
+}
+@font-face {
+  font-family: 'Bodoni Moda';
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: swap;
+  src: url(../assets/fonts/bodoni-moda-normal-symbols.woff2) format('woff2');
+  unicode-range: U+0001-000C, U+000E-001F, U+007F-009F, U+20DD-20E0, U+20E2-20E4, U+2150-218F, U+2190, U+2192, U+2194-2199, U+21AF, U+21E6-21F0, U+21F3, U+2218-2219, U+2299, U+22C4-22C6, U+2300-243F, U+2440-244A, U+2460-24FF, U+25A0-27BF, U+2800-28FF, U+2921-2922, U+2981, U+29BF, U+29EB, U+2B00-2BFF, U+4DC0-4DFF, U+FFF9-FFFB, U+10140-1018E, U+10190-1019C, U+101A0, U+101D0-101FD, U+102E0-102FB, U+10E60-10E7E, U+1D2C0-1D2D3, U+1D2E0-1D37F, U+1F000-1F0FF, U+1F100-1F1AE, U+1F1E6-1F1FF, U+1F30D-1F30F, U+1F315, U+1F31C, U+1F31E, U+1F320-1F32C, U+1F336, U+1F378, U+1F37D, U+1F382, U+1F393-1F39F, U+1F3A7-1F3A8, U+1F3AC-1F3AF, U+1F3C2, U+1F3C4-1F3C6, U+1F3CA-1F3CE, U+1F3D4-1F3E0, U+1F3ED, U+1F3F1-1F3F3, U+1F3F5-1F3F7, U+1F408, U+1F415, U+1F41F, U+1F426, U+1F43F, U+1F441-1F442, U+1F444, U+1F446-1F449, U+1F44C-1F44E, U+1F453, U+1F46A, U+1F47D, U+1F4A3, U+1F4B0, U+1F4B3, U+1F4B9, U+1F4BB, U+1F4BF, U+1F4C8-1F4CB, U+1F4D6, U+1F4DA, U+1F4DF, U+1F4E3-1F4E6, U+1F4EA-1F4ED, U+1F4F7, U+1F4F9-1F4FB, U+1F4FD-1F4FE, U+1F503, U+1F507-1F50B, U+1F50D, U+1F512-1F513, U+1F53E-1F54A, U+1F54F-1F5FA, U+1F610, U+1F650-1F67F, U+1F687, U+1F68D, U+1F691, U+1F694, U+1F698, U+1F6AD, U+1F6B2, U+1F6B9-1F6BA, U+1F6BC, U+1F6C6-1F6CF, U+1F6D3-1F6D7, U+1F6E0-1F6EA, U+1F6F0-1F6F3, U+1F6F7-1F6FC, U+1F700-1F80B, U+1F810-1F847, U+1F850-1F859, U+1F860-1F887, U+1F890-1F8AD, U+1F8B0-1F8BB, U+1F8C0-1F8C1, U+1F8D0-1F8D8, U+1F900-1F90B, U+1F93B, U+1F946, U+1F984, U+1F996, U+1F9E9, U+1FA00-1FA6F, U+1FA70-1FA7C, U+1FA80-1FAC6, U+1FAC8, U+1FACC-1FADD, U+1FADF-1FAEB, U+1FAEF-1FAFA, U+1FB00-1FBFF;
+}
+@font-face {
+  font-family: 'Bodoni Moda';
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: swap;
+  src: url(../assets/fonts/bodoni-moda-normal-latin-ext.woff2) format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Bodoni Moda';
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: swap;
+  src: url(../assets/fonts/bodoni-moda-normal-latin.woff2) format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Instrument Sans';
+  font-style: italic;
+  font-weight: 400 700;
+  font-stretch: 100%;
+  font-display: swap;
+  src: url(../assets/fonts/instrument-sans-italic-latin-ext.woff2) format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Instrument Sans';
+  font-style: italic;
+  font-weight: 400 700;
+  font-stretch: 100%;
+  font-display: swap;
+  src: url(../assets/fonts/instrument-sans-italic-latin.woff2) format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Instrument Sans';
+  font-style: normal;
+  font-weight: 400 700;
+  font-stretch: 100%;
+  font-display: swap;
+  src: url(../assets/fonts/instrument-sans-normal-latin-ext.woff2) format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Instrument Sans';
+  font-style: normal;
+  font-weight: 400 700;
+  font-stretch: 100%;
+  font-display: swap;
+  src: url(../assets/fonts/instrument-sans-normal-latin.woff2) format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'JetBrains Mono';
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: url(../assets/fonts/jetbrains-mono-italic-greek.woff2) format('woff2');
+  unicode-range: U+0370-0377, U+037A-037F, U+0384-038A, U+038C, U+038E-03A1, U+03A3-03FF;
+}
+@font-face {
+  font-family: 'JetBrains Mono';
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: url(../assets/fonts/jetbrains-mono-italic-latin-ext.woff2) format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'JetBrains Mono';
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: url(../assets/fonts/jetbrains-mono-italic-latin.woff2) format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'JetBrains Mono';
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: swap;
+  src: url(../assets/fonts/jetbrains-mono-normal-greek.woff2) format('woff2');
+  unicode-range: U+0370-0377, U+037A-037F, U+0384-038A, U+038C, U+038E-03A1, U+03A3-03FF;
+}
+@font-face {
+  font-family: 'JetBrains Mono';
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: swap;
+  src: url(../assets/fonts/jetbrains-mono-normal-latin-ext.woff2) format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'JetBrains Mono';
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: swap;
+  src: url(../assets/fonts/jetbrains-mono-normal-latin.woff2) format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Noto Sans Math';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url(../assets/fonts/noto-sans-math-normal-subset.woff2) format('woff2');
+}
+@font-face {
+  font-family: 'Noto Sans Mono';
+  font-style: normal;
+  font-weight: 400;
+  font-stretch: 100%;
+  font-display: swap;
+  src: url(../assets/fonts/noto-sans-mono-normal-subset.woff2) format('woff2');
+  unicode-range: U+2b, U+3c-3e, U+7c, U+ac, U+338, U+2032, U+2102, U+2112, U+2200, U+2203-2204, U+2208-2209, U+2211-2212, U+2216, U+221a, U+2227-2228, U+222a, U+2260, U+2264-2265, U+226e-2271, U+2286, U+2288, U+2295, U+2297, U+27e8-27e9;
+}
+:root {
+  --paper: #F5F5F0;
+  --paper-deep: #EAEAE3;
+  --paper-lift: #FBFBF8;
+  --ink: #1A1C21;
+  --ink-2: #444851;
+  --ink-3: #5C6068;
+  --rule: #D3D3CA;
+  --control: #82858A;
+  --accent: #0B6B55;
+  --accent-wash: rgba(11, 107, 85, .10);
+  --fail: #A3262F;
+  --on-ink: #F5F5F0;
+
+  --serif: "Bodoni Moda", "Bodoni 72", Didot, "Noto Serif Display", Georgia, serif;
+  --math: "Noto Sans Math", "Bodoni Moda", "STIX Two Text", Cambria, "DejaVu Serif", Georgia, "STIX Two Math", "Cambria Math", serif;
+  --sans: "Instrument Sans", "Helvetica Neue", Helvetica, Arial, system-ui, sans-serif;
+  --mono: "JetBrains Mono", "Noto Sans Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+
+  --measure: 40rem;
+  --side: 16.5rem;
+  --gutter: clamp(16px, 4vw, 48px);
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #13171D;
+    --paper-deep: #1C2129;
+    --paper-lift: #171C23;
+    --ink: #E9E7E0;
+    --ink-2: #BEBCB5;
+    --ink-3: #9D9C96;
+    --rule: #2F3641;
+    --control: #6E6F6D;
+    --accent: #6CCBAA;
+    --accent-wash: rgba(108, 203, 170, .12);
+    --fail: #F2958F;
+    --on-ink: #13171D;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #13171D;
+  --paper-deep: #1C2129;
+  --paper-lift: #171C23;
+  --ink: #E9E7E0;
+  --ink-2: #BEBCB5;
+  --ink-3: #9D9C96;
+  --rule: #2F3641;
+  --control: #6E6F6D;
+  --accent: #6CCBAA;
+  --accent-wash: rgba(108, 203, 170, .12);
+  --fail: #F2958F;
+  --on-ink: #13171D;
+  color-scheme: dark;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font: 400 1rem/1.6 var(--sans);
+  overflow-wrap: break-word;
+}
+a { color: inherit; text-decoration-color: var(--accent); text-underline-offset: .18em; }
+a:hover { color: var(--accent); }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+code, kbd, pre, textarea { font-family: var(--mono); font-size: .875rem; font-variant-ligatures: none; }
+.wrap { max-width: 1240px; margin-inline: auto; padding-inline: var(--gutter); }
+.skip { position: absolute; left: -999px; }
+.skip:focus { left: 1rem; top: .5rem; z-index: 10; background: var(--paper-lift); padding: .5rem .75rem; }
+
+/* Masthead */
+.masthead { position: sticky; top: 0; z-index: 5; background: var(--paper); border-bottom: 1px solid var(--rule); }
+.masthead .wrap { display: flex; align-items: center; gap: 1.25rem; height: 3.5rem; }
+.wordmark { font: italic 400 1.45rem/1 var(--serif); text-decoration: none; color: var(--ink); }
+.crumb { color: var(--ink-2); font-size: .9375rem; }
+.masthead .links { margin-left: auto; display: flex; align-items: center; gap: 1.25rem; font-size: .9375rem; }
+.masthead .links a { text-decoration: none; color: var(--ink-2); }
+.masthead .links a:hover { color: var(--ink); text-decoration: underline; text-decoration-color: var(--accent); }
+.theme { flex: none; display: inline-grid; place-items: center; width: 2.25rem; height: 2.25rem; padding: 0; color: var(--ink-2); background: none; border: 1px solid var(--control); border-radius: 2px; cursor: pointer; }
+.theme svg { width: 1.05rem; height: 1.05rem; }
+
+/* Intro */
+.intro { padding-block: clamp(1.75rem, 4vw, 3rem) 1.25rem; }
+.intro h1 { margin: 0; font: 400 clamp(2.4rem, 6vw, 3.6rem)/1.05 var(--serif); letter-spacing: -.01em; }
+.intro p { margin: .75rem 0 0; max-width: 46rem; color: var(--ink-2); }
+.intro .meta { font-size: .875rem; color: var(--ink-3); }
+
+/* Toolbar */
+.toolbar { display: flex; flex-wrap: wrap; align-items: end; gap: .75rem 1.25rem; padding-block: 1rem; border-top: 1px solid var(--rule); }
+.field { display: grid; gap: .3rem; }
+.field > span, .legend { font-size: .8125rem; color: var(--ink-3); letter-spacing: .02em; }
+select {
+  font: inherit; font-size: .9375rem; color: var(--ink); background: var(--paper-lift);
+  border: 1px solid var(--control); border-radius: 2px; padding: .45rem 2rem .45rem .6rem; min-height: 2.5rem;
+  appearance: none; background-image: linear-gradient(45deg, transparent 50%, currentColor 50%), linear-gradient(135deg, currentColor 50%, transparent 50%);
+  background-position: calc(100% - 15px) 55%, calc(100% - 10px) 55%; background-size: 5px 5px; background-repeat: no-repeat;
+}
+fieldset.modes { border: 0; margin: 0; padding: 0; display: grid; gap: .3rem; }
+.seg { display: inline-flex; border: 1px solid var(--control); border-radius: 2px; overflow: hidden; }
+.seg label { position: relative; }
+.seg input { position: absolute; opacity: 0; inset: 0; margin: 0; cursor: pointer; }
+.seg span { display: block; padding: .45rem .8rem; min-height: 2.5rem; line-height: 1.5rem; font-family: var(--mono); font-size: .875rem; color: var(--ink-2); }
+.seg label + label span { border-left: 1px solid var(--control); }
+.seg input:checked + span { background: var(--ink); color: var(--on-ink); }
+.seg input:focus-visible + span { outline: 2px solid var(--accent); outline-offset: -4px; }
+.check { display: inline-flex; align-items: center; gap: .45rem; min-height: 2.5rem; font-family: var(--mono); font-size: .875rem; color: var(--ink-2); }
+.check input { width: 1.05rem; height: 1.05rem; accent-color: var(--accent); }
+.actions { margin-left: auto; display: flex; align-items: center; gap: .6rem; }
+.btn {
+  font: 600 .9375rem/1 var(--sans); padding: 0 1.15rem; min-height: 2.75rem; border-radius: 2px; cursor: pointer;
+  border: 1px solid var(--ink); background: var(--ink); color: var(--on-ink);
+}
+.btn:hover:not(:disabled) { background: var(--accent); border-color: var(--accent); color: var(--on-ink); }
+.btn.quiet { background: none; color: var(--ink); border-color: var(--control); font-weight: 500; }
+.btn.quiet:hover:not(:disabled) { color: var(--ink); background: var(--paper-deep); border-color: var(--ink-2); }
+.btn:disabled { opacity: .5; cursor: not-allowed; }
+kbd { font-size: .75rem; border: 1px solid var(--rule); border-bottom-width: 2px; border-radius: 3px; padding: 0 .3rem; color: var(--ink-3); }
+.btn kbd { margin-left: .5rem; color: inherit; border-color: currentColor; opacity: .7; font-weight: 400; white-space: nowrap; }
+@media (pointer: coarse), (max-width: 640px) { .btn kbd { display: none; } }
+
+/* Workspace */
+.workspace { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: 1.25rem; padding-bottom: 2.5rem; }
+.panel { display: flex; flex-direction: column; min-width: 0; border: 1px solid var(--rule); background: var(--paper-lift); border-radius: 2px; }
+.panel-head { display: flex; align-items: center; gap: .75rem; min-height: 2.75rem; padding: 0 .75rem; border-bottom: 1px solid var(--rule); background: var(--paper-deep); }
+.panel-title { font-size: .8125rem; color: var(--ink-3); letter-spacing: .02em; }
+.tabs { display: flex; gap: 0; overflow-x: auto; margin-inline: -.75rem; scrollbar-width: thin; }
+.tabs button {
+  flex: none; font: 500 .8125rem/1 var(--mono); color: var(--ink-2); background: none; border: 0; border-right: 1px solid var(--rule);
+  padding: 0 .9rem; min-height: 2.75rem; cursor: pointer;
+}
+.tabs button[aria-selected="true"] { color: var(--ink); background: var(--paper-lift); box-shadow: inset 0 -2px 0 var(--accent); }
+.editor {
+  display: block; width: 100%; flex: 1; min-height: 24rem; resize: vertical; margin: 0; border: 0; padding: .9rem 1rem;
+  background: transparent; color: var(--ink); line-height: 1.6; tab-size: 4; white-space: pre; overflow: auto;
+}
+.editor:focus-visible { outline-offset: -2px; }
+.cmd { margin: 0; padding: .6rem 1rem; border-top: 1px solid var(--rule); color: var(--ink-2); white-space: pre-wrap; word-break: break-all; }
+.cmd .pr { color: var(--ink-3); user-select: none; }
+.output { flex: 1; margin: 0; padding: .9rem 1rem; min-height: 24rem; overflow: auto; white-space: pre-wrap; word-break: break-word; line-height: 1.6; }
+.output .err { color: var(--fail); }
+.output .ok { color: var(--accent); font-weight: 600; }
+.output .bad { color: var(--fail); font-weight: 600; }
+.output .muted { color: var(--ink-3); }
+.status { margin-left: auto; font-size: .8125rem; color: var(--ink-3); }
+.status.busy::before { content: ""; display: inline-block; width: .55rem; height: .55rem; margin-right: .4rem; border-radius: 50%; background: var(--accent); animation: pulse 1s ease-in-out infinite alternate; }
+@keyframes pulse { from { opacity: .25; } to { opacity: 1; } }
+
+.notes { padding-block: 0 3rem; color: var(--ink-2); font-size: .9375rem; }
+.notes::before { content: ""; display: block; border-top: 1px solid var(--rule); margin-bottom: 1.5rem; }
+.notes h2 { font: 400 1.5rem/1.2 var(--serif); color: var(--ink); margin: 0 0 .75rem; }
+.notes ul { margin: 0; padding-left: 1.1rem; max-width: 48rem; }
+.notes li + li { margin-top: .4rem; }
+.noscript { padding: 1rem; border: 1px solid var(--fail); color: var(--fail); }
+
+@media (max-width: 900px) {
+  .workspace { grid-template-columns: minmax(0, 1fr); }
+  .editor { min-height: 18rem; }
+  .output { min-height: 12rem; }
+}
+@media (max-width: 640px) {
+  .masthead .crumb { display: none; }
+  .actions { margin-left: 0; width: 100%; }
+  .actions .btn { flex: 1; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .status.busy::before { animation: none; }
+}

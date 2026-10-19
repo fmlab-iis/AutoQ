@@ -29,3 +29,7 @@ POPL24/TABLES/Algorithms/*.tex
 POPL24/TABLES/Algorithms/*.log
 POPL24/TABLES/Algorithms/*.aux
 benchmark*/_others/**
+# WebAssembly build (wasm/build.sh); the playground binaries are built in CI
+build-wasm/
+site/playground/autoq.js
+site/playground/autoq.wasm

@@ -234,7 +234,9 @@ static void run_verification(const std::string& pre, const std::string& post, co
 int main(int argc, char **argv) {
 try {
     // set_timeout(600);
+#ifndef __EMSCRIPTEN__  // WebAssembly has no floating-point exception traps
     feenableexcept(FE_ALL_EXCEPT & ~FE_INEXACT);
+#endif
 
     CLI::App app{"AutoQ 2.0: An automata-based C++ tool for quantum program verification."};
     std::string pre, circuit, post, circuit1, circuit2;
