@@ -196,22 +196,19 @@ bool AUTOQ::ConcreteAutomata::operator<<=(AUTOQ::ConcreteAutomata autB) const {
                         // We use a pair to represent the ratio in case it is not representable.
                         std::pair<AUTOQ::Complex::Complex, AUTOQ::Complex::Complex> ratio;
                         for (const auto &pair : leaf_pairs) {
-                            for (int i=0; i<4; i++) {
-                                if (pair.first.complex.isZero() && pair.second.complex.isZero()) continue;
-                                if (!pair.first.complex.isZero() && !pair.second.complex.isZero()) {
-                                    if (!startRatio) {
-                                        startRatio = true;
-                                        ratio = std::make_pair(pair.first.complex, pair.second.complex);
-                                    } else if (!(ratio.first * pair.second.complex).valueEqual(ratio.second * pair.first.complex)) {
-                                        color_consistent2 = false;
-                                        break;
-                                    }
-                                } else {
+                            if (pair.first.complex.isZero() && pair.second.complex.isZero()) continue;
+                            if (!pair.first.complex.isZero() && !pair.second.complex.isZero()) {
+                                if (!startRatio) {
+                                    startRatio = true;
+                                    ratio = std::make_pair(pair.first.complex, pair.second.complex);
+                                } else if (!(ratio.first * pair.second.complex).valueEqual(ratio.second * pair.first.complex)) {
                                     color_consistent2 = false;
                                     break;
                                 }
+                            } else {
+                                color_consistent2 = false;
+                                break;
                             }
-                            if (!color_consistent2) break;
                         }
                         /*****************************************/
                         /*************************************************************/
