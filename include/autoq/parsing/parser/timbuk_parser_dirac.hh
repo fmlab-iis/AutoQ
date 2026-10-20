@@ -179,12 +179,12 @@ AUTOQ::Parsing::TimbukParser<Symbol, Symbol2>::parse_n_extended_diracs_from_istr
 }
 
 template <typename Symbol>
-AUTOQ::Automata<Symbol> parse_extended_dirac(const std::string& str, const std::map<std::string, Complex> &constants, const std::string &predicateConstraints, bool throw_on_undefined, bool* out_encountered_undefined) {
+AUTOQ::Automata<Symbol> parse_extended_dirac(const std::string& str, const std::map<std::string, AUTOQ::Complex::Complex> &constants, const std::string &predicateConstraints, bool throw_on_undefined, bool* out_encountered_undefined) {
     std::istringstream inputStream(str);
     return AUTOQ::Parsing::TimbukParser<Symbol>::parse_extended_dirac_from_istream(&inputStream, throw_on_undefined, out_encountered_undefined, constants, predicateConstraints);
 }
 template <typename Symbol, typename Symbol2>
-std::pair<std::vector<AUTOQ::Automata<Symbol>>, std::vector<int>> parse_n_extended_diracs(const std::vector<std::string>& strVec, const std::vector<std::map<std::string, Complex>> &constantsVec, const std::vector<std::string> &predicateConstraintsVec) {
+std::pair<std::vector<AUTOQ::Automata<Symbol>>, std::vector<int>> parse_n_extended_diracs(const std::vector<std::string>& strVec, const std::vector<std::map<std::string, AUTOQ::Complex::Complex>> &constantsVec, const std::vector<std::string> &predicateConstraintsVec) {
     std::vector<std::istringstream> streamStorage;
     std::vector<std::istream*> istreamVec;
     streamStorage.reserve(strVec.size());

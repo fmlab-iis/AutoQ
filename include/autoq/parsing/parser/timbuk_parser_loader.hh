@@ -85,8 +85,7 @@ try {
         fileContents[i] = AUTOQ::Util::ReadFile(filepathVec[i]);
         AUTOQ::Parsing::strip_line_comments(fileContents[i]);
         if (!boost::algorithm::ends_with(filepathVec[i], ".aut") &&
-            (fileContents[i].find("Constants") != std::string::npos ||
-             fileContents[i].find("Predicates") != std::string::npos)) {
+            fileContents[i].find("Constants") != std::string::npos) {
             AUTOQ::Parsing::parse_constants_section(fileContents[i], constants[i]);
             AUTOQ::Parsing::unify_complex_k(constants[i]);
         }

@@ -1,5 +1,5 @@
 /**
- * Inclusion checking for Symbolic automata: check_validity, scaled inclusion, operator<<=.
+ * Inclusion checking for Symbolic automata: scaled inclusion, operator<<=.
  */
 #include "z3/z3++.h"
 #include "autoq/inclusion_common.hh"
@@ -9,48 +9,8 @@
 #include "autoq/inclusion.hh"
 #include "autoq/aut_description.hh"
 #include <queue>
+#include <regex>
 #include <sstream>
-bool AUTOQ::check_validity(Constraint C, const PredicateAutomata::Symbol &ps, const SymbolicAutomata::Symbol &te) {
-    std::string str(ps);
-    /* Replace all real(.) in C.content with .R and
-       replace all imag(.) in C.content with .I */
-    str = std::regex_replace(str, std::regex("real\\((.*?)\\)"), "$1R");
-    str = std::regex_replace(str, std::regex("imag\\((.*?)\\)"), "$1I");
-    /******************************************************************/
-    auto regToExpr = C.to_exprs(te);
-    for (const auto &kv : regToExpr) // example: z3 <(echo '(declare-fun x () Int)(declare-fun z () Int)(assert (= z (+ x 3)))(check-sat)')
-        str = std::regex_replace(str, std::regex(kv.first), kv.second);
-    // std::cout << std::string(C) + "(assert (not " + str + "))(check-sat)\n";
-
-    #if 1
-    // std::cout << Z3_get_full_version() << "\n";
-    z3::context c;
-    z3::solver s(c);
-    s.from_string((std::string(C) + "(assert (not " + str + "))").c_str());
-    auto result = s.check();
-    // std::cout << result << "\n";
-    if (result == z3::unsat) return true;
-    else if (result == z3::sat) return false;
-    #else
-    std::string smt_input = "bash -c \"z3 <(echo '" + std::string(C) + "(assert (not " + str + "))(check-sat)')\"";
-    // auto startSim = chrono::steady_clock::now();
-    auto result = AUTOQ::Util::ShellCmd(smt_input);
-    // std::cout << smt_input << "\n";
-    // std::cout << result << "\n";
-    // auto durationSim = chrono::steady_clock::now() - startSim;
-    // std::cout << toString2(durationSim) << "\n";
-    if (result == "unsat\n") return true;
-    else if (result == "sat\n") return false;
-    #endif
-    else {
-        std::cout << std::string(C) << "\n";
-        std::cout << str << "\n";
-        std::cout << result << "-\n";
-        THROW_AUTOQ_ERROR("The solver Z3 did not correctly return SAT or UNSAT.\nIt's probably because the specification automaton is NOT a predicate automaton.");
-    }
-}
-
-// [removed ~320 lines of commented SymbolicAutomata<=PredicateAutomata operator - see git history if needed]
 
 static bool call_smt_solver(const std::string &var_defs, const std::string &assertion) {
     #ifdef DEFINE_TO_USE_COMMAND_LINE_OTHERWISE_USE_Z3_API

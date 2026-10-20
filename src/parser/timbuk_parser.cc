@@ -30,10 +30,7 @@
 #include "autoq/symbol/predicate.hh"
 #include "autoq/parsing/parser/timbuk_parser.hh"
 #include "autoq/parsing/parser/timbuk_parser_util.hh"
-#include "autoq/parsing/complex_parser.hh"
 #include "autoq/complex/symbolic_complex.hh"
-#include "autoq/parsing/symboliccomplex_parser.hh"
-#include "autoq/parsing/constraint_parser.hh"
 
 // ANTLR4 headers
 #include "autoq/parsing/ExtendedDirac/EvaluationVisitor.h"

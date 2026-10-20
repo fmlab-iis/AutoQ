@@ -4,7 +4,6 @@
 #include "autoq/error.hh"
 #include "autoq/error_messages.hh"
 #include "autoq/parsing/parser/timbuk_parser.hh"
-#include "autoq/parsing/complex_parser.hh"
 #include "autoq/serialization/timbuk_serializer.hh"
 #include "autoq/aut_description.hh"
 #include "autoq/inclusion.hh"
@@ -20,7 +19,6 @@
 #include <iomanip>
 #include <regex>
 #include <fenv.h>
-#include <csignal>
 #ifdef __APPLE__
 #include <fenv_darwin.h>
 #endif
@@ -52,8 +50,6 @@ int extract_qubit(const std::string& filename) {
 }
 
 namespace {
-constexpr unsigned int kTimeoutSeconds = 1800;
-constexpr int kExitCodeTimeout = 124;
 constexpr size_t kBytesPerMB = 1024 * 1024;
 
 // CLI option names (placeholder names in help)
@@ -113,35 +109,6 @@ void print_equivalence_result(bool result,
 
 using AUTOQ::adjust_N_in_nTuple;
 
-namespace {
-AUTOQ::ConcreteAutomata* g_timeout_aut1 = nullptr;
-AUTOQ::ConcreteAutomata* g_timeout_aut2 = nullptr;
-}
-
-void timeout_handler(int) {
-    auto& st = AUTOQ::default_execution_stats();
-    std::map<std::string, std::string> stats;
-    stats["gate"] = AUTOQ::Util::Convert::ToString(st.total_gate_time - st.total_removeuseless_time - st.total_reduce_time);
-    stats["removeuseless"] = AUTOQ::Util::Convert::ToString(st.total_removeuseless_time);
-    stats["reduce"] = AUTOQ::Util::Convert::ToString(st.total_reduce_time);
-    stats["include"] = AUTOQ::Util::Convert::ToString(st.total_include_time);
-    stats["total"] = std::to_string(kTimeoutSeconds);
-    stats["result"] = std::to_string(st.gateCount);
-    stats["aut1.trans"] = g_timeout_aut1 ? std::to_string(g_timeout_aut1->count_transitions()) : "0";
-    stats["aut1.leaves"] = g_timeout_aut1 ? std::to_string(g_timeout_aut1->count_leaves()) : "0";
-    stats["aut2.trans"] = g_timeout_aut2 ? std::to_string(g_timeout_aut2->count_transitions()) : "0";
-    stats["aut2.leaves"] = g_timeout_aut2 ? std::to_string(g_timeout_aut2->count_leaves()) : "0";
-        AUTOQ::Util::Log::info(AUTOQ::Util::Convert::ToString2(stats));
-    exit(kExitCodeTimeout);
-}
-
-void set_timeout(unsigned int seconds, AUTOQ::ConcreteAutomata* aut1, AUTOQ::ConcreteAutomata* aut2) {
-    g_timeout_aut1 = aut1;
-    g_timeout_aut2 = aut2;
-    signal(SIGALRM, timeout_handler);
-    alarm(seconds);
-}
-
 template<typename Symbol>
 static void run_execution_impl(const std::string& pre, const std::string& circuit,
                                const ParameterMap& params) {
@@ -176,7 +143,6 @@ static void run_equivalence(const std::string& circuit1, const std::string& circ
         THROW_AUTOQ_ERROR("Cannot extract qubit count from circuit: " + circuit2);
     AUTOQ::ConcreteAutomata aut = AUTOQ::ConcreteAutomata::prefix_basis(n1);
     AUTOQ::ConcreteAutomata aut2 = AUTOQ::ConcreteAutomata::prefix_basis(n2);
-    // set_timeout(kTimeoutSeconds, &aut, &aut2);  // optional: enable to dump stats on timeout
     aut.execute(circuit1, {}, {}, params);
     aut2.execute(circuit2, {}, {}, params);
     bool result = aut <<= aut2;
@@ -191,7 +157,6 @@ template<typename Symbol>
 static void run_verification_impl(const std::string& pre, const std::string& post, const std::string& circuit,
                                   const ParameterMap& params, bool latex,
                                   const chrono::steady_clock::time_point& start) {
-    using Aut = AUTOQ::Automata<Symbol>;
     auto& st = AUTOQ::default_execution_stats();
     st.startFromFileToAutomata = std::chrono::steady_clock::now();
     auto [autVec, qp] = AUTOQ::Parsing::TimbukParser<Symbol, Symbol>::ReadTwoAutomata(pre, post, circuit);
@@ -213,18 +178,16 @@ static void run_verification(const std::string& pre, const std::string& post, co
     auto spec1 = ReadAutomaton(post);
     auto pre1 = ReadAutomaton(pre);
     if (std::holds_alternative<AUTOQ::SymbolicAutomata>(spec1) || std::holds_alternative<AUTOQ::SymbolicAutomata>(pre1) || AUTOQ::SymbolicAutomata::check_the_invariants_types(circuit) == "Symbolic") {
-        auto aut1 = ReadAutomaton(pre);
-        if (std::holds_alternative<AUTOQ::PredicateAutomata>(aut1))
+        if (std::holds_alternative<AUTOQ::PredicateAutomata>(pre1))
             THROW_AUTOQ_ERROR(EM::kPredicatePrecondition);
         run_verification_impl<AUTOQ::Symbol::Symbolic>(pre, post, circuit, params, latex, start);
     } else if (std::holds_alternative<AUTOQ::PredicateAutomata>(spec1)) {
         THROW_AUTOQ_ERROR(EM::kPredicateAutomataPost);
     } else if (std::holds_alternative<AUTOQ::ConcreteAutomata>(spec1)) {
-        auto aut1 = ReadAutomaton(pre);
         std::visit([](auto&& arg) {
             if constexpr (!std::is_same_v<std::decay_t<decltype(arg)>, AUTOQ::ConcreteAutomata>)
                 THROW_AUTOQ_ERROR(EM::kConcretePostPre);
-        }, aut1);
+        }, pre1);
         run_verification_impl<AUTOQ::Symbol::Concrete>(pre, post, circuit, params, latex, start);
     } else {
         THROW_AUTOQ_ERROR(EM::kUnsupportedPostType);
@@ -233,7 +196,6 @@ static void run_verification(const std::string& pre, const std::string& post, co
 
 int main(int argc, char **argv) {
 try {
-    // set_timeout(600);
     feenableexcept(FE_ALL_EXCEPT & ~FE_INEXACT);
 
     CLI::App app{"AutoQ 2.0: An automata-based C++ tool for quantum program verification."};
