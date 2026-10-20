@@ -13,15 +13,13 @@ const MODES = {
   ex: ['pre.hsl', 'circuit.qasm'],
   eq: ['a.qasm', 'b.qasm'],
 };
-const TEMPLATES = {
-  'pre.hsl': 'Extended Dirac\n{|0>}\n',
-  'post.hsl': 'Extended Dirac\n{|1>}\n',
-  'circuit.qasm': 'OPENQASM 3;\ninclude "stdgates.inc";\nqubit[1] qb;\n\nx qb[0];\n',
-  'a.qasm': 'OPENQASM 2.0;\ninclude "qelib1.inc";\nqreg q[1];\nx q[0];\n',
-  'b.qasm': 'OPENQASM 2.0;\ninclude "qelib1.inc";\nqreg q[1];\nh q[0];\nz q[0];\nh q[0];\n',
-};
+// ver and ex run one circuit on a set of states and share a workspace; eq
+// compares two circuits and has its own files and examples. Each workspace
+// keeps its edits while the other one is shown.
+const kind = (mode) => (mode === 'eq' ? 'eq' : 'circuit');
 
-const state = { example: null, files: [], active: 0, mode: 'ver' };
+const state = { mode: 'ver', workspaces: {} };
+const ws = () => state.workspaces[kind(state.mode)];
 
 // ---------- theme toggle (shared with the landing page) ----------
 (function theme() {
@@ -42,30 +40,32 @@ const state = { example: null, files: [], active: 0, mode: 'ver' };
 })();
 
 // ---------- examples, tabs, editor ----------
-for (const ex of EXAMPLES) {
-  const o = document.createElement('option');
-  o.value = ex.id;
-  o.textContent = ex.title;
-  els.example.append(o);
-}
-
+// Loads an example into its workspace. Within the same workspace the command
+// stays as it is (an ex run can switch examples); otherwise it becomes the
+// example's own command.
 function loadExample(id) {
   const ex = EXAMPLES.find((e) => e.id === id) ?? EXAMPLES[0];
-  state.example = ex;
-  state.files = ex.files.map((f) => ({ ...f }));
-  state.active = 0;
-  setMode(ex.mode);
-  els.example.value = ex.id;
-  render();
+  state.workspaces[kind(ex.mode)] = { example: ex, files: ex.files.map((f) => ({ ...f })), active: 0 };
+  showMode(kind(ex.mode) === kind(state.mode) ? state.mode : ex.mode);
 }
 
 function setMode(mode) {
+  if (!state.workspaces[kind(mode)]) {
+    const first = EXAMPLES.find((e) => kind(e.mode) === kind(mode));
+    state.workspaces[kind(mode)] = { example: first, files: first.files.map((f) => ({ ...f })), active: 0 };
+  }
+  showMode(mode);
+}
+
+function showMode(mode) {
   state.mode = mode;
   els.toolbar.querySelector(`input[name="mode"][value="${mode}"]`).checked = true;
-  for (const name of MODES[mode]) {
-    if (!state.files.some((f) => f.name === name)) state.files.push({ name, content: TEMPLATES[name] });
-  }
   els.loopsumWrap.hidden = mode === 'eq';
+  els.example.replaceChildren(...EXAMPLES
+    .filter((e) => kind(e.mode) === kind(mode))
+    .map((e) => new Option(e.title, e.id)));
+  els.example.value = ws().example.id;
+  render();
 }
 
 function args() {
@@ -75,44 +75,45 @@ function args() {
 }
 
 function render() {
-  els.tabs.replaceChildren(...state.files.map((f, i) => {
+  const { files, active } = ws();
+  els.tabs.replaceChildren(...files.map((f, i) => {
     const b = document.createElement('button');
     b.type = 'button';
     b.role = 'tab';
     b.id = `tab-${i}`;
     b.textContent = f.name;
-    b.setAttribute('aria-selected', String(i === state.active));
+    b.setAttribute('aria-selected', String(i === active));
     b.setAttribute('aria-controls', 'editor');
-    b.tabIndex = i === state.active ? 0 : -1;
+    b.tabIndex = i === active ? 0 : -1;
     b.addEventListener('click', () => select(i));
     return b;
   }));
-  const f = state.files[state.active];
-  els.editor.value = f.content;
-  els.editor.setAttribute('aria-labelledby', `tab-${state.active}`);
+  els.editor.value = files[active].content;
+  els.editor.setAttribute('aria-labelledby', `tab-${active}`);
   els.cmd.innerHTML = '<span class="pr">$ </span>' + escapeHtml(['autoq', ...args()].join(' '));
 }
 
 function select(i, focus = false) {
-  state.active = i;
+  ws().active = i;
   render();
   if (focus) document.getElementById(`tab-${i}`).focus();
 }
 
 els.tabs.addEventListener('keydown', (e) => {
-  const n = state.files.length;
+  const { files, active } = ws();
+  const n = files.length;
   const moves = { ArrowRight: 1, ArrowLeft: n - 1 };
-  if (e.key in moves) { e.preventDefault(); select((state.active + moves[e.key]) % n, true); }
+  if (e.key in moves) { e.preventDefault(); select((active + moves[e.key]) % n, true); }
   else if (e.key === 'Home') { e.preventDefault(); select(0, true); }
   else if (e.key === 'End') { e.preventDefault(); select(n - 1, true); }
 });
-els.editor.addEventListener('input', () => { state.files[state.active].content = els.editor.value; });
+els.editor.addEventListener('input', () => { ws().files[ws().active].content = els.editor.value; });
 els.example.addEventListener('change', () => loadExample(els.example.value));
 els.toolbar.addEventListener('change', (e) => {
-  if (e.target.name === 'mode') { setMode(e.target.value); render(); }
+  if (e.target.name === 'mode') setMode(e.target.value);
   if (e.target === els.loopsum) render();
 });
-els.reset.addEventListener('click', () => loadExample(state.example.id));
+els.reset.addEventListener('click', () => loadExample(ws().example.id));
 
 // ---------- running ----------
 let worker = null;
@@ -190,7 +191,7 @@ function run() {
   const t0 = performance.now();
   setStatus('Running… 0.0s', true);
   timer = setInterval(() => setStatus(`Running… ${((performance.now() - t0) / 1000).toFixed(1)}s`, true), 100);
-  worker.postMessage({ args: args(), files: state.files });
+  worker.postMessage({ args: args(), files: ws().files });
 }
 
 function stop() {
@@ -216,8 +217,8 @@ function escapeHtml(s) {
 }
 function highlight(line) {
   return escapeHtml(line)
-    .replace(/\[OK\]/g, '<span class="ok">[OK]</span>')
-    .replace(/\[failed\]|\[ERROR\]/g, (m) => `<span class="bad">${m}</span>`);
+    .replace(/\[OK\]|\[equal\]/g, (m) => `<span class="ok">${m}</span>`)
+    .replace(/\[failed\]|\[unequal\]|\[ERROR\]/g, (m) => `<span class="bad">${m}</span>`);
 }
 function show(lines, footer) {
   const html = lines.map((o) => o.stream === 'err'
