@@ -95,7 +95,7 @@
   <section class="notes wrap" aria-labelledby="notes-title">
     <h2 id="notes-title">Notes</h2>
     <ul>
-      <li><code>ver</code> checks the circuit against the postcondition and prints <code>[OK]</code> or <code>[failed]</code>. <code>ex</code> prints the set of states after the circuit. <code>eq</code> compares two circuits; it reads the qubit count from an OpenQASM 2.0 <code>qreg</code> declaration.</li>
+      <li><code>ver</code> checks the circuit against the postcondition and prints <code>[OK]</code> or <code>[failed]</code>. <code>ex</code> prints the set of states after the circuit. <code>eq</code> compares the circuits in <code>a.qasm</code> and <code>b.qasm</code> and prints <code>[equal]</code> if they implement the same unitary up to a global phase; it reads the qubit count from an OpenQASM 2.0 <code>qreg</code> declaration. <code>eq</code> has its own files and examples; <code>ver</code> and <code>ex</code> share theirs, and edits are kept when you switch.</li>
       <li>A <code>while</code> loop names its invariant file in a trailing comment, as in the <em>While loop</em> example. Every file in the tabs is available to the run under its tab name.</li>
       <li>The first run downloads the WebAssembly module (it includes the Z3 solver). Later runs reuse it.</li>
       <li>Runs use a single thread and the memory your browser allows a page, so the larger benchmarks from the papers may be slow or run out of memory here. Use the native build for those.</li>

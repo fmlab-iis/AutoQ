@@ -1,4 +1,4 @@
-// Generated from the repository files named in `source` (see wasm/README.md).
+// Playground examples; `source` says where each one comes from.
 export const EXAMPLES = [
   {
     "id": "readme",
@@ -126,7 +126,7 @@ export const EXAMPLES = [
   },
   {
     "id": "eq",
-    "title": "Circuit equivalence: CX = H·CZ·H",
+    "title": "Equivalence: CX = H·CZ·H",
     "source": "landing page",
     "mode": "eq",
     "files": [
@@ -137,6 +137,70 @@ export const EXAMPLES = [
       {
         "name": "b.qasm",
         "content": "OPENQASM 2.0;\ninclude \"qelib1.inc\";\nqreg q[2];\nh q[1];\ncz q[0], q[1];\nh q[1];\n"
+      }
+    ]
+  },
+  {
+    "id": "eq-swap",
+    "title": "Equivalence: SWAP = three CX gates",
+    "source": "standard identity",
+    "mode": "eq",
+    "files": [
+      {
+        "name": "a.qasm",
+        "content": "OPENQASM 2.0;\ninclude \"qelib1.inc\";\nqreg q[2];\nswap q[0], q[1];\n"
+      },
+      {
+        "name": "b.qasm",
+        "content": "OPENQASM 2.0;\ninclude \"qelib1.inc\";\nqreg q[2];\ncx q[0], q[1];\ncx q[1], q[0];\ncx q[0], q[1];\n"
+      }
+    ]
+  },
+  {
+    "id": "eq-toffoli",
+    "title": "Equivalence: Toffoli in Clifford+T",
+    "source": "standard Clifford+T decomposition (7 T gates, 6 CX)",
+    "mode": "eq",
+    "files": [
+      {
+        "name": "a.qasm",
+        "content": "OPENQASM 2.0;\ninclude \"qelib1.inc\";\nqreg q[3];\nccx q[0], q[1], q[2];\n"
+      },
+      {
+        "name": "b.qasm",
+        "content": "OPENQASM 2.0;\ninclude \"qelib1.inc\";\nqreg q[3];\nh q[2];\ncx q[1], q[2];\ntdg q[2];\ncx q[0], q[2];\nt q[2];\ncx q[1], q[2];\ntdg q[2];\ncx q[0], q[2];\nt q[1];\nt q[2];\nh q[2];\ncx q[0], q[1];\nt q[0];\ntdg q[1];\ncx q[0], q[1];\n"
+      }
+    ]
+  },
+  {
+    "id": "eq-toffoli-bug",
+    "title": "Non-equivalence: Toffoli with a wrong T gate",
+    "source": "eq-toffoli with one T replaced by T†",
+    "mode": "eq",
+    "files": [
+      {
+        "name": "a.qasm",
+        "content": "OPENQASM 2.0;\ninclude \"qelib1.inc\";\nqreg q[3];\nccx q[0], q[1], q[2];\n"
+      },
+      {
+        "name": "b.qasm",
+        "content": "OPENQASM 2.0;\ninclude \"qelib1.inc\";\nqreg q[3];\nh q[2];\ncx q[1], q[2];\ntdg q[2];\ncx q[0], q[2];\ntdg q[2]; // should be: t q[2];\ncx q[1], q[2];\ntdg q[2];\ncx q[0], q[2];\nt q[1];\nt q[2];\nh q[2];\ncx q[0], q[1];\nt q[0];\ntdg q[1];\ncx q[0], q[1];\n"
+      }
+    ]
+  },
+  {
+    "id": "eq-phase",
+    "title": "Equivalence up to global phase: XZ vs ZX",
+    "source": "standard identity (XZ = −ZX)",
+    "mode": "eq",
+    "files": [
+      {
+        "name": "a.qasm",
+        "content": "OPENQASM 2.0;\ninclude \"qelib1.inc\";\nqreg q[1];\nx q[0];\nz q[0];\n"
+      },
+      {
+        "name": "b.qasm",
+        "content": "OPENQASM 2.0;\ninclude \"qelib1.inc\";\nqreg q[1];\nz q[0];\nx q[0];\n"
       }
     ]
   }
