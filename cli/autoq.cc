@@ -159,7 +159,7 @@ static void run_verification_impl(const std::string& pre, const std::string& pos
                                   const chrono::steady_clock::time_point& start) {
     auto& st = AUTOQ::default_execution_stats();
     st.startFromFileToAutomata = std::chrono::steady_clock::now();
-    auto [autVec, qp] = AUTOQ::Parsing::TimbukParser<Symbol, Symbol>::ReadTwoAutomata(pre, post, circuit);
+    auto [autVec, qp] = AUTOQ::Parsing::TimbukParser<Symbol>::ReadTwoAutomata(pre, post, circuit);
     st.endFromFileToAutomata = std::chrono::steady_clock::now();
     auto aut = autVec.at(0);
     auto spec = autVec.at(1);

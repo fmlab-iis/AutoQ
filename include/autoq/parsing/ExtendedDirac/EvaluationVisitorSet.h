@@ -111,7 +111,6 @@
                 EvaluationVisitor visitor({constants}, {predicateConstraints});
                 visitor.mode = SET_BRACES_IS_TENSOR_DECOMPOSED_INTO_GROUPS;
                 visitor.currentPerm = currentPerm;
-                visitor.switch_symbol_to_second = switch_symbol_to_second;
                 visitor.tolerate_undefined_term = tolerate_undefined_term;
                 auto group_decomposition = std::any_cast<std::string>(visitor.let_visitor_parse_string(ctx->getText())); // {diracs (: varcons)?}
                 visitor.mode = SHUFFLE_UNITS_IN_A_GROUP_WRT_QUBITS_AND_CONSTRUCT_LSTA_FINALLY;
@@ -119,11 +118,7 @@
                 encountered_undefined_term |= visitor.encountered_undefined_term;
                 return aut;
             };
-            if (!switch_symbol_to_second) {
-                return do_the_work.template operator()<Symbol>();
-            } else {
-                return do_the_work.template operator()<Symbol2>();
-            }
+            return do_the_work.template operator()<Symbol>();
         } else if (mode == SET_BRACES_IS_TENSOR_DECOMPOSED_INTO_GROUPS) { // we only decompose {diracs (: varcons)?}
             if (ctx->UNION() != nullptr) {
                 THROW_AUTOQ_ERROR("We only decompose {diracs (: varcons)?}");

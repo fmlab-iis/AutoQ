@@ -22,12 +22,12 @@
 #include "autoq/parsing/parser/timbuk_parser_transitions.hh"
 #include "autoq/parsing/parser/timbuk_parser_dirac.hh"
 
-template <typename Symbol, typename Symbol2>
-AUTOQ::Automata<Symbol> AUTOQ::Parsing::TimbukParser<Symbol, Symbol2>::ReadAutomaton(const std::string& filepath) {
-    return AUTOQ::Parsing::TimbukParser<Symbol, Symbol2>::ReadAutomaton(filepath, true, nullptr);
+template <typename Symbol>
+AUTOQ::Automata<Symbol> AUTOQ::Parsing::TimbukParser<Symbol>::ReadAutomaton(const std::string& filepath) {
+    return AUTOQ::Parsing::TimbukParser<Symbol>::ReadAutomaton(filepath, true, nullptr);
 }
-template <typename Symbol, typename Symbol2>
-AUTOQ::Automata<Symbol> AUTOQ::Parsing::TimbukParser<Symbol, Symbol2>::ReadAutomaton(const std::string& filepath, bool throw_on_undefined, bool* out_encountered_undefined) {
+template <typename Symbol>
+AUTOQ::Automata<Symbol> AUTOQ::Parsing::TimbukParser<Symbol>::ReadAutomaton(const std::string& filepath, bool throw_on_undefined, bool* out_encountered_undefined) {
 try {
     AUTOQ::Automata<Symbol> result;
     std::string automaton, constraints;
@@ -68,8 +68,8 @@ try {
 }
 }
 
-template <typename Symbol, typename Symbol2>
-std::pair<std::vector<AUTOQ::Automata<Symbol>>, std::vector<int>> AUTOQ::Parsing::TimbukParser<Symbol, Symbol2>::ReadTwoAutomata(const std::string& filepath1, const std::string& filepath2, const std::string &circuitPath) {
+template <typename Symbol>
+std::pair<std::vector<AUTOQ::Automata<Symbol>>, std::vector<int>> AUTOQ::Parsing::TimbukParser<Symbol>::ReadTwoAutomata(const std::string& filepath1, const std::string& filepath2, const std::string &circuitPath) {
 try {
     std::vector<std::string> filepathVec = {filepath1, filepath2};
     if (!circuitPath.empty()) {
@@ -95,7 +95,7 @@ try {
     std::vector<AUTOQ::Automata<Symbol>> autVec;
     std::vector<int> qp;
     if (boost::algorithm::ends_with(filepathVec[0], ".hsl") && boost::algorithm::ends_with(filepathVec[1], ".hsl")) {
-        std::tie(autVec, qp) = parse_n_extended_diracs<Symbol, Symbol2>(automatonVec, constants, constraints);
+        std::tie(autVec, qp) = parse_n_extended_diracs<Symbol>(automatonVec, constants, constraints);
     } else if (boost::algorithm::ends_with(filepathVec[0], ".lsta") && boost::algorithm::ends_with(filepathVec[1], ".lsta")) {
         autVec.reserve(filepathVec.size());
         for (size_t i = 0; i < filepathVec.size(); ++i) {

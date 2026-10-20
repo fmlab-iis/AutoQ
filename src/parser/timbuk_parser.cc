@@ -66,4 +66,3 @@ std::variant<AUTOQ::Automata<AUTOQ::Symbol::Concrete>, AUTOQ::Automata<AUTOQ::Sy
 template struct AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Concrete>;
 template struct AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Symbolic>;
 template struct AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Predicate>;
-template struct AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Symbolic, AUTOQ::Symbol::Predicate>;
