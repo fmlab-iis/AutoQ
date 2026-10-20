@@ -23,7 +23,7 @@ static bool call_smt_solver(const std::string &var_defs, const std::string &asse
     std::string result = AUTOQ::Util::ShellCmd(smt_input);
     // std::cout << result << "\n";
     // auto duration = chrono::steady_clock::now() - start;
-    // std::cout << AUTOQ::Util::print_duration(duration) << "\n";
+    // std::cout << AUTOQ::Util::Convert::ToString(duration) << "\n";
     #else
     // std::cout << Z3_get_full_version() << "\n";
     z3::context c;

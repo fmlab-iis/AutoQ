@@ -27,7 +27,6 @@ namespace AUTOQ
         #if 0
         std::string ShellCmd(const std::vector<std::string> &cmd);
         #endif
-        std::string print_duration(const std::chrono::steady_clock::duration &tp);
         size_t getPeakRSS();
         size_t getCurrentRSS();
 

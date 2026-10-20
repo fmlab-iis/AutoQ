@@ -155,7 +155,7 @@ void AUTOQ::Automata<Symbol>::CX(int c, int t, bool opt) {
     stats_->gateCount++;
     auto duration = std::chrono::steady_clock::now() - start;
     stats_->total_gate_time += duration;
-    if (stats_->gateLog) std::cout << "CX" << c << "," << t << "：" << stateNum << " states " << count_transitions() << " transitions " << AUTOQ::Util::print_duration(duration) << "\n";
+    if (stats_->gateLog) std::cout << "CX" << c << "," << t << "：" << stateNum << " states " << count_transitions() << " transitions " << AUTOQ::Util::Convert::ToString(duration) << "\n";
 }
     // }*/
 template <typename Symbol>
@@ -422,7 +422,7 @@ void AUTOQ::Automata<Symbol>::CZ(int c, int t) {
     stats_->gateCount++;
     auto duration = std::chrono::steady_clock::now() - start;
     stats_->total_gate_time += duration;
-    if (stats_->gateLog) std::cout << "CZ" << c << "," << t << "：" << stateNum << " states " << count_transitions() << " transitions " << AUTOQ::Util::print_duration(duration) << "\n";
+    if (stats_->gateLog) std::cout << "CZ" << c << "," << t << "：" << stateNum << " states " << count_transitions() << " transitions " << AUTOQ::Util::Convert::ToString(duration) << "\n";
 }
 
 template <typename Symbol>
@@ -731,7 +731,7 @@ void AUTOQ::Automata<Symbol>::CCX(int c, int c2, int t) {
     stats_->gateCount++;
     auto duration = std::chrono::steady_clock::now() - start;
     stats_->total_gate_time += duration;
-    if (stats_->gateLog) std::cout << "CCX" << c << "," << c2 << "," << t << "：" << stateNum << " states " << count_transitions() << " transitions " << AUTOQ::Util::print_duration(duration) << "\n";
+    if (stats_->gateLog) std::cout << "CCX" << c << "," << c2 << "," << t << "：" << stateNum << " states " << count_transitions() << " transitions " << AUTOQ::Util::Convert::ToString(duration) << "\n";
 }
 
 template struct AUTOQ::Automata<AUTOQ::Symbol::Concrete>;
