@@ -16,30 +16,32 @@ namespace {
 const std::regex kExtendedDirac("Extended +Dirac");
 }
 
-template <typename Symbol>
-AUTOQ::Automata<Symbol> AUTOQ::Parsing::TimbukParser<Symbol>::parse_extended_dirac_from_istream(std::istream *is, bool throw_on_undefined, bool* out_encountered_undefined, const std::map<std::string, AUTOQ::Complex::Complex> &constants, const std::string &predicateConstraints) {
+namespace AUTOQ::Parsing {
+/// Reads an Extended Dirac file body: skips blank lines, requires the
+/// "Extended Dirac" header first, and returns the remaining lines, each
+/// followed by '\n' (ANTLR needs the newlines).
+inline std::string read_extended_dirac_body(std::istream &is) {
     bool start_transitions = false;
     std::string line;
-    std::string extended_dirac;
-
-    while (std::getline(*is, line))
-    {
-		line = AUTOQ::String::trim(line);
-		if (line.empty())
-            continue;
-		else if (!start_transitions)
-        {
-            if (std::regex_search(line, kExtendedDirac))
-            {
-                start_transitions = true;
-                continue;
-            } else {
+    std::string body;
+    while (std::getline(is, line)) {
+        line = AUTOQ::String::trim(line);
+        if (line.empty()) continue;
+        if (!start_transitions) {
+            if (!std::regex_search(line, kExtendedDirac))
                 THROW_AUTOQ_ERROR("The section \"Extended Dirac\" should be declared first before specifying the states.");
-            }
+            start_transitions = true;
         } else {
-            extended_dirac += line + '\n';
+            body += line + '\n';
         }
     }
+    return body;
+}
+}  // namespace AUTOQ::Parsing
+
+template <typename Symbol>
+AUTOQ::Automata<Symbol> AUTOQ::Parsing::TimbukParser<Symbol>::parse_extended_dirac_from_istream(std::istream *is, bool throw_on_undefined, bool* out_encountered_undefined, const std::map<std::string, AUTOQ::Complex::Complex> &constants, const std::string &predicateConstraints) {
+    std::string extended_dirac = read_extended_dirac_body(*is);
 
     /****************************************
     * Parse the Extended Dirac with ANTLR v4.
@@ -73,25 +75,7 @@ AUTOQ::Parsing::TimbukParser<Symbol>::parse_n_extended_diracs_from_istream(std::
     std::vector<std::vector<std::string>> exprs(isVec.size());
     int i = 0;
     for (std::istream *is : isVec) {
-        bool start_transitions = false;
-        std::string line;
-        while (std::getline(*is, line))
-        {
-            line = AUTOQ::String::trim(line);
-            if (line.empty()) { continue; }
-            else if (!start_transitions)
-            {
-                if (std::regex_search(line, kExtendedDirac))
-                {
-                    start_transitions = true;
-                    continue;
-                } else {
-                    THROW_AUTOQ_ERROR("The section \"Extended Dirac\" should be declared first before specifying the states.");
-                }
-            } else { // processing states
-                extended_dirac[i] += line + '\n'; // Do NOT miss '\n' for the ANTLR to parse correctly with '\n'
-            }
-        }
+        extended_dirac[i] = read_extended_dirac_body(*is);
         EvaluationVisitor<Symbol> visitor({constantsVec[i]}, {predicateConstraintsVec[i]});
         visitor.mode = EvaluationVisitor<Symbol>::EXPAND_POWER_AND_DIRACS_AND_REWRITE_COMPLEMENT;
         auto extended_dirac2 = std::any_cast<std::string>(visitor.let_visitor_parse_string(extended_dirac[i]));

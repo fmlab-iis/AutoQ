@@ -22,6 +22,19 @@
 #include "autoq/parsing/parser/timbuk_parser_transitions.hh"
 #include "autoq/parsing/parser/timbuk_parser_dirac.hh"
 
+namespace AUTOQ::Parsing {
+/// Appends the SMT form of each line of a Constraints section to `target`,
+/// then wraps the result in (and ...), or sets it to "true" if it is empty.
+inline void append_constraints_as_smt(std::string &target, const std::string &constraints,
+                                      const std::map<std::string, AUTOQ::Complex::Complex> &constants) {
+    std::stringstream ss(AUTOQ::String::trim(constraints));
+    std::string constraint;
+    while (std::getline(ss, constraint, '\n'))
+        target += EvaluationVisitor<>::ConstraintParser(constraint, constants).getSMTexpression();
+    target = target.empty() ? "true" : "(and " + target + ")";
+}
+}  // namespace AUTOQ::Parsing
+
 template <typename Symbol>
 AUTOQ::Automata<Symbol> AUTOQ::Parsing::TimbukParser<Symbol>::ReadAutomaton(const std::string& filepath) {
     return AUTOQ::Parsing::TimbukParser<Symbol>::ReadAutomaton(filepath, true, nullptr);
@@ -51,15 +64,7 @@ try {
     }
 
     if constexpr (std::is_same_v<Symbol, AUTOQ::Symbol::Symbolic>) {
-        std::stringstream ss(AUTOQ::String::trim(constraints));
-        std::string constraint;
-        while (std::getline(ss, constraint, '\n')) {
-            result.constraints += EvaluationVisitor<>::ConstraintParser(constraint, constants).getSMTexpression();
-        }
-        if (!result.constraints.empty())
-            result.constraints = "(and " + result.constraints + ")";
-        else
-            result.constraints = "true";
+        append_constraints_as_smt(result.constraints, constraints, constants);
     }
     return result;
 } catch (AutoQError &e) {
@@ -106,19 +111,8 @@ try {
         THROW_AUTOQ_ERROR(AUTOQ::ErrorMessages::kFilenameExtensionUnsupported);
     }
 
-    int index = 0;
-    for (auto &aut : autVec) {
-        std::stringstream ss(AUTOQ::String::trim(constraints[index]));
-            std::string constraint;
-            while (std::getline(ss, constraint, '\n')) {
-                aut.constraints += EvaluationVisitor<>::ConstraintParser(constraint, constants[index]).getSMTexpression();
-            }
-            if (!(aut.constraints).empty())
-                aut.constraints = "(and " + aut.constraints + ")";
-            else
-                aut.constraints = "true";
-        index++;
-    }
+    for (size_t i = 0; i < autVec.size(); ++i)
+        append_constraints_as_smt(autVec[i].constraints, constraints[i], constants[i]);
     return std::make_pair(autVec, qp);
 } catch (AutoQError &e) {
     AUTOQ::Util::Log::error(e.what());
