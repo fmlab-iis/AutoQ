@@ -13,7 +13,10 @@ size_t peakSize    = AUTOQ::Util::getPeakRSS();
 
 #include "autoq/util/util.hh"
 
-#if defined(_WIN32)
+#if defined(__EMSCRIPTEN__)
+#include <emscripten/heap.h>
+
+#elif defined(_WIN32)
 #include <windows.h>
 #include <psapi.h>
 
@@ -45,7 +48,14 @@ size_t peakSize    = AUTOQ::Util::getPeakRSS();
  */
 size_t AUTOQ::Util::getPeakRSS()
 {
-#if defined(_WIN32)
+#if defined(__EMSCRIPTEN__)
+    /* WebAssembly ---------------------------------------------- */
+    /* The linear memory only grows, so its size is both the current
+     * and the peak footprint. (Emscripten's getrusage() does not fill in
+     * ru_maxrss.) */
+    return emscripten_get_heap_size();
+
+#elif defined(_WIN32)
     /* Windows -------------------------------------------------- */
     PROCESS_MEMORY_COUNTERS info;
     GetProcessMemoryInfo( GetCurrentProcess( ), &info, sizeof(info) );
@@ -91,7 +101,14 @@ size_t AUTOQ::Util::getPeakRSS()
  */
 size_t AUTOQ::Util::getCurrentRSS()
 {
-#if defined(_WIN32)
+#if defined(__EMSCRIPTEN__)
+    /* WebAssembly ---------------------------------------------- */
+    /* The linear memory only grows, so its size is both the current
+     * and the peak footprint. (Emscripten's getrusage() does not fill in
+     * ru_maxrss.) */
+    return emscripten_get_heap_size();
+
+#elif defined(_WIN32)
     /* Windows -------------------------------------------------- */
     PROCESS_MEMORY_COUNTERS info;
     GetProcessMemoryInfo( GetCurrentProcess( ), &info, sizeof(info) );

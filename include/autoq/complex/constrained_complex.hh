@@ -33,79 +33,43 @@ struct AUTOQ::Complex::ConstrainedComplex : std::map<int, std::tuple<std::string
     ConstrainedComplex& operator+=(const ConstrainedComplex &o) { *this = *this + o; return *this; }
     ConstrainedComplex operator*(const ConstrainedComplex &o) const {
         AUTOQ::Complex::ConstrainedComplex result;
-
-        if (this->size() < o.size()) {
-            for (const auto &[k, v] : *this) {
-                auto it = o.find(k);
-                if (it != o.end()) { // we only merge common terms (keys)
-                    std::tuple<std::string, std::vector<bool>, std::vector<bool>> obj;
-                    const auto &w = it->second;
-                    if (std::get<0>(v) != std::get<0>(w)) {
-                        THROW_AUTOQ_ERROR("One term can only have one coefficient!");
-                    } else {
-                        std::get<0>(obj) = std::get<0>(v);
-                    }
-                    if (std::get<1>(v).size() != std::get<1>(w).size()) {
-                        THROW_AUTOQ_ERROR("All terms should have the same number of global constraints!");
-                    } else {
-                        const auto &a = std::get<1>(v);
-                        const auto &b = std::get<1>(w);
-                        auto &c = std::get<1>(obj);
-                        c.resize(a.size());
-                        for (size_t i = 0; i < a.size(); ++i) {
-                            c[i] = a[i] || b[i]; // merge global constraints
-                        }
-                    }
-                    if (std::get<2>(v).size() != std::get<2>(w).size()) {
-                        THROW_AUTOQ_ERROR("The same terms should have the same number of local constraints!");
-                    } else {
-                        const auto &a = std::get<2>(v);
-                        const auto &b = std::get<2>(w);
-                        auto &c = std::get<2>(obj);
-                        c.resize(a.size());
-                        for (size_t i = 0; i < a.size(); ++i) {
-                            c[i] = a[i] || b[i]; // merge global constraints
-                        }
-                    }
-                    result[k] = obj;
+        // Iterate over the smaller operand and look terms up in the larger one;
+        // the merge below is symmetric, so the choice does not affect the result.
+        const ConstrainedComplex &small = (this->size() < o.size()) ? *this : o;
+        const ConstrainedComplex &large = (this->size() < o.size()) ? o : *this;
+        for (const auto &[k, v] : small) {
+            auto it = large.find(k);
+            if (it == large.end()) continue; // we only merge common terms (keys)
+            std::tuple<std::string, std::vector<bool>, std::vector<bool>> obj;
+            const auto &w = it->second;
+            if (std::get<0>(v) != std::get<0>(w)) {
+                THROW_AUTOQ_ERROR("One term can only have one coefficient!");
+            } else {
+                std::get<0>(obj) = std::get<0>(v);
+            }
+            if (std::get<1>(v).size() != std::get<1>(w).size()) {
+                THROW_AUTOQ_ERROR("All terms should have the same number of global constraints!");
+            } else {
+                const auto &a = std::get<1>(v);
+                const auto &b = std::get<1>(w);
+                auto &c = std::get<1>(obj);
+                c.resize(a.size());
+                for (size_t i = 0; i < a.size(); ++i) {
+                    c[i] = a[i] || b[i]; // merge global constraints
                 }
             }
-        } else {
-            for (const auto &[k, v] : o) {
-                auto it = this->find(k);
-                if (it != this->end()) { // we only merge common terms (keys)
-                    std::tuple<std::string, std::vector<bool>, std::vector<bool>> obj;
-                    const auto &w = it->second;
-                    if (std::get<0>(v) != std::get<0>(w)) {
-                        THROW_AUTOQ_ERROR("One term can only have one coefficient!");
-                    } else {
-                        std::get<0>(obj) = std::get<0>(v);
-                    }
-                    if (std::get<1>(v).size() != std::get<1>(w).size()) {
-                        THROW_AUTOQ_ERROR("All terms should have the same number of global constraints!");
-                    } else {
-                        const auto &a = std::get<1>(v);
-                        const auto &b = std::get<1>(w);
-                        auto &c = std::get<1>(obj);
-                        c.resize(a.size());
-                        for (size_t i = 0; i < a.size(); ++i) {
-                            c[i] = a[i] || b[i]; // merge global constraints
-                        }
-                    }
-                    if (std::get<2>(v).size() != std::get<2>(w).size()) {
-                        THROW_AUTOQ_ERROR("The same terms should have the same number of local constraints!");
-                    } else {
-                        const auto &a = std::get<2>(v);
-                        const auto &b = std::get<2>(w);
-                        auto &c = std::get<2>(obj);
-                        c.resize(a.size());
-                        for (size_t i = 0; i < a.size(); ++i) {
-                            c[i] = a[i] || b[i]; // merge global constraints
-                        }
-                    }
-                    result[k] = obj;
+            if (std::get<2>(v).size() != std::get<2>(w).size()) {
+                THROW_AUTOQ_ERROR("The same terms should have the same number of local constraints!");
+            } else {
+                const auto &a = std::get<2>(v);
+                const auto &b = std::get<2>(w);
+                auto &c = std::get<2>(obj);
+                c.resize(a.size());
+                for (size_t i = 0; i < a.size(); ++i) {
+                    c[i] = a[i] || b[i]; // merge local constraints
                 }
             }
+            result[k] = obj;
         }
         return result;
     }

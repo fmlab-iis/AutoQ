@@ -13,7 +13,7 @@
 
 #include <queue>
 
-template <typename Symbol = AUTOQ::Symbol::Concrete, typename Symbol2 = Symbol>
+template <typename Symbol = AUTOQ::Symbol::Concrete>
 struct EvaluationVisitor : public ExtendedDiracParserBaseVisitor {
     using Complex = AUTOQ::Complex::Complex;
 #include "ExtendedDiracParsers.hh"
@@ -61,7 +61,6 @@ struct EvaluationVisitor : public ExtendedDiracParserBaseVisitor {
     segment2perm_t segment2perm;
     perm_t currentPerm;
     std::vector<size_t> remember_the_lengths_of_each_unit_position;
-    bool switch_symbol_to_second;
     bool tolerate_undefined_term;   // if true, set encountered_undefined_term instead of throwing
     bool encountered_undefined_term;
     std::set<std::string> used_vars;
@@ -81,7 +80,6 @@ struct EvaluationVisitor : public ExtendedDiracParserBaseVisitor {
         segment2perm(),
         currentPerm(),
         remember_the_lengths_of_each_unit_position(),
-        switch_symbol_to_second(false),
         tolerate_undefined_term(false),
         encountered_undefined_term(false),
         used_vars(),

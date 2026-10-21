@@ -80,21 +80,13 @@ static void test_gate_inverse_equivalence(
 
 /** Run single-folder benchmark: ReadTwoAutomata, execute, check inclusion. */
 static void run_single_folder_benchmark(const char* test_file, const std::string& rel_path,
-                                        bool expect_inclusion, bool use_symbolic_symbolic = false) {
+                                        bool expect_inclusion) {
     std::string folder = test_dir_from_file(test_file, rel_path);
-    if (use_symbolic_symbolic) {
-        auto [autVec, qp] = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Symbolic, AUTOQ::Symbol::Symbolic>::ReadTwoAutomata(folder + "/pre.hsl", folder + "/post.hsl");
-        auto aut2 = autVec.at(0);
-        auto spec2 = autVec.at(1);
-        aut2.execute(folder + "/circuit.qasm", qp);
-        BOOST_REQUIRE_MESSAGE(expect_inclusion == (aut2 <<= spec2), folder + " failed!");
-    } else {
-        auto [autVec, qp] = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Symbolic>::ReadTwoAutomata(folder + "/pre.hsl", folder + "/post.hsl");
-        auto aut2 = autVec.at(0);
-        auto spec2 = autVec.at(1);
-        aut2.execute(folder + "/circuit.qasm", qp);
-        BOOST_REQUIRE_MESSAGE(expect_inclusion == (aut2 <<= spec2), folder + " failed!");
-    }
+    auto [autVec, qp] = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Symbolic>::ReadTwoAutomata(folder + "/pre.hsl", folder + "/post.hsl");
+    auto aut2 = autVec.at(0);
+    auto spec2 = autVec.at(1);
+    aut2.execute(folder + "/circuit.qasm", qp);
+    BOOST_REQUIRE_MESSAGE(expect_inclusion == (aut2 <<= spec2), folder + " failed!");
 }
 
 /** Shared benchmark verification: reads pre/post, executes circuit, checks inclusion. */
@@ -102,7 +94,7 @@ template<typename SymbolType>
 void run_benchmark_verification(const char* test_file, const std::string& benchmark_rel_path, int max_size = kMaxBenchmarkSize) {
     std::string benchmarks = test_dir_from_file(test_file, benchmark_rel_path);
     for_each_benchmark_case(benchmarks, [](const std::string& folder) {
-        auto [autVec, qp] = AUTOQ::Parsing::TimbukParser<SymbolType, SymbolType>::ReadTwoAutomata(folder + "/pre.hsl", folder + "/post.hsl");
+        auto [autVec, qp] = AUTOQ::Parsing::TimbukParser<SymbolType>::ReadTwoAutomata(folder + "/pre.hsl", folder + "/post.hsl");
         auto aut2 = autVec.at(0);
         auto spec2 = autVec.at(1);
         aut2.execute(folder + "/circuit.qasm", qp);
@@ -555,7 +547,7 @@ BOOST_AUTO_TEST_CASE(benchmarks_H2BugSym)
 
 BOOST_AUTO_TEST_CASE(benchmarks_BVBugSym)
 {
-    run_single_folder_benchmark(__FILE__, "../benchmarks/all/BVBugSym/", false, true);
+    run_single_folder_benchmark(__FILE__, "../benchmarks/all/BVBugSym/", false);
 }
 
 BOOST_AUTO_TEST_CASE(benchmarks_RUS)

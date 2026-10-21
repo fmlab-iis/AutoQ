@@ -39,7 +39,7 @@ void AUTOQ::Automata<Symbol>::Swap(int t1, int t2) {
     stats_->gateCount++;
     auto duration = std::chrono::steady_clock::now() - start;
     // total_gate_time += 0;
-    if (stats_->gateLog) std::cout << "swap" << t1 << "," << t2 << "：" << stateNum << " states " << count_transitions() << " transitions " << AUTOQ::Util::print_duration(duration) << "\n";
+    if (stats_->gateLog) std::cout << "swap" << t1 << "," << t2 << "：" << stateNum << " states " << count_transitions() << " transitions " << AUTOQ::Util::Convert::ToString(duration) << "\n";
 }
 
 template <typename Symbol>
@@ -77,7 +77,7 @@ void AUTOQ::Automata<Symbol>::CX() {
     reduce();
     stats_->gateCount++;
     // auto duration = std::chrono::steady_clock::now() - start;
-    // if (stats_->gateLog) std::cout << "CNOT" << c << "," << t << "：" << stateNum << " states " << count_transitions() << " transitions " << AUTOQ::Util::print_duration(duration) << "\n";
+    // if (stats_->gateLog) std::cout << "CNOT" << c << "," << t << "：" << stateNum << " states " << count_transitions() << " transitions " << AUTOQ::Util::Convert::ToString(duration) << "\n";
 }
 
 template <typename Symbol>
@@ -112,7 +112,7 @@ void AUTOQ::Automata<Symbol>::CK(int c, int t) {
     reduce();
     stats_->gateCount++;
     auto duration = std::chrono::steady_clock::now() - start;
-    if (stats_->gateLog) std::cout << "CK" << c << "," << t << "：" << stateNum << " states " << count_transitions() << " transitions " << AUTOQ::Util::print_duration(duration) << "\n";
+    if (stats_->gateLog) std::cout << "CK" << c << "," << t << "：" << stateNum << " states " << count_transitions() << " transitions " << AUTOQ::Util::Convert::ToString(duration) << "\n";
 }
 
 template <typename Symbol>
@@ -133,7 +133,7 @@ AUTOQ::Automata<Symbol> AUTOQ::Automata<Symbol>::measure(int t, bool outcome) co
     // }
     stats_->gateCount++;
     auto duration = std::chrono::steady_clock::now() - start;
-    if (stats_->gateLog) std::cout << "measure " << t << "：" << aut.stateNum << " states " << aut.count_transitions() << " transitions " << AUTOQ::Util::print_duration(duration) << "\n";
+    if (stats_->gateLog) std::cout << "measure " << t << "：" << aut.stateNum << " states " << aut.count_transitions() << " transitions " << AUTOQ::Util::Convert::ToString(duration) << "\n";
     return aut;
 }
 
