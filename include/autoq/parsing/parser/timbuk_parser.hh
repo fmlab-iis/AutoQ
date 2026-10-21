@@ -20,7 +20,7 @@ namespace AUTOQ
 {
 	namespace Parsing
 	{
-		template <typename SymbolType, typename SymbolType2 = SymbolType>
+		template <typename SymbolType>
         struct TimbukParser;
 	}
 }
@@ -31,7 +31,7 @@ namespace AUTOQ
  *
  * This class is a parser for automata in the Timbuk format.
  */
-template <typename SymbolType, typename SymbolType2>
+template <typename SymbolType>
 struct AUTOQ::Parsing::TimbukParser
 {
     // static AUTOQ::Automata<SymbolType> ParseString(std::string fileContents);

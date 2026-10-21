@@ -92,8 +92,6 @@ public:
         nanoseconds ns = duration_cast<nanoseconds>(tp);
         typedef duration<int, ratio<86400>> days;
         std::stringstream ss;
-        char fill = ss.fill();
-        ss.fill('0');
         auto d = duration_cast<days>(ns);
         ns -= d;
         auto h = duration_cast<hours>(ns);
@@ -114,7 +112,6 @@ public:
             if (m.count() > 0) ss << m.count() << 'm';
             ss << s.count() << 's';// << " & ";
         }
-        ss.fill(fill);
         return ss.str();
     }
 

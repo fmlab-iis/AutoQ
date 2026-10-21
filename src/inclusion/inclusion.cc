@@ -160,7 +160,7 @@ bool AUTOQ::Automata<Symbol>::operator<=(const Automata<Symbol> &autB) const {
     return result;
 }
 
-// (Symbolic inclusion: check_validity, scaled_inclusion, SymbolicAutomata::operator<<= in inclusion_symbolic.cc)
+// (Symbolic inclusion: scaled_inclusion, SymbolicAutomata::operator<<= in inclusion_symbolic.cc)
 // (ConcreteAutomata::operator<<= in inclusion_concrete.cc)
 
 template <>

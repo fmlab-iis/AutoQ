@@ -30,10 +30,7 @@
 #include "autoq/symbol/predicate.hh"
 #include "autoq/parsing/parser/timbuk_parser.hh"
 #include "autoq/parsing/parser/timbuk_parser_util.hh"
-#include "autoq/parsing/complex_parser.hh"
 #include "autoq/complex/symbolic_complex.hh"
-#include "autoq/parsing/symboliccomplex_parser.hh"
-#include "autoq/parsing/constraint_parser.hh"
 
 // ANTLR4 headers
 #include "autoq/parsing/ExtendedDirac/EvaluationVisitor.h"
@@ -69,4 +66,3 @@ std::variant<AUTOQ::Automata<AUTOQ::Symbol::Concrete>, AUTOQ::Automata<AUTOQ::Sy
 template struct AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Concrete>;
 template struct AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Symbolic>;
 template struct AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Predicate>;
-template struct AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Symbolic, AUTOQ::Symbol::Predicate>;

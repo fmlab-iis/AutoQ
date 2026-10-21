@@ -39,13 +39,9 @@ bool inclusion_index_compare(const IndexAutomata &autA, const IndexAutomata &aut
         bfs.pop();
         // List all possible transition combinations of A in this vertex first!
         std::map<IndexAutomata::State, typename std::map<IndexAutomata::SymbolTag, IndexAutomata::StateVector>::iterator> A_transition_combinations;
-        std::map<IndexAutomata::State, std::vector<IndexAutomata::Tag>> possible_colors_for_qA; // Elements may repeat in the vector!
         for (const auto& qA_qBs : *(vertex.begin())) {
             auto qA = qA_qBs.first;
             A_transition_combinations[qA] = transA[qA].begin();
-            for (const auto &fc_in : transA[qA]) {
-                possible_colors_for_qA[qA].push_back(fc_in.first.tag());
-            }
         }
         bool have_listed_all_combinationsA = false;
         do { // Construct one new vertex for each possible combination of A's transitions.

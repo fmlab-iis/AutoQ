@@ -16,30 +16,32 @@ namespace {
 const std::regex kExtendedDirac("Extended +Dirac");
 }
 
-template <typename Symbol, typename Symbol2>
-AUTOQ::Automata<Symbol> AUTOQ::Parsing::TimbukParser<Symbol, Symbol2>::parse_extended_dirac_from_istream(std::istream *is, bool throw_on_undefined, bool* out_encountered_undefined, const std::map<std::string, AUTOQ::Complex::Complex> &constants, const std::string &predicateConstraints) {
+namespace AUTOQ::Parsing {
+/// Reads an Extended Dirac file body: skips blank lines, requires the
+/// "Extended Dirac" header first, and returns the remaining lines, each
+/// followed by '\n' (ANTLR needs the newlines).
+inline std::string read_extended_dirac_body(std::istream &is) {
     bool start_transitions = false;
     std::string line;
-    std::string extended_dirac;
-
-    while (std::getline(*is, line))
-    {
-		line = AUTOQ::String::trim(line);
-		if (line.empty())
-            continue;
-		else if (!start_transitions)
-        {
-            if (std::regex_search(line, kExtendedDirac))
-            {
-                start_transitions = true;
-                continue;
-            } else {
+    std::string body;
+    while (std::getline(is, line)) {
+        line = AUTOQ::String::trim(line);
+        if (line.empty()) continue;
+        if (!start_transitions) {
+            if (!std::regex_search(line, kExtendedDirac))
                 THROW_AUTOQ_ERROR("The section \"Extended Dirac\" should be declared first before specifying the states.");
-            }
+            start_transitions = true;
         } else {
-            extended_dirac += line + '\n';
+            body += line + '\n';
         }
     }
+    return body;
+}
+}  // namespace AUTOQ::Parsing
+
+template <typename Symbol>
+AUTOQ::Automata<Symbol> AUTOQ::Parsing::TimbukParser<Symbol>::parse_extended_dirac_from_istream(std::istream *is, bool throw_on_undefined, bool* out_encountered_undefined, const std::map<std::string, AUTOQ::Complex::Complex> &constants, const std::string &predicateConstraints) {
+    std::string extended_dirac = read_extended_dirac_body(*is);
 
     /****************************************
     * Parse the Extended Dirac with ANTLR v4.
@@ -64,38 +66,20 @@ AUTOQ::Automata<Symbol> AUTOQ::Parsing::TimbukParser<Symbol, Symbol2>::parse_ext
         *out_encountered_undefined = true;
     return final;
 }
-template <typename Symbol, typename Symbol2>
+template <typename Symbol>
 std::pair<std::vector<AUTOQ::Automata<Symbol>>, std::vector<int>>
-AUTOQ::Parsing::TimbukParser<Symbol, Symbol2>::parse_n_extended_diracs_from_istream(std::vector<std::istream*> isVec,
+AUTOQ::Parsing::TimbukParser<Symbol>::parse_n_extended_diracs_from_istream(std::vector<std::istream*> isVec,
                                                                               const std::vector<std::map<std::string, AUTOQ::Complex::Complex>> &constantsVec,
                                                                               const std::vector<std::string> &predicateConstraintsVec) {
     std::vector<std::string> extended_dirac(isVec.size());
     std::vector<std::vector<std::string>> exprs(isVec.size());
     int i = 0;
     for (std::istream *is : isVec) {
-        bool start_transitions = false;
-        std::string line;
-        while (std::getline(*is, line))
-        {
-            line = AUTOQ::String::trim(line);
-            if (line.empty()) { continue; }
-            else if (!start_transitions)
-            {
-                if (std::regex_search(line, kExtendedDirac))
-                {
-                    start_transitions = true;
-                    continue;
-                } else {
-                    THROW_AUTOQ_ERROR("The section \"Extended Dirac\" should be declared first before specifying the states.");
-                }
-            } else { // processing states
-                extended_dirac[i] += line + '\n'; // Do NOT miss '\n' for the ANTLR to parse correctly with '\n'
-            }
-        }
-        EvaluationVisitor<Symbol, Symbol2> visitor({constantsVec[i]}, {predicateConstraintsVec[i]});
-        visitor.mode = EvaluationVisitor<Symbol, Symbol2>::EXPAND_POWER_AND_DIRACS_AND_REWRITE_COMPLEMENT;
+        extended_dirac[i] = read_extended_dirac_body(*is);
+        EvaluationVisitor<Symbol> visitor({constantsVec[i]}, {predicateConstraintsVec[i]});
+        visitor.mode = EvaluationVisitor<Symbol>::EXPAND_POWER_AND_DIRACS_AND_REWRITE_COMPLEMENT;
         auto extended_dirac2 = std::any_cast<std::string>(visitor.let_visitor_parse_string(extended_dirac[i]));
-        visitor.mode = EvaluationVisitor<Symbol, Symbol2>::SPLIT_TENSORED_EXPRESSION_INTO_VECTOR_OF_SETS_WITHOUT_TENSOR;
+        visitor.mode = EvaluationVisitor<Symbol>::SPLIT_TENSORED_EXPRESSION_INTO_VECTOR_OF_SETS_WITHOUT_TENSOR;
         exprs[i] = std::any_cast<std::vector<std::string>>(visitor.let_visitor_parse_string(extended_dirac2)); // now we assume it does NOT contain SETMINUS
         /**/
         i++;
@@ -114,10 +98,10 @@ AUTOQ::Parsing::TimbukParser<Symbol, Symbol2>::parse_n_extended_diracs_from_istr
         auto new_composited_expression = exprs[0][i];
         for (size_t j=1; j<exprs.size(); j++)
             new_composited_expression += " ; " + exprs[j][i];
-        EvaluationVisitor<Symbol, Symbol2> visitor(constantsVec, predicateConstraintsVec); // any pair of constants and predicates can do
-        visitor.mode = EvaluationVisitor<Symbol, Symbol2>::COLLECT_KETS_AND_COMPUTE_UNIT_DECOMPOSITION_INDICES;
-        typename EvaluationVisitor<Symbol, Symbol2>::segment2split_t segment2split = std::any_cast<typename EvaluationVisitor<Symbol, Symbol2>::segment2split_t>(visitor.let_visitor_parse_string(new_composited_expression));
-        visitor.mode = EvaluationVisitor<Symbol, Symbol2>::REWRITE_BY_UNIT_INDICES_AND_MAKE_ALL_VARS_DISTINCT;
+        EvaluationVisitor<Symbol> visitor(constantsVec, predicateConstraintsVec); // any pair of constants and predicates can do
+        visitor.mode = EvaluationVisitor<Symbol>::COLLECT_KETS_AND_COMPUTE_UNIT_DECOMPOSITION_INDICES;
+        typename EvaluationVisitor<Symbol>::segment2split_t segment2split = std::any_cast<typename EvaluationVisitor<Symbol>::segment2split_t>(visitor.let_visitor_parse_string(new_composited_expression));
+        visitor.mode = EvaluationVisitor<Symbol>::REWRITE_BY_UNIT_INDICES_AND_MAKE_ALL_VARS_DISTINCT;
         visitor.segment2split = segment2split;
         auto extended_diracC = std::any_cast<std::string>(visitor.let_visitor_parse_string(new_composited_expression));
 
@@ -132,8 +116,8 @@ AUTOQ::Parsing::TimbukParser<Symbol, Symbol2>::parse_n_extended_diracs_from_istr
         }
         /*********************************************************************************/
 
-        visitor.mode = EvaluationVisitor<Symbol, Symbol2>::COMPUTE_CONNECTED_UNITS_INTO_A_GROUP_RELATION;
-        auto segment2perm = std::any_cast<typename EvaluationVisitor<Symbol, Symbol2>::segment2perm_t>(visitor.let_visitor_parse_string(extended_diracC));
+        visitor.mode = EvaluationVisitor<Symbol>::COMPUTE_CONNECTED_UNITS_INTO_A_GROUP_RELATION;
+        auto segment2perm = std::any_cast<typename EvaluationVisitor<Symbol>::segment2perm_t>(visitor.let_visitor_parse_string(extended_diracC));
         if (segment2perm.size() != 1) {
             THROW_AUTOQ_ERROR("We only process one tensor segment at a time.");
         }
@@ -179,12 +163,12 @@ AUTOQ::Parsing::TimbukParser<Symbol, Symbol2>::parse_n_extended_diracs_from_istr
 }
 
 template <typename Symbol>
-AUTOQ::Automata<Symbol> parse_extended_dirac(const std::string& str, const std::map<std::string, Complex> &constants, const std::string &predicateConstraints, bool throw_on_undefined, bool* out_encountered_undefined) {
+AUTOQ::Automata<Symbol> parse_extended_dirac(const std::string& str, const std::map<std::string, AUTOQ::Complex::Complex> &constants, const std::string &predicateConstraints, bool throw_on_undefined, bool* out_encountered_undefined) {
     std::istringstream inputStream(str);
     return AUTOQ::Parsing::TimbukParser<Symbol>::parse_extended_dirac_from_istream(&inputStream, throw_on_undefined, out_encountered_undefined, constants, predicateConstraints);
 }
-template <typename Symbol, typename Symbol2>
-std::pair<std::vector<AUTOQ::Automata<Symbol>>, std::vector<int>> parse_n_extended_diracs(const std::vector<std::string>& strVec, const std::vector<std::map<std::string, Complex>> &constantsVec, const std::vector<std::string> &predicateConstraintsVec) {
+template <typename Symbol>
+std::pair<std::vector<AUTOQ::Automata<Symbol>>, std::vector<int>> parse_n_extended_diracs(const std::vector<std::string>& strVec, const std::vector<std::map<std::string, AUTOQ::Complex::Complex>> &constantsVec, const std::vector<std::string> &predicateConstraintsVec) {
     std::vector<std::istringstream> streamStorage;
     std::vector<std::istream*> istreamVec;
     streamStorage.reserve(strVec.size());
@@ -193,7 +177,7 @@ std::pair<std::vector<AUTOQ::Automata<Symbol>>, std::vector<int>> parse_n_extend
         streamStorage.emplace_back(str);
         istreamVec.push_back(&streamStorage.back());
     }
-    return AUTOQ::Parsing::TimbukParser<Symbol, Symbol2>::parse_n_extended_diracs_from_istream(istreamVec, constantsVec, predicateConstraintsVec);
+    return AUTOQ::Parsing::TimbukParser<Symbol>::parse_n_extended_diracs_from_istream(istreamVec, constantsVec, predicateConstraintsVec);
 }
 
 #endif
