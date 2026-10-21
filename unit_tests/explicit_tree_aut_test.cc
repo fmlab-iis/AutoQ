@@ -13,6 +13,7 @@
 #include <filesystem>
 #include <fstream>
 #include <functional>
+#include <sstream>
 
 #include "autoq/error.hh"
 #include "autoq/inclusion.hh"
@@ -288,6 +289,39 @@ BOOST_AUTO_TEST_CASE(for_loop_summarization){
     bool verify = aut2.execute(folder + "/circuit.qasm", qp, autVec, params);
     verify &= (aut2 <<= spec2);
     BOOST_REQUIRE_MESSAGE(verify, folder + " failed!");
+}
+
+// Runs the circuit on the precondition and returns the printed set of states.
+static std::string execute_and_print(const std::string& pre, const std::string& circuit, const std::string& loop) {
+    auto [autVec, qp] = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Concrete>::ReadTwoAutomata(pre, pre, circuit);
+    auto aut = autVec.at(0);
+    autVec.erase(autVec.begin(), autVec.begin() + 2);
+    ParameterMap params;
+    params["loop"] = loop;
+    aut.execute(circuit, qp, autVec, params);
+    std::ostringstream out;
+    auto* old = std::cout.rdbuf(out.rdbuf());
+    aut.print_language();
+    std::cout.rdbuf(old);
+    return out.str();
+}
+
+// Loop summarization must give exactly the states that unrolling gives, also
+// when an iteration receives an amplitude with a nonzero imaginary part (#22).
+BOOST_AUTO_TEST_CASE(for_loop_summarization_complex_amplitudes){
+    std::string folder = test_dir_from_file(__FILE__, "testcase/ForLoopComplex/");
+    const std::vector<std::pair<std::string, std::string>> cases = {
+        {"complex_pre.hsl", "h_once.qasm"},
+        {"zero_pre.hsl", "ht_three_times.qasm"},
+        {"one_pre.hsl", "s_twice.qasm"},
+        {"two_qubit_pre.hsl", "two_qubit.qasm"},
+    };
+    for (const auto& [pre, circuit] : cases) {
+        auto unrolled = execute_and_print(folder + pre, folder + circuit, "manual");
+        auto summarized = execute_and_print(folder + pre, folder + circuit, "symbolic");
+        BOOST_CHECK_MESSAGE(unrolled == summarized,
+            pre + " + " + circuit + ": unrolled " + unrolled + " but summarized " + summarized);
+    }
 }
 
 
