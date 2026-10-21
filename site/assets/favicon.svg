@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <style>
+    rect { fill: #F5F5F0; }
+    text { fill: #1A1C21; }
+    path { stroke: #0B6B55; }
+    @media (prefers-color-scheme: dark) { rect { fill: #13171D; } text { fill: #E9E7E0; } path { stroke: #6CCBAA; } }
+  </style>
+  <rect width="64" height="64" rx="10"/>
+  <text x="32" y="47" text-anchor="middle" font-family="Didot, 'Bodoni 72', 'Bodoni Moda', Georgia, serif" font-style="italic" font-size="44">Q</text>
+  <path d="M32 52 V60" stroke-width="2.5"/>
+</svg>
