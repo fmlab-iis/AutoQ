@@ -1,0 +1,1680 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>AutoQ 2.0: quantum program verification</title>
+<meta name="description" content="AutoQ 2.0 is an automata-based C++ tool that verifies quantum programs. It checks Hoare triples {P} C {Q} over sets of pure quantum states, up to scaling, using tree automata.">
+<link rel="canonical" href="https://fmlab-iis.github.io/AutoQ/">
+<meta name="theme-color" content="#F5F5F0" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#13171D" media="(prefers-color-scheme: dark)">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="AutoQ">
+<meta property="og:url" content="https://fmlab-iis.github.io/AutoQ/">
+<meta property="og:title" content="AutoQ 2.0">
+<meta property="og:description" content="An automata-based C++ tool for quantum program verification. Checks Hoare triples {P} C {Q} over sets of pure quantum states, up to scaling.">
+<meta property="og:image" content="https://fmlab-iis.github.io/AutoQ/assets/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="AutoQ 2.0 title with the Hoare triple {P} C {Q} and a verified two-qubit example.">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image:alt" content="AutoQ 2.0 title with the Hoare triple {P} C {Q} and a verified two-qubit example.">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="assets/favicon-32.png" type="image/png" sizes="32x32">
+<link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+<link rel="preload" href="assets/fonts/bodoni-moda-normal-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="assets/fonts/bodoni-moda-italic-latin.woff2" as="font" type="font/woff2" crossorigin>
+<script>
+(function () {
+  var r = document.documentElement, t = null;
+  r.classList.add('js');
+  try { t = localStorage.getItem('autoq-theme'); } catch (e) {}
+  if (t === 'light' || t === 'dark') {
+    r.setAttribute('data-theme', t);
+    var ms = document.querySelectorAll('meta[name="theme-color"]');
+    for (var i = 0; i < ms.length; i++) ms[i].setAttribute('content', t === 'dark' ? '#13171D' : '#F5F5F0');
+  }
+})();
+</script>
+<style>
+/* Self-hosted subsets of Bodoni Moda, Instrument Sans, JetBrains Mono, Noto Sans Math and Noto Sans Mono (SIL OFL 1.1, see assets/fonts/OFL.txt). */
+@font-face {
+  font-family: 'Bodoni Moda';
+  font-style: italic;
+  font-weight: 400 700;
+  font-display: swap;
+  src: url(assets/fonts/bodoni-moda-italic-math.woff2) format('woff2');
+  unicode-range: U+0302-0303, U+0305, U+0307-0308, U+0310, U+0312, U+0315, U+031A, U+0326-0327, U+032C, U+032F-0330, U+0332-0333, U+0338, U+033A, U+0346, U+034D, U+0391-03A1, U+03A3-03A9, U+03B1-03C9, U+03D1, U+03D5-03D6, U+03F0-03F1, U+03F4-03F5, U+2016-2017, U+2034-2038, U+203C, U+2040, U+2043, U+2047, U+2050, U+2057, U+205F, U+2070-2071, U+2074-209F, U+20D0-20DC, U+20E1, U+20E5-20EF, U+2100-2112, U+2114-2115, U+2117-2121, U+2123-214F, U+2190, U+2192, U+2194-21AE, U+21B0-21E5, U+21F1-21F2, U+21F4-2211, U+2213-2214, U+2216-22FF, U+2308-230B, U+2310, U+2319, U+231C-2321, U+2336-237A, U+237C, U+2395, U+239B-23B7, U+23D0, U+23DC-23E1, U+2474-2475, U+25AF, U+25B3, U+25B7, U+25BD, U+25C1, U+25CA, U+25CC, U+25FB, U+266D-266F, U+27C0-27FF, U+2900-2AFF, U+2B0E-2B11, U+2B30-2B4C, U+2BFE, U+3030, U+FF5B, U+FF5D, U+1D400-1D7FF, U+1EE00-1EEFF;
+}
+@font-face {
+  font-family: 'Bodoni Moda';
+  font-style: italic;
+  font-weight: 400 700;
+  font-display: swap;
+  src: url(assets/fonts/bodoni-moda-italic-symbols.woff2) format('woff2');
+  unicode-range: U+0001-000C, U+000E-001F, U+007F-009F, U+20DD-20E0, U+20E2-20E4, U+2150-218F, U+2190, U+2192, U+2194-2199, U+21AF, U+21E6-21F0, U+21F3, U+2218-2219, U+2299, U+22C4-22C6, U+2300-243F, U+2440-244A, U+2460-24FF, U+25A0-27BF, U+2800-28FF, U+2921-2922, U+2981, U+29BF, U+29EB, U+2B00-2BFF, U+4DC0-4DFF, U+FFF9-FFFB, U+10140-1018E, U+10190-1019C, U+101A0, U+101D0-101FD, U+102E0-102FB, U+10E60-10E7E, U+1D2C0-1D2D3, U+1D2E0-1D37F, U+1F000-1F0FF, U+1F100-1F1AE, U+1F1E6-1F1FF, U+1F30D-1F30F, U+1F315, U+1F31C, U+1F31E, U+1F320-1F32C, U+1F336, U+1F378, U+1F37D, U+1F382, U+1F393-1F39F, U+1F3A7-1F3A8, U+1F3AC-1F3AF, U+1F3C2, U+1F3C4-1F3C6, U+1F3CA-1F3CE, U+1F3D4-1F3E0, U+1F3ED, U+1F3F1-1F3F3, U+1F3F5-1F3F7, U+1F408, U+1F415, U+1F41F, U+1F426, U+1F43F, U+1F441-1F442, U+1F444, U+1F446-1F449, U+1F44C-1F44E, U+1F453, U+1F46A, U+1F47D, U+1F4A3, U+1F4B0, U+1F4B3, U+1F4B9, U+1F4BB, U+1F4BF, U+1F4C8-1F4CB, U+1F4D6, U+1F4DA, U+1F4DF, U+1F4E3-1F4E6, U+1F4EA-1F4ED, U+1F4F7, U+1F4F9-1F4FB, U+1F4FD-1F4FE, U+1F503, U+1F507-1F50B, U+1F50D, U+1F512-1F513, U+1F53E-1F54A, U+1F54F-1F5FA, U+1F610, U+1F650-1F67F, U+1F687, U+1F68D, U+1F691, U+1F694, U+1F698, U+1F6AD, U+1F6B2, U+1F6B9-1F6BA, U+1F6BC, U+1F6C6-1F6CF, U+1F6D3-1F6D7, U+1F6E0-1F6EA, U+1F6F0-1F6F3, U+1F6F7-1F6FC, U+1F700-1F80B, U+1F810-1F847, U+1F850-1F859, U+1F860-1F887, U+1F890-1F8AD, U+1F8B0-1F8BB, U+1F8C0-1F8C1, U+1F8D0-1F8D8, U+1F900-1F90B, U+1F93B, U+1F946, U+1F984, U+1F996, U+1F9E9, U+1FA00-1FA6F, U+1FA70-1FA7C, U+1FA80-1FAC6, U+1FAC8, U+1FACC-1FADD, U+1FADF-1FAEB, U+1FAEF-1FAFA, U+1FB00-1FBFF;
+}
+@font-face {
+  font-family: 'Bodoni Moda';
+  font-style: italic;
+  font-weight: 400 700;
+  font-display: swap;
+  src: url(assets/fonts/bodoni-moda-italic-latin-ext.woff2) format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Bodoni Moda';
+  font-style: italic;
+  font-weight: 400 700;
+  font-display: swap;
+  src: url(assets/fonts/bodoni-moda-italic-latin.woff2) format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Bodoni Moda';
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: swap;
+  src: url(assets/fonts/bodoni-moda-normal-math.woff2) format('woff2');
+  unicode-range: U+0302-0303, U+0305, U+0307-0308, U+0310, U+0312, U+0315, U+031A, U+0326-0327, U+032C, U+032F-0330, U+0332-0333, U+0338, U+033A, U+0346, U+034D, U+0391-03A1, U+03A3-03A9, U+03B1-03C9, U+03D1, U+03D5-03D6, U+03F0-03F1, U+03F4-03F5, U+2016-2017, U+2034-2038, U+203C, U+2040, U+2043, U+2047, U+2050, U+2057, U+205F, U+2070-2071, U+2074-209F, U+20D0-20DC, U+20E1, U+20E5-20EF, U+2100-2112, U+2114-2115, U+2117-2121, U+2123-214F, U+2190, U+2192, U+2194-21AE, U+21B0-21E5, U+21F1-21F2, U+21F4-2211, U+2213-2214, U+2216-22FF, U+2308-230B, U+2310, U+2319, U+231C-2321, U+2336-237A, U+237C, U+2395, U+239B-23B7, U+23D0, U+23DC-23E1, U+2474-2475, U+25AF, U+25B3, U+25B7, U+25BD, U+25C1, U+25CA, U+25CC, U+25FB, U+266D-266F, U+27C0-27FF, U+2900-2AFF, U+2B0E-2B11, U+2B30-2B4C, U+2BFE, U+3030, U+FF5B, U+FF5D, U+1D400-1D7FF, U+1EE00-1EEFF;
+}
+@font-face {
+  font-family: 'Bodoni Moda';
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: swap;
+  src: url(assets/fonts/bodoni-moda-normal-symbols.woff2) format('woff2');
+  unicode-range: U+0001-000C, U+000E-001F, U+007F-009F, U+20DD-20E0, U+20E2-20E4, U+2150-218F, U+2190, U+2192, U+2194-2199, U+21AF, U+21E6-21F0, U+21F3, U+2218-2219, U+2299, U+22C4-22C6, U+2300-243F, U+2440-244A, U+2460-24FF, U+25A0-27BF, U+2800-28FF, U+2921-2922, U+2981, U+29BF, U+29EB, U+2B00-2BFF, U+4DC0-4DFF, U+FFF9-FFFB, U+10140-1018E, U+10190-1019C, U+101A0, U+101D0-101FD, U+102E0-102FB, U+10E60-10E7E, U+1D2C0-1D2D3, U+1D2E0-1D37F, U+1F000-1F0FF, U+1F100-1F1AE, U+1F1E6-1F1FF, U+1F30D-1F30F, U+1F315, U+1F31C, U+1F31E, U+1F320-1F32C, U+1F336, U+1F378, U+1F37D, U+1F382, U+1F393-1F39F, U+1F3A7-1F3A8, U+1F3AC-1F3AF, U+1F3C2, U+1F3C4-1F3C6, U+1F3CA-1F3CE, U+1F3D4-1F3E0, U+1F3ED, U+1F3F1-1F3F3, U+1F3F5-1F3F7, U+1F408, U+1F415, U+1F41F, U+1F426, U+1F43F, U+1F441-1F442, U+1F444, U+1F446-1F449, U+1F44C-1F44E, U+1F453, U+1F46A, U+1F47D, U+1F4A3, U+1F4B0, U+1F4B3, U+1F4B9, U+1F4BB, U+1F4BF, U+1F4C8-1F4CB, U+1F4D6, U+1F4DA, U+1F4DF, U+1F4E3-1F4E6, U+1F4EA-1F4ED, U+1F4F7, U+1F4F9-1F4FB, U+1F4FD-1F4FE, U+1F503, U+1F507-1F50B, U+1F50D, U+1F512-1F513, U+1F53E-1F54A, U+1F54F-1F5FA, U+1F610, U+1F650-1F67F, U+1F687, U+1F68D, U+1F691, U+1F694, U+1F698, U+1F6AD, U+1F6B2, U+1F6B9-1F6BA, U+1F6BC, U+1F6C6-1F6CF, U+1F6D3-1F6D7, U+1F6E0-1F6EA, U+1F6F0-1F6F3, U+1F6F7-1F6FC, U+1F700-1F80B, U+1F810-1F847, U+1F850-1F859, U+1F860-1F887, U+1F890-1F8AD, U+1F8B0-1F8BB, U+1F8C0-1F8C1, U+1F8D0-1F8D8, U+1F900-1F90B, U+1F93B, U+1F946, U+1F984, U+1F996, U+1F9E9, U+1FA00-1FA6F, U+1FA70-1FA7C, U+1FA80-1FAC6, U+1FAC8, U+1FACC-1FADD, U+1FADF-1FAEB, U+1FAEF-1FAFA, U+1FB00-1FBFF;
+}
+@font-face {
+  font-family: 'Bodoni Moda';
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: swap;
+  src: url(assets/fonts/bodoni-moda-normal-latin-ext.woff2) format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Bodoni Moda';
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: swap;
+  src: url(assets/fonts/bodoni-moda-normal-latin.woff2) format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Instrument Sans';
+  font-style: italic;
+  font-weight: 400 700;
+  font-stretch: 100%;
+  font-display: swap;
+  src: url(assets/fonts/instrument-sans-italic-latin-ext.woff2) format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Instrument Sans';
+  font-style: italic;
+  font-weight: 400 700;
+  font-stretch: 100%;
+  font-display: swap;
+  src: url(assets/fonts/instrument-sans-italic-latin.woff2) format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Instrument Sans';
+  font-style: normal;
+  font-weight: 400 700;
+  font-stretch: 100%;
+  font-display: swap;
+  src: url(assets/fonts/instrument-sans-normal-latin-ext.woff2) format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Instrument Sans';
+  font-style: normal;
+  font-weight: 400 700;
+  font-stretch: 100%;
+  font-display: swap;
+  src: url(assets/fonts/instrument-sans-normal-latin.woff2) format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'JetBrains Mono';
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: url(assets/fonts/jetbrains-mono-italic-greek.woff2) format('woff2');
+  unicode-range: U+0370-0377, U+037A-037F, U+0384-038A, U+038C, U+038E-03A1, U+03A3-03FF;
+}
+@font-face {
+  font-family: 'JetBrains Mono';
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: url(assets/fonts/jetbrains-mono-italic-latin-ext.woff2) format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'JetBrains Mono';
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: url(assets/fonts/jetbrains-mono-italic-latin.woff2) format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'JetBrains Mono';
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: swap;
+  src: url(assets/fonts/jetbrains-mono-normal-greek.woff2) format('woff2');
+  unicode-range: U+0370-0377, U+037A-037F, U+0384-038A, U+038C, U+038E-03A1, U+03A3-03FF;
+}
+@font-face {
+  font-family: 'JetBrains Mono';
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: swap;
+  src: url(assets/fonts/jetbrains-mono-normal-latin-ext.woff2) format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'JetBrains Mono';
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: swap;
+  src: url(assets/fonts/jetbrains-mono-normal-latin.woff2) format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Noto Sans Math';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url(assets/fonts/noto-sans-math-normal-subset.woff2) format('woff2');
+}
+@font-face {
+  font-family: 'Noto Sans Mono';
+  font-style: normal;
+  font-weight: 400;
+  font-stretch: 100%;
+  font-display: swap;
+  src: url(assets/fonts/noto-sans-mono-normal-subset.woff2) format('woff2');
+  unicode-range: U+2b, U+3c-3e, U+7c, U+ac, U+338, U+2032, U+2102, U+2112, U+2200, U+2203-2204, U+2208-2209, U+2211-2212, U+2216, U+221a, U+2227-2228, U+222a, U+2260, U+2264-2265, U+226e-2271, U+2286, U+2288, U+2295, U+2297, U+27e8-27e9;
+}
+:root {
+  --paper: #F5F5F0;
+  --paper-deep: #EAEAE3;
+  --paper-lift: #FBFBF8;
+  --ink: #1A1C21;
+  --ink-2: #444851;
+  --ink-3: #5C6068;
+  --rule: #D3D3CA;
+  --control: #82858A;
+  --accent: #0B6B55;
+  --accent-wash: rgba(11, 107, 85, .10);
+  --fail: #A3262F;
+  --on-ink: #F5F5F0;
+
+  --serif: "Bodoni Moda", "Bodoni 72", Didot, "Noto Serif Display", Georgia, serif;
+  --math: "Noto Sans Math", "Bodoni Moda", "STIX Two Text", Cambria, "DejaVu Serif", Georgia, "STIX Two Math", "Cambria Math", serif;
+  --sans: "Instrument Sans", "Helvetica Neue", Helvetica, Arial, system-ui, sans-serif;
+  --mono: "JetBrains Mono", "Noto Sans Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+
+  --measure: 40rem;
+  --side: 16.5rem;
+  --gutter: clamp(16px, 4vw, 48px);
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #13171D;
+    --paper-deep: #1C2129;
+    --paper-lift: #171C23;
+    --ink: #E9E7E0;
+    --ink-2: #BEBCB5;
+    --ink-3: #9D9C96;
+    --rule: #2F3641;
+    --control: #6E6F6D;
+    --accent: #6CCBAA;
+    --accent-wash: rgba(108, 203, 170, .12);
+    --fail: #F2958F;
+    --on-ink: #13171D;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #13171D;
+  --paper-deep: #1C2129;
+  --paper-lift: #171C23;
+  --ink: #E9E7E0;
+  --ink-2: #BEBCB5;
+  --ink-3: #9D9C96;
+  --rule: #2F3641;
+  --control: #6E6F6D;
+  --accent: #6CCBAA;
+  --accent-wash: rgba(108, 203, 170, .12);
+  --fail: #F2958F;
+  --on-ink: #13171D;
+  color-scheme: dark;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; scroll-padding-top: 4.5rem; }
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font: 400 1.0625rem/1.65 var(--sans);
+  font-kerning: normal;
+  font-variation-settings: "opsz" 8;
+  text-rendering: optimizeLegibility;
+  overflow-wrap: break-word;
+}
+img, svg { max-width: 100%; }
+p { margin: 0 0 1.1em; }
+a {
+  color: inherit;
+  text-decoration-line: underline;
+  text-decoration-color: var(--accent);
+  text-decoration-thickness: 1px;
+  text-underline-offset: .22em;
+}
+a:hover { color: var(--accent); text-decoration-thickness: 2px; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 2px; }
+code, pre, kbd { font-family: var(--mono); font-variant-ligatures: none; font-feature-settings: "liga" 0, "calt" 0; }
+:not(pre) > code { font-size: .875em; padding: .05em .3em; background: var(--paper-deep); border-radius: 2px; white-space: nowrap; }
+:not(pre) > code.long, .side code { white-space: normal; }
+.m { font-family: var(--math); font-size: 1.1em; font-synthesis: none; white-space: nowrap; letter-spacing: .01em; }
+.m i { font-style: italic; }
+.m sub { font-size: .62em; font-style: italic; vertical-align: -.35em; line-height: 0; }
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+.skip { position: absolute; left: var(--gutter); top: -3rem; background: var(--ink); color: var(--paper); padding: .5rem .9rem; z-index: 20; text-decoration: none; }
+.skip:focus { top: .5rem; }
+
+.wrap { max-width: 1240px; margin-inline: auto; padding-inline: var(--gutter); }
+
+/* ---------- masthead ---------- */
+.masthead {
+  position: sticky; top: 0; z-index: 10;
+  background: color-mix(in srgb, var(--paper) 90%, transparent);
+  -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--rule);
+}
+.masthead .wrap { display: flex; align-items: center; gap: 1.25rem; height: 3.5rem; }
+.nav { flex: 1 1 auto; min-width: 0; display: flex; justify-content: flex-end; }
+.wordmark { font: italic 500 1.375rem/1 var(--serif); text-decoration: none; color: var(--ink); white-space: nowrap; }
+.wordmark:hover { color: var(--ink); }
+.nav ul { display: flex; align-items: center; gap: 1.6rem; list-style: none; margin: 0; padding: .4rem .2rem; font-size: .9375rem; overflow-x: auto; scrollbar-width: none; }
+.nav ul::-webkit-scrollbar { display: none; }
+.nav a { text-decoration: none; color: var(--ink-2); white-space: nowrap; }
+.nav a:hover { color: var(--ink); text-decoration: underline; text-decoration-color: var(--accent); }
+.masthead .gh { flex: none; color: var(--ink); font-weight: 600; font-size: .9375rem; text-decoration: none; white-space: nowrap; }
+.masthead .gh:hover { text-decoration: underline; text-decoration-color: var(--accent); }
+.theme { flex: none; display: inline-grid; place-items: center; width: 2.25rem; height: 2.25rem; padding: 0; color: var(--ink-2); background: none; border: 1px solid var(--control); border-radius: 2px; cursor: pointer; }
+.theme:hover { color: var(--ink); border-color: var(--ink-2); }
+.theme svg { width: 1.05rem; height: 1.05rem; }
+@media (max-width: 1000px) {
+  .masthead .wrap { gap: .9rem; }
+  .nav { justify-content: flex-start; }
+  .nav ul { gap: 1.15rem; padding-right: 2rem; -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 2.25rem), transparent); mask-image: linear-gradient(to right, #000 calc(100% - 2.25rem), transparent); }
+}
+
+/* ---------- hero ---------- */
+.hero { padding-block: clamp(2.5rem, 5vw, 4rem) clamp(3.5rem, 6vw, 5rem); }
+.hero .wrap { display: grid; grid-template-columns: 5rem minmax(0, 1fr); column-gap: 2.5rem; }
+.hero .inner { grid-column: 2; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 28rem); column-gap: 3.5rem; align-items: end; }
+.titling { grid-column: 1; }
+.tagline .pp { font-variation-settings: "opsz" 6; font-weight: 600; letter-spacing: .02em; }
+.intro { grid-column: 2; }
+.hero h1 { font: 500 clamp(3.25rem, 7vw, 5.75rem)/.95 var(--serif); font-variation-settings: "opsz" 24; white-space: nowrap; letter-spacing: -.012em; margin: 0; }
+.hero .tagline { font: italic 400 clamp(1.25rem, 2.2vw, 1.75rem)/1.3 var(--serif); font-variation-settings: "opsz" 10; color: var(--ink-2); margin: 1rem 0 0; max-width: 24ch; }
+.triple {
+  grid-column: 1;
+  align-self: start;
+  margin: clamp(2.5rem, 4.5vw, 3.5rem) 0 0;
+  display: grid;
+  grid-template-columns: auto auto auto minmax(0, 1fr);
+  column-gap: .34em;
+  --tf: clamp(4.1rem, 8vw, 7.6rem);
+  font-size: var(--tf);
+  line-height: 1;
+}
+.triple .part { display: contents; }
+.triple .glyph { grid-row: 1; font-family: var(--serif); font-weight: 400; white-space: nowrap; font-variation-settings: normal; font-optical-sizing: auto; }
+.triple .glyph i { font-style: italic; font-weight: 400; padding-right: .04em; }
+.triple .br { font-weight: 400; color: var(--ink-2); }
+.triple .p .glyph, .triple .p .lead, .triple .p .lbl { grid-column: 1; }
+.triple .c .glyph, .triple .c .lead, .triple .c .lbl { grid-column: 2; }
+.triple .q .glyph, .triple .q .lead, .triple .q .lbl { grid-column: 3; }
+.triple .lead { grid-row: 2; justify-self: center; width: 1px; height: 1.9rem; margin-top: 1.2rem; background: var(--accent); transform-origin: top; }
+.triple .lead::before { content: ""; position: relative; display: block; left: -2.5px; top: -3px; width: 6px; height: 6px; border-radius: 50%; background: var(--accent); }
+.triple .lbl { grid-row: 3; justify-self: center; width: 0; display: flex; justify-content: center; font-size: 1rem; margin-top: .55rem; }
+.triple .lbl > span { flex: none; width: min(11rem, calc(var(--tf) * 1.1)); text-align: center; font: 400 .875rem/1.45 var(--sans); color: var(--ink-2); }
+.triple .lbl .desc { display: block; }
+.triple .lbl dfn { display: block; font: italic 500 1.25rem/1.25 var(--serif); color: var(--ink); margin-bottom: .2rem; }
+.triple .lbl .sym { display: none; }
+.triple .eqno { grid-column: 4; grid-row: 1; justify-self: end; align-self: center; font: 400 1.375rem/1 var(--serif); color: var(--ink-3); }
+
+@keyframes draw { from { transform: scaleY(0); } to { transform: scaleY(1); } }
+@keyframes rise { from { opacity: 0; transform: translateY(.4rem); } to { opacity: 1; transform: none; } }
+.triple .lead { animation: draw .7s cubic-bezier(.2,.7,.2,1) both; }
+.triple .lbl > span { animation: rise .6s ease-out both; }
+.triple .p .lead { animation-delay: .25s; } .triple .p .lbl > span { animation-delay: .6s; }
+.triple .c .lead { animation-delay: .45s; } .triple .c .lbl > span { animation-delay: .8s; }
+.triple .q .lead { animation-delay: .65s; } .triple .q .lbl > span { animation-delay: 1s; }
+
+.abstract { font-size: 1.125rem; line-height: 1.6; margin: 0; }
+
+/* at-a-glance example beside the triple */
+.glance { position: relative; background: var(--paper); grid-column: 2; align-self: start; margin-top: clamp(2.5rem, 4.5vw, 3.5rem); border-top: 1px solid var(--ink); padding-top: .9rem; }
+.glance-h { font-size: .875rem; color: var(--ink-2); margin: 0 0 .5rem; }
+.glance-h b { font-family: var(--serif); font-style: italic; font-weight: 500; font-size: 1.05em; color: var(--ink); margin-right: .25em; }
+.glance .mini { display: block; width: 100%; max-width: 21rem; height: auto; margin: .2rem 0 .6rem; }
+.mini .ql { font: 400 12px var(--mono); fill: var(--ink-2); }
+.mini .w { stroke: var(--ink-3); stroke-width: 1.2; }
+.mini rect { fill: var(--paper); stroke: var(--ink); stroke-width: 1.3; }
+.mini .gt { font: 500 18px var(--serif); fill: var(--ink); text-anchor: middle; }
+.glance-sets { margin: 0; }
+.glance-sets > div { display: grid; grid-template-columns: 4.6rem minmax(0, 1fr); column-gap: .75rem; padding: .4rem 0; border-top: 1px solid var(--rule); align-items: baseline; }
+.glance-sets dt { color: var(--ink-2); }
+.glance-sets dd { margin: 0; font-family: var(--math); font-size: 1.0625rem; line-height: 1.45; font-synthesis: none; }
+.glance .nw { white-space: nowrap; }
+.glance-v { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--ink); }
+.glance-v li { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: .1rem 1rem; padding: .45rem 0; border-bottom: 1px solid var(--rule); }
+.glance-v .m { font-size: 1.0625rem; }
+.glance-v code { background: none; padding: 0; font-size: .9rem; }
+.glance-note { font-size: .875rem; line-height: 1.5; color: var(--ink-2); margin: .7rem 0 0; }
+.intro .ctas { margin-top: 1.6rem; }
+.ctas { display: flex; flex-wrap: wrap; align-items: center; gap: .9rem 1.6rem; }
+.btn {
+  display: inline-flex; align-items: center; gap: .6rem;
+  padding: .85rem 1.35rem; border-radius: 2px;
+  background: var(--ink); color: var(--paper);
+  font-weight: 600; text-decoration: none; letter-spacing: .005em;
+}
+.btn:hover { background: var(--accent); color: var(--on-ink); }
+.ctas .text-links { display: flex; gap: 1.5rem; flex-wrap: wrap; font-weight: 600; }
+
+/* ---------- chapters ---------- */
+.chapter { border-top: 1px solid var(--rule); padding-block: clamp(3.25rem, 6vw, 5.25rem); }
+.chapter > .wrap { display: grid; grid-template-columns: 5rem minmax(0, 1fr); column-gap: 2.5rem; }
+.chapter > .wrap > * { grid-column: 2; min-width: 0; }
+.chapter h2 { position: relative; font: 500 clamp(2.1rem, 4.2vw, 3.25rem)/1.08 var(--serif); font-variation-settings: "opsz" 16; letter-spacing: -.006em; margin: 0 0 2.25rem; max-width: 22ch; }
+.secnum { position: absolute; right: calc(100% + 2.5rem); width: 5rem; text-align: right; top: .02em; font: 400 1em/1.08 var(--serif); color: var(--ink-3); }
+.chapter h3 { font: 500 1.625rem/1.2 var(--serif); margin: 3rem 0 1.1rem; max-width: 30ch; }
+.chapter h3 .subnum { font-weight: 400; color: var(--ink-3); margin-right: .3em; }
+
+.row { display: grid; grid-template-columns: minmax(0, var(--measure)) minmax(0, var(--side)); column-gap: 3.25rem; align-items: start; }
+.row > .main { grid-column: 1; }
+.row > .side { grid-column: 2; }
+.lede { font-size: 1.1875rem; }
+.side { font-size: .875rem; line-height: 1.55; color: var(--ink-2); }
+.side p { margin: 0 0 1.15rem; padding-top: .6rem; border-top: 1px solid var(--rule); }
+.side p:first-child { margin-top: .3rem; }
+
+.display-eq { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; margin: 1.6rem 0 1.8rem; }
+.display-eq .m { font-size: clamp(1.45rem, 3vw, 1.9rem); text-align: center; white-space: normal; }
+.display-eq .eqno { font: 400 1.125rem/1 var(--serif); color: var(--ink-3); padding-left: 1rem; }
+
+figure { margin: 0; }
+.fig { margin: 2.25rem 0 0; }
+.fig svg { display: block; width: 100%; max-width: 40rem; height: auto; }
+.f1-node { font-size: 21px; }
+.f1-node tspan { font-size: 13px; }
+.f1-leaf { font-size: 18px; }
+.fig figcaption, .caption { font-size: .875rem; line-height: 1.5; color: var(--ink-2); margin-top: .9rem; max-width: 40rem; }
+.fig figcaption b, .caption b { font-family: var(--serif); font-style: italic; font-weight: 500; font-size: 1.05em; color: var(--ink); margin-right: .25em; }
+
+/* ---------- code ---------- */
+pre { margin: 0; font-size: .84375rem; line-height: 1.6; tab-size: 4; }
+.code { position: relative; background: var(--paper-deep); border-radius: 3px; margin: 1.25rem 0; min-width: 0; }
+.code .cap { display: block; font: 500 .8125rem/1.4 var(--sans); color: var(--ink-3); padding: .7rem 1rem 0; padding-right: 5rem; }
+.code .cap code { background: none; padding: 0; font-size: .95em; white-space: normal; overflow-wrap: break-word; }
+.code pre { padding: .65rem 1rem .95rem; overflow-x: auto; white-space: pre; }
+.code.soft pre { white-space: pre-wrap; overflow-wrap: break-word; }
+.code .out.flow { display: block; white-space: pre-wrap; overflow-wrap: break-word; position: sticky; left: 0; }
+.code .pr { color: var(--ink-3); user-select: none; -webkit-user-select: none; }
+.code .out { color: var(--ink-2); }
+.code .cm { color: var(--ink-3); font-style: italic; }
+.code .kw { font-weight: 700; }
+.ok { color: var(--accent); font-weight: 700; }
+.fail { color: var(--fail); font-weight: 700; }
+.copy {
+  position: absolute; top: .45rem; right: .5rem;
+  font: 500 .75rem/1 var(--sans); color: var(--ink-2);
+  background: var(--paper); border: 1px solid var(--control); border-radius: 2px;
+  padding: .4rem .6rem; cursor: pointer;
+}
+.copy::before { content: ""; position: absolute; inset: -9px -5px; }
+.copy:hover { color: var(--ink); border-color: var(--ink-2); }
+.copy.done { color: var(--accent); border-color: var(--accent); }
+.pair { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 1rem; }
+.pair .code { margin-top: 0; }
+.pair.lopsided { grid-template-columns: minmax(0, .72fr) minmax(0, 1.28fr); }
+
+/* ---------- stepper ---------- */
+.stepper { margin-top: 2.25rem; border: 1px solid var(--rule); border-radius: 3px; background: var(--paper-lift); }
+.circuit { padding: 1.4rem 1.5rem .4rem; border-bottom: 1px solid var(--rule); }
+.circuit svg { display: block; width: 100%; max-width: 32rem; height: auto; }
+.circuit .wire { stroke: var(--ink-3); stroke-width: 1.25; }
+.circuit .qlabel { font: 400 13px var(--mono); fill: var(--ink-2); }
+.circuit .gate rect { fill: var(--paper-lift); stroke: var(--ink); stroke-width: 1.4; }
+.circuit .gate text { font: 500 22px var(--serif); fill: var(--ink); }
+.circuit .marker { display: none; }
+.js .circuit .marker { display: block; transition: transform .35s cubic-bezier(.2,.7,.2,1); }
+.circuit .marker line { stroke: var(--accent); stroke-width: 1.5; stroke-dasharray: 4 4; }
+.circuit .marker path { fill: var(--accent); }
+.js .circuit .gate { transition: opacity .25s; }
+.js .circuit .gate.todo { opacity: .55; }
+.js .circuit .gate.todo rect { stroke-dasharray: 3 3; }
+.js .circuit .gate.now rect { fill: var(--accent-wash); stroke: var(--accent); stroke-width: 2; }
+.circuit-cap { font-size: .8125rem; color: var(--ink-3); margin: .2rem 0 0; }
+
+.stepnav { display: none; }
+.js .stepnav { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem; padding: 1rem 1.5rem 0; }
+.stepnav .tabs { display: flex; flex-wrap: wrap; gap: .4rem; flex: 1 1 auto; }
+.stepnav button {
+  font: 500 .875rem/1 var(--sans); color: var(--ink-2);
+  background: transparent; border: 1px solid var(--control); border-radius: 2px;
+  padding: .55rem .75rem; cursor: pointer; display: inline-flex; gap: .45rem; align-items: baseline;
+}
+.stepnav .tabs button .n { font: 500 1rem/1 var(--serif); color: var(--ink-3); }
+.stepnav .tabs button code { font-size: .8125rem; background: none; padding: 0; }
+.stepnav button:hover { border-color: var(--ink-2); color: var(--ink); }
+.stepnav .tabs button[aria-current="step"] { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+.stepnav .tabs button[aria-current="step"] .n { color: var(--paper); }
+.stepnav .pn { display: flex; gap: .4rem; }
+.stepnav .pn button[aria-disabled="true"] { opacity: .4; cursor: default; }
+.stepnav .pn button[aria-disabled="true"]:hover { border-color: var(--control); color: var(--ink-2); }
+
+.steps { list-style: none; margin: 0; padding: 0; }
+.step { padding: 1.5rem; border-top: 1px solid var(--rule); }
+.step:first-child { border-top: 0; }
+.js .step { border-top: 0; }
+.js .step.off { display: none; }
+/* From tablet width up, stack the steps in one grid cell so the stepper keeps
+   the height of its tallest step and the page below it does not jump. */
+@media (min-width: 761px) {
+  .js .steps { display: grid; }
+  .js .step { grid-area: 1 / 1; min-width: 0; }
+  .js .step.off { display: block; visibility: hidden; }
+}
+.chapter .step-head { display: flex; flex-wrap: nowrap; align-items: baseline; gap: .25rem .9rem; margin: 0 0 1rem; font: 500 1.375rem/1.25 var(--serif); }
+.step-head .n { font: 400 1.375rem/1 var(--serif); color: var(--accent); }
+.step-head code { font-size: .8em; font-weight: 500; white-space: nowrap; }
+.step-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 1.25rem 2rem; align-items: start; }
+.set { font-family: var(--math); font-size: clamp(1.2rem, 2.4vw, 1.55rem); line-height: 1.5; margin: 0 0 .9rem; font-synthesis: none; }
+.set .nm { white-space: nowrap; }
+.fr { display: inline-flex; flex-direction: column; vertical-align: .42em; font-size: .6em; line-height: 1.08; text-align: center; margin: 0 .12em 0 .04em; font-family: "Bodoni Moda", Georgia, serif; }
+.fr > span:first-child { border-bottom: 1px solid currentColor; padding: 0 .15em .05em; }
+.gloss { color: var(--ink-2); font-size: .9375rem; margin: 0; }
+.st-trees { display: grid; grid-template-columns: repeat(2, minmax(0, 14rem)); gap: .75rem 1.5rem; margin: .25rem 0 .9rem; }
+.st-tree { display: block; width: 100%; height: auto; }
+.st-tree .edges path { fill: none; stroke: var(--ink-3); stroke-width: 1.2; }
+.st-tree .nd { fill: var(--ink-3); }
+.st-tree rect { fill: var(--paper); stroke: var(--ink-3); stroke-width: 1.1; }
+.st-tree .amp { font: 400 16px var(--math); fill: var(--ink); font-synthesis: none; }
+.st-tree .amp.long { font-size: 13.5px; }
+.st-tree .ket { font: 400 12px var(--mono); fill: var(--ink-3); }
+.st-tree .zero rect { fill: none; stroke-dasharray: 3 3; }
+.st-tree .zero .amp { fill: var(--ink-3); }
+.st-tree .chg rect { fill: var(--accent-wash); stroke: var(--accent); stroke-width: 2.2; }
+.tree-key { font-size: .8125rem; color: var(--ink-3); margin: .2rem 0 0; }
+.tree-key .k { display: inline-block; width: 1.1em; height: .8em; vertical-align: -.05em; margin-right: .3em; border: 1px solid var(--ink-3); border-radius: 1px; }
+.tree-key .k.c { border: 2px solid var(--accent); background: var(--accent-wash); }
+.tree-key .k.z { border-style: dashed; }
+.step .code { margin: 0; }
+.step .code + .code { margin-top: .6rem; }
+.verdicts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.25rem 2rem; }
+.verdict h4 { font: 500 1.1875rem/1.3 var(--serif); margin: 0 0 .5rem; }
+.verdict .gloss { margin-top: .75rem; }
+
+/* ---------- gates ---------- */
+.gates { list-style: none; padding: 0; margin: 1.75rem 0 0; display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); border-top: 1px solid var(--rule); border-left: 1px solid var(--rule); }
+.gates li { border-right: 1px solid var(--rule); border-bottom: 1px solid var(--rule); padding: 1rem .5rem .9rem; text-align: center; display: flex; flex-direction: column; align-items: center; gap: .35rem; }
+.gates svg { width: 4rem; height: 3rem; color: var(--ink); overflow: visible; }
+.gates svg .w { stroke: var(--ink-3); stroke-width: 1.2; }
+.gates svg .b { fill: var(--paper); stroke: currentColor; stroke-width: 1.3; }
+.gates svg .s { stroke: currentColor; stroke-width: 1.3; fill: none; }
+.gates svg .d { fill: currentColor; }
+.gates svg text { font: 400 16px var(--serif); fill: currentColor; }
+.gates .gtxt { display: flex; flex-direction: column; align-items: center; gap: .15rem; }
+.gates .gname { font: 400 1.125rem/1.2 var(--math); font-synthesis: none; }
+.gates li code { font-size: .78rem; color: var(--ink-3); background: none; padding: 0; }
+
+/* ---------- quick start ---------- */
+ol.qs { list-style: none; counter-reset: qs; margin: 1.75rem 0 0; padding: 0; }
+.qs > li { counter-increment: qs; position: relative; padding: 0 0 1.75rem 3.25rem; }
+.qs > li::before { content: counter(qs); position: absolute; left: 0; top: -.15rem; width: 2.1rem; height: 2.1rem; display: grid; place-items: center; border: 1px solid var(--ink); border-radius: 50%; font: 400 1.125rem/1 var(--serif); color: var(--ink); background: var(--paper); }
+.qs > li:not(:last-child)::after { content: ""; position: absolute; left: 1.05rem; top: 2.2rem; bottom: .35rem; width: 1px; background: var(--rule); }
+.chapter .qs-h { font: 500 1.375rem/1.25 var(--serif); margin: 0 0 .7rem; }
+.qs .code { margin: .6rem 0 .8rem; }
+.qs p { margin: 0 0 .8rem; }
+.qs p.small { font-size: .9375rem; color: var(--ink-2); }
+
+/* ---------- disclosure ---------- */
+.disclose { margin-top: 2rem; border-top: 1px solid var(--rule); border-bottom: 1px solid var(--rule); padding: .9rem 0; }
+.disclose summary { cursor: pointer; font-weight: 600; list-style: none; display: inline-flex; align-items: center; gap: .6rem; }
+.disclose summary::-webkit-details-marker { display: none; }
+.disclose summary::before { content: ""; width: .5rem; height: .5rem; border-right: 1.5px solid currentColor; border-bottom: 1.5px solid currentColor; transform: rotate(-45deg); transition: transform .2s; }
+.disclose[open] summary::before { transform: rotate(45deg); }
+.disclose summary b { font-family: var(--serif); font-style: italic; font-weight: 500; font-size: 1.05em; }
+
+/* ---------- lists & tables ---------- */
+.cmds { margin: 1.5rem 0 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 3.25rem; border-bottom: 1px solid var(--rule); max-width: calc(var(--measure) + var(--side) + 3.25rem); }
+.cmds > div { display: grid; grid-template-columns: 3.75rem minmax(0, 1fr); gap: .2rem 1rem; padding: 1rem 0; border-top: 1px solid var(--rule); align-content: start; }
+@media (max-width: 760px) { .cmds { grid-template-columns: minmax(0, 1fr); } }
+.cmds dt { font: 700 1rem/1.5 var(--mono); }
+.cmds dd { margin: 0; }
+.cmds .use { font-size: .8125rem; color: var(--ink-2); white-space: normal; background: none; padding: 0; overflow-wrap: anywhere; }
+.cmds .opts { font-size: .875rem; color: var(--ink-3); }
+.cmds .opts code { color: var(--ink-2); }
+
+.formats { margin: 1.5rem 0 0; }
+.formats > div { display: grid; grid-template-columns: 5.5rem minmax(0, 1fr); gap: .25rem 1.25rem; padding: 1.15rem 0; border-top: 1px solid var(--rule); }
+.formats > div:last-child { border-bottom: 1px solid var(--rule); }
+.formats dt { font: italic 500 1.375rem/1.3 var(--serif); }
+.formats dd { margin: 0; }
+.formats dd p { margin: 0 0 .4rem; }
+.formats .doc { font-size: .9375rem; }
+
+.tbl-wrap { overflow-x: auto; margin: 1.25rem 0 0; }
+table.dirac { border-collapse: collapse; width: 100%; font-size: .9375rem; }
+.dirac caption { text-align: left; font-size: .875rem; color: var(--ink-2); padding-bottom: .6rem; }
+.dirac caption b { font-family: var(--serif); font-style: italic; font-weight: 500; font-size: 1.05em; color: var(--ink); margin-right: .25em; }
+.dirac th { text-align: left; font-weight: 600; font-size: .8125rem; color: var(--ink-3); padding: .5rem .75rem .5rem 0; border-bottom: 1px solid var(--ink); }
+.dirac td { padding: .6rem .75rem .6rem 0; border-bottom: 1px solid var(--rule); vertical-align: baseline; }
+.dirac td:first-child { font-family: var(--math); font-size: 1.1rem; white-space: nowrap; font-synthesis: none; }
+.dirac td code { white-space: nowrap; }
+
+ol.notes-list { padding-left: 1.25rem; margin: 1rem 0 0; }
+ol.notes-list li { margin-bottom: .6rem; padding-left: .25rem; }
+ol.notes-list li::marker { font-family: var(--serif); font-style: italic; color: var(--ink-3); }
+
+/* ---------- papers ---------- */
+.refs { list-style: none; margin: 2rem 0 0; padding: 0; counter-reset: ref; }
+.ref { display: grid; grid-template-columns: 3rem minmax(0, 1fr); column-gap: 1.25rem; padding: 2rem 0; border-top: 1px solid var(--rule); }
+.ref:last-child { border-bottom: 1px solid var(--rule); }
+.ref .key { font: 400 1.375rem/1.3 var(--serif); color: var(--ink-3); }
+.ref h3 { margin: 0 0 .6rem; font: 500 clamp(1.35rem, 2.4vw, 1.75rem)/1.22 var(--serif); max-width: 34ch; }
+.ref h3 a { text-decoration: none; }
+.ref h3 a:hover { text-decoration: underline; text-decoration-color: var(--accent); }
+.ref .authors { margin: 0 0 .35rem; }
+.ref .venue { margin: 0; color: var(--ink-2); font-style: italic; }
+.ref .acts { display: flex; flex-wrap: wrap; align-items: center; gap: .6rem 1.4rem; margin-top: 1.1rem; font-size: .9375rem; }
+.ref details { grid-column: 2; margin-top: .9rem; }
+.ref summary { cursor: pointer; font-weight: 600; font-size: .9375rem; width: max-content; list-style: none; display: inline-flex; align-items: center; gap: .5rem; }
+.ref summary::-webkit-details-marker { display: none; }
+.ref summary::before { content: ""; width: .5rem; height: .5rem; border-right: 1.5px solid currentColor; border-bottom: 1.5px solid currentColor; transform: rotate(-45deg); transition: transform .2s; margin-right: .1rem; }
+.ref details[open] summary::before { transform: rotate(45deg); }
+.ref details .code { margin-top: .8rem; }
+.js-only { display: none !important; }
+.js .js-only { display: inline-flex !important; }
+.btn-quiet { font: 600 .9375rem/1 var(--sans); color: var(--ink); background: none; border: 1px solid var(--control); border-radius: 2px; padding: .5rem .75rem; cursor: pointer; }
+.btn-quiet:hover { border-color: var(--ink-2); }
+.btn-quiet.done { color: var(--accent); border-color: var(--accent); }
+
+/* ---------- more ---------- */
+.more { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 2rem 3rem; margin-top: .5rem; }
+.more h3 { margin-top: 0; font-size: 1.375rem; }
+.more ul { list-style: none; margin: 0; padding: 0; }
+.more li { padding: .35rem 0; border-bottom: 1px solid var(--rule); }
+.more li:first-child { border-top: 1px solid var(--rule); }
+.more li span { display: block; font-size: .8125rem; color: var(--ink-3); }
+.video-link { display: flex; align-items: center; gap: .9rem; text-decoration: none; margin-top: 1rem; font-weight: 600; }
+.video-link svg { flex: none; width: 2.75rem; height: 2.75rem; }
+.video-link svg circle { fill: none; stroke: var(--ink); stroke-width: 1.2; }
+.video-link svg path { fill: var(--accent); }
+.video-link:hover svg circle { stroke: var(--accent); }
+
+/* ---------- footer ---------- */
+.colophon { border-top: 1px solid var(--ink); padding-block: 2.5rem 3.5rem; font-size: .875rem; color: var(--ink-2); }
+.colophon .wrap { display: grid; grid-template-columns: 5rem minmax(0, 1fr) auto; column-gap: 2.5rem; row-gap: .75rem; align-items: baseline; }
+.colophon .wordmark { grid-column: 2; font-size: 1.5rem; }
+.colophon .legal { grid-column: 2; margin: 0; max-width: 46rem; }
+.colophon .flinks { grid-column: 3; grid-row: 1 / span 2; display: flex; gap: 1.4rem; flex-wrap: wrap; justify-content: flex-end; }
+
+/* ---------- responsive ---------- */
+@media (max-width: 1180px) {
+  :root { --side: 14rem; }
+  .triple { grid-column: 1 / -1; --tf: clamp(4.1rem, 14vw, 9rem); }
+  .glance { grid-column: 1 / -1; max-width: 34rem; margin-top: 3rem; }
+  .hero .wrap, .chapter > .wrap, .colophon .wrap { grid-template-columns: 3rem minmax(0, 1fr); column-gap: 1.75rem; }
+  .secnum { right: calc(100% + 1.75rem); width: 3rem; }
+  .row { column-gap: 2.25rem; }
+}
+@media (max-width: 920px) {
+  .hero .wrap, .chapter > .wrap, .colophon .wrap { grid-template-columns: minmax(0, 1fr); }
+  .hero .inner, .chapter > .wrap > *, .colophon .wordmark, .colophon .legal, .colophon .flinks { grid-column: 1; }
+  .colophon .flinks { grid-row: auto; justify-content: flex-start; }
+  .secnum { position: static; display: inline; width: auto; text-align: left; font-size: 1em; margin: 0 .35em 0 0; }
+  .row { display: block; }
+  .row > .main { max-width: var(--measure); }
+  .row > .side { max-width: 32rem; }
+  .side { margin-top: .5rem; }
+  .side p, .side p:first-child { border-top: 0; border-left: 2px solid var(--rule); padding: 0 0 0 .9rem; margin: 0 0 1rem; }
+  .hero .inner { grid-template-columns: minmax(0, 1fr); }
+  .triple { --tf: clamp(4.1rem, 17vw, 9rem); }
+  .intro { grid-column: 1; margin-top: 1.75rem; max-width: 38rem; }
+  .more { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 760px) {
+  .step-grid, .verdicts, .pair, .pair.lopsided { grid-template-columns: minmax(0, 1fr); }
+  .gates { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .gates li { flex-direction: row; text-align: left; justify-content: flex-start; gap: .75rem; padding: .7rem .6rem; }
+  .gates li .gtxt { align-items: flex-start; }
+  .gates svg { width: 3.25rem; height: 2.5rem; flex: none; }
+  .stepnav .tabs { flex-basis: 100%; }
+}
+@media (max-width: 640px) {
+  body { font-size: 1rem; }
+  .triple { --tf: clamp(3.5rem, 21vw, 6rem); column-gap: .3em; }
+  .triple .lead { display: none; }
+  .triple .lbl, .triple .p .lbl, .triple .c .lbl, .triple .q .lbl { grid-column: 1 / -1; grid-row: auto; width: auto; justify-self: stretch; display: block; margin-top: 0; }
+  .triple .p .lbl { margin-top: 1.5rem; }
+  .triple .lbl > span { width: auto; display: grid; grid-template-columns: 2rem minmax(0, 1fr); column-gap: .5rem; text-align: left; padding: .55rem 0; border-top: 1px solid var(--rule); font-size: .9375rem; }
+  .triple .lbl .sym { display: block; grid-column: 1; grid-row: 1 / span 2; font: italic 400 1.5rem/1.1 var(--serif); color: var(--accent); }
+  .triple .lbl dfn { grid-column: 2; font-size: 1.125rem; margin: 0; }
+  .triple .lbl .desc { grid-column: 2; }
+  .glance { margin-top: 2.25rem; }
+  .glance-sets > div { grid-template-columns: minmax(0, 1fr); }
+  .glance-sets dt { font-size: .9375rem; }
+  .f1-node { font-size: 26px; }
+  .f1-node tspan { font-size: 16px; }
+  .f1-leaf { font-size: 28px; }
+  .circuit .qlabel { font-size: 16px; }
+  .circuit .gate text { font-size: 26px; }
+  .st-trees { grid-template-columns: minmax(0, 13.5rem); gap: .6rem; }
+  .st-tree .ket { font-size: 13px; }
+  .qs > li { padding-left: 2.75rem; }
+  .triple .eqno { font-size: 1rem; }
+  .abstract, .lede { font-size: 1.0625rem; }
+  .step { padding: 1.15rem; }
+  .circuit { padding: 1rem 1rem .3rem; }
+  .js .stepnav { padding: .9rem 1rem 0; }
+  .ref { grid-template-columns: minmax(0, 1fr); }
+  .ref details { grid-column: 1; }
+  .ref .key { margin-bottom: .3rem; }
+  .cmds > div, .formats > div { grid-template-columns: minmax(0, 1fr); }
+  .display-eq .eqno { font-size: 1rem; }
+  pre { font-size: .78125rem; }
+  .code pre { padding-inline: .85rem; }
+  .dirac thead { display: none; }
+  .dirac tr { display: grid; grid-template-columns: minmax(0, 1fr) auto; column-gap: 1rem; padding: .7rem 0; border-bottom: 1px solid var(--rule); }
+  .dirac td { border: 0; padding: 0; }
+  .dirac td:first-child { grid-column: 1 / -1; margin-bottom: .2rem; white-space: normal; }
+  .dirac td:last-child { text-align: right; }
+  .dirac td:last-child:not(:empty)::before { content: "ASCII"; font: 600 .6875rem/1 var(--sans); letter-spacing: .05em; color: var(--ink-3); margin-right: .45em; }
+}
+/* touch targets of at least 44px */
+@media (max-width: 640px), (pointer: coarse) {
+  .nav ul { padding-block: 0; }
+  .nav a, .masthead .gh, .masthead .wordmark { display: inline-flex; align-items: center; min-height: 44px; padding-inline: .25rem; }
+  .theme { width: 2.75rem; height: 2.75rem; }
+  .stepnav button { min-height: 44px; align-items: center; }
+  .btn-quiet, .ref summary, .disclose summary { min-height: 44px; align-items: center; }
+  .ctas .text-links a, .colophon .flinks a { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; min-width: 44px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+}
+@media print {
+  .masthead, .stepnav, .copy, .js-only { display: none !important; }
+  .js .steps { display: block !important; }
+  .js .step.off { display: block !important; visibility: visible !important; }
+  body { background: #fff; }
+}
+/* Optical sizes. The font shorthand resets font-variation-settings, so these come last:
+   low opsz keeps Bodoni's hairlines visible at text and subhead sizes. */
+.wordmark, .triple .lbl dfn, .triple .lbl .sym, .triple .eqno, .display-eq .eqno,
+.chapter h3, .chapter .step-head, .step-head .n, .stepnav .tabs button .n, .verdict h4,
+.circuit .gate text, .gates svg text, .gates .gname, .formats dt, .ref .key, .ref h3 { font-variation-settings: "opsz" 9; }
+.secnum { font-variation-settings: "opsz" 16; }
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<p class="sr-only" aria-live="polite" id="copy-status"></p>
+
+<header class="masthead">
+  <div class="wrap">
+    <a class="wordmark" href="#top" aria-label="AutoQ, back to top">AutoQ</a>
+    <nav class="nav" aria-label="Sections">
+      <ul>
+        <li><a href="#checks">What it checks</a></li>
+        <li><a href="#example">Example</a></li>
+        <li><a href="#start">Get started</a></li>
+        <li><a href="#features">Features</a></li>
+        <li><a href="#formats">Specifications</a></li>
+        <li><a href="#papers">Papers</a></li>
+        <li><a href="playground/">Playground</a></li>
+      </ul>
+    </nav>
+    <a class="gh" href="https://github.com/fmlab-iis/AutoQ">GitHub</a>
+    <button type="button" class="theme" hidden aria-label="Switch to dark theme"><svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="7.25" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M10 2.75 A7.25 7.25 0 0 1 10 17.25 Z" fill="currentColor"/></svg></button>
+  </div>
+</header>
+
+<main id="main">
+
+<section class="hero" id="top" aria-labelledby="title">
+  <div class="wrap">
+    <div class="inner">
+      <div class="titling">
+        <h1 id="title">AutoQ 2.0</h1>
+        <p class="tagline">An automata-based C<span class="pp">++</span> tool for quantum program verification.</p>
+      </div>
+      <div class="intro">
+        <p class="abstract">AutoQ verifies the partial correctness of quantum programs. You state a precondition and a postcondition as sets of pure quantum states and give the program in OpenQASM. AutoQ represents each set as a tree automaton, carries it through the program gate by gate, and checks that every resulting state lies in the postcondition, up to a nonzero complex factor.</p>
+        <div class="ctas">
+          <a class="btn" href="https://github.com/fmlab-iis/AutoQ">View on GitHub</a>
+          <div class="text-links">
+            <a href="playground/">Try it in your browser</a>
+            <a href="#start">Get started</a>
+            <a href="#papers">Read the papers</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="triple" role="group" aria-label="The Hoare triple {P} C {Q}">
+        <div class="part p">
+          <span class="glyph"><span class="br">{</span><i>P</i><span class="br">}</span></span>
+          <span class="lead" aria-hidden="true"></span>
+          <span class="lbl"><span><i class="sym" aria-hidden="true">P</i><dfn>precondition</dfn><span class="desc">a set of pure quantum states, written in <code>.hsl</code> or <code>.lsta</code></span></span></span>
+        </div>
+        <div class="part c">
+          <span class="glyph"><i>C</i></span>
+          <span class="lead" aria-hidden="true"></span>
+          <span class="lbl"><span><i class="sym" aria-hidden="true">C</i><dfn>program</dfn><span class="desc">a quantum program in a subset of OpenQASM 2.0 or 3.0</span></span></span>
+        </div>
+        <div class="part q">
+          <span class="glyph"><span class="br">{</span><i>Q</i><span class="br">}</span></span>
+          <span class="lead" aria-hidden="true"></span>
+          <span class="lbl"><span><i class="sym" aria-hidden="true">Q</i><dfn>postcondition</dfn><span class="desc">the set that must contain every result, up to scaling</span></span></span>
+        </div>
+        <span class="eqno" aria-hidden="true">(1)</span>
+      </div>
+
+      <aside class="glance" aria-labelledby="glance-h">
+        <p class="glance-h" id="glance-h"><b>Example.</b> Two qubits, three gates, two postconditions.</p>
+        <svg class="mini" viewBox="0 0 300 92" role="img" aria-label="Circuit: X on qb[0], then X on qb[1], then H on qb[1]">
+          <text class="ql" x="0" y="30">qb[0]</text>
+          <text class="ql" x="0" y="72">qb[1]</text>
+          <line class="w" x1="46" y1="26" x2="300" y2="26"/>
+          <line class="w" x1="46" y1="68" x2="300" y2="68"/>
+          <rect x="94" y="11" width="30" height="30" rx="1"/><text class="gt" x="109" y="32">X</text>
+          <rect x="166" y="53" width="30" height="30" rx="1"/><text class="gt" x="181" y="74">X</text>
+          <rect x="238" y="53" width="30" height="30" rx="1"/><text class="gt" x="253" y="74">H</text>
+        </svg>
+        <dl class="glance-sets">
+          <div><dt><span class="m">ℒ(<i>P</i>)</span></dt><dd>{|00⟩, <span class="nw">½|00⟩ + ½|01⟩ + ½|10⟩ + ½|11⟩</span>}</dd></div>
+          <div><dt><span class="m"><i>C</i>(ℒ(<i>P</i>))</span></dt><dd>{<span class="nw">|10⟩/√2 − |11⟩/√2,</span> <span class="nw">|10⟩/√2 + |00⟩/√2</span>}</dd></div>
+        </dl>
+        <ul class="glance-v" aria-label="Verification results">
+          <li><span class="m">ℒ(<i>Q</i><sub>1</sub>) = {|10⟩ − |11⟩, |10⟩ + |00⟩}</span><code class="ok">[OK]</code></li>
+          <li><span class="m">ℒ(<i>Q</i><sub>2</sub>) = {|10⟩ − |11⟩, |10⟩ − |00⟩}</span><code class="fail">[failed]</code></li>
+        </ul>
+        <p class="glance-note"><span class="m"><i>Q</i><sub>1</sub></span> leaves out the <span class="m">1/√2</span> factors and still passes: AutoQ compares states up to scaling. <span class="m"><i>Q</i><sub>2</sub></span> flips one sign. <a href="#example">Step&nbsp;through&nbsp;it</a></p>
+      </aside>
+    </div>
+  </div>
+</section>
+
+<!-- 1 ============================================================ -->
+<section class="chapter" id="checks" aria-labelledby="h-checks">
+  <div class="wrap">
+    <h2 id="h-checks"><span class="secnum" aria-hidden="true">1</span>What AutoQ checks</h2>
+
+    <div class="row">
+      <div class="main">
+        <p class="lede">A Hoare triple <span class="m">{<i>P</i>} <i>C</i> {<i>Q</i>}</span> is a claim about a program <span class="m"><i>C</i></span>: run it from a state allowed by the precondition <span class="m"><i>P</i></span>, and if it terminates, it ends in a state allowed by the postcondition <span class="m"><i>Q</i></span>. This is partial correctness, and AutoQ checks claims of this kind for quantum programs, up to scaling.</p>
+        <p>In AutoQ, <span class="m"><i>P</i></span> and <span class="m"><i>Q</i></span> each describe a set of pure quantum states rather than a single state. AutoQ starts from the whole set <span class="m">ℒ(<i>P</i>)</span>, computes how it is transformed immediately after each gate, and hands the result to the next gate. When the program ends, it checks that <span class="m">ℒ(<i>Q</i>)</span> contains the final set <span class="m"><i>C</i>(ℒ(<i>P</i>))</span>, up to scaling:</p>
+        <div class="display-eq">
+          <span class="m"><i>C</i>(ℒ(<i>P</i>)) ⊆<sub>uts</sub> ℒ(<i>Q</i>)</span>
+          <span class="eqno" aria-hidden="true">(2)</span>
+        </div>
+        <p>That is, for every state <span class="m">|<i>s</i>⟩ ∈ <i>C</i>(ℒ(<i>P</i>))</span> there is a nonzero complex number <span class="m"><i>c</i> ∈ ℂ∖{0}</span> with <span class="m"><i>c</i>|<i>s</i>⟩ ∈ ℒ(<i>Q</i>)</span>. A postcondition can therefore leave out normalization factors such as <span class="m">1/√2</span>; the <a href="#example">worked example</a> below relies on exactly that.</p>
+      </div>
+      <aside class="side">
+        <p><i>uts</i> is short for <em>up to scaling</em>.</p>
+        <p>AutoQ works with pure states. Mixed states are not considered.</p>
+      </aside>
+    </div>
+
+    <h3>Sets of states as tree automata</h3>
+    <div class="row">
+      <div class="main">
+        <p>AutoQ represents a set of states with a tree automaton. A state becomes a tree with one level per qubit, and each leaf stores one amplitude: in Figure&nbsp;1 the leaf <span class="m">000</span> stores the amplitude of <span class="m">|000⟩</span>, <span class="m">001</span> that of <span class="m">|001⟩</span>, and so on. One automaton accepts many such trees, so it can stand for a whole set of states.</p>
+        <p>AutoQ 2.0 uses level-synchronized tree automata, in which each transition carries a set of choices. It also reorders qubits according to the precondition, postcondition and loop invariants, to keep the automata it builds small.</p>
+      </div>
+      <aside class="side">
+        <p>The internal representation is described in <a href="https://github.com/fmlab-iis/AutoQ/blob/main/docs/internal_structure.md">docs/internal_structure.md</a>, which points to <a href="https://inria.hal.science/hal-03367725v1/document#page=23">Example 1.1.3</a> of an NFTA reference for background.</p>
+      </aside>
+    </div>
+
+    <figure class="fig" aria-labelledby="fig1-cap">
+      <svg viewBox="0 0 640 242" role="img" aria-labelledby="fig1-title fig1-desc">
+        <title id="fig1-title">A 3-qubit state as a binary tree</title>
+        <desc id="fig1-desc">The root x1 has two children x2; each x2 has two children x3; the eight leaves, from left to right, are 000, 001, 010, 011, 100, 101, 110 and 111.</desc>
+        <g style="stroke: var(--ink-3); fill: none" stroke-width="1.2">
+          <line x1="320" y1="34" x2="160" y2="88"/><line x1="320" y1="34" x2="480" y2="88"/>
+          <line x1="160" y1="104" x2="80" y2="152"/><line x1="160" y1="104" x2="240" y2="152"/>
+          <line x1="480" y1="104" x2="400" y2="152"/><line x1="480" y1="104" x2="560" y2="152"/>
+          <line x1="80" y1="168" x2="40" y2="206"/><line x1="80" y1="168" x2="120" y2="206"/>
+          <line x1="240" y1="168" x2="200" y2="206"/><line x1="240" y1="168" x2="280" y2="206"/>
+          <line x1="400" y1="168" x2="360" y2="206"/><line x1="400" y1="168" x2="440" y2="206"/>
+          <line x1="560" y1="168" x2="520" y2="206"/><line x1="560" y1="168" x2="600" y2="206"/>
+        </g>
+        <g style="fill: var(--paper-lift); stroke: var(--rule)" stroke-width="1">
+          <circle cx="320" cy="26" r="18"/>
+          <circle cx="160" cy="96" r="18"/><circle cx="480" cy="96" r="18"/>
+          <circle cx="80" cy="160" r="18"/><circle cx="240" cy="160" r="18"/><circle cx="400" cy="160" r="18"/><circle cx="560" cy="160" r="18"/>
+        </g>
+        <g class="f1-node" style="fill: var(--ink); font-family: var(--serif); font-style: italic" text-anchor="middle">
+          <text x="318" y="32">x<tspan dy="5" font-style="normal">1</tspan></text>
+          <text x="158" y="102">x<tspan dy="5" font-style="normal">2</tspan></text>
+          <text x="478" y="102">x<tspan dy="5" font-style="normal">2</tspan></text>
+          <text x="78" y="166">x<tspan dy="5" font-style="normal">3</tspan></text>
+          <text x="238" y="166">x<tspan dy="5" font-style="normal">3</tspan></text>
+          <text x="398" y="166">x<tspan dy="5" font-style="normal">3</tspan></text>
+          <text x="558" y="166">x<tspan dy="5" font-style="normal">3</tspan></text>
+        </g>
+        <g class="f1-leaf" style="fill: var(--ink); font-family: var(--serif)" text-anchor="middle">
+          <text x="40" y="234">000</text><text x="120" y="234">001</text><text x="200" y="234">010</text><text x="280" y="234">011</text>
+          <text x="360" y="234">100</text><text x="440" y="234">101</text><text x="520" y="234">110</text><text x="600" y="234">111</text>
+        </g>
+      </svg>
+      <figcaption id="fig1-cap"><b>Figure 1.</b> A 3-qubit state as a tree, one level per qubit. The leaf <span class="m">000</span> stores the amplitude of <span class="m">|000⟩</span>, and so on. Redrawn from <a href="https://github.com/fmlab-iis/AutoQ/blob/main/docs/internal_structure.md">docs/internal_structure.md</a>.</figcaption>
+    </figure>
+  </div>
+</section>
+
+<!-- 2 ============================================================ -->
+<section class="chapter" id="example" aria-labelledby="h-example">
+  <div class="wrap">
+    <h2 id="h-example"><span class="secnum" aria-hidden="true">2</span>A worked example</h2>
+
+    <div class="row">
+      <div class="main">
+        <p class="lede">This two-qubit example is adapted from the README. The precondition holds two states, and the program applies three gates. Each step shows the set of states after one more gate, the tree of each state, and the output of <code>autoq ex</code> on the program up to that point.</p>
+        <figure class="code soft" data-copy>
+          <figcaption class="cap"><code>pre.hsl</code></figcaption>
+<pre><code><span class="kw">Extended Dirac</span>
+{|00&gt;, 1/2 |00&gt; + 1/2 |01&gt; + 1/2 |10&gt; + 1/2 |11&gt;}</code></pre>
+        </figure>
+        <figure class="code" data-copy>
+          <figcaption class="cap"><code>circuit.qasm</code></figcaption>
+<pre tabindex="0"><code>OPENQASM 3;
+include "stdgates.inc";
+qubit[2] qb;
+
+x qb[0];
+x qb[1];
+h qb[1];</code></pre>
+        </figure>
+        <p class="caption"><code>circuit0.qasm</code>, <code>circuit1.qasm</code> and <code>circuit2.qasm</code> in the steps below are the same file cut after zero, one and two gates.</p>
+      </div>
+      <aside class="side">
+        <p><code>qb[0]</code> is the leftmost bit of each ket, so <code>x qb[0]</code> maps <span class="m">|00⟩</span> to <span class="m">|10⟩</span>.</p>
+        <p>The trees follow Figure&nbsp;1, with leaves in the order <span class="m">00, 01, 10, 11</span>. In each step, outlined leaves changed with the last gate and dashed leaves hold 0.</p>
+        <p>All outputs on this page are copied from real runs of a release build. Times and memory figures vary by machine.</p>
+      </aside>
+    </div>
+
+    <div class="stepper" id="stepper">
+      <figure class="circuit">
+        <svg viewBox="0 0 430 136" role="img" aria-labelledby="circ-title">
+          <title id="circ-title">Circuit: X on qb[0], then X on qb[1], then H on qb[1]</title>
+          <text class="qlabel" x="0" y="48">qb[0]</text>
+          <text class="qlabel" x="0" y="108">qb[1]</text>
+          <line class="wire" x1="52" y1="44" x2="428" y2="44"/>
+          <line class="wire" x1="52" y1="104" x2="428" y2="104"/>
+          <g class="gate g1" data-gate="1"><rect x="128" y="24" width="40" height="40" rx="1"/><text x="148" y="52" text-anchor="middle">X</text></g>
+          <g class="gate g2" data-gate="2"><rect x="218" y="84" width="40" height="40" rx="1"/><text x="238" y="112" text-anchor="middle">X</text></g>
+          <g class="gate g3" data-gate="3"><rect x="308" y="84" width="40" height="40" rx="1"/><text x="328" y="112" text-anchor="middle">H</text></g>
+          <g class="marker" aria-hidden="true" style="transform: translateX(92px)">
+            <line x1="0" y1="12" x2="0" y2="134"/>
+            <path d="M-5 2 L5 2 L0 10 Z"/>
+          </g>
+        </svg>
+      </figure>
+
+      <div class="stepnav" role="group" aria-label="Walkthrough steps">
+        <div class="tabs"></div>
+        <div class="pn">
+          <button type="button" data-dir="-1">Previous</button>
+          <button type="button" data-dir="1">Next</button>
+        </div>
+      </div>
+      <p class="sr-only" aria-live="polite" id="step-status"></p>
+
+      <ol class="steps">
+        <li class="step" data-step="0" data-tab="Start">
+          <h3 class="step-head"><span class="n">0</span> Start from the precondition</h3>
+          <div class="step-grid">
+            <div>
+              <p class="set"><span class="nm">ℒ(<i>P</i>) =</span> {|00⟩, <span class="nm"><span class="fr"><span>1</span><span>2</span></span>|00⟩ + <span class="fr"><span>1</span><span>2</span></span>|01⟩</span> <span class="nm">+ <span class="fr"><span>1</span><span>2</span></span>|10⟩ + <span class="fr"><span>1</span><span>2</span></span>|11⟩}</span></p>
+              <div class="st-trees"><svg class="st-tree" viewBox="0 0 200 134" role="img" aria-label="Tree for |00⟩: leaves 1, 0, 0, 0"><g class="edges"><path d="M100 14 L50 50 M100 14 L150 50 M50 50 L25 82 M50 50 L75 82 M150 50 L125 82 M150 50 L175 82"/></g><circle class="nd" cx="100" cy="14" r="4.5"/><circle class="nd" cx="50" cy="50" r="4.5"/><circle class="nd" cx="150" cy="50" r="4.5"/><g class="leaf"><rect x="1" y="82" width="48" height="28" rx="2"/><text class="amp" x="25" y="101.5" text-anchor="middle">1</text><text class="ket" x="25" y="128" text-anchor="middle">00</text></g><g class="leaf zero"><rect x="51" y="82" width="48" height="28" rx="2"/><text class="amp" x="75" y="101.5" text-anchor="middle">0</text><text class="ket" x="75" y="128" text-anchor="middle">01</text></g><g class="leaf zero"><rect x="101" y="82" width="48" height="28" rx="2"/><text class="amp" x="125" y="101.5" text-anchor="middle">0</text><text class="ket" x="125" y="128" text-anchor="middle">10</text></g><g class="leaf zero"><rect x="151" y="82" width="48" height="28" rx="2"/><text class="amp" x="175" y="101.5" text-anchor="middle">0</text><text class="ket" x="175" y="128" text-anchor="middle">11</text></g></svg><svg class="st-tree" viewBox="0 0 200 134" role="img" aria-label="Tree for the equal superposition: all four leaves ½"><g class="edges"><path d="M100 14 L50 50 M100 14 L150 50 M50 50 L25 82 M50 50 L75 82 M150 50 L125 82 M150 50 L175 82"/></g><circle class="nd" cx="100" cy="14" r="4.5"/><circle class="nd" cx="50" cy="50" r="4.5"/><circle class="nd" cx="150" cy="50" r="4.5"/><g class="leaf"><rect x="1" y="82" width="48" height="28" rx="2"/><text class="amp" x="25" y="101.5" text-anchor="middle">1/2</text><text class="ket" x="25" y="128" text-anchor="middle">00</text></g><g class="leaf"><rect x="51" y="82" width="48" height="28" rx="2"/><text class="amp" x="75" y="101.5" text-anchor="middle">1/2</text><text class="ket" x="75" y="128" text-anchor="middle">01</text></g><g class="leaf"><rect x="101" y="82" width="48" height="28" rx="2"/><text class="amp" x="125" y="101.5" text-anchor="middle">1/2</text><text class="ket" x="125" y="128" text-anchor="middle">10</text></g><g class="leaf"><rect x="151" y="82" width="48" height="28" rx="2"/><text class="amp" x="175" y="101.5" text-anchor="middle">1/2</text><text class="ket" x="175" y="128" text-anchor="middle">11</text></g></svg></div>
+              <p class="gloss">Two states: the basis state <span class="m">|00⟩</span> and the equal superposition of all four basis states.</p>
+            </div>
+            <figure class="code soft">
+              <figcaption class="cap">Run on a circuit with no gates</figcaption>
+<pre><code><span class="pr">$ </span>autoq ex pre.hsl circuit0.qasm
+<span class="out">OUTPUT:
+{(1/1)|00&gt;,
+ (1/2)|00&gt; + (1/2)|01&gt; + (1/2)|10&gt; + (1/2)|11&gt;}</span></code></pre>
+            </figure>
+          </div>
+        </li>
+        <li class="step" data-step="1" data-tab="x qb[0]">
+          <h3 class="step-head"><span class="n">1</span> <code>x qb[0];</code></h3>
+          <div class="step-grid">
+            <div>
+              <p class="set">{|10⟩, <span class="nm"><span class="fr"><span>1</span><span>2</span></span>|10⟩ + <span class="fr"><span>1</span><span>2</span></span>|11⟩</span> <span class="nm">+ <span class="fr"><span>1</span><span>2</span></span>|00⟩ + <span class="fr"><span>1</span><span>2</span></span>|01⟩}</span></p>
+              <div class="st-trees"><svg class="st-tree" viewBox="0 0 200 134" role="img" aria-label="Tree for |10⟩: leaves 0, 0, 1, 0; leaves 00 and 10 changed"><g class="edges"><path d="M100 14 L50 50 M100 14 L150 50 M50 50 L25 82 M50 50 L75 82 M150 50 L125 82 M150 50 L175 82"/></g><circle class="nd" cx="100" cy="14" r="4.5"/><circle class="nd" cx="50" cy="50" r="4.5"/><circle class="nd" cx="150" cy="50" r="4.5"/><g class="leaf zero chg"><rect x="1" y="82" width="48" height="28" rx="2"/><text class="amp" x="25" y="101.5" text-anchor="middle">0</text><text class="ket" x="25" y="128" text-anchor="middle">00</text></g><g class="leaf zero"><rect x="51" y="82" width="48" height="28" rx="2"/><text class="amp" x="75" y="101.5" text-anchor="middle">0</text><text class="ket" x="75" y="128" text-anchor="middle">01</text></g><g class="leaf chg"><rect x="101" y="82" width="48" height="28" rx="2"/><text class="amp" x="125" y="101.5" text-anchor="middle">1</text><text class="ket" x="125" y="128" text-anchor="middle">10</text></g><g class="leaf zero"><rect x="151" y="82" width="48" height="28" rx="2"/><text class="amp" x="175" y="101.5" text-anchor="middle">0</text><text class="ket" x="175" y="128" text-anchor="middle">11</text></g></svg><svg class="st-tree" viewBox="0 0 200 134" role="img" aria-label="Tree for the equal superposition: all four leaves ½, unchanged"><g class="edges"><path d="M100 14 L50 50 M100 14 L150 50 M50 50 L25 82 M50 50 L75 82 M150 50 L125 82 M150 50 L175 82"/></g><circle class="nd" cx="100" cy="14" r="4.5"/><circle class="nd" cx="50" cy="50" r="4.5"/><circle class="nd" cx="150" cy="50" r="4.5"/><g class="leaf"><rect x="1" y="82" width="48" height="28" rx="2"/><text class="amp" x="25" y="101.5" text-anchor="middle">1/2</text><text class="ket" x="25" y="128" text-anchor="middle">00</text></g><g class="leaf"><rect x="51" y="82" width="48" height="28" rx="2"/><text class="amp" x="75" y="101.5" text-anchor="middle">1/2</text><text class="ket" x="75" y="128" text-anchor="middle">01</text></g><g class="leaf"><rect x="101" y="82" width="48" height="28" rx="2"/><text class="amp" x="125" y="101.5" text-anchor="middle">1/2</text><text class="ket" x="125" y="128" text-anchor="middle">10</text></g><g class="leaf"><rect x="151" y="82" width="48" height="28" rx="2"/><text class="amp" x="175" y="101.5" text-anchor="middle">1/2</text><text class="ket" x="175" y="128" text-anchor="middle">11</text></g></svg></div>
+              <p class="gloss">X flips the left bit, so in every tree the two halves under the root swap. The equal superposition maps onto itself, which is why its tree and its line of output do not change.</p>
+            </div>
+            <figure class="code soft">
+              <figcaption class="cap">Run on the circuit up to this gate</figcaption>
+<pre><code><span class="pr">$ </span>autoq ex pre.hsl circuit1.qasm
+<span class="out">OUTPUT:
+{(1/1)|10&gt;,
+ (1/2)|00&gt; + (1/2)|01&gt; + (1/2)|10&gt; + (1/2)|11&gt;}</span></code></pre>
+            </figure>
+          </div>
+        </li>
+        <li class="step" data-step="2" data-tab="x qb[1]">
+          <h3 class="step-head"><span class="n">2</span> <code>x qb[1];</code></h3>
+          <div class="step-grid">
+            <div>
+              <p class="set">{|11⟩, <span class="nm"><span class="fr"><span>1</span><span>2</span></span>|11⟩ + <span class="fr"><span>1</span><span>2</span></span>|10⟩</span> <span class="nm">+ <span class="fr"><span>1</span><span>2</span></span>|01⟩ + <span class="fr"><span>1</span><span>2</span></span>|00⟩}</span></p>
+              <div class="st-trees"><svg class="st-tree" viewBox="0 0 200 134" role="img" aria-label="Tree for |11⟩: leaves 0, 0, 0, 1; leaves 10 and 11 changed"><g class="edges"><path d="M100 14 L50 50 M100 14 L150 50 M50 50 L25 82 M50 50 L75 82 M150 50 L125 82 M150 50 L175 82"/></g><circle class="nd" cx="100" cy="14" r="4.5"/><circle class="nd" cx="50" cy="50" r="4.5"/><circle class="nd" cx="150" cy="50" r="4.5"/><g class="leaf zero"><rect x="1" y="82" width="48" height="28" rx="2"/><text class="amp" x="25" y="101.5" text-anchor="middle">0</text><text class="ket" x="25" y="128" text-anchor="middle">00</text></g><g class="leaf zero"><rect x="51" y="82" width="48" height="28" rx="2"/><text class="amp" x="75" y="101.5" text-anchor="middle">0</text><text class="ket" x="75" y="128" text-anchor="middle">01</text></g><g class="leaf zero chg"><rect x="101" y="82" width="48" height="28" rx="2"/><text class="amp" x="125" y="101.5" text-anchor="middle">0</text><text class="ket" x="125" y="128" text-anchor="middle">10</text></g><g class="leaf chg"><rect x="151" y="82" width="48" height="28" rx="2"/><text class="amp" x="175" y="101.5" text-anchor="middle">1</text><text class="ket" x="175" y="128" text-anchor="middle">11</text></g></svg><svg class="st-tree" viewBox="0 0 200 134" role="img" aria-label="Tree for the equal superposition: all four leaves ½, unchanged"><g class="edges"><path d="M100 14 L50 50 M100 14 L150 50 M50 50 L25 82 M50 50 L75 82 M150 50 L125 82 M150 50 L175 82"/></g><circle class="nd" cx="100" cy="14" r="4.5"/><circle class="nd" cx="50" cy="50" r="4.5"/><circle class="nd" cx="150" cy="50" r="4.5"/><g class="leaf"><rect x="1" y="82" width="48" height="28" rx="2"/><text class="amp" x="25" y="101.5" text-anchor="middle">1/2</text><text class="ket" x="25" y="128" text-anchor="middle">00</text></g><g class="leaf"><rect x="51" y="82" width="48" height="28" rx="2"/><text class="amp" x="75" y="101.5" text-anchor="middle">1/2</text><text class="ket" x="75" y="128" text-anchor="middle">01</text></g><g class="leaf"><rect x="101" y="82" width="48" height="28" rx="2"/><text class="amp" x="125" y="101.5" text-anchor="middle">1/2</text><text class="ket" x="125" y="128" text-anchor="middle">10</text></g><g class="leaf"><rect x="151" y="82" width="48" height="28" rx="2"/><text class="amp" x="175" y="101.5" text-anchor="middle">1/2</text><text class="ket" x="175" y="128" text-anchor="middle">11</text></g></svg></div>
+              <p class="gloss">X flips the right bit, so under each node of the next level the two leaves swap.</p>
+            </div>
+            <figure class="code soft">
+              <figcaption class="cap">Run on the circuit up to this gate</figcaption>
+<pre><code><span class="pr">$ </span>autoq ex pre.hsl circuit2.qasm
+<span class="out">OUTPUT:
+{(1/1)|11&gt;,
+ (1/2)|00&gt; + (1/2)|01&gt; + (1/2)|10&gt; + (1/2)|11&gt;}</span></code></pre>
+            </figure>
+          </div>
+        </li>
+        <li class="step" data-step="3" data-tab="h qb[1]">
+          <h3 class="step-head"><span class="n">3</span> <code>h qb[1];</code></h3>
+          <div class="step-grid">
+            <div>
+              <p class="set"><span class="nm"><i>C</i>(ℒ(<i>P</i>)) =</span> {<span class="nm">|10⟩/√2 − |11⟩/√2,</span> <span class="nm">|10⟩/√2 + |00⟩/√2}</span></p>
+              <div class="st-trees"><svg class="st-tree" viewBox="0 0 200 134" role="img" aria-label="Tree for |10⟩/√2 − |11⟩/√2: leaves 0, 0, 1/√2, −1/√2; leaves 10 and 11 changed"><g class="edges"><path d="M100 14 L50 50 M100 14 L150 50 M50 50 L25 82 M50 50 L75 82 M150 50 L125 82 M150 50 L175 82"/></g><circle class="nd" cx="100" cy="14" r="4.5"/><circle class="nd" cx="50" cy="50" r="4.5"/><circle class="nd" cx="150" cy="50" r="4.5"/><g class="leaf zero"><rect x="1" y="82" width="48" height="28" rx="2"/><text class="amp" x="25" y="101.5" text-anchor="middle">0</text><text class="ket" x="25" y="128" text-anchor="middle">00</text></g><g class="leaf zero"><rect x="51" y="82" width="48" height="28" rx="2"/><text class="amp" x="75" y="101.5" text-anchor="middle">0</text><text class="ket" x="75" y="128" text-anchor="middle">01</text></g><g class="leaf chg"><rect x="101" y="82" width="48" height="28" rx="2"/><text class="amp long" x="125" y="101.5" text-anchor="middle">1/√2</text><text class="ket" x="125" y="128" text-anchor="middle">10</text></g><g class="leaf chg"><rect x="151" y="82" width="48" height="28" rx="2"/><text class="amp long" x="175" y="101.5" text-anchor="middle">−1/√2</text><text class="ket" x="175" y="128" text-anchor="middle">11</text></g></svg><svg class="st-tree" viewBox="0 0 200 134" role="img" aria-label="Tree for |00⟩/√2 + |10⟩/√2: leaves 1/√2, 0, 1/√2, 0; all four leaves changed"><g class="edges"><path d="M100 14 L50 50 M100 14 L150 50 M50 50 L25 82 M50 50 L75 82 M150 50 L125 82 M150 50 L175 82"/></g><circle class="nd" cx="100" cy="14" r="4.5"/><circle class="nd" cx="50" cy="50" r="4.5"/><circle class="nd" cx="150" cy="50" r="4.5"/><g class="leaf chg"><rect x="1" y="82" width="48" height="28" rx="2"/><text class="amp long" x="25" y="101.5" text-anchor="middle">1/√2</text><text class="ket" x="25" y="128" text-anchor="middle">00</text></g><g class="leaf zero chg"><rect x="51" y="82" width="48" height="28" rx="2"/><text class="amp" x="75" y="101.5" text-anchor="middle">0</text><text class="ket" x="75" y="128" text-anchor="middle">01</text></g><g class="leaf chg"><rect x="101" y="82" width="48" height="28" rx="2"/><text class="amp long" x="125" y="101.5" text-anchor="middle">1/√2</text><text class="ket" x="125" y="128" text-anchor="middle">10</text></g><g class="leaf zero chg"><rect x="151" y="82" width="48" height="28" rx="2"/><text class="amp" x="175" y="101.5" text-anchor="middle">0</text><text class="ket" x="175" y="128" text-anchor="middle">11</text></g></svg></div>
+              <p class="gloss">H on <code>qb[1]</code> mixes each pair of sibling leaves <span class="m"><i>a</i>, <i>b</i></span> into <span class="m">(<i>a</i>+<i>b</i>)/√2</span> and <span class="m">(<i>a</i>−<i>b</i>)/√2</span>. This is the final set <span class="m"><i>C</i>(ℒ(<i>P</i>))</span>; AutoQ prints <span class="m">1/√2</span> as <code>sqrt2*1/2</code>.</p>
+            </div>
+            <figure class="code soft">
+              <figcaption class="cap">Run on the whole circuit</figcaption>
+<pre><code><span class="pr">$ </span>autoq ex pre.hsl circuit.qasm
+<span class="out">OUTPUT:
+{(sqrt2*1/2)|10&gt; + (sqrt2*-1/2)|11&gt;,
+ (sqrt2*1/2)|00&gt; + (sqrt2*1/2)|10&gt;}</span></code></pre>
+            </figure>
+          </div>
+        </li>
+        <li class="step" data-step="4" data-tab="Check">
+          <h3 class="step-head"><span class="n">4</span> Check against two postconditions</h3>
+          <div class="verdicts">
+            <div class="verdict">
+              <h4>Postcondition <span class="m"><i>Q</i><sub>1</sub></span> passes</h4>
+              <figure class="code soft">
+                <figcaption class="cap"><code>post_Q1.hsl</code></figcaption>
+<pre><code><span class="kw">Extended Dirac</span>
+{|10&gt; - |11&gt;, |10&gt; + |00&gt;}</code></pre>
+              </figure>
+              <figure class="code soft">
+<pre><code><span class="pr">$ </span>autoq ver pre.hsl circuit.qasm post_Q1.hsl
+<span class="out">The quantum program has [2] qubits and [3] gates. The verification process <span class="ok">[OK]</span> in [0.2s] with [77MB] memory usage.</span></code></pre>
+              </figure>
+              <p class="gloss">The same two states without the <span class="m">1/√2</span> factors. They match up to scaling, so the check passes.</p>
+            </div>
+            <div class="verdict">
+              <h4>Postcondition <span class="m"><i>Q</i><sub>2</sub></span> fails</h4>
+              <figure class="code soft">
+                <figcaption class="cap"><code>post_Q2.hsl</code></figcaption>
+<pre><code><span class="kw">Extended Dirac</span>
+{|10&gt; - |11&gt;, |10&gt; - |00&gt;}</code></pre>
+              </figure>
+              <figure class="code soft">
+<pre><code><span class="pr">$ </span>autoq ver pre.hsl circuit.qasm post_Q2.hsl
+<span class="out">The quantum program has [2] qubits and [3] gates. The verification process <span class="fail">[failed]</span> in [0.1s] with [77MB] memory usage.</span></code></pre>
+              </figure>
+              <p class="gloss">One sign is flipped. The state <span class="m">|10⟩/√2 + |00⟩/√2</span> is in <span class="m"><i>C</i>(ℒ(<i>P</i>))</span>, but no nonzero factor turns it into a state of <span class="m">ℒ(<i>Q</i><sub>2</sub>)</span>.</p>
+            </div>
+          </div>
+        </li>
+      </ol>
+    </div>
+  </div>
+</section>
+
+<!-- 3 ============================================================ -->
+<section class="chapter" id="start" aria-labelledby="h-start">
+  <div class="wrap">
+    <h2 id="h-start"><span class="secnum" aria-hidden="true">3</span>Get started</h2>
+    <div class="row">
+      <div class="main">
+        <p class="lede">To try AutoQ without installing anything, open the <a href="playground/">playground</a>: it runs the same tool in your browser, compiled to WebAssembly, with the examples from this page ready to run.</p>
+        <p>To install it, AutoQ builds from source on Linux (Ubuntu or Debian), macOS and WSL2. Four steps take you from a fresh clone to a verified program.</p>
+        <ol class="qs">
+          <li>
+            <h3 class="qs-h">Clone the repository</h3>
+            <figure class="code" data-copy>
+              <figcaption class="cap">Clone</figcaption>
+<pre tabindex="0"><code><span class="cmd">git clone https://github.com/fmlab-iis/AutoQ.git</span>
+<span class="cmd">cd AutoQ</span></code></pre>
+            </figure>
+          </li>
+          <li>
+            <h3 class="qs-h">Install the dependencies</h3>
+            <div class="pair">
+              <figure class="code" data-copy>
+                <figcaption class="cap">Ubuntu, Debian, WSL2</figcaption>
+<pre tabindex="0"><code><span class="cmd">sudo ./install-dependencies.sh</span></code></pre>
+              </figure>
+              <figure class="code" data-copy>
+                <figcaption class="cap">macOS</figcaption>
+<pre tabindex="0"><code><span class="cmd">./install-dependencies.sh</span></code></pre>
+              </figure>
+            </div>
+            <p class="small">On Ubuntu and Debian, including under WSL2, the <a href="https://github.com/fmlab-iis/AutoQ/blob/main/install-dependencies.sh">script</a> installs g++, make, cmake, libboost-filesystem-dev, libboost-test-dev and libantlr4-runtime-dev with apt, so run it with sudo. On macOS, run it without sudo: it uses Homebrew to install gcc, make, cmake, boost and antlr4-cpp-runtime.</p>
+          </li>
+          <li>
+            <h3 class="qs-h">Build and test</h3>
+            <figure class="code" data-copy>
+              <figcaption class="cap">Build and test</figcaption>
+<pre tabindex="0"><code><span class="cmd">make</span>
+<span class="cmd">make test</span></code></pre>
+            </figure>
+            <p class="small"><code>make</code> compiles AutoQ with optimizations, and <code>make test</code> runs the unit tests. The binary is <code>build/cli/autoq</code>. For a debug build, run <code>make debug</code> instead of <code>make</code>.</p>
+          </li>
+          <li>
+            <h3 class="qs-h">Verify a program</h3>
+            <p><code>ver</code> is the mode used most often in the AutoQ papers. It takes a precondition, a circuit and a postcondition. Here it checks the README’s example, a Grover’s search benchmark on five qubits.</p>
+            <figure class="code" data-copy>
+              <figcaption class="cap">Verify the example</figcaption>
+<pre tabindex="0"><code><span class="pr">$ </span><span class="cmd">./build/cli/autoq ver \
+    benchmarks/all/Grover/03/pre.hsl \
+    benchmarks/all/Grover/03/circuit.qasm \
+    benchmarks/all/Grover/03/post.hsl</span><span class="out flow">The quantum program has [5] qubits and [52] gates. The verification process <span class="ok">[OK]</span> in [0.1s] with [77MB] memory usage.</span></code></pre>
+            </figure>
+            <p class="small">Times and memory figures in the outputs on this page come from one machine and will vary on yours.</p>
+            <div class="pair lopsided">
+              <figure class="code">
+                <figcaption class="cap"><code>pre.hsl</code></figcaption>
+<pre tabindex="0"><code><span class="kw">Constants</span>
+c1 := 1
+<span class="kw">Extended Dirac</span>
+{c1 |00000&gt;}</code></pre>
+              </figure>
+              <figure class="code">
+                <figcaption class="cap"><code>post.hsl</code></figcaption>
+<pre tabindex="0"><code><span class="kw">Constants</span>
+aH := 11 / (sqrt2 ^ 7)
+aL := -1 / (sqrt2 ^ 7)
+<span class="kw">Extended Dirac</span>
+{aH |01001&gt; + aL ∑ |i|=3, i≠010 |i01&gt;}</code></pre>
+              </figure>
+            </div>
+            <p class="small">The <a href="https://github.com/fmlab-iis/AutoQ/tree/main/demo">demo</a> folder has more small examples, including Bernstein–Vazirani and a Grover iteration.</p>
+          </li>
+        </ol>
+      </div>
+      <aside class="side">
+        <p>Z3 is bundled. To use a system-installed Z3, change <code class="long">option(USE_SYSTEM_Z3 ... OFF)</code> to <code>ON</code> in the top-level <code>CMakeLists.txt</code> before building.</p>
+        <p><a href="https://github.com/fmlab-iis/AutoQ/actions">Continuous integration</a> runs twelve jobs: build and test, debug and release, on Ubuntu, macOS and WSL2.</p>
+        <p>AutoQ prints its verdict as <span class="ok">[OK]</span> or <span class="fail">[failed]</span>. The exit status is 0 for both, and non-zero only on errors such as a parse error, an unsupported gate or misaligned specifications.</p>
+      </aside>
+    </div>
+    <h3>Commands</h3>
+        <dl class="cmds">
+          <div><dt>ex</dt><dd><code class="use">autoq ex [OPTIONS] pre.hsl circuit.qasm</code><br>Execute a quantum circuit with a given precondition.<br><span class="opts">Option: <code>--loopsum</code></span></dd></div>
+          <div><dt>ver</dt><dd><code class="use">autoq ver [OPTIONS] pre.hsl circuit.qasm post.hsl</code><br>Verify the execution result against a given postcondition.<br><span class="opts">Options: <code>--loopsum</code>, <code>-l, --latex</code></span></dd></div>
+          <div><dt>eq</dt><dd><code class="use">autoq eq [OPTIONS] circuit1.qasm circuit2.qasm</code><br>Check equivalence of two given quantum circuits.<br><span class="opts">Option: <code>--loopsum</code></span></dd></div>
+          <div><dt>print</dt><dd><code class="use">autoq print [OPTIONS] states.hsl</code><br>Print the set of quantum states.</dd></div>
+        </dl>
+        <p class="caption"><code>--loopsum</code> summarizes loops using symbolic execution. <code>-l, --latex</code> on <code>ver</code> prints the statistics for tables in LaTeX. <code>autoq -v</code> prints the full Git commit hash.</p>
+  </div>
+</section>
+
+<!-- 4 ============================================================ -->
+<section class="chapter" id="features" aria-labelledby="h-features">
+  <div class="wrap">
+    <h2 id="h-features"><span class="secnum" aria-hidden="true">4</span>From circuits to programs</h2>
+    <div class="row">
+      <div class="main">
+        <p class="lede">AutoQ 2.0 goes beyond straight-line circuits. It verifies programs that measure, branch and loop, and it accepts symbolic amplitudes in specifications. AutoQ can also check whether two circuits are equivalent.</p>
+      </div>
+    </div>
+
+    <h3 id="symbolic"><span class="subnum">4.1</span> Symbolic amplitudes</h3>
+    <div class="row">
+      <div class="main">
+        <p>An amplitude may use names that are not declared in the <code>Constants</code> section. AutoQ treats them as free symbolic variables, which the optional <code>Constraints</code> section can restrict. The precondition below, <span class="m">{<i>x</i>|0⟩ + <i>y</i>|1⟩}</span>, therefore stands for every state of that form, and the postcondition requires each amplitude to come back unchanged.</p>
+        <div class="pair">
+          <figure class="code" data-copy>
+            <figcaption class="cap"><code>benchmarks/all/H2Sym/pre.hsl</code></figcaption>
+<pre tabindex="0"><code><span class="kw">Extended Dirac</span>
+{x |0&gt; + y |1&gt;}</code></pre>
+          </figure>
+          <figure class="code" data-copy>
+            <figcaption class="cap"><code>H2Sym/post.hsl</code></figcaption>
+<pre tabindex="0"><code><span class="kw">Extended Dirac</span>
+{p1 |0&gt; + p2 |1&gt;}
+<span class="kw">Constraints</span>
+real(p1) = real(x)
+imag(p1) = imag(x)
+real(p2) = real(y)
+imag(p2) = imag(y)</code></pre>
+          </figure>
+        </div>
+        <p>Applying H twice passes. In the <code>H2BugSym</code> benchmark the second H is replaced by Y, and verification fails.</p>
+        <div class="pair">
+          <figure class="code soft">
+            <figcaption class="cap">Gates of <code>H2Sym/circuit.qasm</code>, and the run</figcaption>
+<pre><code>h qubits[0];
+h qubits[0];
+<span class="pr">$ </span>autoq ver pre.hsl circuit.qasm post.hsl
+<span class="out">The quantum program has [1] qubits and [2] gates. The verification process <span class="ok">[OK]</span> in [0.2s] with [85MB] memory usage.</span></code></pre>
+          </figure>
+          <figure class="code soft">
+            <figcaption class="cap">Gates of <code>H2BugSym/circuit.qasm</code>, and the run</figcaption>
+<pre><code>h qubits[0];
+y qubits[0];
+<span class="pr">$ </span>autoq ver pre.hsl circuit.qasm post.hsl
+<span class="out">The quantum program has [1] qubits and [2] gates. The verification process <span class="fail">[failed]</span> in [0.2s] with [86MB] memory usage.</span></code></pre>
+          </figure>
+        </div>
+      </div>
+      <aside class="side">
+        <p>When the precondition, postcondition or a loop invariant is symbolic, AutoQ builds symbolic automata and solves their constraints with Z3, which is bundled with the repository.</p>
+      </aside>
+    </div>
+
+    <h3 id="control"><span class="subnum">4.2</span> Measurement, branching and loops</h3>
+    <div class="row">
+      <div class="main">
+        <p>A program can measure a qubit into a classical bit and then branch on it with <code>if</code> and <code>else</code>, or loop on it with <code>while</code>. The <code>if</code> block runs on the states where the outcome is 1, the <code>else</code> block on those where it is 0, and AutoQ joins the two results. Both <code>if (!c)</code> and <code>while (!c)</code> are allowed, and <code>else</code> is optional.</p>
+        <p>A <code>while</code> loop needs a measurement just before the loop and at the end of its body, plus a loop invariant: a set of states in its own <code>.hsl</code> file, named in a comment on the <code>while</code> line. AutoQ checks that the states reaching the loop lie in the invariant, and that one pass of the body maps the invariant’s continuing states back into it. It then carries on with the states that leave the loop.</p>
+        <figure class="code" data-copy>
+          <figcaption class="cap"><code>benchmarks/all/control_mini/while/circuit.qasm</code></figcaption>
+<pre tabindex="0"><code>OPENQASM 3;
+include "stdgates.inc";
+qubit[2] qb;
+bit[2] outcome;
+
+h qb[0];
+cx qb[0], qb[1];
+outcome[0] = measure qb[0];
+while (!outcome[0]) { <span class="cm">// loop-invariant.hsl</span>
+    x qb[0];
+    h qb[0];
+    cx qb[0], qb[1];
+    outcome[0] = measure qb[0];
+}</code></pre>
+        </figure>
+        <div class="pair">
+          <figure class="code" data-copy>
+            <figcaption class="cap"><code>loop-invariant.hsl</code></figcaption>
+<pre tabindex="0"><code><span class="kw">Extended Dirac</span>
+{|00&gt; - |11&gt;,
+ |01&gt; - |10&gt;}</code></pre>
+          </figure>
+          <figure class="code" data-copy>
+            <figcaption class="cap"><code>pre.hsl</code> and <code>post.hsl</code> (identical)</figcaption>
+<pre tabindex="0"><code><span class="kw">Extended Dirac</span>
+{|10&gt;, |11&gt;}</code></pre>
+          </figure>
+        </div>
+        <figure class="code soft">
+<pre><code><span class="pr">$ </span>autoq ver pre.hsl circuit.qasm post.hsl
+<span class="out">The quantum program has [2] qubits and [6] gates. The verification process <span class="ok">[OK]</span> in [0.2s] with [84MB] memory usage.</span></code></pre>
+        </figure>
+      </div>
+      <aside class="side">
+        <p>Measurement can only be used together with <code>if</code>/<code>else</code> or <code>while</code>, not on its own.</p>
+        <p>AutoQ does not normalize amplitudes after a measurement. Results stay valid, because every non-normalized state has a unique positive factor that normalizes it.</p>
+        <p>Paths to loop-invariant files are relative to the circuit file.</p>
+        <p>Put <code>else {</code> on its own line, not on the line of the closing <code>}</code> of the <code>if</code> block.</p>
+        <p>More examples: <a href="https://github.com/fmlab-iis/AutoQ/tree/main/benchmarks/all/control_mini">control_mini</a>, and the <code>RUS</code> and <code>GroverWhile</code> benchmarks.</p>
+      </aside>
+    </div>
+
+    <h3 id="loopsum"><span class="subnum">4.3</span> Loop summarization</h3>
+    <div class="row">
+      <div class="main">
+        <p>A loop <code>for int i in [x:y] { C }</code> runs its body <code>C</code> exactly <span class="m"><i>y</i> − <i>x</i> + 1</span> times. By default AutoQ applies the body’s gates one iteration after another. With <code>--loopsum</code> on <code>ex</code> or <code>ver</code>, AutoQ applies its loop summarization algorithm, which uses symbolic execution, to the loop’s body.</p>
+        <figure class="code">
+          <figcaption class="cap">From <a href="https://github.com/fmlab-iis/AutoQ/blob/main/docs/qasm_description.md">docs/qasm_description.md</a></figcaption>
+<pre tabindex="0"><code>...
+qreg qb[1]; <span class="cm">// quantum register</span>
+...
+for int i in [1:2] {
+    h qb[0];
+    t qb[0];
+}
+...</code></pre>
+        </figure>
+      </div>
+    </div>
+
+    <h3 id="eq"><span class="subnum">4.4</span> Circuit equivalence</h3>
+    <div class="row">
+      <div class="main">
+        <p><code>autoq eq</code> checks whether two circuits are equal. A CX gate equals a CZ placed between two H gates on the target qubit; reversing control and target gives a different circuit.</p>
+        <div class="pair">
+          <figure class="code">
+            <figcaption class="cap"><code>a.qasm</code></figcaption>
+<pre tabindex="0"><code>OPENQASM 2.0;
+include "qelib1.inc";
+qreg q[2];
+cx q[0], q[1];</code></pre>
+          </figure>
+          <figure class="code">
+            <figcaption class="cap"><code>b.qasm</code></figcaption>
+<pre tabindex="0"><code>OPENQASM 2.0;
+include "qelib1.inc";
+qreg q[2];
+h q[1];
+cz q[0], q[1];
+h q[1];</code></pre>
+          </figure>
+        </div>
+        <figure class="code soft">
+<pre><code><span class="pr">$ </span>autoq eq a.qasm b.qasm
+<span class="out">The two quantum programs are verified to be <span class="ok">[equal]</span> in [0.0s] with [7MB] memory usage.</span>
+<span class="pr">$ </span>autoq eq a.qasm c.qasm  <span class="cm"># c.qasm: cx q[1], q[0];</span>
+<span class="out">The two quantum programs are verified to be <span class="fail">[unequal]</span> in [0.0s] with [7MB] memory usage.</span></code></pre>
+        </figure>
+      </div>
+      <aside class="side">
+        <p><code>eq</code> reads the number of qubits from a <code>qreg</code> declaration, so write both circuits in the OpenQASM 2.0 style shown here.</p>
+      </aside>
+    </div>
+
+    <h3 id="gates"><span class="subnum">4.5</span> Gate set</h3>
+    <div class="row">
+      <div class="main">
+        <p>AutoQ documents the fourteen gates below, written in OpenQASM with the spelling shown under each. Gates the parser does not recognise, such as <code>u3</code> or <code>cy</code>, stop the run with an <code>unsupported gate</code> error.</p>
+      </div>
+    </div>
+    <ul class="gates" aria-label="Supported gates">
+      <li><svg viewBox="0 0 64 48" aria-hidden="true"><line class="w" x1="0" y1="24" x2="64" y2="24"/><rect class="b" x="18" y="9" width="28" height="30"/><text x="32" y="30" text-anchor="middle">X</text></svg><span class="gtxt"><span class="gname">X</span><code>x</code></span></li>
+      <li><svg viewBox="0 0 64 48" aria-hidden="true"><line class="w" x1="0" y1="24" x2="64" y2="24"/><rect class="b" x="18" y="9" width="28" height="30"/><text x="32" y="30" text-anchor="middle">Y</text></svg><span class="gtxt"><span class="gname">Y</span><code>y</code></span></li>
+      <li><svg viewBox="0 0 64 48" aria-hidden="true"><line class="w" x1="0" y1="24" x2="64" y2="24"/><rect class="b" x="18" y="9" width="28" height="30"/><text x="32" y="30" text-anchor="middle">Z</text></svg><span class="gtxt"><span class="gname">Z</span><code>z</code></span></li>
+      <li><svg viewBox="0 0 64 48" aria-hidden="true"><line class="w" x1="0" y1="24" x2="64" y2="24"/><rect class="b" x="18" y="9" width="28" height="30"/><text x="32" y="30" text-anchor="middle">H</text></svg><span class="gtxt"><span class="gname">H</span><code>h</code></span></li>
+      <li><svg viewBox="0 0 64 48" aria-hidden="true"><line class="w" x1="0" y1="24" x2="64" y2="24"/><rect class="b" x="18" y="9" width="28" height="30"/><text x="32" y="30" text-anchor="middle">T</text></svg><span class="gtxt"><span class="gname">T</span><code>t</code></span></li>
+      <li><svg viewBox="0 0 64 48" aria-hidden="true"><line class="w" x1="0" y1="24" x2="64" y2="24"/><rect class="b" x="14" y="9" width="36" height="30"/><text x="32" y="30" text-anchor="middle">T†</text></svg><span class="gtxt"><span class="gname">T†</span><code>tdg</code></span></li>
+      <li><svg viewBox="0 0 64 48" aria-hidden="true"><line class="w" x1="0" y1="24" x2="64" y2="24"/><rect class="b" x="18" y="9" width="28" height="30"/><text x="32" y="30" text-anchor="middle">S</text></svg><span class="gtxt"><span class="gname">S</span><code>s</code></span></li>
+      <li><svg viewBox="0 0 64 48" aria-hidden="true"><line class="w" x1="0" y1="24" x2="64" y2="24"/><rect class="b" x="14" y="9" width="36" height="30"/><text x="32" y="30" text-anchor="middle">S†</text></svg><span class="gtxt"><span class="gname">S†</span><code>sdg</code></span></li>
+      <li><svg viewBox="0 0 64 48" aria-hidden="true"><line class="w" x1="0" y1="24" x2="64" y2="24"/><rect class="b" x="14" y="9" width="36" height="30"/><text x="30" y="30" text-anchor="middle">R<tspan font-size="11" dy="4" font-style="italic">x</tspan></text></svg><span class="gtxt"><span class="gname">R<sub>x</sub>(π/2)</span><code>rx(pi/2)</code></span></li>
+      <li><svg viewBox="0 0 64 48" aria-hidden="true"><line class="w" x1="0" y1="24" x2="64" y2="24"/><rect class="b" x="14" y="9" width="36" height="30"/><text x="30" y="30" text-anchor="middle">R<tspan font-size="11" dy="4" font-style="italic">y</tspan></text></svg><span class="gtxt"><span class="gname">R<sub>y</sub>(π/2)</span><code>ry(pi/2)</code></span></li>
+      <li><svg viewBox="0 0 64 48" aria-hidden="true"><line class="w" x1="0" y1="12" x2="64" y2="12"/><line class="w" x1="0" y1="36" x2="64" y2="36"/><line class="s" x1="32" y1="12" x2="32" y2="44"/><circle class="d" cx="32" cy="12" r="3.6"/><circle class="s" cx="32" cy="36" r="8"/><line class="s" x1="24" y1="36" x2="40" y2="36"/></svg><span class="gtxt"><span class="gname">CX</span><code>cx</code></span></li>
+      <li><svg viewBox="0 0 64 48" aria-hidden="true"><line class="w" x1="0" y1="12" x2="64" y2="12"/><line class="w" x1="0" y1="36" x2="64" y2="36"/><line class="s" x1="32" y1="12" x2="32" y2="36"/><circle class="d" cx="32" cy="12" r="3.6"/><circle class="d" cx="32" cy="36" r="3.6"/></svg><span class="gtxt"><span class="gname">CZ</span><code>cz</code></span></li>
+      <li><svg viewBox="0 0 64 48" aria-hidden="true"><line class="w" x1="0" y1="6" x2="64" y2="6"/><line class="w" x1="0" y1="22" x2="64" y2="22"/><line class="w" x1="0" y1="40" x2="64" y2="40"/><line class="s" x1="32" y1="6" x2="32" y2="47"/><circle class="d" cx="32" cy="6" r="3.4"/><circle class="d" cx="32" cy="22" r="3.4"/><circle class="s" cx="32" cy="40" r="7"/><line class="s" x1="25" y1="40" x2="39" y2="40"/></svg><span class="gtxt"><span class="gname">CCX</span><code>ccx</code></span></li>
+      <li><svg viewBox="0 0 64 48" aria-hidden="true"><line class="w" x1="0" y1="12" x2="64" y2="12"/><line class="w" x1="0" y1="36" x2="64" y2="36"/><line class="s" x1="32" y1="12" x2="32" y2="36"/><path class="s" d="M27 7 L37 17 M37 7 L27 17 M27 31 L37 41 M37 31 L27 41"/></svg><span class="gtxt"><span class="gname">SWAP</span><code>swap</code></span></li>
+    </ul>
+  </div>
+</section>
+
+<!-- 5 ============================================================ -->
+<section class="chapter" id="formats" aria-labelledby="h-formats">
+  <div class="wrap">
+    <h2 id="h-formats"><span class="secnum" aria-hidden="true">5</span>Writing specifications</h2>
+    <div class="row">
+      <div class="main">
+        <p class="lede">Preconditions, postconditions and loop invariants are all sets of quantum states. Specifications are written in <code>.hsl</code> or <code>.lsta</code>; programs in <code>.qasm</code>.</p>
+        <dl class="formats">
+          <div><dt>.hsl</dt><dd><p>A high-level specification language that extends Dirac notation to describe sets of quantum states. A file has a <code>Constants</code> section (optional), an <code>Extended Dirac</code> section, and a <code>Constraints</code> section (optional), in that order.</p><a class="doc" href="https://github.com/fmlab-iis/AutoQ/blob/main/docs/hsl_description.md">The .hsl format</a></dd></div>
+          <div><dt>.qasm</dt><dd><p>OpenQASM 2.0 or 3.0, with very limited syntax: a single quantum register, classical bits used only right before control flow, the fourteen gates above, <code>if</code>/<code>else</code>, <code>while</code> and <code>for</code>.</p><a class="doc" href="https://github.com/fmlab-iis/AutoQ/blob/main/docs/qasm_description.md">The supported OpenQASM subset</a></dd></div>
+          <div><dt>.lsta</dt><dd><p>A set of states written directly as a level-synchronized tree automaton. It keeps <code>Constants</code> and <code>Constraints</code> and replaces <code>Extended Dirac</code> with <code>Root States</code> and <code>Transitions</code>.</p><a class="doc" href="https://github.com/fmlab-iis/AutoQ/blob/main/docs/lsta_description.md">The .lsta format</a></dd></div>
+        </dl>
+      </div>
+    </div>
+
+    <h3>Reading an .hsl file</h3>
+    <div class="row">
+      <div class="main">
+        <p>The <code>GHZall/002</code> benchmark runs a two-qubit circuit, <code class="long">h qubits[0]; cx qubits[0], qubits[1];</code>, on all four basis states at once.</p>
+        <div class="pair">
+          <figure class="code" data-copy>
+            <figcaption class="cap"><code>GHZall/002/pre.hsl</code></figcaption>
+<pre tabindex="0"><code><span class="kw">Constants</span>
+c1 := 1
+<span class="kw">Extended Dirac</span>
+{c1 |ji&gt; : |j|=1, |i|=1}</code></pre>
+          </figure>
+          <figure class="code" data-copy>
+            <figcaption class="cap"><code>GHZall/002/post.hsl</code></figcaption>
+<pre tabindex="0"><code><span class="kw">Constants</span>
+cp := 1/sqrt2
+cn := -1/sqrt2
+<span class="kw">Extended Dirac</span>
+{cp |0i&gt; + cp |1i'&gt; : |i|=1} ∪
+{cp |0i&gt; + cn |1i'&gt; : |i|=1}</code></pre>
+          </figure>
+        </div>
+        <ol class="notes-list">
+          <li><code>{c1 |ji&gt; : |j|=1, |i|=1}</code> lets <code>j</code> and <code>i</code> range over 1-bit strings, so the precondition holds all four basis states. <code>autoq print pre.hsl</code> lists them.</li>
+          <li>In <code>|1i'&gt;</code>, <code>i'</code> is the bitwise complement of <code>i</code>.</li>
+          <li><code>∪</code> joins two sets: here, the states with a plus sign and those with a minus sign.</li>
+        </ol>
+        <div class="pair">
+          <figure class="code soft">
+<pre><code><span class="pr">$ </span>autoq print pre.hsl
+<span class="out">{(1/1)|11&gt;,
+ (1/1)|10&gt;,
+ (1/1)|01&gt;,
+ (1/1)|00&gt;}</span></code></pre>
+          </figure>
+          <figure class="code soft">
+<pre><code><span class="pr">$ </span>autoq ver pre.hsl circuit.qasm post.hsl
+<span class="out">The quantum program has [2] qubits and [2] gates. The verification process <span class="ok">[OK]</span> in [0.1s] with [77MB] memory usage.</span></code></pre>
+          </figure>
+        </div>
+      </div>
+      <aside class="side">
+        <p>Pre-, post- and invariant files must place <code>⊗</code> at the same qubit boundaries, and their variable kets must line up. Otherwise AutoQ stops with an alignment error, for example <code class="long">There are two *.hsl files not aligned!</code></p>
+        <p>Names that are not constants, like <code>x</code> and <code>y</code> in section 4.1, become symbolic variables.</p>
+      </aside>
+    </div>
+
+    <div class="row">
+      <div class="main">
+        <details class="disclose">
+        <summary><span><b>Table 1.</b> Extended Dirac notation at a glance</span></summary>
+        <div class="tbl-wrap">
+          <table class="dirac">
+            <caption class="sr-only">Extended Dirac notation</caption>
+            <thead><tr><th scope="col">Notation</th><th scope="col">Meaning</th><th scope="col">ASCII</th></tr></thead>
+            <tbody>
+              <tr><td><i>S</i> ∪ <i>T</i></td><td>union of two sets of states</td><td></td></tr>
+              <tr><td><i>S</i> ⊗ <i>T</i></td><td>tensor product of two sets</td><td><code>S * T</code></td></tr>
+              <tr><td><i>S</i> ^ <i>n</i></td><td>tensor power</td><td></td></tr>
+              <tr><td>|<i>i</i>⟩, |1<i>i</i>′⟩</td><td>binary-string variable (lowercase), and its complement</td><td><code>|1i'&gt;</code></td></tr>
+              <tr><td>∑ |<i>i</i>|=4, <i>i</i>≠0101 |<i>i</i>⟩</td><td>sum over strings that meet the constraints</td><td><code>Σ</code>, <code>!=</code></td></tr>
+              <tr><td>{ … : |<i>s</i>|=4, <i>s</i>≠0101 }</td><td>set-builder notation with constraints</td><td><code>!=</code></td></tr>
+              <tr><td>= ≠ &lt; ≤ &gt; ≥ ¬ ∧ ∨</td><td>operators in the <code>Constraints</code> section, one conjunct per line</td><td><code>!= &lt;= &gt;= ! &amp;&amp; ||</code></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="caption">Kets can be closed with <code>⟩</code> or <code>&gt;</code>. Constants may use <code>real(c)</code>, <code>imag(c)</code>, <code>eipi(r)</code>, <code>ei2pi(r)</code>, <code>sqrt2</code>, nonnegative integers and <code>+ - * / ^</code>.</p>
+        </details>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 6 ============================================================ -->
+<section class="chapter" id="papers" aria-labelledby="h-papers">
+  <div class="wrap">
+    <h2 id="h-papers"><span class="secnum" aria-hidden="true">6</span>Papers</h2>
+    <div class="row">
+      <div class="main">
+        <p class="lede">Please cite the following papers if you use this tool for your research.</p>
+      </div>
+    </div>
+    <ol class="refs">
+      <li class="ref">
+        <span class="key" aria-hidden="true">[1]</span>
+        <div>
+          <h3><a href="https://dl.acm.org/doi/10.1145/3704868">Verifying Quantum Circuits with Level-Synchronized Tree Automata</a></h3>
+          <p class="authors">Parosh Aziz Abdulla, Yo-Ga Chen, Yu-Fang Chen, Lukáš Holík, Ondřej Lengál, Jyun-Ao Lin, Fang-Yi Lo, Wei-Lun Tsai</p>
+          <p class="venue">Proceedings of the ACM on Programming Languages 9 (POPL), 2025, pp. 923–953</p>
+          <div class="acts">
+            <a href="https://doi.org/10.1145/3704868">doi:10.1145/3704868</a>
+            <a href="https://github.com/fmlab-iis/AutoQ/tree/main/benchmarks/POPL25">Benchmarks: POPL25</a>
+            <button type="button" class="btn-quiet js-only" data-copy-target="bib-popl">Copy BibTeX</button>
+          </div>
+        </div>
+        <details>
+          <summary>BibTeX</summary>
+          <div class="code">
+<pre id="bib-popl" tabindex="0" aria-label="BibTeX for [1]"><code>@article{10.1145/3704868,
+  title = {Verifying Quantum Circuits with Level-Synchronized Tree Automata},
+  author = {Abdulla, Parosh Aziz and Chen, Yo-Ga and Chen, Yu-Fang and Hol\'{\i}k, Luk\'{a}\v{s} and Leng\'{a}l, Ond\v{r}ej and Lin, Jyun-Ao and Lo, Fang-Yi and Tsai, Wei-Lun},
+  journal = {Proceedings of the ACM on Programming Languages},
+  volume = {9},
+  number = {POPL},
+  year = {2025},
+  pages = {923--953},
+  doi = {10.1145/3704868}
+}</code></pre>
+          </div>
+        </details>
+      </li>
+      <li class="ref">
+        <span class="key" aria-hidden="true">[2]</span>
+        <div>
+          <h3><a href="https://link.springer.com/chapter/10.1007/978-3-031-90660-2_5">AutoQ 2.0: From Verification of Quantum Circuits to Verification of Quantum Programs</a></h3>
+          <p class="authors">Yu-Fang Chen, Kai-Min Chung, Min-Hsiu Hsieh, Wei-Jia Huang, Ondřej Lengál, Jyun-Ao Lin, Wei-Lun Tsai</p>
+          <p class="venue">International Conference on Tools and Algorithms for the Construction and Analysis of Systems (TACAS), 2025, pp. 87–108</p>
+          <div class="acts">
+            <a href="https://doi.org/10.1007/978-3-031-90660-2_5">doi:10.1007/978-3-031-90660-2_5</a>
+            <a href="https://github.com/fmlab-iis/AutoQ/tree/main/benchmarks/TACAS25">Benchmarks: TACAS25</a>
+            <button type="button" class="btn-quiet js-only" data-copy-target="bib-tacas">Copy BibTeX</button>
+          </div>
+        </div>
+        <details>
+          <summary>BibTeX</summary>
+          <div class="code">
+<pre id="bib-tacas" tabindex="0" aria-label="BibTeX for [2]"><code>@InProceedings{10.1007/978-3-031-90660-2_5,
+  author = {Chen, Yu-Fang and Chung, Kai-Min and Hsieh, Min-Hsiu and Huang, Wei-Jia and Leng{\'a}l, Ond{\v{r}}ej and Lin, Jyun-Ao and Tsai, Wei-Lun},
+  booktitle = {International Conference on Tools and Algorithms for the Construction and Analysis of Systems (TACAS)},
+  title = {AutoQ 2.0: From Verification of Quantum Circuits to Verification of Quantum Programs},
+  year = {2025},
+  pages = {87--108},
+  doi = {10.1007/978-3-031-90660-2_5}
+}</code></pre>
+          </div>
+        </details>
+      </li>
+    </ol>
+    <div class="row">
+      <div class="main">
+        <p class="caption">The <a href="https://github.com/fmlab-iis/AutoQ/tree/main/benchmarks">benchmarks</a> folder holds all the files used to produce the experimental results.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 7 ============================================================ -->
+<section class="chapter" id="more" aria-labelledby="h-more">
+  <div class="wrap">
+    <h2 id="h-more"><span class="secnum" aria-hidden="true">7</span>Learn more, ask questions</h2>
+    <div class="more">
+      <div>
+        <h3>Watch</h3>
+        <p>The introductory video shows more examples of how to use AutoQ.</p>
+        <a class="video-link" href="https://www.youtube.com/watch?v=1pO6bBvEaLM">
+          <svg viewBox="0 0 44 44" aria-hidden="true"><circle cx="22" cy="22" r="21"/><path d="M18 14.5 L30 22 L18 29.5 Z"/></svg>
+          Watch the introductory video on YouTube
+        </a>
+      </div>
+      <div>
+        <h3>Read</h3>
+        <ul>
+          <li><a href="https://github.com/fmlab-iis/AutoQ/blob/main/README.md">README</a><span>Overview, installation, usage</span></li>
+          <li><a href="https://github.com/fmlab-iis/AutoQ/blob/main/docs/hsl_description.md">The .hsl format</a><span>Extended Dirac, constants, constraints</span></li>
+          <li><a href="https://github.com/fmlab-iis/AutoQ/blob/main/docs/qasm_description.md">The OpenQASM subset</a><span>Gates, measurement, if-else, while, for</span></li>
+          <li><a href="https://github.com/fmlab-iis/AutoQ/blob/main/docs/lsta_description.md">The .lsta format</a><span>Writing tree automata directly</span></li>
+          <li><a href="https://github.com/fmlab-iis/AutoQ/blob/main/docs/internal_structure.md">Internal structure</a><span>How trees encode quantum states</span></li>
+        </ul>
+      </div>
+      <div>
+        <h3>Ask</h3>
+        <p>If you have any questions or suggestions, <a href="https://github.com/fmlab-iis/AutoQ/issues">create an issue</a> on GitHub or contact us via <a href="mailto:alan23273850@gmail.com">alan23273850@gmail.com</a>.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<footer class="colophon">
+  <div class="wrap">
+    <a class="wordmark" href="#top">AutoQ 2.0</a>
+    <p class="legal">Licence: see <a href="https://github.com/fmlab-iis/AutoQ/blob/main/LICENSE">LICENSE</a> (MIT License, Copyright (c) 2023 Wei-Lun Tsai). This page is set in Bodoni Moda, Instrument Sans and JetBrains Mono (<a href="assets/fonts/OFL.txt">SIL Open Font License</a>).</p>
+    <nav class="flinks" aria-label="Project links">
+      <a href="https://github.com/fmlab-iis/AutoQ">Source</a>
+      <a href="https://github.com/fmlab-iis/AutoQ/issues">Issues</a>
+      <a href="https://github.com/fmlab-iis/AutoQ/tree/main/benchmarks">Benchmarks</a>
+      <a href="#top">Back to top</a>
+    </nav>
+  </div>
+</footer>
+
+<script>
+(function () {
+  var root = document.documentElement;
+
+  /* ---- theme toggle ---- */
+  var tbtn = document.querySelector('.theme');
+  var mq = window.matchMedia ? window.matchMedia('(prefers-color-scheme: dark)') : null;
+  function effective() {
+    var t = root.getAttribute('data-theme');
+    return t === 'dark' || t === 'light' ? t : (mq && mq.matches ? 'dark' : 'light');
+  }
+  function syncTheme() {
+    var dark = effective() === 'dark';
+    tbtn.setAttribute('aria-label', dark ? 'Switch to light theme' : 'Switch to dark theme');
+    tbtn.title = dark ? 'Light theme' : 'Dark theme';
+    var t = root.getAttribute('data-theme');
+    Array.prototype.forEach.call(document.querySelectorAll('meta[name="theme-color"]'), function (m) {
+      if (!m.hasAttribute('data-orig')) m.setAttribute('data-orig', m.getAttribute('content'));
+      m.setAttribute('content', t === 'dark' ? '#13171D' : t === 'light' ? '#F5F5F0' : m.getAttribute('data-orig'));
+    });
+  }
+  if (tbtn) {
+    tbtn.hidden = false;
+    syncTheme();
+    tbtn.addEventListener('click', function () {
+      var next = effective() === 'dark' ? 'light' : 'dark';
+      root.setAttribute('data-theme', next);
+      try { localStorage.setItem('autoq-theme', next); } catch (e) {}
+      syncTheme();
+    });
+    if (mq && mq.addEventListener) mq.addEventListener('change', syncTheme);
+  }
+
+  /* ---- copy to clipboard ---- */
+  var copyStatus = document.getElementById('copy-status');
+  function flash(btn, msg) {
+    if (copyStatus) { copyStatus.textContent = ''; setTimeout(function () { copyStatus.textContent = msg; }, 50); }
+    var old = btn.getAttribute('data-label') || btn.textContent;
+    btn.setAttribute('data-label', old);
+    btn.textContent = msg;
+    btn.classList.add('done');
+    clearTimeout(btn._t);
+    btn._t = setTimeout(function () { btn.textContent = old; btn.classList.remove('done'); }, 1600);
+  }
+  function copyText(text, btn) {
+    function fallback() {
+      var ta = document.createElement('textarea');
+      ta.value = text; ta.setAttribute('readonly', '');
+      ta.style.position = 'fixed'; ta.style.top = '0'; ta.style.opacity = '0';
+      document.body.appendChild(ta); ta.select();
+      var ok = false;
+      try { ok = document.execCommand('copy'); } catch (e) {}
+      document.body.removeChild(ta);
+      flash(btn, ok ? 'Copied' : 'Copy failed');
+    }
+    if (navigator.clipboard && window.isSecureContext) {
+      navigator.clipboard.writeText(text).then(function () { flash(btn, 'Copied'); }, fallback);
+    } else { fallback(); }
+  }
+  function textOf(pre) {
+    var cmds = pre.querySelectorAll('.cmd');
+    var t = cmds.length ? Array.prototype.map.call(cmds, function (c) { return c.textContent; }).join('\n') : pre.textContent;
+    return t.replace(/\s+$/, '') + '\n';
+  }
+  Array.prototype.forEach.call(document.querySelectorAll('[data-copy]'), function (block) {
+    var pre = block.querySelector('pre');
+    if (!pre) return;
+    var cap = block.querySelector('.cap');
+    var btn = document.createElement('button');
+    btn.type = 'button'; btn.className = 'copy'; btn.textContent = 'Copy';
+    btn.setAttribute('aria-label', 'Copy ' + (cap ? cap.textContent.trim() : 'code'));
+    btn.addEventListener('click', function () { copyText(textOf(pre), btn); });
+    block.appendChild(btn);
+  });
+  Array.prototype.forEach.call(document.querySelectorAll('[data-copy-target]'), function (btn) {
+    btn.addEventListener('click', function () {
+      var pre = document.getElementById(btn.getAttribute('data-copy-target'));
+      if (pre) copyText(textOf(pre), btn);
+    });
+  });
+
+  /* ---- walkthrough stepper ---- */
+  var st = document.getElementById('stepper');
+  if (!st) return;
+  var steps = Array.prototype.slice.call(st.querySelectorAll('.step'));
+  var tabs = st.querySelector('.stepnav .tabs');
+  var prev = st.querySelector('[data-dir="-1"]');
+  var next = st.querySelector('[data-dir="1"]');
+  var marker = st.querySelector('.marker');
+  var gates = st.querySelectorAll('.gate');
+  var status = document.getElementById('step-status');
+  var pos = [92, 193, 283, 373, 408];
+  var cur = 0;
+  var buttons = steps.map(function (s, k) {
+    var b = document.createElement('button');
+    b.type = 'button';
+    var label = s.getAttribute('data-tab');
+    var n = document.createElement('span'); n.className = 'n'; n.textContent = k;
+    b.appendChild(n);
+    if (/qb\[/.test(label)) { var c = document.createElement('code'); c.textContent = label; b.appendChild(c); }
+    else { b.appendChild(document.createTextNode(label)); }
+    b.setAttribute('aria-label', 'Step ' + k + ': ' + label);
+    b.setAttribute('aria-controls', 'step-' + k);
+    b.addEventListener('click', function () { show(k, true); });
+    s.id = 'step-' + k;
+    tabs.appendChild(b);
+    return b;
+  });
+  function show(k, announce) {
+    cur = Math.max(0, Math.min(steps.length - 1, k));
+    steps.forEach(function (s, i) {
+      var off = i !== cur;
+      s.classList.toggle('off', off);
+      if (off) { s.setAttribute('aria-hidden', 'true'); s.inert = true; }
+      else { s.removeAttribute('aria-hidden'); s.inert = false; }
+    });
+    buttons.forEach(function (b, i) { if (i === cur) b.setAttribute('aria-current', 'step'); else b.removeAttribute('aria-current'); });
+    Array.prototype.forEach.call(gates, function (g) {
+      var gi = +g.getAttribute('data-gate');
+      g.classList.toggle('todo', gi > cur);
+      g.classList.toggle('now', gi === cur);
+    });
+    marker.style.transform = 'translateX(' + pos[cur] + 'px)';
+    prev.setAttribute('aria-disabled', cur === 0 ? 'true' : 'false');
+    next.setAttribute('aria-disabled', cur === steps.length - 1 ? 'true' : 'false');
+    if (announce) status.textContent = 'Step ' + cur + ' of ' + (steps.length - 1) + ': ' + steps[cur].querySelector('.step-head').textContent.replace(/^\s*\d+\s*/, '');
+  }
+  prev.addEventListener('click', function () { if (cur > 0) show(cur - 1, true); });
+  next.addEventListener('click', function () { if (cur < steps.length - 1) show(cur + 1, true); });
+  st.querySelector('.stepnav').addEventListener('keydown', function (e) {
+    var to = null;
+    if (e.key === 'ArrowRight') to = cur + 1;
+    else if (e.key === 'ArrowLeft') to = cur - 1;
+    else if (e.key === 'Home') to = 0;
+    else if (e.key === 'End') to = steps.length - 1;
+    if (to === null) return;
+    e.preventDefault();
+    show(to, true);
+    var b = buttons[cur]; if (b && tabs.contains(document.activeElement)) b.focus();
+  });
+  show(0, false);
+})();
+</script>
+</body>
+</html>

@@ -8,8 +8,11 @@ project(autoq)
 # Export compile commands to be used with YouCompleteMe
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-# Library-only: -fPIC (common flags from parent)
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC")
+# Library-only: -fPIC (common flags from parent). Not used for the
+# WebAssembly build, which links everything statically.
+if (NOT EMSCRIPTEN)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC")
+endif ()
 
 # uncomment for profiling
 #add_definitions(-pg)
@@ -30,7 +33,10 @@ set_source_files_properties(${Extended_Dirac_SOURCE_FILES} PROPERTIES COMPILE_FL
 ##############################################################################
 
 # USE_SYSTEM_Z3 is defined in the parent CMakeLists.txt (change OFF to ON there to use system Z3).
-if (APPLE)
+if (EMSCRIPTEN)
+    # WebAssembly build (wasm/build.sh): a static Z3 built with Emscripten.
+    target_link_libraries(lsta "${AUTOQ_WASM_Z3_LIB}")
+elseif (APPLE)
     target_link_libraries(lsta "${CMAKE_CURRENT_SOURCE_DIR}/../libz3.a")
 elseif (UNIX)
     if (USE_SYSTEM_Z3)
@@ -51,7 +57,10 @@ include_directories(../include/z3)
 ##############################################################################
 #                              DEPENDENCIES - ANTLR
 ##############################################################################
-if (APPLE)
+if (EMSCRIPTEN)
+    # WebAssembly build (wasm/build.sh): a static ANTLR4 runtime built with Emscripten.
+    target_link_libraries(lsta "${AUTOQ_WASM_ANTLR4_LIB}")
+elseif (APPLE)
     execute_process(
         COMMAND brew --prefix antlr4-cpp-runtime
         OUTPUT_VARIABLE ANTLR4_CPP_RUNTIME_PREFIX

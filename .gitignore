@@ -18,4 +18,12 @@ doc/*
 # results produced by the benchmark scripts
 benchmark*/**/tables/**
 benchmark*/**/*.json
+POPL24/TABLES/Algorithms/*.pdf
+POPL24/TABLES/Algorithms/*.tex
+POPL24/TABLES/Algorithms/*.log
+POPL24/TABLES/Algorithms/*.aux
 benchmark*/_others/**
+# WebAssembly build (wasm/build.sh); the playground binaries are built in CI
+build-wasm/
+site/playground/autoq.js
+site/playground/autoq.wasm

@@ -131,6 +131,12 @@ Please cite the following papers if you use this tool for your research.
 
 ---
 
+## License
+
+AutoQ is released under the [MIT License](./LICENSE).
+
+---
+
 ## Contact
 
 If you have any questions or suggestions, feel free to [create an issue](https://github.com/fmlab-iis/AutoQ/issues) or contact us via alan23273850@gmail.com.
