@@ -128,37 +128,3 @@ std::string AUTOQ::Util::ShellCmd(const std::vector<std::string> &cmd) {
     return result;
 }
 #endif
-
-namespace {
-constexpr int kSecondsThresholdForDecimalFormat = 10;
-constexpr int kTenthsOfSecondDivisor = 100;  // ms.count() / 100 gives tenths of second
-using days_duration = std::chrono::duration<int, std::ratio<86400>>;
-}  // namespace
-
-std::string AUTOQ::Util::print_duration(const std::chrono::steady_clock::duration &tp) {
-    using namespace std;
-    using namespace std::chrono;
-    nanoseconds ns = duration_cast<nanoseconds>(tp);
-    std::stringstream ss;
-    char fill = ss.fill();
-    ss.fill('0');
-    auto d = duration_cast<days_duration>(ns);
-    ns -= d;
-    auto h = duration_cast<hours>(ns);
-    ns -= h;
-    auto m = duration_cast<minutes>(ns);
-    ns -= m;
-    auto s = duration_cast<seconds>(ns);
-    ns -= s;
-    auto ms = duration_cast<milliseconds>(ns);
-    if (d.count() > 0 || h.count() > 0)
-        ss << d.count() << 'd' << h.count() << 'h' << m.count() << 'm' << s.count() << 's';
-    else if (m.count() == 0 && s.count() < kSecondsThresholdForDecimalFormat) {
-        ss << s.count() << '.' << (ms.count() / kTenthsOfSecondDivisor) << "s";
-    } else {
-        if (m.count() > 0) ss << m.count() << 'm';
-        ss << s.count() << 's';
-    }
-    ss.fill(fill);
-    return ss.str();
-}

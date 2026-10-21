@@ -15,7 +15,7 @@
 namespace { const std::regex kRootStates("Root +States"); }
 
 template <typename Symbol>
-AUTOQ::Automata<Symbol> parse_automaton(const std::string& str, const std::map<std::string, Complex> &constants, const std::map<std::string, std::string> &predicates, bool throw_on_undefined, bool* out_encountered_undefined) {
+AUTOQ::Automata<Symbol> parse_automaton(const std::string& str, const std::map<std::string, AUTOQ::Complex::Complex> &constants, const std::map<std::string, std::string> &predicates, bool throw_on_undefined, bool* out_encountered_undefined) {
     bool colored = false;
     bool start_transitions = false;
     bool already_root_states = false;

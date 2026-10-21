@@ -16,7 +16,7 @@ void concrete_gate_finish(AUTOQ::Automata<Symbol>& self, const char* name, int t
     self.stats_->total_gate_time += duration;
     if (self.stats_->gateLog)
         std::cout << name << t << "：" << self.stateNum << " states " << self.count_transitions()
-                  << " transitions " << AUTOQ::Util::print_duration(duration) << "\n";
+                  << " transitions " << AUTOQ::Util::Convert::ToString(duration) << "\n";
 }
 
 /// Copy result base fields from src and check state-number overflow for product-shaped expansion.

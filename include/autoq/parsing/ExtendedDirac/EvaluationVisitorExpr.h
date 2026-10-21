@@ -128,9 +128,5 @@
                 result.reduce();
                 return result;
             };
-            if (!switch_symbol_to_second) {
-                return do_the_work.template operator()<Symbol>();
-            } else {
-                return do_the_work.template operator()<Symbol2>();
-            }
+            return do_the_work.template operator()<Symbol>();
     }
