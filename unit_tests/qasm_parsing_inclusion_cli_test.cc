@@ -36,6 +36,9 @@ struct Fixture {
 };
 BOOST_TEST_GLOBAL_FIXTURE(Fixture);
 
+// Read the GroverFor pre/post specifications and QASM circuit, execute the
+// circuit, and require the resulting automaton's language to be included in
+// the postcondition. This exercises parsing, execution, and language inclusion.
 BOOST_AUTO_TEST_CASE(qasm_parsing_minimal_circuit)
 {
     std::string folder = test_dir_from_file(__FILE__, "testcase/GroverFor/");
@@ -57,6 +60,8 @@ BOOST_AUTO_TEST_CASE(qasm_parsing_minimal_circuit)
         + AUTOQ::Serialization::TimbukSerializer::Serialize(spec));
 }
 
+// Copy the three-qubit basis automaton and require language inclusion in both
+// directions, checking reflexivity/equality independently of circuit execution.
 BOOST_AUTO_TEST_CASE(inclusion_checker_equal_automata)
 {
     auto aut = AUTOQ::ConcreteAutomata::basis(3);
@@ -69,6 +74,8 @@ BOOST_AUTO_TEST_CASE(inclusion_checker_equal_automata)
 #define AUTOQ_CLI_PATH "autoq"
 #endif
 
+// Launch autoq ver on the three-qubit BV benchmark's precondition, QASM circuit,
+// and postcondition. Successful end-to-end CLI verification must exit with zero.
 BOOST_AUTO_TEST_CASE(cli_subprocess_verification)
 {
     std::string folder = test_dir_from_file(__FILE__, "../benchmarks/all/BV/03/");

@@ -48,6 +48,9 @@ struct Files {
     }
 };
 }
+// Serialize A={(1,1)} and B={(1,0),(0,1)} as .lsta files and invoke the CLI.
+// Check result text and exit codes for Included (0), reverse NotIncluded (2),
+// a one-generator basis limit (3), and unsupported negative qubit depth (4).
 BOOST_AUTO_TEST_CASE(included_nonincluded_and_resource_outcomes) {
     Files f;
     const auto a=f.write("a.lsta",span_test::from_vectors(1,{{1,1}}));
@@ -66,6 +69,8 @@ BOOST_AUTO_TEST_CASE(included_nonincluded_and_resource_outcomes) {
     BOOST_CHECK_MESSAGE(code==4,text);
     BOOST_CHECK(text.find("Span inclusion outcome: UnsupportedInput")!=std::string::npos);
 }
+// --help must succeed and document --qubits. Omitting required arguments must
+// fail without printing a misleading span-inclusion outcome.
 BOOST_AUTO_TEST_CASE(help_and_invalid_arguments) {
     Files f;
     auto [code,text]=f.run("span-inclusion --help");
@@ -75,6 +80,8 @@ BOOST_AUTO_TEST_CASE(help_and_invalid_arguments) {
     BOOST_CHECK(code!=0);
     BOOST_CHECK(text.find("Span inclusion outcome:")==std::string::npos);
 }
+// The existing print subcommand must still accept a serialized one-qubit
+// automaton and exit successfully after the new span-inclusion command is added.
 BOOST_AUTO_TEST_CASE(existing_print_still_works) {
     Files f;
     auto path=f.write("existing.lsta",span_test::from_vectors(1,{{1,0}}));

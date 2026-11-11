@@ -7,6 +7,8 @@
 using namespace AUTOQ::Span;
 using C = AUTOQ::Complex::Complex;
 
+// The equations 3*x=1 and 6*x=2 admit the non-dyadic solution x=1/3.
+// Adding 3*x=2 must make the system inconsistent, even after a later 0=0 row.
 BOOST_AUTO_TEST_CASE(non_dyadic_solution_and_persistent_contradiction) {
     detail::LinearSystem<C> s(1);
     BOOST_CHECK(s.add({C(3), C(1)}));
@@ -14,6 +16,8 @@ BOOST_AUTO_TEST_CASE(non_dyadic_solution_and_persistent_contradiction) {
     BOOST_CHECK(!s.add({C(3), C(2)}));
     BOOST_CHECK(!s.add({C(0), C(0)}));
 }
+// Insert equations with pivots in reverse variable order, then a dependent row.
+// Elimination must accept consistent rows and reject the final contradictory row.
 BOOST_AUTO_TEST_CASE(out_of_order_pivots) {
     detail::LinearSystem<C> s(3);
     BOOST_CHECK(s.add({C(0), C(0), C(2), C(2)}));
@@ -22,6 +26,8 @@ BOOST_AUTO_TEST_CASE(out_of_order_pivots) {
     BOOST_CHECK(s.add({C(2), C(2), C(2), C(6)}));
     BOOST_CHECK(!s.add({C(2), C(2), C(2), C(7)}));
 }
+// Exact complex arithmetic must recognize i*x=1 and x=-i as compatible,
+// reject x=i, and accept sqrt(2)*x=1 together with 2*x=sqrt(2).
 BOOST_AUTO_TEST_CASE(complex_and_algebraic_coefficients) {
     const auto i = C::Angle(boost::rational<boost::multiprecision::cpp_int>(1,4));
     detail::LinearSystem<C> s(1);
@@ -33,6 +39,8 @@ BOOST_AUTO_TEST_CASE(complex_and_algebraic_coefficients) {
     BOOST_CHECK(t.add({a, C(1)}));
     BOOST_CHECK(t.add({C(2), a}));
 }
+// A={(1,1)} is contained in the span of B={(1,0),(0,1),(2,0)}, but not its language.
+// B has rank two; reverse inclusion fails and must return a witness from B.
 BOOST_AUTO_TEST_CASE(span_is_not_language_inclusion_and_is_directional) {
     auto a = span_test::from_vectors(1, {{1,1}});
     auto b = span_test::from_vectors(1, {{1,0},{0,1},{2,0}});
@@ -45,6 +53,8 @@ BOOST_AUTO_TEST_CASE(span_is_not_language_inclusion_and_is_directional) {
     BOOST_REQUIRE(r.witness);
     BOOST_CHECK_EQUAL(r.witness->root(), b.finalStates.front());
 }
+// Empty languages and zero vectors both span {0}; a nonzero vector does not.
+// At depth zero, scalar 1 belongs to the span of scalar 3 without explicit division.
 BOOST_AUTO_TEST_CASE(empty_and_zero_and_scalar_spaces) {
     Options o; o.qubits=1;
     auto e=span_test::from_vectors(1,{});
@@ -57,6 +67,9 @@ BOOST_AUTO_TEST_CASE(empty_and_zero_and_scalar_spaces) {
     BOOST_CHECK(check_inclusion(span_test::from_vectors(0,{{1}}),
                                 span_test::from_vectors(0,{{3}}),o).outcome==Outcome::Included);
 }
+// Leaf choice masks 3,6,5,7 intersect pairwise but have no common choice: no run exists.
+// A repeated state must then share one transition at its level, and a saved run
+// must remain usable for membership after the source transitions are cleared.
 BOOST_AUTO_TEST_CASE(global_not_pairwise_choice_intersection) {
     Aut a; a.finalStates={0}; a.stateNum=7; a.qubitNum=2;
     span_test::edge(a,0,1,1,{1,2});
@@ -81,6 +94,9 @@ BOOST_AUTO_TEST_CASE(global_not_pairwise_choice_intersection) {
     Stats membership_stats;
     BOOST_CHECK(detail::member(saved[0],{saved[0]},Limits{},membership_stats));
 }
+// Different runs may select different transitions at the same root, yielding
+// (1,0) and (0,1), whose span contains (1,1). Conversely, (1,2) is not a multiple
+// of (1,1): membership must use one coefficient shared by every coordinate.
 BOOST_AUTO_TEST_CASE(same_state_different_run_choices) {
     Aut b; b.finalStates={0}; b.stateNum=3; b.qubitNum=1;
     span_test::edge(b,0,1,1,{1,2});
@@ -91,12 +107,17 @@ BOOST_AUTO_TEST_CASE(same_state_different_run_choices) {
     BOOST_CHECK(check_inclusion(span_test::from_vectors(1,{{1,2}}),
                                 span_test::from_vectors(1,{{1,1}}),o).outcome==Outcome::NotIncluded);
 }
+// A state with both a binary self-loop and a leaf transition is evaluated at
+// fixed depth one, yielding (1,1) rather than requiring an acyclic automaton.
 BOOST_AUTO_TEST_CASE(cycles_and_fixed_depth_filtering) {
     Aut a; a.finalStates={0}; a.stateNum=1; a.qubitNum=1;
     span_test::edge(a,0,1,1,{0,0}); span_test::leaf(a,0,1,2);
     Options o; o.qubits=1;
     BOOST_CHECK(check_inclusion(a,span_test::from_vectors(1,{{1,1}}),o).outcome==Outcome::Included);
 }
+// Although (1,1) is in the span of the two standard basis vectors, restricting
+// basis size, search steps, tuples, or equations must report ResourceLimit,
+// never turn an interrupted proof into a non-inclusion result.
 BOOST_AUTO_TEST_CASE(limits_never_mean_non_inclusion) {
     auto a=span_test::from_vectors(1,{{1,1}});
     auto b=span_test::from_vectors(1,{{1,0},{0,1}});
@@ -109,6 +130,9 @@ BOOST_AUTO_TEST_CASE(limits_never_mean_non_inclusion) {
     o.limits=Limits{}; o.limits.equations=1;
     BOOST_CHECK(check_inclusion(a,b,o).outcome==Outcome::ResourceLimit);
 }
+// An 81-state chain with identical left/right children represents an all-ones
+// vector with 2^80 coordinates. Self-inclusion must succeed using fewer than
+// 1000 counted tuples, exercising compressed rather than dense traversal.
 BOOST_AUTO_TEST_CASE(narrow_depth_80_no_dense_vectors) {
     Aut a; a.finalStates={0}; a.stateNum=81; a.qubitNum=80;
     for(int d=0;d<80;++d) span_test::edge(a,d,d+1,1,{d+1,d+1});
@@ -118,6 +142,9 @@ BOOST_AUTO_TEST_CASE(narrow_depth_80_no_dense_vectors) {
     BOOST_CHECK(r.outcome==Outcome::Included);
     BOOST_CHECK(r.stats.tuples<1000U);
 }
+// Compare 80 reproducible cases at depths 0,1,2 against an independent exact
+// dense-rank oracle: rank([B A]) == rank(B). Integer coordinates range from -2
+// to 2; cases include empty B, dependent generators, and identical A/B inputs.
 BOOST_AUTO_TEST_CASE(dense_oracle_fixed_seed) {
     std::mt19937 rng(77123);
     for(int trial=0;trial<80;++trial) {
@@ -143,6 +170,8 @@ BOOST_AUTO_TEST_CASE(dense_oracle_fixed_seed) {
     }
 }
 
+// Run Included, NotIncluded, and ResourceLimit checks on the same inputs.
+// Their transitions, roots, state counts, and qubit counts must remain unchanged.
 BOOST_AUTO_TEST_CASE(inputs_remain_unchanged_for_all_normal_outcomes) {
     auto a=span_test::from_vectors(1,{{1,1}});
     auto b=span_test::from_vectors(1,{{1,0},{0,1}});
@@ -159,6 +188,8 @@ BOOST_AUTO_TEST_CASE(inputs_remain_unchanged_for_all_normal_outcomes) {
     BOOST_CHECK_EQUAL(a.stateNum,an); BOOST_CHECK_EQUAL(b.stateNum,bn);
     BOOST_CHECK_EQUAL(a.qubitNum,1); BOOST_CHECK_EQUAL(b.qubitNum,1);
 }
+// Reject a unary internal transition and two same-parent transitions with
+// overlapping choices as UnsupportedInput, without fabricating a witness.
 BOOST_AUTO_TEST_CASE(malformed_arity_and_overlapping_choices_are_unsupported) {
     Options o; o.qubits=1;
     const auto good=span_test::from_vectors(1,{{1,0}});
@@ -173,6 +204,9 @@ BOOST_AUTO_TEST_CASE(malformed_arity_and_overlapping_choices_are_unsupported) {
     BOOST_CHECK(r.outcome==Outcome::UnsupportedInput);
     BOOST_CHECK(!r.witness.has_value());
 }
+// Three roots encode (1,0), (0,1), and (1,1). Returning false from the first
+// callback must stop after one run; fresh enumeration must still visit all
+// three, and the saved first run must remain valid for self-membership.
 BOOST_AUTO_TEST_CASE(enumerator_cancellation_stops_without_visiting_other_roots) {
     const auto a=span_test::from_vectors(1,{{1,0},{0,1},{1,1}});
     const auto index=detail::index_automaton(a);
@@ -190,6 +224,9 @@ BOOST_AUTO_TEST_CASE(enumerator_cancellation_stops_without_visiting_other_roots)
     Stats membership_stats;
     BOOST_CHECK(detail::member(saved[0],{saved[0]},limits,membership_stats));
 }
+// A per-automaton run limit of one permits complete singleton enumeration.
+// A second B run exceeds that limit and must return ResourceLimit with one
+// counted B run and no witness, rather than silently ignoring the extra run.
 BOOST_AUTO_TEST_CASE(run_limit_distinguishes_exact_completion_from_truncation) {
     const auto a=span_test::from_vectors(1,{{1,0}});
     Options o; o.qubits=1; o.limits.runs=1;
@@ -202,6 +239,8 @@ BOOST_AUTO_TEST_CASE(run_limit_distinguishes_exact_completion_from_truncation) {
     BOOST_CHECK_EQUAL(r.stats.b_runs,1U);
     BOOST_CHECK(!r.witness.has_value());
 }
+// A negative requested depth is UnsupportedInput; requesting depth two with
+// a depth guard of one is ResourceLimit. Both checks must finish before search.
 BOOST_AUTO_TEST_CASE(negative_depth_and_depth_guard_have_distinct_outcomes) {
     const auto a=span_test::from_vectors(1,{{1,0}});
     Options o; o.qubits=-1;
