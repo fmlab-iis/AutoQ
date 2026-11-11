@@ -34,3 +34,7 @@ target_sources(span_inclusion_test PRIVATE grover_span_cases.cc)
 # Manual executable only: deliberately not registered with add_test.
 add_executable(grover_plane_benchmark grover_plane_benchmark.cc)
 target_link_libraries(grover_plane_benchmark lsta ${Boost_FILESYSTEM_LIBRARY})
+
+# Manual comparison only: not registered with CTest or invoked by CI tests.
+add_executable(grover_sym_benchmark grover_sym_benchmark.cc)
+target_link_libraries(grover_sym_benchmark lsta ${Boost_FILESYSTEM_LIBRARY})
