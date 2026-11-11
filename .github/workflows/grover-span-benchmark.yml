@@ -4,6 +4,7 @@ on:
     branches: [feature/lsta-span-inclusion-tuples]
     paths:
       - 'unit_tests/grover_span_cases.cc'
+      - 'unit_tests/grover_span_util.hh'
       - '.github/workflows/grover-span-benchmark.yml'
   workflow_dispatch:
 jobs:
@@ -16,7 +17,7 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y libboost-filesystem-dev libboost-test-dev libantlr4-runtime-dev
           make release
-      - name: Sweep consecutive qubit counts with 300 seconds per case
+      - name: Sweep probability-one consecutive qubit counts with 300 seconds per case
         env:
           LD_LIBRARY_PATH: ${{ github.workspace }}:${{ github.workspace }}/build/unit_tests
         run: |
@@ -25,10 +26,10 @@ jobs:
           from pathlib import Path
           out=Path('grover-results'); out.mkdir(exist_ok=True)
           cpu=Path('/proc/cpuinfo').read_text()
-          (out/'environment.txt').write_text(platform.platform()+'\n'+cpu+'\ncommit='+os.environ.get('GITHUB_SHA','')+'\nRelease; timeout=300s per (scenario,qubits) process, including fixture construction and positive/negative controls; no shared experiment deadline or custom job timeout (GitHub platform limits still apply); child address-space limit=4GiB; depths=2,3,...,65536 (fixture implementation cap); no AutoQ depth/search-step cap\n')
+          (out/'environment.txt').write_text(platform.platform()+'\n'+cpu+'\ncommit='+os.environ.get('GITHUB_SHA','')+'\nRelease; probability-one only (M=N/4, R=1); timeout=300s per (scenario,qubits) process, including fixture construction and positive/negative controls; no shared experiment deadline or custom job timeout (GitHub platform limits still apply); child address-space limit=4GiB; depths=2,3,...,65536 (fixture implementation cap); no AutoQ depth/search-step cap\n')
           def memory_limit():
               resource.setrlimit(resource.RLIMIT_AS,(4*1024**3,4*1024**3))
-          scenarios=['grover_paper_plane','grover_paper_probability_one']
+          scenarios=['grover_paper_probability_one']
           with (out/'results.csv').open('w',newline='') as f:
               writer=csv.writer(f)
               writer.writerow(['scenario','qubits','status','seconds','returncode'])
@@ -54,7 +55,7 @@ jobs:
                           break
                       largest=n; n+=1
                   with (out/'summary.txt').open('a') as summary:
-                      summary.write(case+': largest consecutively completed tested depth='+str(largest)+'; first unfinished depth='+str(n)+'; stop='+stop+'; timeout=300s per case; a failure is not a timeout or proof of non-inclusion; no claim about untested larger depths; scenarios include positive and negative controls; success-probability-one scenario enumerates M=2^(n-2) basis generators\n')
+                      summary.write(case+': largest consecutively completed tested depth='+str(largest)+'; first unfinished depth='+str(n)+'; stop='+stop+'; timeout=300s per case; a failure is not a timeout or proof of non-inclusion; no claim about untested larger depths; scenario includes positive and negative controls; success-probability-one scenario enumerates M=2^(n-2) basis generators\n')
           PY
       - uses: actions/upload-artifact@v4
         if: always()
