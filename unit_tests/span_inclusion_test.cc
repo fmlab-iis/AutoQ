@@ -142,3 +142,75 @@ BOOST_AUTO_TEST_CASE(dense_oracle_fixed_seed) {
         BOOST_CHECK_EQUAL(r.outcome==Outcome::Included,oracle);
     }
 }
+
+BOOST_AUTO_TEST_CASE(inputs_remain_unchanged_for_all_normal_outcomes) {
+    auto a=span_test::from_vectors(1,{{1,1}});
+    auto b=span_test::from_vectors(1,{{1,0},{0,1}});
+    const auto at=a.transitions, bt=b.transitions;
+    const auto ar=a.finalStates, br=b.finalStates;
+    const auto an=a.stateNum, bn=b.stateNum;
+    Options o; o.qubits=1;
+    BOOST_CHECK(check_inclusion(a,b,o).outcome==Outcome::Included);
+    BOOST_CHECK(check_inclusion(b,a,o).outcome==Outcome::NotIncluded);
+    o.limits.basis=1;
+    BOOST_CHECK(check_inclusion(a,b,o).outcome==Outcome::ResourceLimit);
+    BOOST_CHECK(a.transitions==at); BOOST_CHECK(b.transitions==bt);
+    BOOST_CHECK(a.finalStates==ar); BOOST_CHECK(b.finalStates==br);
+    BOOST_CHECK_EQUAL(a.stateNum,an); BOOST_CHECK_EQUAL(b.stateNum,bn);
+    BOOST_CHECK_EQUAL(a.qubitNum,1); BOOST_CHECK_EQUAL(b.qubitNum,1);
+}
+BOOST_AUTO_TEST_CASE(malformed_arity_and_overlapping_choices_are_unsupported) {
+    Options o; o.qubits=1;
+    const auto good=span_test::from_vectors(1,{{1,0}});
+    Aut malformed; malformed.finalStates={0}; malformed.stateNum=2;
+    span_test::edge(malformed,0,1,1,{1});
+    auto r=check_inclusion(good,malformed,o);
+    BOOST_CHECK(r.outcome==Outcome::UnsupportedInput);
+    BOOST_CHECK(!r.witness.has_value());
+    auto overlap=good;
+    span_test::edge(overlap,overlap.finalStates.front(),1,1,{2,1});
+    r=check_inclusion(overlap,good,o);
+    BOOST_CHECK(r.outcome==Outcome::UnsupportedInput);
+    BOOST_CHECK(!r.witness.has_value());
+}
+BOOST_AUTO_TEST_CASE(enumerator_cancellation_stops_without_visiting_other_roots) {
+    const auto a=span_test::from_vectors(1,{{1,0},{0,1},{1,1}});
+    const auto index=detail::index_automaton(a);
+    Limits limits; Stats stats; std::size_t count=0;
+    std::vector<CompressedRun> saved;
+    detail::enumerate(a,index,1,limits,stats,count,[&](const CompressedRun& r) {
+        saved.push_back(r); return false;
+    });
+    BOOST_CHECK_EQUAL(count,1U);
+    BOOST_REQUIRE_EQUAL(saved.size(),1U);
+    BOOST_CHECK_EQUAL(saved[0].root(),a.finalStates.front());
+    stats=Stats{}; count=0;
+    detail::enumerate(a,index,1,limits,stats,count,[](const CompressedRun&) {return true;});
+    BOOST_CHECK_EQUAL(count,3U);
+    Stats membership_stats;
+    BOOST_CHECK(detail::member(saved[0],{saved[0]},limits,membership_stats));
+}
+BOOST_AUTO_TEST_CASE(run_limit_distinguishes_exact_completion_from_truncation) {
+    const auto a=span_test::from_vectors(1,{{1,0}});
+    Options o; o.qubits=1; o.limits.runs=1;
+    auto r=check_inclusion(a,a,o);
+    BOOST_CHECK(r.outcome==Outcome::Included);
+    BOOST_CHECK_EQUAL(r.stats.a_runs,1U); BOOST_CHECK_EQUAL(r.stats.b_runs,1U);
+    const auto b=span_test::from_vectors(1,{{1,0},{0,1}});
+    r=check_inclusion(a,b,o);
+    BOOST_CHECK(r.outcome==Outcome::ResourceLimit);
+    BOOST_CHECK_EQUAL(r.stats.b_runs,1U);
+    BOOST_CHECK(!r.witness.has_value());
+}
+BOOST_AUTO_TEST_CASE(negative_depth_and_depth_guard_have_distinct_outcomes) {
+    const auto a=span_test::from_vectors(1,{{1,0}});
+    Options o; o.qubits=-1;
+    auto r=check_inclusion(a,a,o);
+    BOOST_CHECK(r.outcome==Outcome::UnsupportedInput);
+    BOOST_CHECK_EQUAL(r.stats.search_steps,0U);
+    o.qubits=2; o.limits.depth=1;
+    r=check_inclusion(a,a,o);
+    BOOST_CHECK(r.outcome==Outcome::ResourceLimit);
+    BOOST_CHECK_EQUAL(r.stats.search_steps,0U);
+    BOOST_CHECK(!r.witness.has_value());
+}
