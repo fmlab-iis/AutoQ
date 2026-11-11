@@ -50,8 +50,8 @@ struct Files {
 }
 BOOST_AUTO_TEST_CASE(included_nonincluded_and_resource_outcomes) {
     Files f;
-    const auto a=f.write("a.aut",span_test::from_vectors(1,{{1,1}}));
-    const auto b=f.write("b.aut",span_test::from_vectors(1,{{1,0},{0,1}}));
+    const auto a=f.write("a.lsta",span_test::from_vectors(1,{{1,1}}));
+    const auto b=f.write("b.lsta",span_test::from_vectors(1,{{1,0},{0,1}}));
     const auto args=quote(a)+" "+quote(b)+" --qubits 1";
     auto [code,text]=f.run("span-inclusion "+args);
     BOOST_CHECK_MESSAGE(code==0,text);
@@ -77,7 +77,7 @@ BOOST_AUTO_TEST_CASE(help_and_invalid_arguments) {
 }
 BOOST_AUTO_TEST_CASE(existing_print_still_works) {
     Files f;
-    auto path=f.write("existing.aut",span_test::from_vectors(1,{{1,0}}));
+    auto path=f.write("existing.lsta",span_test::from_vectors(1,{{1,0}}));
     auto [code,text]=f.run("print "+quote(path));
     BOOST_CHECK_MESSAGE(code==0,text);
 }

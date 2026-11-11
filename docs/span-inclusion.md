@@ -24,7 +24,7 @@ Elimination is division-free: row <- pivot_value*row - coefficient*pivot_row. Pi
 
 ## Tests and CI
 
-Core tests live in `unit_tests/span_inclusion_test.cc`, with an independent rational dense oracle in `span_test_util.hh`. CLI tests live in `span_inclusion_cli_test.cc`; they generate temporary `.aut` fixtures, invoke the actual binary and check exit status/output. They also check help, missing arguments and the existing print command.
+Core tests live in `unit_tests/span_inclusion_test.cc`, with an independent rational dense oracle in `span_test_util.hh`. CLI tests live in `span_inclusion_cli_test.cc`; they generate temporary `.lsta` fixtures, invoke the actual binary and check exit status/output. They also check help, missing arguments and the existing print command.
 
 Locally: `ctest --test-dir build -R '^span_inclusion(_cli)?_test$' --output-on-failure`, with project library paths configured. Build CLI tests depends on the autoq target.
 
