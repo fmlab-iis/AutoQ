@@ -9,10 +9,12 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 set(TESTS
   "explicit_tree_aut_test"
   "qasm_parsing_inclusion_cli_test"
+  "span_inclusion_test"
 )
 
 foreach (TEST ${TESTS})
 	add_executable(${TEST} ${TEST}.cc)
+
 	target_link_libraries(${TEST} lsta)
 	target_link_libraries(${TEST} ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
 	target_link_libraries(${TEST} ${Boost_FILESYSTEM_LIBRARY})
