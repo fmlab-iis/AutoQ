@@ -20,7 +20,7 @@ std::vector<int> depths() {
             throw std::invalid_argument("Grover depth must be in [2,65536]");
         return {n};
     }
-    return {2,3,4,8,16};
+    return {3};
 }
 C power2(int n) {
     C v(1);
