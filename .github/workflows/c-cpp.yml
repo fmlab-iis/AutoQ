@@ -18,6 +18,13 @@ jobs:
     - run: cp /usr/lib/x86_64-linux-gnu/libboost_unit_test_framework.so.* build/unit_tests/
     - run: cp libz3.so.*                                                  build/unit_tests/
     - run: cp /usr/lib/x86_64-linux-gnu/libantlr4-runtime.so.*            build/unit_tests/
+    - run: |
+        cd build/unit_tests/
+        chmod +x ./explicit_tree_aut_test ./qasm_parsing_inclusion_cli_test ./span_inclusion_test ./span_inclusion_cli_test
+        LD_LIBRARY_PATH=.:${LD_LIBRARY_PATH-} ./explicit_tree_aut_test
+        LD_LIBRARY_PATH=.:${LD_LIBRARY_PATH-} ./qasm_parsing_inclusion_cli_test
+        LD_LIBRARY_PATH=.:${LD_LIBRARY_PATH-} ./span_inclusion_test
+        LD_LIBRARY_PATH=.:${LD_LIBRARY_PATH-} ./span_inclusion_cli_test
     - uses: actions/upload-artifact@v4.3.5
       with:
         name: AutoQ-debug-ubuntu
@@ -47,6 +54,13 @@ jobs:
     - run: cp /usr/lib/x86_64-linux-gnu/libboost_unit_test_framework.so.* build/unit_tests/
     - run: cp libz3.so.*                                                  build/unit_tests/
     - run: cp /usr/lib/x86_64-linux-gnu/libantlr4-runtime.so.*            build/unit_tests/
+    - run: |
+        cd build/unit_tests/
+        chmod +x ./explicit_tree_aut_test ./qasm_parsing_inclusion_cli_test ./span_inclusion_test ./span_inclusion_cli_test
+        LD_LIBRARY_PATH=.:${LD_LIBRARY_PATH-} ./explicit_tree_aut_test
+        LD_LIBRARY_PATH=.:${LD_LIBRARY_PATH-} ./qasm_parsing_inclusion_cli_test
+        LD_LIBRARY_PATH=.:${LD_LIBRARY_PATH-} ./span_inclusion_test
+        LD_LIBRARY_PATH=.:${LD_LIBRARY_PATH-} ./span_inclusion_cli_test
     - uses: actions/upload-artifact@v4.3.5
       with:
         name: AutoQ-release-ubuntu
@@ -83,6 +97,12 @@ jobs:
           cp /usr/lib/x86_64-linux-gnu/libboost_unit_test_framework.so.* build/unit_tests/
           cp libz3.so.*                                                  build/unit_tests/
           cp /usr/lib/x86_64-linux-gnu/libantlr4-runtime.so.*            build/unit_tests/
+          cd build/unit_tests/
+          chmod +x ./explicit_tree_aut_test ./qasm_parsing_inclusion_cli_test ./span_inclusion_test ./span_inclusion_cli_test
+          LD_LIBRARY_PATH=.:${LD_LIBRARY_PATH-} ./explicit_tree_aut_test
+          LD_LIBRARY_PATH=.:${LD_LIBRARY_PATH-} ./qasm_parsing_inclusion_cli_test
+          LD_LIBRARY_PATH=.:${LD_LIBRARY_PATH-} ./span_inclusion_test
+          LD_LIBRARY_PATH=.:${LD_LIBRARY_PATH-} ./span_inclusion_cli_test
         shell: wsl-bash {0} # add this to run the commands inside linux
       - run: |
           tar -czf autoq-debug-wsl.tar.gz Makefile build/ unit_tests/ benchmarks/all/
@@ -125,6 +145,12 @@ jobs:
           cp /usr/lib/x86_64-linux-gnu/libboost_unit_test_framework.so.* build/unit_tests/
           cp libz3.so.*                                                  build/unit_tests/
           cp /usr/lib/x86_64-linux-gnu/libantlr4-runtime.so.*            build/unit_tests/
+          cd build/unit_tests/
+          chmod +x ./explicit_tree_aut_test ./qasm_parsing_inclusion_cli_test ./span_inclusion_test ./span_inclusion_cli_test
+          LD_LIBRARY_PATH=.:${LD_LIBRARY_PATH-} ./explicit_tree_aut_test
+          LD_LIBRARY_PATH=.:${LD_LIBRARY_PATH-} ./qasm_parsing_inclusion_cli_test
+          LD_LIBRARY_PATH=.:${LD_LIBRARY_PATH-} ./span_inclusion_test
+          LD_LIBRARY_PATH=.:${LD_LIBRARY_PATH-} ./span_inclusion_cli_test
         shell: wsl-bash {0} # add this to run the commands inside linux
       - run: |
           tar -czf autoq-release-wsl.tar.gz Makefile build/ unit_tests/ benchmarks/all/
@@ -163,6 +189,13 @@ jobs:
     - run: cp /opt/homebrew/lib/libboost_atomic.dylib              build/unit_tests/
     # # - run: cp /home/runner/work/AutoQ/AutoQ/AutoQ/libz3.so.* /Users/runner/work/AutoQ/AutoQ/AutoQ/build/unit_tests/
     - run: cp /opt/homebrew/lib/libantlr4-runtime.a                build/unit_tests/
+    - run: |
+        cd build/unit_tests/
+        chmod +x ./explicit_tree_aut_test ./qasm_parsing_inclusion_cli_test ./span_inclusion_test ./span_inclusion_cli_test
+        DYLD_LIBRARY_PATH=.:$DYLD_LIBRARY_PATH ./explicit_tree_aut_test
+        DYLD_LIBRARY_PATH=.:$DYLD_LIBRARY_PATH ./qasm_parsing_inclusion_cli_test
+        DYLD_LIBRARY_PATH=.:$DYLD_LIBRARY_PATH ./span_inclusion_test
+        DYLD_LIBRARY_PATH=.:$DYLD_LIBRARY_PATH ./span_inclusion_cli_test
     - uses: actions/upload-artifact@v4.3.5
       with:
         name: AutoQ-debug-macos
@@ -195,6 +228,13 @@ jobs:
     - run: cp /opt/homebrew/lib/libboost_atomic.dylib              build/unit_tests/
     # # - run: cp /home/runner/work/AutoQ/AutoQ/AutoQ/libz3.so.* /Users/runner/work/AutoQ/AutoQ/AutoQ/build/unit_tests/
     - run: cp /opt/homebrew/lib/libantlr4-runtime.a                build/unit_tests/
+    - run: |
+        cd build/unit_tests/
+        chmod +x ./explicit_tree_aut_test ./qasm_parsing_inclusion_cli_test ./span_inclusion_test ./span_inclusion_cli_test
+        DYLD_LIBRARY_PATH=.:$DYLD_LIBRARY_PATH ./explicit_tree_aut_test
+        DYLD_LIBRARY_PATH=.:$DYLD_LIBRARY_PATH ./qasm_parsing_inclusion_cli_test
+        DYLD_LIBRARY_PATH=.:$DYLD_LIBRARY_PATH ./span_inclusion_test
+        DYLD_LIBRARY_PATH=.:$DYLD_LIBRARY_PATH ./span_inclusion_cli_test
     - uses: actions/upload-artifact@v4.3.5
       with:
         name: AutoQ-release-macos

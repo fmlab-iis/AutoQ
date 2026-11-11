@@ -7,6 +7,7 @@
 #include "autoq/serialization/timbuk_serializer.hh"
 #include "autoq/aut_description.hh"
 #include "autoq/inclusion.hh"
+#include "autoq/span/inclusion.hh"
 #include "autoq/util/types.hh"
 #include "autoq/util/util.hh"
 #include "autoq/util/string.hh"
@@ -194,6 +195,18 @@ static void run_verification(const std::string& pre, const std::string& post, co
     }
 }
 
+static AUTOQ::Span::Result run_span_inclusion(
+    const std::string &a_path,
+    const std::string &b_path,
+    int qubits,
+    const AUTOQ::Span::ResourceLimits &limits)
+{
+    AUTOQ::Span::Options opts;
+    opts.qubits = qubits;
+    opts.limits = limits;
+    return AUTOQ::Span::check_inclusion(ReadAutomaton(a_path), ReadAutomaton(b_path), opts);
+}
+
 int main(int argc, char **argv) {
 try {
     // set_timeout(600);
@@ -205,6 +218,13 @@ try {
     std::string pre, circuit, post, circuit1, circuit2;
 
     bool summarize_loops = false;
+    std::string span_a, span_b;
+    int span_qubits = -1;
+    std::size_t span_max_basis_runs = 0;
+    std::size_t span_max_b_runs = 0;
+    std::size_t span_max_a_runs = 0;
+    std::size_t span_max_tuple_states = 0;
+    std::size_t span_max_equations = 0;
     CLI::App* execution = app.add_subcommand("ex", "Execute a quantum circuit with a given precondition.");
     execution->add_option(kOptPreHsl, pre, kPreFileOpt)->required()->type_name("");
     execution->add_option(kOptCircuitQasm, circuit, kCircuitFileOpt)->required()->type_name("");
@@ -237,6 +257,16 @@ try {
     CLI::App* print = app.add_subcommand("print", "Print the set of quantum states.");
     print->add_option(kOptStatesHsl, pre, kStatesFileOpt)->required()->type_name("");
 
+    CLI::App* span_inclusion = app.add_subcommand("span-inclusion", "Check whether span_C(L_n(A)) is included in span_C(L_n(B)) at fixed qubit depth.");
+    span_inclusion->add_option("A.lsta", span_a, "source concrete automaton A")->required()->type_name("");
+    span_inclusion->add_option("B.lsta", span_b, "source concrete automaton B")->required()->type_name("");
+    span_inclusion->add_option("--qubits", span_qubits, "fixed qubit depth n")->required();
+    span_inclusion->add_option("--max-basis-runs", span_max_basis_runs, "resource limit for retained basis runs in B (0 = unlimited)");
+    span_inclusion->add_option("--max-b-runs", span_max_b_runs, "resource limit for enumerated B runs (0 = unlimited)");
+    span_inclusion->add_option("--max-a-runs", span_max_a_runs, "resource limit for enumerated A runs (0 = unlimited)");
+    span_inclusion->add_option("--max-tuple-states", span_max_tuple_states, "resource limit for tuple-state traversal (0 = unlimited)");
+    span_inclusion->add_option("--max-equations", span_max_equations, "resource limit for solver equations (0 = unlimited)");
+
     CLI::Option* version = app.add_flag("-v,--version", "Print the full Git commit hash ID.");
 
     // bool short_time = false, long_time = false;
@@ -250,6 +280,7 @@ try {
     }
 
     auto start = chrono::steady_clock::now();
+    int exit_code = 0;
     // bool runConcrete; // or runSymbolic
     ParameterMap params;
     params[kParamLoop] = kLoopManual;
@@ -267,6 +298,41 @@ try {
         std::visit([](auto& aut){
             aut.print_language();
         }, aut);
+    } else if (span_inclusion->parsed()) {
+        AUTOQ::Span::ResourceLimits limits;
+        limits.max_basis_runs = span_max_basis_runs;
+        limits.max_b_runs = span_max_b_runs;
+        limits.max_a_runs = span_max_a_runs;
+        limits.max_tuple_states = span_max_tuple_states;
+        limits.max_equations = span_max_equations;
+
+        const auto result = run_span_inclusion(span_a, span_b, span_qubits, limits);
+        std::ostringstream oss;
+        oss << "Span inclusion outcome: " << AUTOQ::Span::to_string(result.outcome)
+            << " (B runs: " << result.stats.b_runs_enumerated
+            << ", retained basis: " << result.stats.basis_runs_retained
+            << ", A runs: " << result.stats.a_runs_enumerated
+            << ", tuple states: " << result.stats.tuple_states_visited
+            << ", equations: " << result.stats.equations_added << ")";
+        if (!result.message.empty()) {
+            oss << " - " << result.message;
+        }
+        AUTOQ::Util::Log::info(oss.str());
+
+        switch (result.outcome) {
+            case AUTOQ::Span::Outcome::Included:
+                exit_code = 0;
+                break;
+            case AUTOQ::Span::Outcome::NotIncluded:
+                exit_code = 2;
+                break;
+            case AUTOQ::Span::Outcome::ResourceLimit:
+                exit_code = 3;
+                break;
+            case AUTOQ::Span::Outcome::UnsupportedInput:
+                exit_code = 4;
+                break;
+        }
     } else {
         THROW_AUTOQ_ERROR(EM::kNoMode);
     }
@@ -290,5 +356,5 @@ try {
     AUTOQ::Util::Log::error(e.what());
     return 1;
 }
-    return 0;
+    return exit_code;
 }

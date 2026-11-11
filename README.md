@@ -55,6 +55,7 @@ Subcommands:
   ex                          Execute a quantum circuit with a given precondition.
   ver                         Verify the execution result against a given postcondition.
   eq                          Check equivalence of two given quantum circuits.
+  span-inclusion              Check whether span_C(L_n(A)) is included in span_C(L_n(B)).
   print                       Print the set of quantum states.
 ```
 
@@ -81,6 +82,17 @@ This is one example usage.
 $ ./build/cli/autoq ver benchmarks/all/Grover/03/pre.hsl benchmarks/all/Grover/03/circuit.qasm benchmarks/all/Grover/03/post.hsl
 The quantum program has [5] qubits and [52] gates. The verification process [OK] in [0.1s] with [77MB] memory usage.
 ```
+
+Span inclusion at fixed depth is exposed as a separate operation and does **not** replace language inclusion semantics:
+```
+$ ./build/cli/autoq span-inclusion A.lsta B.lsta --qubits 5
+```
+Current restrictions:
+- only concrete automata are supported;
+- only exact complex backends (`FiveTuple`, `nTuple`) are supported;
+- the input must follow fixed-depth perfect-binary-tree structure with layer `d` using qubit `d+1` and leaf transitions at layer `n`.
+
+The implementation intentionally avoids dense `2^n` coordinate expansion in production. Enumeration of runs/basis and tuple-state traversal may still be exponential in `n`, so resource limits (`--max-basis-runs`, `--max-b-runs`, `--max-a-runs`, `--max-tuple-states`, `--max-equations`) are available and return `ResourceLimit` when hit.
 
 ---
 
