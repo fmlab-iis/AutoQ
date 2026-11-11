@@ -1,0 +1,66 @@
+name: Grover span scaling (five-minute experiment)
+on:
+  push:
+    branches: [feature/lsta-span-inclusion-tuples]
+    paths:
+      - 'unit_tests/grover_span_cases.cc'
+      - '.github/workflows/grover-span-benchmark.yml'
+  workflow_dispatch:
+jobs:
+  benchmark:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build Release (outside experiment budget)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libboost-filesystem-dev libboost-test-dev libantlr4-runtime-dev
+          make release
+      - name: Run both scenarios within a shared 300-second experiment
+        env:
+          LD_LIBRARY_PATH: ${{ github.workspace }}:${{ github.workspace }}/build/unit_tests
+        run: |
+          python3 -u - <<'PY'
+          import csv, os, platform, resource, subprocess, time
+          from pathlib import Path
+          out=Path('grover-results'); out.mkdir(exist_ok=True)
+          cpu=Path('/proc/cpuinfo').read_text()
+          (out/'environment.txt').write_text(platform.platform()+'\n'+cpu+'\ncommit='+os.environ.get('GITHUB_SHA','')+'\nRelease; total budget=300s; per-scenario allocation=150s; child address-space limit=4GiB; depths=2,4,...,65536; no AutoQ depth/search-step cap\n')
+          def memory_limit():
+              resource.setrlimit(resource.RLIMIT_AS,(4*1024**3,4*1024**3))
+          start=time.monotonic()
+          scenarios=['grover_paper_plane','grover_paper_probability_one']
+          with (out/'results.csv').open('w',newline='') as f:
+              writer=csv.writer(f)
+              writer.writerow(['scenario','qubits','status','seconds','returncode'])
+              for index,case in enumerate(scenarios):
+                  deadline=start+150*(index+1)
+                  n=2; largest=None
+                  while n<=65536:
+                      remaining=deadline-time.monotonic()
+                      if remaining<=0: break
+                      env=os.environ.copy(); env['AUTOQ_GROVER_QUBITS']=str(n)
+                      began=time.monotonic(); code=''; status=''
+                      try:
+                          p=subprocess.run(['./build/unit_tests/span_inclusion_test','--run_test='+case,'--report_level=short','--log_level=message'],env=env,stdout=subprocess.PIPE,stderr=subprocess.STDOUT,text=True,timeout=remaining,preexec_fn=memory_limit)
+                          text=p.stdout; code=p.returncode
+                          status='passed' if code==0 else 'failed'
+                      except subprocess.TimeoutExpired as e:
+                          text=e.stdout or b''
+                          if isinstance(text,bytes): text=text.decode(errors='replace')
+                          status='timeout'
+                      elapsed=time.monotonic()-began
+                      (out/(case+'-'+str(n)+'.log')).write_text(text)
+                      writer.writerow([case,n,status,elapsed,code]); f.flush()
+                      print(case,n,status,elapsed,flush=True)
+                      if status!='passed': break
+                      largest=n; n*=2
+                  with (out/'summary.txt').open('a') as summary:
+                      summary.write(case+': largest completed tested depth='+str(largest)+'; next depth='+str(n)+'; geometric sweep, not an exact maximum; scenarios include positive and negative controls; success-probability-one scenario enumerates M=2^(n-2) basis generators\n')
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: grover-span-results
+          path: grover-results/

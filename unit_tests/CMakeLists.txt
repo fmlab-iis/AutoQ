@@ -28,3 +28,5 @@ foreach (TEST ${TESTS})
 
 	add_test(${TEST} ${CMAKE_CURRENT_BINARY_DIR}/${TEST})
 endforeach(TEST)
+
+target_sources(span_inclusion_test PRIVATE grover_span_cases.cc)
