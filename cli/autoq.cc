@@ -24,6 +24,7 @@
 #endif
 #include <CLI11.hpp>
 #include <version.h>
+#include "span_command.hh"
 
 using namespace std;
 
@@ -202,6 +203,7 @@ try {
 #endif
 
     CLI::App app{"AutoQ 2.0: An automata-based C++ tool for quantum program verification."};
+    SpanCommand span_command(app);
     std::string pre, circuit, post, circuit1, circuit2;
 
     bool summarize_loops = false;
@@ -248,6 +250,7 @@ try {
         AUTOQ::Util::Log::info(AUTOQ_GIT_SHA);
         return 0;
     }
+    if (span_command.parsed()) return span_command.run();
 
     auto start = chrono::steady_clock::now();
     // bool runConcrete; // or runSymbolic

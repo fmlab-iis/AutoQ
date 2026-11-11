@@ -36,7 +36,7 @@ jobs:
         name: AutoQ-debug-ubuntu
     # - run: pwd
     # - run: ls -a
-    - run: cd build/unit_tests/ && chmod +x ./explicit_tree_aut_test && LD_LIBRARY_PATH=.:${LD_LIBRARY_PATH-} ./explicit_tree_aut_test
+    - run: bash unit_tests/run_ci_tests.sh
 
   build-release-ubuntu:
     runs-on: ubuntu-latest
@@ -65,7 +65,7 @@ jobs:
         name: AutoQ-release-ubuntu
     # - run: pwd
     # - run: ls -a
-    - run: cd build/unit_tests/ && chmod +x ./explicit_tree_aut_test && LD_LIBRARY_PATH=.:${LD_LIBRARY_PATH-} ./explicit_tree_aut_test
+    - run: bash unit_tests/run_ci_tests.sh
 
   build-debug-wsl:
     runs-on: windows-latest
@@ -106,7 +106,7 @@ jobs:
           name: AutoQ-debug-wsl
       - run: |
           tar -xzf autoq-debug-wsl.tar.gz
-          cd build/unit_tests/ && chmod +x ./explicit_tree_aut_test && LD_LIBRARY_PATH=.:${LD_LIBRARY_PATH-} ./explicit_tree_aut_test
+          bash unit_tests/run_ci_tests.sh
         shell: wsl-bash {0} # add this to run the commands inside linux
 
   build-release-wsl:
@@ -148,7 +148,7 @@ jobs:
           name: AutoQ-release-wsl
       - run: |
           tar -xzf autoq-release-wsl.tar.gz
-          cd build/unit_tests/ && chmod +x ./explicit_tree_aut_test && LD_LIBRARY_PATH=.:${LD_LIBRARY_PATH-} ./explicit_tree_aut_test
+          bash unit_tests/run_ci_tests.sh
         shell: wsl-bash {0} # add this to run the commands inside linux
 
   build-debug-macos:
@@ -181,7 +181,7 @@ jobs:
         name: AutoQ-debug-macos
     # - run: pwd
     # - run: ls -a
-    - run: cd build/unit_tests/ && chmod +x ./explicit_tree_aut_test && DYLD_LIBRARY_PATH=.:$DYLD_LIBRARY_PATH ./explicit_tree_aut_test
+    - run: bash unit_tests/run_ci_tests.sh
 
   build-release-macos:
     runs-on: macos-latest
@@ -213,4 +213,4 @@ jobs:
         name: AutoQ-release-macos
     # - run: pwd
     # - run: ls -a
-    - run: cd build/unit_tests/ && chmod +x ./explicit_tree_aut_test && DYLD_LIBRARY_PATH=.:$DYLD_LIBRARY_PATH ./explicit_tree_aut_test
+    - run: bash unit_tests/run_ci_tests.sh
