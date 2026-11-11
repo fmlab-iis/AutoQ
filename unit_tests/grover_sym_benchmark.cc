@@ -123,9 +123,7 @@ int main(int argc,char** argv) {
         Temporary tmp; const auto plane=tmp.dir/"post.hsl";
         {
             std::ofstream f(plane); require(bool(f),"cannot write temporary post");
-            f << "Extended Dirac\n" << expression << "\nConstraints\n"
-                 "real(pH) = real(pH)\nimag(pH) = imag(pH)\n"
-                 "real(pL) = real(pL)\nimag(pL) = imag(pL)\n";
+            f << "Extended Dirac\n" << expression << "\n";
             f.close(); require(bool(f),"failed writing temporary post");
         }
         std::cout << "GROVER_COMPARE_CONFIG,folder=" << folder.string() << ",method=" << method << std::endl;
