@@ -1,0 +1,2 @@
+# Keep the Bash test runner executable from Windows checkouts in WSL.
+unit_tests/run_ci_tests.sh text eol=lf
