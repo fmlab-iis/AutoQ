@@ -10,9 +10,7 @@
 #define BOOST_TEST_MODULE QasmParsingInclusionCli
 #include <boost/test/unit_test.hpp>
 
-#include <cstdlib>
 #include <fstream>
-#include <sstream>
 #include <string>
 #include <utility>
 #include <vector>
@@ -162,22 +160,6 @@ BOOST_AUTO_TEST_CASE(inclusion_checker_equal_automata)
 #define AUTOQ_CLI_PATH "autoq"
 #endif
 
-BOOST_AUTO_TEST_CASE(cli_subprocess_verification)
-{
-    std::string folder = test_dir_from_file(__FILE__, "../benchmarks/all/BV/03/");
-    std::string pre = folder + "pre.hsl";
-    std::string post = folder + "post.hsl";
-    std::string circuit = folder + "circuit.qasm";
-
-    std::ostringstream cmd;
-    cmd << AUTOQ_CLI_PATH << " ver \"" << pre << "\" \"" << circuit << "\" \"" << post << "\"";
-    std::string cmd_str = cmd.str();
-
-    int status = std::system(cmd_str.c_str());
-    int exit_code = WEXITSTATUS(status);
-    BOOST_REQUIRE_MESSAGE(exit_code == 0, "CLI verification failed (exit " + std::to_string(exit_code) + "): " + cmd_str);
-}
-
 // Runs the CLI through the shell and returns its exit status together with
 // its combined stdout and stderr. A crash shows up as 128 + the signal number
 // (134 for an abort).
@@ -192,6 +174,17 @@ static std::pair<int, std::string> run_cli(const std::string& args)
         output += buffer;
     int status = pclose(pipe);
     return {WIFEXITED(status) ? WEXITSTATUS(status) : -1, output};
+}
+
+// ver exits 0 for both [OK] and [failed], so the exit code alone cannot tell
+// them apart. This test has to see the verdict (#44).
+BOOST_AUTO_TEST_CASE(cli_subprocess_verification)
+{
+    std::string folder = test_dir_from_file(__FILE__, "../benchmarks/all/BV/03/");
+    auto [code, output] = run_cli("ver \"" + folder + "pre.hsl\" \"" + folder + "circuit.qasm\" \"" + folder + "post.hsl\"");
+    BOOST_REQUIRE_MESSAGE(code == 0, "CLI did not exit 0 (status " + std::to_string(code) + "):\n" + output);
+    BOOST_REQUIRE_MESSAGE(output.find("The verification process [OK]") != std::string::npos,
+        "CLI verification did not report [OK]:\n" + output);
 }
 
 // Malformed input must be reported as "[ERROR] ..." with exit status 1, not
