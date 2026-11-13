@@ -32,7 +32,7 @@ inline void adjust_N_in_nTuple(const std::string& filename) {
         THROW_AUTOQ_ERROR(std::string(ErrorMessages::kOpenFilePrefix) + filename + ".");
     std::string line;
     while (std::getline(qasm, line)) {
-        line = AUTOQ::String::trim(line);
+        line = AUTOQ::String::strip_line_comment(line);
         std::smatch match_rx;
         std::regex_search(line, match_rx, re.rx);
         std::smatch match_rz;

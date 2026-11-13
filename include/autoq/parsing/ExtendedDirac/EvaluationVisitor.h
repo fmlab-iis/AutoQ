@@ -58,6 +58,8 @@ struct EvaluationVisitor : public ExtendedDiracParserBaseVisitor {
     std::set<char> usedVars; // record all variables currently used in {diracs : varcons} for preventing naming collision.
     segment2split_t segment2split;
     currentSplit_t currentSplit;
+    std::string currentSegmentFirstKet; // the first ket rewritten in the current tensor segment
+    int currentSegmentKetLength;        // its number of qubits, or -1 before the first ket
     segment2perm_t segment2perm;
     perm_t currentPerm;
     std::vector<size_t> remember_the_lengths_of_each_unit_position;
@@ -77,6 +79,8 @@ struct EvaluationVisitor : public ExtendedDiracParserBaseVisitor {
         usedVars(),
         segment2split(),
         currentSplit(),
+        currentSegmentFirstKet(),
+        currentSegmentKetLength(-1),
         segment2perm(),
         currentPerm(),
         remember_the_lengths_of_each_unit_position(),

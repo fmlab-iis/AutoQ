@@ -14,6 +14,7 @@
 #include <fstream>
 #include <functional>
 #include <sstream>
+#include <tuple>
 
 #include "autoq/error.hh"
 #include "autoq/inclusion.hh"
@@ -347,6 +348,27 @@ BOOST_AUTO_TEST_CASE(measurement_guard_uses_qubit_permutation){
 }
 
 
+// Comments must never be executed: a commented circuit gives exactly the
+// states of the same circuit without comments (#42, #47).
+BOOST_AUTO_TEST_CASE(comments_are_ignored){
+    std::string folder = test_dir_from_file(__FILE__, "testcase/Comments/");
+    const std::vector<std::tuple<std::string, std::string, std::string>> cases = {
+        {"one_qubit_pre.hsl", "x_with_rx_comment.qasm", "x.qasm"},
+        {"one_qubit_pre.hsl", "h_with_rz_comment.qasm", "h.qasm"},
+        {"two_qubit_pre.hsl", "cx_with_rx_comment.qasm", "cx.qasm"},
+        {"two_qubit_pre.hsl", "rx_with_index_comment.qasm", "rx.qasm"},
+        {"one_qubit_pre.hsl", "for_with_comments.qasm", "for.qasm"},
+    };
+    for (const auto& [pre, commented, clean] : cases) {
+        for (const std::string loop : {"manual", "symbolic"}) {
+            auto expected = execute_and_print(folder + pre, folder + clean, loop);
+            auto actual = execute_and_print(folder + pre, folder + commented, loop);
+            BOOST_CHECK_MESSAGE(expected == actual,
+                commented + " (" + loop + "): expected " + expected + " but got " + actual);
+        }
+    }
+}
+
 static void grover_oracle(AUTOQ::ConcreteAutomata& aut, unsigned ans, int n) {
     for (int i=1; i<=n; i++) {
         if ((ans & (1 << (i-1))) == 0) aut.X(n+1-i);
@@ -676,3 +698,26 @@ BOOST_AUTO_TEST_CASE(qubit_reordering)
     }
 }
 
+
+// An automaton whose root state is the target of no transition accepts
+// nothing. Inclusion into it must be false, not crash (#40).
+BOOST_AUTO_TEST_CASE(inclusion_into_empty_automaton){
+    std::string folder = test_dir_from_file(__FILE__, "testcase/EmptyAutomaton/");
+    auto zero = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Concrete>::ReadAutomaton(folder + "zero.lsta");
+    auto empty = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Concrete>::ReadAutomaton(folder + "empty.lsta");
+    BOOST_REQUIRE(empty.finalStates.empty());
+    BOOST_CHECK(!(zero <= empty));
+    BOOST_CHECK(empty <= zero);
+    BOOST_CHECK(empty <= empty);
+    BOOST_CHECK(!(zero <<= empty));
+
+    // reduce() must not drop the root state of the zero vector when it is
+    // merged into an equivalent state that is not a root.
+    auto with_zero = empty || AUTOQ::ConcreteAutomata::zero_amplitude(1);
+    BOOST_CHECK(!with_zero.finalStates.empty());
+    BOOST_CHECK(AUTOQ::ConcreteAutomata::zero_amplitude(1) <= with_zero);
+
+    auto zero_sym = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Symbolic>::ReadAutomaton(folder + "zero_sym.lsta");
+    auto empty_sym = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Symbolic>::ReadAutomaton(folder + "empty.lsta");
+    BOOST_CHECK(!(zero_sym <<= empty_sym));
+}

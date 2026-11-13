@@ -317,6 +317,7 @@ void AUTOQ::Automata<Symbol>::bottom_up_reduce(int starts_from_depth) {
     // std::map<std::map<Symbol, std::map<StateVector, Tag>>, State> repr; // 9.9 sec in make test
     std::unordered_map<std::map<Symbol, std::map<StateVector, Tag>>, State, HASH<Symbol>> repr; // 9.6 sec in make test
     std::map<State, State> rewrite;
+    std::map<State, State> merged_into; // every merged-away state -> its representative
     bool may_be_merged_furthermore = true;
 
     /* Convert leaf transitions into the new data structure. */
@@ -344,6 +345,7 @@ void AUTOQ::Automata<Symbol>::bottom_up_reduce(int starts_from_depth) {
             auto it = repr.find(top_.second);
             if (it != repr.end()) {
                 rewrite[top] = it->second;
+                merged_into[top] = it->second;
                 may_be_merged_furthermore = true;
             } else { // create a new class
                 rewrite[top] = top;
@@ -394,6 +396,7 @@ void AUTOQ::Automata<Symbol>::bottom_up_reduce(int starts_from_depth) {
                     auto it = repr.find(top_.second);
                     if (it != repr.end()) {
                         rewrite[top] = it->second;
+                        merged_into[top] = it->second;
                         may_be_merged_furthermore = true;
                     } else { // create a new class
                         rewrite[top] = top;
@@ -417,6 +420,19 @@ void AUTOQ::Automata<Symbol>::bottom_up_reduce(int starts_from_depth) {
         }
     }
     transitions = transitions2;
+    /* A root state can be merged into an equivalent state; that state then
+       becomes the root instead, or the root would be lost (#40). */
+    if (!merged_into.empty()) {
+        StateVector finalStates2;
+        for (auto s : finalStates) {
+            auto m = merged_into.find(s);
+            if (m != merged_into.end())
+                s = m->second;
+            if (std::find(finalStates2.begin(), finalStates2.end(), s) == finalStates2.end())
+                finalStates2.push_back(s);
+        }
+        finalStates = finalStates2;
+    }
     state_renumbering();
 }
 

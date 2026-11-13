@@ -51,6 +51,7 @@
             if (ctx->scset() != nullptr) { // set
                 currentSplit = segment2split.front(); // access the first element
                 segment2split.erase(segment2split.begin()); // remove it (O(n) operation)
+                currentSegmentKetLength = -1;
                 return std::any_cast<std::string>(visit(ctx->scset()));
             } else if (ctx->MUL() != nullptr || ctx->PROD() != nullptr) {
                 std::string str0 = std::any_cast<std::string>(visit(ctx->tset(0)));
