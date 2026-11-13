@@ -30,8 +30,8 @@ std::vector<std::string> parse_for_loop_body(std::ifstream& qasm, bool& in_loop)
     std::vector<std::string> loop_body;
     std::string line;
     while (std::getline(qasm, line)) {
-        line = AUTOQ::String::trim(line);
-        if (line.find("{") == 0)
+        line = AUTOQ::String::strip_line_comment(line);
+        if (line.empty() || line.find("/*") == 0 || line.find("{") == 0)
             continue;
         if (line.find("}") == 0) {
             in_loop = false;
@@ -95,7 +95,10 @@ bool AUTOQ::Automata<Symbol>::execute(const char *filename, std::vector<int> qub
 
     bool in_loop = false; // nested loops are not yet taken into consideration
     while (getline(qasm, line)) {
-        line = AUTOQ::String::trim(line);
+        // Strip trailing comments so that text in them is never read as a
+        // gate (#42). Loop-invariant file names after "while (...) {" are
+        // read in separate passes over the file.
+        line = AUTOQ::String::strip_line_comment(line);
         if (line.empty()) continue;
         // AUTOQ_DEBUG("[" << (lineno++) << "]: " << line);
         if (inGateDef) {
