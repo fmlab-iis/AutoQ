@@ -20,8 +20,8 @@ struct QasmRegexes {
     const std::regex digit;
     const std::regex loop;
     QasmRegexes()
-        : rx(R"(rx\((.+)\).+\[(\d+)\];)")
-        , rz(R"(rz\((.+)\).+\[(\d+)\];)")
+        : rx(R"(^rx\((.+)\)\s*\w+\[(\d+)\];)")
+        , rz(R"(^rz\((.+)\)\s*\w+\[(\d+)\];)")
         , digit("\\d+")
         , loop(R"(for int (\w+) in \[(\d+):(\d+)\])") {}
 };
