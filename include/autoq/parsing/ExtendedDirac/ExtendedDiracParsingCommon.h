@@ -37,11 +37,15 @@ inline const std::map<std::string, AUTOQ::Complex::Complex>& get_empty_const_map
 template<typename GetTree>
 inline std::any parse_extended_dirac_and_visit(const std::string& input, GetTree get_tree, ExtendedDiracParserBaseVisitor* visitor) {
     antlr4::ANTLRInputStream inputStream(input);
+    CustomErrorListener errorListener;
     ExtendedDiracLexer lexer(&inputStream);
+    // Unknown characters are lexer errors. Without this listener ANTLR drops
+    // the character and keeps parsing (#25), so 1/√2 is read as 1/2.
+    lexer.removeErrorListeners();
+    lexer.addErrorListener(&errorListener);
     antlr4::CommonTokenStream tokens(&lexer);
     ExtendedDiracParser parser(&tokens);
     parser.removeErrorListeners();
-    CustomErrorListener errorListener;
     parser.addErrorListener(&errorListener);
     antlr4::tree::ParseTree* tree = get_tree(parser);
     return visitor->visit(tree);
