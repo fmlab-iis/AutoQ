@@ -325,6 +325,28 @@ BOOST_AUTO_TEST_CASE(for_loop_summarization_complex_amplitudes){
     }
 }
 
+// `r = measure q[k];` must guard on the same automaton level that gates use for
+// q[k], also when the .hsl files reorder the qubits (#26).
+BOOST_AUTO_TEST_CASE(measurement_guard_uses_qubit_permutation){
+    std::string folder = test_dir_from_file(__FILE__, "testcase/MeasurePermutation/");
+    // {|sts>} and {|s0s>} put the two `s` qubits next to each other, so q[1] and q[2] swap levels.
+    const std::vector<std::pair<std::string, bool>> cases = {
+        {"if_reset.qasm", true},
+        {"if_wrong_qubit.qasm", false},
+        {"while_reset.qasm", true},
+    };
+    for (const auto& [circuit, expected] : cases) {
+        auto [autVec, qp] = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Concrete>::ReadTwoAutomata(folder + "pre.hsl", folder + "post.hsl", folder + circuit);
+        BOOST_REQUIRE_MESSAGE((qp == std::vector<int>{0, 2, 1}), circuit + ": the qubits are not reordered");
+        auto aut = autVec.at(0);
+        auto spec = autVec.at(1);
+        autVec.erase(autVec.begin(), autVec.begin() + 2);
+        bool verify = aut.execute(folder + circuit, qp, autVec);
+        verify &= (aut <<= spec);
+        BOOST_CHECK_MESSAGE(verify == expected, circuit + ": expected " + (expected ? "[OK]" : "[failed]"));
+    }
+}
+
 
 // Comments must never be executed: a commented circuit gives exactly the
 // states of the same circuit without comments (#42, #47).
