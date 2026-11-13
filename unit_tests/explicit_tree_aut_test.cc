@@ -14,6 +14,7 @@
 #include <fstream>
 #include <functional>
 #include <sstream>
+#include <tuple>
 
 #include "autoq/error.hh"
 #include "autoq/inclusion.hh"
@@ -324,6 +325,27 @@ BOOST_AUTO_TEST_CASE(for_loop_summarization_complex_amplitudes){
     }
 }
 
+
+// Comments must never be executed: a commented circuit gives exactly the
+// states of the same circuit without comments (#42, #47).
+BOOST_AUTO_TEST_CASE(comments_are_ignored){
+    std::string folder = test_dir_from_file(__FILE__, "testcase/Comments/");
+    const std::vector<std::tuple<std::string, std::string, std::string>> cases = {
+        {"one_qubit_pre.hsl", "x_with_rx_comment.qasm", "x.qasm"},
+        {"one_qubit_pre.hsl", "h_with_rz_comment.qasm", "h.qasm"},
+        {"two_qubit_pre.hsl", "cx_with_rx_comment.qasm", "cx.qasm"},
+        {"two_qubit_pre.hsl", "rx_with_index_comment.qasm", "rx.qasm"},
+        {"one_qubit_pre.hsl", "for_with_comments.qasm", "for.qasm"},
+    };
+    for (const auto& [pre, commented, clean] : cases) {
+        for (const std::string loop : {"manual", "symbolic"}) {
+            auto expected = execute_and_print(folder + pre, folder + clean, loop);
+            auto actual = execute_and_print(folder + pre, folder + commented, loop);
+            BOOST_CHECK_MESSAGE(expected == actual,
+                commented + " (" + loop + "): expected " + expected + " but got " + actual);
+        }
+    }
+}
 
 static void grover_oracle(AUTOQ::ConcreteAutomata& aut, unsigned ans, int n) {
     for (int i=1; i<=n; i++) {

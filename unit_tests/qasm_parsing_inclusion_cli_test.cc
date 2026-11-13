@@ -14,6 +14,8 @@
 #include <fstream>
 #include <sstream>
 #include <string>
+#include <utility>
+#include <vector>
 #include <sys/wait.h>
 #include <unistd.h>
 
@@ -83,4 +85,55 @@ BOOST_AUTO_TEST_CASE(cli_subprocess_verification)
     int status = std::system(cmd_str.c_str());
     int exit_code = WEXITSTATUS(status);
     BOOST_REQUIRE_MESSAGE(exit_code == 0, "CLI verification failed (exit " + std::to_string(exit_code) + "): " + cmd_str);
+}
+
+// Runs the CLI through the shell and returns its exit status together with
+// its combined stdout and stderr. A crash shows up as 128 + the signal number
+// (134 for an abort).
+static std::pair<int, std::string> run_cli(const std::string& args)
+{
+    std::string cmd = std::string(AUTOQ_CLI_PATH) + " " + args + " 2>&1";
+    FILE* pipe = popen(cmd.c_str(), "r");
+    BOOST_REQUIRE_MESSAGE(pipe, "popen failed: " + cmd);
+    std::string output;
+    char buffer[512];
+    while (fgets(buffer, sizeof(buffer), pipe) != nullptr)
+        output += buffer;
+    int status = pclose(pipe);
+    return {WIFEXITED(status) ? WEXITSTATUS(status) : -1, output};
+}
+
+// Malformed input must be reported as "[ERROR] ..." with exit status 1, not
+// abort the process (#56, #37, #38).
+BOOST_AUTO_TEST_CASE(cli_malformed_input_is_reported)
+{
+    std::string dir = test_dir_from_file(__FILE__, "testcase/MalformedInput/");
+    auto f = [&](const std::string& name) { return "\"" + dir + name + "\""; };
+    const std::vector<std::pair<std::string, std::string>> cases = {
+        {"ex " + f("pre.hsl") + " " + f("if_undef.qasm"), "The if guard variable \"d[0]\""},
+        {"ex " + f("pre.hsl") + " " + f("if_empty.qasm"), "Empty if guard"},
+        {"ex " + f("pre.hsl") + " " + f("while_undef.qasm"), "The while guard variable \"d[0]\""},
+        {"ex " + f("pre.hsl") + " " + f("for_notype.qasm"), "Unsupported for-loop header"},
+        {"ex " + f("pre.hsl") + " " + f("for_big.qasm"), "are too large"},
+        {"ex " + f("pre.hsl") + " " + f("rx_bad.qasm"), "Division by zero"},
+        {"print " + f("div0.hsl"), "Division by zero"},
+        {"eq " + f("eq_big.qasm") + " " + f("eq_big.qasm"), "is too large"},
+        // Not validated yet (#33); the generic handler in main reports it.
+        {"print " + f("eipi_symbolic.hsl"), "[ERROR] "},
+    };
+    for (const auto& [args, expected] : cases) {
+        auto [code, output] = run_cli(args);
+        BOOST_CHECK_MESSAGE(code == 1, args + ": exit status " + std::to_string(code) + ", output: " + output);
+        BOOST_CHECK_MESSAGE(output.find(expected) != std::string::npos,
+            args + ": expected \"" + expected + "\" in output: " + output);
+    }
+}
+
+// OpenQASM 3 allows whitespace between ! and its operand (#38).
+BOOST_AUTO_TEST_CASE(cli_negated_guard_with_space)
+{
+    std::string dir = test_dir_from_file(__FILE__, "testcase/MalformedInput/");
+    auto [code, output] = run_cli("ex \"" + dir + "pre.hsl\" \"" + dir + "if_space_not.qasm\"");
+    BOOST_CHECK_MESSAGE(code == 0, "exit status " + std::to_string(code) + ", output: " + output);
+    BOOST_CHECK_MESSAGE(output.find("(1/1)|1>") != std::string::npos, "unexpected output: " + output);
 }

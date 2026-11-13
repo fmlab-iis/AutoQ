@@ -9,8 +9,13 @@ AUTOQ::Automata<Symbol> symbolic_loop(const std::vector<std::string>& loop_body,
 template<typename Symbol>
 void execute_loop(std::vector<std::string>& loop_body, AUTOQ::Automata<Symbol>& aut, ParameterMap& params,
                 const AUTOQ::QasmRegexes& re, std::smatch match_pieces, const std::vector<int>& qubit_permutation) {
-    int start = std::stoi(match_pieces[2].str());
-    int end = std::stoi(match_pieces[3].str());
+    int start, end;
+    try {
+        start = std::stoi(match_pieces[2].str());
+        end = std::stoi(match_pieces[3].str());
+    } catch (const std::out_of_range&) {
+        THROW_AUTOQ_ERROR("The bounds of the for loop \"" + match_pieces.str(0) + "\" are too large.");
+    }
     int num_of_iterations = end - start + 1;
     if(params["loop"] == "manual"){
         for(int i = start; i <= end; i++){
