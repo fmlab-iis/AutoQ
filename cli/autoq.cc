@@ -41,7 +41,11 @@ int extract_qubit(const std::string& filename) {
     std::smatch match;
     while (std::getline(file, line)) {
         if (std::regex_search(line, match, pattern)) {
-            return std::stoi(match[1].str());
+            try {
+                return std::stoi(match[1].str());
+            } catch (const std::out_of_range&) {
+                THROW_AUTOQ_ERROR("The qubit count in \"" + line + "\" is too large.");
+            }
         }
     }
 
@@ -288,6 +292,14 @@ try {
     /**************/
 } catch (AutoQError &e) {
     AUTOQ::Util::Log::error(e.what());
+    return 1;
+} catch (const std::exception &e) {
+    // Anything else is a bug or an input AutoQ does not check yet; report it
+    // like an AutoQ error instead of aborting.
+    AUTOQ::Util::Log::error(std::string("[ERROR] ") + e.what());
+    return 1;
+} catch (...) {
+    AUTOQ::Util::Log::error("[ERROR] Unknown exception.");
     return 1;
 }
     return 0;

@@ -34,6 +34,9 @@ bool inclusion_bfs_holds(
     LeafPolicy& policy)
 {
     using Aut = AUTOQ::Automata<Symbol>;
+    // With no root states B accepts nothing, so A ⊆ B iff A is empty (#40).
+    if (autB.finalStates.empty())
+        return autA.empty();
     // Main Routine: Graph Traversal
     typedef std::map<typename Aut::State, typename Aut::StateSet> Cell;
     typedef std::set<Cell> Vertex;

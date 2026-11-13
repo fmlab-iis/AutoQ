@@ -97,6 +97,8 @@ struct AUTOQ::Complex::FiveTuple : stdvectorboostmultiprecisioncpp_int {
         return symbol;
     }
     FiveTuple operator/(FiveTuple o) const {
+        if (o.isZero())
+            THROW_AUTOQ_ERROR("Division by zero.");
         // std::cout << *this << o;
         auto a = o.at(0);
         auto b = o.at(1);

@@ -30,8 +30,8 @@ std::vector<std::string> parse_for_loop_body(std::ifstream& qasm, bool& in_loop)
     std::vector<std::string> loop_body;
     std::string line;
     while (std::getline(qasm, line)) {
-        line = AUTOQ::String::trim(line);
-        if (line.find("{") == 0)
+        line = AUTOQ::String::strip_line_comment(line);
+        if (line.empty() || line.find("/*") == 0 || line.find("{") == 0)
             continue;
         if (line.find("}") == 0) {
             in_loop = false;
@@ -65,6 +65,28 @@ std::vector<int> parse_qubit_indices(const std::string& line, const AUTOQ::QasmR
 
 namespace EM = AUTOQ::ErrorMessages;
 
+namespace {
+// Parses the guard of an if/while line, "(c[0])" or "(!c[0])", and returns the
+// qubit that was measured into that bit and whether the guard is negated.
+std::pair<int, bool> parse_measurement_guard(const std::string& line, const std::string& keyword,
+                                             const std::map<std::string, int>& var_is_measure_what_qubit) {
+    static const std::regex varR("\\((.*)\\)");
+    std::smatch match;
+    if (!std::regex_search(line, match, varR))
+        THROW_AUTOQ_ERROR("Invalid " + keyword + " guard: expected (var) in \"" + line + "\".");
+    std::string var = AUTOQ::String::trim(match.str(1));
+    bool negate = !var.empty() && var.front() == '!';
+    if (negate)
+        var = AUTOQ::String::trim(var.substr(1));
+    if (var.empty())
+        THROW_AUTOQ_ERROR("Empty " + keyword + " guard in \"" + line + "\".");
+    auto it = var_is_measure_what_qubit.find(var);
+    if (it == var_is_measure_what_qubit.end())
+        THROW_AUTOQ_ERROR("The " + keyword + " guard variable \"" + var + "\" in \"" + line + "\" was not assigned by a measurement.");
+    return {it->second, negate};
+}
+}  // namespace
+
 template <typename Symbol>
 bool AUTOQ::Automata<Symbol>::execute(const std::string &filename, std::vector<int> qubit_permutation, const std::vector<AUTOQ::Automata<Symbol>> &loopInvariants, ParameterMap params) {
     return execute(filename.c_str(), qubit_permutation, loopInvariants, params);
@@ -95,7 +117,10 @@ bool AUTOQ::Automata<Symbol>::execute(const char *filename, std::vector<int> qub
 
     bool in_loop = false; // nested loops are not yet taken into consideration
     while (getline(qasm, line)) {
-        line = AUTOQ::String::trim(line);
+        // Strip trailing comments so that text in them is never read as a
+        // gate (#42). Loop-invariant file names after "while (...) {" are
+        // read in separate passes over the file.
+        line = AUTOQ::String::strip_line_comment(line);
         if (line.empty()) continue;
         // AUTOQ_DEBUG("[" << (lineno++) << "]: " << line);
         if (inGateDef) {
@@ -116,7 +141,8 @@ bool AUTOQ::Automata<Symbol>::execute(const char *filename, std::vector<int> qub
             if (in_loop) THROW_AUTOQ_ERROR(EM::kNestedLoops);
             in_loop = true;
             std::smatch match_pieces;
-            std::regex_search(line, match_pieces, qasm_re.loop);
+            if (!std::regex_search(line, match_pieces, qasm_re.loop))
+                THROW_AUTOQ_ERROR("Unsupported for-loop header (expected \"for int i in [x:y] {\"): \"" + line + "\".");
             std::vector<std::string> loop_body = parse_for_loop_body(qasm, in_loop);
             execute_loop<Symbol>(loop_body, *this, params, qasm_re, match_pieces, qubit_permutation);
         } else if (line.find("PRINT_STATS") == 0) {
@@ -210,15 +236,7 @@ void AUTOQ::Automata<Symbol>::handle_while_loop_start(const std::string& line, c
     while_measurement_guard = previous_line;
     std::erase(while_measurement_guard, ' ');
     inWhileLoop = true;
-    const std::regex varR("\\((.*)\\)");
-    std::sregex_iterator it(line.cbegin(), line.cend(), varR);
-    if (it == kRegexEnd)
-        THROW_AUTOQ_ERROR("Invalid while guard: expected (var) in \"" + line + "\".");
-    std::string var = AUTOQ::String::trim(it->str(1));
-    bool negate = (var.at(0) == '!');
-    if (negate)
-        var = var.substr(1);
-    int pos = var_is_measure_what_qubit.at(var);
+    auto [pos, negate] = parse_measurement_guard(line, "while", var_is_measure_what_qubit);
     I = loopInvariants[loopInvariantCounter++];
     this->remove_useless();
     this->reduce();
@@ -249,15 +267,7 @@ void AUTOQ::Automata<Symbol>::handle_if_block_start(const std::string& line, con
     Automata<Symbol>& measure_to_else) {
     if (previous_line.find("measure") == std::string::npos)
         THROW_AUTOQ_ERROR("The if guard must be a measurement operator.");
-    const std::regex varR("\\((.*)\\)");
-    std::sregex_iterator it(line.cbegin(), line.cend(), varR);
-    if (it == kRegexEnd)
-        THROW_AUTOQ_ERROR("Invalid if guard: expected (var) in \"" + line + "\".");
-    std::string var = AUTOQ::String::trim(it->str(1));
-    bool negate = (var.at(0) == '!');
-    if (negate)
-        var = var.substr(1);
-    int pos = var_is_measure_what_qubit.at(var);
+    auto [pos, negate] = parse_measurement_guard(line, "if", var_is_measure_what_qubit);
     if (negate) {
         measure_to_else = this->measure(pos, true);
         *this = this->measure(pos, false);

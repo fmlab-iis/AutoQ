@@ -21,6 +21,11 @@ std::string AUTOQ::String::trim(const std::string& str)
 	return result;
 }
 
+std::string AUTOQ::String::strip_line_comment(const std::string& str)
+{
+	return trim(str.substr(0, str.find("//")));
+}
+
 /**
  * @brief  Split a string at a delimiter
  */

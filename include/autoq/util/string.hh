@@ -19,6 +19,8 @@ namespace AUTOQ
 	namespace String
 	{
         std::string trim(const std::string& str);
+        /// Removes a trailing "// ..." comment and surrounding whitespace.
+        std::string strip_line_comment(const std::string& str);
         std::vector<std::string> split_delim(const std::string &str, char delim);
         std::string read_word(std::string& str);
         bool contains_whitespace(const std::string& str);
