@@ -20,6 +20,7 @@
 #include <unistd.h>
 
 #include "autoq/symbol/concrete.hh"
+#include "autoq/symbol/symbolic.hh"
 #include "autoq/complex/complex.hh"
 #include "autoq/parsing/parser/timbuk_parser.hh"
 #include "autoq/serialization/timbuk_serializer.hh"
@@ -104,6 +105,49 @@ BOOST_AUTO_TEST_CASE(lsta_root_header_is_not_a_state_name)
     BOOST_REQUIRE(control <<= named_root);
     BOOST_CHECK_THROW(Parser::ReadAutomaton(folder + "pre_typo.lsta"), AutoQError);
     BOOST_CHECK_NO_THROW(Parser::ReadAutomaton(test_dir_from_file(__FILE__, "testcase/EmptyAutomaton/zero.lsta")));
+}
+
+// A // comment ends at the newline. Deleting that newline joins the next line
+// onto this one, so a constant, a section header, or a constraint is parsed
+// together with whatever follows (#28). A comment-only line is still removed
+// whole, so it does not become a blank line in Constraints.
+BOOST_AUTO_TEST_CASE(trailing_line_comment_does_not_join_the_next_line)
+{
+    std::string folder = test_dir_from_file(__FILE__, "testcase/LineComment/");
+    using ConcreteParser = AUTOQ::Parsing::TimbukParser<Concrete>;
+    using SymbolicParser = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Symbolic>;
+
+    auto equivalent = [](const auto& commented, const auto& control, const std::string& name) {
+        BOOST_CHECK_MESSAGE(commented <<= control, name + ": commented automaton is not included in the control");
+        BOOST_CHECK_MESSAGE(control <<= commented, name + ": control is not included in the commented automaton");
+    };
+
+    equivalent(ConcreteParser::ReadAutomaton(folder + "pre.hsl"),
+               ConcreteParser::ReadAutomaton(folder + "pre_ctrl.hsl"), "constant");
+    equivalent(ConcreteParser::ReadAutomaton(folder + "a.hsl"),
+               ConcreteParser::ReadAutomaton(folder + "a_ctrl.hsl"), "header");
+    equivalent(ConcreteParser::ReadAutomaton(folder + "b1.hsl"),
+               ConcreteParser::ReadAutomaton(folder + "b1_ctrl.hsl"), "fraction");
+
+    auto [autVec, qp] = ConcreteParser::ReadTwoAutomata(folder + "pre.hsl", folder + "post.hsl", folder + "circuit.qasm");
+    auto aut = autVec.at(0);
+    auto spec = autVec.at(1);
+    BOOST_REQUIRE(aut.execute(folder + "circuit.qasm", qp));
+    BOOST_CHECK(aut <<= spec);
+
+    auto commented = SymbolicParser::ReadAutomaton(folder + "c.hsl");
+    auto control = SymbolicParser::ReadAutomaton(folder + "c_ctrl.hsl");
+    auto comment_line = SymbolicParser::ReadAutomaton(folder + "c_line.hsl");
+    BOOST_CHECK_EQUAL(commented.constraints, control.constraints);
+    BOOST_CHECK_EQUAL(comment_line.constraints, control.constraints);
+    equivalent(commented, control, "constraint");
+    equivalent(comment_line, control, "comment-only constraint");
+
+    auto [symVec, sqp] = SymbolicParser::ReadTwoAutomata(folder + "c.hsl", folder + "post.hsl", folder + "circuit.qasm");
+    auto symbolic = symVec.at(0);
+    auto symbolic_spec = symVec.at(1);
+    BOOST_REQUIRE(symbolic.execute(folder + "circuit.qasm", sqp));
+    BOOST_CHECK(symbolic <<= symbolic_spec);
 }
 
 BOOST_AUTO_TEST_CASE(inclusion_checker_equal_automata)
