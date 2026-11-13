@@ -220,6 +220,30 @@ BOOST_AUTO_TEST_CASE(cli_malformed_input_is_reported)
     }
 }
 
+// eq reads the qubit count itself. It must accept OpenQASM 3 "qubit[N] name;",
+// not only OpenQASM 2 "qreg name[N];" (#46).
+BOOST_AUTO_TEST_CASE(eq_accepts_openqasm3_qubit_declaration)
+{
+    std::string dir = test_dir_from_file(__FILE__, "testcase/Qasm3Eq/");
+    auto f = [&](const std::string& name) { return "\"" + dir + name + "\""; };
+    const std::vector<std::pair<std::string, std::string>> cases = {
+        {"eq " + f("h3.qasm") + " " + f("h2.qasm"), "[equal]"},
+        {"eq " + f("h2.qasm") + " " + f("h3.qasm"), "[equal]"},
+        {"eq " + f("h2.qasm") + " " + f("h2.qasm"), "[equal]"},
+        {"eq " + f("h3.qasm") + " " + f("h3.qasm"), "[equal]"},
+        {"eq " + f("x2.qasm") + " " + f("x3.qasm"), "[equal]"},
+        {"eq " + f("h3.qasm") + " " + f("x3.qasm"), "[unequal]"},
+        {"eq " + f("h2.qasm") + " " + f("x2.qasm"), "[unequal]"},
+        {"eq " + f("x3.qasm") + " " + f("h2.qasm"), "[unequal]"},
+    };
+    for (const auto& [args, expected] : cases) {
+        auto [code, output] = run_cli(args);
+        BOOST_CHECK_MESSAGE(code == 0, args + ": exit status " + std::to_string(code) + ", output: " + output);
+        BOOST_CHECK_MESSAGE(output.find(expected) != std::string::npos,
+            args + ": expected \"" + expected + "\" in output: " + output);
+    }
+}
+
 // OpenQASM 3 allows whitespace between ! and its operand (#38).
 BOOST_AUTO_TEST_CASE(cli_negated_guard_with_space)
 {

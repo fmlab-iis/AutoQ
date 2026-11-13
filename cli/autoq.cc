@@ -37,12 +37,13 @@ int extract_qubit(const std::string& filename) {
     }
 
     std::string line;
-    std::regex pattern(R"(qreg\s+\w+\[(\d+)\];)");
+    // OpenQASM 2 writes "qreg name[N];". OpenQASM 3 writes "qubit[N] name;" (#46).
+    std::regex pattern(R"((?:qreg\s+\w+\s*\[\s*(\d+)\s*\]|qubit\s*\[\s*(\d+)\s*\]\s*\w+)\s*;)");
     std::smatch match;
     while (std::getline(file, line)) {
         if (std::regex_search(line, match, pattern)) {
             try {
-                return std::stoi(match[1].str());
+                return std::stoi(match[1].matched ? match[1].str() : match[2].str());
             } catch (const std::out_of_range&) {
                 THROW_AUTOQ_ERROR("The qubit count in \"" + line + "\" is too large.");
             }
