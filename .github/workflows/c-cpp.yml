@@ -36,7 +36,7 @@ jobs:
         name: AutoQ-debug-ubuntu
     # - run: pwd
     # - run: ls -a
-    - run: cd build/unit_tests/ && chmod +x ./explicit_tree_aut_test && LD_LIBRARY_PATH=.:${LD_LIBRARY_PATH-} ./explicit_tree_aut_test
+    - run: chmod +x build/unit_tests/explicit_tree_aut_test build/unit_tests/qasm_parsing_inclusion_cli_test build/cli/autoq && cd build && LD_LIBRARY_PATH=${PWD}/unit_tests:${LD_LIBRARY_PATH-} ctest --output-on-failure
 
   build-release-ubuntu:
     runs-on: ubuntu-latest
@@ -65,7 +65,7 @@ jobs:
         name: AutoQ-release-ubuntu
     # - run: pwd
     # - run: ls -a
-    - run: cd build/unit_tests/ && chmod +x ./explicit_tree_aut_test && LD_LIBRARY_PATH=.:${LD_LIBRARY_PATH-} ./explicit_tree_aut_test
+    - run: chmod +x build/unit_tests/explicit_tree_aut_test build/unit_tests/qasm_parsing_inclusion_cli_test build/cli/autoq && cd build && LD_LIBRARY_PATH=${PWD}/unit_tests:${LD_LIBRARY_PATH-} ctest --output-on-failure
 
   build-debug-wsl:
     runs-on: windows-latest
@@ -106,7 +106,9 @@ jobs:
           name: AutoQ-debug-wsl
       - run: |
           tar -xzf autoq-debug-wsl.tar.gz
-          cd build/unit_tests/ && chmod +x ./explicit_tree_aut_test && LD_LIBRARY_PATH=.:${LD_LIBRARY_PATH-} ./explicit_tree_aut_test
+          sudo apt-get update && sudo apt-get install -y cmake
+          chmod +x build/unit_tests/explicit_tree_aut_test build/unit_tests/qasm_parsing_inclusion_cli_test build/cli/autoq
+          cd build && LD_LIBRARY_PATH=${PWD}/unit_tests:${LD_LIBRARY_PATH-} ctest --output-on-failure
         shell: wsl-bash {0} # add this to run the commands inside linux
 
   build-release-wsl:
@@ -148,7 +150,9 @@ jobs:
           name: AutoQ-release-wsl
       - run: |
           tar -xzf autoq-release-wsl.tar.gz
-          cd build/unit_tests/ && chmod +x ./explicit_tree_aut_test && LD_LIBRARY_PATH=.:${LD_LIBRARY_PATH-} ./explicit_tree_aut_test
+          sudo apt-get update && sudo apt-get install -y cmake
+          chmod +x build/unit_tests/explicit_tree_aut_test build/unit_tests/qasm_parsing_inclusion_cli_test build/cli/autoq
+          cd build && LD_LIBRARY_PATH=${PWD}/unit_tests:${LD_LIBRARY_PATH-} ctest --output-on-failure
         shell: wsl-bash {0} # add this to run the commands inside linux
 
   build-debug-macos:
@@ -181,7 +185,7 @@ jobs:
         name: AutoQ-debug-macos
     # - run: pwd
     # - run: ls -a
-    - run: cd build/unit_tests/ && chmod +x ./explicit_tree_aut_test && DYLD_LIBRARY_PATH=.:$DYLD_LIBRARY_PATH ./explicit_tree_aut_test
+    - run: chmod +x build/unit_tests/explicit_tree_aut_test build/unit_tests/qasm_parsing_inclusion_cli_test build/cli/autoq && cd build && DYLD_LIBRARY_PATH=${PWD}/unit_tests:${DYLD_LIBRARY_PATH-} ctest --output-on-failure
 
   build-release-macos:
     runs-on: macos-latest
@@ -213,4 +217,4 @@ jobs:
         name: AutoQ-release-macos
     # - run: pwd
     # - run: ls -a
-    - run: cd build/unit_tests/ && chmod +x ./explicit_tree_aut_test && DYLD_LIBRARY_PATH=.:$DYLD_LIBRARY_PATH ./explicit_tree_aut_test
+    - run: chmod +x build/unit_tests/explicit_tree_aut_test build/unit_tests/qasm_parsing_inclusion_cli_test build/cli/autoq && cd build && DYLD_LIBRARY_PATH=${PWD}/unit_tests:${DYLD_LIBRARY_PATH-} ctest --output-on-failure

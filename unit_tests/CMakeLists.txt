@@ -18,8 +18,9 @@ foreach (TEST ${TESTS})
 	target_link_libraries(${TEST} ${Boost_FILESYSTEM_LIBRARY})
 
 	if (${TEST} STREQUAL "qasm_parsing_inclusion_cli_test")
+		add_dependencies(${TEST} autoq)
 		target_compile_definitions(${TEST} PRIVATE
-			AUTOQ_CLI_PATH="${CMAKE_BINARY_DIR}/cli/autoq")
+			AUTOQ_CLI_PATH="$<TARGET_FILE:autoq>")
 	endif()
 
 	add_test(${TEST} ${CMAKE_CURRENT_BINARY_DIR}/${TEST})
