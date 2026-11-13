@@ -84,6 +84,28 @@ BOOST_AUTO_TEST_CASE(lexer_rejects_unknown_characters)
     BOOST_CHECK_NO_THROW(Parser::ReadAutomaton(folder + "sqrt2.hsl"));
 }
 
+// "Root" and "States" in the header are not state names. A state that is
+// actually called States or Root must not become an extra root, and a root
+// name that no transition mentions is an error (#31).
+BOOST_AUTO_TEST_CASE(lsta_root_header_is_not_a_state_name)
+{
+    std::string folder = test_dir_from_file(__FILE__, "testcase/LstaRoot/");
+    using Parser = AUTOQ::Parsing::TimbukParser<Concrete>;
+    auto named_states = Parser::ReadAutomaton(folder + "pre_states.lsta");
+    auto named_root = Parser::ReadAutomaton(folder + "pre_root.lsta");
+    auto control = Parser::ReadAutomaton(folder + "pre_s.lsta");
+    BOOST_REQUIRE_EQUAL(named_states.finalStates.size(), 1u);
+    BOOST_REQUIRE_EQUAL(named_root.finalStates.size(), 1u);
+    BOOST_REQUIRE(named_states.finalStates == control.finalStates);
+    BOOST_REQUIRE(named_root.finalStates == control.finalStates);
+    BOOST_REQUIRE(named_states <<= control);
+    BOOST_REQUIRE(control <<= named_states);
+    BOOST_REQUIRE(named_root <<= control);
+    BOOST_REQUIRE(control <<= named_root);
+    BOOST_CHECK_THROW(Parser::ReadAutomaton(folder + "pre_typo.lsta"), AutoQError);
+    BOOST_CHECK_NO_THROW(Parser::ReadAutomaton(test_dir_from_file(__FILE__, "testcase/EmptyAutomaton/zero.lsta")));
+}
+
 BOOST_AUTO_TEST_CASE(inclusion_checker_equal_automata)
 {
     auto aut = AUTOQ::ConcreteAutomata::basis(3);
