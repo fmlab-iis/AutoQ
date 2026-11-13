@@ -17,6 +17,14 @@ bool inclusion_index_compare(const IndexAutomata &autA, const IndexAutomata &aut
     std::vector<std::map<IndexAutomata::Symbol, std::map<IndexAutomata::Tag, IndexAutomata::StateVector>>> transB;
     build_inclusion_trans(autA, autB, transA, transB);
 
+    // With no root states B accepts nothing, so A ⊆ B iff A is empty (#40).
+    if (autB.finalStates.empty()) {
+        bool holds = autA.empty();
+        auto stop_include = std::chrono::steady_clock::now();
+        autA.stats_->include_status = AUTOQ::Util::Convert::ToString(stop_include - start_include) + (holds ? "" : " X");
+        autA.stats_->total_include_time += stop_include - start_include;
+        return holds;
+    }
     // Main Routine: Graph Traversal
     typedef std::map<IndexAutomata::State, IndexAutomata::StateSet> Cell;
     typedef std::set<Cell> Vertex;

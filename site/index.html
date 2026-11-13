@@ -707,7 +707,7 @@ ol.notes-list li::marker { font-family: var(--serif); font-style: italic; color:
   .dirac td { border: 0; padding: 0; }
   .dirac td:first-child { grid-column: 1 / -1; margin-bottom: .2rem; white-space: normal; }
   .dirac td:last-child { text-align: right; }
-  .dirac td:last-child:not(:empty)::before { content: "ASCII"; font: 600 .6875rem/1 var(--sans); letter-spacing: .05em; color: var(--ink-3); margin-right: .45em; }
+  .dirac td:last-child:not(:empty)::before { content: "How to type"; font: 600 .6875rem/1 var(--sans); letter-spacing: .05em; color: var(--ink-3); margin-right: .45em; }
 }
 /* touch targets of at least 44px */
 @media (max-width: 640px), (pointer: coarse) {
@@ -1167,7 +1167,7 @@ aL := -1 / (sqrt2 ^ 7)
 {x |0&gt; + y |1&gt;}</code></pre>
           </figure>
           <figure class="code" data-copy>
-            <figcaption class="cap"><code>H2Sym/post.hsl</code></figcaption>
+            <figcaption class="cap"><code>benchmarks/all/H2Sym/post.hsl</code></figcaption>
 <pre tabindex="0"><code><span class="kw">Extended Dirac</span>
 {p1 |0&gt; + p2 |1&gt;}
 <span class="kw">Constraints</span>
@@ -1183,6 +1183,7 @@ imag(p2) = imag(y)</code></pre>
             <figcaption class="cap">Gates of <code>H2Sym/circuit.qasm</code>, and the run</figcaption>
 <pre><code>h qubits[0];
 h qubits[0];
+
 <span class="pr">$ </span>autoq ver pre.hsl circuit.qasm post.hsl
 <span class="out">The quantum program has [1] qubits and [2] gates. The verification process <span class="ok">[OK]</span> in [0.2s] with [85MB] memory usage.</span></code></pre>
           </figure>
@@ -1190,6 +1191,7 @@ h qubits[0];
             <figcaption class="cap">Gates of <code>H2BugSym/circuit.qasm</code>, and the run</figcaption>
 <pre><code>h qubits[0];
 y qubits[0];
+
 <span class="pr">$ </span>autoq ver pre.hsl circuit.qasm post.hsl
 <span class="out">The quantum program has [1] qubits and [2] gates. The verification process <span class="fail">[failed]</span> in [0.2s] with [86MB] memory usage.</span></code></pre>
           </figure>
@@ -1395,15 +1397,15 @@ cn := -1/sqrt2
         <div class="tbl-wrap">
           <table class="dirac">
             <caption class="sr-only">Extended Dirac notation</caption>
-            <thead><tr><th scope="col">Notation</th><th scope="col">Meaning</th><th scope="col">ASCII</th></tr></thead>
+            <thead><tr><th scope="col">Notation</th><th scope="col">Meaning</th><th scope="col">How to type</th></tr></thead>
             <tbody>
-              <tr><td><i>S</i> ∪ <i>T</i></td><td>union of two sets of states</td><td></td></tr>
+              <tr><td><i>S</i> ∪ <i>T</i></td><td>union of two sets of states</td><td><code>S ∪ T</code></td></tr>
               <tr><td><i>S</i> ⊗ <i>T</i></td><td>tensor product of two sets</td><td><code>S * T</code></td></tr>
-              <tr><td><i>S</i> ^ <i>n</i></td><td>tensor power</td><td></td></tr>
-              <tr><td>|<i>i</i>⟩, |1<i>i</i>′⟩</td><td>binary-string variable (lowercase), and its complement</td><td><code>|1i'&gt;</code></td></tr>
-              <tr><td>∑ |<i>i</i>|=4, <i>i</i>≠0101 |<i>i</i>⟩</td><td>sum over strings that meet the constraints</td><td><code>Σ</code>, <code>!=</code></td></tr>
-              <tr><td>{ … : |<i>s</i>|=4, <i>s</i>≠0101 }</td><td>set-builder notation with constraints</td><td><code>!=</code></td></tr>
-              <tr><td>= ≠ &lt; ≤ &gt; ≥ ¬ ∧ ∨</td><td>operators in the <code>Constraints</code> section, one conjunct per line</td><td><code>!= &lt;= &gt;= ! &amp;&amp; ||</code></td></tr>
+              <tr><td><i>S</i> ^ <i>n</i></td><td>tensor power</td><td><code>S ^ n</code></td></tr>
+              <tr><td>|<i>i</i>⟩, |1<i>i</i>′⟩</td><td>binary-string variable (lowercase), and its complement</td><td><code>|i&gt;</code>, <code>|1i'&gt;</code></td></tr>
+              <tr><td>∑ |<i>i</i>|=4, <i>i</i>≠0101 |<i>i</i>⟩</td><td>sum over strings that meet the constraints</td><td><code>Σ |i|=4, i!=0101 |i&gt;</code></td></tr>
+              <tr><td>{ … : |<i>s</i>|=4, <i>s</i>≠0101 }</td><td>set-builder notation with constraints</td><td><code>{ ... : |s|=4, s!=0101 }</code></td></tr>
+              <tr><td>= ≠ &lt; ≤ &gt; ≥ ¬ ∧ ∨</td><td>operators in the <code>Constraints</code> section, one conjunct per line</td><td><code>= != &lt; &lt;= &gt; &gt;= ! &amp;&amp; ||</code></td></tr>
             </tbody>
           </table>
         </div>
