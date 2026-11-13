@@ -1,0 +1,5 @@
+Constants
+c0 := 1/2 // half
+c1 := 1/2
+Extended Dirac
+{c0|0> + c1|1>}

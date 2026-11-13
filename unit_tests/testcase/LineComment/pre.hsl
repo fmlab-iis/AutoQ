@@ -1,0 +1,5 @@
+Constants
+c0 := 1 // amplitude of |0>
+c1 := 0
+Extended Dirac
+{c0|0> + c1|1>}

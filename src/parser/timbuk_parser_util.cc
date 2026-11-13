@@ -19,12 +19,33 @@ namespace Parsing {
 void strip_line_comments(std::string& s) {
     std::string::size_type pos = 0;
     while ((pos = s.find("//", pos)) != std::string::npos) {
-        std::string::size_type end = s.find('\n', pos);
+        std::string::size_type line_start = 0;
+        if (pos > 0) {
+            const std::string::size_type nl = s.rfind('\n', pos - 1);
+            line_start = (nl == std::string::npos) ? 0 : nl + 1;
+        }
+        bool only_comment = true;
+        for (std::string::size_type i = line_start; i < pos; ++i) {
+            const char c = s[i];
+            if (c != ' ' && c != '\t' && c != '\r') {
+                only_comment = false;
+                break;
+            }
+        }
+        const std::string::size_type end = s.find('\n', pos);
         if (end == std::string::npos) {
-            s.erase(pos);
+            s.erase(only_comment ? line_start : pos);
             break;
         }
-        s.erase(pos, end - pos + 1);
+        if (only_comment) {
+            // A comment-only line is removed entirely. Leaving the newline
+            // would make a blank line, which the Constraints parser rejects.
+            s.erase(line_start, end - line_start + 1);
+            pos = line_start;
+        } else {
+            // Keep the newline. Erasing it joins the next line onto this one (#28).
+            s.erase(pos, end - pos);
+        }
     }
 }
 
