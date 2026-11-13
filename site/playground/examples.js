@@ -61,6 +61,26 @@ export const EXAMPLES = [
     ]
   },
   {
+    "id": "grover-iteration",
+    "title": "One Grover iteration: the marked state gains amplitude",
+    "source": "demo/GroverIteration",
+    "mode": "ver",
+    "files": [
+      {
+        "name": "pre.hsl",
+        "content": "Extended Dirac\n{b |00001> + a ∑ |i|=3, i≠000 |i01>}\nConstraints\n7 * real(a) > real(b)\nreal(a) > 0\nreal(b) > 0\nimag(a) = 0\nimag(b) = 0\n"
+      },
+      {
+        "name": "circuit.qasm",
+        "content": "OPENQASM 2.0;\ninclude \"qelib1.inc\";\nqreg qubits[5];\n\nh qubits[4];\nx qubits[0];\nx qubits[1];\nx qubits[2];\nccx qubits[0], qubits[1], qubits[3];\nccx qubits[3], qubits[2], qubits[4];\nccx qubits[0], qubits[1], qubits[3];\nx qubits[0];\nx qubits[1];\nx qubits[2];\nh qubits[0];\nh qubits[1];\nh qubits[2];\nx qubits[0];\nx qubits[1];\nx qubits[2];\nccx qubits[0], qubits[1], qubits[3];\ncz qubits[3], qubits[2];\nccx qubits[0], qubits[1], qubits[3];\nx qubits[0];\nx qubits[1];\nx qubits[2];\nh qubits[0];\nh qubits[1];\nh qubits[2];\nh qubits[4];\n"
+      },
+      {
+        "name": "post.hsl",
+        "content": "Extended Dirac\n{pH |00001> + pL ∑ |i|=3, i≠000 |i01>}\nConstraints\nreal(pL) * real(pL) < real(a) * real(a)\nimag(pL) = 0\nreal(pH) * real(pH) > real(b) * real(b)\nimag(pH) = 0\n"
+      }
+    ]
+  },
+  {
     "id": "grover",
     "title": "Grover search, 5 qubits",
     "source": "benchmarks/all/Grover/03",
