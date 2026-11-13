@@ -73,6 +73,17 @@ BOOST_AUTO_TEST_CASE(misaligned_kets_are_rejected)
     BOOST_CHECK_NO_THROW(Parser::ReadTwoAutomata(folder + "pre.hsl", folder + "post.hsl", folder + "circuit.qasm"));
 }
 
+// A character the HSL lexer does not recognise must be a parse error.
+// ANTLR's default lexer listener drops it and continues, so 1/√2 was read as 1/2 (#25).
+BOOST_AUTO_TEST_CASE(lexer_rejects_unknown_characters)
+{
+    std::string folder = test_dir_from_file(__FILE__, "testcase/LexerError/");
+    using Parser = AUTOQ::Parsing::TimbukParser<Concrete>;
+    BOOST_CHECK_THROW(Parser::ReadAutomaton(folder + "sqrt_char.hsl"), AutoQError);
+    BOOST_CHECK_THROW(Parser::ReadAutomaton(folder + "const_sqrt_char.hsl"), AutoQError);
+    BOOST_CHECK_NO_THROW(Parser::ReadAutomaton(folder + "sqrt2.hsl"));
+}
+
 BOOST_AUTO_TEST_CASE(inclusion_checker_equal_automata)
 {
     auto aut = AUTOQ::ConcreteAutomata::basis(3);
