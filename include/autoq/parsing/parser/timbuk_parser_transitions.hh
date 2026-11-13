@@ -33,7 +33,10 @@ AUTOQ::Automata<Symbol> parse_automaton(const std::string& str, const std::map<s
                 AUTOQ::String::read_word(str); // after this command, "str" is expected to be "Transitions"
                 colored = true;
             }
-            if (std::regex_search(str, kRootStates)) {  // processing root states
+            std::smatch root_header;
+            if (std::regex_search(str, root_header, kRootStates)) {  // processing root states
+                // The header words are not state names. "Root States q" names only q (#31).
+                str = AUTOQ::String::trim(root_header.suffix().str());
                 while (!str.empty()) {
                     std::string state = AUTOQ::String::read_word(str);
                     auto state_num = AUTOQ::String::parse_colonned_token(state);
@@ -306,8 +309,9 @@ AUTOQ::Automata<Symbol> parse_automaton(const std::string& str, const std::map<s
 
     for (const auto &s : result_finalStates) {
         auto it = states.find(s);
-        if (it != states.end())
-            result.finalStates.push_back(it->second);
+        if (it == states.end())
+            THROW_AUTOQ_ERROR("Root state \"" + s + "\" does not occur in any transition.");
+        result.finalStates.push_back(it->second);
     }
     result.stateNum++; // because the state number starts from 0
 	return result;

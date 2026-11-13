@@ -699,8 +699,9 @@ BOOST_AUTO_TEST_CASE(qubit_reordering)
 }
 
 
-// An automaton whose root state is the target of no transition accepts
-// nothing. Inclusion into it must be false, not crash (#40).
+// An automaton with no root states accepts nothing. Inclusion into it must
+// be false, not crash (#40). empty.lsta lists no root names. A root name
+// that no transition mentions is a parse error instead (#31).
 BOOST_AUTO_TEST_CASE(inclusion_into_empty_automaton){
     std::string folder = test_dir_from_file(__FILE__, "testcase/EmptyAutomaton/");
     auto zero = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Concrete>::ReadAutomaton(folder + "zero.lsta");
