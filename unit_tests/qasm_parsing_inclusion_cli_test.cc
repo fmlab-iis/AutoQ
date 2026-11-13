@@ -59,6 +59,20 @@ BOOST_AUTO_TEST_CASE(qasm_parsing_minimal_circuit)
         + AUTOQ::Serialization::TimbukSerializer::Serialize(spec));
 }
 
+// Kets for the same qubits must have the same length; otherwise parsing
+// reports an AutoQError instead of aborting with std::out_of_range (#34).
+BOOST_AUTO_TEST_CASE(misaligned_kets_are_rejected)
+{
+    std::string folder = test_dir_from_file(__FILE__, "testcase/KetAlignment/");
+    using Parser = AUTOQ::Parsing::TimbukParser<Concrete>;
+    for (const std::string f : {"shorter_ket.hsl", "longer_ket.hsl", "ket_ends_inside_constant.hsl"})
+        BOOST_CHECK_THROW(Parser::ReadAutomaton(folder + f), AutoQError);
+    BOOST_CHECK_THROW(Parser::ReadTwoAutomata(folder + "pre.hsl", folder + "post_shorter.hsl", folder + "circuit.qasm"), AutoQError);
+
+    BOOST_CHECK_NO_THROW(Parser::ReadAutomaton(folder + "aligned.hsl"));
+    BOOST_CHECK_NO_THROW(Parser::ReadTwoAutomata(folder + "pre.hsl", folder + "post.hsl", folder + "circuit.qasm"));
+}
+
 BOOST_AUTO_TEST_CASE(inclusion_checker_equal_automata)
 {
     auto aut = AUTOQ::ConcreteAutomata::basis(3);

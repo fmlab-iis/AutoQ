@@ -143,6 +143,33 @@
         }
     }
 
+    // Splits a ket into its variable units (qubit intervals) and sets len to
+    // its total number of qubits.
+    strsplit_t ket_units(const std::string &vstr, const std::map<char, int> &localVar2len, int &len) {
+        strsplit_t intervals;
+        len = 0;
+        for (const auto &c : vstr) {
+            if ((c == '0') || (c == '1')) {
+                len++;
+                continue;
+            }
+            auto it = localVar2len.find(static_cast<char>(std::tolower(c)));
+            if (it != localVar2len.end()) {
+                intervals.push_back(unitsplit_t(len, len+it->second));
+                len += it->second;
+            } else {
+                it = globalVar2len.find(static_cast<char>(std::tolower(c)));
+                if (it != globalVar2len.end()) {
+                    intervals.push_back(unitsplit_t(len, len+it->second));
+                    len += it->second;
+                } else {
+                    THROW_AUTOQ_ERROR("Undefined variable!");
+                }
+            }
+        }
+        return intervals;
+    }
+
     std::any visitTerm(ExtendedDiracParser::TermContext *ctx) override {
         if (mode == EXPAND_POWER_AND_DIRACS_AND_REWRITE_COMPLEMENT) {
             auto vstr = ctx->VStr->getText();
@@ -161,32 +188,12 @@
                 return std::any_cast<std::string>((ctx->complex() == nullptr ? (ctx->SUB() != nullptr ? "-1" : "") : ctx->complex()->getText()) + "∑" + ctx->varcons()->getText() + "|" + vstr2 + "⟩");
             }
         } else if (mode == COLLECT_KETS_AND_COMPUTE_UNIT_DECOMPOSITION_INDICES) {
-            strsplit_t intervals;
             std::map<char, int> localVar2len;
             if (ctx->varcons() != nullptr) {
                 localVar2len = std::any_cast<std::map<char, int>>(visit(ctx->varcons()));
             }
             int len = 0;
-            for (const auto &c : ctx->VStr->getText()) {
-                if ((c == '0') || (c == '1')) {
-                    len++;
-                    continue;
-                }
-                auto it = localVar2len.find(static_cast<char>(std::tolower(c)));
-                if (it != localVar2len.end()) {
-                    intervals.push_back(unitsplit_t(len, len+it->second));
-                    len += it->second;
-                } else {
-                    it = globalVar2len.find(static_cast<char>(std::tolower(c)));
-                    if (it != globalVar2len.end()) {
-                        intervals.push_back(unitsplit_t(len, len+it->second));
-                        len += it->second;
-                    } else {
-                        THROW_AUTOQ_ERROR("Undefined variable!");
-                    }
-                }
-            }
-            return intervals;
+            return ket_units(ctx->VStr->getText(), localVar2len, len);
         } else if (mode == REWRITE_BY_UNIT_INDICES_AND_MAKE_ALL_VARS_DISTINCT) {
             /***************************************************************/
             // Check if there is some local variable using global characters.
@@ -214,6 +221,18 @@
             }
             /***************************************************************/
             std::string vstr = ctx->VStr->getText();
+            /* All kets for the same qubits (in one set, across "∪", and across
+               the files of one verification task) must have the same length. */
+            int ketLength = 0;
+            ket_units(vstr, localVar2len, ketLength);
+            if (currentSegmentKetLength == -1) {
+                currentSegmentKetLength = ketLength;
+                currentSegmentFirstKet = vstr;
+            } else if (ketLength != currentSegmentKetLength) {
+                THROW_AUTOQ_ERROR("Not aligned: the ket |" + vstr + "⟩ has " + std::to_string(ketLength)
+                    + " qubit(s), but the ket |" + currentSegmentFirstKet + "⟩ for the same qubits has "
+                    + std::to_string(currentSegmentKetLength) + ".");
+            }
             std::string vstr2; // the rewritten output
             remember_the_lengths_of_each_unit_position.clear();
             /*************************************************/
@@ -230,9 +249,14 @@
             /***********************************************/
             std::map<std::string, char> localVal2const;
             for (const auto &[l, r] : completeCurrentSplit) {
+                if (vstr.empty()) {
+                    if (r == -1) continue; // no remaining part
+                    THROW_AUTOQ_ERROR("Not aligned!");
+                }
                 if (r == -1 || // the last remaining part not classified as a unit must be a constant
                     vstr.at(0)=='0' || vstr.at(0)=='1') {
-                    if (vstr.empty()) continue; // reject if there is no remaining part
+                    if (r != -1 && vstr.size() < static_cast<size_t>(r - l))
+                        THROW_AUTOQ_ERROR("Not aligned!");
                     std::string this_constant_string = ((r == -1) ? vstr : vstr.substr(0, r-l));
                     if (!std::all_of(this_constant_string.begin(), this_constant_string.end(), [](char ch) { return ch == '0' || ch == '1'; })) {
                         THROW_AUTOQ_ERROR("Not aligned!");
