@@ -176,7 +176,7 @@ bool AUTOQ::Automata<Symbol>::execute(const char *filename, std::vector<int> qub
             if (it == kRegexEnd)
                 THROW_AUTOQ_ERROR("Expected measure assignment (var = measure ...[n]) in \"" + line + "\".");
             std::string result = it->str(1);
-            int pos = 1 + atoi(it->str(2).c_str());
+            int pos = 1 + qubit_permutation[atoi(it->str(2).c_str())]; // the automaton level of the qubit, as for gates
             var_is_measure_what_qubit[result] = pos;
             // TODO: Actually, we should split the automaton here into two separate copies which
             // are produced from the measurement outcome of 0 and 1, respectively. However, we do
