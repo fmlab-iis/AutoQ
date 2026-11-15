@@ -44,7 +44,7 @@ BOOST_AUTO_TEST_CASE(complex_and_algebraic_coefficients) {
 BOOST_AUTO_TEST_CASE(span_is_not_language_inclusion_and_is_directional) {
     auto a = span_test::from_vectors(1, {{1,1}});
     auto b = span_test::from_vectors(1, {{1,0},{0,1},{2,0}});
-    Options o; o.qubits=1;
+    Options o; o.qubits=1; o.reduce_b_basis=true;
     auto r = check_inclusion(a,b,o);
     BOOST_CHECK(r.outcome == Outcome::Included);
     BOOST_CHECK_EQUAL(r.stats.basis,2U);
@@ -143,8 +143,7 @@ BOOST_AUTO_TEST_CASE(narrow_depth_80_no_dense_vectors) {
     BOOST_CHECK(r.stats.tuples<1000U);
 }
 // Compare 80 reproducible cases at depths 0,1,2 against an independent exact
-// dense-rank oracle: rank([B A]) == rank(B). Integer coordinates range from -2
-// to 2; cases include empty B, dependent generators, and identical A/B inputs.
+// dense-rank oracle in both modes, including empty and dependent generators.
 BOOST_AUTO_TEST_CASE(dense_oracle_fixed_seed) {
     std::mt19937 rng(77123);
     for(int trial=0;trial<80;++trial) {
@@ -163,10 +162,12 @@ BOOST_AUTO_TEST_CASE(dense_oracle_fixed_seed) {
         }
         auto both=bv; both.insert(both.end(),av.begin(),av.end());
         bool oracle=span_test::rank(both)==span_test::rank(bv);
-        Options o; o.qubits=n;
-        auto r=check_inclusion(span_test::from_vectors(n,av),span_test::from_vectors(n,bv),o);
-        BOOST_REQUIRE(r.outcome==Outcome::Included || r.outcome==Outcome::NotIncluded);
-        BOOST_CHECK_EQUAL(r.outcome==Outcome::Included,oracle);
+        for(bool reduce : {false,true}) {
+            Options o; o.qubits=n; o.reduce_b_basis=reduce;
+            auto r=check_inclusion(span_test::from_vectors(n,av),span_test::from_vectors(n,bv),o);
+            BOOST_REQUIRE(r.outcome==Outcome::Included || r.outcome==Outcome::NotIncluded);
+            BOOST_CHECK_EQUAL(r.outcome==Outcome::Included,oracle);
+        }
     }
 }
 
@@ -252,4 +253,32 @@ BOOST_AUTO_TEST_CASE(negative_depth_and_depth_guard_have_distinct_outcomes) {
     BOOST_CHECK(r.outcome==Outcome::ResourceLimit);
     BOOST_CHECK_EQUAL(r.stats.search_steps,0U);
     BOOST_CHECK(!r.witness.has_value());
+}
+// Default mode retains dependent, repeated and zero generators. With empty A,
+// zero equations/tuples demonstrate that B membership checks were skipped.
+BOOST_AUTO_TEST_CASE(b_reduction_is_opt_in) {
+    Options o; o.qubits=1;
+    BOOST_CHECK(!o.reduce_b_basis);
+    const auto b=span_test::from_vectors(1,{{1,0},{2,0},{1,0},{0,0}});
+    const auto empty=span_test::from_vectors(1,{});
+    auto r=check_inclusion(empty,b,o);
+    BOOST_CHECK(r.outcome==Outcome::Included);
+    BOOST_CHECK_EQUAL(r.stats.basis,4U);
+    BOOST_CHECK_EQUAL(r.stats.tuples,0U);
+    BOOST_CHECK_EQUAL(r.stats.equations,0U);
+    const auto inside=span_test::from_vectors(1,{{3,0}});
+    const auto outside=span_test::from_vectors(1,{{0,1}});
+    for(bool reduce : {false,true}) {
+        o.reduce_b_basis=reduce;
+        r=check_inclusion(inside,b,o);
+        BOOST_CHECK(r.outcome==Outcome::Included);
+        BOOST_CHECK_EQUAL(r.stats.basis,reduce ? 1U : 4U);
+        r=check_inclusion(outside,b,o);
+        BOOST_CHECK(r.outcome==Outcome::NotIncluded);
+        BOOST_CHECK(bool(r.witness));
+        o.limits.basis=1;
+        r=check_inclusion(inside,b,o);
+        BOOST_CHECK(r.outcome==(reduce ? Outcome::Included : Outcome::ResourceLimit));
+        o.limits=Limits{};
+    }
 }

@@ -84,19 +84,22 @@ void row(const std::string& method,int n,Clock::time_point t0,Clock::time_point 
 }
 int main(int argc,char** argv) {
     int n=0; std::string method="both"; fs::path root=".";
+    bool reduce_b_basis=false;
     try {
         for(int i=1;i<argc;++i) {
             const std::string key=argv[i];
             if(key=="--help" || key=="-h") {
-                std::cout << "Usage: grover_sym_benchmark --qubits N [--method set|span|both|original] [--repo-root PATH]\n"
+                std::cout << "Usage: grover_sym_benchmark --qubits N [--method set|span|both|original] [--repo-root PATH] [--reduce-b-basis]\n"
                              "N is SEARCH qubits (3..65536); total circuit qubits=2*N-1.\n"
                              "Uses existing benchmarks/all/GroverSym/NN files; does not generate circuits.\n"
                              "set/span check the complex plane without coefficient constraints.\n"
                              "original checks the stronger original symbolic postcondition.\n"
                              "Default: both, one run per method, repo root=current directory.\n"
+                             "--reduce-b-basis: reduce B generators for span only; default: no reduction.\n"
                              "No --repeat option; no built-in time/memory limit.\n";
                 return 0;
             }
+            if(key=="--reduce-b-basis") { reduce_b_basis=true; continue; }
             if(i+1>=argc) throw std::invalid_argument("missing option value");
             const std::string value=argv[++i];
             if(key=="--qubits") n=number(value);
@@ -126,7 +129,8 @@ int main(int argc,char** argv) {
             f << "Extended Dirac\n" << expression << "\n";
             f.close(); require(bool(f),"failed writing temporary post");
         }
-        std::cout << "GROVER_COMPARE_CONFIG,folder=" << folder.string() << ",method=" << method << std::endl;
+        std::cout << "GROVER_COMPARE_CONFIG,folder=" << folder.string() << ",method=" << method
+                  << ",reduce_b_basis=" << (reduce_b_basis ? "yes" : "no") << std::endl;
         auto set_run=[&](bool original) {
             auto t0=Clock::now();
             auto parsed=AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Symbolic>::ReadTwoAutomata(
@@ -143,12 +147,13 @@ int main(int argc,char** argv) {
                 (folder/"pre.hsl").string(),(folder/"pre.hsl").string());
             auto a=parsed.first.at(0); auto b=generators(answer,suffix);
             AUTOQ::Span::Options options; options.qubits=2*n-1;
+            options.reduce_b_basis=reduce_b_basis;
             options.limits.depth=0; options.limits.search_steps=0;
             auto t1=Clock::now(); a.execute((folder/"circuit.qasm").string(),parsed.second);
             auto t2=Clock::now(); auto r=AUTOQ::Span::check_inclusion(a,b,options); auto t3=Clock::now();
             row("plane_span",n,t0,t1,t2,t3,AUTOQ::Span::to_string(r.outcome));
             std::cout << "GROVER_COMPARE_STATS,a_runs=" << r.stats.a_runs << ",b_runs=" << r.stats.b_runs
-                      << ",basis=" << r.stats.basis << ",tuples=" << r.stats.tuples
+                      << ",generators=" << r.stats.basis << ",tuples=" << r.stats.tuples
                       << ",equations=" << r.stats.equations << ",search_steps=" << r.stats.search_steps << std::endl;
             if(r.outcome!=AUTOQ::Span::Outcome::Included) std::cerr << r.message << '\n';
             return r.outcome==AUTOQ::Span::Outcome::Included && r.stats.basis==2;

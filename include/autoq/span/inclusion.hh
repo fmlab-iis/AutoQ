@@ -28,8 +28,13 @@ struct Limits {
     std::size_t search_steps = 1000000;
     std::size_t depth = 512;
 };
-struct Options { int qubits = -1; Limits limits{}; };
+struct Options {
+    int qubits = -1;
+    Limits limits{};
+    bool reduce_b_basis = false;
+};
 struct Stats {
+    // Legacy name: basis counts retained generators, not rank unless reduced.
     std::size_t a_runs = 0, b_runs = 0, basis = 0;
     std::size_t tuples = 0, equations = 0, search_steps = 0;
 };
@@ -275,7 +280,8 @@ inline Result check_inclusion(const Aut& a, const Aut& b, Options options) {
         result.outcome = Outcome::Included;
         detail::enumerate(b, bi, options.qubits, options.limits, result.stats,
             result.stats.b_runs, [&](const CompressedRun& run) {
-                if (!detail::member(run, basis, options.limits, result.stats)) {
+                if (!options.reduce_b_basis ||
+                    !detail::member(run, basis, options.limits, result.stats)) {
                     if (options.limits.basis && basis.size() >= options.limits.basis)
                         throw detail::BudgetExceeded{};
                     basis.push_back(run);

@@ -16,8 +16,9 @@ struct SpanCommand {
         command->add_option("A", a_path, "Source automaton")->required();
         command->add_option("B", b_path, "Generator automaton")->required();
         command->add_option("--qubits", options.qubits, "Fixed depth n")->required();
+        command->add_flag("--reduce-b-basis", options.reduce_b_basis, "Reduce B to independent generators (default: retain all B runs)");
         command->add_option("--max-runs", options.limits.runs, "Run limit applied separately to A and B; 0 disables")->check(CLI::NonNegativeNumber);
-        command->add_option("--max-basis-runs", options.limits.basis, "Retained B basis limit; 0 disables")->check(CLI::NonNegativeNumber);
+        command->add_option("--max-basis-runs", options.limits.basis, "Retained B generator limit in either mode; 0 disables")->check(CLI::NonNegativeNumber);
         command->add_option("--max-tuple-states", options.limits.tuples, "Cumulative tuple visits/frontier limit; 0 disables")->check(CLI::NonNegativeNumber);
         command->add_option("--max-equations", options.limits.equations, "Cumulative equation limit; 0 disables")->check(CLI::NonNegativeNumber);
         command->add_option("--max-search-steps", options.limits.search_steps, "Enumeration step limit, default 1000000; 0 disables")->check(CLI::NonNegativeNumber);
@@ -42,7 +43,8 @@ struct SpanCommand {
         }
         std::cout << "Span inclusion outcome: " << to_string(result.outcome)
                   << " (B runs: " << result.stats.b_runs
-                  << ", retained basis: " << result.stats.basis
+                  << ", retained generators: " << result.stats.basis
+                  << ", reduce B basis: " << (options.reduce_b_basis ? "yes" : "no")
                   << ", A runs: " << result.stats.a_runs
                   << ", tuple visits: " << result.stats.tuples
                   << ", equations: " << result.stats.equations
