@@ -68,5 +68,34 @@ void unify_complex_k(std::map<std::string, AUTOQ::Complex::Complex>& constants) 
 #endif
 }
 
+void align_leaf_to_constants(AUTOQ::Complex::Complex& value,
+                             const std::map<std::string, AUTOQ::Complex::Complex>& constants) {
+#ifdef COMPLEX_FiveTuple
+    boost::multiprecision::cpp_int max_k = INT_MIN;
+    for (const auto& kv : constants) {
+        if (kv.second.at(0) != 0 || kv.second.at(1) != 0 || kv.second.at(2) != 0 || kv.second.at(3) != 0)
+            if (max_k < kv.second.at(4)) max_k = kv.second.at(4);
+    }
+    if (max_k == INT_MIN)
+        return;
+    if (value.at(0) == 0 && value.at(1) == 0 && value.at(2) == 0 && value.at(3) == 0)
+        value.at(4) = max_k;
+    else
+        value.increase_to_k(max_k);
+#endif
+#ifdef COMPLEX_nTuple
+    boost::multiprecision::cpp_int max_k = INT_MIN;
+    for (const auto& kv : constants) {
+        if (!kv.second.empty() && max_k < kv.second.k()) max_k = kv.second.k();
+    }
+    if (max_k == INT_MIN)
+        return;
+    if (value.empty())
+        value.k() = max_k;
+    else
+        value.adjust_k(max_k - value.k());
+#endif
+}
+
 }  // namespace Parsing
 }  // namespace AUTOQ
