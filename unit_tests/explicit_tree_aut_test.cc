@@ -782,3 +782,61 @@ BOOST_AUTO_TEST_CASE(inclusion_refuses_two_transitions_of_one_color)
     std::vector<std::map<AUTOQ::ConcreteAutomata::Symbol, std::map<AUTOQ::ConcreteAutomata::Tag, AUTOQ::ConcreteAutomata::StateVector>>> transB;
     BOOST_CHECK_THROW(AUTOQ::build_inclusion_trans(aut, aut, transA, transB), AutoQError);
 }
+
+// light_reduce_up merges a state into another only when both have the same
+// transitions. A shared transition used to merge a state into a strict superset,
+// and a state absent from the map was renamed to 0 (#51).
+BOOST_AUTO_TEST_CASE(light_reduce_up_preserves_the_language)
+{
+    using Aut = AUTOQ::ConcreteAutomata;
+    std::string dir = test_dir_from_file(__FILE__, "testcase/LightReduce/");
+    auto read = [&](const char* name) {
+        return AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Concrete>::ReadAutomaton(dir + name);
+    };
+    auto has_children = [](const Aut& aut, Aut::StateVector children) {
+        for (const auto& t : aut.transitions) {
+            for (const auto& out_ins : t.second) {
+                if (out_ins.second.count(children) != 0)
+                    return true;
+            }
+        }
+        return false;
+    };
+
+    auto subset = read("subset.lsta");
+    auto subset_reduced = subset;
+    BOOST_CHECK(!subset_reduced.light_reduce_up());
+    BOOST_CHECK(subset_reduced.transitions == subset.transitions);
+    subset_reduced.light_reduce_up_iter();
+    BOOST_CHECK(subset_reduced.transitions == subset.transitions);
+    subset_reduced.light_reduce_down_iter();
+    BOOST_CHECK(subset_reduced <= subset);
+    BOOST_CHECK(subset <= subset_reduced);
+    subset_reduced = subset;
+    subset_reduced.hasLoop = true;
+    subset_reduced.reduce();
+    BOOST_CHECK(subset_reduced <= subset);
+    BOOST_CHECK(subset <= subset_reduced);
+
+    auto equal = read("subset_equal.lsta");
+    auto equal_reduced = equal;
+    BOOST_CHECK(equal_reduced.light_reduce_up());
+    BOOST_CHECK(equal_reduced <= equal);
+    BOOST_CHECK(equal <= equal_reduced);
+    BOOST_CHECK(has_children(equal_reduced, {0, 2}));
+    BOOST_CHECK(has_children(equal_reduced, {0, 0}));
+    BOOST_CHECK(!has_children(equal_reduced, {1, 2}));
+
+    auto dead = read("dead.lsta");
+    auto dead_reduced = dead;
+    BOOST_CHECK(dead_reduced.light_reduce_up());
+    BOOST_CHECK(has_children(dead_reduced, {0, 2}));
+    BOOST_CHECK(!has_children(dead_reduced, {0, 0}));
+
+    auto control = read("dead_control.lsta");
+    auto control_reduced = control;
+    BOOST_CHECK(control_reduced.light_reduce_up());
+    BOOST_CHECK(has_children(control_reduced, {0, 2}));
+    BOOST_CHECK(control_reduced <= control);
+    BOOST_CHECK(control <= control_reduced);
+}
