@@ -877,3 +877,35 @@ BOOST_AUTO_TEST_CASE(light_reduce_up_preserves_the_language)
     BOOST_CHECK(control_reduced <= control);
     BOOST_CHECK(control <= control_reduced);
 }
+
+// imag() is the real coefficient y in x + i·y, same shape as real()'s x.
+// z = real(z) + i·imag(z).
+BOOST_AUTO_TEST_CASE(imag_returns_the_real_coefficient)
+{
+    using boost::multiprecision::cpp_int;
+    using Q = boost::rational<cpp_int>;
+    using Five = AUTOQ::Complex::FiveTuple;
+    const Five i = Five::Angle(Q(1, 4));
+    const std::vector<Five> samples = {
+        Five(0), Five(1), Five(-3), i, Five(1) + i, Five::Angle(Q(1, 8)), Five::sqrt2() * i
+    };
+    for (const Five& z : samples) {
+        BOOST_CHECK(z.imag().imag().isZero());
+        BOOST_CHECK(z.imag().valueEqual(z.imag().real()));
+        BOOST_CHECK(z.valueEqual(z.real() + i * z.imag()));
+    }
+
+    const auto saved_n = AUTOQ::Complex::nTuple::N;
+    AUTOQ::Complex::nTuple::N = 4;
+    using NTup = AUTOQ::Complex::nTuple;
+    const NTup ni = NTup::Angle(Q(1, 4));
+    const std::vector<NTup> nsamples = {
+        NTup(0), NTup(1), NTup(-3), ni, NTup(1) + ni, NTup::Angle(Q(1, 8))
+    };
+    for (const NTup& z : nsamples) {
+        BOOST_CHECK(z.imag().imag().isZero());
+        BOOST_CHECK(z.imag().valueEqual(z.imag().real()));
+        BOOST_CHECK(z.valueEqual(z.real() + ni * z.imag()));
+    }
+    AUTOQ::Complex::nTuple::N = saved_n;
+}

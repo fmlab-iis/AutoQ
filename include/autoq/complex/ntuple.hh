@@ -308,19 +308,12 @@ struct AUTOQ::Complex::nTuple : AUTOQ::Util::mapped_vector<boost::multiprecision
         return result;
     }
     nTuple imag() const {
-        nTuple result;
-        for (const auto &kv : *this) {
-            if (kv.first > 0) {
-                result[kv.first] += kv.second;
-                if (result[kv.first] == 0)
-                    result.erase(kv.first);
-                result[N-kv.first] += kv.second;
-                if (result[N-kv.first] == 0)
-                    result.erase(N-kv.first);
-            }
-        }
-        result.kk = this->kk + 2;
-        return result;
+        // Imaginary part y of x + i·y, as a real nTuple (parallel to real()).
+        // y = Re(-i·z). A quarter turn is an integer number of steps when N is even;
+        // N starts at 4 and only grows.
+        nTuple rotated = *this;
+        rotated.counterclockwise(boost::rational<boost::multiprecision::cpp_int>(-1, 4));
+        return rotated.real();
     }
     boost::multiprecision::cpp_int& k() { return kk; }
     const boost::multiprecision::cpp_int& k() const { return kk; } // const version
