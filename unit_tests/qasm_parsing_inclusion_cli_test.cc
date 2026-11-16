@@ -395,3 +395,39 @@ BOOST_AUTO_TEST_CASE(lsta_transition_requires_a_numeric_color)
     BOOST_CHECK_MESSAGE(ok_out.find("|0>") != std::string::npos, ok_out);
     BOOST_CHECK_MESSAGE(ok_out.find("|1>") != std::string::npos, ok_out);
 }
+
+// A Constraints or Constants line is parsed as one expression. Text after a
+// valid prefix must not be dropped: "a = 1, b = 0" is not "a = 1". Separate
+// lines, and "&&" on one line, are still one conjunction (#29).
+BOOST_AUTO_TEST_CASE(constraint_line_must_be_fully_consumed)
+{
+    std::string dir = test_dir_from_file(__FILE__, "testcase/ConstraintTrailing/");
+    auto f = [&](const std::string& name) { return "\"" + dir + name + "\""; };
+    auto ver = [&](const std::string& post) {
+        return run_cli("ver " + f("pre.hsl") + " " + f("circuit.qasm") + " " + f(post));
+    };
+
+    const std::vector<std::pair<std::string, std::string>> rejected = {
+        {"post_comma.hsl", "unexpected trailing input at ','"},
+        {"post_const.hsl", "unexpected trailing input at ')'"},
+        {"post_const_tail.hsl", "unexpected trailing input at ')'"},
+        {"post_amp.hsl", "token recognition error"},
+    };
+    for (const auto& [post, expected] : rejected) {
+        auto [code, output] = ver(post);
+        BOOST_CHECK_MESSAGE(code == 1, post + ": exit status " + std::to_string(code) + ", output: " + output);
+        BOOST_CHECK_MESSAGE(output.find(expected) != std::string::npos,
+            post + ": expected \"" + expected + "\" in output: " + output);
+        BOOST_CHECK_MESSAGE(output.find("[OK]") == std::string::npos, post + " reported [OK]: " + output);
+    }
+
+    for (const char* post : {"post_and.hsl", "post_lines.hsl"}) {
+        auto [code, output] = ver(post);
+        BOOST_CHECK_MESSAGE(code == 0, std::string(post) + ": exit status " + std::to_string(code) + ", output: " + output);
+        BOOST_CHECK_MESSAGE(output.find("[failed]") != std::string::npos, std::string(post) + ": " + output);
+    }
+
+    auto [ok_code, ok_out] = ver("post_const_ok.hsl");
+    BOOST_CHECK_MESSAGE(ok_code == 0, ok_out);
+    BOOST_CHECK_MESSAGE(ok_out.find("[OK]") != std::string::npos, ok_out);
+}

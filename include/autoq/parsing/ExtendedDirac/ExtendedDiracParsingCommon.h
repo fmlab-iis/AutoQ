@@ -48,6 +48,11 @@ inline std::any parse_extended_dirac_and_visit(const std::string& input, GetTree
     parser.removeErrorListeners();
     parser.addErrorListener(&errorListener);
     antlr4::tree::ParseTree* tree = get_tree(parser);
+    // predicate and complex stop at the longest valid prefix. A comma or an
+    // extra parenthesis used to be dropped, so "a = 1, b = 0" became "a = 1".
+    // expr already ends at EOF, so this check does not change it (#29).
+    if (tokens.LA(1) != antlr4::Token::EOF)
+        THROW_AUTOQ_ERROR("Parsing Error: unexpected trailing input at '" + tokens.LT(1)->getText() + "' in \"" + input + "\"");
     return visitor->visit(tree);
 }
 }
