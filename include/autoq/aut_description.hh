@@ -21,6 +21,8 @@
 #include "autoq/symbol/index.hh"
 #include "autoq/symbol/constrained.hh"
 #include "autoq/complex/constrained_complex.hh"
+#include <initializer_list>
+#include <iterator>
 #include <map>
 
 namespace AUTOQ
@@ -212,6 +214,20 @@ struct AUTOQ::Automata
     /**************************************/
     /* gate.cc: quantum gates abstraction */
 private:
+    // Gate targets are 1-based automaton levels. A missing or repeated operand
+    // used to pass an unchecked index into the transition maps (#24).
+    void require_qubits(std::initializer_list<int> qubits) const {
+        for (int q : qubits) {
+            if (q < 1 || q > qubitNum)
+                THROW_AUTOQ_ERROR("Qubit " + std::to_string(q) + " is outside [1, " + std::to_string(qubitNum) + "].");
+        }
+        for (auto a = qubits.begin(); a != qubits.end(); ++a) {
+            for (auto b = std::next(a); b != qubits.end(); ++b) {
+                if (*a == *b)
+                    THROW_AUTOQ_ERROR("Qubit " + std::to_string(*a) + " is used more than once.");
+            }
+        }
+    }
     void general_single_qubit_gate(int t, const std::function<Symbol(const Symbol&, const Symbol&)> &u1u2, const std::function<Symbol(const Symbol&, const Symbol&)> &u3u4);
     void general_controlled_gate(int c, int t, const std::function<Symbol(const Symbol&, const Symbol&)> &u1u2, const std::function<Symbol(const Symbol&, const Symbol&)> &u3u4, const std::function<Symbol(const Symbol&)> &multiply_by_c0 = ([](const Symbol &l) -> Symbol { return l; }));
     void general_controlled_gate(int c, int c2, int t, const std::function<Symbol(const Symbol&, const Symbol&)> &u1u2, const std::function<Symbol(const Symbol&, const Symbol&)> &u3u4, const std::function<Symbol(const Symbol&)> &multiply_by_c0 = ([](const Symbol &l) -> Symbol { return l; }));
