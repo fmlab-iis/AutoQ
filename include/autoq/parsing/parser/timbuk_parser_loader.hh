@@ -2,8 +2,8 @@
  *  AUTOQ Timbuk parser – loading automata from file paths.
  *
  *  Reads file contents, strips line comments, parses Constants (if present),
- *  then dispatches by extension (.aut / .lsta / .hsl) to parse_timbuk,
- *  parse_automaton, or parse_extended_dirac. Also supports reading two
+ *  then dispatches by extension (.lsta / .hsl) to parse_automaton or
+ *  parse_extended_dirac. Also supports reading two
  *  automata plus optional loop-invariant files (find_all_loop_invariants).
  *  Depends on timbuk_parser_util.hh, timbuk_parser_grammar.hh,
  *  timbuk_parser_transitions.hh, timbuk_parser_dirac.hh.
@@ -44,23 +44,23 @@ AUTOQ::Automata<Symbol> AUTOQ::Parsing::TimbukParser<Symbol>::ReadAutomaton(cons
 try {
     AUTOQ::Automata<Symbol> result;
     std::string automaton, constraints;
+    const bool is_lsta = boost::algorithm::ends_with(filepath, ".lsta");
+    const bool is_hsl = boost::algorithm::ends_with(filepath, ".hsl");
+    if (!is_lsta && !is_hsl)
+        THROW_AUTOQ_ERROR(AUTOQ::ErrorMessages::kFilenameExtensionUnsupported);
     std::string fileContents = AUTOQ::Util::ReadFile(filepath);
     AUTOQ::Parsing::strip_line_comments(fileContents);
     std::map<std::string, AUTOQ::Complex::Complex> constants;
-    if (!boost::algorithm::ends_with(filepath, ".aut") && fileContents.find("Constants") != std::string::npos) {
+    if (fileContents.find("Constants") != std::string::npos) {
         AUTOQ::Parsing::parse_constants_section(fileContents, constants);
         AUTOQ::Parsing::unify_complex_k(constants);
     }
     std::tie(automaton, constraints) = AUTOQ::Parsing::split_automaton_and_constraints(fileContents);
-    if (boost::algorithm::ends_with(filepath, ".lsta")) {
+    if (is_lsta) {
         std::map<std::string, std::string> dummy_predicates;
         result = parse_automaton<Symbol>(automaton, constants, dummy_predicates, throw_on_undefined, out_encountered_undefined);
-    } else if (boost::algorithm::ends_with(filepath, ".aut")) {
-        result = parse_timbuk<Symbol>(automaton);
-    } else if (boost::algorithm::ends_with(filepath, ".hsl")) {
-        result = parse_extended_dirac<Symbol>(automaton, constants, constraints, throw_on_undefined, out_encountered_undefined);
     } else {
-        THROW_AUTOQ_ERROR(AUTOQ::ErrorMessages::kFilenameExtensionUnsupported);
+        result = parse_extended_dirac<Symbol>(automaton, constants, constraints, throw_on_undefined, out_encountered_undefined);
     }
 
     if constexpr (std::is_same_v<Symbol, AUTOQ::Symbol::Symbolic>) {
@@ -76,6 +76,10 @@ try {
 template <typename Symbol>
 std::pair<std::vector<AUTOQ::Automata<Symbol>>, std::vector<int>> AUTOQ::Parsing::TimbukParser<Symbol>::ReadTwoAutomata(const std::string& filepath1, const std::string& filepath2, const std::string &circuitPath) {
 try {
+    const bool hsl = boost::algorithm::ends_with(filepath1, ".hsl") && boost::algorithm::ends_with(filepath2, ".hsl");
+    const bool lsta = boost::algorithm::ends_with(filepath1, ".lsta") && boost::algorithm::ends_with(filepath2, ".lsta");
+    if (!hsl && !lsta)
+        THROW_AUTOQ_ERROR(AUTOQ::ErrorMessages::kFilenameExtensionUnsupported);
     std::vector<std::string> filepathVec = {filepath1, filepath2};
     if (!circuitPath.empty()) {
         auto filepathVec2 = AUTOQ::Parsing::find_all_loop_invariants(circuitPath.c_str());
@@ -89,8 +93,7 @@ try {
     for (size_t i = 0; i < filepathVec.size(); i++) {
         fileContents[i] = AUTOQ::Util::ReadFile(filepathVec[i]);
         AUTOQ::Parsing::strip_line_comments(fileContents[i]);
-        if (!boost::algorithm::ends_with(filepathVec[i], ".aut") &&
-            fileContents[i].find("Constants") != std::string::npos) {
+        if (fileContents[i].find("Constants") != std::string::npos) {
             AUTOQ::Parsing::parse_constants_section(fileContents[i], constants[i]);
             AUTOQ::Parsing::unify_complex_k(constants[i]);
         }
@@ -99,16 +102,14 @@ try {
 
     std::vector<AUTOQ::Automata<Symbol>> autVec;
     std::vector<int> qp;
-    if (boost::algorithm::ends_with(filepathVec[0], ".hsl") && boost::algorithm::ends_with(filepathVec[1], ".hsl")) {
+    if (hsl) {
         std::tie(autVec, qp) = parse_n_extended_diracs<Symbol>(automatonVec, constants, constraints);
-    } else if (boost::algorithm::ends_with(filepathVec[0], ".lsta") && boost::algorithm::ends_with(filepathVec[1], ".lsta")) {
+    } else if (lsta) {
         autVec.reserve(filepathVec.size());
         for (size_t i = 0; i < filepathVec.size(); ++i) {
             std::map<std::string, std::string> dummy_predicates;
             autVec.emplace_back(parse_automaton<Symbol>(automatonVec[i], constants[i], dummy_predicates, true, nullptr));
         }
-    } else {
-        THROW_AUTOQ_ERROR(AUTOQ::ErrorMessages::kFilenameExtensionUnsupported);
     }
 
     for (size_t i = 0; i < autVec.size(); ++i)
