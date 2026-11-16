@@ -11,6 +11,7 @@
 
 #include "autoq/error.hh"
 #include "autoq/util/string.hh"
+#include "autoq/util/qasm_regex.hh"
 #include "autoq/parsing/parser/timbuk_parser_util.hh"
 
 namespace AUTOQ {
@@ -66,10 +67,11 @@ std::vector<std::string> find_all_loop_invariants(const char* filename) {
     while (getline(qasm, line)) {
         line = AUTOQ::String::trim(line);
         if (line.find("while") == 0) {
-            const std::regex spec("// *(.*)");
-            std::regex_iterator<std::string::iterator> it2(line.begin(), line.end(), spec);
+            std::smatch m;
+            if (!std::regex_search(line, m, AUTOQ::kTrailingComment) || AUTOQ::String::trim(m.str(1)).empty())
+                THROW_AUTOQ_ERROR("while loop has no `// <loop-invariant file>` comment: \"" + line + "\"");
             std::string dir = (std::filesystem::current_path() / filename).parent_path().string();
-            list.push_back(dir + std::string("/") + it2->str(1));
+            list.push_back(dir + std::string("/") + m.str(1));
         }
     }
     qasm.close();
