@@ -561,3 +561,35 @@ BOOST_AUTO_TEST_CASE(symbolic_angle_argument_is_a_constant)
         BOOST_CHECK_MESSAGE(output.find("bad_any_cast") == std::string::npos, output);
     }
 }
+
+// A while line with no loop-invariant comment used to dereference the
+// end-of-sequence regex iterator and abort (#32).
+BOOST_AUTO_TEST_CASE(while_without_invariant_comment_is_reported)
+{
+    std::string dir = test_dir_from_file(__FILE__, "testcase/WhileInvariant/");
+    auto f = [&](const std::string& name) { return "\"" + dir + name + "\""; };
+    const std::vector<std::string> rejected = {
+        "ver " + f("pre.hsl") + " " + f("missing.qasm") + " " + f("post.hsl"),
+        "ex " + f("pre.hsl") + " " + f("missing.qasm"),
+        "ver " + f("pre_sym.hsl") + " " + f("missing.qasm") + " " + f("post_sym.hsl"),
+        "ex " + f("pre_sym.hsl") + " " + f("missing.qasm"),
+        "ver " + f("pre.hsl") + " " + f("empty.qasm") + " " + f("post.hsl"),
+    };
+    for (const auto& args : rejected) {
+        auto [code, output] = run_cli(args);
+        BOOST_CHECK_MESSAGE(code == 1, args + ": exit status " + std::to_string(code) + ", output: " + output);
+        BOOST_CHECK_MESSAGE(output.find("loop-invariant file") != std::string::npos,
+            args + ": expected \"loop-invariant file\" in output: " + output);
+        BOOST_CHECK_MESSAGE(output.find("bad_alloc") == std::string::npos, args + ": " + output);
+        BOOST_CHECK_MESSAGE(output.find("length_error") == std::string::npos, args + ": " + output);
+        BOOST_CHECK_MESSAGE(output.find("Aborted") == std::string::npos, args + ": " + output);
+    }
+
+    auto [ver_code, ver_out] = run_cli("ver " + f("pre.hsl") + " " + f("ok.qasm") + " " + f("post.hsl"));
+    BOOST_CHECK_MESSAGE(ver_code == 0, ver_out);
+    BOOST_CHECK_MESSAGE(ver_out.find("The verification process [OK]") != std::string::npos, ver_out);
+
+    auto [ex_code, ex_out] = run_cli("ex " + f("pre.hsl") + " " + f("ok.qasm"));
+    BOOST_CHECK_MESSAGE(ex_code == 0, ex_out);
+    BOOST_CHECK_MESSAGE(ex_out.find("satisfies the loop invariant") != std::string::npos, ex_out);
+}
