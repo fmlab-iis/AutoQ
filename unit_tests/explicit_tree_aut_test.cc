@@ -26,6 +26,7 @@
 #include "autoq/aut_description.hh"
 #include "autoq/parsing/parser/timbuk_parser.hh"
 #include "autoq/serialization/timbuk_serializer.hh"
+#include "autoq/simulation/smart_set.hh"
 #include "test_util.hh"
 
 #define BOOST_TEST_DYN_LINK
@@ -781,4 +782,40 @@ BOOST_AUTO_TEST_CASE(inclusion_refuses_two_transitions_of_one_color)
     std::vector<std::map<AUTOQ::ConcreteAutomata::SymbolTag, AUTOQ::ConcreteAutomata::StateVector>> transA;
     std::vector<std::map<AUTOQ::ConcreteAutomata::Symbol, std::map<AUTOQ::ConcreteAutomata::Tag, AUTOQ::ConcreteAutomata::StateVector>>> transB;
     BOOST_CHECK_THROW(AUTOQ::build_inclusion_trans(aut, aut, transA, transB), AutoQError);
+}
+
+// erase() used to leave last_ pointing at the deleted tail. The next add()
+// wrote through that freed node, so the new key never appeared (#50).
+BOOST_AUTO_TEST_CASE(smart_set_erase_of_the_tail_keeps_the_list)
+{
+    auto show = [](const AUTOQ::Util::SmartSet& s) {
+        std::ostringstream os;
+        os << s;
+        return os.str();
+    };
+
+    AUTOQ::Util::SmartSet s(16);
+    s.add(5);
+    s.add(7);
+    s.remove(7);
+    s.add(9);
+    BOOST_CHECK_EQUAL(s.size(), 2u);
+    BOOST_CHECK_EQUAL(show(s), "{ 5:1 9:1 }");
+
+    AUTOQ::Util::SmartSet only(16);
+    only.add(7);
+    only.remove(7);
+    only.add(9);
+    BOOST_CHECK_EQUAL(only.size(), 1u);
+    BOOST_CHECK_EQUAL(show(only), "{ 9:1 }");
+
+    AUTOQ::Util::SmartSet longer(16);
+    longer.add(1);
+    longer.remove(1);
+    longer.add(1);
+    longer.add(2);
+    longer.remove(1);
+    longer.add(2);
+    BOOST_CHECK_EQUAL(longer.size(), 1u);
+    BOOST_CHECK_EQUAL(show(longer), "{ 2:2 }");
 }
