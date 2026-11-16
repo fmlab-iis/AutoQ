@@ -22,63 +22,52 @@ bool AUTOQ::Automata<Symbol>::light_reduce_up()
   using State = typename Automata<Symbol>::State;
   using StateSet = typename Automata<Symbol>::StateSet;
   using StateVector = typename Automata<Symbol>::StateVector;
+  using SymbolTag = typename Automata<Symbol>::SymbolTag;
   using StateToStateMap = typename std::unordered_map<State, State>;
+  using StateToStateTranslWeak = typename Util::TranslatorWeak<StateToStateMap>;
+
+  // States merge only when they carry the same transitions. Sharing one
+  // (symbol, color, children) tuple is not enough: the other state may accept more (#51).
+  using Signature = std::set<std::pair<SymbolTag, StateVector>>;
+  std::map<State, Signature> signature;
+  for (const auto& symbMapPair : this->transitions) {
+    for (const auto& out_ins : symbMapPair.second) {
+      for (const auto& in : out_ins.second)
+        signature[out_ins.first].insert({symbMapPair.first, in});
+    }
+  }
+
+  std::map<Signature, StateSet> groups;
+  for (const auto& stateSig : signature)
+    groups[stateSig.second].insert(stateSig.first);
 
   StateToStateMap index;
-  for (const auto& symbMapPair : this->transitions) {
-    std::map<StateVector, StateSet> vecSetPairs;
-    for (const auto& out_ins : symbMapPair.second) {
-        const auto &out = out_ins.first;
-        for (const auto& in : out_ins.second) {
-            vecSetPairs[in].insert(out);
-        }
-    }
-    for (const auto& vecSetPair : vecSetPairs) {
-      for (auto state : vecSetPair.second) {
-        auto itBoolPair = index.insert({state, *vecSetPair.second.begin()});
-        if (!itBoolPair.second &&                // insert didn't pass
-          (itBoolPair.first->second != state) && // the merge is non-identity
-          (itBoolPair.first->second != *vecSetPair.second.begin())
-            // the new value is not the same as the old one
-          ) {
-          // if there was more than one occurrence of 'state' as parent
-          // AUTOQ_DEBUG("broken possible merge: " + Convert::ToString(state) +
-          //   " -> " + Convert::ToString(itBoolPair.first->second));
-          itBoolPair.first->second = state;
-        }
-      }
-    }
-  }
-
   bool changed = false;
-  for (const auto& statePair : index) { // detect if there was some change
-    if (statePair.first != statePair.second) {
-      changed = true;
-      break;
+  for (const auto& group : groups) {
+    const State rep = *group.second.begin();
+    for (const State state : group.second) {
+      index.insert({state, rep});
+      if (state != rep)
+        changed = true;
     }
   }
 
-  // AUTOQ_DEBUG("index: " + Convert::ToString(index));
   if (changed) {
-    // Automata old = *this;
-    reduce_detail::reindex_aut_states(*this, index);
-    // assert(check_equal_aut(old, *this));
+    // States that are not the target of any transition stay themselves.
+    // operator[] on the map would rename them to 0.
+    StateToStateTranslWeak transl(index, [](const State& state) { return state; });
+    reduce_detail::reindex_aut_states(*this, transl);
   }
 
   return changed;
 }
 
 template <typename Symbol>
-bool AUTOQ::Automata<Symbol>::light_reduce_up_iter()
+void AUTOQ::Automata<Symbol>::light_reduce_up_iter()
 {
-  size_t iterations = 0;
   bool changed = true;
-  while (changed) {
+  while (changed)
     changed = this->light_reduce_up();
-    ++iterations;
-  }
-
-  return 1 == iterations;
 }
 
 template <typename Symbol>
@@ -211,16 +200,11 @@ bool AUTOQ::Automata<Symbol>::light_reduce_down()
 }
 
 template <typename Symbol>
-bool AUTOQ::Automata<Symbol>::light_reduce_down_iter()
+void AUTOQ::Automata<Symbol>::light_reduce_down_iter()
 {
-  size_t iterations = 0;
   bool changed = true;
-  while (changed) {
+  while (changed)
     changed = this->light_reduce_down();
-    ++iterations;
-  }
-
-  return 1 == iterations;
 }
 
 template <typename Symbol>
