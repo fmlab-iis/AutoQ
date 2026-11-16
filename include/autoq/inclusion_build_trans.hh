@@ -2,6 +2,7 @@
 #define _AUTOQ_INCLUSION_BUILD_TRANS_HH_
 
 #include "autoq/aut_description.hh"
+#include "autoq/error.hh"
 #include <vector>
 #include <map>
 
@@ -23,7 +24,8 @@ void build_inclusion_trans(
         for (const auto &out_ins : t.second) {
             const auto &out = out_ins.first;
             const auto &ins = out_ins.second;
-            assert(ins.size() == 1);
+            if (ins.size() != 1)
+                THROW_AUTOQ_ERROR("The sets of choices under state " + std::to_string(out) + " are not disjoint!");
             transA[out][symbol_tag] = *(ins.begin());
         }
     }
@@ -32,7 +34,8 @@ void build_inclusion_trans(
         for (const auto &out_ins : t.second) {
             const auto &out = out_ins.first;
             const auto &ins = out_ins.second;
-            assert(ins.size() == 1);
+            if (ins.size() != 1)
+                THROW_AUTOQ_ERROR("The sets of choices under state " + std::to_string(out) + " are not disjoint!");
             transB[out][symbol_tag.symbol()][symbol_tag.tag()] = *(ins.begin());
         }
     }
