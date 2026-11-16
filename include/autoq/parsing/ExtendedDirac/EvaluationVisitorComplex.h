@@ -59,13 +59,22 @@
                 THROW_AUTOQ_ERROR("Unsupported operator!");
             }
         } else if (ctx->func != nullptr) {
-            if (ctx->func->getText() == "ei2pi") {
-                if (mode == CONCRETE_COMPLEX) return Complex::Angle(std::any_cast<Complex>(visit(ctx->complex(0))).to_rational());
-                if (mode == SYMBOLIC_COMPLEX) return AUTOQ::Complex::SymbolicComplex::MySymbolicComplexConstructor(Complex::Angle(std::any_cast<Complex>(visit(ctx->complex(0))).to_rational()));
-                THROW_AUTOQ_ERROR("Unsupported mode!");
-            } else if (ctx->func->getText() == "eipi") {
-                if (mode == CONCRETE_COMPLEX) return Complex::Angle(std::any_cast<Complex>(visit(ctx->complex(0))).to_rational() / 2);
-                if (mode == SYMBOLIC_COMPLEX) return AUTOQ::Complex::SymbolicComplex::MySymbolicComplexConstructor(Complex::Angle(std::any_cast<Complex>(visit(ctx->complex(0))).to_rational() / 2));
+            if (ctx->func->getText() == "ei2pi" || ctx->func->getText() == "eipi") {
+                // Symbolic mode returns SymbolicComplex, including for 1/8. Casting
+                // that argument to Complex throws std::bad_any_cast (#33).
+                if (mode == CONCRETE_COMPLEX) {
+                    auto theta = std::any_cast<Complex>(visit(ctx->complex(0))).to_rational();
+                    if (ctx->func->getText() == "eipi") theta /= 2;
+                    return Complex::Angle(theta);
+                }
+                if (mode == SYMBOLIC_COMPLEX) {
+                    auto arg = std::any_cast<AUTOQ::Complex::SymbolicComplex>(visit(ctx->complex(0)));
+                    if (!arg.isConst())
+                        THROW_AUTOQ_ERROR("The argument of " + ctx->func->getText() + "(...) must be a constant!");
+                    auto theta = arg.to_rational();
+                    if (ctx->func->getText() == "eipi") theta /= 2;
+                    return AUTOQ::Complex::SymbolicComplex::MySymbolicComplexConstructor(Complex::Angle(theta));
+                }
                 THROW_AUTOQ_ERROR("Unsupported mode!");
             } else if (ctx->func->getText() == "real") {
                 if (mode == CONCRETE_COMPLEX) return std::any_cast<Complex>(visit(ctx->complex(0))).real();

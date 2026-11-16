@@ -1,0 +1,5 @@
+Root States q
+Transitions
+[1,1](q0, q1) -> q
+[ei2pi(1/8),1] -> q0
+[a,1] -> q1
