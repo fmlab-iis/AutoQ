@@ -139,10 +139,11 @@ if (DEBUG_INFO_FOR_RELEASE)
 	message("-- Enabling debug information for RELEASE builds")
 endif()
 
-# C++ standard, project define, and common warning flags (all targets)
+# C++ standard, project define, and common warning flags (all targets).
+# These belong on CMAKE_CXX_FLAGS: Debug/Release-only variables leave a build
+# with no type, and RelWithDebInfo / MinSizeRel, without -std=c++20 (#43).
 set(AUTOQ_CXX_FLAGS_EXTRA "-std=c++20 -DCOMPLEX_FiveTuple -pedantic-errors -Wextra -Wall -Wfloat-equal -Wctor-dtor-privacy -Weffc++ -Woverloaded-virtual -Wold-style-cast -fdiagnostics-show-option")
-set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} ${AUTOQ_CXX_FLAGS_EXTRA}")
-set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} ${AUTOQ_CXX_FLAGS_EXTRA}")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${AUTOQ_CXX_FLAGS_EXTRA}")
 
 ##############################################################################
 #                                 PROJECT
