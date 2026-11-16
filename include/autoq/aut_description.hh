@@ -201,9 +201,9 @@ struct AUTOQ::Automata
     void bottom_up_reduce(int starts_from_depth=INT_MAX);
     void union_all_colors_for_a_given_transition();
     bool light_reduce_up(); /// lightweight size reduction, done upwards; returns @p true iff the automaton changed
-    bool light_reduce_up_iter(); /// lightweight upwareds size reduction, iterated until change happens, returns @p true iff the automaton changed
+    void light_reduce_up_iter(); /// lightweight upwards size reduction, iterated until the automaton stops changing
     bool light_reduce_down(); /// lightweight size reduction, done downwards; returns @p true iff the automaton changed
-    bool light_reduce_down_iter(); /// lightweight downwards size reduction, iterated until change happens, returns @p true iff the automaton changed
+    void light_reduce_down_iter(); /// lightweight downwards size reduction, iterated until the automaton stops changing
     void reduce(); /// reduces the automaton using a preferred reduction
     void remove_useless(bool only_bottom_up=false);
     void state_renumbering();
