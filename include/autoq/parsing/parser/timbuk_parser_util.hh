@@ -29,6 +29,9 @@ std::vector<std::string> find_all_loop_invariants(const char* filename);
 void parse_constants_section(std::string& fileContents,
                              std::map<std::string, AUTOQ::Complex::Complex>& out_constants);
 void unify_complex_k(std::map<std::string, AUTOQ::Complex::Complex>& constants);
+// Give an integer leaf the same FiveTuple/nTuple k as the Constants section (#30).
+void align_leaf_to_constants(AUTOQ::Complex::Complex& value,
+                             const std::map<std::string, AUTOQ::Complex::Complex>& constants);
 
 }  // namespace Parsing
 }  // namespace AUTOQ

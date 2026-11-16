@@ -11,9 +11,11 @@
 #include <algorithm>
 #include <cctype>
 #include <regex>
+#include <boost/multiprecision/cpp_int.hpp>
 #include "autoq/error.hh"
 #include "autoq/error_messages.hh"
 #include "autoq/parsing/parser/timbuk_parser_grammar.hh"
+#include "autoq/parsing/parser/timbuk_parser_util.hh"
 
 namespace {
 const std::regex kRootStates("Root +States");
@@ -37,6 +39,17 @@ std::pair<std::string, Tag> split_colored_label(const std::string& label, const 
     } catch (const boost::bad_lexical_cast&) {
         THROW_AUTOQ_ERROR(invalid_trans_str);
     }
+}
+
+// A leaf has no child tuple, so a numeric symbol is an amplitude, not a qubit (#30).
+bool is_integer_literal(const std::string& token) {
+    if (token.empty())
+        return false;
+    const size_t first_digit = (token[0] == '+' || token[0] == '-') ? 1 : 0;
+    if (first_digit == token.size())
+        return false;
+    return std::all_of(token.begin() + static_cast<std::ptrdiff_t>(first_digit), token.end(),
+                        [](unsigned char c) { return std::isdigit(c) != 0; });
 }
 }
 
@@ -118,12 +131,13 @@ AUTOQ::Automata<Symbol> parse_automaton(const std::string& str, const std::map<s
                 if constexpr(std::is_same_v<Symbol, AUTOQ::ConcreteAutomata::Symbol>) {
                     try {
                         auto [token, color] = split_colored_label<AUTOQ::ConcreteAutomata::Tag>(lhs, invalid_trans_str);
-                        try {
-                            auto sym = Symbol(boost::lexical_cast<int>(token));
+                        if (is_integer_literal(token)) {
+                            // No children: the number is an amplitude. Symbol(int) would build a qubit.
+                            auto value = AUTOQ::Complex::Complex(boost::multiprecision::cpp_int(token));
+                            AUTOQ::Parsing::align_leaf_to_constants(value, constants);
+                            auto sym = Symbol(value);
                             result.transitions[AUTOQ::ConcreteAutomata::SymbolTag(sym, AUTOQ::ConcreteAutomata::Tag(color))][t].insert(std::vector<AUTOQ::ConcreteAutomata::State>());
-                        } catch (const AutoQError&) {
-                            throw;
-                        } catch (...) {
+                        } else {
                             auto it = constants.find(token);
                             if (it == constants.end()) {
                                 if (!throw_on_undefined) {
@@ -143,23 +157,17 @@ AUTOQ::Automata<Symbol> parse_automaton(const std::string& str, const std::map<s
                 } else if constexpr(std::is_same_v<Symbol, AUTOQ::PredicateAutomata::Symbol>) {
                     try {
                         auto [token, color] = split_colored_label<AUTOQ::PredicateAutomata::Tag>(lhs, invalid_trans_str);
-                        try {
-                            auto sym = Symbol(boost::lexical_cast<int>(token));
-                            result.transitions[AUTOQ::PredicateAutomata::SymbolTag(sym, AUTOQ::PredicateAutomata::Tag(color))][t].insert(std::vector<AUTOQ::PredicateAutomata::State>());
-                        } catch (const AutoQError&) {
-                            throw;
-                        } catch (...) {
-                            auto it = predicates.find(token);
-                            if (it == predicates.end()) {
-                                if (!throw_on_undefined) {
-                                    if (out_encountered_undefined) *out_encountered_undefined = true;
-                                    return {};
-                                }
-                                THROW_AUTOQ_ERROR(std::string(AUTOQ::ErrorMessages::kConstantNotDefinedPrefix) + token + AUTOQ::ErrorMessages::kConstantNotDefinedSuffix);
+                        // No children: a number is not a qubit. Look the leaf up as a predicate.
+                        auto it = predicates.find(token);
+                        if (it == predicates.end()) {
+                            if (!throw_on_undefined) {
+                                if (out_encountered_undefined) *out_encountered_undefined = true;
+                                return {};
                             }
-                            auto sym = Symbol(it->second.c_str());
-                            result.transitions[AUTOQ::PredicateAutomata::SymbolTag(sym, AUTOQ::PredicateAutomata::Tag(color))][t].insert(std::vector<AUTOQ::PredicateAutomata::State>());
+                            THROW_AUTOQ_ERROR(std::string(AUTOQ::ErrorMessages::kConstantNotDefinedPrefix) + token + AUTOQ::ErrorMessages::kConstantNotDefinedSuffix);
                         }
+                        auto sym = Symbol(it->second.c_str());
+                        result.transitions[AUTOQ::PredicateAutomata::SymbolTag(sym, AUTOQ::PredicateAutomata::Tag(color))][t].insert(std::vector<AUTOQ::PredicateAutomata::State>());
                     } catch (const AutoQError&) {
                         throw;
                     } catch (...) {

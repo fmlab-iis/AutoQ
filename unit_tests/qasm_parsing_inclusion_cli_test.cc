@@ -432,6 +432,47 @@ BOOST_AUTO_TEST_CASE(constraint_line_must_be_fully_consumed)
     BOOST_CHECK_MESSAGE(ok_out.find("[OK]") != std::string::npos, ok_out);
 }
 
+// A leaf has no children, so [1,1] -> q is the amplitude 1, not qubit 1 (#30).
+BOOST_AUTO_TEST_CASE(integer_leaf_is_an_amplitude)
+{
+    std::string dir = test_dir_from_file(__FILE__, "testcase/IntegerLeaf/");
+    auto f = [&](const std::string& name) { return "\"" + dir + name + "\""; };
+    auto aut = AUTOQ::Parsing::TimbukParser<Concrete>::ReadAutomaton(dir + "pre.lsta");
+    BOOST_CHECK_EQUAL(aut.qubitNum, 1);
+    int leaves = 0;
+    int internals = 0;
+    for (const auto& kv : aut.transitions) {
+        if (kv.first.is_leaf()) ++leaves;
+        if (kv.first.is_internal()) ++internals;
+    }
+    BOOST_CHECK_EQUAL(leaves, 2);
+    BOOST_CHECK_EQUAL(internals, 1);
+    auto amp2 = AUTOQ::Parsing::TimbukParser<Concrete>::ReadAutomaton(dir + "amp2.lsta");
+    BOOST_CHECK_EQUAL(amp2.qubitNum, 1);
+
+    auto [print_code, print_out] = run_cli("print " + f("pre.lsta"));
+    BOOST_CHECK_EQUAL(print_code, 0);
+    BOOST_CHECK_MESSAGE(print_out.find("(1/1)|0>") != std::string::npos, print_out);
+
+    auto [x_code, x_out] = run_cli("ex " + f("pre.lsta") + " " + f("x.qasm"));
+    BOOST_CHECK_EQUAL(x_code, 0);
+    BOOST_CHECK_MESSAGE(x_out.find("(1/1)|1>") != std::string::npos, x_out);
+
+    auto [h_code, h_out] = run_cli("ex " + f("pre.lsta") + " " + f("h.qasm"));
+    BOOST_CHECK_EQUAL(h_code, 0);
+    BOOST_CHECK_MESSAGE(h_out.find("|0>") != std::string::npos, h_out);
+    BOOST_CHECK_MESSAGE(h_out.find("|1>") != std::string::npos, h_out);
+
+    auto [ver_code, ver_out] = run_cli("ver " + f("pre.lsta") + " " + f("x.qasm") + " " + f("post.lsta"));
+    BOOST_CHECK_MESSAGE(ver_code == 0, ver_out);
+    BOOST_CHECK_MESSAGE(ver_out.find("[OK]") != std::string::npos, ver_out);
+
+    auto [neg_code, neg_out] = run_cli("print " + f("neg.lsta"));
+    BOOST_CHECK_EQUAL(neg_code, 0);
+    BOOST_CHECK_MESSAGE(neg_out.find("|0>") != std::string::npos, neg_out);
+    BOOST_CHECK_MESSAGE(neg_out.find("map::at") == std::string::npos, neg_out);
+}
+
 // .aut is not a supported input. It must get the same extension error as any
 // other unknown suffix, not "The type of Complex is not supported!" (#48).
 BOOST_AUTO_TEST_CASE(aut_extension_is_not_supported)
