@@ -284,6 +284,8 @@ BOOST_AUTO_TEST_CASE(qasm_qubit_index_must_be_in_range)
     BOOST_CHECK_EQUAL(ry_code, 0);
     BOOST_CHECK_MESSAGE(ry_out.find("|0>") != std::string::npos, ry_out);
     BOOST_CHECK_MESSAGE(ry_out.find("|1>") != std::string::npos, ry_out);
+}
+
 // x≠y compares the two variables bit by bit, so |x| and |y| have to be the
 // same length. The constraint list used to keep only one length, and the last
 // |v|=N was applied to both variables.
