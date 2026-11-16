@@ -182,6 +182,23 @@
             auto vc_global = (ctx->varcons() == nullptr) ? std::tuple<int, std::set<char>, ineqS_t, eqs_t>()
                                                          : std::any_cast<std::tuple<int, std::set<char>, ineqS_t, eqs_t>>(visit(ctx->varcons()));
             auto num_qubits = (ctx->varcons() == nullptr) ? std::get<0>(std::get<1>(*terms.begin()).value()) : std::get<0>(vc_global);
+            // |x|=N and x≠c can appear in either order, so the constant's length
+            // is known only after the whole constraint list has been folded (#35).
+            auto require_constant_width = [&](const ineqS_t &ineqs) {
+                for (const auto &ineq : ineqs) {
+                    const std::string &rhs = ineq.second;
+                    if (rhs.empty() || (rhs.front() != '0' && rhs.front() != '1'))
+                        continue;
+                    if (static_cast<int>(rhs.size()) != num_qubits) {
+                        THROW_AUTOQ_ERROR("The binary constant in \"" + ineq.first + "≠" + rhs + "\" must have length " + std::to_string(num_qubits) + ".");
+                    }
+                }
+            };
+            require_constant_width(std::get<2>(vc_global));
+            for (const auto &term : terms) {
+                if (std::get<1>(term).has_value())
+                    require_constant_width(std::get<2>(std::get<1>(term).value()));
+            }
             // x≠y compares the variables bit by bit, so both need a length and
             // the two lengths have to agree. The clauses may appear in any order.
             auto require_same_variable_length = [&](const ineqS_t &ineqs) {

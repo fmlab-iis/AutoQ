@@ -237,6 +237,41 @@ BOOST_AUTO_TEST_CASE(eq_accepts_openqasm3_qubit_declaration)
     }
 }
 
+// A binary constant in x≠c must have exactly |x| bits. A shorter one used to
+// abort in std::string::at, and a longer one was silently truncated (#35).
+BOOST_AUTO_TEST_CASE(inequality_constant_must_match_variable_length)
+{
+    std::string dir = test_dir_from_file(__FILE__, "testcase/IneqLength/");
+    auto f = [&](const std::string& name) { return "\"" + dir + name + "\""; };
+    const std::vector<std::pair<std::string, std::string>> rejected = {
+        {"print " + f("bad.hsl"), "x≠0\" must have length 2"},
+        {"print " + f("bad_local.hsl"), "i≠0\" must have length 2"},
+        {"print " + f("bad_order.hsl"), "x≠0\" must have length 2"},
+        {"print " + f("bad_wide.hsl"), "x≠01\" must have length 3"},
+        {"print " + f("long.hsl"), "x≠110\" must have length 2"},
+    };
+    for (const auto& [args, expected] : rejected) {
+        auto [code, output] = run_cli(args);
+        BOOST_CHECK_MESSAGE(code == 1, args + ": exit status " + std::to_string(code) + ", output: " + output);
+        BOOST_CHECK_MESSAGE(output.find(expected) != std::string::npos,
+            args + ": expected \"" + expected + "\" in output: " + output);
+        BOOST_CHECK_MESSAGE(output.find("out_of_range") == std::string::npos,
+            args + ": aborted instead of reporting a parse error: " + output);
+    }
+    const std::vector<std::pair<std::string, std::vector<std::string>>> accepted = {
+        {"print " + f("good.hsl"), {"|01>", "|10>", "|11>"}},
+        {"print " + f("good_local.hsl"), {"|01>", "|10>", "|11>"}},
+        {"print " + f("good2.hsl"), {"|00>", "|01>", "|10>"}},
+    };
+    for (const auto& [args, needles] : accepted) {
+        auto [code, output] = run_cli(args);
+        BOOST_CHECK_MESSAGE(code == 0, args + ": exit status " + std::to_string(code) + ", output: " + output);
+        for (const auto& needle : needles)
+            BOOST_CHECK_MESSAGE(output.find(needle) != std::string::npos,
+                args + ": expected \"" + needle + "\" in output: " + output);
+    }
+}
+
 // OpenQASM 3 allows whitespace between ! and its operand (#38).
 BOOST_AUTO_TEST_CASE(cli_negated_guard_with_space)
 {
