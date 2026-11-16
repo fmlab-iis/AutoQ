@@ -21,6 +21,7 @@
 #include "autoq/util/util.hh"
 #include "autoq/complex/complex.hh"
 #include "autoq/symbol/concrete.hh"
+#include "autoq/symbol/symbolic.hh"
 #include "autoq/aut_description.hh"
 #include "autoq/parsing/parser/timbuk_parser.hh"
 #include "autoq/serialization/timbuk_serializer.hh"
@@ -176,6 +177,37 @@ BOOST_AUTO_TEST_CASE(T_gate_eighth_to_identity)
 BOOST_AUTO_TEST_CASE(Tdg_gate_equal_to_T_seven_times)
 {
     test_gate_inverse_equivalence([](auto& a, int t) { a.T(t); }, [](auto& a, int t) { a.Tdg(t); }, kDefaultQubits, 7, kDefaultQubits/2);
+}
+
+// omega_multiplication(r) multiplies by w^r, including r < 0. A negative
+// argument used to take the long way around and come back as w^|r| (#52).
+BOOST_AUTO_TEST_CASE(negative_omega_multiplication_is_a_clockwise_turn)
+{
+    const auto one = Complex::One();
+    AUTOQ::Symbol::Concrete pos1(one);
+    pos1.omega_multiplication(1);
+    AUTOQ::Symbol::Concrete neg1(one);
+    neg1.omega_multiplication(-1);
+    AUTOQ::Symbol::Concrete neg2(one);
+    neg2.omega_multiplication(-2);
+    AUTOQ::Symbol::Concrete cw45(one);
+    cw45.degree45cw();
+    AUTOQ::Symbol::Concrete cw90(one);
+    cw90.degree90cw();
+    BOOST_CHECK(neg1.valueEqual(cw45));
+    BOOST_CHECK(neg2.valueEqual(cw90));
+    BOOST_CHECK(!neg1.valueEqual(pos1));
+
+#ifdef COMPLEX_FiveTuple
+    BOOST_CHECK(pos1.complex.at(1) == 1 && pos1.complex.at(0) == 0 && pos1.complex.at(2) == 0 && pos1.complex.at(3) == 0);
+    BOOST_CHECK(neg1.complex.at(3) == -1 && neg1.complex.at(0) == 0 && neg1.complex.at(1) == 0 && neg1.complex.at(2) == 0);
+    BOOST_CHECK(neg2.complex.at(2) == -1 && neg2.complex.at(0) == 0 && neg2.complex.at(1) == 0 && neg2.complex.at(3) == 0);
+#endif
+
+    AUTOQ::Symbol::Symbolic symbolic(AUTOQ::Complex::SymbolicComplex::MySymbolicComplexConstructor(one));
+    symbolic.omega_multiplication(-1);
+    BOOST_REQUIRE_EQUAL(symbolic.complex.size(), 1u);
+    BOOST_CHECK(symbolic.complex.begin()->second.valueEqual(neg1.complex));
 }
 
 /** Initial states for swap gate (kExtendedInitialStates minus random). */

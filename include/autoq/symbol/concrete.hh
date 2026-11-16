@@ -71,8 +71,9 @@ struct AUTOQ::Symbol::Concrete : AUTOQ::Symbol::SymbolBase<Concrete> {
         return complex < o.complex;
     }
     Concrete omega_multiplication(int rotation=1) {
-        if (rotation > 0) complex.counterclockwise(boost::rational<boost::multiprecision::cpp_int>(rotation, 8));
-        if (rotation < 0) complex.clockwise(boost::rational<boost::multiprecision::cpp_int>(rotation, 8));
+        // A negative rotation is a clockwise turn. counterclockwise folds it
+        // into one full turn, so w^{-1} is seven steps of w, not w^{+1} (#52).
+        complex.counterclockwise(boost::rational<boost::multiprecision::cpp_int>(rotation, 8));
         return *this;
     }
     Concrete counterclockwise(const boost::rational<boost::multiprecision::cpp_int> &theta) {
@@ -82,8 +83,8 @@ struct AUTOQ::Symbol::Concrete : AUTOQ::Symbol::SymbolBase<Concrete> {
     void fraction_simplification() { complex.fraction_simplification(); }
     Concrete divide_by_the_square_root_of_two() { complex.divide_by_the_square_root_of_two(); return *this; }
     void negate() { complex = complex * (-1); }
-    void degree45cw() { complex.clockwise(boost::rational<boost::multiprecision::cpp_int>(1, 8)); }
-    void degree90cw() { complex.clockwise(boost::rational<boost::multiprecision::cpp_int>(1, 4)); }
+    void degree45cw() { complex.counterclockwise(boost::rational<boost::multiprecision::cpp_int>(-1, 8)); }
+    void degree90cw() { complex.counterclockwise(boost::rational<boost::multiprecision::cpp_int>(-1, 4)); }
     Concrete multiply_cos(const boost::rational<boost::multiprecision::cpp_int> &theta) {
         complex.multiply_cos(theta);
         return *this;

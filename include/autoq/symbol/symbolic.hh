@@ -80,14 +80,8 @@ struct AUTOQ::Symbol::Symbolic : AUTOQ::Symbol::SymbolBase<Symbolic> {
         return *this;
     }
     Symbolic omega_multiplication(int rotation=1) {
-        if (rotation > 0) {
-            for (auto &kv : complex)
-                kv.second.counterclockwise(boost::rational<boost::multiprecision::cpp_int>(rotation, 8));
-        }
-        if (rotation < 0) {
-            for (auto &kv : complex)
-                kv.second.clockwise(boost::rational<boost::multiprecision::cpp_int>(-rotation, 8));
-        }
+        for (auto &kv : complex)
+            kv.second.counterclockwise(boost::rational<boost::multiprecision::cpp_int>(rotation, 8));
         return *this;
     }
     Symbolic divide_by_the_square_root_of_two() {

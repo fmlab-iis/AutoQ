@@ -248,7 +248,7 @@ Symbol eval_symbol( const AUTOQ::Symbol::Symbolic& symbol,
                         // bound to the real number Im(x). imag() returns
                         // i·Im(x); rotating it by a quarter turn clockwise
                         // (multiplying by -i) gives Im(x).
-                        mapping[term] = conc.complex.imag().clockwise(boost::rational<boost::multiprecision::cpp_int>(1, 4));
+                        mapping[term] = conc.complex.imag().counterclockwise(boost::rational<boost::multiprecision::cpp_int>(-1, 4));
                     }
                     else if(string.back() == 'R'){
                         mapping[term] = conc.complex.real();

@@ -62,10 +62,6 @@ struct AUTOQ::Complex::Plain : std::pair<double, double> {
         second /= std::pow(std::sqrt(2.0), times);
         return *this;
     }
-    Plain& clockwise(boost::rational<boost::multiprecision::cpp_int> theta) {
-        *this = Plain::operator*(Plain::Angle(-theta));
-        return *this;
-    }
     Plain& counterclockwise(boost::rational<boost::multiprecision::cpp_int> theta) {
         *this = Plain::operator*(Plain::Angle(theta));
         return *this;

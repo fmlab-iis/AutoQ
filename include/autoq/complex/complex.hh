@@ -22,7 +22,6 @@ concept is_complex = requires (const T &x, T y, int z, boost::rational<boost::mu
     { y.fraction_simplification() } -> std::same_as<T&>;
     { y.divide_by_the_square_root_of_two(z) } -> std::same_as<T&>;
     { y.counterclockwise(theta) } -> std::same_as<T&>;
-    { y.clockwise(theta) } -> std::same_as<T&>;
     { x.toInt() } -> std::same_as<boost::multiprecision::cpp_int>;
     { x.to_rational() } -> std::same_as<boost::rational<boost::multiprecision::cpp_int>>;
     { x.realToSMT() } -> std::same_as<std::string>;
