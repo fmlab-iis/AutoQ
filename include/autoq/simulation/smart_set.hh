@@ -157,6 +157,11 @@ protected:
 
 			index_[prev->next->key] = prev;
 		}
+		else
+		{
+			// The removed node was the tail. insert() writes through last_ (#50).
+			last_ = prev;
+		}
 
 		delete el;
 		prev = nullptr;
