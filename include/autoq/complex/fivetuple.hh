@@ -137,33 +137,6 @@ struct AUTOQ::Complex::FiveTuple : stdvectorboostmultiprecisioncpp_int {
         at(4) += times;
         return *this;
     }
-    FiveTuple& clockwise(boost::rational<boost::multiprecision::cpp_int> theta) {
-        theta -= theta.numerator() / theta.denominator();
-        while (theta >= 1)
-            theta -= 1;
-        while (theta < 0)
-            theta += 1;
-        assert((8 * theta).denominator() == 1);
-        int r = static_cast<int>(-8 * theta.numerator() / theta.denominator());
-        while (r != 0) {
-            if (r > 0) {
-                auto temp = at(3);
-                for (int i=3; i>=1; i--) { // exclude "k"
-                    at(i) = at(i-1);
-                }
-                at(0) = -temp;
-                r--;
-            } else {
-                auto temp = at(0);
-                for (int i=0; i<=2; i++) { // exclude "k"
-                    at(i) = at(i+1);
-                }
-                at(3) = -temp;
-                r++;
-            }
-        }
-        return *this;
-    }
     FiveTuple& counterclockwise(boost::rational<boost::multiprecision::cpp_int> theta) {
         theta -= theta.numerator() / theta.denominator();
         while (theta >= 1)

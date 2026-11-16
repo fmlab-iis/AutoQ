@@ -140,16 +140,6 @@ struct AUTOQ::Complex::nTuple : AUTOQ::Util::mapped_vector<boost::multiprecision
         kk += times;
         return *this;
     }
-    nTuple& clockwise(boost::rational<boost::multiprecision::cpp_int> theta) {
-        theta -= theta.numerator() / theta.denominator();
-        while (theta > 1)
-            theta -= 1;
-        while (theta <= 0)
-            theta += 1;
-        // Ensure that theta is in (0, 1].
-        // Then, 1-theta is in [0, 1).
-        return counterclockwise(1 - theta);
-    }
     nTuple& counterclockwise(boost::rational<boost::multiprecision::cpp_int> theta) {
         theta -= theta.numerator() / theta.denominator();
         while (theta >= 1)

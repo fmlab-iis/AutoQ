@@ -66,8 +66,7 @@ struct AUTOQ::Symbol::Constrained : AUTOQ::Symbol::SymbolBase<Constrained> {
         return complex < o.complex;
     }
     Constrained omega_multiplication(/*int rotation=1*/) {
-        // if (rotation > 0) complex.counterclockwise(boost::rational<boost::multiprecision::cpp_int>(rotation, 8));
-        // if (rotation < 0) complex.clockwise(boost::rational<boost::multiprecision::cpp_int>(rotation, 8));
+        // complex.counterclockwise(boost::rational<boost::multiprecision::cpp_int>(rotation, 8));
         return *this;
     }
     Constrained counterclockwise(/*const boost::rational<boost::multiprecision::cpp_int> &theta*/) {
