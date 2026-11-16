@@ -13,6 +13,7 @@ template <typename Symbol>
 void AUTOQ::Automata<Symbol>::run_single_qubit_concrete_gate(int t, const char* log_name, const char* qasm_name,
     const std::function<Symbol(const Symbol&, const Symbol&)>& u1u2,
     const std::function<Symbol(const Symbol&, const Symbol&)>& u3u4) {
+    require_qubits({t});
 #ifdef TO_QASM
     (void)u1u2; (void)u3u4;
     system(("echo '" + std::string(qasm_name) + " qubits[" + std::to_string(t - 1) + "];' >> " + QASM_FILENAME).c_str());
@@ -29,6 +30,7 @@ void AUTOQ::Automata<Symbol>::run_diagonal_concrete_gate(int t, const char* log_
     const std::function<void(Symbol*)>& multiply_by_c0,
     const std::function<void(Symbol*)>& multiply_by_c1,
     bool do_reduce) {
+    require_qubits({t});
 #ifdef TO_QASM
     (void)multiply_by_c0; (void)multiply_by_c1;
     system(("echo '" + std::string(qasm_name) + " qubits[" + std::to_string(t - 1) + "];' >> " + QASM_FILENAME).c_str());
@@ -44,6 +46,7 @@ void AUTOQ::Automata<Symbol>::run_diagonal_concrete_gate(int t, const char* log_
 template <typename Symbol>
 void AUTOQ::Automata<Symbol>::run_concrete_gate_with_body(int t, const char* log_name, const char* qasm_name,
     std::function<void()> body) {
+    require_qubits({t});
 #ifdef TO_QASM
     (void)body;
     system(("echo '" + std::string(qasm_name) + " qubits[" + std::to_string(t - 1) + "];' >> " + QASM_FILENAME).c_str());

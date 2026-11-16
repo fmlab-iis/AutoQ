@@ -1,6 +1,6 @@
 /**
  * QASM execution: parse and run circuits, loops, gates.
- * - execute(filename), parse_for_loop_body, parse_qubit_indices.
+ * - execute(filename), parse_for_loop_body, qubit_operands.
  * - handle_while_loop_start, handle_if_block_start, handle_else, handle_closing_brace.
  * - single_gate_execute, check_the_invariants_types.
  */
@@ -14,6 +14,7 @@
 #include "autoq/parsing/parser/timbuk_parser.hh"
 #include "autoq/parsing/ExtendedDirac/EvaluationVisitor.h"
 #include "autoq/parsing/angle.hh"
+#include <cstring>
 #include <regex>
 #include <fstream>
 #include <filesystem>
@@ -42,21 +43,27 @@ std::vector<std::string> parse_for_loop_body(std::ifstream& qasm, bool& in_loop)
     THROW_AUTOQ_ERROR(AUTOQ::ErrorMessages::kLoopNotEnded);
 }
 
-int first_qubit_index(const std::string& line, const AUTOQ::QasmRegexes& re,
-                      const std::vector<int>& qubit_permutation) {
-    std::smatch m;
-    return std::regex_search(line, m, re.digit)
-           ? (1 + qubit_permutation[atoi(m[0].str().c_str())])
-           : -1;
-}
-
-std::vector<int> parse_qubit_indices(const std::string& line, const AUTOQ::QasmRegexes& re,
-                     const std::vector<int>& qubit_permutation) {
+// QASM operands are "name[n]", not every digit run. "ry(pi/2) qb[0]" must not
+// treat the 2 in the angle as a qubit, and a missing "[n]" is an input error (#24).
+std::vector<int> qubit_operands(const std::string& region, const std::string& line, int expected,
+                                int qubitNum, const std::vector<int>& qubit_permutation) {
+    static const std::regex kOperand(R"([A-Za-z_]\w*\[(\d+)\])");
+    std::vector<int> raw;
+    for (std::sregex_iterator it(region.begin(), region.end(), kOperand); it != kRegexEnd; ++it)
+        raw.push_back(atoi(it->str(1).c_str()));
+    if (static_cast<int>(raw.size()) != expected)
+        THROW_AUTOQ_ERROR("Expected " + std::to_string(expected) + " qubit operand(s) in \"" + line + "\".");
     std::vector<int> pos;
-    std::sregex_iterator it(line.begin(), line.end(), re.digit);
-    while (it != kRegexEnd) {
-        pos.push_back(1 + qubit_permutation[atoi(it->str().c_str())]);
-        ++it;
+    pos.reserve(raw.size());
+    for (int i = 0; i < static_cast<int>(raw.size()); ++i) {
+        int index = raw[i];
+        if (index < 0 || index >= qubitNum || static_cast<size_t>(index) >= qubit_permutation.size())
+            THROW_AUTOQ_ERROR("Qubit index " + std::to_string(index) + " is outside [0, " + std::to_string(qubitNum) + ") in \"" + line + "\".");
+        for (int j = 0; j < i; ++j) {
+            if (raw[j] == index)
+                THROW_AUTOQ_ERROR("Qubit index " + std::to_string(index) + " is repeated in \"" + line + "\".");
+        }
+        pos.push_back(1 + qubit_permutation[index]);
     }
     return pos;
 }
@@ -171,12 +178,13 @@ bool AUTOQ::Automata<Symbol>::execute(const char *filename, std::vector<int> qub
                 inGateDef = true; // TODO: unsure if this is necessary
             }
         } else if (line.find("=") != std::string::npos && line.find("measure") != std::string::npos) {
-            const std::regex m("([^ ]+) *= *measure.*\\[(\\d+)\\]"); // result = measure problem[4];
+            const std::regex m("([^ ]+) *= *measure"); // result = measure problem[4];
             std::sregex_iterator it(line.cbegin(), line.cend(), m);
             if (it == kRegexEnd)
                 THROW_AUTOQ_ERROR("Expected measure assignment (var = measure ...[n]) in \"" + line + "\".");
             std::string result = it->str(1);
-            int pos = 1 + qubit_permutation[atoi(it->str(2).c_str())]; // the automaton level of the qubit, as for gates
+            auto qubit = line.substr(line.find("measure") + std::strlen("measure"));
+            int pos = qubit_operands(qubit, line, 1, qubitNum, qubit_permutation).at(0);
             var_is_measure_what_qubit[result] = pos;
             // TODO: Actually, we should split the automaton here into two separate copies which
             // are produced from the measurement outcome of 0 and 1, respectively. However, we do
@@ -284,57 +292,62 @@ void AUTOQ::Automata<Symbol>::handle_else(const Automata<Symbol>& measure_to_els
 
 template <typename Symbol>
 void AUTOQ::Automata<Symbol>::single_gate_execute(const std::string& line, const AUTOQ::QasmRegexes& re, const std::vector<int>& qubit_permutation) {
+    auto operands = [&](int expected) {
+        return qubit_operands(line, line, expected, qubitNum, qubit_permutation);
+    };
     std::smatch match_rx;
     std::regex_search(line, match_rx, re.rx);
     std::smatch match_rz;
     std::regex_search(line, match_rz, re.rz);
 
-    // Regex-based gates
-    if (match_rx.size() == 3) {
-        Rx(AUTOQ::Parsing::parse_angle_to_rational(match_rx[1].str(), "rx", "(1/2)"),
-           1 + qubit_permutation[atoi(match_rx[2].str().c_str())]);
+    // Regex-based gates. The angle is parsed by its own regex; the qubit comes
+    // from name[n], so a digit inside the angle is not an index.
+    if (line.find("rx(") == 0) {
+        if (match_rx.size() != 3)
+            THROW_AUTOQ_ERROR("Expected 1 qubit operand(s) in \"" + line + "\".");
+        Rx(AUTOQ::Parsing::parse_angle_to_rational(match_rx[1].str(), "rx", "(1/2)"), operands(1).at(0));
         return;
     }
-    if (match_rz.size() == 3) {
-        Rz(AUTOQ::Parsing::parse_angle_to_rational(match_rz[1].str(), "rz", "(1/2)"),
-           1 + qubit_permutation[atoi(match_rz[2].str().c_str())]);
+    if (line.find("rz(") == 0) {
+        if (match_rz.size() != 3)
+            THROW_AUTOQ_ERROR("Expected 1 qubit operand(s) in \"" + line + "\".");
+        Rz(AUTOQ::Parsing::parse_angle_to_rational(match_rz[1].str(), "rz", "(1/2)"), operands(1).at(0));
         return;
     }
     if (line.find("ry(pi/2) ") == 0 || line.find("ry(pi / 2)") == 0) {
-        std::vector<int> pos = parse_qubit_indices(line, re, qubit_permutation);
-        Ry(pos[1]);
+        Ry(operands(1).at(0));
         return;
     }
 
     // Prefix dispatch table: (check, handler)
     using Handler = std::function<void()>;
     std::vector<std::pair<std::function<bool()>, Handler>> table = {
-        {[&]{ return line.find("x ") == 0; }, [&]{ X(first_qubit_index(line, re, qubit_permutation)); }},
-        {[&]{ return line.find("y ") == 0; }, [&]{ Y(first_qubit_index(line, re, qubit_permutation)); }},
-        {[&]{ return line.find("z ") == 0; }, [&]{ Z(first_qubit_index(line, re, qubit_permutation)); }},
-        {[&]{ return line.find("h ") == 0; }, [&]{ H(first_qubit_index(line, re, qubit_permutation)); }},
-        {[&]{ return line.find("s ") == 0; }, [&]{ S(first_qubit_index(line, re, qubit_permutation)); }},
-        {[&]{ return line.find("sdg ") == 0; }, [&]{ Sdg(first_qubit_index(line, re, qubit_permutation)); }},
-        {[&]{ return line.find("t ") == 0; }, [&]{ T(first_qubit_index(line, re, qubit_permutation)); }},
-        {[&]{ return line.find("tdg ") == 0; }, [&]{ Tdg(first_qubit_index(line, re, qubit_permutation)); }},
+        {[&]{ return line.find("x ") == 0; }, [&]{ X(operands(1).at(0)); }},
+        {[&]{ return line.find("y ") == 0; }, [&]{ Y(operands(1).at(0)); }},
+        {[&]{ return line.find("z ") == 0; }, [&]{ Z(operands(1).at(0)); }},
+        {[&]{ return line.find("h ") == 0; }, [&]{ H(operands(1).at(0)); }},
+        {[&]{ return line.find("s ") == 0; }, [&]{ S(operands(1).at(0)); }},
+        {[&]{ return line.find("sdg ") == 0; }, [&]{ Sdg(operands(1).at(0)); }},
+        {[&]{ return line.find("t ") == 0; }, [&]{ T(operands(1).at(0)); }},
+        {[&]{ return line.find("tdg ") == 0; }, [&]{ Tdg(operands(1).at(0)); }},
         {[&]{ return line.find("cx ") == 0 || line.find("CX ") == 0; }, [&]{
-            auto pos = parse_qubit_indices(line, re, qubit_permutation);
+            auto pos = operands(2);
             CX(pos[0], pos[1]);
         }},
         {[&]{ return line.find("cz ") == 0; }, [&]{
-            auto pos = parse_qubit_indices(line, re, qubit_permutation);
+            auto pos = operands(2);
             CZ(pos[0], pos[1]);
         }},
         {[&]{ return line.find("ck ") == 0; }, [&]{
-            auto pos = parse_qubit_indices(line, re, qubit_permutation);
+            auto pos = operands(2);
             CK(pos[0], pos[1]);
         }},
         {[&]{ return line.find("ccx ") == 0; }, [&]{
-            auto pos = parse_qubit_indices(line, re, qubit_permutation);
+            auto pos = operands(3);
             CCX(pos[0], pos[1], pos[2]);
         }},
         {[&]{ return line.find("swap ") == 0; }, [&]{
-            auto pos = parse_qubit_indices(line, re, qubit_permutation);
+            auto pos = operands(2);
             Swap(pos[0], pos[1]);
         }},
     };

@@ -49,12 +49,15 @@
             auto varcon = visit(ctx->varcon());
             const std::type_info &type = varcon.type();
             if (type == typeid(std::pair<char, int>)) {
-                std::get<0>(result) = std::any_cast<std::pair<char, int>>(varcon).second;
-                std::get<1>(result).insert(std::any_cast<std::pair<char, int>>(varcon).first);
+                auto declared = std::any_cast<std::pair<char, int>>(varcon);
+                remember_shuffle_length(declared.first, declared.second);
+                std::get<0>(result) = declared.second;
+                std::get<1>(result).insert(declared.first);
             } else if (type == typeid(ineq_t)) {
                 std::get<2>(result).insert(std::any_cast<ineq_t>(varcon));
             } else { // if (type == typeid(eq_t)) {
                 auto eq = std::any_cast<eq_t>(varcon);
+                remember_shuffle_length(eq.first, static_cast<int>(eq.second.length()));
                 std::get<0>(result) = eq.second.length();
                 std::get<3>(result)[eq.first] = eq.second;
             }

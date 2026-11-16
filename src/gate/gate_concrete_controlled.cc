@@ -12,12 +12,12 @@
 // --- Concrete controlled: CX, CZ, CCX ---
 template <typename Symbol>
 void AUTOQ::Automata<Symbol>::CX(int c, int t, bool opt) {
+    require_qubits({c, t});
     #ifdef TO_QASM
         system(("echo 'cx qubits[" + std::to_string(c-1) + "], qubits[" + std::to_string(t-1) + "];' >> " + QASM_FILENAME).c_str());
         return;
     #endif
     auto start = std::chrono::steady_clock::now();
-    assert(c != t);
     if (c > t) {
         general_controlled_gate(c, t,
             [](const Symbol &, const Symbol &r) -> Symbol { return r; },
@@ -139,11 +139,11 @@ void AUTOQ::Automata<Symbol>::CX(int c, int t, bool opt) {
     // }*/
 template <typename Symbol>
 void AUTOQ::Automata<Symbol>::CZ(int c, int t) {
+    require_qubits({c, t});
     #ifdef TO_QASM
         system(("echo 'cz qubits[" + std::to_string(c-1) + "], qubits[" + std::to_string(t-1) + "];' >> " + QASM_FILENAME).c_str());
         return;
     #endif
-    assert(c != t);
     if (c > t) std::swap(c, t);
     auto start = std::chrono::steady_clock::now();
     TopDownTransitions transitions2;
@@ -354,12 +354,12 @@ void AUTOQ::Automata<Symbol>::CZ(int c, int t) {
 
 template <typename Symbol>
 void AUTOQ::Automata<Symbol>::CCX(int c, int c2, int t) {
+    require_qubits({c, c2, t});
     #ifdef TO_QASM
         system(("echo 'ccx qubits[" + std::to_string(c-1) + "], qubits[" + std::to_string(c2-1) + "], qubits[" + std::to_string(t-1) + "];' >> " + QASM_FILENAME).c_str());
         return;
     #endif
     auto start = std::chrono::steady_clock::now();
-    assert(c != c2 && c2 != t && t != c);
     if (c > c2) std::swap(c, c2); // ensure c < c2
     if (c2 < t) { // c < c2 < t
         TopDownTransitions transitions2;

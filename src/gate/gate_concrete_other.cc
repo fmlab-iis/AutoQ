@@ -28,6 +28,7 @@ void AUTOQ::Automata<Symbol>::Sdg(int t) {
 
 template <typename Symbol>
 void AUTOQ::Automata<Symbol>::Swap(int t1, int t2) {
+    require_qubits({t1, t2});
     // #ifdef TO_QASM
     //     system(("echo 'swap qubits[" + std::to_string(t1-1) + "], qubits[" + std::to_string(t2-1) + "];' >> " + QASM_FILENAME).c_str());
     //     return;
@@ -100,6 +101,7 @@ void AUTOQ::Automata<Symbol>::Phase(const boost::rational<boost::multiprecision:
 
 template <typename Symbol>
 void AUTOQ::Automata<Symbol>::CK(int c, int t) {
+    require_qubits({c, t});
     #ifdef TO_QASM
         system(("echo 'ck qubits[" + std::to_string(t-1) + "];' >> " + QASM_FILENAME).c_str());
         return;
@@ -117,6 +119,7 @@ void AUTOQ::Automata<Symbol>::CK(int c, int t) {
 
 template <typename Symbol>
 AUTOQ::Automata<Symbol> AUTOQ::Automata<Symbol>::measure(int t, bool outcome) const {
+    require_qubits({t});
     #ifdef TO_QASM
         system(("echo 'measure qubits[" + std::to_string(t-1) + "];' >> " + QASM_FILENAME).c_str());
         return;

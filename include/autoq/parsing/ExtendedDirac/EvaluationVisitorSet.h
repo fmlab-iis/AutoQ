@@ -174,6 +174,9 @@
             if (ctx->UNION() != nullptr) {
                 THROW_AUTOQ_ERROR("There should be no UNION in SHUFFLE_UNITS_IN_A_GROUP_WRT_QUBITS_AND_CONSTRUCT_LSTA_FINALLY mode.");
             }
+            // One set can be parsed at a time. Lengths recorded while visiting
+            // its constraints must not leak into the next set.
+            shuffleVar2len.clear();
             AUTOQ::Automata<AUTOQ::Symbol::Constrained> autAll;
             auto terms = std::any_cast<std::vector<std::tuple<std::string, std::optional<std::tuple<int, std::set<char>, ineqS_t, eqs_t>>, std::string>>>(visit(ctx->diracs()));
             auto vc_global = (ctx->varcons() == nullptr) ? std::tuple<int, std::set<char>, ineqS_t, eqs_t>()
@@ -195,6 +198,33 @@
             for (const auto &term : terms) {
                 if (std::get<1>(term).has_value())
                     require_constant_width(std::get<2>(std::get<1>(term).value()));
+            }
+            // x≠y compares the variables bit by bit, so both need a length and
+            // the two lengths have to agree. The clauses may appear in any order.
+            auto require_same_variable_length = [&](const ineqS_t &ineqs) {
+                for (const auto &ineq : ineqs) {
+                    const std::string &rhs = ineq.second;
+                    if (rhs.size() != 1 || rhs.front() < 'a' || rhs.front() > 'z')
+                        continue;
+                    if (ineq.first.size() != 1)
+                        continue;
+                    auto il = shuffleVar2len.find(ineq.first.front());
+                    auto ir = shuffleVar2len.find(rhs.front());
+                    const std::string shown = ineq.first + "≠" + rhs;
+                    if (il == shuffleVar2len.end() || ir == shuffleVar2len.end()) {
+                        THROW_AUTOQ_ERROR("The variables in \"" + shown + "\" must both have a declared length.");
+                    }
+                    if (il->second != ir->second) {
+                        THROW_AUTOQ_ERROR("The variables in \"" + shown + "\" have lengths |"
+                            + ineq.first + "|=" + std::to_string(il->second) + " and |"
+                            + rhs + "|=" + std::to_string(ir->second) + ".");
+                    }
+                }
+            };
+            require_same_variable_length(std::get<2>(vc_global));
+            for (const auto &term : terms) {
+                if (std::get<1>(term).has_value())
+                    require_same_variable_length(std::get<2>(std::get<1>(term).value()));
             }
             for (int q=0; q<num_qubits; q++) { // one qubit, one LSTA, and we finally tensor them all.
                 AUTOQ::Automata<AUTOQ::Symbol::Constrained> autQ;
