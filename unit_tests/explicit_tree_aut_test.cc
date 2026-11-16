@@ -754,3 +754,16 @@ BOOST_AUTO_TEST_CASE(inclusion_into_empty_automaton){
     auto empty_sym = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Symbolic>::ReadAutomaton(folder + "empty.lsta");
     BOOST_CHECK(!(zero_sym <<= empty_sym));
 }
+
+// A gate target is a 1-based level of this automaton. An index past the last
+// qubit, or the same qubit twice, is an input error (#24).
+BOOST_AUTO_TEST_CASE(gate_operand_must_name_a_qubit_of_the_automaton)
+{
+    auto aut = AUTOQ::ConcreteAutomata::basis(1);
+    BOOST_CHECK_THROW(aut.Z(2), AutoQError);
+    BOOST_CHECK_THROW(aut.X(0), AutoQError);
+    BOOST_CHECK_THROW(aut.H(-1), AutoQError);
+    BOOST_CHECK_THROW(aut.CX(1, 1), AutoQError);
+    BOOST_CHECK_THROW(aut.measure(2, false), AutoQError);
+    aut.X(1);
+}
