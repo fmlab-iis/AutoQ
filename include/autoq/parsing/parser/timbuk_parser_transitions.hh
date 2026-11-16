@@ -8,11 +8,37 @@
  *****************************************************************************/
 #ifndef AUTOQ_PARSING_TIMBUK_PARSER_TRANSITIONS_HH
 #define AUTOQ_PARSING_TIMBUK_PARSER_TRANSITIONS_HH
+#include <algorithm>
+#include <cctype>
 #include <regex>
+#include "autoq/error.hh"
 #include "autoq/error_messages.hh"
 #include "autoq/parsing/parser/timbuk_parser_grammar.hh"
 
-namespace { const std::regex kRootStates("Root +States"); }
+namespace {
+const std::regex kRootStates("Root +States");
+
+// A colored label is "symbol,color". The color is checked before the symbol
+// is parsed, so a missing or non-numeric color is an invalid transition and
+// is not mistaken for an undefined constant (#36).
+template <typename Tag>
+std::pair<std::string, Tag> split_colored_label(const std::string& label, const std::string& invalid_trans_str) {
+    const auto comma = label.find(',');
+    if (comma == std::string::npos)
+        THROW_AUTOQ_ERROR(invalid_trans_str);
+    const std::string symbol = AUTOQ::String::trim(label.substr(0, comma));
+    const std::string color_text = AUTOQ::String::trim(label.substr(comma + 1));
+    const bool numeric = !color_text.empty() &&
+        std::all_of(color_text.begin(), color_text.end(), [](unsigned char c) { return std::isdigit(c) != 0; });
+    if (symbol.empty() || !numeric || color_text.find(',') != std::string::npos)
+        THROW_AUTOQ_ERROR(invalid_trans_str);
+    try {
+        return {symbol, boost::lexical_cast<Tag>(color_text)};
+    } catch (const boost::bad_lexical_cast&) {
+        THROW_AUTOQ_ERROR(invalid_trans_str);
+    }
+}
+}
 
 template <typename Symbol>
 AUTOQ::Automata<Symbol> parse_automaton(const std::string& str, const std::map<std::string, AUTOQ::Complex::Complex> &constants, const std::map<std::string, std::string> &predicates, bool throw_on_undefined, bool* out_encountered_undefined) {
@@ -81,7 +107,8 @@ AUTOQ::Automata<Symbol> parse_automaton(const std::string& str, const std::map<s
 					THROW_AUTOQ_ERROR(invalid_trans_str);
 				}
                 /*******************************************************************************************************************/
-                assert(lhs.front() == '[' && lhs.back() == ']');
+                if (lhs.size() < 2 || lhs.front() != '[' || lhs.back() != ']')
+                    THROW_AUTOQ_ERROR(invalid_trans_str);
                 lhs = lhs.substr(1, lhs.size()-2);
                 int t;
                 auto it = states.find(rhs);
@@ -94,33 +121,32 @@ AUTOQ::Automata<Symbol> parse_automaton(const std::string& str, const std::map<s
                 if constexpr(std::is_same_v<Symbol, AUTOQ::ConcreteAutomata::Symbol>) {
                     try {
                         if (colored) {
-                            std::istringstream ss(lhs); // Create a stringstream from the input string
-                            std::string token; // Tokenize the input string using a comma delimiter
-                            std::getline(ss, token, ',');
-                            auto sym = Symbol(boost::lexical_cast<int>(token));
-                            std::getline(ss, token, ',');
-                            auto color = boost::lexical_cast<AUTOQ::ConcreteAutomata::Tag>(token);
-                            result.transitions[AUTOQ::ConcreteAutomata::SymbolTag(sym, AUTOQ::ConcreteAutomata::Tag(color))][t].insert(std::vector<AUTOQ::ConcreteAutomata::State>());
+                            auto [token, color] = split_colored_label<AUTOQ::ConcreteAutomata::Tag>(lhs, invalid_trans_str);
+                            try {
+                                auto sym = Symbol(boost::lexical_cast<int>(token));
+                                result.transitions[AUTOQ::ConcreteAutomata::SymbolTag(sym, AUTOQ::ConcreteAutomata::Tag(color))][t].insert(std::vector<AUTOQ::ConcreteAutomata::State>());
+                            } catch (const AutoQError&) {
+                                throw;
+                            } catch (...) {
+                                auto it = constants.find(token);
+                                if (it == constants.end()) {
+                                    if (!throw_on_undefined) {
+                                        if (out_encountered_undefined) *out_encountered_undefined = true;
+                                        return {};
+                                    }
+                                    THROW_AUTOQ_ERROR(std::string(AUTOQ::ErrorMessages::kConstantNotDefinedPrefix) + token + AUTOQ::ErrorMessages::kConstantNotDefinedSuffix);
+                                }
+                                auto sym = Symbol(it->second);
+                                result.transitions[AUTOQ::ConcreteAutomata::SymbolTag(sym, AUTOQ::ConcreteAutomata::Tag(color))][t].insert(std::vector<AUTOQ::ConcreteAutomata::State>());
+                            }
                         } else {
                             result.transitions[AUTOQ::ConcreteAutomata::SymbolTag(Symbol(boost::lexical_cast<int>(lhs)), AUTOQ::ConcreteAutomata::Tag(1))][t].insert(std::vector<AUTOQ::ConcreteAutomata::State>());
                         }
+                    } catch (const AutoQError&) {
+                        throw;
                     } catch (...) {
                         if (colored) {
-                            std::istringstream ss(lhs); // Create a stringstream from the input string
-                            std::string token; // Tokenize the input string using a comma delimiter
-                            std::getline(ss, token, ',');
-                            auto it = constants.find(token);
-                            if (it == constants.end()) {
-                                if (!throw_on_undefined) {
-                                    if (out_encountered_undefined) *out_encountered_undefined = true;
-                                    return {};
-                                }
-                                THROW_AUTOQ_ERROR(std::string(AUTOQ::ErrorMessages::kConstantNotDefinedPrefix) + token + AUTOQ::ErrorMessages::kConstantNotDefinedSuffix);
-                            }
-                            auto sym = Symbol(it->second);
-                            std::getline(ss, token, ',');
-                            auto color = boost::lexical_cast<AUTOQ::ConcreteAutomata::Tag>(token);
-                            result.transitions[AUTOQ::ConcreteAutomata::SymbolTag(sym, AUTOQ::ConcreteAutomata::Tag(color))][t].insert(std::vector<AUTOQ::ConcreteAutomata::State>());
+                            THROW_AUTOQ_ERROR(invalid_trans_str);
                         } else {
                             auto it = constants.find(lhs);
                             if (it == constants.end()) {
@@ -136,33 +162,32 @@ AUTOQ::Automata<Symbol> parse_automaton(const std::string& str, const std::map<s
                 } else if constexpr(std::is_same_v<Symbol, AUTOQ::PredicateAutomata::Symbol>) {
                     try {
                         if (colored) {
-                            std::istringstream ss(lhs); // Create a stringstream from the input string
-                            std::string token; // Tokenize the input string using a comma delimiter
-                            std::getline(ss, token, ',');
-                            auto sym = Symbol(boost::lexical_cast<int>(token));
-                            std::getline(ss, token, ',');
-                            auto color = boost::lexical_cast<AUTOQ::PredicateAutomata::Tag>(token);
-                            result.transitions[AUTOQ::PredicateAutomata::SymbolTag(sym, AUTOQ::PredicateAutomata::Tag(color))][t].insert(std::vector<AUTOQ::PredicateAutomata::State>());
+                            auto [token, color] = split_colored_label<AUTOQ::PredicateAutomata::Tag>(lhs, invalid_trans_str);
+                            try {
+                                auto sym = Symbol(boost::lexical_cast<int>(token));
+                                result.transitions[AUTOQ::PredicateAutomata::SymbolTag(sym, AUTOQ::PredicateAutomata::Tag(color))][t].insert(std::vector<AUTOQ::PredicateAutomata::State>());
+                            } catch (const AutoQError&) {
+                                throw;
+                            } catch (...) {
+                                auto it = predicates.find(token);
+                                if (it == predicates.end()) {
+                                    if (!throw_on_undefined) {
+                                        if (out_encountered_undefined) *out_encountered_undefined = true;
+                                        return {};
+                                    }
+                                    THROW_AUTOQ_ERROR(std::string(AUTOQ::ErrorMessages::kConstantNotDefinedPrefix) + token + AUTOQ::ErrorMessages::kConstantNotDefinedSuffix);
+                                }
+                                auto sym = Symbol(it->second.c_str());
+                                result.transitions[AUTOQ::PredicateAutomata::SymbolTag(sym, AUTOQ::PredicateAutomata::Tag(color))][t].insert(std::vector<AUTOQ::PredicateAutomata::State>());
+                            }
                         } else {
                             result.transitions[AUTOQ::PredicateAutomata::SymbolTag(Symbol(boost::lexical_cast<int>(lhs)), AUTOQ::PredicateAutomata::Tag(1))][t].insert(std::vector<AUTOQ::ConcreteAutomata::State>());
                         }
+                    } catch (const AutoQError&) {
+                        throw;
                     } catch (...) {
                         if (colored) {
-                            std::istringstream ss(lhs); // Create a stringstream from the input string
-                            std::string token; // Tokenize the input string using a comma delimiter
-                            std::getline(ss, token, ',');
-                            auto it = predicates.find(token);
-                            if (it == predicates.end()) {
-                                if (!throw_on_undefined) {
-                                    if (out_encountered_undefined) *out_encountered_undefined = true;
-                                    return {};
-                                }
-                                THROW_AUTOQ_ERROR(std::string(AUTOQ::ErrorMessages::kConstantNotDefinedPrefix) + token + AUTOQ::ErrorMessages::kConstantNotDefinedSuffix);
-                            }
-                            auto sym = Symbol(it->second.c_str());
-                            std::getline(ss, token, ',');
-                            auto color = boost::lexical_cast<AUTOQ::PredicateAutomata::Tag>(token);
-                            result.transitions[AUTOQ::PredicateAutomata::SymbolTag(sym, AUTOQ::PredicateAutomata::Tag(color))][t].insert(std::vector<AUTOQ::PredicateAutomata::State>());
+                            THROW_AUTOQ_ERROR(invalid_trans_str);
                         } else {
                             auto it = predicates.find(lhs);
                             if (it == predicates.end()) {
@@ -177,13 +202,9 @@ AUTOQ::Automata<Symbol> parse_automaton(const std::string& str, const std::map<s
                     }
                 } else { // if constexpr(std::is_same_v<Symbol, AUTOQ::SymbolicAutomata::Symbol>) {
                     if (colored) {
-                        std::istringstream ss(lhs); // Create a stringstream from the input string
-                        std::string token; // Tokenize the input string using a comma delimiter
-                        std::getline(ss, token, ',');
+                        auto [token, color] = split_colored_label<AUTOQ::SymbolicAutomata::Tag>(lhs, invalid_trans_str);
                         EvaluationVisitor<>::SymbolicComplexParser scp(token, constants);
                         auto sym = Symbol(scp.getSymbolicComplex());
-                        std::getline(ss, token, ',');
-                        auto color = boost::lexical_cast<AUTOQ::SymbolicAutomata::Tag>(token);
                         result.transitions[AUTOQ::SymbolicAutomata::SymbolTag(sym, AUTOQ::SymbolicAutomata::Tag(color))][t].insert(std::vector<AUTOQ::SymbolicAutomata::State>());
                         for (const auto &var: scp.getNewVars())
                             result.vars.insert(var);
@@ -243,16 +264,20 @@ AUTOQ::Automata<Symbol> parse_automaton(const std::string& str, const std::map<s
                 if (t > result.stateNum) result.stateNum = t;
                 // if (symbol == "[1]")
                 //     result.finalStates.push_back(t);
+                if (symbol.size() < 2 || symbol.front() != '[' || symbol.back() != ']')
+                    THROW_AUTOQ_ERROR(invalid_trans_str);
                 symbol = symbol.substr(1, symbol.length()-2);
                 if constexpr(std::is_same_v<Symbol, AUTOQ::ConcreteAutomata::Symbol>) {
                     if (colored) {
-                        std::istringstream ss(symbol); // Create a stringstream from the input string
-                        std::string token; // Tokenize the input string using a comma delimiter
-                        std::getline(ss, token, ',');
-                        auto sym = Symbol(boost::lexical_cast<int>(token));
-                        std::getline(ss, token, ',');
-                        auto color = boost::lexical_cast<AUTOQ::ConcreteAutomata::Tag>(token);
-                        result.transitions[AUTOQ::ConcreteAutomata::SymbolTag(sym, AUTOQ::ConcreteAutomata::Tag(color))][t].insert(state_vector);
+                        auto [token, color] = split_colored_label<AUTOQ::ConcreteAutomata::Tag>(symbol, invalid_trans_str);
+                        try {
+                            auto sym = Symbol(boost::lexical_cast<int>(token));
+                            result.transitions[AUTOQ::ConcreteAutomata::SymbolTag(sym, AUTOQ::ConcreteAutomata::Tag(color))][t].insert(state_vector);
+                        } catch (const AutoQError&) {
+                            throw;
+                        } catch (...) {
+                            THROW_AUTOQ_ERROR(invalid_trans_str);
+                        }
                     } else {
                         result.transitions[AUTOQ::ConcreteAutomata::SymbolTag(Symbol(boost::lexical_cast<int>(symbol)), AUTOQ::ConcreteAutomata::Tag(1))][t].insert(state_vector);
                     }
@@ -260,12 +285,8 @@ AUTOQ::Automata<Symbol> parse_automaton(const std::string& str, const std::map<s
                     //     result.finalStates.push_back(t);
                 } else if constexpr(std::is_same_v<Symbol, AUTOQ::PredicateAutomata::Symbol>) {
                     if (colored) {
-                        std::istringstream ss(symbol); // Create a stringstream from the input string
-                        std::string token; // Tokenize the input string using a comma delimiter
-                        std::getline(ss, token, ',');
+                        auto [token, color] = split_colored_label<AUTOQ::PredicateAutomata::Tag>(symbol, invalid_trans_str);
                         auto sym = parse_symbol<Symbol>(token);
-                        std::getline(ss, token, ',');
-                        auto color = boost::lexical_cast<AUTOQ::PredicateAutomata::Tag>(token);
                         result.transitions[AUTOQ::PredicateAutomata::SymbolTag(sym, AUTOQ::PredicateAutomata::Tag(color))][t].insert(state_vector);
                         // if (boost::lexical_cast<int>(sym.qubit()) == 1)
                         //     result.finalStates.push_back(t);
@@ -274,12 +295,8 @@ AUTOQ::Automata<Symbol> parse_automaton(const std::string& str, const std::map<s
                     }
                 } else { // if constexpr(std::is_same_v<Symbol, AUTOQ::SymbolicAutomata::Symbol>) {
                     if (colored) {
-                        std::istringstream ss(symbol); // Create a stringstream from the input string
-                        std::string token; // Tokenize the input string using a comma delimiter
-                        std::getline(ss, token, ',');
+                        auto [token, color] = split_colored_label<AUTOQ::SymbolicAutomata::Tag>(symbol, invalid_trans_str);
                         auto sym = parse_symbol<Symbol>(token);
-                        std::getline(ss, token, ',');
-                        auto color = boost::lexical_cast<AUTOQ::SymbolicAutomata::Tag>(token);
                         result.transitions[AUTOQ::SymbolicAutomata::SymbolTag(sym, AUTOQ::SymbolicAutomata::Tag(color))][t].insert(state_vector);
                         // if (boost::lexical_cast<int>(sym.qubit()) == 1)
                         //     result.finalStates.push_back(t);

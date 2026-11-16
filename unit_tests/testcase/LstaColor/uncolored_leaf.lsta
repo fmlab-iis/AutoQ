@@ -1,0 +1,4 @@
+Root States r
+Transitions
+[1,1](q, q) -> r
+[v] -> q

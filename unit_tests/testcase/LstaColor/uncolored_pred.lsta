@@ -1,0 +1,6 @@
+Predicates
+vH := (> $R 0)
+Root States r
+Transitions
+[1,1](q, q) -> r
+[vH] -> q
