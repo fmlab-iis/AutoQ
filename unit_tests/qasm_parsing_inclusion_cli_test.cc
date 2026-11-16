@@ -472,3 +472,23 @@ BOOST_AUTO_TEST_CASE(integer_leaf_is_an_amplitude)
     BOOST_CHECK_MESSAGE(neg_out.find("|0>") != std::string::npos, neg_out);
     BOOST_CHECK_MESSAGE(neg_out.find("map::at") == std::string::npos, neg_out);
 }
+
+// .aut is not a supported input. It must get the same extension error as any
+// other unknown suffix, not "The type of Complex is not supported!" (#48).
+BOOST_AUTO_TEST_CASE(aut_extension_is_not_supported)
+{
+    std::string dir = test_dir_from_file(__FILE__, "testcase/AutExtension/");
+    auto f = [&](const std::string& name) { return "\"" + dir + name + "\""; };
+    const std::vector<std::string> commands = {
+        "print " + f("zero.aut"),
+        "print " + f("sym.aut"),
+        "ex " + f("zero.aut") + " " + f("x.qasm"),
+        "ver " + f("zero.hsl") + " " + f("x.qasm") + " " + f("zero.aut"),
+    };
+    for (const auto& command : commands) {
+        auto [code, output] = run_cli(command);
+        BOOST_CHECK_MESSAGE(code == 1, command + ": exit status " + std::to_string(code) + ", output: " + output);
+        BOOST_CHECK_MESSAGE(output.find("The filename extension is not supported.") != std::string::npos, output);
+        BOOST_CHECK_MESSAGE(output.find("The type of Complex is not supported!") == std::string::npos, output);
+    }
+}
