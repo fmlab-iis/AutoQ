@@ -1,7 +1,7 @@
 /*****************************************************************************
  *  AUTOQ Timbuk parser – transition table (.lsta-style).
  *
- *  Parses Root States + Transitions (colored, constants/predicates).
+ *  Parses Root States + Transitions. Every label is [symbol,color].
  *  Depends on timbuk_parser_grammar.hh for parse_symbol.
  *
  *  Main function: parse_automaton(str, constants, predicates, ...).
@@ -42,7 +42,6 @@ std::pair<std::string, Tag> split_colored_label(const std::string& label, const 
 
 template <typename Symbol>
 AUTOQ::Automata<Symbol> parse_automaton(const std::string& str, const std::map<std::string, AUTOQ::Complex::Complex> &constants, const std::map<std::string, std::string> &predicates, bool throw_on_undefined, bool* out_encountered_undefined) {
-    bool colored = false;
     bool start_transitions = false;
     bool already_root_states = false;
     AUTOQ::Automata<Symbol> result;
@@ -57,7 +56,6 @@ AUTOQ::Automata<Symbol> parse_automaton(const std::string& str, const std::map<s
 		if (!start_transitions) {    // processing numbers
             if (str.substr(0, 7) == "Colored") {
                 AUTOQ::String::read_word(str); // after this command, "str" is expected to be "Transitions"
-                colored = true;
             }
             std::smatch root_header;
             if (std::regex_search(str, root_header, kRootStates)) {  // processing root states
@@ -72,7 +70,6 @@ AUTOQ::Automata<Symbol> parse_automaton(const std::string& str, const std::map<s
                 continue;
             }
             if (str == "Transitions") {
-                colored = true;
                 if (!already_root_states) {
                     THROW_AUTOQ_ERROR(AUTOQ::ErrorMessages::kRootStatesNotSpecified);
                 }
@@ -120,100 +117,61 @@ AUTOQ::Automata<Symbol> parse_automaton(const std::string& str, const std::map<s
                 if (t > result.stateNum) result.stateNum = t;
                 if constexpr(std::is_same_v<Symbol, AUTOQ::ConcreteAutomata::Symbol>) {
                     try {
-                        if (colored) {
-                            auto [token, color] = split_colored_label<AUTOQ::ConcreteAutomata::Tag>(lhs, invalid_trans_str);
-                            try {
-                                auto sym = Symbol(boost::lexical_cast<int>(token));
-                                result.transitions[AUTOQ::ConcreteAutomata::SymbolTag(sym, AUTOQ::ConcreteAutomata::Tag(color))][t].insert(std::vector<AUTOQ::ConcreteAutomata::State>());
-                            } catch (const AutoQError&) {
-                                throw;
-                            } catch (...) {
-                                auto it = constants.find(token);
-                                if (it == constants.end()) {
-                                    if (!throw_on_undefined) {
-                                        if (out_encountered_undefined) *out_encountered_undefined = true;
-                                        return {};
-                                    }
-                                    THROW_AUTOQ_ERROR(std::string(AUTOQ::ErrorMessages::kConstantNotDefinedPrefix) + token + AUTOQ::ErrorMessages::kConstantNotDefinedSuffix);
-                                }
-                                auto sym = Symbol(it->second);
-                                result.transitions[AUTOQ::ConcreteAutomata::SymbolTag(sym, AUTOQ::ConcreteAutomata::Tag(color))][t].insert(std::vector<AUTOQ::ConcreteAutomata::State>());
-                            }
-                        } else {
-                            result.transitions[AUTOQ::ConcreteAutomata::SymbolTag(Symbol(boost::lexical_cast<int>(lhs)), AUTOQ::ConcreteAutomata::Tag(1))][t].insert(std::vector<AUTOQ::ConcreteAutomata::State>());
-                        }
-                    } catch (const AutoQError&) {
-                        throw;
-                    } catch (...) {
-                        if (colored) {
-                            THROW_AUTOQ_ERROR(invalid_trans_str);
-                        } else {
-                            auto it = constants.find(lhs);
+                        auto [token, color] = split_colored_label<AUTOQ::ConcreteAutomata::Tag>(lhs, invalid_trans_str);
+                        try {
+                            auto sym = Symbol(boost::lexical_cast<int>(token));
+                            result.transitions[AUTOQ::ConcreteAutomata::SymbolTag(sym, AUTOQ::ConcreteAutomata::Tag(color))][t].insert(std::vector<AUTOQ::ConcreteAutomata::State>());
+                        } catch (const AutoQError&) {
+                            throw;
+                        } catch (...) {
+                            auto it = constants.find(token);
                             if (it == constants.end()) {
                                 if (!throw_on_undefined) {
                                     if (out_encountered_undefined) *out_encountered_undefined = true;
                                     return {};
                                 }
-                                THROW_AUTOQ_ERROR(std::string(AUTOQ::ErrorMessages::kConstantNotDefinedPrefix) + lhs + AUTOQ::ErrorMessages::kConstantNotDefinedSuffix);
+                                THROW_AUTOQ_ERROR(std::string(AUTOQ::ErrorMessages::kConstantNotDefinedPrefix) + token + AUTOQ::ErrorMessages::kConstantNotDefinedSuffix);
                             }
-                            result.transitions[AUTOQ::ConcreteAutomata::SymbolTag(Symbol(it->second), AUTOQ::ConcreteAutomata::Tag(1))][t].insert(std::vector<AUTOQ::ConcreteAutomata::State>());
-                        }
-                    }
-                } else if constexpr(std::is_same_v<Symbol, AUTOQ::PredicateAutomata::Symbol>) {
-                    try {
-                        if (colored) {
-                            auto [token, color] = split_colored_label<AUTOQ::PredicateAutomata::Tag>(lhs, invalid_trans_str);
-                            try {
-                                auto sym = Symbol(boost::lexical_cast<int>(token));
-                                result.transitions[AUTOQ::PredicateAutomata::SymbolTag(sym, AUTOQ::PredicateAutomata::Tag(color))][t].insert(std::vector<AUTOQ::PredicateAutomata::State>());
-                            } catch (const AutoQError&) {
-                                throw;
-                            } catch (...) {
-                                auto it = predicates.find(token);
-                                if (it == predicates.end()) {
-                                    if (!throw_on_undefined) {
-                                        if (out_encountered_undefined) *out_encountered_undefined = true;
-                                        return {};
-                                    }
-                                    THROW_AUTOQ_ERROR(std::string(AUTOQ::ErrorMessages::kConstantNotDefinedPrefix) + token + AUTOQ::ErrorMessages::kConstantNotDefinedSuffix);
-                                }
-                                auto sym = Symbol(it->second.c_str());
-                                result.transitions[AUTOQ::PredicateAutomata::SymbolTag(sym, AUTOQ::PredicateAutomata::Tag(color))][t].insert(std::vector<AUTOQ::PredicateAutomata::State>());
-                            }
-                        } else {
-                            result.transitions[AUTOQ::PredicateAutomata::SymbolTag(Symbol(boost::lexical_cast<int>(lhs)), AUTOQ::PredicateAutomata::Tag(1))][t].insert(std::vector<AUTOQ::ConcreteAutomata::State>());
+                            auto sym = Symbol(it->second);
+                            result.transitions[AUTOQ::ConcreteAutomata::SymbolTag(sym, AUTOQ::ConcreteAutomata::Tag(color))][t].insert(std::vector<AUTOQ::ConcreteAutomata::State>());
                         }
                     } catch (const AutoQError&) {
                         throw;
                     } catch (...) {
-                        if (colored) {
-                            THROW_AUTOQ_ERROR(invalid_trans_str);
-                        } else {
-                            auto it = predicates.find(lhs);
+                        THROW_AUTOQ_ERROR(invalid_trans_str);
+                    }
+                } else if constexpr(std::is_same_v<Symbol, AUTOQ::PredicateAutomata::Symbol>) {
+                    try {
+                        auto [token, color] = split_colored_label<AUTOQ::PredicateAutomata::Tag>(lhs, invalid_trans_str);
+                        try {
+                            auto sym = Symbol(boost::lexical_cast<int>(token));
+                            result.transitions[AUTOQ::PredicateAutomata::SymbolTag(sym, AUTOQ::PredicateAutomata::Tag(color))][t].insert(std::vector<AUTOQ::PredicateAutomata::State>());
+                        } catch (const AutoQError&) {
+                            throw;
+                        } catch (...) {
+                            auto it = predicates.find(token);
                             if (it == predicates.end()) {
                                 if (!throw_on_undefined) {
                                     if (out_encountered_undefined) *out_encountered_undefined = true;
                                     return {};
                                 }
-                                THROW_AUTOQ_ERROR(std::string(AUTOQ::ErrorMessages::kPredicateNotDefinedPrefix) + lhs + AUTOQ::ErrorMessages::kPredicateNotDefinedSuffix);
+                                THROW_AUTOQ_ERROR(std::string(AUTOQ::ErrorMessages::kConstantNotDefinedPrefix) + token + AUTOQ::ErrorMessages::kConstantNotDefinedSuffix);
                             }
-                            result.transitions[AUTOQ::PredicateAutomata::SymbolTag(Symbol(it->second.c_str()), AUTOQ::PredicateAutomata::Tag(1))][t].insert(std::vector<AUTOQ::ConcreteAutomata::State>());
+                            auto sym = Symbol(it->second.c_str());
+                            result.transitions[AUTOQ::PredicateAutomata::SymbolTag(sym, AUTOQ::PredicateAutomata::Tag(color))][t].insert(std::vector<AUTOQ::PredicateAutomata::State>());
                         }
+                    } catch (const AutoQError&) {
+                        throw;
+                    } catch (...) {
+                        THROW_AUTOQ_ERROR(invalid_trans_str);
                     }
                 } else { // if constexpr(std::is_same_v<Symbol, AUTOQ::SymbolicAutomata::Symbol>) {
-                    if (colored) {
-                        auto [token, color] = split_colored_label<AUTOQ::SymbolicAutomata::Tag>(lhs, invalid_trans_str);
-                        EvaluationVisitor<>::SymbolicComplexParser scp(token, constants);
-                        auto sym = Symbol(scp.getSymbolicComplex());
-                        result.transitions[AUTOQ::SymbolicAutomata::SymbolTag(sym, AUTOQ::SymbolicAutomata::Tag(color))][t].insert(std::vector<AUTOQ::SymbolicAutomata::State>());
-                        for (const auto &var: scp.getNewVars())
-                            result.vars.insert(var);
-                    } else {
-                        EvaluationVisitor<>::SymbolicComplexParser scp(lhs, constants);
-                        result.transitions[AUTOQ::SymbolicAutomata::SymbolTag(Symbol(scp.getSymbolicComplex()), AUTOQ::SymbolicAutomata::Tag(1))][t].insert(std::vector<AUTOQ::SymbolicAutomata::State>());
-                        for (const auto &var: scp.getNewVars())
-                            result.vars.insert(var);
-                    }
+                    auto [token, color] = split_colored_label<AUTOQ::SymbolicAutomata::Tag>(lhs, invalid_trans_str);
+                    EvaluationVisitor<>::SymbolicComplexParser scp(token, constants);
+                    auto sym = Symbol(scp.getSymbolicComplex());
+                    result.transitions[AUTOQ::SymbolicAutomata::SymbolTag(sym, AUTOQ::SymbolicAutomata::Tag(color))][t].insert(std::vector<AUTOQ::SymbolicAutomata::State>());
+                    for (const auto &var: scp.getNewVars())
+                        result.vars.insert(var);
                 }
                 /*******************************************************************************************************************/
 			} else {	// contains a tuple of states -> internal
@@ -268,44 +226,29 @@ AUTOQ::Automata<Symbol> parse_automaton(const std::string& str, const std::map<s
                     THROW_AUTOQ_ERROR(invalid_trans_str);
                 symbol = symbol.substr(1, symbol.length()-2);
                 if constexpr(std::is_same_v<Symbol, AUTOQ::ConcreteAutomata::Symbol>) {
-                    if (colored) {
-                        auto [token, color] = split_colored_label<AUTOQ::ConcreteAutomata::Tag>(symbol, invalid_trans_str);
-                        try {
-                            auto sym = Symbol(boost::lexical_cast<int>(token));
-                            result.transitions[AUTOQ::ConcreteAutomata::SymbolTag(sym, AUTOQ::ConcreteAutomata::Tag(color))][t].insert(state_vector);
-                        } catch (const AutoQError&) {
-                            throw;
-                        } catch (...) {
-                            THROW_AUTOQ_ERROR(invalid_trans_str);
-                        }
-                    } else {
-                        result.transitions[AUTOQ::ConcreteAutomata::SymbolTag(Symbol(boost::lexical_cast<int>(symbol)), AUTOQ::ConcreteAutomata::Tag(1))][t].insert(state_vector);
+                    auto [token, color] = split_colored_label<AUTOQ::ConcreteAutomata::Tag>(symbol, invalid_trans_str);
+                    try {
+                        auto sym = Symbol(boost::lexical_cast<int>(token));
+                        result.transitions[AUTOQ::ConcreteAutomata::SymbolTag(sym, AUTOQ::ConcreteAutomata::Tag(color))][t].insert(state_vector);
+                    } catch (const AutoQError&) {
+                        throw;
+                    } catch (...) {
+                        THROW_AUTOQ_ERROR(invalid_trans_str);
                     }
                     // if (boost::lexical_cast<int>(symbol) == 1)
                     //     result.finalStates.push_back(t);
                 } else if constexpr(std::is_same_v<Symbol, AUTOQ::PredicateAutomata::Symbol>) {
-                    if (colored) {
-                        auto [token, color] = split_colored_label<AUTOQ::PredicateAutomata::Tag>(symbol, invalid_trans_str);
-                        auto sym = parse_symbol<Symbol>(token);
-                        result.transitions[AUTOQ::PredicateAutomata::SymbolTag(sym, AUTOQ::PredicateAutomata::Tag(color))][t].insert(state_vector);
-                        // if (boost::lexical_cast<int>(sym.qubit()) == 1)
-                        //     result.finalStates.push_back(t);
-                    } else {
-                        result.transitions[AUTOQ::PredicateAutomata::SymbolTag(parse_symbol<Symbol>(symbol), AUTOQ::PredicateAutomata::Tag(1))][t].insert(state_vector);
-                    }
+                    auto [token, color] = split_colored_label<AUTOQ::PredicateAutomata::Tag>(symbol, invalid_trans_str);
+                    auto sym = parse_symbol<Symbol>(token);
+                    result.transitions[AUTOQ::PredicateAutomata::SymbolTag(sym, AUTOQ::PredicateAutomata::Tag(color))][t].insert(state_vector);
+                    // if (boost::lexical_cast<int>(sym.qubit()) == 1)
+                    //     result.finalStates.push_back(t);
                 } else { // if constexpr(std::is_same_v<Symbol, AUTOQ::SymbolicAutomata::Symbol>) {
-                    if (colored) {
-                        auto [token, color] = split_colored_label<AUTOQ::SymbolicAutomata::Tag>(symbol, invalid_trans_str);
-                        auto sym = parse_symbol<Symbol>(token);
-                        result.transitions[AUTOQ::SymbolicAutomata::SymbolTag(sym, AUTOQ::SymbolicAutomata::Tag(color))][t].insert(state_vector);
-                        // if (boost::lexical_cast<int>(sym.qubit()) == 1)
-                        //     result.finalStates.push_back(t);
-                    } else {
-                        auto temp = parse_symbol<Symbol>(symbol);
-                        result.transitions[AUTOQ::SymbolicAutomata::SymbolTag(temp, AUTOQ::SymbolicAutomata::Tag(1))][t].insert(state_vector);
-                        // if (boost::lexical_cast<int>(temp.qubit()) == 1)
-                        //     result.finalStates.push_back(t);
-                    }
+                    auto [token, color] = split_colored_label<AUTOQ::SymbolicAutomata::Tag>(symbol, invalid_trans_str);
+                    auto sym = parse_symbol<Symbol>(token);
+                    result.transitions[AUTOQ::SymbolicAutomata::SymbolTag(sym, AUTOQ::SymbolicAutomata::Tag(color))][t].insert(state_vector);
+                    // if (boost::lexical_cast<int>(sym.qubit()) == 1)
+                    //     result.finalStates.push_back(t);
                 }
                 /*********************************************************************************************/
 			}
