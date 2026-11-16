@@ -41,6 +41,23 @@ std::pair<std::string, Tag> split_colored_label(const std::string& label, const 
     }
 }
 
+// Colors into one state are bitsets and must be pairwise disjoint (#54).
+template <typename Symbol>
+void require_disjoint_color(const AUTOQ::Automata<Symbol>& aut,
+                            typename AUTOQ::Automata<Symbol>::State state,
+                            typename AUTOQ::Automata<Symbol>::Tag color,
+                            const std::string& state_name,
+                            const std::string& transition) {
+    for (const auto& kv : aut.transitions) {
+        if ((kv.first.tag() & color) == 0)
+            continue;
+        if (kv.second.find(state) == kv.second.end())
+            continue;
+        THROW_AUTOQ_ERROR("The colors of transitions into state \"" + state_name +
+                          "\" are not disjoint in \"" + transition + "\".");
+    }
+}
+
 // A leaf has no child tuple, so a numeric symbol is an amplitude, not a qubit (#30).
 bool is_integer_literal(const std::string& token) {
     if (token.empty())
@@ -136,6 +153,7 @@ AUTOQ::Automata<Symbol> parse_automaton(const std::string& str, const std::map<s
                             auto value = AUTOQ::Complex::Complex(boost::multiprecision::cpp_int(token));
                             AUTOQ::Parsing::align_leaf_to_constants(value, constants);
                             auto sym = Symbol(value);
+                            require_disjoint_color<Symbol>(result, t, color, rhs, str);
                             result.transitions[AUTOQ::ConcreteAutomata::SymbolTag(sym, AUTOQ::ConcreteAutomata::Tag(color))][t].insert(std::vector<AUTOQ::ConcreteAutomata::State>());
                         } else {
                             auto it = constants.find(token);
@@ -147,6 +165,7 @@ AUTOQ::Automata<Symbol> parse_automaton(const std::string& str, const std::map<s
                                 THROW_AUTOQ_ERROR(std::string(AUTOQ::ErrorMessages::kConstantNotDefinedPrefix) + token + AUTOQ::ErrorMessages::kConstantNotDefinedSuffix);
                             }
                             auto sym = Symbol(it->second);
+                            require_disjoint_color<Symbol>(result, t, color, rhs, str);
                             result.transitions[AUTOQ::ConcreteAutomata::SymbolTag(sym, AUTOQ::ConcreteAutomata::Tag(color))][t].insert(std::vector<AUTOQ::ConcreteAutomata::State>());
                         }
                     } catch (const AutoQError&) {
@@ -167,6 +186,7 @@ AUTOQ::Automata<Symbol> parse_automaton(const std::string& str, const std::map<s
                             THROW_AUTOQ_ERROR(std::string(AUTOQ::ErrorMessages::kConstantNotDefinedPrefix) + token + AUTOQ::ErrorMessages::kConstantNotDefinedSuffix);
                         }
                         auto sym = Symbol(it->second.c_str());
+                        require_disjoint_color<Symbol>(result, t, color, rhs, str);
                         result.transitions[AUTOQ::PredicateAutomata::SymbolTag(sym, AUTOQ::PredicateAutomata::Tag(color))][t].insert(std::vector<AUTOQ::PredicateAutomata::State>());
                     } catch (const AutoQError&) {
                         throw;
@@ -177,6 +197,7 @@ AUTOQ::Automata<Symbol> parse_automaton(const std::string& str, const std::map<s
                     auto [token, color] = split_colored_label<AUTOQ::SymbolicAutomata::Tag>(lhs, invalid_trans_str);
                     EvaluationVisitor<>::SymbolicComplexParser scp(token, constants);
                     auto sym = Symbol(scp.getSymbolicComplex());
+                    require_disjoint_color<Symbol>(result, t, color, rhs, str);
                     result.transitions[AUTOQ::SymbolicAutomata::SymbolTag(sym, AUTOQ::SymbolicAutomata::Tag(color))][t].insert(std::vector<AUTOQ::SymbolicAutomata::State>());
                     for (const auto &var: scp.getNewVars())
                         result.vars.insert(var);
@@ -237,6 +258,7 @@ AUTOQ::Automata<Symbol> parse_automaton(const std::string& str, const std::map<s
                     auto [token, color] = split_colored_label<AUTOQ::ConcreteAutomata::Tag>(symbol, invalid_trans_str);
                     try {
                         auto sym = Symbol(boost::lexical_cast<int>(token));
+                        require_disjoint_color<Symbol>(result, t, color, rhs, str);
                         result.transitions[AUTOQ::ConcreteAutomata::SymbolTag(sym, AUTOQ::ConcreteAutomata::Tag(color))][t].insert(state_vector);
                     } catch (const AutoQError&) {
                         throw;
@@ -248,12 +270,14 @@ AUTOQ::Automata<Symbol> parse_automaton(const std::string& str, const std::map<s
                 } else if constexpr(std::is_same_v<Symbol, AUTOQ::PredicateAutomata::Symbol>) {
                     auto [token, color] = split_colored_label<AUTOQ::PredicateAutomata::Tag>(symbol, invalid_trans_str);
                     auto sym = parse_symbol<Symbol>(token);
+                    require_disjoint_color<Symbol>(result, t, color, rhs, str);
                     result.transitions[AUTOQ::PredicateAutomata::SymbolTag(sym, AUTOQ::PredicateAutomata::Tag(color))][t].insert(state_vector);
                     // if (boost::lexical_cast<int>(sym.qubit()) == 1)
                     //     result.finalStates.push_back(t);
                 } else { // if constexpr(std::is_same_v<Symbol, AUTOQ::SymbolicAutomata::Symbol>) {
                     auto [token, color] = split_colored_label<AUTOQ::SymbolicAutomata::Tag>(symbol, invalid_trans_str);
                     auto sym = parse_symbol<Symbol>(token);
+                    require_disjoint_color<Symbol>(result, t, color, rhs, str);
                     result.transitions[AUTOQ::SymbolicAutomata::SymbolTag(sym, AUTOQ::SymbolicAutomata::Tag(color))][t].insert(state_vector);
                     // if (boost::lexical_cast<int>(sym.qubit()) == 1)
                     //     result.finalStates.push_back(t);

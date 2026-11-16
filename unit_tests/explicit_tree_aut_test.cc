@@ -18,6 +18,7 @@
 
 #include "autoq/error.hh"
 #include "autoq/inclusion.hh"
+#include "autoq/inclusion_build_trans.hh"
 #include "autoq/util/util.hh"
 #include "autoq/complex/complex.hh"
 #include "autoq/symbol/concrete.hh"
@@ -766,4 +767,18 @@ BOOST_AUTO_TEST_CASE(gate_operand_must_name_a_qubit_of_the_automaton)
     BOOST_CHECK_THROW(aut.CX(1, 1), AutoQError);
     BOOST_CHECK_THROW(aut.measure(2, false), AutoQError);
     aut.X(1);
+}
+
+// Inclusion must not drop a second transition of the same color. The Release
+// build used to keep *ins.begin() after assert() was compiled out (#54).
+BOOST_AUTO_TEST_CASE(inclusion_refuses_two_transitions_of_one_color)
+{
+    AUTOQ::ConcreteAutomata aut;
+    aut.stateNum = 1;
+    aut.qubitNum = 1;
+    aut.transitions[{1, 1}][0].insert({1, 2});
+    aut.transitions[{1, 1}][0].insert({2, 1});
+    std::vector<std::map<AUTOQ::ConcreteAutomata::SymbolTag, AUTOQ::ConcreteAutomata::StateVector>> transA;
+    std::vector<std::map<AUTOQ::ConcreteAutomata::Symbol, std::map<AUTOQ::ConcreteAutomata::Tag, AUTOQ::ConcreteAutomata::StateVector>>> transB;
+    BOOST_CHECK_THROW(AUTOQ::build_inclusion_trans(aut, aut, transA, transB), AutoQError);
 }

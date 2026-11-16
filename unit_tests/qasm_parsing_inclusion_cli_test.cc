@@ -432,6 +432,35 @@ BOOST_AUTO_TEST_CASE(constraint_line_must_be_fully_consumed)
     BOOST_CHECK_MESSAGE(ok_out.find("[OK]") != std::string::npos, ok_out);
 }
 
+// Two transitions into one state whose colors share a bit are rejected.
+// Release inclusion used to keep only one of them and report a wrong [OK] (#54).
+BOOST_AUTO_TEST_CASE(lsta_colors_into_one_state_must_be_disjoint)
+{
+    std::string dir = test_dir_from_file(__FILE__, "testcase/ColorDisjoint/");
+    auto f = [&](const std::string& name) { return "\"" + dir + name + "\""; };
+    auto expect_rejected = [&](const std::string& command, const std::string& line) {
+        auto [code, output] = run_cli(command);
+        BOOST_CHECK_MESSAGE(code == 1, command + ": exit status " + std::to_string(code) + ", output: " + output);
+        BOOST_CHECK_MESSAGE(output.find("are not disjoint") != std::string::npos, output);
+        BOOST_CHECK_MESSAGE(output.find(line) != std::string::npos, output);
+        BOOST_CHECK_MESSAGE(output.find("[OK]") == std::string::npos, output);
+    };
+    expect_rejected("print " + f("pre.lsta"), "[1,1](2,1) -> 0");
+    expect_rejected("ver " + f("pre.lsta") + " " + f("circuit.qasm") + " " + f("post.lsta"), "[1,1](2,1) -> 0");
+    expect_rejected("ver " + f("pre_control.lsta") + " " + f("circuit.qasm") + " " + f("pre.lsta"), "[1,1](2,1) -> 0");
+    expect_rejected("print " + f("overlap_bits.lsta"), "[1,3](2,1) -> 0");
+    expect_rejected("print " + f("leaf_overlap.lsta"), "[c0,1] -> 1");
+
+    auto [print_code, print_out] = run_cli("print " + f("pre_control.lsta"));
+    BOOST_CHECK_EQUAL(print_code, 0);
+    BOOST_CHECK_MESSAGE(print_out.find("|0>") != std::string::npos, print_out);
+    BOOST_CHECK_MESSAGE(print_out.find("|1>") != std::string::npos, print_out);
+
+    auto [ver_code, ver_out] = run_cli("ver " + f("pre_control.lsta") + " " + f("circuit.qasm") + " " + f("post.lsta"));
+    BOOST_CHECK_MESSAGE(ver_code == 0, ver_out);
+    BOOST_CHECK_MESSAGE(ver_out.find("[failed]") != std::string::npos, ver_out);
+}
+
 // A leaf has no children, so [1,1] -> q is the amplitude 1, not qubit 1 (#30).
 BOOST_AUTO_TEST_CASE(integer_leaf_is_an_amplitude)
 {
