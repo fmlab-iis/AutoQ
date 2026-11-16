@@ -202,8 +202,6 @@ BOOST_AUTO_TEST_CASE(cli_malformed_input_is_reported)
         {"ex " + f("pre.hsl") + " " + f("rx_bad.qasm"), "Division by zero"},
         {"print " + f("div0.hsl"), "Division by zero"},
         {"eq " + f("eq_big.qasm") + " " + f("eq_big.qasm"), "is too large"},
-        // Not validated yet (#33); the generic handler in main reports it.
-        {"print " + f("eipi_symbolic.hsl"), "[ERROR] "},
     };
     for (const auto& [args, expected] : cases) {
         auto [code, output] = run_cli(args);
@@ -519,5 +517,47 @@ BOOST_AUTO_TEST_CASE(aut_extension_is_not_supported)
         BOOST_CHECK_MESSAGE(code == 1, command + ": exit status " + std::to_string(code) + ", output: " + output);
         BOOST_CHECK_MESSAGE(output.find("The filename extension is not supported.") != std::string::npos, output);
         BOOST_CHECK_MESSAGE(output.find("The type of Complex is not supported!") == std::string::npos, output);
+    }
+}
+
+// ei2pi and eipi are in the complex grammar. In a symbolic amplitude, constraint,
+// or .lsta leaf their argument is a SymbolicComplex, so casting it to Complex
+// used to abort with std::bad_any_cast (#33).
+BOOST_AUTO_TEST_CASE(symbolic_angle_argument_is_a_constant)
+{
+    std::string dir = test_dir_from_file(__FILE__, "testcase/SymbolicAngle/");
+    auto f = [&](const std::string& name) { return "\"" + dir + name + "\""; };
+    const std::string phase = "sqrt2*1/2 + i * (sqrt2*1/2)";
+
+    auto [ver_code, ver_out] = run_cli("ver " + f("pre.hsl") + " " + f("t.qasm") + " " + f("post.hsl"));
+    BOOST_CHECK_MESSAGE(ver_code == 0, ver_out);
+    BOOST_CHECK_MESSAGE(ver_out.find("[OK]") != std::string::npos, ver_out);
+
+    auto [bad_code, bad_out] = run_cli("ver " + f("pre.hsl") + " " + f("t.qasm") + " " + f("post_wrong.hsl"));
+    BOOST_CHECK_MESSAGE(bad_code == 0, bad_out);
+    BOOST_CHECK_MESSAGE(bad_out.find("[failed]") != std::string::npos, bad_out);
+
+    for (const char* name : {"sym_eipi.hsl", "sym.lsta"}) {
+        auto [code, output] = run_cli(std::string("print ") + f(name));
+        BOOST_CHECK_MESSAGE(code == 0, std::string(name) + ": exit status " + std::to_string(code) + ", output: " + output);
+        BOOST_CHECK_MESSAGE(output.find(phase) != std::string::npos, std::string(name) + ": " + output);
+        BOOST_CHECK_MESSAGE(output.find("|0>") != std::string::npos, output);
+        BOOST_CHECK_MESSAGE(output.find("|1>") != std::string::npos, output);
+        BOOST_CHECK_MESSAGE(output.find("bad_any_cast") == std::string::npos, output);
+    }
+
+    auto [constraint_code, constraint_out] = run_cli("print " + f("sym_constraint.hsl"));
+    BOOST_CHECK_MESSAGE(constraint_code == 0, constraint_out);
+    BOOST_CHECK_MESSAGE(constraint_out.find("|0>") != std::string::npos, constraint_out);
+    BOOST_CHECK_MESSAGE(constraint_out.find("|1>") != std::string::npos, constraint_out);
+    BOOST_CHECK_MESSAGE(constraint_out.find("bad_any_cast") == std::string::npos, constraint_out);
+    auto constrained = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Symbolic>::ReadAutomaton(dir + "sym_constraint.hsl");
+    BOOST_CHECK_MESSAGE(constrained.constraints.find("sqrt2") != std::string::npos, constrained.constraints);
+
+    for (const char* name : {"var_arg.hsl", "var_arg_eipi.hsl"}) {
+        auto [code, output] = run_cli(std::string("print ") + f(name));
+        BOOST_CHECK_MESSAGE(code == 1, std::string(name) + ": exit status " + std::to_string(code) + ", output: " + output);
+        BOOST_CHECK_MESSAGE(output.find("must be a constant!") != std::string::npos, output);
+        BOOST_CHECK_MESSAGE(output.find("bad_any_cast") == std::string::npos, output);
     }
 }
