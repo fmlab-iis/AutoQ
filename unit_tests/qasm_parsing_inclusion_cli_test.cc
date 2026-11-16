@@ -362,6 +362,40 @@ BOOST_AUTO_TEST_CASE(variable_inequality_requires_equal_lengths)
     BOOST_CHECK_MESSAGE(same_local_out.find("|0000>") == std::string::npos, same_local_out);
 }
 
+// An .lsta label is [symbol,color]. A missing color used to abort in
+// boost::bad_lexical_cast, and an internal label without a color was read as
+// if the qubit index were the color (#36).
+BOOST_AUTO_TEST_CASE(lsta_transition_requires_a_numeric_color)
+{
+    std::string dir = test_dir_from_file(__FILE__, "testcase/LstaColor/");
+    using ConcreteParser = AUTOQ::Parsing::TimbukParser<Concrete>;
+    using SymbolicParser = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Symbolic>;
+    using PredicateParser = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Predicate>;
+    BOOST_CHECK_THROW(ConcreteParser::ReadAutomaton(dir + "uncolored_const.lsta"), AutoQError);
+    BOOST_CHECK_THROW(ConcreteParser::ReadAutomaton(dir + "bad_leaf_color.lsta"), AutoQError);
+    BOOST_CHECK_THROW(ConcreteParser::ReadAutomaton(dir + "bad_internal_color.lsta"), AutoQError);
+    BOOST_CHECK_THROW(ConcreteParser::ReadAutomaton(dir + "uncolored_internal.lsta"), AutoQError);
+    BOOST_CHECK_THROW(SymbolicParser::ReadAutomaton(dir + "uncolored_leaf.lsta"), AutoQError);
+    BOOST_CHECK_THROW(PredicateParser::ReadAutomaton(dir + "uncolored_pred.lsta"), AutoQError);
+    BOOST_CHECK_NO_THROW(SymbolicParser::ReadAutomaton(dir + "colored.lsta"));
+
+    const std::vector<std::string> rejected = {
+        "uncolored_leaf.lsta", "uncolored_const.lsta", "bad_leaf_color.lsta",
+        "bad_internal_color.lsta", "uncolored_internal.lsta", "uncolored_pred.lsta",
+    };
+    for (const auto& name : rejected) {
+        auto [code, output] = run_cli("print \"" + dir + name + "\"");
+        BOOST_CHECK_MESSAGE(code == 1, name + ": exit status " + std::to_string(code) + ", output: " + output);
+        BOOST_CHECK_MESSAGE(output.find("Invalid transition") != std::string::npos, output);
+        BOOST_CHECK_MESSAGE(output.find("bad lexical cast") == std::string::npos, output);
+    }
+
+    auto [ok_code, ok_out] = run_cli("print \"" + dir + "colored.lsta\"");
+    BOOST_CHECK_EQUAL(ok_code, 0);
+    BOOST_CHECK_MESSAGE(ok_out.find("|0>") != std::string::npos, ok_out);
+    BOOST_CHECK_MESSAGE(ok_out.find("|1>") != std::string::npos, ok_out);
+}
+
 // A Constraints or Constants line is parsed as one expression. Text after a
 // valid prefix must not be dropped: "a = 1, b = 0" is not "a = 1". Separate
 // lines, and "&&" on one line, are still one conjunction (#29).
