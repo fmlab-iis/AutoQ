@@ -55,6 +55,17 @@ struct EvaluationVisitor : public ExtendedDiracParserBaseVisitor {
     mode_t mode; // by default, the first one
 
     std::map<char, int> globalVar2len; // record all control variables used in {diracs : varcons}
+    // Length of each variable while one set is folded in SHUFFLE mode.
+    // |v|=N and v=constant can appear in any order, and several variables
+    // share this map so x≠y can compare their lengths.
+    std::map<char, int> shuffleVar2len;
+    void remember_shuffle_length(char variable, int length) {
+        auto [it, inserted] = shuffleVar2len.emplace(variable, length);
+        if (!inserted && it->second != length) {
+            THROW_AUTOQ_ERROR("Variable \"" + std::string(1, variable) + "\" is given lengths "
+                + std::to_string(it->second) + " and " + std::to_string(length) + ".");
+        }
+    }
     std::set<char> usedVars; // record all variables currently used in {diracs : varcons} for preventing naming collision.
     segment2split_t segment2split;
     currentSplit_t currentSplit;
@@ -76,6 +87,7 @@ struct EvaluationVisitor : public ExtendedDiracParserBaseVisitor {
     EvaluationVisitor(const std::vector<std::map<std::string, AUTOQ::Complex::Complex>> &constantsVector, const std::vector<std::string> &predicateConstraintsVector) :
         mode(EXPAND_POWER_AND_DIRACS_AND_REWRITE_COMPLEMENT),
         globalVar2len(),
+        shuffleVar2len(),
         usedVars(),
         segment2split(),
         currentSplit(),

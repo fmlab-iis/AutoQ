@@ -246,6 +246,47 @@ BOOST_AUTO_TEST_CASE(cli_negated_guard_with_space)
     BOOST_CHECK_MESSAGE(output.find("(1/1)|1>") != std::string::npos, "unexpected output: " + output);
 }
 
+// x≠y compares the two variables bit by bit, so |x| and |y| have to be the
+// same length. The constraint list used to keep only one length, and the last
+// |v|=N was applied to both variables.
+BOOST_AUTO_TEST_CASE(variable_inequality_requires_equal_lengths)
+{
+    std::string dir = test_dir_from_file(__FILE__, "testcase/IneqVarLength/");
+    auto print = [&](const std::string& name) { return run_cli("print \"" + dir + name + "\""); };
+
+    auto [diff_code, diff_out] = print("diff.hsl");
+    BOOST_CHECK_EQUAL(diff_code, 1);
+    BOOST_CHECK_MESSAGE(diff_out.find("x≠y") != std::string::npos, diff_out);
+    BOOST_CHECK_MESSAGE(diff_out.find("|x|=2") != std::string::npos, diff_out);
+    BOOST_CHECK_MESSAGE(diff_out.find("|y|=3") != std::string::npos, diff_out);
+
+    auto [order_code, order_out] = print("diff_order.hsl");
+    BOOST_CHECK_EQUAL(order_code, 1);
+    BOOST_CHECK_MESSAGE(order_out.find("|x|=2") != std::string::npos, order_out);
+    BOOST_CHECK_MESSAGE(order_out.find("|y|=3") != std::string::npos, order_out);
+
+    auto [local_code, local_out] = print("diff_local.hsl");
+    BOOST_CHECK_EQUAL(local_code, 1);
+    BOOST_CHECK_MESSAGE(local_out.find("i≠j") != std::string::npos, local_out);
+    BOOST_CHECK_MESSAGE(local_out.find("|i|=2") != std::string::npos, local_out);
+    BOOST_CHECK_MESSAGE(local_out.find("|j|=3") != std::string::npos, local_out);
+
+    auto [missing_code, missing_out] = print("missing.hsl");
+    BOOST_CHECK_EQUAL(missing_code, 1);
+    BOOST_CHECK_MESSAGE(missing_out.find("must both have a declared length") != std::string::npos, missing_out);
+
+    auto [same_code, same_out] = print("same.hsl");
+    BOOST_CHECK_EQUAL(same_code, 0);
+    BOOST_CHECK_MESSAGE(same_out.find("|0001>") != std::string::npos, same_out);
+    BOOST_CHECK_MESSAGE(same_out.find("|0000>") == std::string::npos, same_out);
+    BOOST_CHECK_MESSAGE(same_out.find("|1111>") == std::string::npos, same_out);
+
+    auto [same_local_code, same_local_out] = print("same_local.hsl");
+    BOOST_CHECK_EQUAL(same_local_code, 0);
+    BOOST_CHECK_MESSAGE(same_local_out.find("|0001>") != std::string::npos, same_local_out);
+    BOOST_CHECK_MESSAGE(same_local_out.find("|0000>") == std::string::npos, same_local_out);
+}
+
 // A Constraints or Constants line is parsed as one expression. Text after a
 // valid prefix must not be dropped: "a = 1, b = 0" is not "a = 1". Separate
 // lines, and "&&" on one line, are still one conjunction (#29).
