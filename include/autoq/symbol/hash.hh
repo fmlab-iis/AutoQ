@@ -15,8 +15,10 @@ struct hash<AUTOQ::Symbol::Concrete> {
 };
 template <>
 struct hash<AUTOQ::Symbol::Symbolic> {
+    // str() prints each term through Z3. unordered_map lookups in loop
+    // summarization would otherwise build a context on every probe (#66).
     std::size_t operator()(const AUTOQ::Symbol::Symbolic& symbol) const {
-        return boost::hash<std::string>()(symbol.str());
+        return boost::hash<AUTOQ::Symbol::Symbolic>()(symbol);
     }
 };
 }  // namespace std

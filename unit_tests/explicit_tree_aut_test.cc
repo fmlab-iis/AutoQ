@@ -23,6 +23,7 @@
 #include "autoq/complex/complex.hh"
 #include "autoq/symbol/concrete.hh"
 #include "autoq/symbol/symbolic.hh"
+#include "autoq/symbol/hash.hh"
 #include "autoq/aut_description.hh"
 #include "autoq/parsing/parser/timbuk_parser.hh"
 #include "autoq/serialization/timbuk_serializer.hh"
@@ -358,6 +359,56 @@ BOOST_AUTO_TEST_CASE(for_loop_summarization_complex_amplitudes){
         BOOST_CHECK_MESSAGE(unrolled == summarized,
             pre + " + " + circuit + ": unrolled " + unrolled + " but summarized " + summarized);
     }
+}
+
+// A precondition with several states used to square its roots every
+// summarization round and never finish (#66).
+BOOST_AUTO_TEST_CASE(loopsum_matches_unrolling_for_many_states){
+    std::string folder = test_dir_from_file(__FILE__, "testcase/LoopSumMany/");
+    const std::vector<std::pair<std::string, std::string>> cases = {
+        {"one.hsl", "x1.qasm"},
+        {"one.hsl", "x2.qasm"},
+        {"one.hsl", "x3.qasm"},
+        {"one.hsl", "h1.qasm"},
+        {"one.hsl", "h3.qasm"},
+        {"z01.hsl", "x0.qasm"},
+        {"z01.hsl", "x1q.qasm"},
+        {"z01.hsl", "z0.qasm"},
+        {"z01.hsl", "h1q.qasm"},
+        {"z10.hsl", "x0.qasm"},
+        {"z11.hsl", "x0.qasm"},
+        {"z001.hsl", "x0_3.qasm"},
+        {"super.hsl", "x0.qasm"},
+        {"super.hsl", "h0.qasm"},
+        {"super.hsl", "cz.qasm"},
+    };
+    for (const auto& [pre, circuit] : cases) {
+        auto unrolled = execute_and_print(folder + pre, folder + circuit, "manual");
+        auto summarized = execute_and_print(folder + pre, folder + circuit, "symbolic");
+        BOOST_CHECK_MESSAGE(unrolled == summarized,
+            pre + " + " + circuit + ": unrolled " + unrolled + " but summarized " + summarized);
+    }
+}
+
+// Equal symbols must hash equal without printing each term through Z3 (#66).
+BOOST_AUTO_TEST_CASE(symbolic_hash_follows_equality)
+{
+    auto named = [](const std::string& name) {
+        return AUTOQ::Symbol::Symbolic(
+            AUTOQ::Complex::SymbolicComplex::MySymbolicComplexConstructor(name));
+    };
+    auto a = named("symbolic_1");
+    auto b = named("symbolic_1");
+    auto other = named("symbolic_2");
+    std::hash<AUTOQ::Symbol::Symbolic> hash;
+    BOOST_CHECK(a == b);
+    BOOST_CHECK(hash(a) == hash(b));
+    BOOST_CHECK(a != other);
+    AUTOQ::Symbol::Symbolic internal(1);
+    AUTOQ::Symbol::Symbolic internal_again(1);
+    BOOST_CHECK(internal == internal_again);
+    BOOST_CHECK(hash(internal) == hash(internal_again));
+    BOOST_CHECK(internal != a);
 }
 
 // `r = measure q[k];` must guard on the same automaton level that gates use for
