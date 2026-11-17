@@ -310,6 +310,7 @@ BOOST_AUTO_TEST_CASE(for_loop_classic_execution){
     ParameterMap params;
     params["loop"] = "manual";
     bool verify = aut2.execute(folder + "/circuit.qasm", qp, autVec, params);
+    verify &= (aut2 <<= spec2);
     BOOST_REQUIRE_MESSAGE(verify, folder + " failed!");
 }
 
@@ -603,7 +604,8 @@ BOOST_AUTO_TEST_CASE(benchmarks_GroverWhile)
         auto aut2 = autVec.at(0);
         auto spec2 = autVec.at(1);
         autVec.erase(autVec.begin(), autVec.begin() + 2);  // remove the first two elements
-        aut2.execute(folder + "/circuit.qasm", qp, autVec);
+        bool verify = aut2.execute(folder + "/circuit.qasm", qp, autVec);
+        BOOST_REQUIRE_MESSAGE(verify, folder + " loop invariant check failed!");
         BOOST_REQUIRE_MESSAGE(aut2 <<= spec2, folder + " failed!");
     });
 }
@@ -636,9 +638,31 @@ BOOST_AUTO_TEST_CASE(benchmarks_RUS)
         auto aut2 = autVec.at(0);
         auto spec2 = autVec.at(1);
         autVec.erase(autVec.begin(), autVec.begin() + 2); // remove the first two elements
-        aut2.execute(folder + "/circuit.qasm", qp, autVec);
+        bool verify = aut2.execute(folder + "/circuit.qasm", qp, autVec);
+        BOOST_REQUIRE_MESSAGE(verify, folder + " loop invariant check failed!");
         BOOST_REQUIRE_MESSAGE(aut2 <<= spec2, folder + " failed!");
     }, 999999);  // RUS: no size limit
+}
+
+// A wrong invariant makes execute() return false. The automaton it leaves
+// behind is the invariant's exit branch, so the postcondition can still hold (#49).
+BOOST_AUTO_TEST_CASE(wrong_loop_invariant_is_reported)
+{
+    std::string folder = test_dir_from_file(__FILE__, "testcase/WrongInvariant/");
+    const std::vector<std::tuple<std::string, std::string, std::string>> cases = {
+        {"entry_pre.hsl", "entry_post.hsl", "entry.qasm"},
+        {"body_pre.hsl", "body_post.hsl", "body.qasm"},
+    };
+    for (const auto& [pre, post, circuit] : cases) {
+        auto [autVec, qp] = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Concrete>::ReadTwoAutomata(
+            folder + pre, folder + post, folder + circuit);
+        auto aut = autVec.at(0);
+        auto spec = autVec.at(1);
+        autVec.erase(autVec.begin(), autVec.begin() + 2);
+        bool verify = aut.execute(folder + circuit, qp, autVec);
+        BOOST_CHECK_MESSAGE(!verify, circuit + ": execute() accepted a wrong loop invariant");
+        BOOST_CHECK_MESSAGE(aut <<= spec, circuit + ": the invariant exit branch should still meet the postcondition");
+    }
 }
 
 BOOST_AUTO_TEST_CASE(qubit_reordering)
