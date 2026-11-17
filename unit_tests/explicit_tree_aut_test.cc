@@ -23,6 +23,7 @@
 #include "autoq/complex/complex.hh"
 #include "autoq/symbol/concrete.hh"
 #include "autoq/symbol/symbolic.hh"
+#include "autoq/symbol/hash.hh"
 #include "autoq/aut_description.hh"
 #include "autoq/parsing/parser/timbuk_parser.hh"
 #include "autoq/serialization/timbuk_serializer.hh"
@@ -387,6 +388,27 @@ BOOST_AUTO_TEST_CASE(loopsum_matches_unrolling_for_many_states){
         BOOST_CHECK_MESSAGE(unrolled == summarized,
             pre + " + " + circuit + ": unrolled " + unrolled + " but summarized " + summarized);
     }
+}
+
+// Equal symbols must hash equal without printing each term through Z3 (#66).
+BOOST_AUTO_TEST_CASE(symbolic_hash_follows_equality)
+{
+    auto named = [](const std::string& name) {
+        return AUTOQ::Symbol::Symbolic(
+            AUTOQ::Complex::SymbolicComplex::MySymbolicComplexConstructor(name));
+    };
+    auto a = named("symbolic_1");
+    auto b = named("symbolic_1");
+    auto other = named("symbolic_2");
+    std::hash<AUTOQ::Symbol::Symbolic> hash;
+    BOOST_CHECK(a == b);
+    BOOST_CHECK(hash(a) == hash(b));
+    BOOST_CHECK(a != other);
+    AUTOQ::Symbol::Symbolic internal(1);
+    AUTOQ::Symbol::Symbolic internal_again(1);
+    BOOST_CHECK(internal == internal_again);
+    BOOST_CHECK(hash(internal) == hash(internal_again));
+    BOOST_CHECK(internal != a);
 }
 
 // `r = measure q[k];` must guard on the same automaton level that gates use for
