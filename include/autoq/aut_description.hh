@@ -13,6 +13,8 @@
 
 // AUTOQ headers
 #include <chrono>
+#include <memory>
+#include <utility>
 #include "autoq/util/types.hh"
 #include "autoq/util/qasm_regex.hh"
 #include "autoq/symbol/concrete.hh"
@@ -41,7 +43,9 @@ namespace AUTOQ
     typedef Automata<Symbol::Index> IndexAutomata;
     typedef Automata<Symbol::Constrained> ConstrainedAutomata;
 
-    /// Explicit execution/inclusion stats. Replaces inline static members for testability and multi-threading.
+    /// Per-automaton execution and inclusion stats. Copies share one object.
+    /// Assignment keeps the destination's object, so replacing the transition
+    /// relation does not mix in another automaton's counters.
     struct ExecutionStats {
         int gateCount = 0;
         int stateBefore = 0;
@@ -61,11 +65,6 @@ namespace AUTOQ
         std::chrono::steady_clock::time_point startFromFileToAutomata{};
         std::chrono::steady_clock::time_point endFromFileToAutomata{};
     };
-
-    inline ExecutionStats& default_execution_stats() {
-        static ExecutionStats e;
-        return e;
-    }
 }
 
 template <typename T> constexpr auto support_fraction_simplification = requires (T x) {
@@ -137,12 +136,32 @@ struct AUTOQ::Automata
     std::string constraints;
     bool hasLoop;
     bool isTopdownDeterministic;
-    ExecutionStats* stats_;
+    std::shared_ptr<ExecutionStats> stats_;
 
-    void set_execution_stats(ExecutionStats* s) { stats_ = s; }
-    void set_execution_stats(const ExecutionStats* s) { stats_ = const_cast<ExecutionStats*>(s); }
-    ExecutionStats* execution_stats() { return stats_; }
-    const ExecutionStats* execution_stats() const { return stats_; }
+    void set_execution_stats(ExecutionStats* s) {
+        if (stats_.get() == s) return;
+        // The caller owns s. This automaton must not delete it.
+        stats_ = std::shared_ptr<ExecutionStats>(s, [](ExecutionStats*) {});
+    }
+    void set_execution_stats(const ExecutionStats* s) {
+        set_execution_stats(const_cast<ExecutionStats*>(s));
+    }
+    void share_execution_stats(const std::shared_ptr<ExecutionStats>& s) { stats_ = s; }
+    ExecutionStats* execution_stats() { return stats_.get(); }
+    const ExecutionStats* execution_stats() const { return stats_.get(); }
+
+    Automata(const Automata&) = default;
+    Automata(Automata&&) = default;
+    Automata& operator=(const Automata& o) {
+        if (this != &o)
+            adopt_structure(o);
+        return *this;
+    }
+    Automata& operator=(Automata&& o) {
+        if (this != &o)
+            adopt_structure(std::move(o));
+        return *this;
+    }
 
 // methods
     /****************************/
@@ -157,7 +176,7 @@ struct AUTOQ::Automata
         constraints(),
         hasLoop(false),
         isTopdownDeterministic(false),
-        stats_(&default_execution_stats())
+        stats_(std::make_shared<ExecutionStats>())
 	{
         auto envptr = std::getenv("LOG");
         if (envptr != nullptr) {
@@ -170,6 +189,34 @@ struct AUTOQ::Automata
             }
         }
     }
+
+private:
+    void adopt_structure(const Automata& o) {
+        name = o.name;
+        finalStates = o.finalStates;
+        stateNum = o.stateNum;
+        qubitNum = o.qubitNum;
+        symbolicvarsNum = o.symbolicvarsNum;
+        transitions = o.transitions;
+        vars = o.vars;
+        constraints = o.constraints;
+        hasLoop = o.hasLoop;
+        isTopdownDeterministic = o.isTopdownDeterministic;
+    }
+    void adopt_structure(Automata&& o) {
+        name = std::move(o.name);
+        finalStates = std::move(o.finalStates);
+        stateNum = o.stateNum;
+        qubitNum = o.qubitNum;
+        symbolicvarsNum = o.symbolicvarsNum;
+        transitions = std::move(o.transitions);
+        vars = std::move(o.vars);
+        constraints = std::move(o.constraints);
+        hasLoop = o.hasLoop;
+        isTopdownDeterministic = o.isTopdownDeterministic;
+    }
+
+public:
 
 	/******************************************************/
     /* inclusion.cc: checks language inclusion of two TAs */

@@ -709,3 +709,24 @@ BOOST_AUTO_TEST_CASE(nonadjacent_ket_units_keep_their_qubits)
         BOOST_CHECK_MESSAGE(output.find("does not match") == std::string::npos, output);
     }
 }
+
+// --loopsum used to add one gate per fix-point round. The reported count is
+// the body executed num_of_iterations times (#41).
+BOOST_AUTO_TEST_CASE(loopsum_gate_count_is_the_program_count)
+{
+    std::string dir = test_dir_from_file(__FILE__, "testcase/LoopSumCount/");
+    auto f = [&](const std::string& name) { return "\"" + dir + name + "\""; };
+    const std::vector<std::tuple<std::string, std::string, std::string, std::string>> cases = {
+        {"plus.hsl", "h_straight.qasm", "zero.hsl", "and [1] gates"},
+        {"plus.hsl", "h_once.qasm", "zero.hsl", "and [1] gates"},
+        {"plus.hsl", "h_five.qasm", "zero.hsl", "and [5] gates"},
+        {"zero2.hsl", "h_cx.qasm", "zero2.hsl", "and [2] gates"},
+    };
+    for (const auto& [pre, circuit, post, gates] : cases) {
+        for (const char* flag : {"", " --loopsum"}) {
+            auto [code, output] = run_cli("ver " + f(pre) + " " + f(circuit) + " " + f(post) + flag);
+            BOOST_CHECK_MESSAGE(code == 0, std::string(circuit) + flag + ":\n" + output);
+            BOOST_CHECK_MESSAGE(output.find(gates) != std::string::npos, std::string(circuit) + flag + ":\n" + output);
+        }
+    }
+}

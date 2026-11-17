@@ -405,6 +405,10 @@ void AUTOQ::Automata<Symbol>::handle_while_loop_start(const std::string& line, c
         I.fraction_simplification();
         I.print_language("I:\n");
     }
+    // The two splits are program gates. Count them on this automaton, then
+    // put the invariant's own stats back.
+    auto invariant_stats = I.stats_;
+    I.share_execution_stats(this->stats_);
     if (negate) {
         measure_to_continue = I.measure(pos, false);
         measure_to_break = I.measure(pos, true);
@@ -412,6 +416,7 @@ void AUTOQ::Automata<Symbol>::handle_while_loop_start(const std::string& line, c
         measure_to_continue = I.measure(pos, true);
         measure_to_break = I.measure(pos, false);
     }
+    I.stats_ = invariant_stats;
     *this = measure_to_continue;
 }
 
