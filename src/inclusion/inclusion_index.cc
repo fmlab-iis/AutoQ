@@ -1,5 +1,5 @@
 /**
- * Inclusion checking for Index automata (operator<=).
+ * Inclusion checking for Index automata (inclusion_index_compare).
  */
 #include "autoq/inclusion.hh"
 #include "autoq/inclusion_common.hh"
@@ -176,8 +176,3 @@ bool inclusion_index_compare(const IndexAutomata &autA, const IndexAutomata &aut
 }
 
 } // namespace AUTOQ
-
-template <>
-bool AUTOQ::Automata<AUTOQ::Symbol::Index>::operator<=(const Automata<AUTOQ::Symbol::Index> &autB) const {
-    return AUTOQ::inclusion_index_compare(*this, autB);
-}
