@@ -626,3 +626,58 @@ BOOST_AUTO_TEST_CASE(symbolic_loop_summarization_keeps_the_amplitudes)
         BOOST_CHECK_MESSAGE(output.find("[failed]") == std::string::npos, output);
     }
 }
+
+// } else { used to be read as a closing brace only, so the else body ran on
+// the union and ver could report [OK] for a post that misses the if branch (#27).
+BOOST_AUTO_TEST_CASE(if_else_braces_ignore_line_breaks)
+{
+    std::string dir = test_dir_from_file(__FILE__, "testcase/IfElse/");
+    auto f = [&](const std::string& name) { return "\"" + dir + name + "\""; };
+    auto language = [](const std::string& out) {
+        const auto start = out.find('{');
+        const auto end = out.rfind('}');
+        if (start == std::string::npos || end == std::string::npos || end < start)
+            return out;
+        return out.substr(start, end - start + 1);
+    };
+
+    auto [sep_code, sep_out] = run_cli("ex " + f("pre.hsl") + " " + f("separate.qasm"));
+    BOOST_CHECK_MESSAGE(sep_code == 0, sep_out);
+    const std::string expected = language(sep_out);
+    BOOST_CHECK_MESSAGE(expected.find("sqrt2") != std::string::npos, sep_out);
+    BOOST_CHECK_MESSAGE(expected.find("|0>") != std::string::npos, sep_out);
+    BOOST_CHECK_MESSAGE(expected.find("|1>") != std::string::npos, sep_out);
+
+    for (const char* name : {"same_line.qasm", "tight.qasm", "blank_lines.qasm", "else_gate_same_line.qasm"}) {
+        auto [code, output] = run_cli("ex " + f("pre.hsl") + " " + f(name));
+        BOOST_CHECK_MESSAGE(code == 0, std::string(name) + ": " + output);
+        BOOST_CHECK_MESSAGE(language(output) == expected, std::string(name) + ":\n" + output + "\nseparate:\n" + sep_out);
+    }
+
+    auto [omit_code, omit_out] = run_cli("ex " + f("pre.hsl") + " " + f("omitted.qasm"));
+    auto [omit_same_code, omit_same_out] = run_cli("ex " + f("pre.hsl") + " " + f("omitted_same.qasm"));
+    BOOST_CHECK_MESSAGE(omit_code == 0, omit_out);
+    BOOST_CHECK_MESSAGE(omit_same_code == 0, omit_same_out);
+    BOOST_CHECK_MESSAGE(language(omit_out) == language(omit_same_out), omit_out + omit_same_out);
+
+    auto [ver_code, ver_out] = run_cli("ver " + f("pre.hsl") + " " + f("same_line.qasm") + " " + f("post_wrong.hsl"));
+    BOOST_CHECK_MESSAGE(ver_code == 0, ver_out);
+    BOOST_CHECK_MESSAGE(ver_out.find("[failed]") != std::string::npos, ver_out);
+    BOOST_CHECK_MESSAGE(ver_out.find("[OK]") == std::string::npos, ver_out);
+
+    const std::vector<std::pair<std::string, std::string>> rejected = {
+        {"stray_else.qasm", "else has no matching if"},
+        {"stray_else_h.qasm", "else has no matching if"},
+        {"else_if.qasm", "else if is not supported"},
+        {"extra_brace.qasm", "does not close"},
+        {"unclosed.qasm", "Unclosed if"},
+        {"else_no_brace.qasm", "Expected '{'"},
+        {"nested.qasm", "Nested if or while"},
+    };
+    for (const auto& [name, message] : rejected) {
+        auto [code, output] = run_cli("ex " + f("pre.hsl") + " " + f(name));
+        BOOST_CHECK_MESSAGE(code != 0, name + " exited 0:\n" + output);
+        BOOST_CHECK_MESSAGE(output.find(message) != std::string::npos, name + ":\n" + output);
+        BOOST_CHECK_MESSAGE(output.find("Floating point") == std::string::npos, output);
+    }
+}
