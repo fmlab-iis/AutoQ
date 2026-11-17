@@ -106,7 +106,7 @@ struct EvaluationVisitor : public ExtendedDiracParserBaseVisitor {
         predicateConstraints(predicateConstraintsVector.empty() ? "" : predicateConstraintsVector.at(0)),
         predicateConstraintsVector(predicateConstraintsVector) {}
     std::any let_visitor_parse_string(const std::string &input) {
-        return parse_extended_dirac_and_visit(input, [](ExtendedDiracParser& p) { return static_cast<antlr4::tree::ParseTree*>(p.expr()); }, this);
+        return AUTOQ::Parsing::detail::parse_extended_dirac_and_visit(input, [](ExtendedDiracParser& p) { return static_cast<antlr4::tree::ParseTree*>(p.expr()); }, this);
     }
 
     /* -------- VisitExpr: expression (expr → tset → scset → set) -------- */

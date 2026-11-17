@@ -5,7 +5,7 @@
  *  Uses .hh extension (no .inc.h). */
     class ComplexParser {
 public:
-    ComplexParser(const std::string &input, const std::map<std::string, Complex> &constMap = get_empty_const_map())
+    ComplexParser(const std::string &input, const std::map<std::string, Complex> &constMap = AUTOQ::Parsing::detail::get_empty_const_map())
         : input_(input), index_(0), resultC(), resultV(), constMap_(constMap), unknownVariableErrorOccurred(false) {
         std::erase_if(input_, [](unsigned char ch) { return std::isspace(ch); });
         parse();
@@ -28,7 +28,7 @@ private:
     void parse() {
         EvaluationVisitor<AUTOQ::Symbol::Concrete> complexVisitor({constMap_}, {});
         complexVisitor.mode = EvaluationVisitor<AUTOQ::Symbol::Concrete>::CONCRETE_COMPLEX;
-        auto visitResult = parse_extended_dirac_and_visit(input_, [](ExtendedDiracParser& p) { return static_cast<antlr4::tree::ParseTree*>(p.complex()); }, &complexVisitor);
+        auto visitResult = AUTOQ::Parsing::detail::parse_extended_dirac_and_visit(input_, [](ExtendedDiracParser& p) { return static_cast<antlr4::tree::ParseTree*>(p.complex()); }, &complexVisitor);
         resultC = std::any_cast<AUTOQ::Complex::Complex>(visitResult);
         resultV = complexVisitor.resultV;
     }
@@ -36,7 +36,7 @@ private:
 
 class SymbolicComplexParser {
 public:
-    SymbolicComplexParser(const std::string &input, const std::map<std::string, Complex> &constMap = get_empty_const_map())
+    SymbolicComplexParser(const std::string &input, const std::map<std::string, Complex> &constMap = AUTOQ::Parsing::detail::get_empty_const_map())
         : input_(input), index_(0), result(), constMap_(constMap), used_vars() {
         std::erase_if(input_, [](unsigned char ch) { return std::isspace(ch); });
         parse();
@@ -58,7 +58,7 @@ private:
     void parse() {
         EvaluationVisitor<AUTOQ::Symbol::Symbolic> complexVisitor({constMap_}, {});
         complexVisitor.mode = EvaluationVisitor<AUTOQ::Symbol::Symbolic>::SYMBOLIC_COMPLEX;
-        auto visitResult = parse_extended_dirac_and_visit(input_, [](ExtendedDiracParser& p) { return static_cast<antlr4::tree::ParseTree*>(p.complex()); }, &complexVisitor);
+        auto visitResult = AUTOQ::Parsing::detail::parse_extended_dirac_and_visit(input_, [](ExtendedDiracParser& p) { return static_cast<antlr4::tree::ParseTree*>(p.complex()); }, &complexVisitor);
         result = std::any_cast<AUTOQ::Complex::SymbolicComplex>(visitResult);
         used_vars = complexVisitor.used_vars;
     }
@@ -66,7 +66,7 @@ private:
 
 class ConstraintParser {
 public:
-    ConstraintParser(const std::string &input, const std::map<std::string, Complex> &constMap = get_empty_const_map())
+    ConstraintParser(const std::string &input, const std::map<std::string, Complex> &constMap = AUTOQ::Parsing::detail::get_empty_const_map())
         : input_(input), index_(0), result(), constMap_(constMap) {
         std::erase_if(input_, [](unsigned char ch) { return std::isspace(ch); });
         parse();
@@ -84,7 +84,7 @@ private:
     void parse() {
         EvaluationVisitor<AUTOQ::Symbol::Symbolic> predicateVisitor({constMap_}, {});
         predicateVisitor.mode = EvaluationVisitor<AUTOQ::Symbol::Symbolic>::SYMBOLIC_COMPLEX;
-        auto visitResult = parse_extended_dirac_and_visit(input_, [](ExtendedDiracParser& p) { return static_cast<antlr4::tree::ParseTree*>(p.predicate()); }, &predicateVisitor);
+        auto visitResult = AUTOQ::Parsing::detail::parse_extended_dirac_and_visit(input_, [](ExtendedDiracParser& p) { return static_cast<antlr4::tree::ParseTree*>(p.predicate()); }, &predicateVisitor);
         result = std::any_cast<z3::expr>(visitResult).to_string();
     }
 };
