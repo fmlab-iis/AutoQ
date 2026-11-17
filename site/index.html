@@ -1139,7 +1139,7 @@ aL := -1 / (sqrt2 ^ 7)
         <dl class="cmds">
           <div><dt>ex</dt><dd><code class="use">autoq ex [OPTIONS] pre.hsl circuit.qasm</code><br>Execute a quantum circuit with a given precondition.<br><span class="opts">Option: <code>--loopsum</code></span></dd></div>
           <div><dt>ver</dt><dd><code class="use">autoq ver [OPTIONS] pre.hsl circuit.qasm post.hsl</code><br>Verify the execution result against a given postcondition.<br><span class="opts">Options: <code>--loopsum</code>, <code>-l, --latex</code></span></dd></div>
-          <div><dt>eq</dt><dd><code class="use">autoq eq [OPTIONS] circuit1.qasm circuit2.qasm</code><br>Check equivalence of two given quantum circuits.<br><span class="opts">Option: <code>--loopsum</code></span></dd></div>
+          <div><dt>eq</dt><dd><code class="use">autoq eq [OPTIONS] circuit1.qasm circuit2.qasm</code><br>Check equivalence of two given quantum circuits. <code>eq</code> does not accept <code>if</code> or <code>while</code>.<br><span class="opts">Option: <code>--loopsum</code></span></dd></div>
           <div><dt>print</dt><dd><code class="use">autoq print [OPTIONS] states.hsl</code><br>Print the set of quantum states.</dd></div>
         </dl>
         <p class="caption"><code>--loopsum</code> summarizes loops using symbolic execution. <code>-l, --latex</code> on <code>ver</code> prints the statistics for tables in LaTeX. <code>autoq -v</code> prints the full Git commit hash.</p>
@@ -1272,7 +1272,7 @@ for int i in [1:2] {
     <h3 id="eq"><span class="subnum">4.4</span> Circuit equivalence</h3>
     <div class="row">
       <div class="main">
-        <p><code>autoq eq</code> checks whether two circuits are equal. A CX gate equals a CZ placed between two H gates on the target qubit; reversing control and target gives a different circuit.</p>
+        <p><code>autoq eq</code> checks whether two circuits are equal. A CX gate equals a CZ placed between two H gates on the target qubit; reversing control and target gives a different circuit. <code>eq</code> does not run <code>if</code> or <code>while</code>: if either circuit contains one, it stops with an error. <code>ver</code> and <code>ex</code> still accept both.</p>
         <div class="pair">
           <figure class="code">
             <figcaption class="cap"><code>a.qasm</code></figcaption>
