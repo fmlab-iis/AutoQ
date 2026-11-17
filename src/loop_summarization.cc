@@ -205,18 +205,22 @@ AUTOQ::Automata<AUTOQ::Symbol::Symbolic> refinement(AUTOQ::Automata<AUTOQ::Symbo
     }
 
 
-    // add all initial states to corresponding maps
+    // Pair the i-th root before the body with the i-th root after it. Pairing
+    // every root with every other root squares the root count each round, so a
+    // precondition with more than one state never reaches a fixpoint (#66).
+    if (T.finalStates.size() != Tref.finalStates.size())
+        THROW_AUTOQ_ERROR("Loop summarization found "
+            + std::to_string(Tref.finalStates.size()) + " roots before the loop body and "
+            + std::to_string(T.finalStates.size()) + " after it.");
     int64_t state_counter = 0;
-    for(auto& rhs_roots : T.finalStates){
-        for(auto& lhs_roots : Tref.finalStates){
-            auto pair = std::make_pair(lhs_roots, rhs_roots);
-            auto res = mapping.find(pair);
-            if(res == mapping.end()){
-                worklist.push_back(pair);
-                product.finalStates.emplace_back(state_counter);
-                mapping[pair] = state_counter;
-                state_counter++;
-            }
+    for (size_t i = 0; i < T.finalStates.size(); ++i) {
+        auto pair = std::make_pair(Tref.finalStates[i], T.finalStates[i]);
+        auto res = mapping.find(pair);
+        if (res == mapping.end()) {
+            worklist.push_back(pair);
+            product.finalStates.emplace_back(state_counter);
+            mapping[pair] = state_counter;
+            state_counter++;
         }
     }
 

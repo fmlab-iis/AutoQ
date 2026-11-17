@@ -360,6 +360,35 @@ BOOST_AUTO_TEST_CASE(for_loop_summarization_complex_amplitudes){
     }
 }
 
+// A precondition with several states used to square its roots every
+// summarization round and never finish (#66).
+BOOST_AUTO_TEST_CASE(loopsum_matches_unrolling_for_many_states){
+    std::string folder = test_dir_from_file(__FILE__, "testcase/LoopSumMany/");
+    const std::vector<std::pair<std::string, std::string>> cases = {
+        {"one.hsl", "x1.qasm"},
+        {"one.hsl", "x2.qasm"},
+        {"one.hsl", "x3.qasm"},
+        {"one.hsl", "h1.qasm"},
+        {"one.hsl", "h3.qasm"},
+        {"z01.hsl", "x0.qasm"},
+        {"z01.hsl", "x1q.qasm"},
+        {"z01.hsl", "z0.qasm"},
+        {"z01.hsl", "h1q.qasm"},
+        {"z10.hsl", "x0.qasm"},
+        {"z11.hsl", "x0.qasm"},
+        {"z001.hsl", "x0_3.qasm"},
+        {"super.hsl", "x0.qasm"},
+        {"super.hsl", "h0.qasm"},
+        {"super.hsl", "cz.qasm"},
+    };
+    for (const auto& [pre, circuit] : cases) {
+        auto unrolled = execute_and_print(folder + pre, folder + circuit, "manual");
+        auto summarized = execute_and_print(folder + pre, folder + circuit, "symbolic");
+        BOOST_CHECK_MESSAGE(unrolled == summarized,
+            pre + " + " + circuit + ": unrolled " + unrolled + " but summarized " + summarized);
+    }
+}
+
 // `r = measure q[k];` must guard on the same automaton level that gates use for
 // q[k], also when the .hsl files reorder the qubits (#26).
 BOOST_AUTO_TEST_CASE(measurement_guard_uses_qubit_permutation){
