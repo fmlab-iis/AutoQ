@@ -149,6 +149,8 @@ bool AUTOQ::Automata<Symbol>::operator<=(const Automata<Symbol> &autB) const {
     aut2.stateNum = autB.stateNum;
     aut2.qubitNum = autB.qubitNum;
     aut2.isTopdownDeterministic = autB.isTopdownDeterministic;
+    // inclusion_index_compare records time on aut1. Both sides share the caller's stats.
+    aut1.set_execution_stats(this->execution_stats());
     aut2.set_execution_stats(this->execution_stats());
     // migrate transitions (shared symbol_map for both automata)
     std::vector<Symbol> symbol_map;
@@ -156,7 +158,6 @@ bool AUTOQ::Automata<Symbol>::operator<=(const Automata<Symbol> &autB) const {
     migrate_transitions_to_index<Symbol>(autB.transitions, symbol_map, aut2);
     // main routine
     bool result = aut1 <= aut2;
-    // aut1 and aut2 shared stats_ during check, no copy back needed
     return result;
 }
 

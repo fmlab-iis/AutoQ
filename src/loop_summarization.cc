@@ -349,23 +349,44 @@ AUTOQ::Automata<Symbol> symbolic_loop(const std::vector<std::string>& loop_body,
     AUTOQ::Automata<AUTOQ::Symbol::Symbolic> T = initial_abstraction<Symbol>(aut, inverse_alpha);
     AUTOQ::Automata<AUTOQ::Symbol::Symbolic> Tref = T;
     SymbolicMap tau{};
+    // Fix-point rounds must not add to the program's gate count. Each round
+    // assigns a freshly built automaton, which would otherwise point at the
+    // global stats object.
+    AUTOQ::ExecutionStats abstraction_stats;
+    abstraction_stats.gateLog = aut.stats_->gateLog;
+    abstraction_stats.opLog = aut.stats_->opLog;
+    auto use_abstraction_stats = [&](AUTOQ::Automata<AUTOQ::Symbol::Symbolic>& automaton) {
+        automaton.set_execution_stats(&abstraction_stats);
+    };
+    use_abstraction_stats(T);
+    use_abstraction_stats(Tref);
+    int gates_per_body = 0;
     // start of main summarization loop
     bool changes_behavior = false;
     do {
         changes_behavior = false;
         T = Tref;
+        use_abstraction_stats(T);
+        const int before = abstraction_stats.gateCount;
         //execute gates
         for(const std::string& line : loop_body){
             T.single_gate_execute(line, re, qubit_permutation);
         }
+        gates_per_body = abstraction_stats.gateCount - before;
         tau.clear();
 
         // refinement after executing loop body
         Tref = refinement(T, Tref, tau, inverse_alpha, changes_behavior);
+        use_abstraction_stats(Tref);
 
     } while(changes_behavior); // found fix-point
+    // One execution of the body, repeated num_of_iterations times. The rounds
+    // above only discover the summary.
+    if (num_of_iterations > 0)
+        aut.stats_->gateCount += gates_per_body * num_of_iterations;
     // post process the summarization result
     AUTOQ::Automata<Symbol> result = post_process_sumarization<Symbol>(Tref, inverse_alpha, tau, num_of_iterations);
+    result.set_execution_stats(aut.execution_stats());
     return result;
 }
 

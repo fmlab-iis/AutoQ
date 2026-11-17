@@ -933,3 +933,35 @@ BOOST_AUTO_TEST_CASE(imag_returns_the_real_coefficient)
     }
     AUTOQ::Complex::nTuple::N = saved_n;
 }
+
+// Gates that rebuild the automaton, and operator<=, must keep an injected
+// ExecutionStats instead of writing the global object (#41).
+BOOST_AUTO_TEST_CASE(injected_execution_stats_survive_gates_and_inclusion)
+{
+    auto& global = AUTOQ::default_execution_stats();
+    const int gates_before = global.gateCount;
+    const std::string include_before = global.include_status;
+
+    AUTOQ::ExecutionStats mine;
+    auto a = AUTOQ::ConcreteAutomata::basis(3);
+    a.set_execution_stats(&mine);
+    a.H(1);
+    a.X(1);
+    a.CX(2, 1);
+    a.CCX(1, 3, 2);
+    BOOST_CHECK(a.execution_stats() == &mine);
+    BOOST_CHECK_EQUAL(mine.gateCount, 4);
+    BOOST_CHECK_EQUAL(global.gateCount, gates_before);
+
+    AUTOQ::ExecutionStats inclusion;
+    auto left = AUTOQ::ConcreteAutomata::basis(1);
+    auto right = AUTOQ::ConcreteAutomata::basis(1);
+    left.set_execution_stats(&inclusion);
+    right.set_execution_stats(&inclusion);
+    global.include_status.clear();
+    BOOST_CHECK(left <= right);
+    BOOST_CHECK(left.execution_stats() == &inclusion);
+    BOOST_CHECK(!inclusion.include_status.empty());
+    BOOST_CHECK(global.include_status.empty());
+    global.include_status = include_before;
+}
