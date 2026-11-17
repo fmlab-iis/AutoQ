@@ -9,7 +9,7 @@
 #include "autoq/aut_description.hh"
 
 namespace AUTOQ {
-    /// Index-inclusion implementation (used to avoid instantiating generic operator<= for Symbol=Index).
+    /// Index-inclusion implementation. Automata<Index>::operator<= delegates here.
     bool inclusion_index_compare(const IndexAutomata &autA, const IndexAutomata &autB);
 }
 

@@ -28,7 +28,7 @@ public:
     #pragma GCC diagnostic pop
 };
 
-namespace {
+namespace AUTOQ::Parsing::detail {
 inline const std::map<std::string, AUTOQ::Complex::Complex>& get_empty_const_map() {
     static const std::map<std::string, AUTOQ::Complex::Complex> m{};
     return m;
