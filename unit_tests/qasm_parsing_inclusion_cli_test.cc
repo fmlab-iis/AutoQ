@@ -593,3 +593,36 @@ BOOST_AUTO_TEST_CASE(while_without_invariant_comment_is_reported)
     BOOST_CHECK_MESSAGE(ex_code == 0, ex_out);
     BOOST_CHECK_MESSAGE(ex_out.find("satisfies the loop invariant") != std::string::npos, ex_out);
 }
+
+// --loopsum used to leave a symbolic automaton in the fresh variables
+// symbolic_k, dropping the original amplitudes (#23).
+BOOST_AUTO_TEST_CASE(symbolic_loop_summarization_keeps_the_amplitudes)
+{
+    std::string dir = test_dir_from_file(__FILE__, "testcase/LoopSumSymbolic/");
+    auto f = [&](const std::string& name) { return "\"" + dir + name + "\""; };
+    const std::vector<std::pair<std::string, std::string>> executions = {
+        {"ex " + f("pre_a.hsl") + " " + f("x_once.qasm"), "x_once.qasm"},
+        {"ex " + f("pre_a.hsl") + " " + f("x_twice.qasm"), "x_twice.qasm"},
+        {"ex " + f("pre_a.hsl") + " " + f("h_once.qasm"), "h_once.qasm"},
+    };
+    for (const auto& [args, name] : executions) {
+        auto [plain_code, plain_out] = run_cli(args);
+        auto [sum_code, sum_out] = run_cli(args + " --loopsum");
+        BOOST_CHECK_MESSAGE(plain_code == 0, name + " unrolled: " + plain_out);
+        BOOST_CHECK_MESSAGE(sum_code == 0, name + " summarized: " + sum_out);
+        BOOST_CHECK_MESSAGE(plain_out == sum_out, name + ":\nunrolled " + plain_out + "summarized " + sum_out);
+        BOOST_CHECK_MESSAGE(sum_out.find("symbolic_") == std::string::npos, sum_out);
+    }
+
+    const std::vector<std::string> verified = {
+        "ver " + f("pre_a.hsl") + " " + f("x_once.qasm") + " " + f("post_a.hsl") + " --loopsum",
+        "ver " + f("pre_a.hsl") + " " + f("x_twice.qasm") + " " + f("pre_a.hsl") + " --loopsum",
+        "ver " + f("pre_zero.hsl") + " " + f("x_once.qasm") + " " + f("post_c.hsl") + " --loopsum",
+    };
+    for (const auto& args : verified) {
+        auto [code, output] = run_cli(args);
+        BOOST_CHECK_MESSAGE(code == 0, args + ": " + output);
+        BOOST_CHECK_MESSAGE(output.find("The verification process [OK]") != std::string::npos, output);
+        BOOST_CHECK_MESSAGE(output.find("[failed]") == std::string::npos, output);
+    }
+}
