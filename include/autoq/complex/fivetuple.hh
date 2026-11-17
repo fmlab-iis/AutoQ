@@ -233,12 +233,14 @@ struct AUTOQ::Complex::FiveTuple : stdvectorboostmultiprecisioncpp_int {
         return {at(1)-at(3), at(0), 0, -at(0), at(4)+1};
     }
     FiveTuple imag() const {
+        // Imaginary part y of x + i·y, as a real FiveTuple (parallel to real()).
         // Sum up the following three 5-tuples.
-        // {0, 0, at(2), 0, at(4)} = {0, at(2), 0, at(2), at(4)+1}
-        // {0, 0, at(1), 0, at(4)+1}
-        // {0, 0, at(3), 0, at(4)+1}
-        // Result: {0, at(2), at(1)+at(3), at(2), at(4)+1}
-        return {0, at(2), at(1)+at(3), at(2), at(4)+1};
+        // {0, at(2), 0, -at(2), at(4)+1}  // at(2) / sqrt2^at(4)
+        // {at(1), 0, 0, 0, at(4)+1}
+        // {at(3), 0, 0, 0, at(4)+1}
+        // Result: {at(1)+at(3), at(2), 0, -at(2), at(4)+1}
+        // That is, (at(1)+at(3))/sqrt2^(at(4)+1) + at(2)/sqrt2^at(4)
+        return {at(1)+at(3), at(2), 0, -at(2), at(4)+1};
     }
     void increase_k() {
         FiveTuple symbol;

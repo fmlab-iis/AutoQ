@@ -244,11 +244,9 @@ Symbol eval_symbol( const AUTOQ::Symbol::Symbolic& symbol,
             for(auto& [term, complex] : sym.complex){
                 for(auto& [string, cppint] : term){
                     if(string.back() == 'I'){
-                        // A variable v is encoded as vR + i·vI, so vI must be
-                        // bound to the real number Im(x). imag() returns
-                        // i·Im(x); rotating it by a quarter turn clockwise
-                        // (multiplying by -i) gives Im(x).
-                        mapping[term] = conc.complex.imag().counterclockwise(boost::rational<boost::multiprecision::cpp_int>(-1, 4));
+                        // A variable v is encoded as vR + i·vI, so vI is the
+                        // real coefficient Im(x). imag() returns that coefficient.
+                        mapping[term] = conc.complex.imag();
                     }
                     else if(string.back() == 'R'){
                         mapping[term] = conc.complex.real();
