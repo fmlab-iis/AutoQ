@@ -33,8 +33,8 @@ void gate_copy_result_base_and_check_overflow(
     result.hasLoop = src.hasLoop;
     result.vars = src.vars;
     result.constraints = src.constraints;
-    // *this = result would otherwise replace an injected stats object with the global one.
-    result.set_execution_stats(src.execution_stats());
+    // result.reduce() records on the caller's stats. Assignment keeps that object.
+    result.share_execution_stats(src.stats_);
     bool overflow = (src.stateNum > (std::numeric_limits<State>::max() - src.stateNum) / src.stateNum / 2);
     if (overflow)
         THROW_AUTOQ_ERROR("The number of states after multiplication is too large.");

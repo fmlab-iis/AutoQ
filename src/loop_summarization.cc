@@ -386,7 +386,7 @@ AUTOQ::Automata<Symbol> symbolic_loop(const std::vector<std::string>& loop_body,
         aut.stats_->gateCount += gates_per_body * num_of_iterations;
     // post process the summarization result
     AUTOQ::Automata<Symbol> result = post_process_sumarization<Symbol>(Tref, inverse_alpha, tau, num_of_iterations);
-    result.set_execution_stats(aut.execution_stats());
+    result.share_execution_stats(aut.stats_);
     return result;
 }
 

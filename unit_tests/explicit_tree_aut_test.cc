@@ -934,13 +934,16 @@ BOOST_AUTO_TEST_CASE(imag_returns_the_real_coefficient)
     AUTOQ::Complex::nTuple::N = saved_n;
 }
 
-// Gates that rebuild the automaton, and operator<=, must keep an injected
-// ExecutionStats instead of writing the global object (#41).
+// Each automaton has its own stats. Injected stats stay in place across gates,
+// inclusion, and intersection (#41).
 BOOST_AUTO_TEST_CASE(injected_execution_stats_survive_gates_and_inclusion)
 {
-    auto& global = AUTOQ::default_execution_stats();
-    const int gates_before = global.gateCount;
-    const std::string include_before = global.include_status;
+    auto untouched = AUTOQ::ConcreteAutomata::basis(1);
+    auto neighbor = AUTOQ::ConcreteAutomata::basis(1);
+    BOOST_CHECK(untouched.execution_stats() != neighbor.execution_stats());
+    neighbor.X(1);
+    BOOST_CHECK_EQUAL(neighbor.execution_stats()->gateCount, 1);
+    BOOST_CHECK_EQUAL(untouched.execution_stats()->gateCount, 0);
 
     AUTOQ::ExecutionStats mine;
     auto a = AUTOQ::ConcreteAutomata::basis(3);
@@ -951,17 +954,25 @@ BOOST_AUTO_TEST_CASE(injected_execution_stats_survive_gates_and_inclusion)
     a.CCX(1, 3, 2);
     BOOST_CHECK(a.execution_stats() == &mine);
     BOOST_CHECK_EQUAL(mine.gateCount, 4);
-    BOOST_CHECK_EQUAL(global.gateCount, gates_before);
+    BOOST_CHECK_EQUAL(untouched.execution_stats()->gateCount, 0);
 
     AUTOQ::ExecutionStats inclusion;
     auto left = AUTOQ::ConcreteAutomata::basis(1);
     auto right = AUTOQ::ConcreteAutomata::basis(1);
     left.set_execution_stats(&inclusion);
-    right.set_execution_stats(&inclusion);
-    global.include_status.clear();
     BOOST_CHECK(left <= right);
     BOOST_CHECK(left.execution_stats() == &inclusion);
     BOOST_CHECK(!inclusion.include_status.empty());
-    BOOST_CHECK(global.include_status.empty());
-    global.include_status = include_before;
+    BOOST_CHECK(right.execution_stats()->include_status.empty());
+
+    AUTOQ::ExecutionStats intersection;
+    auto p = AUTOQ::ConcreteAutomata::basis(1);
+    auto q = AUTOQ::ConcreteAutomata::basis(1);
+    p.set_execution_stats(&intersection);
+    const auto other_reduce = q.execution_stats()->total_reduce_time;
+    auto r = p && q;
+    BOOST_CHECK(r.execution_stats() == &intersection);
+    p = r;
+    BOOST_CHECK(p.execution_stats() == &intersection);
+    BOOST_CHECK(q.execution_stats()->total_reduce_time == other_reduce);
 }
