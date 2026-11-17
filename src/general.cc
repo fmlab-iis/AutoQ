@@ -277,16 +277,11 @@ AUTOQ::Automata<Symbol> AUTOQ::Automata<Symbol>::operator&&(const Automata<Symbo
         auto itEnd = itHead;
         auto it2End = it2Head;
         Automata<Symbol>::Tag totalTag1 = 0, totalTag2 = 0;
-        int maxNumOfBitsInTag1 = 0, maxNumOfBitsInTag2 = 0;
         while (itEnd != this->transitions.cend() &&
                itEnd->first.is_internal() == itHead->first.is_internal() &&
               (itHead->first.is_leaf() || itEnd->first.symbol().qubit() == itHead->first.symbol().qubit())) {
             totalTag1 |= itEnd->first.tag();
             itEnd++;
-        }
-        while (totalTag1) {
-            maxNumOfBitsInTag1++;
-            totalTag1 >>= 1;
         }
         while (it2End != o.transitions.cend() &&
                it2End->first.is_internal() == it2Head->first.is_internal() &&
@@ -294,10 +289,19 @@ AUTOQ::Automata<Symbol> AUTOQ::Automata<Symbol>::operator&&(const Automata<Symbo
             totalTag2 |= it2End->first.tag();
             it2End++;
         }
-        while (totalTag2) {
-            maxNumOfBitsInTag2++;
-            totalTag2 >>= 1;
+        // Number only the colors that occur. A sparse bit such as 2^30 is one
+        // color, so the pair width is the popcount, not the bit-length.
+        constexpr int tagDigits = std::numeric_limits<Tag>::digits;
+        int rank1[tagDigits] = {};
+        int rank2[tagDigits] = {};
+        int n1 = 0;
+        int n2 = 0;
+        for (int b = 0; b < tagDigits; ++b) {
+            if ((totalTag1 >> b) & 1) rank1[b] = n1++;
+            if ((totalTag2 >> b) & 1) rank2[b] = n2++;
         }
+        if (n1 * n2 > tagDigits)
+            THROW_AUTOQ_ERROR("The shifted color is out of range!!!");
 
         for (auto it = itHead; it != itEnd; it++) {
             auto tag1 = it->first.tag();
@@ -306,13 +310,14 @@ AUTOQ::Automata<Symbol> AUTOQ::Automata<Symbol>::operator&&(const Automata<Symbo
                     continue; // cannot be merged if the symbols are not the same
                 }
                 auto tag2 = it2->first.tag();
-                Tag tagNew = [&maxNumOfBitsInTag1, &maxNumOfBitsInTag2](Tag a, Tag b) {
+                Tag tagNew = [&rank1, &rank2, n1](Tag a, Tag b) {
                     Tag result = 0;
-                    for (int i = 0; i < maxNumOfBitsInTag1; ++i) {
+                    constexpr int digits = std::numeric_limits<Tag>::digits;
+                    for (int i = 0; i < digits; ++i) {
                         if ((a >> i) & 1) {
-                            for (int j = 0; j < maxNumOfBitsInTag2; ++j) {
+                            for (int j = 0; j < digits; ++j) {
                                 if ((b >> j) & 1) {
-                                    result |= (Tag(1) << (i + j * maxNumOfBitsInTag1));
+                                    result |= (Tag(1) << (rank1[i] + rank2[j] * n1));
                                 }
                             }
                         }

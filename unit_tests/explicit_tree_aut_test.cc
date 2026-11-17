@@ -933,3 +933,18 @@ BOOST_AUTO_TEST_CASE(imag_returns_the_real_coefficient)
     }
     AUTOQ::Complex::nTuple::N = saved_n;
 }
+
+// Sparse color bits used to share a pair-bit with a low color, so A && A
+// accepted vectors outside A (#53).
+BOOST_AUTO_TEST_CASE(intersection_of_sparse_colors_stays_idempotent)
+{
+    using Aut = AUTOQ::ConcreteAutomata;
+    using Parser = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Concrete>;
+    std::string dir = test_dir_from_file(__FILE__, "testcase/IntersectionColor/");
+    for (const char* name : {"set.lsta", "set_control.lsta"}) {
+        Aut A = Parser::ReadAutomaton(dir + name);
+        Aut I = A && A;
+        BOOST_CHECK_MESSAGE(I <<= A, name);
+        BOOST_CHECK_MESSAGE(A <<= I, name);
+    }
+}

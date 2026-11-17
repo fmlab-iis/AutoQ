@@ -1,0 +1,10 @@
+Constants
+c0 := 0
+c1 := 1
+Root States r
+Transitions
+[1,1](a, b) -> r
+[c1,1] -> a
+[c0,1] -> b
+[c0,2] -> a
+[c1,2] -> b
