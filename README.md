@@ -58,7 +58,7 @@ Subcommands:
   print                       Print the set of quantum states.
 ```
 
-The most frequently used mode in our papers is `ver` for verifying quantum programs.
+The most frequently used mode in our papers is `ver` for verifying quantum programs. `eq` compares two circuits and does not accept a `while` loop: if either circuit contains one, `eq` stops with an error. `ver` and `ex` still accept `while`, and each loop uses the invariant file named on its `while` line.
 ```
 $ ./build/cli/autoq ver -h
 Verify the execution result against a given postcondition.

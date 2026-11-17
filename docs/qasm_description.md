@@ -113,6 +113,8 @@ while (outcome[0]) { // loop-invariant.hsl // I = {|0>/√2 + |1>/√2}
 
 Filepaths for specifying loop invariants are relative to the circuit file's location. Please refer to [this example](../benchmarks/all/control_mini/while) for its usage.
 
+`autoq eq` does not execute `while` loops. If either circuit contains a `while` statement, `eq` stops with an error. `ver` and `ex` still run these programs and read the invariant file named on the `while` line.
+
 ---
 
 ### # Looping (for)

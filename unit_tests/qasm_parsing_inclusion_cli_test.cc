@@ -730,3 +730,33 @@ BOOST_AUTO_TEST_CASE(loopsum_gate_count_is_the_program_count)
         }
     }
 }
+
+// eq does not run while loops. ver and ex still do, and an if circuit stays comparable (#39).
+BOOST_AUTO_TEST_CASE(eq_rejects_while_loops)
+{
+    std::string dir = test_dir_from_file(__FILE__, "testcase/EqWhile/");
+    auto f = [&](const std::string& name) { return "\"" + dir + name + "\""; };
+    for (const std::string args : {
+            "eq " + f("a.qasm") + " " + f("a.qasm"),
+            "eq " + f("a_if.qasm") + " " + f("a.qasm"),
+            "eq " + f("a.qasm") + " " + f("comment.qasm") + " --loopsum",
+        }) {
+        auto [code, output] = run_cli(args);
+        BOOST_CHECK_MESSAGE(code == 1, args + ":\n" + output);
+        BOOST_CHECK_MESSAGE(output.find("while loops are not supported by eq") != std::string::npos, output);
+    }
+    for (const std::string args : {
+            "eq " + f("a_if.qasm") + " " + f("a_if.qasm"),
+            "eq " + f("comment.qasm") + " " + f("comment.qasm"),
+        }) {
+        auto [code, output] = run_cli(args);
+        BOOST_CHECK_MESSAGE(code == 0, args + ":\n" + output);
+        BOOST_CHECK_MESSAGE(output.find("[equal]") != std::string::npos, output);
+    }
+    auto [ver_code, ver_out] = run_cli("ver " + f("pre.hsl") + " " + f("a.qasm") + " " + f("post.hsl"));
+    BOOST_CHECK_MESSAGE(ver_code == 0, ver_out);
+    BOOST_CHECK_MESSAGE(ver_out.find("The verification process [OK]") != std::string::npos, ver_out);
+    auto [ex_code, ex_out] = run_cli("ex " + f("pre.hsl") + " " + f("a.qasm"));
+    BOOST_CHECK_MESSAGE(ex_code == 0, ex_out);
+    BOOST_CHECK_MESSAGE(ex_out.find("[OK] The circuit execution satisfies the loop invariant.") != std::string::npos, ex_out);
+}
