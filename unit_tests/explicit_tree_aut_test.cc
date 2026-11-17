@@ -644,6 +644,27 @@ BOOST_AUTO_TEST_CASE(benchmarks_RUS)
     }, 999999);  // RUS: no size limit
 }
 
+// A wrong invariant makes execute() return false. The automaton it leaves
+// behind is the invariant's exit branch, so the postcondition can still hold (#49).
+BOOST_AUTO_TEST_CASE(wrong_loop_invariant_is_reported)
+{
+    std::string folder = test_dir_from_file(__FILE__, "testcase/WrongInvariant/");
+    const std::vector<std::tuple<std::string, std::string, std::string>> cases = {
+        {"entry_pre.hsl", "entry_post.hsl", "entry.qasm"},
+        {"body_pre.hsl", "body_post.hsl", "body.qasm"},
+    };
+    for (const auto& [pre, post, circuit] : cases) {
+        auto [autVec, qp] = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Concrete>::ReadTwoAutomata(
+            folder + pre, folder + post, folder + circuit);
+        auto aut = autVec.at(0);
+        auto spec = autVec.at(1);
+        autVec.erase(autVec.begin(), autVec.begin() + 2);
+        bool verify = aut.execute(folder + circuit, qp, autVec);
+        BOOST_CHECK_MESSAGE(!verify, circuit + ": execute() accepted a wrong loop invariant");
+        BOOST_CHECK_MESSAGE(aut <<= spec, circuit + ": the invariant exit branch should still meet the postcondition");
+    }
+}
+
 BOOST_AUTO_TEST_CASE(qubit_reordering)
 {
     for (int z=2; z<=5; z++) {
