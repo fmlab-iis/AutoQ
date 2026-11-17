@@ -70,7 +70,7 @@ else { // S_1 = {|1>/√2}
 // (S_0')∪(S_1') = {|1>/√2, |0>/2 - |1>/2}
 ```
 
-One subtle point to note is that the statement `else {` must not appear on the same line as the closing bracket `}` of the preceding `if` block since AutoQ 2.0 needs to detect the termination of the previous `if` block. Please refer to [this example](../benchmarks/all/control_mini/if-else) for its usage.
+`if`, `{`, `}`, and `else` are separate tokens. Blank lines may separate them, and `} else {` may also sit on one line. `else` is optional. Please refer to [this example](../benchmarks/all/control_mini/if-else) for its usage.
 
 ---
 
