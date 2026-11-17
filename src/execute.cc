@@ -14,7 +14,9 @@
 #include "autoq/parsing/parser/timbuk_parser.hh"
 #include "autoq/parsing/ExtendedDirac/EvaluationVisitor.h"
 #include "autoq/parsing/angle.hh"
+#include <cctype>
 #include <cstring>
+#include <deque>
 #include <regex>
 #include <fstream>
 #include <filesystem>
@@ -92,6 +94,103 @@ std::pair<int, bool> parse_measurement_guard(const std::string& line, const std:
         THROW_AUTOQ_ERROR("The " + keyword + " guard variable \"" + var + "\" in \"" + line + "\" was not assigned by a measurement.");
     return {it->second, negate};
 }
+
+bool starts_word(const std::string& s, size_t i, const char* word) {
+    if (i > 0) {
+        const unsigned char prev = static_cast<unsigned char>(s[i - 1]);
+        if (std::isalnum(prev) || prev == '_')
+            return false;
+    }
+    const size_t n = std::strlen(word);
+    if (s.compare(i, n, word) != 0)
+        return false;
+    if (i + n < s.size()) {
+        const unsigned char c = static_cast<unsigned char>(s[i + n]);
+        if (std::isalnum(c) || c == '_')
+            return false;
+    }
+    return true;
+}
+
+// One statement, or one of {, }, else, if (...), while (...). Newlines are not
+// tokens: the caller pulls the next line only when this queue is empty (#27).
+enum class QasmTokKind { If, While, Else, LBrace, RBrace, Stmt };
+
+struct QasmTok {
+    QasmTokKind kind;
+    std::string text;
+};
+
+size_t end_of_guard(const std::string& line, size_t i) {
+    const size_t open = line.find('(', i);
+    if (open == std::string::npos)
+        return std::string::npos;
+    int depth = 0;
+    for (size_t j = open; j < line.size(); ++j) {
+        if (line[j] == '(')
+            ++depth;
+        else if (line[j] == ')') {
+            --depth;
+            if (depth == 0)
+                return j + 1;
+        }
+    }
+    return std::string::npos;
+}
+
+size_t next_special(const std::string& line, size_t i) {
+    for (size_t j = i; j < line.size(); ++j) {
+        if (line[j] == '{' || line[j] == '}')
+            return j;
+        if (starts_word(line, j, "else") || starts_word(line, j, "if") || starts_word(line, j, "while"))
+            return j;
+    }
+    return std::string::npos;
+}
+
+void push_line_tokens(const std::string& line, std::deque<QasmTok>& out) {
+    // for owns the following lines itself, and a gate header may contain braces.
+    if (line.find("for ") == 0 || line.find("gate ") == 0) {
+        out.push_back({QasmTokKind::Stmt, line});
+        return;
+    }
+    size_t i = 0;
+    while (i < line.size()) {
+        while (i < line.size() && std::isspace(static_cast<unsigned char>(line[i])))
+            ++i;
+        if (i >= line.size())
+            break;
+        if (starts_word(line, i, "if") || starts_word(line, i, "while")) {
+            const bool is_if = starts_word(line, i, "if");
+            const size_t end = end_of_guard(line, i);
+            if (end == std::string::npos) {
+                out.push_back({QasmTokKind::Stmt, AUTOQ::String::trim(line.substr(i))});
+                return;
+            }
+            out.push_back({is_if ? QasmTokKind::If : QasmTokKind::While,
+                           AUTOQ::String::trim(line.substr(i, end - i))});
+            i = end;
+        } else if (starts_word(line, i, "else")) {
+            out.push_back({QasmTokKind::Else, "else"});
+            i += 4;
+        } else if (line[i] == '{') {
+            out.push_back({QasmTokKind::LBrace, "{"});
+            ++i;
+        } else if (line[i] == '}') {
+            out.push_back({QasmTokKind::RBrace, "}"});
+            ++i;
+        } else {
+            const size_t end = next_special(line, i);
+            const std::string stmt = AUTOQ::String::trim(
+                line.substr(i, end == std::string::npos ? std::string::npos : end - i));
+            if (!stmt.empty())
+                out.push_back({QasmTokKind::Stmt, stmt});
+            if (end == std::string::npos)
+                return;
+            i = end;
+        }
+    }
+}
 }  // namespace
 
 template <typename Symbol>
@@ -120,83 +219,130 @@ bool AUTOQ::Automata<Symbol>::execute(const char *filename, std::vector<int> qub
     const AUTOQ::QasmRegexes qasm_re{};
 
     if (!qasm.is_open()) THROW_AUTOQ_ERROR(std::string(EM::kOpenFilePrefix) + filename + ".");
-    std::string line, previous_line;
+    std::string previous_line;
+    std::deque<QasmTok> tokens;
+
+    auto pull_line = [&]() -> bool {
+        std::string line;
+        while (std::getline(qasm, line)) {
+            // Strip trailing comments so that text in them is never read as a
+            // gate (#42). Loop-invariant file names after "while (...) {" are
+            // read in separate passes over the file.
+            line = AUTOQ::String::strip_line_comment(line);
+            if (line.empty())
+                continue;
+            if (inGateDef) {
+                if (line.find('}') != std::string::npos)
+                    inGateDef = false;
+                continue; // simply ignore gate definitions
+            }
+            push_line_tokens(line, tokens);
+            return true;
+        }
+        return false;
+    };
+    auto ensure = [&]() -> bool {
+        while (tokens.empty()) {
+            if (!pull_line())
+                return false;
+        }
+        return true;
+    };
+    auto expect_lbrace = [&](const std::string& after) {
+        if (!ensure() || tokens.front().kind != QasmTokKind::LBrace)
+            THROW_AUTOQ_ERROR("Expected '{' after \"" + after + "\".");
+        tokens.pop_front();
+    };
 
     bool in_loop = false; // nested loops are not yet taken into consideration
-    while (getline(qasm, line)) {
-        // Strip trailing comments so that text in them is never read as a
-        // gate (#42). Loop-invariant file names after "while (...) {" are
-        // read in separate passes over the file.
-        line = AUTOQ::String::strip_line_comment(line);
-        if (line.empty()) continue;
-        // AUTOQ_DEBUG("[" << (lineno++) << "]: " << line);
-        if (inGateDef) {
-            if (line.find("}") != std::string::npos) {
-                inGateDef = false;
-            }
-            continue; // simply ignore gate definitions
-        }
-        if (line.find("OPENQASM") == 0 || line.find("include ") == 0 || line.find("//") == 0 || line.find("/*") == 0 || line.find("bit") == 0) continue;
-        if (line.find("qreg ") == 0 || line.find("qubit") == 0) {
-            std::sregex_iterator it(line.begin(), line.end(), qasm_re.digit);
-            while (it != kRegexEnd) {
-                if (atoi(it->str().c_str()) != static_cast<int>(qubitNum))
-                    THROW_AUTOQ_ERROR(EM::kQubitMismatch);
-                ++it;
-            }
-        } else if (line.find("for ") == 0) {
-            if (in_loop) THROW_AUTOQ_ERROR(EM::kNestedLoops);
-            in_loop = true;
-            std::smatch match_pieces;
-            if (!std::regex_search(line, match_pieces, qasm_re.loop))
-                THROW_AUTOQ_ERROR("Unsupported for-loop header (expected \"for int i in [x:y] {\"): \"" + line + "\".");
-            std::vector<std::string> loop_body = parse_for_loop_body(qasm, in_loop);
-            execute_loop<Symbol>(loop_body, *this, params, qasm_re, match_pieces, qubit_permutation);
-        } else if (line.find("PRINT_STATS") == 0) {
-            print_stats(previous_line, true);
-        } else if (line.find("PRINT_AUT") == 0) {
-            print_aut();
-        } else if (line.find("PRINT_LANG") == 0) {
-            print_language();
-        } else if (line.find("STOP") == 0) {
-            break;
-        } else if (line.find("while") == 0) {
-            handle_while_loop_start(line, previous_line, loopInvariants, loopInvariantCounter,
-                inWhileLoop, while_measurement_guard, var_is_measure_what_qubit,
-                I, measure_to_continue, measure_to_break, verify);
-        } else if (line.find("}") == 0) {
+    while (ensure()) {
+        const QasmTok tok = tokens.front();
+        tokens.pop_front();
+        if (tok.kind == QasmTokKind::LBrace) {
+            THROW_AUTOQ_ERROR("Unexpected '{'.");
+        } else if (tok.kind == QasmTokKind::RBrace) {
+            // else binds to this '}', however many blank lines follow (#27).
+            const bool closed_if = inIfBlock;
+            if (!inWhileLoop && !inIfBlock && !inElseBlock)
+                THROW_AUTOQ_ERROR("'}' does not close an if, else, or while.");
             handle_closing_brace(inWhileLoop, inIfBlock, inElseBlock, previous_line, while_measurement_guard,
                 I, measure_to_break, measure_to_else, result_after_if, verify);
-        } else if (line.find("if") == 0) {
-            inIfBlock = true;
-            handle_if_block_start(line, previous_line, var_is_measure_what_qubit, measure_to_else);
-        } else if (line.find("else") == 0) {
-            inElseBlock = true;
-            handle_else(measure_to_else);
-        } else if (line.find("gate ") == 0) {
-            if (line.find("}") == std::string::npos) {
-                inGateDef = true; // TODO: unsure if this is necessary
+            if (closed_if && ensure() && tokens.front().kind == QasmTokKind::Else) {
+                tokens.pop_front();
+                if (ensure() && tokens.front().kind == QasmTokKind::If)
+                    THROW_AUTOQ_ERROR("else if is not supported.");
+                expect_lbrace("else");
+                inElseBlock = true;
+                handle_else(measure_to_else);
             }
-        } else if (line.find("=") != std::string::npos && line.find("measure") != std::string::npos) {
-            const std::regex m("([^ ]+) *= *measure"); // result = measure problem[4];
-            std::sregex_iterator it(line.cbegin(), line.cend(), m);
-            if (it == kRegexEnd)
-                THROW_AUTOQ_ERROR("Expected measure assignment (var = measure ...[n]) in \"" + line + "\".");
-            std::string result = it->str(1);
-            auto qubit = line.substr(line.find("measure") + std::strlen("measure"));
-            int pos = qubit_operands(qubit, line, 1, qubitNum, qubit_permutation).at(0);
-            var_is_measure_what_qubit[result] = pos;
-            // TODO: Actually, we should split the automaton here into two separate copies which
-            // are produced from the measurement outcome of 0 and 1, respectively. However, we do
-            // not do this for simplicity temporarily.
-        }  else {
-            single_gate_execute(line, qasm_re, qubit_permutation);
+        } else if (tok.kind == QasmTokKind::Else) {
+            THROW_AUTOQ_ERROR("else has no matching if.");
+        } else if (tok.kind == QasmTokKind::If || tok.kind == QasmTokKind::While) {
+            if (inIfBlock || inElseBlock || inWhileLoop)
+                THROW_AUTOQ_ERROR("Nested if or while is not supported.");
+            expect_lbrace(tok.text);
+            if (tok.kind == QasmTokKind::If) {
+                inIfBlock = true;
+                handle_if_block_start(tok.text, previous_line, var_is_measure_what_qubit, measure_to_else);
+            } else {
+                handle_while_loop_start(tok.text, previous_line, loopInvariants, loopInvariantCounter,
+                    inWhileLoop, while_measurement_guard, var_is_measure_what_qubit,
+                    I, measure_to_continue, measure_to_break, verify);
+            }
+            previous_line = tok.text;
+        } else {
+            const std::string& line = tok.text;
+            if (line.find("OPENQASM") == 0 || line.find("include ") == 0 || line.find("//") == 0 || line.find("/*") == 0 || line.find("bit") == 0) continue;
+            if (line.find("qreg ") == 0 || line.find("qubit") == 0) {
+                std::sregex_iterator it(line.begin(), line.end(), qasm_re.digit);
+                while (it != kRegexEnd) {
+                    if (atoi(it->str().c_str()) != static_cast<int>(qubitNum))
+                        THROW_AUTOQ_ERROR(EM::kQubitMismatch);
+                    ++it;
+                }
+            } else if (line.find("for ") == 0) {
+                if (in_loop) THROW_AUTOQ_ERROR(EM::kNestedLoops);
+                in_loop = true;
+                std::smatch match_pieces;
+                if (!std::regex_search(line, match_pieces, qasm_re.loop))
+                    THROW_AUTOQ_ERROR("Unsupported for-loop header (expected \"for int i in [x:y] {\"): \"" + line + "\".");
+                std::vector<std::string> loop_body = parse_for_loop_body(qasm, in_loop);
+                execute_loop<Symbol>(loop_body, *this, params, qasm_re, match_pieces, qubit_permutation);
+            } else if (line.find("PRINT_STATS") == 0) {
+                print_stats(previous_line, true);
+            } else if (line.find("PRINT_AUT") == 0) {
+                print_aut();
+            } else if (line.find("PRINT_LANG") == 0) {
+                print_language();
+            } else if (line.find("STOP") == 0) {
+                break;
+            } else if (line.find("gate ") == 0) {
+                if (line.find("}") == std::string::npos) {
+                    inGateDef = true; // TODO: unsure if this is necessary
+                }
+            } else if (line.find("=") != std::string::npos && line.find("measure") != std::string::npos) {
+                const std::regex m("([^ ]+) *= *measure"); // result = measure problem[4];
+                std::sregex_iterator it(line.cbegin(), line.cend(), m);
+                if (it == kRegexEnd)
+                    THROW_AUTOQ_ERROR("Expected measure assignment (var = measure ...[n]) in \"" + line + "\".");
+                std::string result = it->str(1);
+                auto qubit = line.substr(line.find("measure") + std::strlen("measure"));
+                int pos = qubit_operands(qubit, line, 1, qubitNum, qubit_permutation).at(0);
+                var_is_measure_what_qubit[result] = pos;
+                // TODO: Actually, we should split the automaton here into two separate copies which
+                // are produced from the measurement outcome of 0 and 1, respectively. However, we do
+                // not do this for simplicity temporarily.
+            } else {
+                single_gate_execute(line, qasm_re, qubit_permutation);
+            }
+            previous_line = line;
         }
-        previous_line = line;
         // print_stats(previous_line, true);
         // print_language(("\n" + previous_line + "\n").c_str());
         stats_->stop_execute = std::chrono::steady_clock::now();
     }
+    if (inIfBlock || inElseBlock || inWhileLoop)
+        THROW_AUTOQ_ERROR("Unclosed if, else, or while at the end of the circuit.");
     qasm.close();
     return verify;
 }
