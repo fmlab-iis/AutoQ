@@ -310,6 +310,7 @@ BOOST_AUTO_TEST_CASE(for_loop_classic_execution){
     ParameterMap params;
     params["loop"] = "manual";
     bool verify = aut2.execute(folder + "/circuit.qasm", qp, autVec, params);
+    verify &= (aut2 <<= spec2);
     BOOST_REQUIRE_MESSAGE(verify, folder + " failed!");
 }
 
@@ -603,7 +604,8 @@ BOOST_AUTO_TEST_CASE(benchmarks_GroverWhile)
         auto aut2 = autVec.at(0);
         auto spec2 = autVec.at(1);
         autVec.erase(autVec.begin(), autVec.begin() + 2);  // remove the first two elements
-        aut2.execute(folder + "/circuit.qasm", qp, autVec);
+        bool verify = aut2.execute(folder + "/circuit.qasm", qp, autVec);
+        BOOST_REQUIRE_MESSAGE(verify, folder + " loop invariant check failed!");
         BOOST_REQUIRE_MESSAGE(aut2 <<= spec2, folder + " failed!");
     });
 }
@@ -636,7 +638,8 @@ BOOST_AUTO_TEST_CASE(benchmarks_RUS)
         auto aut2 = autVec.at(0);
         auto spec2 = autVec.at(1);
         autVec.erase(autVec.begin(), autVec.begin() + 2); // remove the first two elements
-        aut2.execute(folder + "/circuit.qasm", qp, autVec);
+        bool verify = aut2.execute(folder + "/circuit.qasm", qp, autVec);
+        BOOST_REQUIRE_MESSAGE(verify, folder + " loop invariant check failed!");
         BOOST_REQUIRE_MESSAGE(aut2 <<= spec2, folder + " failed!");
     }, 999999);  // RUS: no size limit
 }
