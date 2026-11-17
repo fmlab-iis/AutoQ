@@ -96,8 +96,6 @@ struct AUTOQ::Automata
         const Symbol& symbol() const & { return this->first; }
         Tag& tag() & { return this->second; }
         const Tag& tag() const & { return this->second; }
-        // bool& tag(int index) & { return this->second[index]; }
-        bool tag(int index) const { return (this->second & (1<<index)) >> index; }
         Tag tag_intersection(Tag other) const { return this->second & other; }
         /*********************************************************/
         bool is_internal() const { return symbol().is_internal(); }
