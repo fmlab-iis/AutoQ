@@ -681,3 +681,31 @@ BOOST_AUTO_TEST_CASE(if_else_braces_ignore_line_breaks)
         BOOST_CHECK_MESSAGE(output.find("Floating point") == std::string::npos, output);
     }
 }
+
+// Non-adjacent units that share a letter used to be sliced with stale
+// indices, so gates ran on the wrong qubits (#21).
+BOOST_AUTO_TEST_CASE(nonadjacent_ket_units_keep_their_qubits)
+{
+    std::string dir = test_dir_from_file(__FILE__, "testcase/NonAdjacentUnits/");
+    auto f = [&](const std::string& name) { return "\"" + dir + name + "\""; };
+    auto expect = [&](const std::string& args, bool ok) {
+        auto [code, output] = run_cli(args);
+        BOOST_CHECK_MESSAGE(code == 0, args + ":\n" + output);
+        BOOST_CHECK_MESSAGE(output.find(ok ? "[OK]" : "[failed]") != std::string::npos, output);
+        BOOST_CHECK_MESSAGE(output.find(ok ? "[failed]" : "[OK]") == std::string::npos, output);
+    };
+    expect("ver " + f("pre.hsl") + " " + f("flip_x1.qasm") + " " + f("post.hsl"), false);
+    expect("ver " + f("pre.hsl") + " " + f("flip_y0.qasm") + " " + f("post.hsl"), true);
+    expect("ver " + f("control_pre.hsl") + " " + f("flip_x1.qasm") + " " + f("control_post.hsl"), false);
+    expect("ver " + f("control_pre.hsl") + " " + f("flip_y0.qasm") + " " + f("control_post.hsl"), true);
+
+    for (const std::string args : {
+            "ver " + f("crash_pre.hsl") + " " + f("crash.qasm") + " " + f("crash_pre.hsl"),
+            "ver " + f("width_pre.hsl") + " " + f("width.qasm") + " " + f("width_pre.hsl"),
+        }) {
+        auto [code, output] = run_cli(args);
+        BOOST_CHECK_MESSAGE(code == 0, args + ":\n" + output);
+        BOOST_CHECK_MESSAGE(output.find("out_of_range") == std::string::npos, output);
+        BOOST_CHECK_MESSAGE(output.find("does not match") == std::string::npos, output);
+    }
+}

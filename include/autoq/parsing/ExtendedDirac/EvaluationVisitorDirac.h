@@ -378,19 +378,15 @@
             std::vector<varconS_t> vecVarconS;
             std::vector<std::string> groups;
             auto vstr = ctx->VStr->getText();
-            std::vector<int> selectedCC;
-            for (size_t i=0; i < vstr.length(); i += selectedCC.size()) {
-                selectedCC.clear();
-                for (const auto &cc : currentPerm) { // Notice that the indices in currentPerm are no longer valid here. We only want those "fixpoint" indices!
-                    if (std::find(cc.begin(), cc.end(), i) != cc.end()) {
-                        selectedCC = cc; // find the connected component that contains the index i
-                        break; // one index belongs to at most one connected component
-                    }
-                }
-                if (selectedCC.empty()) { // this character is a group itself
-                    selectedCC = {static_cast<int>(i)};
-                } // NOTE: This patch deals with the case when a character is not in any connected component.
-                auto str = vstr.substr(i, selectedCC.size());
+            // REORDER emitted the CCs in currentPerm order, so slice the reordered ket sequentially.
+            // The old indices in currentPerm no longer address this string.
+            std::vector<size_t> groupSizes;
+            for (const auto &cc : currentPerm) groupSizes.push_back(cc.size());
+            size_t pos = 0;
+            for (size_t gi = 0; pos < vstr.length(); gi++) {
+                size_t len = (gi < groupSizes.size()) ? groupSizes[gi] : 1;
+                auto str = vstr.substr(pos, len);
+                pos += len;
                 varconS_t varconS;
                 for (char ch : str) {
                     ch = std::tolower(ch);
