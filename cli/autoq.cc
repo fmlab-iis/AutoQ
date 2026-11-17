@@ -162,12 +162,13 @@ template<typename Symbol>
 static void run_verification_impl(const std::string& pre, const std::string& post, const std::string& circuit,
                                   const ParameterMap& params, bool latex,
                                   const chrono::steady_clock::time_point& start) {
-    auto& st = AUTOQ::default_execution_stats();
-    st.startFromFileToAutomata = std::chrono::steady_clock::now();
+    const auto parse_start = std::chrono::steady_clock::now();
     auto [autVec, qp] = AUTOQ::Parsing::TimbukParser<Symbol>::ReadTwoAutomata(pre, post, circuit);
-    st.endFromFileToAutomata = std::chrono::steady_clock::now();
+    const auto parse_end = std::chrono::steady_clock::now();
     auto aut = autVec.at(0);
     auto spec = autVec.at(1);
+    aut.execution_stats()->startFromFileToAutomata = parse_start;
+    aut.execution_stats()->endFromFileToAutomata = parse_end;
     autVec.erase(autVec.begin(), autVec.begin() + kAutVecEraseCount);
     bool verify = aut.execute(circuit, qp, autVec, params);
     verify &= (aut <<= spec);

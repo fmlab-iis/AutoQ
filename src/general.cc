@@ -147,6 +147,7 @@ AUTOQ::Automata<Symbol> AUTOQ::Automata<Symbol>::operator||(const Automata<Symbo
     if (o.qubitNum == 0) return *this;
 
     Automata<Symbol> result;
+    result.share_execution_stats(this->stats_);
     result = *this;
     result.name = "operator||";
     if (result.qubitNum != o.qubitNum) {
@@ -266,6 +267,8 @@ AUTOQ::Automata<Symbol> AUTOQ::Automata<Symbol>::operator&&(const Automata<Symbo
     // TODO: How to check if the two input automata have different k's?
 
     Automata<Symbol> result;
+    // reduce() below records its time here, and returning result keeps this pointer.
+    result.share_execution_stats(this->stats_);
     result.name = "operator&&";
     result.qubitNum = this->qubitNum;
     result.hasLoop = false;
