@@ -730,3 +730,34 @@ BOOST_AUTO_TEST_CASE(loopsum_gate_count_is_the_program_count)
         }
     }
 }
+
+// eq does not run if or while. ver and ex still do. A control-flow word in a
+// comment is ignored (#39).
+BOOST_AUTO_TEST_CASE(eq_rejects_while_loops)
+{
+    std::string dir = test_dir_from_file(__FILE__, "testcase/EqWhile/");
+    auto f = [&](const std::string& name) { return "\"" + dir + name + "\""; };
+    const std::vector<std::pair<std::string, std::string>> rejected = {
+        {"eq " + f("a.qasm") + " " + f("a.qasm"), "while loops are not supported by eq"},
+        {"eq " + f("a_if.qasm") + " " + f("a.qasm"), "if statements are not supported by eq"},
+        {"eq " + f("a_if.qasm") + " " + f("a_if.qasm"), "if statements are not supported by eq"},
+        {"eq " + f("comment.qasm") + " " + f("a.qasm") + " --loopsum", "while loops are not supported by eq"},
+    };
+    for (const auto& [args, expected] : rejected) {
+        auto [code, output] = run_cli(args);
+        BOOST_CHECK_MESSAGE(code == 1, args + ":\n" + output);
+        BOOST_CHECK_MESSAGE(output.find(expected) != std::string::npos, args + ":\n" + output);
+    }
+    auto [eq_code, eq_out] = run_cli("eq " + f("comment.qasm") + " " + f("comment.qasm"));
+    BOOST_CHECK_MESSAGE(eq_code == 0, eq_out);
+    BOOST_CHECK_MESSAGE(eq_out.find("[equal]") != std::string::npos, eq_out);
+    auto [ver_code, ver_out] = run_cli("ver " + f("pre.hsl") + " " + f("a.qasm") + " " + f("post.hsl"));
+    BOOST_CHECK_MESSAGE(ver_code == 0, ver_out);
+    BOOST_CHECK_MESSAGE(ver_out.find("The verification process [OK]") != std::string::npos, ver_out);
+    auto [ex_code, ex_out] = run_cli("ex " + f("pre.hsl") + " " + f("a.qasm"));
+    BOOST_CHECK_MESSAGE(ex_code == 0, ex_out);
+    BOOST_CHECK_MESSAGE(ex_out.find("[OK] The circuit execution satisfies the loop invariant.") != std::string::npos, ex_out);
+    auto [if_code, if_out] = run_cli("ex " + f("pre.hsl") + " " + f("a_if.qasm"));
+    BOOST_CHECK_MESSAGE(if_code == 0, if_out);
+    BOOST_CHECK_MESSAGE(if_out.find("not supported by eq") == std::string::npos, if_out);
+}

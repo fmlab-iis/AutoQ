@@ -991,3 +991,26 @@ BOOST_AUTO_TEST_CASE(intersection_of_sparse_colors_stays_idempotent)
         BOOST_CHECK_MESSAGE(A <<= I, name);
     }
 }
+
+// Too few invariants used to index off the end of the vector (#39).
+BOOST_AUTO_TEST_CASE(missing_while_invariant_is_an_error)
+{
+    std::string dir = test_dir_from_file(__FILE__, "testcase/EqWhile/");
+    auto missing = [](const AutoQError& e) {
+        return std::string(e.what()).find("No loop invariant provided for while loop") != std::string::npos;
+    };
+    AUTOQ::ConcreteAutomata bare = AUTOQ::ConcreteAutomata::basis(1);
+    BOOST_CHECK_EXCEPTION(bare.execute(dir + "a.qasm"), AutoQError, missing);
+
+    auto pre = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Concrete>::ReadAutomaton(dir + "pre.hsl");
+    auto inv = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Concrete>::ReadAutomaton(dir + "inv.hsl");
+    BOOST_CHECK_EXCEPTION(pre.execute(dir + "two.qasm", {}, {inv}), AutoQError, missing);
+
+    auto [autVec, qp] = AUTOQ::Parsing::TimbukParser<AUTOQ::Symbol::Concrete>::ReadTwoAutomata(
+        dir + "pre.hsl", dir + "post.hsl", dir + "a.qasm");
+    auto program = autVec.at(0);
+    auto spec = autVec.at(1);
+    autVec.erase(autVec.begin(), autVec.begin() + 2);
+    BOOST_CHECK(program.execute(dir + "a.qasm", qp, autVec));
+    BOOST_CHECK(program <<= spec);
+}

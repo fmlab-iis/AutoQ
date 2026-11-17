@@ -16,6 +16,8 @@
 #include <sys/wait.h>
 #include <unistd.h>
 #include <chrono>
+#include <cctype>
+#include <cstring>
 #include <iomanip>
 #include <regex>
 #include <fenv.h>
@@ -101,6 +103,59 @@ void print_loop_invariant_result(bool verify) {
                                   : "[ERROR] The circuit execution violates the loop invariant.");
 }
 
+bool is_word_at(const std::string& s, size_t i, const char* word) {
+    if (i > 0) {
+        const unsigned char prev = static_cast<unsigned char>(s[i - 1]);
+        if (std::isalnum(prev) || prev == '_')
+            return false;
+    }
+    const size_t n = std::strlen(word);
+    if (s.compare(i, n, word) != 0)
+        return false;
+    if (i + n < s.size()) {
+        const unsigned char c = static_cast<unsigned char>(s[i + n]);
+        if (std::isalnum(c) || c == '_')
+            return false;
+    }
+    return true;
+}
+
+// First if/while on one line, ignoring // comments. eq does not run either.
+const char* control_flow_on_line(const std::string& line) {
+    const char* found = nullptr;
+    size_t at = std::string::npos;
+    for (const char* word : {"if", "while"}) {
+        for (size_t i = 0; i < line.size(); ++i) {
+            if (i < at && is_word_at(line, i, word)) {
+                found = word;
+                at = i;
+                break;
+            }
+        }
+    }
+    return found;
+}
+
+const char* circuit_control_flow(const std::string& filename) {
+    std::ifstream file(filename);
+    if (!file.is_open())
+        THROW_AUTOQ_ERROR(std::string(EM::kOpenFilePrefix) + filename + ".");
+    std::string line;
+    while (std::getline(file, line)) {
+        if (const char* word = control_flow_on_line(AUTOQ::String::strip_line_comment(line)))
+            return word;
+    }
+    return nullptr;
+}
+
+void reject_eq_control_flow(const std::string& filename) {
+    const char* word = circuit_control_flow(filename);
+    if (word == nullptr)
+        return;
+    const std::string what = std::string(word) == "if" ? "if statements" : "while loops";
+    THROW_AUTOQ_ERROR(what + " are not supported by eq: \"" + filename + "\".");
+}
+
 void print_equivalence_result(bool result,
                                const chrono::steady_clock::time_point& start) {
     std::ostringstream oss;
@@ -146,6 +201,8 @@ static void run_equivalence(const std::string& circuit1, const std::string& circ
     int n2 = extract_qubit(circuit2);
     if (n2 == kExtractQubitError)
         THROW_AUTOQ_ERROR("Cannot extract qubit count from circuit: " + circuit2);
+    reject_eq_control_flow(circuit1);
+    reject_eq_control_flow(circuit2);
     AUTOQ::ConcreteAutomata aut = AUTOQ::ConcreteAutomata::prefix_basis(n1);
     AUTOQ::ConcreteAutomata aut2 = AUTOQ::ConcreteAutomata::prefix_basis(n2);
     aut.execute(circuit1, {}, {}, params);
