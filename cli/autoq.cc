@@ -120,21 +120,40 @@ bool is_word_at(const std::string& s, size_t i, const char* word) {
     return true;
 }
 
-// eq has no invariant argument. A while outside a // comment is rejected
-// before execute, which would index an empty invariant vector.
-bool circuit_contains_while(const std::string& filename) {
+// First if/while on one line, ignoring // comments. eq does not run either.
+const char* control_flow_on_line(const std::string& line) {
+    const char* found = nullptr;
+    size_t at = std::string::npos;
+    for (const char* word : {"if", "while"}) {
+        for (size_t i = 0; i < line.size(); ++i) {
+            if (i < at && is_word_at(line, i, word)) {
+                found = word;
+                at = i;
+                break;
+            }
+        }
+    }
+    return found;
+}
+
+const char* circuit_control_flow(const std::string& filename) {
     std::ifstream file(filename);
     if (!file.is_open())
         THROW_AUTOQ_ERROR(std::string(EM::kOpenFilePrefix) + filename + ".");
     std::string line;
     while (std::getline(file, line)) {
-        line = AUTOQ::String::strip_line_comment(line);
-        for (size_t i = 0; i < line.size(); ++i) {
-            if (is_word_at(line, i, "while"))
-                return true;
-        }
+        if (const char* word = control_flow_on_line(AUTOQ::String::strip_line_comment(line)))
+            return word;
     }
-    return false;
+    return nullptr;
+}
+
+void reject_eq_control_flow(const std::string& filename) {
+    const char* word = circuit_control_flow(filename);
+    if (word == nullptr)
+        return;
+    const std::string what = std::string(word) == "if" ? "if statements" : "while loops";
+    THROW_AUTOQ_ERROR(what + " are not supported by eq: \"" + filename + "\".");
 }
 
 void print_equivalence_result(bool result,
@@ -182,10 +201,8 @@ static void run_equivalence(const std::string& circuit1, const std::string& circ
     int n2 = extract_qubit(circuit2);
     if (n2 == kExtractQubitError)
         THROW_AUTOQ_ERROR("Cannot extract qubit count from circuit: " + circuit2);
-    if (circuit_contains_while(circuit1))
-        THROW_AUTOQ_ERROR("while loops are not supported by eq: \"" + circuit1 + "\".");
-    if (circuit_contains_while(circuit2))
-        THROW_AUTOQ_ERROR("while loops are not supported by eq: \"" + circuit2 + "\".");
+    reject_eq_control_flow(circuit1);
+    reject_eq_control_flow(circuit2);
     AUTOQ::ConcreteAutomata aut = AUTOQ::ConcreteAutomata::prefix_basis(n1);
     AUTOQ::ConcreteAutomata aut2 = AUTOQ::ConcreteAutomata::prefix_basis(n2);
     aut.execute(circuit1, {}, {}, params);

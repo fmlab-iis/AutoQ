@@ -72,6 +72,8 @@ else { // S_1 = {|1>/√2}
 
 `if`, `{`, `}`, and `else` are separate tokens. Blank lines may separate them, and `} else {` may also sit on one line. `else` is optional. Please refer to [this example](../benchmarks/all/control_mini/if-else) for its usage.
 
+`autoq eq` does not execute `if` statements. If either circuit contains an `if`, `eq` stops with an error. `ver` and `ex` still run these programs.
+
 ---
 
 ### # Looping (while)
@@ -113,7 +115,7 @@ while (outcome[0]) { // loop-invariant.hsl // I = {|0>/√2 + |1>/√2}
 
 Filepaths for specifying loop invariants are relative to the circuit file's location. Please refer to [this example](../benchmarks/all/control_mini/while) for its usage.
 
-`autoq eq` does not execute `while` loops. If either circuit contains a `while` statement, `eq` stops with an error. `ver` and `ex` still run these programs and read the invariant file named on the `while` line.
+`autoq eq` does not execute `while` loops either. If either circuit contains a `while` statement, `eq` stops with an error. `ver` and `ex` still run these programs and read the invariant file named on the `while` line.
 
 ---
 
