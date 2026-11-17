@@ -391,6 +391,8 @@ void AUTOQ::Automata<Symbol>::handle_while_loop_start(const std::string& line, c
     std::erase(while_measurement_guard, ' ');
     inWhileLoop = true;
     auto [pos, negate] = parse_measurement_guard(line, "while", var_is_measure_what_qubit);
+    if (loopInvariantCounter >= static_cast<int>(loopInvariants.size()))
+        THROW_AUTOQ_ERROR("No loop invariant provided for while loop: \"" + line + "\".");
     I = loopInvariants[loopInvariantCounter++];
     this->remove_useless();
     this->reduce();
