@@ -1,7 +1,42 @@
 #include "autoq/loop_summarization.hh"
 #include "autoq/aut_description.hh"
+#include "autoq/error.hh"
 #include "autoq/util/string.hh"
+#include <map>
 #include <queue>
+#include <type_traits>
+#include <utility>
+
+namespace {
+
+// tau stores numeric coefficients in front of symbolic_jR / symbolic_jI.
+// Concrete parts are already numbers; a symbolic part is an expression.
+template<typename Value>
+Value scale_by_coefficient(const AUTOQ::Complex::Complex& coefficient, const Value& part) {
+    if constexpr (std::is_same_v<Value, AUTOQ::Complex::Complex>) {
+        return coefficient * part;
+    } else {
+        Value result;
+        if (coefficient.isZero())
+            return result;
+        for (const auto& kv : part) {
+            auto scaled = kv.second * coefficient;
+            scaled.fraction_simplification();
+            // 1 coming back as {0, 1, 0, -1, 1} prints as "1/1 *", unlike Complex(1).
+            if (scaled.imag().isZero()) {
+                try {
+                    scaled = AUTOQ::Complex::Complex(scaled.to_rational());
+                } catch (const AutoQError&) {
+                }
+            }
+            if (!scaled.isZero())
+                result[kv.first] = scaled;
+        }
+        return result;
+    }
+}
+
+}  // namespace
 
 template<typename Symbol>
 AUTOQ::Automata<Symbol> symbolic_loop(const std::vector<std::string>& loop_body, AUTOQ::Automata<Symbol>& aut, const AUTOQ::QasmRegexes& re, int num_of_iterations, const std::vector<int>& qubit_permutation);
@@ -236,36 +271,29 @@ template<typename Symbol>
 Symbol eval_symbol( const AUTOQ::Symbol::Symbolic& symbol,
                     SymbolicMap& tau,
                     InverseAbstractionMap<Symbol>& symbolmap){
-    if constexpr(std::is_same_v<Symbol, AUTOQ::Symbol::Symbolic>) {
-        return symbol;
-    } else if constexpr (std::is_same_v<Symbol, AUTOQ::Symbol::Concrete>) {
-        std::map<AUTOQ::Complex::Term, AUTOQ::Complex::Complex> mapping;
-        for(auto& [sym, conc] : symbolmap){
-            for(auto& [term, complex] : sym.complex){
-                for(auto& [string, cppint] : term){
-                    if(string.back() == 'I'){
-                        // A variable v is encoded as vR + i·vI, so vI is the
-                        // real coefficient Im(x). imag() returns that coefficient.
-                        mapping[term] = conc.complex.imag();
-                    }
-                    else if(string.back() == 'R'){
-                        mapping[term] = conc.complex.real();
-                    }
-                    else{
-                        mapping[term] = AUTOQ::Complex::Complex(0);
-                    }
-                }
+    // A variable v is stored as vR + i·vI. imag() returns the real coefficient
+    // of the imaginary part, so substituting vR -> real(v) and vI -> imag(v)
+    // rebuilds v. The same substitution works for a number and for an expression (#23).
+    using Value = std::decay_t<decltype(std::declval<Symbol>().complex.real())>;
+    std::map<AUTOQ::Complex::Term, Value> mapping;
+    for(auto& [sym, conc] : symbolmap){
+        for(auto& [term, complex] : sym.complex){
+            for(auto& [string, cppint] : term){
+                if(string.back() == 'I')
+                    mapping[term] = conc.complex.imag();
+                else if(string.back() == 'R')
+                    mapping[term] = conc.complex.real();
+                else
+                    mapping[term] = Value();
             }
         }
-        AUTOQ::Symbol::Symbolic expression = tau[symbol];
-        AUTOQ::Complex::Complex sum(0);
-        for(auto& [term, complex] : expression.complex){
-            AUTOQ::Complex::Complex value = complex * mapping[term];
-            sum = sum + value;
-        }
-        return AUTOQ::Symbol::Concrete(sum);
     }
-    THROW_AUTOQ_ERROR("Symbol type conversion not supported");
+    AUTOQ::Symbol::Symbolic expression = tau[symbol];
+    Value sum{};
+    for(auto& [term, complex] : expression.complex){
+        sum = sum + scale_by_coefficient(complex, mapping[term]);
+    }
+    return Symbol(sum);
 }
 
 
